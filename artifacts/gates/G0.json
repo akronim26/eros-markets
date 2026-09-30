@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-09-30T19:02:29.677593+00:00",
-  "source_commit": "7c65d46a9f4d5958678c1cf12c0a4654fce7fdf6",
+  "recorded_at": "2026-09-30T20:12:22.996709+00:00",
+  "source_commit": "52521c8792b9cf1b389c28862152738e4a91ad01",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
