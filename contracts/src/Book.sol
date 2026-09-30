@@ -225,6 +225,7 @@ abstract contract Book {
 
     /// @notice The level at `tick` on one side; one read, used by the mark's depth filter.
     function getLevel(uint256 market, bool isBuy, uint16 tick) external view returns (Level memory) {
+        if (tick < MIN_TICK || tick > MAX_TICK) revert BadTick();
         return _openBook(market).levels[tick][isBuy ? BID : ASK];
     }
 
