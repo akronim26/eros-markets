@@ -30,3 +30,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B015 | lane-pass (stand-in QMath/MathTypes; scripted coverage in admission vectors) | d28cc5f | 0 | generated reference vectors (seed 20261001): 92 margin, 40 tail, 40 twap, 30 estimate, 30 bankruptcy, 60 stage, 81 admission; mutation check caught |
 | B016 | lane-pass (no A stand-in; CP-PRICE mocked by test signer) | a6243e1 | 0 | domain/signer/source/rules checks, strict sequence, observedAt order, future tolerance 0, delayed keeps observedAt; CP-PRICE live join BLOCKED |
 | B017 | lane-pass (no A stand-in) | 29a9b45 | 0 | INDEX/PERP/BASIS rings (1024, same-second replace, log-time queries); O(1) INVALID start/end checkpoints survive ring wrap |
+| B018 | lane-pass (epoch-opening hook called by test, A stand-in S-4) | 22bb490 | 0 | RiskContext (no cash/OI), bootstrap backed-only in index band, NORMAL only at epoch opening with all windows, halt overrides |
