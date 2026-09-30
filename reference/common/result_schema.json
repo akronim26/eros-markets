@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:eros:risk:result:1.0",
+  "title": "Risk task/gate evidence and exact fixture results",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "id", "scope", "spec_version", "economic_baseline", "interface_version", "recorded_at", "source_commit", "worktree_dirty", "toolchain", "seed", "python_hash_seed", "fixture_hashes", "components", "commands", "test_count", "skipped_count", "status", "exit_code", "reason", "checks", "artifacts"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"enum": ["task", "gate"]},
+    "id": {"type": "string", "pattern": "^(?:[AB](?:00[1-9]|0[1-3][0-9]|04[0-4])|G[0-7])$"},
+    "scope": {"enum": ["task_checks_only", "combined_technical_checks_only"]},
+    "spec_version": {"const": "1.1"},
+    "economic_baseline": {"const": "1.0"},
+    "interface_version": {"type": "string", "minLength": 1},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "source_commit": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "worktree_dirty": {"type": ["boolean", "null"]},
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python", "forge", "solc_declared", "foundry_profile", "dependency_status"],
+      "properties": {
+        "python": {"type": "string"},
+        "forge": {"type": ["string", "null"]},
+        "solc_declared": {"const": "0.8.30"},
+        "foundry_profile": {"const": "risk"},
+        "dependency_status": {"type": ["string", "null"]}
+      }
+    },
+    "seed": {"const": "0x45524f53"},
+    "python_hash_seed": {"const": "0"},
+    "fixture_hashes": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "components": {"type": "object", "additionalProperties": {"enum": ["real", "scripted_mock", "not_exercised", "missing"]}},
+    "commands": {"type": "array", "items": {"$ref": "#/$defs/command"}},
+    "test_count": {"type": "integer", "minimum": 0},
+    "skipped_count": {"type": "integer", "minimum": 0},
+    "status": {"enum": ["passed", "failed", "blocked", "checks_passed"]},
+    "exit_code": {"type": "integer", "minimum": 0},
+    "reason": {"type": "string"},
+    "checks": {"type": "array", "items": {"$ref": "#/$defs/fixtureResult"}},
+    "artifacts": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "accepted": {"const": false},
+    "merge_sha": {"type": "null"},
+    "reviewed_by": {"type": "array", "maxItems": 0}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"enum": ["passed", "checks_passed"]}}},
+      "then": {"properties": {"exit_code": {"const": 0}, "test_count": {"minimum": 1}, "skipped_count": {"const": 0}, "commands": {"minItems": 1}}},
+      "else": {"properties": {"exit_code": {"minimum": 1}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "gate"}}},
+      "then": {"required": ["accepted", "merge_sha", "reviewed_by"], "properties": {"id": {"pattern": "^G[0-7]$"}, "scope": {"const": "combined_technical_checks_only"}, "status": {"enum": ["checks_passed", "failed", "blocked"]}}},
+      "else": {"properties": {"id": {"pattern": "^[AB]"}, "scope": {"const": "task_checks_only"}, "status": {"enum": ["passed", "failed"]}}}
+    }
+  ],
+  "$defs": {
+    "integerString": {"type": "string", "pattern": "^(?:0|-?[1-9][0-9]*)$", "description": "Decimal string preserves integers beyond JavaScript's exact range; no floats or exponent notation."},
+    "rational": {
+      "type": "object", "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": {"$ref": "#/$defs/integerString"},
+        "denominator": {"type": "string", "pattern": "^[1-9][0-9]*$"}
+      },
+      "description": "An exact Fraction with positive denominator. Consumers compare by cross multiplication, never float conversion."
+    },
+    "interval": {
+      "type": "object", "additionalProperties": false,
+      "required": ["lower", "upper"],
+      "properties": {"lower": {"$ref": "#/$defs/rational"}, "upper": {"$ref": "#/$defs/rational"}},
+      "description": "Closed conservative interval. Consumers must additionally check lower <= upper."
+    },
+    "fixtureResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fixture_id", "unit", "derivation", "rounding", "comparison", "actual", "passed"],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "unit": {"enum": ["Q", "atoms", "lots", "WAD", "seconds", "Q/lot", "Q/lot/second", "dimensionless"]},
+        "derivation": {"type": "string", "minLength": 1},
+        "rounding": {"enum": ["exact", "floor", "ceil", "toward_zero", "outward_interval"]},
+        "comparison": {"enum": ["exact", "within_interval"]},
+        "actual": {"$ref": "#/$defs/rational"},
+        "expected": {"$ref": "#/$defs/rational"},
+        "expected_interval": {"$ref": "#/$defs/interval"},
+        "passed": {"type": "boolean"}
+      },
+      "oneOf": [
+        {"properties": {"comparison": {"const": "exact"}}, "required": ["expected"], "not": {"required": ["expected_interval"]}},
+        {"properties": {"comparison": {"const": "within_interval"}}, "required": ["expected_interval"], "not": {"required": ["expected"]}}
+      ]
+    },
+    "command": {
+      "type": "object", "additionalProperties": false,
+      "required": ["argv", "cwd", "exit_code", "execution", "output"],
+      "properties": {
+        "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "cwd": {"type": "string"},
+        "exit_code": {"type": "integer"},
+        "execution": {"enum": ["subprocess", "in_process_unittest_discovery"]},
+        "output": {"type": "string"}
+      }
+    }
+  }
+}
