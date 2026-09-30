@@ -1,0 +1,298 @@
+[
+  {
+    "id": "G0",
+    "after_wave": "W0",
+    "title": "Math contract frozen",
+    "coordinator": "A",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A001",
+      "A002",
+      "B001",
+      "B002"
+    ],
+    "inputs": "A units/types and runner; B function contracts, ownership and independently derived fixtures",
+    "integration_action": "Resolve unit/enum/domain differences, compile a shared pure-input smoke fixture, and commit one MathTypes/QMath signature version. Both pull this commit before algorithm implementation.",
+    "exit_criteria": "Units, fixture schema, pure function signatures, directed-rounding conventions and the owner map are identical on both worktrees. No vault/feed/engine implementation has started.",
+    "frozen_output": "G0 math contract and golden-fixture schema",
+    "pull_instructions": "Merge reviewed A and B W0 task commits to integration/w0; run bash scripts/check-gate.sh G0; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Review additional hand-derived boundary cases in your own fixture/test area; do not implement algorithms against unagreed types.",
+    "write_files": [
+      "contracts/test/gates/G0.t.sol",
+      "docs/contracts/G0.json",
+      "artifacts/gates/G0.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  },
+  {
+    "id": "G1",
+    "after_wave": "W1",
+    "title": "Reference engines and numeric primitives joined",
+    "coordinator": "B",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A003",
+      "A004",
+      "A005",
+      "A006",
+      "A007",
+      "A008",
+      "A009",
+      "B003",
+      "B004",
+      "B005",
+      "B006",
+      "B007",
+      "B008",
+      "B009"
+    ],
+    "inputs": "A rational ledger/coverage/funding/premium/payoff plus QMath; B high-precision risk/pricing/liquidation/clock references",
+    "integration_action": "Run one combined reference trace: paired trade, margin/admission, funding, premium, liquidation decision, and terminal payoff. Compare QMath with rational bounds; freeze its callable interface for the Solidity port.",
+    "exit_criteria": "One unified reference engine can calculate both sides of the fixture; no placeholder port remains in the combined reference run. QMath directed-bound tests pass.",
+    "frozen_output": "G1 reference outputs, QMath interface and math fixture hashes",
+    "pull_instructions": "Merge reviewed A and B W1 task commits to integration/w1; run bash scripts/check-gate.sh G1; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Prepare test cases and documentation for your own W2 library signatures; do not finalize a port against a QMath interface that G1 has not accepted.",
+    "write_files": [
+      "contracts/test/gates/G1.t.sol",
+      "docs/contracts/G1.json",
+      "artifacts/gates/G1.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  },
+  {
+    "id": "G2",
+    "after_wave": "W2",
+    "title": "MATH ENGINE COMPLETE",
+    "coordinator": "A",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A010",
+      "A011",
+      "A012",
+      "A013",
+      "A014",
+      "A015",
+      "B010",
+      "B011",
+      "B012",
+      "B013",
+      "B014",
+      "B015"
+    ],
+    "inputs": "A pure Solidity accounting libraries; B pure Solidity risk/pricing/lifecycle libraries and both differential reports",
+    "integration_action": "Compose real A and B pure libraries in the math harness. Run direct5x entry, short100-vs80 margin, all-prefix admission, reserve funding payer/receiver, neutral-touch premium, halt cutoffs and all payoff modes. Freeze stateful internal port schemas for W3.",
+    "exit_criteria": "The reference and pure Solidity engines agree exactly or within each declared conservative bound. No token/storage/network dependency appears in the math layer. Both approve the backend input/output port contracts. Stateful build is blocked until this gate passes.",
+    "frozen_output": "G2 math-engine fixture hashes and backend port contracts",
+    "pull_instructions": "Merge reviewed A and B W2 task commits to integration/w2; run bash scripts/check-gate.sh G2; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Add invariant/boundary cases or measure your own pure functions locally. Do not begin vaults, real feed ingress or stateful clearing before G2 passes.",
+    "write_files": [
+      "contracts/test/gates/G2.t.sol",
+      "docs/contracts/G2.json",
+      "artifacts/gates/G2.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  },
+  {
+    "id": "G3",
+    "after_wave": "W3",
+    "title": "Storage and risk context joined",
+    "coordinator": "B",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A016",
+      "A017",
+      "A018",
+      "A019",
+      "A020",
+      "A021",
+      "B016",
+      "B017",
+      "B018",
+      "B019",
+      "B020",
+      "B021"
+    ],
+    "inputs": "A real custody/ledger/coverage ports; B real observations/context plus scripted counterparts",
+    "integration_action": "Replace the A/B doubles in a combined harness: allocate collateral, compute a fresh context and margin from actual stored account values, exercise bootstrap and checked release decision. Freeze action/accrual/reservation delta contracts for W4.",
+    "exit_criteria": "Actual account snapshots and RiskContext use the same Q/lot/version cutoffs. Bootstrap has a valid startup path; guarded release cannot bypass the real risk decision. Book/oracle remain explicitly mocked.",
+    "frozen_output": "G3 real state/read ports, accrual/action ABI and book hooks",
+    "pull_instructions": "Merge reviewed A and B W3 task commits to integration/w3; run bash scripts/check-gate.sh G3; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Prepare own W4 unit fixtures and mocks against G2-frozen ports; any integration-dependent completion waits for G3. Do not change a peer-owned interface locally.",
+    "write_files": [
+      "contracts/test/gates/G3.t.sol",
+      "docs/contracts/G3.json",
+      "artifacts/gates/G3.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  },
+  {
+    "id": "G4",
+    "after_wave": "W4",
+    "title": "Trading with real accrual joined",
+    "coordinator": "A",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A022",
+      "A023",
+      "A024",
+      "A025",
+      "A026",
+      "A027",
+      "B022",
+      "B023",
+      "B024",
+      "B025",
+      "B026",
+      "B027"
+    ],
+    "inputs": "A funding, premium, account sync, rollover and clearing; B reservations, admission, book adapters and previews",
+    "integration_action": "Wire real A account-touch/posting into real B hook orchestration. Run rest\u2192maker touch\u2192paired fill\u2192fees\u2192coverage\u2192permit release, then epoch rollover, cancellation and withdrawal.",
+    "exit_criteria": "No scripted A/B peer port remains in trading tests. Each fill sees updated OI/cash/coverage; neutral premium touches agree; old epochs cannot release new reservations. Unexpected assertion rolls back all prior fills.",
+    "frozen_output": "G4 working trading engine and liquidation/freeze port contracts",
+    "pull_instructions": "Merge reviewed A and B W4 task commits to integration/w4; run bash scripts/check-gate.sh G4; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Work on additional own-module fuzz cases and W5 scenario inputs. A takeover or B liquidation implementation may be prepared only against the accepted previous interface, with completion held until G4.",
+    "write_files": [
+      "contracts/test/gates/G4.t.sol",
+      "docs/contracts/G4.json",
+      "artifacts/gates/G4.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  },
+  {
+    "id": "G5",
+    "after_wave": "W5",
+    "title": "Liquidation and freeze joined",
+    "coordinator": "B",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A028",
+      "A029",
+      "A030",
+      "A031",
+      "A032",
+      "A033",
+      "B028",
+      "B029",
+      "B030",
+      "B031",
+      "B032",
+      "B033"
+    ],
+    "inputs": "A takeover/fees/freeze/floor accounting; B stage/grace/eligibility/book-close/lifecycle",
+    "integration_action": "Run real pair reduction, bounded book reduction, NEEDS_MORE_WORK, authorized takeover, floor sweep and halt during every rollover-page state. Freeze snapshot and payout job port schemas for W6.",
+    "exit_criteria": "Small caller budget never causes positive-equity takeover. Both reserve sides and keeper liabilities remain correct; actual economicHaltAt is distinct from the shared accrual cutoff. No live mutation occurs inside a frozen sweep.",
+    "frozen_output": "G5 frozen snapshot/job interfaces and real liquidation traces",
+    "pull_instructions": "Merge reviewed A and B W5 task commits to integration/w5; run bash scripts/check-gate.sh G5; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Prepare your own W6 payout or finality edge-case vectors against G5-design schemas; do not finalize combined snapshot assumptions before the G5 version is merged.",
+    "write_files": [
+      "contracts/test/gates/G5.t.sol",
+      "docs/contracts/G5.json",
+      "artifacts/gates/G5.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  },
+  {
+    "id": "G6",
+    "after_wave": "W6",
+    "title": "Resolution-to-cash joined",
+    "coordinator": "A",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A034",
+      "A035",
+      "A036",
+      "A037",
+      "A038",
+      "A039",
+      "B034",
+      "B035",
+      "B036",
+      "B037",
+      "B038",
+      "B039"
+    ],
+    "inputs": "A frozen-ledger/payout/escrow/claims/reserve exits; B finality/INVALID/controller/readiness",
+    "integration_action": "Use real A settlement ledger with real B controllers through YES, NO and earlyINVALID. Vary pages and claim order; test fee fractions and LP redemption before remaining user claims.",
+    "exit_criteria": "Finality acceptance is constant work; claims wait for immutable price and complete allocation; retries are exactly once; all trader/fee/keeper/reserve Q stays classified. Conversion/recovery flags remain selected defaults.",
+    "frozen_output": "G6 end-to-end cash-settlement engine; frozen ABI for hardening",
+    "pull_instructions": "Merge reviewed A and B W6 task commits to integration/w6; run bash scripts/check-gate.sh G6; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Expand own completed settlement tests, documentation and gas fixtures. Do not produce a final all-module report using peer mocks.",
+    "write_files": [
+      "contracts/test/gates/G6.t.sol",
+      "docs/contracts/G6.json",
+      "artifacts/gates/G6.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  },
+  {
+    "id": "G7",
+    "after_wave": "W7",
+    "title": "Integrated handoff accepted",
+    "coordinator": "B",
+    "reviewers": [
+      "A",
+      "B"
+    ],
+    "effort_points_each": 2,
+    "depends_on": [
+      "A040",
+      "A041",
+      "A042",
+      "A043",
+      "A044",
+      "B040",
+      "B041",
+      "B042",
+      "B043",
+      "B044"
+    ],
+    "inputs": "A accounting invariants/gas/custody evidence and review; B lifecycle/counterpart/gas/SDK evidence and review",
+    "integration_action": "Run both campaigns from one clean merged commit, resolve cross-review findings through the owning developer, and assemble release/counterpart status. Both pull and replay the final commit.",
+    "exit_criteria": "Local end-to-end tests use real A+B modules and complete evidence. Real external counterpart integration is explicitly PASS or BLOCKED_BY_COUNTERPART with mock status; only a real pass clears the live join. Calibration/audit/deployment remain distinct release gates.",
+    "frozen_output": "G7 release manifest and real-vs-mock counterpart status",
+    "pull_instructions": "Merge reviewed A and B W7 task commits to integration/w7; run bash scripts/check-gate.sh G7; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "safe_while_waiting": "Fix findings in your owned modules and rerun affected suites; do not weaken invariants or report mock-only counterpart success as real integration.",
+    "write_files": [
+      "contracts/test/gates/G7.t.sol",
+      "docs/contracts/G7.json",
+      "artifacts/gates/G7.json"
+    ],
+    "status": "not_started",
+    "merge_sha": null
+  }
+]
