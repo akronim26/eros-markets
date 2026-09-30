@@ -10,6 +10,18 @@ Branch `feat/risk`. Solo mode (see `B-assumptions.md` P-1). Status words:
 
 Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, output tail).
 
+## Resume notes (keep current)
+
+- Next task: see the last row below; blocks done so far have `B-checkpoint-Gn.md`.
+- Composition used by B tests: `OrderLifecycle` (-> BookRiskAdapter -> OrderAdmission ->
+  {MonitorPolicy -> RiskContextPort + SourceGuards -> RiskPricing -> ObservationStore ->
+  PriceIngress}, OrderRisk -> provisional IAccountingPort) + `MockBookAdapter` +
+  `MockAccountingPort`. Test engines: `TradeEngine` (B024.t.sol), `SeamEngine` (BookSeam.t.sol).
+- Fixture market: `ListingFixture.make` (B019.t.sol) with `scheduledT = L0 + 29d12h`, act at
+  `L0 + 12h`, index 0.60, perp 0.59/0.61, cap 5; `RiskFixture.profile(cap, calibrated)` (B011.t.sol).
+- Evidence/commit helper: `provisional/scripts/b-task.sh <TASK> "<subject>" "<status>" "<notes>" -- '<cmd>'`.
+- Run `forge fmt` only on B paths (P-6).
+
 | Task | Status | Task commit | Acceptance command exit | Notes |
 |---|---|---|---|---|
 | B001 | lane-pass (pure) | 2f94023 | 0 | 31 function contracts, ownership map (240 files, no duplicate writer), counterpart doc |
