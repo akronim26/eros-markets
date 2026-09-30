@@ -169,6 +169,25 @@ abstract contract Book {
         return _place(_openBook(market), market, _traderOf(msg.sender), p, false);
     }
 
+    /// @notice Requote in one call: every cancel first, then the places in order. Cancelling an
+    ///         order that already filled or was cancelled does nothing, and a crossing post-only
+    ///         order is skipped with id 0, so a fill landing between a bot's read and its requote
+    ///         never reverts the batch.
+    function batch(uint256 market, uint32[] calldata cancels, Place[] calldata places)
+        external
+        returns (uint32[] memory ids)
+    {
+        BookState storage b = _openBook(market);
+        uint32 trader = _traderOf(msg.sender);
+        for (uint256 i; i < cancels.length; ++i) {
+            _cancelOwn(b, market, trader, cancels[i]);
+        }
+        ids = new uint32[](places.length);
+        for (uint256 i; i < places.length; ++i) {
+            ids[i] = _place(b, market, trader, places[i], true);
+        }
+    }
+
     /// @notice Cancel a live order owned by the caller. Reverts if it is no longer live.
     function cancel(uint256 market, uint32 id) external {
         if (!_cancelOwn(_openBook(market), market, traderId[msg.sender], id)) revert NotLive();
