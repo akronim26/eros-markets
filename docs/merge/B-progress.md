@@ -17,3 +17,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B003 | lane-pass (pure) | 41106fc | 0 | exact horizon, directed sqrt, step-up envelope; nonmonotone bins rejected; running-max conversion |
 | B004 | lane-pass (pure) | 331b7bb | 0 | linear hazard bound, eps', k interval, adverse drift >= source drift |
 | B005 | lane-pass (pure) | d040ae3 | 0 | long IM 120, short IM 95.8937, 80 fails/100 passes, missing calibration 1x, monotone proof + grids |
+| B006 | lane-pass (scripted A coverage port) | 789ed4d | 0 | Emin lower bound, reach envelope, halving cap; enumeration of fill mixtures; hump + sign flip; coverage via scripted port (S-1) |
