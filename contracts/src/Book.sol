@@ -37,11 +37,37 @@ abstract contract Book {
     ///      never reissued and a stale cancel can never hit a newer order.
     uint8 internal constant MAX_GEN = type(uint8).max;
 
+    /// @notice Protocol bound on orders examined per taker order; the UI requests about 8.
+    uint256 public constant MAX_FILLS = 64;
+
+    enum OrderType {
+        LIMIT, // match, then rest the remainder
+        IOC, // match, then drop the remainder
+        POST_ONLY // never match; rest or reject
+    }
+
     enum CancelReason {
         USER,
         SELF_TRADE, // resting order hit by its own owner
         FAILED_CHECK, // Clearing refused the maker fill
         CLIPPED // reduce-only maker exhausted its reducible size
+    }
+
+    struct Place {
+        OrderType kind;
+        bool isBuy;
+        bool reduceOnly;
+        uint16 tick;
+        uint96 size;
+        uint8 maxFills; // orders the match may examine, counting self-trades and failed makers
+    }
+
+    /// @dev Per-transaction taker context handed to Clearing's hooks.
+    struct Ctx {
+        uint256 market;
+        uint32 taker;
+        bool takerBuys;
+        uint8 flags;
     }
 
     // ------------------------------------------------------------------ storage
@@ -90,6 +116,14 @@ abstract contract Book {
         uint8 flags
     );
     event OrderCancelled(uint256 indexed market, uint32 indexed id, uint96 size, CancelReason reason);
+    event Fill(
+        uint256 indexed market,
+        uint32 indexed makerOrder,
+        uint32 maker,
+        uint32 taker,
+        uint16 tick,
+        uint96 size
+    );
 
     // ------------------------------------------------------------------ errors
 
@@ -98,8 +132,29 @@ abstract contract Book {
     error NotLive();
     error NotOwner();
     error BookFull();
+    error BadTick();
+    error BadSize();
+    error BadMaxFills();
+    error PostOnlyCrosses();
 
     // ------------------------------------------------------------------ Clearing hooks
+
+    /// @dev Load the taker and settle its funding once; returns the size it may trade
+    ///      (a reduce-only taker is clipped to its position here).
+    function _takerStart(Ctx memory c, uint96 size) internal virtual returns (uint96 allowed);
+
+    /// @dev Check and update the maker. 0 = failed check (the order is cancelled);
+    ///      less than `size` = reduce-only clip (the rest of the order is cancelled).
+    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16 tick, uint96 size, uint8 flags)
+        internal
+        virtual
+        returns (uint96 filled);
+
+    /// @dev Taker side of one fill; memory only.
+    function _takerFill(Ctx memory c, bool takerBuys, uint16 tick, uint96 size) internal virtual;
+
+    /// @dev Final taker checks and the single account write; reverts on failure.
+    function _takerDone(Ctx memory c) internal virtual;
 
     /// @dev Resting-order margin (R_buy, R_sell): `size` units started resting.
     function _onRest(uint256 market, uint32 trader, bool isBuy, uint16 tick, uint96 size) internal virtual;
@@ -108,6 +163,11 @@ abstract contract Book {
     function _onUnrest(uint256 market, uint32 trader, bool isBuy, uint96 size) internal virtual;
 
     // ------------------------------------------------------------------ external
+
+    /// @notice Place one order. Returns the resting order's id, or 0 if nothing rests.
+    function placeOrder(uint256 market, Place calldata p) external returns (uint32 id) {
+        return _place(_openBook(market), market, _traderOf(msg.sender), p, false);
+    }
 
     /// @notice Cancel a live order owned by the caller. Reverts if it is no longer live.
     function cancel(uint256 market, uint32 id) external {
@@ -132,6 +192,107 @@ abstract contract Book {
         BookState storage b = _openBook(market);
         (uint32 s, bool live) = _liveSlot(b, id);
         if (live) o = b.orders[s];
+    }
+
+    // ------------------------------------------------------------------ place
+
+    /// @dev In a batch a crossing post-only order returns 0 instead of reverting.
+    function _place(BookState storage b, uint256 market, uint32 trader, Place calldata p, bool inBatch)
+        internal
+        returns (uint32 id)
+    {
+        if (p.tick < MIN_TICK || p.tick > MAX_TICK) revert BadTick();
+        if (p.size == 0) revert BadSize();
+        if (p.maxFills > MAX_FILLS) revert BadMaxFills();
+        uint8 flags = (p.isBuy ? FLAG_BUY : 0) | (p.reduceOnly ? FLAG_REDUCE_ONLY : 0);
+
+        if (p.kind == OrderType.POST_ONLY) {
+            if (_crosses(b, p.isBuy, p.tick)) {
+                if (inBatch) return 0;
+                revert PostOnlyCrosses();
+            }
+            return _rest(b, market, trader, p.tick, p.size, flags);
+        }
+
+        Ctx memory c = Ctx(market, trader, p.isBuy, flags);
+        uint96 want = _takerStart(c, p.size);
+        if (want > p.size) want = p.size;
+        want = _match(b, c, p.tick, want, p.maxFills);
+        _takerDone(c);
+        // If maxFills ran out while the book still crosses the limit, the remainder is dropped:
+        // resting it would leave best bid >= best ask (INV-8).
+        if (p.kind == OrderType.LIMIT && want != 0 && !_crosses(b, p.isBuy, p.tick)) {
+            id = _rest(b, market, trader, p.tick, want, flags);
+        }
+    }
+
+    function _crosses(BookState storage b, bool isBuy, uint16 tick) internal view returns (bool) {
+        if (isBuy) {
+            uint16 ask = _bestAsk(b);
+            return ask != NONE && ask <= tick;
+        }
+        uint16 bid = _bestBid(b);
+        return bid != NONE && bid >= tick;
+    }
+
+    // ------------------------------------------------------------------ match
+
+    /// @dev Walks the opposite side best price first, oldest first, examining at most `maxFills`
+    ///      orders. Self-trades and failed makers are cancelled and still count as a step, so
+    ///      gas stays bounded whatever sits at the touch. Returns the unfilled size.
+    function _match(BookState storage b, Ctx memory c, uint16 limit, uint96 want, uint256 maxFills)
+        internal
+        returns (uint96)
+    {
+        uint256 steps;
+        while (want != 0 && steps < maxFills) {
+            uint16 k = c.takerBuys ? _bestAsk(b) : _bestBid(b);
+            if (k == NONE || (c.takerBuys ? k > limit : k < limit)) break;
+            // A partly filled maker stays at the head only when `want` hit zero, which ends both
+            // loops, so walking on to `next` after every step is safe.
+            for (
+                uint32 s = b.levels[k][c.takerBuys ? ASK : BID].head;
+                s != 0 && want != 0 && steps < maxFills;
+
+            ) {
+                uint32 next = b.orders[s].next;
+                want -= _step(b, c, s, k, want); // a hook overfill underflows here and reverts
+                ++steps;
+                s = next;
+            }
+        }
+        return want;
+    }
+
+    /// @dev Examines the order in slot `s` at tick `k` and returns the units filled.
+    function _step(BookState storage b, Ctx memory c, uint32 s, uint16 k, uint96 want)
+        internal
+        returns (uint96 filled)
+    {
+        Order storage o = b.orders[s];
+        uint32 maker = o.owner;
+        if (maker == c.taker) {
+            _cancel(b, c.market, s, CancelReason.SELF_TRADE);
+            return 0;
+        }
+        uint96 size = o.size;
+        uint96 req = want < size ? want : size;
+        filled = _makerFill(c, maker, !c.takerBuys, k, req, o.flags);
+        if (filled == 0) {
+            _cancel(b, c.market, s, CancelReason.FAILED_CHECK);
+            return 0;
+        }
+        _takerFill(c, c.takerBuys, k, filled);
+        emit Fill(c.market, _id(s, o.gen), maker, c.taker, k, filled);
+        if (filled == size) {
+            _unlink(b, s);
+        } else {
+            o.size = size - filled;
+            b.levels[k][c.takerBuys ? ASK : BID].size -= filled;
+        }
+        _onUnrest(c.market, maker, !c.takerBuys, filled);
+        // Reduce-only maker clipped: nothing more of it can fill.
+        if (filled < req) _cancel(b, c.market, s, CancelReason.CLIPPED);
     }
 
     // ------------------------------------------------------------------ rest / cancel
