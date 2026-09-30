@@ -30,6 +30,24 @@ library HorizonMath {
         return h0Secs + queueSecs + QMath.divUp(absLots * 60, 1000 * absorptionClaimsPerMin);
     }
 
+    /// @notice Same horizon in wad-seconds (1e18 = 1 s), rounded up. The margin kernel uses this so
+    ///         sub-second closeout time is not inflated to a whole second.
+    function horizonWadUp(uint256 absLots, uint256 h0Secs, uint256 absorptionClaimsPerMin, uint256 queueSecs)
+        internal
+        pure
+        returns (uint256)
+    {
+        if (absorptionClaimsPerMin == 0) revert BadUnits();
+        return (h0Secs + queueSecs) * WAD + QMath.divUp(absLots * 60 * WAD, 1000 * absorptionClaimsPerMin);
+    }
+
+    /// @notice sigmaTheoryUp with the horizon in wad-seconds.
+    function sigmaTheoryUpWad(uint256 qWad, uint256 hWad, uint256 secsToT) internal pure returns (uint256) {
+        if (qWad == 0 || qWad >= WAD) revert PriceNotInterior();
+        uint256 rad = QMath.mulDivUp(qWad * (WAD - qWad), hWad, (secsToT == 0 ? 1 : secsToT) * WAD);
+        return QMath.min(QMath.sqrtUp(rad), WAD);
+    }
+
     /// @notice min(1, sqrt(q(1-q) h / max(T-t, 1s))) rounded up, in wad.
     function sigmaTheoryUp(uint256 qWad, uint256 hSecs, uint256 secsToT) internal pure returns (uint256) {
         if (qWad == 0 || qWad >= WAD) revert PriceNotInterior();

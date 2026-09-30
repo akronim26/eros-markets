@@ -57,6 +57,19 @@ contract B010Test is Test {
         assertEq(HorizonMath.horizonSecsUp(1_000_000, 300, 1000, 45), 405); // queued closeout
     }
 
+    function test_wadHorizonVariants() public pure {
+        assertEq(HorizonMath.horizonWadUp(1_000_000, 300, 1000, 0), 360e18);
+        assertEq(HorizonMath.horizonWadUp(1, 300, 1000, 0), 300e18 + 6e16); // 0.06 s kept
+        assertEq(HazardMath.hazardUpWad(1e14, 360e18), HazardMath.hazardUp(1e14, 360));
+        assertEq(
+            HorizonMath.sigmaTheoryUpWad(6e17, 360e18, 2505600), HorizonMath.sigmaTheoryUp(6e17, 360, 2505600)
+        );
+        assertLe(
+            HorizonMath.sigmaTheoryUpWad(6e17, 300e18 + 6e16, 2505600),
+            HorizonMath.sigmaTheoryUp(6e17, 301, 2505600)
+        );
+    }
+
     function test_maxPositionHorizonNoOverflow() public pure {
         uint256 h = HorizonMath.horizonSecsUp(1 << 40, 300, 1000, 0);
         // exact 300 + 2^40 * 60 / (1000 * 1000) = 300 + 65,970,697.67 -> 65,970,998

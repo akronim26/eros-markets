@@ -87,3 +87,8 @@ open questions for Person A, the counterpart teams or the spec owner.
   margin's worst-loss cap then yields full backing.
 - **T-1 (B010, B015) Differential tolerance.** Solidity upper bounds must be `>=` the reference
   upper bracket and exceed it by at most `max(1e3 wad, 1e-12 relative)`.
+- **M-8 (B011, fix to B010 files) Sub-second horizon.** Integer-second rounding of h inflated
+  small-size MM by up to ~0.16% (conservative, but outside tolerance T-1). The margin kernel now
+  carries h in wad-seconds (`horizonWadUp`, `hazardUpWad`, `sigmaTheoryUpWad`); empirical bins are
+  looked up at `ceil(h)` seconds (step-up, still conservative). `horizonSecsUp` stays for callers
+  that need whole seconds.
