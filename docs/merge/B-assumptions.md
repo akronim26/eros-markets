@@ -163,3 +163,11 @@ open questions for Person A, the counterpart teams or the spec owner.
 - **M-13 (B021) Movement restriction lifetime.** The 0.10/300 s trigger sets reduce-only until the
   pinned monitor clears it (`clearReduceOnly`, "failed early check restores trading"). The spec
   does not give an automatic expiry. ASSUMPTION.
+- **S-8 (B023) Trading fee cap.** `_feeCapQ(lots, tick)` returns 0 (DEC-11 initial profile). The
+  worst-limit fee commitment formula is A's FeeMath (A013); at merge override `_feeCapQ` with it.
+- **M-14 (B023) Reduce-only admission.** A reduce-only taker is clipped to `|x|` (side must oppose
+  the position) and admitted in `VOLUNTARY_REDUCTION` mode iff market coverage holds and neither
+  order-aware endpoint deficit rises versus the current commitment set; IM is not required
+  (spec §4.3 allows reductions below IM). `FORCED_REDUCTION` is never reachable from user input.
+- **M-15 (B023) Bootstrap / final-day admission** uses the exact predicate `d0 == 0 && d1 == 0`
+  on the whole commitment set (plus the index band in BOOTSTRAP), via the same halving search.
