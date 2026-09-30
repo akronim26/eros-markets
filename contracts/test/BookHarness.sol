@@ -27,12 +27,24 @@ contract BookHarness is Book {
     bool public rejectTaker;
     uint256 public takerDoneCalls;
 
+    /// @dev Stand-in for Clearing's snapshot: loaded in _takerStart, echoed by later hooks.
+    uint256 public snapshotMark = 555;
+    uint256 public makerSawMark;
+    uint256 public takerFillSawMark;
+    uint96 public doneFilled;
+    uint256 public doneCost;
+    uint256 public doneSawMark;
+
     function setPosition(uint256 market, uint32 trader, int256 pos) external {
         position[market][trader] = pos;
     }
 
     function setFailMaker(uint32 trader, bool fail) external {
         failMaker[trader] = fail;
+    }
+
+    function setSnapshotMark(uint256 mark) external {
+        snapshotMark = mark;
     }
 
     function setRejectTaker(bool reject) external {
@@ -50,6 +62,7 @@ contract BookHarness is Book {
     }
 
     function _takerStart(Ctx memory c, uint96 size) internal view override returns (uint96) {
+        c.risk.mark = snapshotMark;
         if (c.flags & FLAG_REDUCE_ONLY == 0) return size;
         uint256 r = _reducible(c.market, c.taker, c.takerBuys);
         return r < size ? uint96(r) : size;
@@ -60,6 +73,7 @@ contract BookHarness is Book {
         override
         returns (uint96 filled)
     {
+        makerSawMark = c.risk.mark;
         if (failMaker[maker]) return 0;
         filled = size;
         if (flags & FLAG_REDUCE_ONLY != 0) {
@@ -70,12 +84,14 @@ contract BookHarness is Book {
     }
 
     function _takerFill(Ctx memory c, bool takerBuys, uint16, uint96 size) internal override {
+        takerFillSawMark = c.risk.mark;
         _apply(c.market, c.taker, takerBuys, size);
     }
 
-    function _takerDone(Ctx memory) internal override {
+    function _takerDone(Ctx memory c) internal override {
         if (rejectTaker) revert TakerRejected();
         ++takerDoneCalls;
+        (doneFilled, doneCost, doneSawMark) = (c.filled, c.cost, c.risk.mark);
     }
 
     // ------------------------------------------------------------------ hooks

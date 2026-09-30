@@ -2,6 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {LibBit} from "solady/utils/LibBit.sol";
+import {RiskSnapshot} from "./RiskSnapshot.sol";
 
 /// @title Book
 /// @notice Fully on-chain price-time CLOB over the 999 ticks 0.001 .. 0.999 (design spec §9).
@@ -62,12 +63,15 @@ abstract contract Book {
         uint8 maxFills; // orders the match may examine, counting self-trades and failed makers
     }
 
-    /// @dev Per-transaction taker context handed to Clearing's hooks.
+    /// @dev Per-order taker context handed to every Clearing hook of that order.
     struct Ctx {
         uint256 market;
         uint32 taker;
         bool takerBuys;
         uint8 flags;
+        uint96 filled; // Book-maintained: taker units filled so far
+        uint256 cost; // Book-maintained: sum of fill size x tick (units of 0.001 USDC)
+        RiskSnapshot risk; // Clearing-owned; Book never reads it
     }
 
     // ------------------------------------------------------------------ storage
@@ -150,10 +154,11 @@ abstract contract Book {
         virtual
         returns (uint96 filled);
 
-    /// @dev Taker side of one fill; memory only.
+    /// @dev Taker side of one fill; memory only. `c.filled` and `c.cost` already include it.
     function _takerFill(Ctx memory c, bool takerBuys, uint16 tick, uint96 size) internal virtual;
 
-    /// @dev Final taker checks and the single account write; reverts on failure.
+    /// @dev Final taker checks and the single account write; reverts on failure. `c.filled` and
+    ///      `c.cost` hold the order's totals.
     function _takerDone(Ctx memory c) internal virtual;
 
     /// @dev Resting-order margin (R_buy, R_sell): `size` units started resting.
@@ -233,7 +238,8 @@ abstract contract Book {
             return _rest(b, market, trader, p.tick, p.size, flags);
         }
 
-        Ctx memory c = Ctx(market, trader, p.isBuy, flags);
+        Ctx memory c;
+        (c.market, c.taker, c.takerBuys, c.flags) = (market, trader, p.isBuy, flags);
         uint96 want = _takerStart(c, p.size);
         if (want > p.size) want = p.size;
         want = _match(b, c, p.tick, want, p.maxFills);
@@ -301,6 +307,8 @@ abstract contract Book {
             _cancel(b, c.market, s, CancelReason.FAILED_CHECK);
             return 0;
         }
+        c.filled += filled;
+        c.cost += uint256(filled) * k;
         _takerFill(c, c.takerBuys, k, filled);
         emit Fill(c.market, _id(s, o.gen), maker, c.taker, k, filled);
         if (filled == size) {
