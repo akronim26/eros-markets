@@ -54,15 +54,15 @@ library LifecycleMath {
         uint64 anchor; // effectiveAt of the risk epoch where the deficiency was first seen
     }
 
-    /// @notice Strongest restriction wins; boundaries inclusive. `economicHaltAt == 0` = no early halt.
+    /// @notice Strongest restriction wins; boundaries inclusive. `haltAt == 0` = no early halt.
     function deriveStage(
         uint256 nowTs,
         uint256 scheduledT,
-        uint256 economicHaltAt,
+        uint256 haltAt,
         bool monitorRestricted,
         bool claimsReady
     ) internal pure returns (StageView memory v) {
-        v.halted = nowTs >= scheduledT || (economicHaltAt != 0 && nowTs >= economicHaltAt);
+        v.halted = nowTs >= scheduledT || (haltAt != 0 && nowTs >= haltAt);
         uint256 toT = scheduledT > nowTs ? scheduledT - nowTs : 0;
         bool floor = toT <= FLOOR_START;
         bool grace = toT <= GRACE_START;
