@@ -28,3 +28,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B013 | lane-pass (stand-in QMath) | 8afb4d7 | 0 | array + cumulative TWAP (fuzz-equal), same-second dedupe, gaps, all median orderings, band, trunc0 rate, movement |
 | B014 | lane-pass (stand-in QMath/MathTypes) | 23956bc | 0 | takeover has no work input; estimate 522929-30 vs ref 522929; bankruptcy/fee waiver; stage boundaries; early INVALID; finality |
 | B015 | lane-pass (stand-in QMath/MathTypes; scripted coverage in admission vectors) | d28cc5f | 0 | generated reference vectors (seed 20261001): 92 margin, 40 tail, 40 twap, 30 estimate, 30 bankruptcy, 60 stage, 81 admission; mutation check caught |
+| B016 | lane-pass (no A stand-in; CP-PRICE mocked by test signer) | a6243e1 | 0 | domain/signer/source/rules checks, strict sequence, observedAt order, future tolerance 0, delayed keeps observedAt; CP-PRICE live join BLOCKED |
