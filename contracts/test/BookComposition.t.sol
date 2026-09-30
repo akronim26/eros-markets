@@ -21,8 +21,8 @@ abstract contract MarketsModule is Book {
 
     mapping(uint256 => Stage) public stageOf;
 
-    function createMarket(uint256 market) external {
-        _initBook(market);
+    function createMarket(uint256 market, uint8 maxFills) external {
+        _initBook(market, maxFills);
     }
 
     function setStage(uint256 market, Stage s) external {
@@ -103,13 +103,14 @@ contract ComposedCore is MarketsModule, ClearingModule, PricingModule, Liquidati
 
 contract BookCompositionTest is Test {
     ComposedCore core;
+    uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
     uint256 constant M = 7;
     address alice = makeAddr("alice"); // trader 1
     address bob = makeAddr("bob"); // trader 2
 
     function setUp() public {
         core = new ComposedCore();
-        core.createMarket(M);
+        core.createMarket(M, MAX_FILLS);
     }
 
     function _place(address who, Book.OrderType kind, bool isBuy, uint16 tick, uint96 size)

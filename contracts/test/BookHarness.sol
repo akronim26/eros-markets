@@ -8,8 +8,12 @@ contract BookHarness is Book {
     /// @dev Resting units per (market, trader, isBuy), maintained by the rest/unrest hooks.
     mapping(uint256 => mapping(uint32 => mapping(bool => uint256))) public reserved;
 
-    function createMarket(uint256 market) external {
-        _initBook(market);
+    function createMarket(uint256 market, uint8 maxFills) external {
+        _initBook(market, maxFills);
+    }
+
+    function setMaxFills(uint256 market, uint8 maxFills) external {
+        _setMaxFills(market, maxFills);
     }
 
     /// @dev Rests an order without matching (placement lands with the match loop).
@@ -167,7 +171,9 @@ contract BookHarness is Book {
                 require(word & SENTINEL != 0, "sentinel cleared");
                 require(word & ~(SENTINEL | TICK_MASK) == 0, "stray high bit");
             }
-            require(b.bits[side][3] & (1 << 249) == 0, "tick 1000 bit set");
+            // Bits for ticks past MAX_TICK in the last word must never be set.
+            uint256 used = (MAX_TICK - 1) % TICKS_PER_WORD + 1;
+            require(b.bits[side][WORDS - 1] & TICK_MASK & ~((1 << used) - 1) == 0, "bit past MAX_TICK set");
             for (uint16 k = MIN_TICK; k <= MAX_TICK; ++k) {
                 Level storage lv = b.levels[k][side];
                 uint256 i = k - 1;

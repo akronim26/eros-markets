@@ -10,6 +10,7 @@ import {BookHarness} from "./BookHarness.sol";
 ///         best prices and positions after every operation (spec §9.11 item 5).
 contract BookDifferentialTest is Test {
     BookHarness book;
+    uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
     uint256 constant M = 1;
     uint32 constant FAILING = 3; // this trader's maker fills always fail the Clearing check
     address[4] actors;
@@ -37,7 +38,7 @@ contract BookDifferentialTest is Test {
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M);
+        book.createMarket(M, MAX_FILLS);
         for (uint256 i; i < 4; ++i) {
             actors[i] = makeAddr(string.concat("t", vm.toString(i)));
             vm.prank(actors[i]);
@@ -142,7 +143,7 @@ contract BookDifferentialTest is Test {
         p.maxFills = uint8((seed >> 56) % 7);
     }
 
-    function _bookFills() internal returns (Fill[] memory out) {
+    function _bookFills() internal view returns (Fill[] memory out) {
         Vm.Log[] memory logs = vm.getRecordedLogs();
         uint256 n;
         for (uint256 i; i < logs.length; ++i) {

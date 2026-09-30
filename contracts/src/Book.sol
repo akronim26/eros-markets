@@ -12,14 +12,19 @@ import {RiskSnapshot} from "./RiskSnapshot.sol";
 abstract contract Book {
     // ------------------------------------------------------------------ constants
 
+    // The tick grid is a locked design decision (ticks of 0.001, prices 0.001 .. 0.999) and the
+    // storage layout below is sized from it, so it is compile-time; everything else derives from it.
     uint16 internal constant MIN_TICK = 1;
     uint16 internal constant MAX_TICK = 999;
     /// @dev Returned by best-price lookups for an empty side; never a valid tick.
     uint16 internal constant NONE = 0;
 
+    /// @dev Tick bits per bitmap word; below 256 so the top bit is free for the sentinel.
     uint256 internal constant TICKS_PER_WORD = 250;
-    uint256 internal constant WORDS = 4;
-    /// @dev Bit 255 of every bitmap word stays set so the word never returns to zero.
+    uint256 internal constant WORDS = (MAX_TICK + TICKS_PER_WORD - 1) / TICKS_PER_WORD;
+    /// @dev levels[] is indexed by tick directly; index 0 is unused.
+    uint256 internal constant LEVELS = MAX_TICK + 1;
+    /// @dev The top bit of every bitmap word stays set so the word never returns to zero.
     uint256 internal constant SENTINEL = 1 << 255;
     uint256 internal constant TICK_MASK = (1 << TICKS_PER_WORD) - 1;
 
@@ -37,9 +42,6 @@ abstract contract Book {
     /// @dev A slot whose generation reached this value is retired instead of recycled, so an id is
     ///      never reissued and a stale cancel can never hit a newer order.
     uint8 internal constant MAX_GEN = type(uint8).max;
-
-    /// @notice Protocol bound on orders examined per taker order; the UI requests about 8.
-    uint256 public constant MAX_FILLS = 64;
 
     enum OrderType {
         LIMIT, // match, then rest the remainder
@@ -100,7 +102,8 @@ abstract contract Book {
     struct BookState {
         uint256[WORDS][2] bits; // [ASK|BID][word]; tick k -> word (k-1)/250, bit (k-1)%250
         uint32 freeHead; // top of the free-slot stack
-        Level[2][1000] levels; // [tick][ASK|BID]: a tick's two sides share a page
+        uint8 maxFills; // per-market bound on orders a taker may examine; shares freeHead's slot
+        Level[2][LEVELS] levels; // [tick][ASK|BID]: a tick's two sides share a page
         Order[] orders; // index = slot; slot 0 = null
     }
 
@@ -113,6 +116,7 @@ abstract contract Book {
     // ------------------------------------------------------------------ events
 
     event TraderRegistered(address indexed account, uint32 indexed trader);
+    event MaxFillsSet(uint256 indexed market, uint8 maxFills);
     event OrderPlaced(
         uint256 indexed market,
         uint32 indexed id,
@@ -229,6 +233,11 @@ abstract contract Book {
         return _openBook(market).levels[tick][isBuy ? BID : ASK];
     }
 
+    /// @notice The most orders one taker order may examine in this market.
+    function maxFillsOf(uint256 market) external view returns (uint8) {
+        return _openBook(market).maxFills;
+    }
+
     /// @notice The order behind `id`, or an all-zero order if `id` is not live.
     function getOrder(uint256 market, uint32 id) external view returns (Order memory o) {
         BookState storage b = _openBook(market);
@@ -273,7 +282,7 @@ abstract contract Book {
     {
         if (p.tick < MIN_TICK || p.tick > MAX_TICK) revert BadTick();
         if (p.size == 0) revert BadSize();
-        if (p.maxFills > MAX_FILLS) revert BadMaxFills();
+        if (p.maxFills > b.maxFills) revert BadMaxFills();
         _admit(market, trader, p);
         uint8 flags = (p.isBuy ? FLAG_BUY : 0) | (p.reduceOnly ? FLAG_REDUCE_ONLY : 0);
 
@@ -476,7 +485,9 @@ abstract contract Book {
 
     // ------------------------------------------------------------------ market setup
 
-    function _initBook(uint256 market) internal {
+    /// @dev Opens a market's book. `maxFills` bounds the orders one taker order may examine
+    ///      (spec: set from measured gas, the UI then requests less); must be at least 1.
+    function _initBook(uint256 market, uint8 maxFills) internal {
         BookState storage b = _books[market];
         if (_isOpen(b)) revert MarketExists();
         for (uint256 w; w < WORDS; ++w) {
@@ -484,6 +495,14 @@ abstract contract Book {
             b.bits[BID][w] = SENTINEL;
         }
         b.orders.push(); // slot 0 is the null order
+        _setMaxFills(market, maxFills);
+    }
+
+    /// @dev Retunes the per-market bound; the owning module authorises the caller.
+    function _setMaxFills(uint256 market, uint8 maxFills) internal {
+        if (maxFills == 0) revert BadMaxFills();
+        _openBook(market).maxFills = maxFills;
+        emit MaxFillsSet(market, maxFills);
     }
 
     function _isOpen(BookState storage b) internal view returns (bool) {

@@ -7,11 +7,12 @@ import {BookHarness} from "./BookHarness.sol";
 
 contract BookBitmapTest is Test {
     BookHarness book;
+    uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
     uint256 constant M = 1;
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M);
+        book.createMarket(M, MAX_FILLS);
     }
 
     function _best() internal view returns (uint16 bid, uint16 ask) {
@@ -34,7 +35,7 @@ contract BookBitmapTest is Test {
 
     function test_RevertWhen_MarketCreatedTwice() public {
         vm.expectRevert(Book.MarketExists.selector);
-        book.createMarket(M);
+        book.createMarket(M, MAX_FILLS);
     }
 
     function test_RevertWhen_MarketUnknown() public {
