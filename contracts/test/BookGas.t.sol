@@ -37,9 +37,11 @@ contract LeanBook is Book {
 
     function _takerDone(Ctx memory) internal pure override {}
 
-    function _onRest(uint256, uint32, bool, uint16, uint96) internal pure override {}
+    function _admit(uint256, uint32, Place calldata) internal pure override {}
 
-    function _onUnrest(uint256, uint32, bool, uint96) internal pure override {}
+    function _onRest(uint256, uint32, uint16, uint96, uint8) internal pure override {}
+
+    function _onUnrest(uint256, uint32, uint96, uint8) internal pure override {}
 }
 
 /// @notice Gas for the operations in spec §9.9, written to snapshots/BookGas.json.
