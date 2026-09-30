@@ -152,3 +152,14 @@ open questions for Person A, the counterpart teams or the spec owner.
   self-trade itself; market/account epoch and reduce-version staleness come back from
   `_riskTryMatchedFill` as `PRUNE_MAKER` with `STALE_ORDER`. The spec lets the book skip stale
   epochs using its stored tag; either placement is compatible, CP-BOOK to confirm.
+- **M-12 (B021) Freshness latch.** `fundingFreshThrough` = the latched start of the first index gap
+  inside the current funding epoch, else the continuous coverage end (last valid observedAt + 30).
+  A later valid sample moves continuous coverage but not the latch; the latch resets only at a
+  completed epoch opening (`_riskEpochOpenedWithGuards`). An epoch that opens with stale data is
+  latched at its start (no funding). An invalid (thin-depth) sample ends coverage at its own time.
+- **S-7 (B021) Freshness hook for A.** `_onFreshnessAdvance(oldFreshThrough)` is called before the
+  endpoint moves so A's FundingAccounting (A022) can accrue/stop old-epoch funding against the
+  previously known endpoint. Default is a no-op in B; A overrides it at merge.
+- **M-13 (B021) Movement restriction lifetime.** The 0.10/300 s trigger sets reduce-only until the
+  pinned monitor clears it (`clearReduceOnly`, "failed early check restores trading"). The spec
+  does not give an automatic expiry. ASSUMPTION.

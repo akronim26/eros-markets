@@ -117,7 +117,7 @@ library LiquidationMath {
         int256 cashQ,
         uint256 qWad,
         uint256 feeQ,
-        int256 thresholdQ
+        int256 threshold
     ) internal pure returns (uint16 tick, bool feasible) {
         uint256 absX = QMath.abs(xLots);
         if (closeLots == 0 || closeLots > absX || qWad > WAD) revert BadUnits();
@@ -125,12 +125,12 @@ library LiquidationMath {
         int256 n = int256(closeLots);
         int256 nq = n * int256(Q);
         if (xLots > 0) {
-            int256 need = thresholdQ - cashQ + int256(feeQ) - (xLots - n) * mQ;
+            int256 need = threshold - cashQ + int256(feeQ) - (xLots - n) * mQ;
             int256 t = QMath.sDivCeil(need, nq);
             if (t > 999) return (0, false);
             return (uint16(uint256(t < 1 ? int256(1) : t)), true);
         }
-        int256 have = cashQ - int256(feeQ) + (xLots + n) * mQ - thresholdQ;
+        int256 have = cashQ - int256(feeQ) + (xLots + n) * mQ - threshold;
         int256 tt = QMath.sDivFloor(have, nq);
         if (tt < 1) return (0, false);
         return (uint16(uint256(tt > 999 ? int256(999) : tt)), true);
