@@ -1,0 +1,1163 @@
+{
+  "schema": "eros-risk-function-contracts/1",
+  "owner": "B",
+  "task": "B001",
+  "spec_version": "1.1",
+  "economic_baseline": "1.0",
+  "status": "B-side proposal; frozen only when G0 records a merge SHA in docs/spec/gate_status.json",
+  "unit_legend": {
+    "lots": "int/uint; 1 lot = 0.001 claim (spec \u00a72.1)",
+    "tick": "uint16 1..999; price = tick/1000 USDC per claim; one lot at one tick = 1 atom",
+    "atom": "uint256; 1e-6 USDC",
+    "Q": "cashQ unit; 1 atom = 1e18 Q; 1 USDC = 1e24 Q; PAYOFF_Q_PER_LOT = 1000*Q",
+    "wad": "1e18 fixed point dimensionless probability/price in [0,1e18]",
+    "usdcWad": "USDC scaled by 1e18 (pure-kernel money unit); convert to Q by *1e6 exactly",
+    "claimsWad": "claims scaled by 1e18; lots*1e15 exactly",
+    "wadPerDay": "hazard intensity per 86,400 s scaled 1e18",
+    "seconds": "uint64 Unix seconds / durations; no milliseconds",
+    "Q_per_lot_per_sec": "funding rate unit rateQPerLotSec"
+  },
+  "rounding_legend": {
+    "UP": "result is an upper bound of the exact real value (requirements, hazards, k, sigma, adverse probability, drift, horizon)",
+    "DOWN": "result is a lower bound (epsilon', usable assets, payouts, TWAP prices unless stated)",
+    "EXACT": "integer/rational identity, no rounding",
+    "TRUNC0": "truncate toward zero; used ONLY where the spec says so (funding rate quantization, spec \u00a76.2)"
+  },
+  "common_unavailable_results": {
+    "FULL_BACKING_REQUIRED": "Any domain failure: a0+a1>=1, a_adv>=epsilon, epsilon' rounds to 0, missing/expired calibration, cap meets bounded loss. Caller must check both exact endpoints E0>=0 && E1>=0 (spec \u00a74.2, DEC-09).",
+    "UNAVAILABLE": "Price/window/time input not valid; caller must refuse new exposure (spec \u00a74.1). Never encoded as price 0.",
+    "BAD_UNITS": "Out-of-range input (tick outside 1..999, wad > 1e18, |lots| > 2^40, negative duration); revert in Solidity, raise in reference."
+  },
+  "boundary_conversions": [
+    {
+      "from": "positionLots (int128)",
+      "to": "claimsWad",
+      "rule": "lots * 1e15",
+      "rounding": "EXACT"
+    },
+    {
+      "from": "usdcWad requirement",
+      "to": "Q",
+      "rule": "usdcWad * 1e6",
+      "rounding": "EXACT"
+    },
+    {
+      "from": "Q equity",
+      "to": "usdcWad",
+      "rule": "floor(Q / 1e6) for usable equity",
+      "rounding": "DOWN"
+    },
+    {
+      "from": "qWad mark",
+      "to": "value per lot in Q",
+      "rule": "1000 * qWad (no second WAD division)",
+      "rounding": "EXACT"
+    },
+    {
+      "from": "tick",
+      "to": "pWad",
+      "rule": "tick * 1e15",
+      "rounding": "EXACT"
+    }
+  ],
+  "functions": [
+    {
+      "name": "horizonSeconds",
+      "module": "HorizonMath / reference/b/horizon_volatility.py",
+      "task": [
+        "B003",
+        "B010"
+      ],
+      "inputs": [
+        {
+          "name": "absClaimsWad",
+          "unit": "claimsWad",
+          "domain": "0 <= x <= 2^40 lots * 1e15"
+        },
+        {
+          "name": "h0Secs",
+          "unit": "seconds",
+          "domain": ">= 0"
+        },
+        {
+          "name": "absorptionClaimsPerMin",
+          "unit": "claims/minute",
+          "domain": "> 0"
+        },
+        {
+          "name": "queueDelaySecs",
+          "unit": "seconds",
+          "domain": ">= 0 (measured keeper queue delay)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "hSecs",
+          "unit": "seconds"
+        }
+      ],
+      "formula": "h = h0 + queue + ceil(|x| * 60 / v)",
+      "rounding": "UP",
+      "monotone": "nondecreasing in |x| and queue",
+      "error": "BAD_UNITS if v == 0; x == 0 returns h0 + queue (caller returns zero margin separately)",
+      "domain": "0 <= |x| <= 2^40 lots; v > 0; h0, queue >= 0; result fits uint64"
+    },
+    {
+      "name": "sigmaTheoryUpper",
+      "module": "HorizonMath",
+      "task": [
+        "B003",
+        "B010"
+      ],
+      "inputs": [
+        {
+          "name": "qWad",
+          "unit": "wad",
+          "domain": "0 < q < 1e18 (interior live price)"
+        },
+        {
+          "name": "hSecs",
+          "unit": "seconds",
+          "domain": ">= 0"
+        },
+        {
+          "name": "secsToT",
+          "unit": "seconds",
+          "domain": ">= 0; denominator uses max(T-t, 1)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sigmaWad",
+          "unit": "wad (price-scale std-dev bound)"
+        }
+      ],
+      "formula": "sqrt(q(1-q) h / max(T-t, 1s)), then min(., 1)",
+      "rounding": "UP (sqrtUp of an upward-rounded radicand)",
+      "error": "UNAVAILABLE if q at an endpoint (live risk requires interior price)",
+      "domain": "0 < q < 1e18; h >= 0; T-t >= 0 (clamped to >= 1 s)"
+    },
+    {
+      "name": "empiricalEnvelopeAt",
+      "module": "HorizonMath",
+      "task": [
+        "B003",
+        "B010"
+      ],
+      "inputs": [
+        {
+          "name": "bins",
+          "unit": "list of (hSecs, sigmaWad), strictly increasing h",
+          "domain": "nondecreasing sigma required; validity interval [validFrom, validUntil]"
+        },
+        {
+          "name": "hSecs",
+          "unit": "seconds"
+        },
+        {
+          "name": "now",
+          "unit": "seconds"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sigmaWad",
+          "unit": "wad"
+        }
+      ],
+      "formula": "value of the first bin with bin.h >= h (step-up envelope); h beyond last bin => unavailable",
+      "rounding": "UP (step-up, never interpolate downward)",
+      "error": "FULL_BACKING_REQUIRED if bins missing, expired, not yet valid, h beyond last bin, or bins decrease (raw noisy bins rejected, spec \u00a77.4 'Nonmonotone empirical bins'); conversion helper makeEnvelope() returns running max for calibration tooling only",
+      "domain": "bins nonempty, strictly increasing h, nondecreasing sigma, validFrom <= now < validUntil, h <= last bin h"
+    },
+    {
+      "name": "sigmaUpper",
+      "module": "HorizonMath",
+      "task": [
+        "B003",
+        "B010"
+      ],
+      "inputs": [
+        {
+          "name": "theory",
+          "unit": "wad"
+        },
+        {
+          "name": "realized",
+          "unit": "wad"
+        },
+        {
+          "name": "template",
+          "unit": "wad"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "sigmaWad",
+          "unit": "wad"
+        }
+      ],
+      "formula": "min(1, max(theory, realized, template))",
+      "rounding": "UP (inputs already upper bounds)",
+      "error": "FULL_BACKING_REQUIRED propagates from any missing empirical input",
+      "domain": "all inputs in [0, 1e18] or explicitly missing"
+    },
+    {
+      "name": "hazardUpper",
+      "module": "HazardMath / reference/b/hazards.py",
+      "task": [
+        "B004",
+        "B010"
+      ],
+      "inputs": [
+        {
+          "name": "hazardWadPerDay",
+          "unit": "wadPerDay",
+          "domain": ">= 0"
+        },
+        {
+          "name": "hSecs",
+          "unit": "seconds",
+          "domain": ">= 0"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "aWad",
+          "unit": "wad probability upper bound"
+        }
+      ],
+      "formula": "min(1, hazard * h / 86400)",
+      "rounding": "UP",
+      "error": "none; saturates at 1e18",
+      "domain": "hazard >= 0, h >= 0; product checked for overflow"
+    },
+    {
+      "name": "tailFactor",
+      "module": "HazardMath",
+      "task": [
+        "B004",
+        "B010"
+      ],
+      "inputs": [
+        {
+          "name": "a0Wad",
+          "unit": "wad"
+        },
+        {
+          "name": "a1Wad",
+          "unit": "wad"
+        },
+        {
+          "name": "isLong",
+          "unit": "bool"
+        },
+        {
+          "name": "epsilonWad",
+          "unit": "wad",
+          "domain": "0 < eps < 1e18 (fixture 0.01)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "fullBackingRequired",
+          "unit": "bool"
+        },
+        {
+          "name": "aAdvWad",
+          "unit": "wad",
+          "rounding": "UP"
+        },
+        {
+          "name": "epsPrimeWad",
+          "unit": "wad",
+          "rounding": "DOWN"
+        },
+        {
+          "name": "kWad",
+          "unit": "wad",
+          "rounding": "UP"
+        }
+      ],
+      "formula": "aAdv = a0 (long) / a1 (short); eps' = (eps - aAdv)/(1 - aAdv); k = sqrt((1-eps')/eps')",
+      "rounding": "aAdv UP, eps' DOWN, k UP",
+      "error": "FULL_BACKING_REQUIRED if a0+a1 >= 1, aAdv >= eps, or eps' rounds to 0",
+      "domain": "a0, a1 in [0,1e18]; 0 < eps < 1e18"
+    },
+    {
+      "name": "adverseDrift",
+      "module": "HazardMath",
+      "task": [
+        "B004",
+        "B010"
+      ],
+      "inputs": [
+        {
+          "name": "qWad",
+          "unit": "wad"
+        },
+        {
+          "name": "a0Wad",
+          "unit": "wad"
+        },
+        {
+          "name": "a1Wad",
+          "unit": "wad"
+        },
+        {
+          "name": "isLong",
+          "unit": "bool"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mWad",
+          "unit": "wad (price units)"
+        }
+      ],
+      "formula": "mLong = (1-q) a1 / (1-a0-a1); mShort = q a0 / (1-a0-a1)",
+      "rounding": "UP (denominator rounded DOWN)",
+      "error": "FULL_BACKING_REQUIRED if a0+a1 >= 1",
+      "domain": "0 <= q <= 1e18; a0 + a1 < 1e18"
+    },
+    {
+      "name": "sideMargin",
+      "module": "MarginMath / reference/b/margin.py",
+      "task": [
+        "B005",
+        "B011"
+      ],
+      "inputs": [
+        {
+          "name": "absClaimsWad",
+          "unit": "claimsWad"
+        },
+        {
+          "name": "isLong",
+          "unit": "bool"
+        },
+        {
+          "name": "qWad",
+          "unit": "wad, interior"
+        },
+        {
+          "name": "secsToT",
+          "unit": "seconds"
+        },
+        {
+          "name": "profile",
+          "unit": "RiskProfile {h0Secs, absorptionClaimsPerMin, queueDelaySecs, hazard0WadPerDay, hazard1WadPerDay, epsilonWad, gammaWad, sWad, lambdaWadPerClaim, capX (integer leverage cap), realized/template envelopes, calibration validity}"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mmUsdcWad",
+          "unit": "usdcWad",
+          "rounding": "UP"
+        },
+        {
+          "name": "imUsdcWad",
+          "unit": "usdcWad",
+          "rounding": "UP"
+        },
+        {
+          "name": "worstLossUsdcWad",
+          "unit": "usdcWad = |x| w exactly"
+        },
+        {
+          "name": "fullBackingRequired",
+          "unit": "bool"
+        }
+      ],
+      "formula": "w = q (long) / 1-q (short); MM = min(|x|w, |x|(m + k sigma_h + s) + 0.5 lambda x^2); IM = min(|x|w, max(gamma MM, |x| w / Lcap))",
+      "rounding": "UP",
+      "error": "x == 0 returns zeros and fullBackingRequired=false; any domain failure returns MM=IM=|x|w and fullBackingRequired=true; Lcap == 1 returns fullBackingRequired=true",
+      "never": "divides by x or by equity",
+      "domain": "|x| <= 2^40 lots; 0 < q < 1e18; profile complete and calibration valid, else full backing"
+    },
+    {
+      "name": "directionalCap",
+      "module": "MarginMath",
+      "task": [
+        "B005",
+        "B011"
+      ],
+      "inputs": [
+        {
+          "name": "template",
+          "unit": "enum {SCHEDULED, CONTINUOUS, DEADLINE, UNSCHEDULED}"
+        },
+        {
+          "name": "isLong",
+          "unit": "bool"
+        },
+        {
+          "name": "calibrated",
+          "unit": "bool (valid calibration + release gate)"
+        },
+        {
+          "name": "deploymentCapX",
+          "unit": "integer leverage ceiling from manifest (initial deployment = 1)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "capX",
+          "unit": "integer leverage >= 1"
+        }
+      ],
+      "formula": "min(templateCap(template, side), deploymentCapX); uncalibrated => 1",
+      "rounding": "EXACT",
+      "error": "missing calibration => 1 (never a guessed leverage)",
+      "domain": "template in the 4 listed values; deploymentCapX >= 1"
+    },
+    {
+      "name": "accountHealth",
+      "module": "MarginMath",
+      "task": [
+        "B005",
+        "B011"
+      ],
+      "inputs": [
+        {
+          "name": "cashQ",
+          "unit": "Q (int256, already touched by A)"
+        },
+        {
+          "name": "positionLots",
+          "unit": "lots int128"
+        },
+        {
+          "name": "qWad",
+          "unit": "wad"
+        },
+        {
+          "name": "margins",
+          "unit": "sideMargin output"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "E0Q",
+          "unit": "Q"
+        },
+        {
+          "name": "E1Q",
+          "unit": "Q"
+        },
+        {
+          "name": "markEquityQ",
+          "unit": "Q = c + 1000*n*qWad"
+        },
+        {
+          "name": "status",
+          "unit": "enum {FLAT, HEALTHY, BELOW_IM, BELOW_MM, NONPOSITIVE}"
+        }
+      ],
+      "rounding": "EXACT for equities; margins already UP",
+      "error": "fullBackingRequired => HEALTHY iff E0>=0 && E1>=0 (no rounded mark comparison)",
+      "domain": "|cashQ| < 2^180; |n| <= 2^40 lots; 0 < q < 1e18 for mark equity; margins from sideMargin at the same q"
+    },
+    {
+      "name": "displayLeverage",
+      "module": "MarginMath",
+      "task": [
+        "B005",
+        "B011"
+      ],
+      "inputs": [
+        {
+          "name": "exposureQ",
+          "unit": "Q = |x| * w value"
+        },
+        {
+          "name": "markEquityQ",
+          "unit": "Q"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "leverageBps",
+          "unit": "basis points (display only)"
+        },
+        {
+          "name": "available",
+          "unit": "bool"
+        }
+      ],
+      "formula": "floor(exposure * 1e4 / E) only when E > 0",
+      "rounding": "DOWN",
+      "error": "E <= 0 returns available=false; never used by any safety decision (ASSUMPTION B001-A3)",
+      "domain": "exposure >= 0; E any sign (E <= 0 => unavailable)"
+    },
+    {
+      "name": "markedEquityLowerBound",
+      "module": "OrderAdmissionMath / reference/b/order_admission.py",
+      "task": [
+        "B006",
+        "B012"
+      ],
+      "inputs": [
+        {
+          "name": "cashQ",
+          "unit": "Q"
+        },
+        {
+          "name": "positionLots",
+          "unit": "lots"
+        },
+        {
+          "name": "qWad",
+          "unit": "wad"
+        },
+        {
+          "name": "bidLots",
+          "unit": "lots (Qb)"
+        },
+        {
+          "name": "maxBidTick",
+          "unit": "tick; 0 if none"
+        },
+        {
+          "name": "askLots",
+          "unit": "lots (Qa)"
+        },
+        {
+          "name": "minAskTick",
+          "unit": "tick; 1000 if none"
+        },
+        {
+          "name": "feeCapQ",
+          "unit": "Q"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "eMinQ",
+          "unit": "Q (signed)"
+        }
+      ],
+      "formula": "c + x mQ - Qb max(PbidMaxQ - mQ, 0) - Qa max(mQ - PaskMinQ, 0) - feeCap, mQ = 1000 qWad",
+      "rounding": "EXACT",
+      "error": "BAD_UNITS on tick/lots range",
+      "domain": "ticks 1..999 or the 0/1000 none-sentinels; lots within uint128 aggregate; 0 <= q <= 1e18"
+    },
+    {
+      "name": "imEnvelopeUpper",
+      "module": "OrderAdmissionMath",
+      "task": [
+        "B006",
+        "B012"
+      ],
+      "inputs": [
+        {
+          "name": "positionLots",
+          "unit": "lots"
+        },
+        {
+          "name": "bidLots",
+          "unit": "lots"
+        },
+        {
+          "name": "askLots",
+          "unit": "lots"
+        },
+        {
+          "name": "risk inputs",
+          "unit": "as sideMargin"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "imUpperQ",
+          "unit": "Q"
+        },
+        {
+          "name": "fullBackingRequired",
+          "unit": "bool"
+        }
+      ],
+      "formula": "max(LongIM(max(0, x + Qb)), ShortIM(max(0, -(x - Qa))))",
+      "rounding": "UP",
+      "error": "fullBackingRequired if either evaluated side is full-backing",
+      "domain": "|x|, Qb, Qa <= 2^40 lots after the reachable-interval sum; risk inputs as sideMargin"
+    },
+    {
+      "name": "admitCommitments",
+      "module": "OrderAdmissionMath",
+      "task": [
+        "B006",
+        "B012"
+      ],
+      "inputs": [
+        {
+          "name": "account + order sums",
+          "unit": "as markedEquityLowerBound"
+        },
+        {
+          "name": "coverage",
+          "unit": "CoverageInput {d0Q, d1Q (A order-aware endpoint deficits), accountDeficitCapQ, marketCoverageOk}; scripted port until G1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "ok",
+          "unit": "bool"
+        },
+        {
+          "name": "reason",
+          "unit": "RejectCode"
+        }
+      ],
+      "formula": "fullBacking ? (d0==0 && d1==0) : eMin >= imUpper; plus max(d0,d1) <= deficitCap and marketCoverageOk",
+      "rounding": "EXACT comparison of UP/DOWN rounded operands",
+      "error": "UNAVAILABLE price => STALE_PRICE",
+      "domain": "inputs as markedEquityLowerBound and imEnvelopeUpper; coverage values supplied by A (scripted before G1)"
+    },
+    {
+      "name": "safeTakerCap",
+      "module": "OrderAdmissionMath",
+      "task": [
+        "B006",
+        "B012"
+      ],
+      "inputs": [
+        {
+          "name": "requestedLots",
+          "unit": "lots"
+        },
+        {
+          "name": "limitTick",
+          "unit": "tick"
+        },
+        {
+          "name": "side",
+          "unit": "BUY/SELL"
+        },
+        {
+          "name": "state",
+          "unit": "account + sums + coverage callback"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "capLots",
+          "unit": "lots"
+        },
+        {
+          "name": "steps",
+          "unit": "count <= 64"
+        }
+      ],
+      "formula": "candidate = requested; while candidate > 0 and !admit(candidate) and steps < 64: candidate /= 2",
+      "rounding": "DOWN (floor halving)",
+      "error": "returns 0 with reason when no candidate passes; below minOrderLots => 0",
+      "domain": "1 <= requested <= maxOrderLots (<= uint48 max at the book boundary); tick 1..999; at most 64 halvings"
+    },
+    {
+      "name": "twapWindow",
+      "module": "PricingMath / reference/b/pricing.py",
+      "task": [
+        "B007",
+        "B013"
+      ],
+      "inputs": [
+        {
+          "name": "samples",
+          "unit": "list of (observedAt seconds, priceWad, valid bool), nondecreasing time"
+        },
+        {
+          "name": "windowEnd",
+          "unit": "seconds"
+        },
+        {
+          "name": "windowSecs",
+          "unit": "seconds (300 / 60 / 900 / 86400)"
+        },
+        {
+          "name": "staleSecs",
+          "unit": "seconds (30)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "available",
+          "unit": "bool"
+        },
+        {
+          "name": "twapWad",
+          "unit": "wad"
+        },
+        {
+          "name": "coveredSecs",
+          "unit": "seconds"
+        }
+      ],
+      "formula": "each valid sample carries forward over [t, min(next.t, t + stale, windowEnd)); twap = integral / windowSecs",
+      "rounding": "DOWN (ASSUMPTION B001-A4)",
+      "error": "UNAVAILABLE unless coveredSecs == windowSecs; same-timestamp samples add zero weight",
+      "domain": "samples ordered by observedAt, windowSecs > 0, staleSecs > 0, prices in [0,1e18]"
+    },
+    {
+      "name": "markPrice",
+      "module": "PricingMath",
+      "task": [
+        "B007",
+        "B013"
+      ],
+      "inputs": [
+        {
+          "name": "indexWad",
+          "unit": "wad (300s index TWAP)"
+        },
+        {
+          "name": "basisTwapWad",
+          "unit": "signed wad (15 min)"
+        },
+        {
+          "name": "perpTwapWad",
+          "unit": "wad (60 s)"
+        },
+        {
+          "name": "perpLiveWad",
+          "unit": "wad"
+        },
+        {
+          "name": "now, T, listedAt",
+          "unit": "seconds"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "markWad",
+          "unit": "wad"
+        },
+        {
+          "name": "available",
+          "unit": "bool"
+        }
+      ],
+      "formula": "median(I + basis, perpTwap, perpLive) clamped to [I - b(t), I + b(t)] and [0,1e18]; b(t) = 0.05 max(T-t,0)/(T-listedAt)",
+      "rounding": "b(t) DOWN (narrower band), median EXACT",
+      "error": "UNAVAILABLE if any of the three candidates or I unavailable (BOOTSTRAP path only)",
+      "domain": "all inputs valid wads; listedAt < T; now >= listedAt"
+    },
+    {
+      "name": "fundingRate",
+      "module": "PricingMath",
+      "task": [
+        "B007",
+        "B013"
+      ],
+      "inputs": [
+        {
+          "name": "markWad",
+          "unit": "wad"
+        },
+        {
+          "name": "indexWad",
+          "unit": "wad"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rateQPerLotSec",
+          "unit": "Q_per_lot_per_sec (int256)"
+        }
+      ],
+      "formula": "f = clamp(q - I, +-0.05 min(I, 1-I)) per claim per day; r = trunc0(f * 1000 * Q / 86400) = trunc0(fWad * 1000 / 86400)",
+      "rounding": "TRUNC0 (spec \u00a76.2 explicit)",
+      "error": "UNAVAILABLE price => no authorization (rate 0 is a real rate, not unavailable)",
+      "domain": "0 <= q, I <= 1e18, both valid at epoch opening"
+    },
+    {
+      "name": "depthValid",
+      "module": "PricingMath",
+      "task": [
+        "B007",
+        "B013"
+      ],
+      "inputs": [
+        {
+          "name": "impactBidWad, impactAskWad",
+          "unit": "wad at depth N"
+        },
+        {
+          "name": "bidDepthLots, askDepthLots",
+          "unit": "lots"
+        },
+        {
+          "name": "depthNLots",
+          "unit": "lots"
+        },
+        {
+          "name": "maxSpreadWad",
+          "unit": "wad"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "valid",
+          "unit": "bool"
+        },
+        {
+          "name": "impactMidWad",
+          "unit": "wad"
+        }
+      ],
+      "formula": "valid iff both depths >= N, 0 < bid <= ask < 1e18, ask - bid <= maxSpread; mid = floor((bid+ask)/2)",
+      "rounding": "DOWN",
+      "error": "invalid sample contributes no coverage",
+      "domain": "N > 0 lots; prices in [0,1e18]"
+    },
+    {
+      "name": "movementTrigger",
+      "module": "PricingMath",
+      "task": [
+        "B007",
+        "B013",
+        "B021"
+      ],
+      "inputs": [
+        {
+          "name": "priceNowWad",
+          "unit": "wad"
+        },
+        {
+          "name": "price300sAgoWad",
+          "unit": "wad"
+        },
+        {
+          "name": "thresholdWad",
+          "unit": "wad (0.10)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "restrict",
+          "unit": "bool (reduce-only + monitoring)"
+        }
+      ],
+      "formula": "|now - ago| > threshold",
+      "rounding": "EXACT",
+      "error": "missing ago sample => no trigger from this rule (freshness rules still apply)",
+      "domain": "prices in [0,1e18]; threshold > 0"
+    },
+    {
+      "name": "allowedReduction",
+      "module": "LiquidationMath / reference/b/liquidation.py",
+      "task": [
+        "B008",
+        "B014"
+      ],
+      "inputs": [
+        {
+          "name": "before/after",
+          "unit": "(xLots, E0Q, E1Q, markEquityQ, mmQ) incl. fees"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "ok",
+          "unit": "bool"
+        }
+      ],
+      "formula": "|xA|<|xB|, no sign flip, d0A<=d0B, d1A<=d1B, EA>=0, EA-MMA >= min(EB-MMB,0)",
+      "rounding": "EXACT",
+      "error": "EB <= 0 => false (use takeover branch)",
+      "domain": "before and after states at one frozen price, fees included; xBefore != 0"
+    },
+    {
+      "name": "reductionEstimate",
+      "module": "LiquidationMath",
+      "task": [
+        "B008",
+        "B014"
+      ],
+      "inputs": [
+        {
+          "name": "imUsdcWad, equityUsdcWad, absClaimsWad, sWad, lambdaWad",
+          "unit": "kernel units"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "lots",
+          "unit": "lots"
+        },
+        {
+          "name": "fullCloseAttempt",
+          "unit": "bool"
+        }
+      ],
+      "formula": "g = IM-E; D = IM - s|x|; if g>0, D>0, D^2 >= 2 lambda g x^2: delta = 2 g |x| / (D + sqrt(D^2 - 2 lambda g x^2)) else full close",
+      "rounding": "UP to whole lots, clamp to |x|",
+      "error": "estimate only; caller rechecks actual margin (never asserts restored health)",
+      "domain": "x != 0, E > 0 (positive-equity branch only); s, lambda >= 0"
+    },
+    {
+      "name": "bankruptcyTick",
+      "module": "LiquidationMath",
+      "task": [
+        "B008",
+        "B014"
+      ],
+      "inputs": [
+        {
+          "name": "isLong",
+          "unit": "bool"
+        },
+        {
+          "name": "closeLots",
+          "unit": "lots > 0"
+        },
+        {
+          "name": "cashQ, positionLots, qWad, feeQ, thresholdQ",
+          "unit": "Q/lots/wad"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "worstTick",
+          "unit": "tick"
+        },
+        {
+          "name": "feasible",
+          "unit": "bool"
+        }
+      ],
+      "formula": "long sell: t >= ceil((threshold - E + fee + n mQ)/(n Q)); short buy: t <= floor((E - fee - threshold + n mQ)/(n Q)); E = c + x mQ",
+      "rounding": "long UP, short DOWN",
+      "error": "feasible=false if bound outside 1..999",
+      "domain": "closeLots > 0 and <= |x|; x != 0; fee >= 0"
+    },
+    {
+      "name": "liquidationDecision",
+      "module": "LiquidationMath",
+      "task": [
+        "B008",
+        "B014"
+      ],
+      "inputs": [
+        {
+          "name": "health, stage, priceFresh, graceExpired, floorActive, workBudget, liquidityAvailable",
+          "unit": "flags/Q"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "mode",
+          "unit": "enum {NONE, REDUCE, TAKEOVER}"
+        },
+        {
+          "name": "result",
+          "unit": "enum {NOT_ELIGIBLE, DONE, NEEDS_MORE_WORK, TAKEOVER_AUTHORIZED}"
+        }
+      ],
+      "formula": "TAKEOVER iff E<=0 (fresh) or floor endpoint deficit or both endpoints <= 0; REDUCE iff E<MM or (graceExpired and E<IM); work exhaustion with E>0 => NEEDS_MORE_WORK",
+      "rounding": "EXACT",
+      "error": "zero work budget => revert/reject (spec \u00a75.2)",
+      "domain": "work budget > 0 (zero budget rejected); health from a touched account at the legal cutoff"
+    },
+    {
+      "name": "pairTick",
+      "module": "LiquidationMath",
+      "task": [
+        "B008",
+        "B014"
+      ],
+      "inputs": [
+        {
+          "name": "qWad",
+          "unit": "wad"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "tick",
+          "unit": "tick"
+        }
+      ],
+      "formula": "clamp(floor(q / 1e15), 1, 999)",
+      "rounding": "DOWN then clamp",
+      "error": "none",
+      "domain": "0 <= q <= 1e18"
+    },
+    {
+      "name": "deriveStage",
+      "module": "LifecycleMath / reference/b/lifecycle.py",
+      "task": [
+        "B009",
+        "B014"
+      ],
+      "inputs": [
+        {
+          "name": "now, scheduledT, economicHaltAt(0=none)",
+          "unit": "seconds"
+        },
+        {
+          "name": "monitorRestricted, claimsReady",
+          "unit": "bool"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "stage",
+          "unit": "Stage enum"
+        },
+        {
+          "name": "fullBackingByTime, fundingFrozen",
+          "unit": "bool"
+        }
+      ],
+      "formula": "CLAIMS_READY > HALTED(t>=T or halted) > REDUCE_ONLY(t>=T-1h or monitor) > BACKING_FLOOR(t>=T-12h) > BACKING_GRACE(t>=T-12h30m) > TRADING; boundaries inclusive",
+      "rounding": "EXACT",
+      "error": "none",
+      "domain": "now, T, haltAt are uint64 seconds; T - 12h30m >= listedAt"
+    },
+    {
+      "name": "cutoffs",
+      "module": "LifecycleMath",
+      "task": [
+        "B009",
+        "B014"
+      ],
+      "inputs": [
+        {
+          "name": "now, epochEnd, fundingStopAt, fundingFreshThrough, scheduledT, economicHaltAt, frozenRolloverCutoff",
+          "unit": "seconds"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "fundingCutoff",
+          "unit": "seconds"
+        },
+        {
+          "name": "accrualCutoff",
+          "unit": "seconds"
+        }
+      ],
+      "formula": "accrual = min(now, epochEnd, haltAt?, frozenRollover?); funding = min(accrual, fundingStopAt, T-12h, fundingFreshThrough)",
+      "rounding": "EXACT",
+      "error": "none; never later than any stop",
+      "domain": "all inputs uint64 seconds; 0 means unset for optional stops"
+    },
+    {
+      "name": "graceExpired",
+      "module": "LifecycleMath",
+      "task": [
+        "B009",
+        "B014",
+        "B028"
+      ],
+      "inputs": [
+        {
+          "name": "graceAnchor, graceSecs, now, scheduledT",
+          "unit": "seconds"
+        },
+        {
+          "name": "belowMM",
+          "unit": "bool"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "expired",
+          "unit": "bool"
+        }
+      ],
+      "formula": "belowMM => true; else now >= min(anchor + graceSecs, T - 12h)",
+      "rounding": "EXACT",
+      "error": "anchor 0 (never deficient) => false",
+      "domain": "anchor <= now or 0; graceSecs >= 0"
+    },
+    {
+      "name": "invalidCaptureReadiness",
+      "module": "LifecycleMath",
+      "task": [
+        "B009",
+        "B014",
+        "B035"
+      ],
+      "inputs": [
+        {
+          "name": "now, scheduledT, graceSecs(3600)",
+          "unit": "seconds"
+        },
+        {
+          "name": "windowComplete, fallbackListed",
+          "unit": "bool"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "status",
+          "unit": "enum {NOT_YET, CAPTURE_TWAP, WAIT_GRACE, CAPTURE_FALLBACK, BLOCKED}"
+        }
+      ],
+      "formula": "now<T: NOT_YET; complete: CAPTURE_TWAP; incomplete & fallbackListed: now>=T+grace ? CAPTURE_FALLBACK : WAIT_GRACE; incomplete & legacy: BLOCKED",
+      "rounding": "EXACT",
+      "error": "legacy unconditional-TWAP market never uses fallback (INVALID_PRICE_BLOCKED)",
+      "domain": "T >= listedAt + 24h; grace = 3600 s for new listings"
+    },
+    {
+      "name": "acceptFinality",
+      "module": "LifecycleMath",
+      "task": [
+        "B009",
+        "B014",
+        "B034"
+      ],
+      "inputs": [
+        {
+          "name": "stored",
+          "unit": "FinalOutcome {UNSET, NO, YES, INVALID}"
+        },
+        {
+          "name": "incoming",
+          "unit": "FinalOutcome"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "newlyAccepted",
+          "unit": "bool"
+        }
+      ],
+      "formula": "UNSET => accept; same => false; different => revert ConflictingFinalOutcome",
+      "rounding": "EXACT",
+      "error": "CONFLICTING_FINALITY",
+      "domain": "incoming in {NO, YES, INVALID} (UNSET rejected)"
+    },
+    {
+      "name": "normalPricingTransition",
+      "module": "LifecycleMath",
+      "task": [
+        "B009",
+        "B014",
+        "B018"
+      ],
+      "inputs": [
+        {
+          "name": "mode",
+          "unit": "PricingMode"
+        },
+        {
+          "name": "atEpochOpening, indexValid, basisValid, perpTwapValid, perpLiveValid",
+          "unit": "bool"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "nextMode",
+          "unit": "PricingMode"
+        }
+      ],
+      "formula": "BOOTSTRAP -> NORMAL only at a completed epoch opening with all three candidates + index valid; NORMAL with missing candidate => mark unavailable (bootstrap-only admission while index valid)",
+      "rounding": "EXACT",
+      "error": "halt/stronger stage overrides any pricing mode",
+      "domain": "mode in {BOOTSTRAP, NORMAL_PRICING}"
+    }
+  ]
+}
