@@ -3,15 +3,52 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
-import {BookHarness} from "./BookHarness.sol";
+
+/// @notice Book with no-op Clearing hooks, so benchmarks measure the book alone.
+contract LeanBook is Book {
+    bool public failAll;
+
+    function createMarket(uint256 market) external {
+        _initBook(market);
+    }
+
+    function setFailAll(bool fail) external {
+        failAll = fail;
+    }
+
+    function freeHead(uint256 market) external view returns (uint32) {
+        return _books[market].freeHead;
+    }
+
+    function _takerStart(Ctx memory, uint96 size) internal pure override returns (uint96) {
+        return size;
+    }
+
+    function _makerFill(Ctx memory, uint32, bool, uint16, uint96 size, uint8)
+        internal
+        view
+        override
+        returns (uint96)
+    {
+        return failAll ? 0 : size;
+    }
+
+    function _takerFill(Ctx memory, bool, uint16, uint96) internal pure override {}
+
+    function _takerDone(Ctx memory) internal pure override {}
+
+    function _onRest(uint256, uint32, bool, uint16, uint96) internal pure override {}
+
+    function _onUnrest(uint256, uint32, bool, uint96) internal pure override {}
+}
 
 /// @notice Gas for the operations in spec §9.9, written to snapshots/BookGas.json.
-/// @dev Excludes the 21k base cost and Clearing's account writes (the harness hooks are trivial),
+/// @dev Excludes the 21k base cost and Clearing's account writes (LeanBook's hooks do nothing),
 ///      and Foundry 1.8.3's `monad` network does not model MIP-8 page pricing, so these numbers
 ///      are regression guards, not Monad costs; measure on testnet for real figures. Storage is
 ///      cooled before each measured call.
 contract BookGasTest is Test {
-    BookHarness book;
+    LeanBook book;
     uint256 constant M = 1;
     address mm = makeAddr("mm");
     address mm2 = makeAddr("mm2");
@@ -20,7 +57,7 @@ contract BookGasTest is Test {
     /// Like a live market: traders registered, every benchmarked level used once (so its slot
     /// is non-zero) and some dead order slots waiting on the free list.
     function setUp() public {
-        book = new BookHarness();
+        book = new LeanBook();
         book.createMarket(M);
         uint32[] memory ids = new uint32[](4);
         ids[0] = _post(mm, true, 499, 1);
@@ -111,7 +148,7 @@ contract BookGasTest is Test {
         for (uint256 i; i < 64; ++i) {
             _post(mm, false, 501, 1);
         }
-        book.setFailMaker(book.traderId(mm), true);
+        book.setFailAll(true);
         vm.cool(address(book));
         vm.prank(taker);
         book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 501, 64, 64));
