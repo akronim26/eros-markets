@@ -31,3 +31,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B016 | lane-pass (no A stand-in; CP-PRICE mocked by test signer) | a6243e1 | 0 | domain/signer/source/rules checks, strict sequence, observedAt order, future tolerance 0, delayed keeps observedAt; CP-PRICE live join BLOCKED |
 | B017 | lane-pass (no A stand-in) | 29a9b45 | 0 | INDEX/PERP/BASIS rings (1024, same-second replace, log-time queries); O(1) INVALID start/end checkpoints survive ring wrap |
 | B018 | lane-pass (epoch-opening hook called by test, A stand-in S-4) | 22bb490 | 0 | RiskContext (no cash/OI), bootstrap backed-only in index band, NORMAL only at epoch opening with all windows, halt overrides |
+| B019 | lane-pass (CP-ORACLE/CP-FACTORY/CP-BOOK interfaces only; live joins BLOCKED) | 9fca84f | 0 | listing validation + one-time init, role checks, versioned calibration, oracle enum map YES1->settle(1)->YES2 / NO2->settle(0)->NO1, release decision port, ABI selectors |
