@@ -161,11 +161,17 @@ abstract contract Book {
     ///      `c.cost` hold the order's totals.
     function _takerDone(Ctx memory c) internal virtual;
 
-    /// @dev Resting-order margin (R_buy, R_sell): `size` units started resting.
-    function _onRest(uint256 market, uint32 trader, bool isBuy, uint16 tick, uint96 size) internal virtual;
+    /// @dev Admission gate for every new order, before anything else happens: market stage
+    ///      (Halted accepts nothing, ReduceOnly only reduce-only orders), price band, minimum size.
+    ///      Reverts to reject; in a batch that reverts the whole batch. Cancels are never gated.
+    function _admit(uint256 market, uint32 trader, Place calldata p) internal virtual;
 
-    /// @dev `size` units stopped resting (filled or cancelled).
-    function _onUnrest(uint256 market, uint32 trader, bool isBuy, uint96 size) internal virtual;
+    /// @dev Resting-order margin (R_buy, R_sell): `size` units started resting. `flags` carry the
+    ///      side (FLAG_BUY) and FLAG_REDUCE_ONLY. May revert to refuse the rest.
+    function _onRest(uint256 market, uint32 trader, uint16 tick, uint96 size, uint8 flags) internal virtual;
+
+    /// @dev `size` units of an order with `flags` stopped resting (filled or cancelled).
+    function _onUnrest(uint256 market, uint32 trader, uint96 size, uint8 flags) internal virtual;
 
     // ------------------------------------------------------------------ external
 
@@ -228,6 +234,7 @@ abstract contract Book {
         if (p.tick < MIN_TICK || p.tick > MAX_TICK) revert BadTick();
         if (p.size == 0) revert BadSize();
         if (p.maxFills > MAX_FILLS) revert BadMaxFills();
+        _admit(market, trader, p);
         uint8 flags = (p.isBuy ? FLAG_BUY : 0) | (p.reduceOnly ? FLAG_REDUCE_ONLY : 0);
 
         if (p.kind == OrderType.POST_ONLY) {
@@ -295,14 +302,14 @@ abstract contract Book {
         returns (uint96 filled)
     {
         Order storage o = b.orders[s];
-        uint32 maker = o.owner;
+        (uint32 maker, uint8 flags) = (o.owner, o.flags & ~FLAG_LIVE);
         if (maker == c.taker) {
             _cancel(b, c.market, s, CancelReason.SELF_TRADE);
             return 0;
         }
         uint96 size = o.size;
         uint96 req = want < size ? want : size;
-        filled = _makerFill(c, maker, !c.takerBuys, k, req, o.flags);
+        filled = _makerFill(c, maker, !c.takerBuys, k, req, flags);
         if (filled == 0) {
             _cancel(b, c.market, s, CancelReason.FAILED_CHECK);
             return 0;
@@ -317,7 +324,7 @@ abstract contract Book {
             o.size = size - filled;
             b.levels[k][c.takerBuys ? ASK : BID].size -= filled;
         }
-        _onUnrest(c.market, maker, !c.takerBuys, filled);
+        _onUnrest(c.market, maker, filled, flags);
         // Reduce-only maker clipped: nothing more of it can fill.
         if (filled < req) _cancel(b, c.market, s, CancelReason.CLIPPED);
     }
@@ -356,7 +363,7 @@ abstract contract Book {
         lv.used = true;
         id = _id(s, gen);
         emit OrderPlaced(market, id, trader, tick, size, flags);
-        _onRest(market, trader, side == BID, tick, size);
+        _onRest(market, trader, tick, size, flags);
     }
 
     /// @dev Returns false if `id` is not live; reverts if it is live but not the trader's.
@@ -373,10 +380,10 @@ abstract contract Book {
 
     function _cancel(BookState storage b, uint256 market, uint32 s, CancelReason reason) internal {
         Order storage o = b.orders[s];
-        (uint32 owner, uint96 size, bool isBuy) = (o.owner, o.size, o.flags & FLAG_BUY != 0);
+        (uint32 owner, uint96 size, uint8 flags) = (o.owner, o.size, o.flags & ~FLAG_LIVE);
         emit OrderCancelled(market, _id(s, o.gen), size, reason);
         _unlink(b, s);
-        _onUnrest(market, owner, isBuy, size);
+        _onUnrest(market, owner, size, flags);
     }
 
     /// @dev Unlinks a live order in O(1), clears the tick bit if the level empties, and turns the

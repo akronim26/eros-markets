@@ -96,12 +96,45 @@ contract BookHarness is Book {
 
     // ------------------------------------------------------------------ hooks
 
-    function _onRest(uint256 market, uint32 trader, bool isBuy, uint16, uint96 size) internal override {
-        reserved[market][trader][isBuy] += size;
+    /// @dev Stand-in for the market stage the oracle/resolution module (R4) drives.
+    enum Stage {
+        Open,
+        ReduceOnly,
+        Halted
     }
 
-    function _onUnrest(uint256 market, uint32 trader, bool isBuy, uint96 size) internal override {
-        reserved[market][trader][isBuy] -= size;
+    error MarketHalted();
+    error ReduceOnlyStage();
+    error BelowMinSize();
+
+    mapping(uint256 => Stage) public stage;
+    uint8 public lastRestFlags;
+    uint8 public lastUnrestFlags;
+    uint96 public minSize;
+
+    function setStage(uint256 market, Stage s) external {
+        stage[market] = s;
+    }
+
+    function setMinSize(uint96 size) external {
+        minSize = size;
+    }
+
+    function _admit(uint256 market, uint32, Place calldata p) internal view override {
+        Stage s = stage[market];
+        if (s == Stage.Halted) revert MarketHalted();
+        if (s == Stage.ReduceOnly && !p.reduceOnly) revert ReduceOnlyStage();
+        if (p.size < minSize) revert BelowMinSize();
+    }
+
+    function _onRest(uint256 market, uint32 trader, uint16, uint96 size, uint8 flags) internal override {
+        reserved[market][trader][flags & FLAG_BUY != 0] += size;
+        lastRestFlags = flags;
+    }
+
+    function _onUnrest(uint256 market, uint32 trader, uint96 size, uint8 flags) internal override {
+        reserved[market][trader][flags & FLAG_BUY != 0] -= size;
+        lastUnrestFlags = flags;
     }
 
     // ------------------------------------------------------------------ internals

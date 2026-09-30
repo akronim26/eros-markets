@@ -73,4 +73,79 @@ contract BookSeamTest is Test {
         assertEq(book.doneFilled(), 0);
         assertEq(book.doneCost(), 0);
     }
+
+    // ------------------------------------------------------------------ admission (stages)
+
+    function _all(bool ro) internal pure returns (Book.Place[3] memory ps) {
+        ps[0] = Book.Place(Book.OrderType.LIMIT, true, ro, 500, 5, 8);
+        ps[1] = Book.Place(Book.OrderType.IOC, true, ro, 500, 5, 8);
+        ps[2] = Book.Place(Book.OrderType.POST_ONLY, true, ro, 400, 5, 0);
+    }
+
+    function test_HaltedMarketRejectsEveryOrderType() public {
+        _post(maker, false, 500, 10);
+        book.setStage(M, BookHarness.Stage.Halted);
+        Book.Place[3] memory ps = _all(true);
+        for (uint256 i; i < 3; ++i) {
+            vm.prank(taker);
+            vm.expectRevert(BookHarness.MarketHalted.selector);
+            book.placeOrder(M, ps[i]);
+        }
+        Book.Place[] memory one = new Book.Place[](1);
+        one[0] = ps[2];
+        vm.prank(taker);
+        vm.expectRevert(BookHarness.MarketHalted.selector);
+        book.batch(M, new uint32[](0), one);
+        assertEq(book.position(M, 2), 0);
+    }
+
+    function test_CancelsStillWorkWhenHalted() public {
+        uint32 a = _post(maker, false, 500, 10);
+        uint32 b = _post(maker, false, 501, 10);
+        book.setStage(M, BookHarness.Stage.Halted);
+        vm.prank(maker);
+        book.cancel(M, a);
+        uint32[] memory c = new uint32[](1);
+        c[0] = b;
+        vm.prank(maker);
+        book.batch(M, c, new Book.Place[](0));
+        assertEq(book.getOrder(M, a).size, 0);
+        assertEq(book.getOrder(M, b).size, 0);
+        assertEq(book.reserved(M, 1, false), 0);
+    }
+
+    function test_ReduceOnlyStageAdmitsOnlyReduceOnlyOrders() public {
+        book.setStage(M, BookHarness.Stage.ReduceOnly);
+        Book.Place[3] memory plain = _all(false);
+        for (uint256 i; i < 3; ++i) {
+            vm.prank(taker);
+            vm.expectRevert(BookHarness.ReduceOnlyStage.selector);
+            book.placeOrder(M, plain[i]);
+        }
+        book.setPosition(M, 2, -5); // taker short 5
+        vm.prank(taker);
+        uint32 id = book.placeOrder(M, _all(true)[2]);
+        assertEq(book.getOrder(M, id).size, 5);
+        assertEq(book.lastRestFlags(), book.FLAG_BUY() | book.FLAG_REDUCE_ONLY());
+    }
+
+    function test_MinSizeGate() public {
+        book.setMinSize(250);
+        vm.prank(taker);
+        vm.expectRevert(BookHarness.BelowMinSize.selector);
+        book.placeOrder(M, Book.Place(Book.OrderType.POST_ONLY, true, false, 400, 249, 0));
+        vm.prank(taker);
+        book.placeOrder(M, Book.Place(Book.OrderType.POST_ONLY, true, false, 400, 250, 0));
+    }
+
+    function test_RestAndUnrestHooksGetFlagsWithoutLiveBit() public {
+        uint32 id = _post(maker, false, 500, 10);
+        assertEq(book.lastRestFlags(), 0);
+        vm.prank(maker);
+        book.cancel(M, id);
+        assertEq(book.lastUnrestFlags(), 0);
+        _post(maker, true, 400, 10);
+        _ioc(taker, false, 400, 4);
+        assertEq(book.lastUnrestFlags(), book.FLAG_BUY(), "maker fill passes the maker's flags");
+    }
 }
