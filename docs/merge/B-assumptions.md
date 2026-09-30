@@ -61,3 +61,14 @@ open questions for Person A, the counterpart teams or the spec owner.
 - **S-1 (B006) Coverage port stand-in.** `order_admission.admit` takes endpoint deficits,
   deficit cap and market coverage through a `coverage_port` callable. In tests it is a scripted
   fixture (spec §7.3 formulas for fixed inputs). Replaced at G1 by A004 `reference/a/coverage.py`.
+- **M-5 (B009, B014, B028) Grace length and anchor.** The spec says an account between MM and IM
+  has a "nonrenewable grace anchored to the risk epoch" but gives no length outside the final
+  day. Choice: per-account anchor = `effectiveAt` of the risk epoch in which the account is first
+  observed below IM; grace ends at `min(anchor + graceSecs, T - 12h)`; `graceSecs` is a profile
+  parameter (fixture 3600 s = one risk epoch). The anchor is cleared only when the account is
+  observed at or above IM; touching a deficient account never moves it. Below MM has no grace.
+  ASSUMPTION (question for spec owner: grace length).
+- **M-6 (B009, B014, B028) Stage precedence.** `CLAIMS_READY > HALTED > REDUCE_ONLY (T-1h or
+  monitor) > BACKING_FLOOR > BACKING_GRACE > TRADING`. The monitor flag can make a floor market
+  REDUCE_ONLY; the time flags (`fullBackingByTime`, `fundingFrozen`, legacy takeover window) are
+  reported separately so REDUCE_ONLY never hides floor rules.
