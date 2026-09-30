@@ -67,7 +67,11 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         _touchedIn[trader] = _actionId;
         _acctTouch(trader);
         _resSyncEpoch(trader);
+        _afterTouch(trader);
     }
+
+    /// @dev Lifecycle hook after A settled the account at the action cutoff (B028 grace state).
+    function _afterTouch(uint32 trader) internal virtual {}
 
     function _checkSnap(RiskSnapshot memory s) internal view {
         if (s.marketOrderEpoch != _acctMarketOrderEpoch() || s.riskVersion != _actionCtx.riskVersion) {
