@@ -171,3 +171,11 @@ open questions for Person A, the counterpart teams or the spec owner.
   (spec §4.3 allows reductions below IM). `FORCED_REDUCTION` is never reachable from user input.
 - **M-15 (B023) Bootstrap / final-day admission** uses the exact predicate `d0 == 0 && d1 == 0`
   on the whole commitment set (plus the index band in BOOTSTRAP), via the same halving search.
+- **S-9 (B026) Virtually settled views.** Previews call `_acctAccount` / `_acctCoverage` without a
+  touch. For preview == execution, A's views must return the account virtually settled at the
+  current legal cutoff (stored cash minus unmaterialized funding and posted-equivalent premium),
+  the same values a touch would materialize. Projected funding/premium are also reported
+  separately through `_acctProjectedAccrual` and labelled estimates. Requirement for A021/A024.
+- **M-16 (B026) Usable release.** `usableReleaseAtoms` is the largest whole-atom amount accepted by
+  the same release decision, found by a bounded binary search (<= 96 probes); it assumes releasing
+  less is never rejected when releasing more is accepted (true for every rule in the decision).
