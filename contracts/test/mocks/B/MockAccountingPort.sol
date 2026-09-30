@@ -269,7 +269,9 @@ abstract contract MockAccountingPort is IAccountingPort {
     }
 
     function _acctFloorBegin() internal virtual override returns (uint64) {
+        if (_mFloorOpen) revert MockSequence("floor begun twice");
         _mFloorOpen = true;
+        _mState = AccountingState.FLOOR_SWEEP; // scripted A: live market mutations pause
         _log(CallKind.FLOOR_BEGIN, 0, 0, _mTraders.length);
         return uint64(_mTraders.length);
     }
@@ -282,6 +284,7 @@ abstract contract MockAccountingPort is IAccountingPort {
     function _acctFloorComplete() internal virtual override {
         if (!_mFloorOpen) revert MockSequence("floor not begun");
         _mFloorOpen = false;
+        _mState = AccountingState.READY;
         _log(CallKind.FLOOR_COMPLETE, 0, 0, 0);
     }
 
