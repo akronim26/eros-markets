@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "kind": "task",
+  "id": "A002",
+  "scope": "task_checks_only",
+  "spec_version": "1.1",
+  "economic_baseline": "1.0",
+  "interface_version": "risk-math-g0-draft-1",
+  "recorded_at": "2026-09-30T19:02:32.614681+00:00",
+  "source_commit": "7c65d46a9f4d5958678c1cf12c0a4654fce7fdf6",
+  "worktree_dirty": true,
+  "toolchain": {
+    "python": "3.12.10",
+    "forge": "forge Version: 1.5.1-stable\nCommit SHA: b0a9dd9ceda36f63e2326ce530c10e6916f4b8a2\nBuild Timestamp: 2025-12-22T11:40:33.870895500Z (1766403633)\nBuild Profile: maxperf",
+    "solc_declared": "0.8.30",
+    "foundry_profile": "risk",
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
+  },
+  "seed": "0x45524f53",
+  "python_hash_seed": "0",
+  "fixture_hashes": {
+    "reference/common/result_schema.json": "0eaf5b4929d03efe0ae1fe821ecd4c636aefcb5afeaa52451d67f5fcba0b9a68",
+    "reference/common/units.py": "3d45a1d6f04ea41d637c62aabd4a495d1fa8c99dd72ca8a4dfe557d82ffd0baf",
+    "contracts/src/math/MathTypes.sol": "caf35bd8815a14cb245f17a5df80d1d4906be37b6b6ba4bab187cccea3d3e7c0",
+    "contracts/foundry.toml": "c0c76799eb15ef9debd743c6f3aa264ae5986d51491af6b7e8fa0949017d58c6",
+    "scripts/check-task.sh": "9918ef01af45c05f39e6f9c311f5b12dec6a7aeb2e68f8c7dcb218f372e8f37c",
+    ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
+    "reference/tests/a/test_a002.py": "8cdf33ea4660015a9b8d444ed33ebc256042a655140ca1767817f0a25a78afa8"
+  },
+  "components": {
+    "selected_suite": "real",
+    "peer_lane": "not_exercised",
+    "external_counterparts": "not_exercised"
+  },
+  "commands": [
+    {
+      "argv": [
+        "C:\\Users\\gujja\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "reference/tests/a",
+        "-p",
+        "test_a002.py"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "in_process_unittest_discovery",
+      "output": "test_a_and_b_are_discovered_independently (test_a002.RunnerTest.test_a_and_b_are_discovered_independently) ... ok\ntest_empty_suite_fails (test_a002.RunnerTest.test_empty_suite_fails) ... ok\ntest_expected_failure_does_not_count_as_acceptance (test_a002.RunnerTest.test_expected_failure_does_not_count_as_acceptance) ... ok\ntest_failure_propagates_and_does_not_run_peer (test_a002.RunnerTest.test_failure_propagates_and_does_not_run_peer) ... ok\ntest_gate_executes_both_lanes_and_combined_suite_without_accepting_merge (test_a002.RunnerTest.test_gate_executes_both_lanes_and_combined_suite_without_accepting_merge) ... ok\ntest_gate_missing_real_inputs_never_passes (test_a002.RunnerTest.test_gate_missing_real_inputs_never_passes) ... ok\ntest_import_error_is_failed_evidence (test_a002.RunnerTest.test_import_error_is_failed_evidence) ... ok\ntest_invalid_gate_fails (test_a002.RunnerTest.test_invalid_gate_fails) ... ok\ntest_missing_solidity_suite_and_unconfigured_campaign_fail (test_a002.RunnerTest.test_missing_solidity_suite_and_unconfigured_campaign_fail) ... ok\ntest_missing_suite_fails (test_a002.RunnerTest.test_missing_suite_fails) ... ok\ntest_risk_seed_does_not_override_book_profiles (test_a002.RunnerTest.test_risk_seed_does_not_override_book_profiles) ... ok\ntest_schema_preserves_exact_values_and_execution_provenance (test_a002.RunnerTest.test_schema_preserves_exact_values_and_execution_provenance) ... ok\ntest_skipped_suite_is_not_accepted (test_a002.RunnerTest.test_skipped_suite_is_not_accepted) ... ok\ntest_solidity_runner_executes_and_rejects_failure_or_empty_suite (test_a002.RunnerTest.test_solidity_runner_executes_and_rejects_failure_or_empty_suite) ... ok\ntest_unknown_identifiers_fail_without_execution (test_a002.RunnerTest.test_unknown_identifiers_fail_without_execution) ... ok\n\n----------------------------------------------------------------------\nRan 15 tests in 31.777s\n\nOK\n"
+    }
+  ],
+  "test_count": 15,
+  "skipped_count": 0,
+  "status": "passed",
+  "exit_code": 0,
+  "reason": "",
+  "checks": [],
+  "artifacts": [
+    "artifacts/tasks/A002.json"
+  ]
+}

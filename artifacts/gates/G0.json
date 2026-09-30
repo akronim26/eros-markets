@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "kind": "gate",
+  "id": "G0",
+  "scope": "combined_technical_checks_only",
+  "spec_version": "1.1",
+  "economic_baseline": "1.0",
+  "interface_version": "risk-math-g0-draft-1",
+  "recorded_at": "2026-09-30T19:02:29.677593+00:00",
+  "source_commit": "7c65d46a9f4d5958678c1cf12c0a4654fce7fdf6",
+  "worktree_dirty": true,
+  "toolchain": {
+    "python": "3.12.10",
+    "forge": "forge Version: 1.5.1-stable\nCommit SHA: b0a9dd9ceda36f63e2326ce530c10e6916f4b8a2\nBuild Timestamp: 2025-12-22T11:40:33.870895500Z (1766403633)\nBuild Profile: maxperf",
+    "solc_declared": "0.8.30",
+    "foundry_profile": "risk",
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
+  },
+  "seed": "0x45524f53",
+  "python_hash_seed": "0",
+  "fixture_hashes": {
+    "reference/common/units.py": "3d45a1d6f04ea41d637c62aabd4a495d1fa8c99dd72ca8a4dfe557d82ffd0baf",
+    "reference/common/result_schema.json": "0eaf5b4929d03efe0ae1fe821ecd4c636aefcb5afeaa52451d67f5fcba0b9a68",
+    "contracts/src/math/MathTypes.sol": "caf35bd8815a14cb245f17a5df80d1d4906be37b6b6ba4bab187cccea3d3e7c0",
+    "docs/math/units.md": "04cf7237eaaefaff521b2ea9065f888fab2f025e35b09dc09d19d04786e25813",
+    "reference/tests/a/test_a001.py": "5175621e9adc0b0cc21f1e2511a75453f6ea19274b8ca4952ae0b0b539dfa454",
+    "reference/tests/a/test_a002.py": "8cdf33ea4660015a9b8d444ed33ebc256042a655140ca1767817f0a25a78afa8"
+  },
+  "components": {
+    "lane_a": "not_exercised",
+    "lane_b": "not_exercised",
+    "combined": "not_exercised",
+    "external_counterparts": "not_exercised"
+  },
+  "commands": [],
+  "test_count": 0,
+  "skipped_count": 0,
+  "status": "blocked",
+  "exit_code": 2,
+  "reason": "missing gate inputs: docs/math/risk-function-contracts.json, docs/ownership.json, docs/counterpart-contracts.md, reference/fixtures/golden_cases.json, docs/math/golden-case-rationale.md, docs/contracts/G0.json, contracts/test/gates/G0.t.sol, reference/tests/b/test_b001.py, reference/tests/b/test_b002.py",
+  "checks": [],
+  "artifacts": [
+    "artifacts/gates/G0.json"
+  ],
+  "merge_sha": null,
+  "reviewed_by": [],
+  "accepted": false
+}

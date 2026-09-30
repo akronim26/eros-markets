@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "kind": "task",
+  "id": "A001",
+  "scope": "task_checks_only",
+  "spec_version": "1.1",
+  "economic_baseline": "1.0",
+  "interface_version": "risk-math-g0-draft-1",
+  "recorded_at": "2026-09-30T19:03:23.181265+00:00",
+  "source_commit": "7c65d46a9f4d5958678c1cf12c0a4654fce7fdf6",
+  "worktree_dirty": true,
+  "toolchain": {
+    "python": "3.12.10",
+    "forge": "forge Version: 1.5.1-stable\nCommit SHA: b0a9dd9ceda36f63e2326ce530c10e6916f4b8a2\nBuild Timestamp: 2025-12-22T11:40:33.870895500Z (1766403633)\nBuild Profile: maxperf",
+    "solc_declared": "0.8.30",
+    "foundry_profile": "risk",
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
+  },
+  "seed": "0x45524f53",
+  "python_hash_seed": "0",
+  "fixture_hashes": {
+    "reference/common/result_schema.json": "0eaf5b4929d03efe0ae1fe821ecd4c636aefcb5afeaa52451d67f5fcba0b9a68",
+    "reference/common/units.py": "3d45a1d6f04ea41d637c62aabd4a495d1fa8c99dd72ca8a4dfe557d82ffd0baf",
+    "contracts/src/math/MathTypes.sol": "caf35bd8815a14cb245f17a5df80d1d4906be37b6b6ba4bab187cccea3d3e7c0",
+    "contracts/foundry.toml": "c0c76799eb15ef9debd743c6f3aa264ae5986d51491af6b7e8fa0949017d58c6",
+    "scripts/check-task.sh": "9918ef01af45c05f39e6f9c311f5b12dec6a7aeb2e68f8c7dcb218f372e8f37c",
+    ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
+    "reference/tests/a/test_a001.py": "5175621e9adc0b0cc21f1e2511a75453f6ea19274b8ca4952ae0b0b539dfa454"
+  },
+  "components": {
+    "selected_suite": "real",
+    "peer_lane": "not_exercised",
+    "external_counterparts": "not_exercised"
+  },
+  "commands": [
+    {
+      "argv": [
+        "C:\\Users\\gujja\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "reference/tests/a",
+        "-p",
+        "test_a001.py"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "in_process_unittest_discovery",
+      "output": "test_binary_y_and_oracle_enum_are_distinct (test_a001.UnitsTest.test_binary_y_and_oracle_enum_are_distinct) ... ok\ntest_directed_signed_rounding_against_fraction (test_a001.UnitsTest.test_directed_signed_rounding_against_fraction) ... ok\ntest_exact_claim_conversion_rejects_float_and_sub_lot (test_a001.UnitsTest.test_exact_claim_conversion_rejects_float_and_sub_lot) ... ok\ntest_fractional_q_cannot_round_up_to_atoms (test_a001.UnitsTest.test_fractional_q_cannot_round_up_to_atoms) ... ok\ntest_funding_records_keep_explicit_units_and_cutoffs (test_a001.UnitsTest.test_funding_records_keep_explicit_units_and_cutoffs) ... ok\ntest_mark_scale_has_no_second_wad_division (test_a001.UnitsTest.test_mark_scale_has_no_second_wad_division) ... ok\ntest_one_lot_one_tick_is_one_atom (test_a001.UnitsTest.test_one_lot_one_tick_is_one_atom) ... ok\ntest_order_epochs_and_version_wrap (test_a001.UnitsTest.test_order_epochs_and_version_wrap) ... ok\ntest_payoff_records_require_finality_and_matching_price (test_a001.UnitsTest.test_payoff_records_require_finality_and_matching_price) ... ok\ntest_settlement_endpoints_are_not_trading_ticks (test_a001.UnitsTest.test_settlement_endpoints_are_not_trading_ticks) ... ok\ntest_source_ledger_identity_in_selected_units (test_a001.UnitsTest.test_source_ledger_identity_in_selected_units) ... ok\ntest_strict_cash_and_inclusive_position_bounds (test_a001.UnitsTest.test_strict_cash_and_inclusive_position_bounds) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.009s\n\nOK\n"
+    }
+  ],
+  "test_count": 12,
+  "skipped_count": 0,
+  "status": "passed",
+  "exit_code": 0,
+  "reason": "",
+  "checks": [],
+  "artifacts": [
+    "artifacts/tasks/A001.json"
+  ]
+}
