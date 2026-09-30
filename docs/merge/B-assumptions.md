@@ -92,3 +92,11 @@ open questions for Person A, the counterpart teams or the spec owner.
   carries h in wad-seconds (`horizonWadUp`, `hazardUpWad`, `sigmaTheoryUpWad`); empirical bins are
   looked up at `ceil(h)` seconds (step-up, still conservative). `horizonSecsUp` stays for callers
   that need whole seconds.
+- **I-3 (B016) Observation signature.** Digest = `keccak256(abi.encode(OBSERVATION_TYPEHASH, fields...,
+  block.chainid, address(engine)))`, signed raw (no EIP-191/712 prefix), one pinned signer per
+  source, pinned once at initialization. The signed `priceWad` must equal `floor((impactBid +
+  impactAsk)/2)` whenever the depth summary is valid. CP-PRICE must confirm this envelope; until
+  then the live CP-PRICE join is BLOCKED_BY_COUNTERPART.
+- **I-4 (B016) Perp observations** come from this market's own book depth (impact mid at N),
+  recorded internally by the engine, not from a signed source; only the independent index is
+  signed. The index must never come from this market's book (spec §4.1).
