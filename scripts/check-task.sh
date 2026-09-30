@@ -69,7 +69,7 @@ record["worktree_dirty"] = None if dirty is None else bool(dirty)
 def hash_path(path):
     record["fixture_hashes"][path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
 
-for location in ("reference/common", "reference/fixtures", "contracts/src/math"):
+for location in ("reference/common", "reference/fixtures", "reference/a", "contracts/src/math", "contracts/src/risk", "contracts/src/vaults", "contracts/src/settlement", "contracts/test/harness/A", "contracts/test/mocks/A", "contracts/test/risk/A", "contracts/test/invariant/A", "packages/risk-sdk"):
     directory = root / location
     if directory.exists():
         for path in sorted(directory.rglob("*")):
@@ -104,24 +104,40 @@ try:
         record["exit_code"] = 0 if passed else 1
         record["commands"].append({"argv": command, "cwd": ".", "exit_code": record["exit_code"],
                                    "execution": "in_process_unittest_discovery", "output": log})
+    elif lane == "A" and number >= 43:
+        command = [sys.executable, "scripts/check-a-handoff.py", task]
+        run = subprocess.run(command, cwd=root, capture_output=True, text=True)
+        print(run.stdout, end=""); print(run.stderr, end="", file=sys.stderr)
+        record["commands"].append({"argv": command, "cwd": ".", "exit_code": run.returncode,
+                                   "execution": "subprocess", "output": run.stdout + run.stderr})
+        record["exit_code"] = run.returncode
+        report = json.loads(run.stdout)
+        record["test_count"] = report["checks_run"]
+        if report["status"] == "pending_peer_merge":
+            record["status"] = "blocked"
+            record["reason"] = report["reason"]
     else:
-        if number >= 40:
-            # W7 includes campaigns, gas and review deliverables. A generic unit suite
-            # cannot stand in for its task-specific acceptance implementation.
-            raise ValueError(f"{task}: W7 campaign/review acceptance is not configured yet")
         family = "math" if number <= 15 else "risk"
-        relative = f"test/{family}/{lane}/{task}.t.sol"
+        campaigns = {"A040": "test/invariant/A/AccountingInvariants.t.sol",
+                     "A041": "test/gas/A/AccountingGas.t.sol", "A042": "test/integration/A/CustodyExit.t.sol"}
+        if number >= 40 and task not in campaigns:
+            raise ValueError(f"{task}: campaign/review acceptance is not configured yet")
+        relative = campaigns.get(task, f"test/{family}/{lane}/{task}.t.sol")
         suite_path = root / "contracts" / relative
         if not suite_path.is_file():
             raise ValueError(f"missing suite: contracts/{relative}")
         hash_path(suite_path)
+        if task == "A040":
+            reference_command = [sys.executable, "-m", "reference.a.integrated_traces"]
+            reference_run = subprocess.run(reference_command,cwd=root,capture_output=True,text=True)
+            record["commands"].append({"argv":reference_command,"cwd":".","exit_code":reference_run.returncode,
+                "execution":"subprocess","output":reference_run.stdout+reference_run.stderr})
+            if reference_run.returncode: raise ValueError("independent integrated reference failed")
         command = ["forge", "test", "--match-path", relative, "--json"]
+        if task == "A041": command.append("-vv")
         env = {**os.environ, "FOUNDRY_PROFILE": "risk"}
         run = subprocess.run(command, cwd=root / "contracts", env=env, capture_output=True, text=True)
-        print(run.stdout, end="")
         print(run.stderr, end="", file=sys.stderr)
-        record["commands"].append({"argv": command, "cwd": "contracts", "exit_code": run.returncode,
-                                   "execution": "subprocess", "output": run.stdout + run.stderr})
         record["exit_code"] = run.returncode
         try:
             payload = json.loads(run.stdout)
@@ -129,13 +145,66 @@ try:
             if run.returncode == 0:
                 raise ValueError("forge returned no machine-readable test results")
             payload = {}
+        # Retain status, counterexamples, gas, decoded measurements and invariant
+        # metrics without repeating thousands of raw EVM event topics in Git.
+        for suite in payload.values():
+            if isinstance(suite, dict):
+                for test in suite.get("test_results", {}).values():
+                    for key in ("logs", "traces", "labeled_addresses", "breakpoints"):
+                        test.pop(key, None)
+        output = json.dumps(payload) if payload else run.stdout
+        print(output)
+        record["commands"].append({"argv": command, "cwd": "contracts", "exit_code": run.returncode,
+                                   "execution": "subprocess", "output": output + run.stderr,
+                                   "raw_evm_logs_omitted": True})
         results = [test for suite in payload.values() if isinstance(suite, dict)
                    for test in suite.get("test_results", {}).values()]
         record["test_count"] = len(results)
         record["skipped_count"] = sum(test.get("status") == "Skipped" for test in results)
         if run.returncode == 0 and (not results or any(test.get("status") != "Success" for test in results)):
             raise ValueError("forge returned no successful complete suite; missing/skipped tests fail")
-    record["status"] = "passed" if record["exit_code"] == 0 else "failed"
+        if task == "A032" and run.returncode == 0:
+            sdk_commands = [
+                ["tsc", "--target", "es2020", "--module", "commonjs", "--strict", "--outDir", "tmp/risk-sdk", "packages/risk-sdk/src/accounting.ts", "packages/risk-sdk/test/accounting.test.ts"],
+                ["node", "tmp/risk-sdk/test/accounting.test.js"]]
+            # Windows npm installs the CLI as a .cmd shim; invoke its JS entry
+            # through Node instead of passing user/source strings to a shell.
+            if os.name == "nt":
+                import shutil
+                shim = shutil.which("tsc")
+                if not shim: raise ValueError("TypeScript compiler not installed")
+                sdk_commands[0] = ["node", str(Path(shim).parent / "node_modules/typescript/bin/tsc"), *sdk_commands[0][1:]]
+            for sdk_command in sdk_commands:
+                sdk_run = subprocess.run(sdk_command, cwd=root, capture_output=True, text=True)
+                record["commands"].append({"argv":sdk_command,"cwd":".","exit_code":sdk_run.returncode,
+                    "execution":"subprocess","output":sdk_run.stdout+sdk_run.stderr})
+                if sdk_run.returncode: raise ValueError("SDK accounting reader check failed: "+sdk_run.stdout+sdk_run.stderr)
+            record["test_count"] += 1
+        if task == "A041" and run.returncode == 0:
+            measurements = {}
+            for test in results:
+                for line in test.get("decoded_logs", []):
+                    found = re.fullmatch(r"([a-z0-9_]+): ([0-9]+)", line.strip())
+                    if found: measurements[found[1]] = int(found[2])
+            if measurements.get("participant_count") != 1024:
+                raise ValueError("missing full-bound gas measurements")
+            bytecode = json.loads((root / "contracts/out/AccountingHarness.sol/AccountingHarness.json").read_text())["deployedBytecode"]["object"]
+            gas = {"status":"measured_locally", "measurements":measurements,
+                   "gas_model":"Foundry local Prague EVM; test-call gas, excludes transaction base; not a Monad/testnet gas certificate",
+                   "harness_runtime_bytes":(len(bytecode.removeprefix("0x"))//2),
+                   "harness_code_size_limit":65536, "production_composition_size":"pending A+B merge",
+                   "source_commit":record["source_commit"], "toolchain":record["toolchain"]}
+            path=root / "artifacts/risk/gas-accounting.json"; path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_text(json.dumps(gas,indent=2)+"\n")
+        if task == "A042" and run.returncode == 0:
+            path=root / "artifacts/risk/custody-reconciliation.json";path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_text(json.dumps({"status":"A_local_pass", "tests":record["test_count"],
+                "peer_decisions":"scripted_mock", "token":"deterministic MockUSDC with failure/tax/reentry tests",
+                "real_counterpart_integration":"pending_merge", "source_commit":record["source_commit"]},indent=2)+"\n")
+    if record["status"] != "blocked":
+        record["status"] = "passed" if record["exit_code"] == 0 else "failed"
+    if lane == "A" and 16 <= number <= 42:
+        record["components"]["peer_lane"] = "scripted_mock"
 except (OSError, ValueError, ImportError) as error:
     record["reason"] = str(error)
     record["exit_code"] = 2
@@ -144,6 +213,9 @@ except (OSError, ValueError, ImportError) as error:
 destination = root / record["artifacts"][0]
 destination.parent.mkdir(parents=True, exist_ok=True)
 destination.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+if lane == "A" and number >= 40:
+    acceptance=root / f"artifacts/acceptance/{task}.json";acceptance.parent.mkdir(parents=True,exist_ok=True)
+    acceptance.write_text(json.dumps(record,indent=2)+"\n",encoding="utf-8")
 print(f"{task}: {record['status']}; {record['test_count']} tests; {record['artifacts'][0]}")
 sys.exit(record["exit_code"])
 PY

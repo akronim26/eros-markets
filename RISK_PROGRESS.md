@@ -4,8 +4,7 @@ Updated 2026-10-01 on feat/risk. Scope follows the user's latest instruction:
 **implement A independently; merge B later; leave the order book untouched.**
 The attached packet supplies requirements, not permission to override that scope.
 
-A001-A042 are implemented locally. A044's runbook and evidence assembler are
-implemented; final evidence refresh is in progress. A043 has a review checklist
+A001-A042 and A044 are implemented and pass their local checks. A043 has a review checklist
 and reproducers, but actual B review remains pending until B's code is available.
 G0-G7 remain pending. No peer approval or production release is claimed.
 
@@ -86,18 +85,44 @@ No production arbitrary-balance or emergency-loss setter exists.
 
 ## Validation
 
-Before the final evidence refresh: 37 stateful/campaign Solidity tests passed,
-including 1,000-run trade and settlement fuzz cases. The invariant passed
+Final regression: **163 Solidity tests passed in 44 suites: 53 A tests and all
+110 existing book tests**, with no failures or skips. There are also **42 passing
+Python tests** and a passing TypeScript compile/SDK reader test. Trade and
+settlement fuzz cases each run 1,000 examples. The A invariant passed
 48 runs / 3,072 calls / zero reverts with deposits, releases, fills, liquidation,
 funding, premium and rollover. Each invariant run also settles and claims in
 its terminal check. Python independently checks 2,000 rational transitions;
 64 are replayed in Solidity. Math has another 64 ledger and 32 premium vectors.
-The SDK compile and execution pass.
+All 44 task records and the G0 record pass their JSON schema. A001-A042 and A044
+report passed; A043 deliberately exits 2 with pending peer review. G0 likewise
+exits 2 for missing B/shared artifacts; G1-G7 have not been accepted.
 
-Final command counts, gas measurements, protected-file checks and commits will
-be recorded after the complete evidence run. Whole-repository formatting with
-local Foundry 1.5.1 reports existing book formatting differences; the book is
-excluded from edits. New A files are formatted and checked separately.
+Final commands: all A task runners, scoped A formatting, build with size reporting,
+and the complete Forge suite with risk profile and snapshot emission disabled.
+The build and A formatting pass. The diff for every protected book path against
+the starting commit is empty. Whole-repository formatting with local Foundry 1.5.1
+reports existing book formatting differences; those files remain unchanged.
+
+Evidence: [full regression and protected hashes](artifacts/validation/A-final.json),
+[local handoff manifest](artifacts/risk/accounting-release.json),
+[task records](artifacts/tasks), [custody reconciliation](artifacts/risk/custody-reconciliation.json).
+
+Actual [local gas measurements](artifacts/risk/gas-accounting.json) use 1024 funded
+participants carrying positions, active funding/premium and 32-account pages:
+
+| Operation | Measured gas |
+| --- | ---: |
+| Rollover start | 82,606 |
+| Largest 32-account rollover page | 3,297,328 |
+| Halt with 1024 accounts | 72,104 |
+| Largest 32-account snapshot page | 2,354,829 |
+| Trader claim | 91,541 |
+| Premium math | 16,641 |
+| Funding/premium account touch | 191,487 |
+
+These are local Prague EVM call measurements, not network transaction ceilings.
+The aggregate test harness is 33,617 runtime bytes. Its standard IS_TEST marker
+excludes it from production size reports; its actual size remains disclosed.
 
 Local toolchain: Python 3.12, Foundry 1.5.1, Solidity 0.8.30, Prague, optimizer 200.
 Repository CI pins Foundry 1.8.3; local results do not claim execution on that
@@ -127,3 +152,5 @@ source commit, dirty state, seed, commands and source hashes.
 - 10c56cc — A002 task/gate runners.
 - 52521c8 — W0 evidence and progress.
 - 81a3d0b — A003-A015 reference engine and pure Solidity math.
+- 4c52854 — A016-A039 clearing, custody, accrual, settlement, SDK and regression tests.
+- Final campaign, handoff and evidence are committed with this progress revision.
