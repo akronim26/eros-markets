@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "kind": "task",
-  "id": "A001",
+  "id": "A019",
   "scope": "task_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-09-30T21:22:19.544985+00:00",
+  "recorded_at": "2026-09-30T21:24:15.491865+00:00",
   "source_commit": "4c528549ff30396b22c312ccca5835aaf23e7ee6",
   "worktree_dirty": true,
   "toolchain": {
@@ -100,39 +100,36 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "contracts/foundry.toml": "29d3d2d1338ee3082a0cec7a7e96c57279c808f5c7559238d8f555d11173b415",
     "scripts/check-task.sh": "68db7925dafb098159e0ce89737510072450ea89386375329fc7470cc2a1cbb8",
-    ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
-    "reference/tests/a/test_a001.py": "5175621e9adc0b0cc21f1e2511a75453f6ea19274b8ca4952ae0b0b539dfa454"
+    ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7"
   },
   "components": {
     "selected_suite": "real",
-    "peer_lane": "not_exercised",
+    "peer_lane": "scripted_mock",
     "external_counterparts": "not_exercised"
   },
   "commands": [
     {
       "argv": [
-        "C:\\Users\\gujja\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
-        "-m",
-        "unittest",
-        "discover",
-        "-s",
-        "reference/tests/a",
-        "-p",
-        "test_a001.py"
+        "forge",
+        "test",
+        "--match-path",
+        "test/risk/A/A019.t.sol",
+        "--json"
       ],
-      "cwd": ".",
+      "cwd": "contracts",
       "exit_code": 0,
-      "execution": "in_process_unittest_discovery",
-      "output": "test_binary_y_and_oracle_enum_are_distinct (test_a001.UnitsTest.test_binary_y_and_oracle_enum_are_distinct) ... ok\ntest_directed_signed_rounding_against_fraction (test_a001.UnitsTest.test_directed_signed_rounding_against_fraction) ... ok\ntest_exact_claim_conversion_rejects_float_and_sub_lot (test_a001.UnitsTest.test_exact_claim_conversion_rejects_float_and_sub_lot) ... ok\ntest_fractional_q_cannot_round_up_to_atoms (test_a001.UnitsTest.test_fractional_q_cannot_round_up_to_atoms) ... ok\ntest_funding_records_keep_explicit_units_and_cutoffs (test_a001.UnitsTest.test_funding_records_keep_explicit_units_and_cutoffs) ... ok\ntest_mark_scale_has_no_second_wad_division (test_a001.UnitsTest.test_mark_scale_has_no_second_wad_division) ... ok\ntest_one_lot_one_tick_is_one_atom (test_a001.UnitsTest.test_one_lot_one_tick_is_one_atom) ... ok\ntest_order_epochs_and_version_wrap (test_a001.UnitsTest.test_order_epochs_and_version_wrap) ... ok\ntest_payoff_records_require_finality_and_matching_price (test_a001.UnitsTest.test_payoff_records_require_finality_and_matching_price) ... ok\ntest_settlement_endpoints_are_not_trading_ticks (test_a001.UnitsTest.test_settlement_endpoints_are_not_trading_ticks) ... ok\ntest_source_ledger_identity_in_selected_units (test_a001.UnitsTest.test_source_ledger_identity_in_selected_units) ... ok\ntest_strict_cash_and_inclusive_position_bounds (test_a001.UnitsTest.test_strict_cash_and_inclusive_position_bounds) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.009s\n\nOK\n"
+      "execution": "subprocess",
+      "output": "{\"test/risk/A/A019.t.sol:A019Test\": {\"duration\": \"5ms 808\\u00c2\\u00b5s 800ns\", \"test_results\": {\"testBothCoverageSidesAndExcessRollback()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 542689}}, \"duration\": \"1ms 415\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "raw_evm_logs_omitted": true
     }
   ],
-  "test_count": 12,
+  "test_count": 1,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
   "reason": "",
   "checks": [],
   "artifacts": [
-    "artifacts/tasks/A001.json"
+    "artifacts/tasks/A019.json"
   ]
 }

@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-09-30T20:12:22.996709+00:00",
-  "source_commit": "52521c8792b9cf1b389c28862152738e4a91ad01",
+  "recorded_at": "2026-09-30T21:29:11.148695+00:00",
+  "source_commit": "4c528549ff30396b22c312ccca5835aaf23e7ee6",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -20,9 +20,9 @@
   "python_hash_seed": "0",
   "fixture_hashes": {
     "reference/common/units.py": "3d45a1d6f04ea41d637c62aabd4a495d1fa8c99dd72ca8a4dfe557d82ffd0baf",
-    "reference/common/result_schema.json": "0eaf5b4929d03efe0ae1fe821ecd4c636aefcb5afeaa52451d67f5fcba0b9a68",
+    "reference/common/result_schema.json": "5c0fd4ad7d0c415ac08bd01d7dcbf4bf2eb7b5d8ad5090964d8bf5a982d87106",
     "contracts/src/math/MathTypes.sol": "caf35bd8815a14cb245f17a5df80d1d4906be37b6b6ba4bab187cccea3d3e7c0",
-    "docs/math/units.md": "04cf7237eaaefaff521b2ea9065f888fab2f025e35b09dc09d19d04786e25813",
+    "docs/math/units.md": "3526acb48f00f31936c2fb6f5335a945ce04870a60d653d27c3708844a50b338",
     "reference/tests/a/test_a001.py": "5175621e9adc0b0cc21f1e2511a75453f6ea19274b8ca4952ae0b0b539dfa454",
     "reference/tests/a/test_a002.py": "8cdf33ea4660015a9b8d444ed33ebc256042a655140ca1767817f0a25a78afa8"
   },

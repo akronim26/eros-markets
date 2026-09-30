@@ -53,7 +53,7 @@
     {
       "if": {"properties": {"kind": {"const": "gate"}}},
       "then": {"required": ["accepted", "merge_sha", "reviewed_by"], "properties": {"id": {"pattern": "^G[0-7]$"}, "scope": {"const": "combined_technical_checks_only"}, "status": {"enum": ["checks_passed", "failed", "blocked"]}}},
-      "else": {"properties": {"id": {"pattern": "^[AB]"}, "scope": {"const": "task_checks_only"}, "status": {"enum": ["passed", "failed"]}}}
+      "else": {"properties": {"id": {"pattern": "^[AB]"}, "scope": {"const": "task_checks_only"}, "status": {"enum": ["passed", "failed", "blocked"]}}}
     }
   ],
   "$defs": {
@@ -100,7 +100,8 @@
         "cwd": {"type": "string"},
         "exit_code": {"type": "integer"},
         "execution": {"enum": ["subprocess", "in_process_unittest_discovery"]},
-        "output": {"type": "string"}
+        "output": {"type": "string"},
+        "raw_evm_logs_omitted": {"type": "boolean"}
       }
     }
   }
