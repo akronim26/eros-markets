@@ -111,3 +111,18 @@ open questions for Person A, the counterpart teams or the spec owner.
 - **S-4 (B018 onward) Epoch-opening hook.** B exposes `_onEpochOpening()` (applies a staged risk
   profile, may switch BOOTSTRAP -> NORMAL_PRICING). A's `EpochRollover` commit must call it once per
   completed epoch. Until merge, tests call it directly.
+- **I-5 (B019) Oracle enum values.** The oracle source enum is taken as `{NONE=0, YES=1, NO=2,
+  INVALID=3, VOIDED=4}` (spec §8.1 lists NONE/YES/NO/INVALID; the task text "External YES1/NO2"
+  fixes YES/NO; VOIDED=4 is a B guess). `OracleOutcomeMap` maps YES -> `settle(1)` -> local YES(2),
+  NO -> `settle(0)` -> local NO(1), INVALID/VOIDED -> `settleInvalid()`. CP-ORACLE must confirm.
+- **I-6 (B019) Listing fields.** `IMarketConfig.Listing` adds `monitor`, `governance`,
+  `indexSourceId/indexSigner/indexRulesHash`, `bootstrapBandWad`, `maxLiqLotsPerBlock` (0 = not
+  measured) and `fundingEnabled` to the spec §2.2 field list. CP-FACTORY must confirm. Validation:
+  `T >= listedAt + 24h`, `T + grace <= listedAt + voidSecs`, new-listing fallback exactly 0.5 with
+  3,600 s grace, `maxTraders <= 1024`, `maxOrderLots <= uint48.max`.
+- **I-7 (B019) Release decision port.** `_riskReleaseDecision(ReleaseInput)` is the B side of A017's
+  guarded release: A supplies settled cash after release, lots, reservation sums and its
+  order-aware deficits/market check after release. Halted -> no; missing normal mark -> only if
+  exactly backed with a valid index; floor window -> only exactly backed; else IM envelope.
+- **P-6 (all Solidity tasks) Formatter scope.** `forge fmt` is only run on B paths; a run over
+  `src/` reformatted the book team's `Book.sol` once and was reverted before commit (B019).
