@@ -32,6 +32,11 @@ library HazardMath {
         return QMath.min(WAD, QMath.mulDivUp(hazardWadPerDay, hSecs, SECONDS_PER_DAY));
     }
 
+    /// @notice hazardUp with the horizon in wad-seconds.
+    function hazardUpWad(uint256 hazardWadPerDay, uint256 hWad) internal pure returns (uint256) {
+        return QMath.min(WAD, QMath.mulDivUp(hazardWadPerDay, hWad, SECONDS_PER_DAY * WAD));
+    }
+
     /// @notice Long adverse hazard is a0 (NO jump), short is a1 (YES jump).
     function tail(uint256 a0Wad, uint256 a1Wad, bool isLong, uint256 epsilonWad)
         internal
