@@ -4,6 +4,7 @@
 # Runs the command from the repo root, captures exit code and output tail, and writes
 # docs/merge/B-evidence/<TASK>.json and <TASK>.log. It never edits the result.
 set -u
+export PYTHONDONTWRITEBYTECODE=1
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TASK="$1"; STATUS="$2"; shift 2
 [ "$1" = "--" ] && shift
