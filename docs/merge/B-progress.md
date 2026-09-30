@@ -23,3 +23,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B009 | lane-pass (pure) | bf0b821 | 0 | stage precedence, cutoffs (halt/roll order equal), nonrenewable grace, bootstrap, INVALID readiness, finality |
 | B010 | lane-pass (stand-in QMath/MathTypes) | ca9b5c0 | 0 | bounds >= reference brackets (T-1), eps/T/max-size edges, fuzz monotone; uses provisional QMath (S-2) |
 | B011 | lane-pass (stand-in QMath/MathTypes) | 5106ddd | 0 | B005 vectors within T-1; long IM 120 exact; short 80/100; 1x exact endpoints; wad-second horizon (M-8) |
+| B010 | lane-pass (stand-in QMath/MathTypes) | b1936e7 | 0 | rerun after M-8 wad-second horizon; test arithmetic fix |
