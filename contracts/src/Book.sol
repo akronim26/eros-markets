@@ -26,6 +26,24 @@ abstract contract Book {
     uint8 internal constant ASK = 0;
     uint8 internal constant BID = 1;
 
+    uint8 public constant FLAG_BUY = 1;
+    uint8 public constant FLAG_REDUCE_ONLY = 2;
+    uint8 public constant FLAG_LIVE = 4;
+
+    /// @dev Public order id = gen << 24 | slot.
+    uint256 internal constant SLOT_BITS = 24;
+    uint256 internal constant SLOT_MASK = (1 << SLOT_BITS) - 1;
+    /// @dev A slot whose generation reached this value is retired instead of recycled, so an id is
+    ///      never reissued and a stale cancel can never hit a newer order.
+    uint8 internal constant MAX_GEN = type(uint8).max;
+
+    enum CancelReason {
+        USER,
+        SELF_TRADE, // resting order hit by its own owner
+        FAILED_CHECK, // Clearing refused the maker fill
+        CLIPPED // reduce-only maker exhausted its reducible size
+    }
+
     // ------------------------------------------------------------------ storage
 
     /// @dev One slot. `used` stays true after first use so the slot never returns to zero.
@@ -56,10 +74,45 @@ abstract contract Book {
 
     mapping(uint256 market => BookState) internal _books;
 
+    /// @notice Trader ids start at 1; 0 means unregistered.
+    mapping(address account => uint32) public traderId;
+    uint32 public traderCount;
+
+    // ------------------------------------------------------------------ events
+
+    event TraderRegistered(address indexed account, uint32 indexed trader);
+    event OrderPlaced(
+        uint256 indexed market,
+        uint32 indexed id,
+        uint32 indexed trader,
+        uint16 tick,
+        uint96 size,
+        uint8 flags
+    );
+    event OrderCancelled(uint256 indexed market, uint32 indexed id, uint96 size, CancelReason reason);
+
     // ------------------------------------------------------------------ errors
 
     error MarketExists();
     error NoMarket();
+    error NotLive();
+    error NotOwner();
+    error BookFull();
+
+    // ------------------------------------------------------------------ Clearing hooks
+
+    /// @dev Resting-order margin (R_buy, R_sell): `size` units started resting.
+    function _onRest(uint256 market, uint32 trader, bool isBuy, uint16 tick, uint96 size) internal virtual;
+
+    /// @dev `size` units stopped resting (filled or cancelled).
+    function _onUnrest(uint256 market, uint32 trader, bool isBuy, uint96 size) internal virtual;
+
+    // ------------------------------------------------------------------ external
+
+    /// @notice Cancel a live order owned by the caller. Reverts if it is no longer live.
+    function cancel(uint256 market, uint32 id) external {
+        if (!_cancelOwn(_openBook(market), market, traderId[msg.sender], id)) revert NotLive();
+    }
 
     // ------------------------------------------------------------------ views
 
@@ -72,6 +125,118 @@ abstract contract Book {
     /// @notice The level at `tick` on one side; one read, used by the mark's depth filter.
     function getLevel(uint256 market, bool isBuy, uint16 tick) external view returns (Level memory) {
         return _openBook(market).levels[tick][isBuy ? BID : ASK];
+    }
+
+    /// @notice The order behind `id`, or an all-zero order if `id` is not live.
+    function getOrder(uint256 market, uint32 id) external view returns (Order memory o) {
+        BookState storage b = _openBook(market);
+        (uint32 s, bool live) = _liveSlot(b, id);
+        if (live) o = b.orders[s];
+    }
+
+    // ------------------------------------------------------------------ rest / cancel
+
+    /// @dev Appends at the tail of the level, reusing a free slot when one exists.
+    function _rest(BookState storage b, uint256 market, uint32 trader, uint16 tick, uint96 size, uint8 flags)
+        internal
+        returns (uint32 id)
+    {
+        uint32 s = b.freeHead;
+        uint8 gen;
+        if (s != 0) {
+            Order storage dead = b.orders[s];
+            b.freeHead = dead.next;
+            gen = dead.gen + 1;
+        } else {
+            uint256 n = b.orders.length;
+            if (n > SLOT_MASK) revert BookFull();
+            s = uint32(n);
+            b.orders.push();
+        }
+        uint8 side = flags & FLAG_BUY != 0 ? BID : ASK;
+        Level storage lv = b.levels[tick][side];
+        uint32 tail = lv.tail;
+        b.orders[s] = Order(trader, size, 0, tail, tick, flags | FLAG_LIVE, gen);
+        if (tail == 0) {
+            lv.head = s;
+            _setBit(b, side, tick);
+        } else {
+            b.orders[tail].next = s;
+        }
+        lv.tail = s;
+        lv.size += size;
+        lv.used = true;
+        id = _id(s, gen);
+        emit OrderPlaced(market, id, trader, tick, size, flags);
+        _onRest(market, trader, side == BID, tick, size);
+    }
+
+    /// @dev Returns false if `id` is not live; reverts if it is live but not the trader's.
+    function _cancelOwn(BookState storage b, uint256 market, uint32 trader, uint32 id)
+        internal
+        returns (bool)
+    {
+        (uint32 s, bool live) = _liveSlot(b, id);
+        if (!live) return false;
+        if (b.orders[s].owner != trader) revert NotOwner();
+        _cancel(b, market, s, CancelReason.USER);
+        return true;
+    }
+
+    function _cancel(BookState storage b, uint256 market, uint32 s, CancelReason reason) internal {
+        Order storage o = b.orders[s];
+        (uint32 owner, uint96 size, bool isBuy) = (o.owner, o.size, o.flags & FLAG_BUY != 0);
+        emit OrderCancelled(market, _id(s, o.gen), size, reason);
+        _unlink(b, s);
+        _onUnrest(market, owner, isBuy, size);
+    }
+
+    /// @dev Unlinks a live order in O(1), clears the tick bit if the level empties, and turns the
+    ///      slot into a non-zero tombstone on the free list (or retires it at MAX_GEN).
+    function _unlink(BookState storage b, uint32 s) internal {
+        Order storage o = b.orders[s];
+        uint8 side = o.flags & FLAG_BUY != 0 ? BID : ASK;
+        uint16 tick = o.tick;
+        Level storage lv = b.levels[tick][side];
+        (uint32 prev, uint32 next) = (o.prev, o.next);
+        if (prev == 0) lv.head = next;
+        else b.orders[prev].next = next;
+        if (next == 0) lv.tail = prev;
+        else b.orders[next].prev = prev;
+        lv.size -= o.size;
+        if (lv.head == 0) _clearBit(b, side, tick);
+
+        o.size = 0;
+        o.flags = 0;
+        o.prev = 0;
+        if (o.gen == MAX_GEN) {
+            o.next = 0;
+        } else {
+            o.next = b.freeHead;
+            b.freeHead = s;
+        }
+    }
+
+    // ------------------------------------------------------------------ ids
+
+    function _id(uint32 s, uint8 gen) internal pure returns (uint32) {
+        return (uint32(gen) << uint32(SLOT_BITS)) | s;
+    }
+
+    function _liveSlot(BookState storage b, uint32 id) internal view returns (uint32 s, bool live) {
+        s = uint32(id & SLOT_MASK);
+        if (s == 0 || s >= b.orders.length) return (s, false);
+        Order storage o = b.orders[s];
+        live = o.flags & FLAG_LIVE != 0 && o.gen == uint8(id >> SLOT_BITS);
+    }
+
+    function _traderOf(address account) internal returns (uint32 id) {
+        id = traderId[account];
+        if (id == 0) {
+            id = ++traderCount;
+            traderId[account] = id;
+            emit TraderRegistered(account, id);
+        }
     }
 
     // ------------------------------------------------------------------ market setup
