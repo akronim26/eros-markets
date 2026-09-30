@@ -48,3 +48,8 @@ open questions for Person A, the counterpart teams or the spec owner.
   `notional <= L * E` style products instead. ASSUMPTION.
 - **M-2 (B001, B007, B013, B035) TWAP rounding** is not stated by the spec (only "rounds to pE18"
   for INVALID). Choice: floor (DOWN) the time integral divided by the window. ASSUMPTION.
+- **M-3 (B002, B007, B013, B016) Freshness boundary.** A sample observed at `t` is usable for any
+  window end `<= t + 30` (it covers `[t, t+30)`); it is stale for `now > t + 30`. The spec says
+  "carries forward only up to its 30-second freshness limit" without the inclusive/exclusive
+  edge. Choosing inclusive at exactly 30 s is the only reading where a window ending at `t+30`
+  has full measure; one second later is a gap. ASSUMPTION.
