@@ -126,3 +126,29 @@ open questions for Person A, the counterpart teams or the spec owner.
   exactly backed with a valid index; floor window -> only exactly backed; else IM envelope.
 - **P-6 (all Solidity tasks) Formatter scope.** `forge fmt` is only run on B paths; a run over
   `src/` reformatted the book team's `Book.sol` once and was reverted before commit (B019).
+- **S-5 (B020 onward) `contracts/provisional/IAccountingPort.sol`** is B's guess of Person A's
+  internal accounting port (A021 AccountingPort) extended with the job ports B drives. Functions
+  and the A task that must provide each:
+  `_acctBeginAction` (A026 envelope: global accrual to the legal cutoff), `_acctTouch` (A024),
+  `_acctAccount` (A016/A021 view), `_acctCoverage(trader, sums, dCash, dLots)` (A019/A013:
+  order-aware deficits incl. fee caps, 2% cap, both reserve inequalities after replacing this
+  account's contribution), `_acctReplaceContribution` (A019), `_acctPostFill` (A018/A026 paired
+  posting + fees + OI + position version), `_acctAccountingState` (A025),
+  `_acctBumpAccountOrderEpoch` / `_acctBumpMarketOrderEpoch` (A016 epoch storage),
+  `_acctTakeover` (A028), `_acctPostLiquidationFill` (A029), `_acctFloorBegin/TraderAt/Complete`
+  (A031), `_acctAccountCount` (A016), `_acctFreeze` (A030), `_acctPrepareSnapshotChunk` (A034),
+  `_acctPreparePayoutChunk` (A035), `_acctFinishPreparation` (A035/A036). At merge, map each to
+  A's real name/signature; any semantic difference is a G3/G4/G5 interface issue.
+- **S-6 (B020) MockAccountingPort** keeps a scripted account table and applies only the literal
+  paired delta of a posted fill (`dx = +-lots`, `dc = -dx*tick*Q - fee`). No funding, premium, fee
+  split or coverage logic; coverage comes from a test-side `ICoverageScript` (e.g.
+  `FormulaCoverage` in RiskHarness.sol, spec §7.3 formula on fixtures). It reverts on unexpected
+  sequencing. Replaced by real A modules at G3/G4.
+- **M-11 (B020, B022) Fee-cap attribution on partial fills.** After a partial fill the order's
+  remaining fee cap is `floor(feeCap * remainingAfter / remainingBefore)`; Risk consumes the
+  difference. The spec requires exact attribution but does not fix the formula. Zero in the
+  initial fee-free profile. ASSUMPTION.
+- **I-8 (B020) Epoch staleness is reported by Risk.** The mock book checks only expiry and
+  self-trade itself; market/account epoch and reduce-version staleness come back from
+  `_riskTryMatchedFill` as `PRUNE_MAKER` with `STALE_ORDER`. The spec lets the book skip stale
+  epochs using its stored tag; either placement is compatible, CP-BOOK to confirm.
