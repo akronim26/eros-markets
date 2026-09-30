@@ -195,3 +195,8 @@ open questions for Person A, the counterpart teams or the spec owner.
   shortfall that persists to the end of the action makes `_riskFinishTaker`'s coverage recheck
   revert the whole transaction (an uncovered market is never committed) — correct, and the reason
   row 20 now exercises STOP_TAKER through a taker per-account cap breach instead.
+- **S-10 (B029) Floor sweep port.** B calls `_acctFloorBegin()` once (A freezes the registry and
+  enters FLOOR_SWEEP), `_acctFloorTraderAt(i)` for i < count, `_acctTouch` then, for any
+  negative endpoint, `_acctTakeover(TakeoverAuth{trader, predicate 2, cutoff, riskVersion})`, and
+  `_acctFloorComplete()` after the last index (A returns to READY). The double mirrors those state
+  changes. A031 must implement this contract or report the difference at G5.
