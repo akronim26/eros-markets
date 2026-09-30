@@ -53,3 +53,11 @@ open questions for Person A, the counterpart teams or the spec owner.
   "carries forward only up to its 30-second freshness limit" without the inclusive/exclusive
   edge. Choosing inclusive at exactly 30 s is the only reading where a window ending at `t+30`
   has full measure; one second later is a gap. ASSUMPTION.
+- **M-4 (B006, B012, B023) Full-backing switch in order admission.** If either sign's IM envelope
+  (at that sign's maximum reachable size) reports `fullBackingRequired`, the whole commitment set
+  must satisfy the exact predicate `d0 == 0 && d1 == 0` (A's order-aware deficits incl. fee caps).
+  The spec says a full-backing result makes the caller check both exact endpoints; applying it to
+  the whole account rather than one side is the conservative reading. ASSUMPTION.
+- **S-1 (B006) Coverage port stand-in.** `order_admission.admit` takes endpoint deficits,
+  deficit cap and market coverage through a `coverage_port` callable. In tests it is a scripted
+  fixture (spec §7.3 formulas for fixed inputs). Replaced at G1 by A004 `reference/a/coverage.py`.
