@@ -53,13 +53,13 @@ contract B010Test is Test {
     function test_fixtureHorizon() public pure {
         assertEq(HorizonMath.horizonSecsUp(1_000_000, 300, 1000, 0), 360);
         assertEq(HorizonMath.horizonSecsUp(0, 300, 1000, 0), 300);
-        assertEq(HorizonMath.horizonSecsUp(1, 300, 1000, 0), 301); // 0.06 s rounds up
+        assertEq(HorizonMath.horizonSecsUp(1, 300, 1000, 0), 301); // 6e-5 s rounds up
         assertEq(HorizonMath.horizonSecsUp(1_000_000, 300, 1000, 45), 405); // queued closeout
     }
 
     function test_wadHorizonVariants() public pure {
         assertEq(HorizonMath.horizonWadUp(1_000_000, 300, 1000, 0), 360e18);
-        assertEq(HorizonMath.horizonWadUp(1, 300, 1000, 0), 300e18 + 6e16); // 0.06 s kept
+        assertEq(HorizonMath.horizonWadUp(1, 300, 1000, 0), 300e18 + 6e13); // 1 lot = 6e-5 s kept
         assertEq(HazardMath.hazardUpWad(1e14, 360e18), HazardMath.hazardUp(1e14, 360));
         assertEq(
             HorizonMath.sigmaTheoryUpWad(6e17, 360e18, 2505600), HorizonMath.sigmaTheoryUp(6e17, 360, 2505600)
