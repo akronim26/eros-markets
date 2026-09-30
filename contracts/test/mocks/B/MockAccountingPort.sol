@@ -164,7 +164,16 @@ abstract contract MockAccountingPort is IAccountingPort {
         _log(CallKind.REPLACE, trader, 0, sums.bidLots + sums.askLots);
     }
 
+    uint256 internal _mPosts;
+    uint256 internal _mFailPostAt; // 0 = never; k = the k-th posting reverts (injected A invariant)
+
+    function mockFailPostAt(uint256 k) public {
+        _mFailPostAt = k;
+    }
+
     function _acctPostFill(FillDelta memory d) internal virtual override {
+        _mPosts += 1;
+        if (_mPosts == _mFailPostAt) revert MockSequence("injected accounting invariant failure");
         if (_mState != AccountingState.READY) revert MockSequence("post during sweep");
         _requireTouched(d.maker);
         _requireTouched(d.taker);
