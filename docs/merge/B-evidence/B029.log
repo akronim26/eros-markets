@@ -1,0 +1,12 @@
+No files changed, compilation skipped
+
+Ran 6 tests for test/risk/B/B029.t.sol:B029Test
+[PASS] test_badBudget() (gas: 33735148)
+[PASS] test_beforeFloorReverts() (gas: 211492)
+[PASS] test_haltOverridesUnfinishedCompression() (gas: 34794728)
+[PASS] test_liveBookCallsCannotMutateSweep() (gas: 34988893)
+[PASS] test_noNewExposureIncreasesDeficits() (gas: 36472087)
+[PASS] test_reconciledOnlyAfterCompleteList() (gas: 36871475)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 14.40ms (36.46ms CPU time)
+
+Ran 1 test suite in 91.33ms (14.40ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)
