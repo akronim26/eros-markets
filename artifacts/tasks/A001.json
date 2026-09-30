@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-09-30T19:03:23.181265+00:00",
-  "source_commit": "7c65d46a9f4d5958678c1cf12c0a4654fce7fdf6",
+  "recorded_at": "2026-09-30T20:09:47.177243+00:00",
+  "source_commit": "52521c8792b9cf1b389c28862152738e4a91ad01",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -21,6 +21,7 @@
   "fixture_hashes": {
     "reference/common/result_schema.json": "0eaf5b4929d03efe0ae1fe821ecd4c636aefcb5afeaa52451d67f5fcba0b9a68",
     "reference/common/units.py": "3d45a1d6f04ea41d637c62aabd4a495d1fa8c99dd72ca8a4dfe557d82ffd0baf",
+    "reference/fixtures/golden_cases.json": "6aa801d2bf3ff4a846641f2587fa2df1335d5328804d3511a73cdd7c6a33b035",
     "contracts/src/math/MathTypes.sol": "caf35bd8815a14cb245f17a5df80d1d4906be37b6b6ba4bab187cccea3d3e7c0",
     "contracts/foundry.toml": "c0c76799eb15ef9debd743c6f3aa264ae5986d51491af6b7e8fa0949017d58c6",
     "scripts/check-task.sh": "9918ef01af45c05f39e6f9c311f5b12dec6a7aeb2e68f8c7dcb218f372e8f37c",
@@ -47,7 +48,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "in_process_unittest_discovery",
-      "output": "test_binary_y_and_oracle_enum_are_distinct (test_a001.UnitsTest.test_binary_y_and_oracle_enum_are_distinct) ... ok\ntest_directed_signed_rounding_against_fraction (test_a001.UnitsTest.test_directed_signed_rounding_against_fraction) ... ok\ntest_exact_claim_conversion_rejects_float_and_sub_lot (test_a001.UnitsTest.test_exact_claim_conversion_rejects_float_and_sub_lot) ... ok\ntest_fractional_q_cannot_round_up_to_atoms (test_a001.UnitsTest.test_fractional_q_cannot_round_up_to_atoms) ... ok\ntest_funding_records_keep_explicit_units_and_cutoffs (test_a001.UnitsTest.test_funding_records_keep_explicit_units_and_cutoffs) ... ok\ntest_mark_scale_has_no_second_wad_division (test_a001.UnitsTest.test_mark_scale_has_no_second_wad_division) ... ok\ntest_one_lot_one_tick_is_one_atom (test_a001.UnitsTest.test_one_lot_one_tick_is_one_atom) ... ok\ntest_order_epochs_and_version_wrap (test_a001.UnitsTest.test_order_epochs_and_version_wrap) ... ok\ntest_payoff_records_require_finality_and_matching_price (test_a001.UnitsTest.test_payoff_records_require_finality_and_matching_price) ... ok\ntest_settlement_endpoints_are_not_trading_ticks (test_a001.UnitsTest.test_settlement_endpoints_are_not_trading_ticks) ... ok\ntest_source_ledger_identity_in_selected_units (test_a001.UnitsTest.test_source_ledger_identity_in_selected_units) ... ok\ntest_strict_cash_and_inclusive_position_bounds (test_a001.UnitsTest.test_strict_cash_and_inclusive_position_bounds) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.009s\n\nOK\n"
+      "output": "test_binary_y_and_oracle_enum_are_distinct (test_a001.UnitsTest.test_binary_y_and_oracle_enum_are_distinct) ... ok\ntest_directed_signed_rounding_against_fraction (test_a001.UnitsTest.test_directed_signed_rounding_against_fraction) ... ok\ntest_exact_claim_conversion_rejects_float_and_sub_lot (test_a001.UnitsTest.test_exact_claim_conversion_rejects_float_and_sub_lot) ... ok\ntest_fractional_q_cannot_round_up_to_atoms (test_a001.UnitsTest.test_fractional_q_cannot_round_up_to_atoms) ... ok\ntest_funding_records_keep_explicit_units_and_cutoffs (test_a001.UnitsTest.test_funding_records_keep_explicit_units_and_cutoffs) ... ok\ntest_mark_scale_has_no_second_wad_division (test_a001.UnitsTest.test_mark_scale_has_no_second_wad_division) ... ok\ntest_one_lot_one_tick_is_one_atom (test_a001.UnitsTest.test_one_lot_one_tick_is_one_atom) ... ok\ntest_order_epochs_and_version_wrap (test_a001.UnitsTest.test_order_epochs_and_version_wrap) ... ok\ntest_payoff_records_require_finality_and_matching_price (test_a001.UnitsTest.test_payoff_records_require_finality_and_matching_price) ... ok\ntest_settlement_endpoints_are_not_trading_ticks (test_a001.UnitsTest.test_settlement_endpoints_are_not_trading_ticks) ... ok\ntest_source_ledger_identity_in_selected_units (test_a001.UnitsTest.test_source_ledger_identity_in_selected_units) ... ok\ntest_strict_cash_and_inclusive_position_bounds (test_a001.UnitsTest.test_strict_cash_and_inclusive_position_bounds) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.011s\n\nOK\n"
     }
   ],
   "test_count": 12,

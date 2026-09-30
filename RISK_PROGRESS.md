@@ -1,5 +1,28 @@
 # Risk implementation progress
 
+## Current authorization (supersedes the previous stopping point)
+
+The user now explicitly requests **all A work without waiting for B**, with a
+later merge. Work proceeds through the A backlog using specified interfaces and
+scripted decision inputs. Combined G0-G7 acceptance and independent review remain
+pending; A tests do not count as an A+B pass. Uncommitted B work from the
+interrupted scope expansion has been removed. Book code remains protected.
+The historical W0 report below records the previous checkpoint; subsequent blocks
+will be appended with their actual tests and commits.
+
+### A003-A015: independent accounting math (implemented)
+
+Added the Fraction ledger, order-aware coverage, fixed-epoch funding, clipped
+premium integration, surcharge/capitalization, payout/fee/capital references and
+directed integer bounds. Added pure Solidity QMath, LedgerMath, FundingMath,
+PremiumMath, CoverageMath, FeeMath and SettlementMath. The independent exporter
+produces 64 exact ledger and 32 premium vectors without calling Solidity.
+
+Validation: 15 new Python reference tests pass; 13 Solidity math tests pass,
+including two 1,000-run fuzz tests. Premium comparisons enforce the documented
+strict <12-Q conservative bound; cumulative posting is touch-independent. No B
+algorithms are implemented. These are A-local checks, not G1/G2 acceptance.
+
 Updated: 2026-10-01. Scope: the supplied Person A packet, selected specification
 v1.1 / economic baseline v1.0. Starting commit:
 `3cfa48d69e799b73f92a9955fdc7932c08cd925f` on `feat/risk`.

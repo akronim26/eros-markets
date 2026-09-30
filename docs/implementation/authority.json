@@ -1,0 +1,9 @@
+{
+  "execution_mode": "independent_A_lane",
+  "authorization": "only implement A's work without waiting for B, we'll merge them after",
+  "date": "2026-10-01",
+  "scope": "All A tasks with explicit ports and scripted B doubles; combined gates remain pending until merge",
+  "protected_paths": ["contracts/src/Book.sol", "contracts/src/RiskSnapshot.sol", "contracts/test/Book*", "contracts/snapshots/BookGas.json"],
+  "independent_peer_review": false,
+  "production_deployment_authorized": false
+}
