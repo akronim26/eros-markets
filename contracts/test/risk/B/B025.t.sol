@@ -133,10 +133,9 @@ contract B025Test is Test {
 
     function test_noRevivalLongFlatShortLong() public {
         e.mockSetAccount(1, int256(400 * USDC), 10);
-        uint32 slot = e.rest(1, Side.SELL, 600, 5, 0, true);
-        // position independently goes long -> flat -> short -> long: version bumps at each sign change
-        e.place(req(1, Side.SELL, 590, 10, false)); // no bids: nothing
-        e.mockSetAccount(1, int256(400 * USDC), 10);
+        uint32 slot = e.rest(1, Side.SELL, 650, 5, 0, true); // reduce-only sell against long 10
+        // position independently goes long -> flat -> short -> long through fills below 650;
+        // the version bumps at each sign change
         e.rest(3, Side.BUY, 600, 10, 0, false);
         e.place(req(1, Side.SELL, 600, 10, false)); // long 10 -> flat
         e.rest(4, Side.BUY, 600, 5, 0, false);
@@ -144,13 +143,18 @@ contract B025Test is Test {
         e.rest(5, Side.SELL, 610, 10, 0, false);
         e.place(req(1, Side.BUY, 610, 10, false)); // short 5 -> long 5
         assertEq(e.mockAccount(1).lots, 5);
-        // the old reduce-only sell now faces a long again, but its version is stale
+        assertEq(e.mockAccount(1).positionVersion, 3);
+        (IBookRiskHooks.OrderView memory v, bool stillLive) = e.orderAt(slot);
+        assertTrue(stillLive, "never examined so far");
+        assertEq(v.reduceVersion, 0);
+        // the old reduce-only sell faces a long again, but its version is stale
         vm.expectEmit(true, false, false, true, address(e));
         emit BookRiskAdapter.MakerPruned(1, slot, RejectCode.STALE_ORDER);
-        MockBookAdapter.PlaceResult memory r = e.place(req(2, Side.BUY, 600, 5, false));
+        MockBookAdapter.PlaceResult memory r = e.place(req(2, Side.BUY, 650, 5, false));
         assertEq(r.filledLots, 0, "old reduce-only order cannot revive");
         (, bool live) = e.orderAt(slot);
         assertFalse(live, "pruned as stale");
+        assertEq(e.mockAccount(1).lots, 5);
     }
 
     function test_expiryInclusive() public {
