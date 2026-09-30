@@ -1,0 +1,33 @@
+{
+ "task": "B011",
+ "commit": "5106dddbbf1d8b50afe88799339660cb3c2210a8",
+ "working_tree_dirty_files": 2,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/math/B/B011.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 12 tests for test/math/B/B011.t.sol:B011Test",
+  "[PASS] testFuzz_imMonotoneAndBounded(uint40,uint40,bool,uint64,uint32) (runs: 1000, \u03bc: 26667, ~: 28697)",
+  "[PASS] test_directFiveXLong() (gas: 14471)",
+  "[PASS] test_expiredEnvelopeIsFullBacking() (gas: 9924)",
+  "[PASS] test_flatIsZero() (gas: 5755)",
+  "[PASS] test_longWith120IsHealthyAt5x() (gas: 16590)",
+  "[PASS] test_missingCalibrationIs1x() (gas: 3705)",
+  "[PASS] test_negativeEquityNeverDivides() (gas: 16192)",
+  "[PASS] test_oneXUsesExactEndpoints() (gas: 7790)",
+  "[PASS] test_referenceGrid() (gas: 71525)",
+  "[PASS] test_short80Fails100Passes() (gas: 18101)",
+  "[PASS] test_shortIm95894() (gas: 14561)",
+  "[PASS] test_templateCaps() (gas: 2315)",
+  "Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 49.03ms (49.66ms CPU time)",
+  "",
+  "Ran 1 test suite in 80.56ms (49.03ms CPU time): 12 tests passed, 0 failed, 0 skipped (12 total tests)"
+ ],
+ "component_status": "lane-pass (stand-in QMath/MathTypes)",
+ "recorded_at_utc": "2026-09-30T19:29:44+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
