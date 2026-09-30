@@ -189,3 +189,9 @@ open questions for Person A, the counterpart teams or the spec owner.
   (reservation consumed); REPLACE taker (permit consumed); REPLACE taker (permit released)`.
   A's real port must accept repeated REPLACE for the same account in one action and must not
   require REPLACE only after POST_FILL. Recorded in `B-evidence/B027.log` (G4-SEQ lines).
+- **M-18 (B027, fix to B023) Maker readmission scope.** Readmission judges only the maker's own
+  margin (MM, IM envelope or exact backing) and its per-account deficit cap. A global reserve
+  shortfall never prunes a valid maker; the preflight stops the taker instead. A scripted global
+  shortfall that persists to the end of the action makes `_riskFinishTaker`'s coverage recheck
+  revert the whole transaction (an uncovered market is never committed) — correct, and the reason
+  row 20 now exercises STOP_TAKER through a taker per-account cap breach instead.
