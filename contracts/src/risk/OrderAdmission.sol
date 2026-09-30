@@ -244,6 +244,13 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
             (d.prune, d.cancelAll, d.reason) = (true, true, RejectCode.MAKER_BELOW_MM);
             return d;
         }
+        // Maker readmission judges only the maker's own margin and per-account cap. A global
+        // reserve shortfall is not the maker's fault: the fill preflight stops the taker instead.
+        if (cov.d0Q > cov.deficitCapQ || cov.d1Q > cov.deficitCapQ) {
+            (d.prune, d.cancelAll, d.reason) = (true, true, RejectCode.ACCOUNT_DEFICIT_CAP);
+            return d;
+        }
+        cov.marketOk = true;
         (bool ok,) = OA.admit(
             OA.Account(acct.cashQ, acct.lots), rest, _pricing(c), _effectiveParams(c.economicTime), cov
         );

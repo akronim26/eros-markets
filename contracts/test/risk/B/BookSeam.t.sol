@@ -38,6 +38,18 @@ contract SeamEngine is OrderLifecycle, MockBookAdapter, MockAccountingPort {
         feeBps = b;
     }
 
+    uint16 public feeTick;
+    uint256 public takerFeeAtTickQ;
+
+    /// Test fee schedule (A FeeMath stand-in): a taker fee only on fills at `feeTick`.
+    function setTakerFeeAt(uint16 tick, uint256 feeQ) external {
+        (feeTick, takerFeeAtTickQ) = (tick, feeQ);
+    }
+
+    function _tradeFeeQ(uint64, uint16 tick, bool isMaker) internal view override returns (uint256) {
+        return !isMaker && tick == feeTick ? takerFeeAtTickQ : 0;
+    }
+
     function _feeCapQ(uint64 lots, uint16 tick) internal view override returns (uint256) {
         uint256 n = uint256(lots) * tick * 1e18 * feeBps;
         return n == 0 ? 0 : (n - 1) / 10_000 + 1; // ceiling of the total worst-limit fee, once
@@ -332,29 +344,27 @@ abstract contract BookSeamCases is Test {
         assertTrue(live5, "zero fifth-node visit");
     }
 
-    // Row 20: first fill valid, second cannot fit (global coverage after the second maker's own
-    // touch): the first fill persists, the valid second maker remains, the permit is released.
+    // Row 20: first fill valid; the second would push the taker past its per-account deficit
+    // cap (a fee charged only at tick 500), so the taker stops. The first fill persists, the
+    // valid second maker remains and the permit is released.
     function test_row20_expectedStop() public {
         e = build(5);
-        uint32[] memory ts = new uint32[](3);
-        (ts[0], ts[1], ts[2]) = (1, 2, 3);
-        MarketCoverage mc = new MarketCoverage(e, 700 * USDC, 2_000 * USDC, ts);
-        e.mockSetCoverageScript(mc);
-        e.mockSetAccount(1, int256(2_000 * USDC), 0);
-        e.mockSetAccount(2, int256(100 * USDC), 0);
-        e.mockSetAccount(3, int256(100 * USDC), 0);
-        uint32 s2 = e.rest(2, Side.SELL, 600, 1_000_000, 0, false); // YES deficit 300 if filled
-        uint32 s3 = e.rest(3, Side.SELL, 600, 1_000_000, 0, false); // total 600 <= 700
-        e.mockSetTouchDebit(3, int256(150 * USDC)); // settled at maker 3's touch: total 750 > 700
-        MockBookAdapter.PlaceResult memory r = e.place(req(1, Side.BUY, 600, 2_000_000, 8));
-        assertEq(r.filledLots, 1_000_000, "first fill persists");
+        fcov.set(100_000 * USDC, 7 * USDC, 0, 0);
+        e.setTakerFeeAt(500, 1 * USDC);
+        e.mockSetAccount(1, int256(3 * USDC), 0); // 3 USDC covers IM (~2.4) for 20 claims
+        uint32 s2 = e.rest(2, Side.SELL, 499, 10_000, 0, false);
+        uint32 s3 = e.rest(3, Side.SELL, 500, 10_000, 0, false);
+        // permit: 20,000 lots at 500 -> NO deficit 10 - 3 = 7 USDC = the cap exactly
+        MockBookAdapter.PlaceResult memory r = e.place(req(1, Side.BUY, 500, 20_000, 8));
+        assertEq(r.filledLots, 10_000, "first fill persists");
         (, bool live2) = e.orderAt(s2);
         (, bool live3) = e.orderAt(s3);
         assertFalse(live2);
-        assertTrue(live3, "valid second maker is not cancelled for a global shortfall");
-        assertEq(e.sums(3).askLots, 1_000_000, "its reservation is intact");
+        assertTrue(live3, "valid second maker retained");
+        assertEq(e.sums(3).askLots, 10_000);
         (uint128 bl,,,,,,) = e.mockContribution(1);
         assertEq(bl, 0, "permit released");
+        assertEq(e.mockAccount(1).cashQ, int256(3 * USDC) - int256(10_000 * 499 * Q));
     }
 
     // Row 22: fragmented fees stay within the once-reserved ceiling.
