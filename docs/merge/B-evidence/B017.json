@@ -1,0 +1,32 @@
+{
+ "task": "B017",
+ "commit": "29a9b454c4b1300352555d8d79092cb9843e675d",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B017.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 11 tests for test/risk/B/B017.t.sol:B017Test",
+  "[PASS] test_basisInvalidWhenIndexStale() (gas: 367768)",
+  "[PASS] test_index300IrregularTimeWeighted() (gas: 2018139)",
+  "[PASS] test_invalidHistoryNotPrunedByRing() (gas: 146592450)",
+  "[PASS] test_invalidWindowGapIncomplete() (gas: 144859861)",
+  "[PASS] test_nonMonotoneRejected() (gas: 270377)",
+  "[PASS] test_perpAndBasisWindows() (gas: 36401559)",
+  "[PASS] test_postTSamplesDoNotChangeInvalidCapture() (gas: 143538649)",
+  "[PASS] test_ringWrapKeepsLiveWindows() (gas: 138131724)",
+  "[PASS] test_sameSecondReplacement() (gas: 1550652)",
+  "[PASS] test_staleGapInvalidates() (gas: 1426237)",
+  "[PASS] test_thinPerpDepthInvalid() (gas: 832105)",
+  "Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 40.27ms (149.06ms CPU time)",
+  "",
+  "Ran 1 test suite in 93.96ms (40.27ms CPU time): 11 tests passed, 0 failed, 0 skipped (11 total tests)"
+ ],
+ "component_status": "lane-pass (no A stand-in)",
+ "recorded_at_utc": "2026-09-30T19:41:38+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
