@@ -19,3 +19,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B005 | lane-pass (pure) | d040ae3 | 0 | long IM 120, short IM 95.8937, 80 fails/100 passes, missing calibration 1x, monotone proof + grids |
 | B006 | lane-pass (scripted A coverage port) | 789ed4d | 0 | Emin lower bound, reach envelope, halving cap; enumeration of fill mixtures; hump + sign flip; coverage via scripted port (S-1) |
 | B007 | lane-pass (pure) | 790d444 | 0 | validity-weighted TWAP, 30s carry, same-second dedupe, basis, median+band clamp, trunc0 funding rate, movement trigger |
+| B008 | lane-pass (pure) | 4a0e32e | 0 | eligibility/takeover split (no budget input), x-free estimate, fee-aware bankruptcy tick, fee waiver, pacing, NEEDS_MORE_WORK |
