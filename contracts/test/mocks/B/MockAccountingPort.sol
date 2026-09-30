@@ -135,9 +135,23 @@ abstract contract MockAccountingPort is IAccountingPort {
         v.marketOrderEpoch = _mMarketEpoch;
     }
 
+    mapping(uint32 => int256) internal _mTouchDebit;
+
+    /// @notice Scripted result of A's next touch of `trader` (e.g. funding/premium owed on the old
+    ///         position): cash falls by `q` and the reserve is credited. Applied once.
+    function mockSetTouchDebit(uint32 trader, int256 q) public {
+        _mTouchDebit[trader] = q;
+    }
+
     function _acctTouch(uint32 trader) internal virtual override {
         if (!_mActionOpen) revert MockSequence("touch before begin");
         if (!_mAccts[trader].registered) revert MockUnscripted("unknown trader");
+        int256 debit = _mTouchDebit[trader];
+        if (debit != 0) {
+            _mAccts[trader].cashQ -= debit;
+            mockReserveCashQ += debit;
+            _mTouchDebit[trader] = 0;
+        }
         _mTouchedIn[trader] = _mAction;
         _log(CallKind.TOUCH, trader, 0, 0);
     }

@@ -140,9 +140,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             lots = clip;
         }
         FillPlan memory f = _plan(permit, maker, lots);
-        (bool takerOk, bool makerOk) = _preflight(f);
-        if (!makerOk) return _prune(maker, true, RejectCode.MAKER_BELOW_IM);
-        if (!takerOk) return _stop(RejectCode.TAKER_CAPACITY);
+        (bool takerCapOk, bool makerCapOk, bool marketOk) = _preflight(f);
+        if (!makerCapOk) return _prune(maker, true, RejectCode.ACCOUNT_DEFICIT_CAP);
+        if (!takerCapOk) return _stop(RejectCode.TAKER_CAPACITY);
+        if (!marketOk) return _stop(RejectCode.MARKET_COVERAGE); // conservative stop, maker kept
         _commitFill(f, permit, maker);
         r.status = StepStatus.FILLED;
         r.filledLots = lots;

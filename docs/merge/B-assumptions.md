@@ -179,3 +179,13 @@ open questions for Person A, the counterpart teams or the spec owner.
 - **M-16 (B026) Usable release.** `usableReleaseAtoms` is the largest whole-atom amount accepted by
   the same release decision, found by a bounded binary search (<= 96 probes); it assumes releasing
   less is never rejected when releasing more is accepted (true for every rule in the decision).
+- **M-17 (B027, fix to B023/B024) Maker vs global preflight failures.** `_preflight` now returns
+  (taker account cap ok, maker account cap ok, both reserve inequalities ok). Only a maker
+  account-specific failure prunes the maker (`ACCOUNT_DEFICIT_CAP`, commitments invalidated); a
+  taker cap failure or a global reserve shortfall returns `STOP_TAKER` and keeps the valid maker
+  (spec §7.5 step 4). Found by B027 row 20.
+- **I-9 (B027) G4 call sequence (direct 5x fill, one maker).** `BEGIN; TOUCH taker; REPLACE taker
+  (first-epoch sync); REPLACE taker (permit reserved); TOUCH maker; POST_FILL; REPLACE maker
+  (reservation consumed); REPLACE taker (permit consumed); REPLACE taker (permit released)`.
+  A's real port must accept repeated REPLACE for the same account in one action and must not
+  require REPLACE only after POST_FILL. Recorded in `B-evidence/B027.log` (G4-SEQ lines).
