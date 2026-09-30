@@ -107,6 +107,14 @@ contract BookHandler is Test {
         }
     }
 
+    /// Protocol cancel (liquidation or stage change) of any id, live or stale.
+    function forceCancel(uint256 idSeed, bool stage) external {
+        if (ids.length == 0) return;
+        book.forceCancel(
+            M, ids[idSeed % ids.length], stage ? Book.CancelReason.STAGE : Book.CancelReason.RISK
+        );
+    }
+
     function setFailing(uint256 actorSeed, bool fail) external {
         book.setFailMaker(uint32(actorSeed % 4) + 1, fail);
     }

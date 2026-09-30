@@ -139,6 +139,10 @@ contract BookHarness is Book {
 
     // ------------------------------------------------------------------ internals
 
+    function forceCancel(uint256 market, uint32 id, CancelReason reason) external returns (bool) {
+        return _forceCancel(market, id, reason);
+    }
+
     function orderAt(uint256 market, uint32 slot) external view returns (Order memory) {
         return _books[market].orders[slot];
     }
