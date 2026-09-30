@@ -148,4 +148,76 @@ contract BookSeamTest is Test {
         _ioc(taker, false, 400, 4);
         assertEq(book.lastUnrestFlags(), book.FLAG_BUY(), "maker fill passes the maker's flags");
     }
+
+    // ------------------------------------------------------------------ protocol cancels
+
+    function test_ForceCancelRemovesAnyOwnersOrder() public {
+        uint32 a = _post(maker, false, 500, 10);
+        uint32 b = _post(taker, false, 500, 7);
+        vm.expectEmit(address(book));
+        emit Book.OrderCancelled(M, a, 10, Book.CancelReason.RISK);
+        assertTrue(book.forceCancel(M, a, Book.CancelReason.RISK));
+
+        assertEq(book.getOrder(M, a).size, 0);
+        assertEq(book.reserved(M, 1, false), 0);
+        assertEq(book.getLevel(M, false, 500).head, b & 0xFFFFFF);
+        assertEq(book.getLevel(M, false, 500).size, 7);
+    }
+
+    function test_ForceCancelStageReasonAndSlotRecycled() public {
+        uint32 a = _post(maker, true, 400, 10);
+        vm.expectEmit(address(book));
+        emit Book.OrderCancelled(M, a, 10, Book.CancelReason.STAGE);
+        book.forceCancel(M, a, Book.CancelReason.STAGE);
+        uint32 again = _post(maker, true, 400, 1);
+        assertEq(again & 0xFFFFFF, a & 0xFFFFFF);
+        (uint16 bid,,,) = book.touch(M);
+        assertEq(bid, 400);
+    }
+
+    function test_ForceCancelOfDeadOrStaleIdIsNoOp() public {
+        uint32 a = _post(maker, false, 500, 10);
+        assertTrue(book.forceCancel(M, a, Book.CancelReason.RISK));
+        assertFalse(book.forceCancel(M, a, Book.CancelReason.RISK));
+        uint32 fresh = _post(taker, false, 500, 3); // reuses a's slot
+        assertFalse(book.forceCancel(M, a, Book.CancelReason.RISK));
+        assertEq(book.getOrder(M, fresh).size, 3);
+        assertFalse(book.forceCancel(M, 0, Book.CancelReason.RISK));
+        assertFalse(book.forceCancel(M, 999, Book.CancelReason.RISK));
+    }
+
+    function test_RevertWhen_ForceCancelUnknownMarket() public {
+        vm.expectRevert(Book.NoMarket.selector);
+        book.forceCancel(9, 1, Book.CancelReason.RISK);
+    }
+
+    // ------------------------------------------------------------------ touch depth
+
+    function test_TouchReportsBestLevelsAndSizes() public {
+        (uint16 bid, uint96 bidSize, uint16 ask, uint96 askSize) = book.touch(M);
+        assertEq(bid, 0);
+        assertEq(bidSize, 0);
+        assertEq(ask, 0);
+        assertEq(askSize, 0);
+
+        _post(maker, true, 498, 100);
+        _post(maker, true, 499, 30);
+        _post(taker, true, 499, 20);
+        _post(maker, false, 502, 7);
+        _post(maker, false, 505, 900);
+        (bid, bidSize, ask, askSize) = book.touch(M);
+        assertEq(bid, 499);
+        assertEq(bidSize, 50);
+        assertEq(ask, 502);
+        assertEq(askSize, 7);
+    }
+
+    function test_TouchFollowsFillsAndEmptyLevels() public {
+        _post(maker, false, 502, 7);
+        _post(maker, false, 505, 900);
+        _ioc(taker, true, 505, 10);
+        (,, uint16 ask, uint96 askSize) = book.touch(M);
+        assertEq(ask, 505);
+        assertEq(askSize, 897);
+    }
 }

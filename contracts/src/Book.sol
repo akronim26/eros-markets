@@ -51,7 +51,9 @@ abstract contract Book {
         USER,
         SELF_TRADE, // resting order hit by its own owner
         FAILED_CHECK, // Clearing refused the maker fill
-        CLIPPED // reduce-only maker exhausted its reducible size
+        CLIPPED, // reduce-only maker exhausted its reducible size
+        RISK, // protocol cancel: liquidation or unhealthy account
+        STAGE // protocol cancel: market stage change
     }
 
     struct Place {
@@ -212,6 +214,15 @@ abstract contract Book {
         return (_bestBid(b), _bestAsk(b));
     }
 
+    /// @notice Best prices and the size resting at each (0 when a side is empty).
+    function touch(uint256 market)
+        external
+        view
+        returns (uint16 bid, uint96 bidSize, uint16 ask, uint96 askSize)
+    {
+        return _touch(market);
+    }
+
     /// @notice The level at `tick` on one side; one read, used by the mark's depth filter.
     function getLevel(uint256 market, bool isBuy, uint16 tick) external view returns (Level memory) {
         return _openBook(market).levels[tick][isBuy ? BID : ASK];
@@ -222,6 +233,34 @@ abstract contract Book {
         BookState storage b = _openBook(market);
         (uint32 s, bool live) = _liveSlot(b, id);
         if (live) o = b.orders[s];
+    }
+
+    // ------------------------------------------------------------------ module interface
+
+    /// @dev Best prices with the size resting there: the mark's inputs, where a best level below
+    ///      D_min counts as missing (spec §5.3).
+    function _touch(uint256 market)
+        internal
+        view
+        returns (uint16 bid, uint96 bidSize, uint16 ask, uint96 askSize)
+    {
+        BookState storage b = _openBook(market);
+        bid = _bestBid(b);
+        ask = _bestAsk(b);
+        if (bid != NONE) bidSize = b.levels[bid][BID].size;
+        if (ask != NONE) askSize = b.levels[ask][ASK].size;
+    }
+
+    /// @dev Protocol cancel for other modules (liquidation, stage change, keepers removing
+    ///      unhealthy makers). No owner check: the calling module authorises it. Order ids come
+    ///      from the caller (e.g. the indexer); the book keeps no per-trader order list. Returns
+    ///      false if `id` is not live, so stale ids are harmless.
+    function _forceCancel(uint256 market, uint32 id, CancelReason reason) internal returns (bool) {
+        BookState storage b = _openBook(market);
+        (uint32 s, bool live) = _liveSlot(b, id);
+        if (!live) return false;
+        _cancel(b, market, s, reason);
+        return true;
     }
 
     // ------------------------------------------------------------------ place
