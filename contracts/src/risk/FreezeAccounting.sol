@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
+import {LiquidationFees} from "./LiquidationFees.sol";
+
+abstract contract FreezeAccounting is LiquidationFees {
+    /// @notice Called only after B authenticates the halt; no balances can be supplied.
+    function _freeze(uint64 haltAt, uint64 freshThrough) internal returns (bool) {
+        if (halted) return false;
+        if (!active || haltAt > _clock() || haltAt > scheduledT || haltAt < epoch.start) revert BadState();
+        uint64 cutoff = haltAt < epoch.end ? haltAt : epoch.end;
+        if (cutoff < epoch.last) revert Stale();
+        _advanceFunding(cutoff, freshThrough);
+        halted = true;
+        economicHaltAt = haltAt;
+        haltRecordedAt = _clock();
+        accrualCutoff = cutoff;
+        oiHaltLots = oiAllLots;
+        epoch.stopped = true;
+        if (epoch.stop > epoch.last) epoch.stop = epoch.last;
+        work = Work.HALT_SWEEP;
+        ++generation;
+        ++marketOrderEpoch;
+        sweepCutoff = cutoff;
+        cursor = 0;
+        sweepCount = participants.length;
+        emit EconomicHalt(haltAt, haltRecordedAt, cutoff, oiHaltLots);
+        return true;
+    }
+}

@@ -114,8 +114,9 @@ bash scripts/check-gate.sh G0
 ```
 
 The last command must fail until actual B001/B002, the G0 contract and combined
-Solidity test exist. Passing a task does not accept a gate or authorize the next
-block. Runners record actual commands, exit status, source commit/dirty state,
+Solidity test exist. Passing a task does not accept a gate. The user's later
+A-only instruction authorizes independent local work before B merges. Runners
+record actual commands, exit status, source commit/dirty state,
 versions, hashes and counts under `artifacts/tasks/` or `artifacts/gates/`.
 They never manufacture a merge SHA or reviewer approval.
 
