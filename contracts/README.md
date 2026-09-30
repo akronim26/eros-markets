@@ -23,7 +23,9 @@ depth from these; there is no on-chain depth getter (§9.10).
 ## Integrating other modules
 
 Everything lives in one contract (`EventPerp is Book, Clearing, ...`), so modules talk through
-internal functions with no external calls in the match loop (§9.5 rule 4).
+internal functions with no external calls in the match loop (§9.5 rule 4). Each module is an
+`abstract contract X is Book` that overrides only its own hooks; `test/BookComposition.t.sol`
+shows the full pattern.
 
 **Hooks a module overrides** (all `internal virtual`):
 
@@ -84,6 +86,7 @@ FOUNDRY_PROFILE=ci forge test   # 10k fuzz runs, 256×128 invariant (~6–8 min)
 | `BookInvariant` | INV-8 under random traffic: bit ⇔ non-empty level, level size = sum of its orders, links agree, each live order linked once, free list complete, reservations match, bid < ask; positions net to zero; ids never reissued |
 | `BookDifferential` | the same random operations in Book and in a naive linear-scan reference give identical fills, sizes, best prices and positions |
 | `BookSeam` | the integration surface: the snapshot reaches every hook, `filled`/`cost` totals, stage gates, cancels while halted, protocol cancels, `touch` |
+| `BookComposition` | a core built like EventPerp from four separate modules (Markets gate, Clearing accounts with one taker write, Pricing depth filter, Liquidation pulls) compiles and trades correctly; use it as the template |
 | `BookGas` | gas per operation for Book alone (no-op hooks), written to `snapshots/BookGas.json`; CI fails if it changes |
 
 Every suite was checked with injected bugs (bit left set, crossed remainder rested, no
