@@ -1,0 +1,10 @@
+{
+  "cancelReplace_twoSidedBatch": "121605",
+  "cancel_one": "55283",
+  "placeResting_freshSlot": "103288",
+  "placeResting_recycledSlot": "88609",
+  "taker_64steps_allFailing": "935609",
+  "taker_fourFills_sameMaker": "195920",
+  "taker_fourFills_twoMakers_twoLevels": "226086",
+  "taker_oneFill": "134513"
+}
