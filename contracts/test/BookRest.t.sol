@@ -197,6 +197,15 @@ contract BookRestTest is Test {
         _cancel(alice, (1 << 24) | 1); // right slot, wrong generation
     }
 
+    function test_RevertWhen_GetLevelBadTick() public {
+        vm.expectRevert(Book.BadTick.selector);
+        book.getLevel(M, true, 0);
+        vm.expectRevert(Book.BadTick.selector);
+        book.getLevel(M, false, 1000);
+        vm.expectRevert(Book.BadTick.selector);
+        book.getLevel(M, false, type(uint16).max);
+    }
+
     function test_RevertWhen_UnknownMarket() public {
         vm.expectRevert(Book.NoMarket.selector);
         book.cancel(7, 1);
