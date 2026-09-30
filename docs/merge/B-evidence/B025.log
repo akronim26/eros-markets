@@ -4,17 +4,11 @@ Ran 8 tests for test/risk/B/B025.t.sol:B025Test
 [PASS] test_cancelAllThenLazyPrune() (gas: 3192231)
 [PASS] test_crossedLimitRemainderDropped() (gas: 2764813)
 [PASS] test_expiryInclusive() (gas: 2900485)
-[FAIL: log != expected log] test_noRevivalLongFlatShortLong() (gas: 6890770)
+[PASS] test_noRevivalLongFlatShortLong() (gas: 5886056)
 [PASS] test_reduceOnly10AgainstLong3() (gas: 2138001)
 [PASS] test_sizeDownKeepsPriorityReleasesDelta() (gas: 3000641)
 [PASS] test_staleGenerationCannotTouchReusedSlot() (gas: 1888127)
 [PASS] test_widenedPermissionsReplace() (gas: 29447)
-Suite result: FAILED. 7 passed; 1 failed; 0 skipped; finished in 8.96ms (10.20ms CPU time)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 8.36ms (9.80ms CPU time)
 
-Ran 1 test suite in 79.77ms (8.96ms CPU time): 7 tests passed, 1 failed, 0 skipped (8 total tests)
-
-Failing tests:
-Encountered 1 failing test in test/risk/B/B025.t.sol:B025Test
-[FAIL: log != expected log] test_noRevivalLongFlatShortLong() (gas: 6890770)
-
-Encountered a total of 1 failing tests, 7 tests succeeded
+Ran 1 test suite in 79.58ms (8.36ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)
