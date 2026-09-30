@@ -1,0 +1,42 @@
+No files changed, compilation skipped
+
+Ran 18 tests for test/risk/B/B027.t.sol:B027Test
+[PASS] test_g4CallSequenceDirectFiveX() (gas: 48013167)
+Logs:
+  G4-SEQ BEGIN 0 0 2
+  G4-SEQ TOUCH 1 0 0
+  G4-SEQ REPLACE 1 0 0
+  G4-SEQ REPLACE 1 0 1000000
+  G4-SEQ TOUCH 2 0 0
+  G4-SEQ POST_FILL 2 1 1000000
+  G4-SEQ REPLACE 2 0 0
+  G4-SEQ REPLACE 1 0 0
+  G4-SEQ REPLACE 1 0 0
+
+[PASS] test_row01_exactIntegerBilateralTrade() (gas: 47987535)
+[PASS] test_row02_bothOutcomeAdmission() (gas: 46791179)
+[PASS] test_row03_valueReleaseRequiresTick() (gas: 47727089)
+[PASS] test_row04_currentEpochCancelAll() (gas: 48520961)
+[PASS] test_row05_stageEpochSidecar() (gas: 47769451)
+[PASS] test_row08_makerFundingBeforeFill() (gas: 48057299)
+[PASS] test_row09_makerPremiumBeforeAdmission() (gas: 47827137)
+[PASS] test_row10_priceOnlyReadmission() (gas: 61205095)
+[PASS] test_row14_worstLimitImprovement() (gas: 48940699)
+[FAIL: global YES shortfall stops the taker; the maker is kept] test_row15_bothReserveOutcomes() (gas: 47992190)
+[PASS] test_row16_mutableAggregates() (gas: 49574130)
+[PASS] test_row17_dirtyMakerQueue() (gas: 50634629)
+[FAIL: valid second maker is not cancelled for a global shortfall] test_row20_expectedStop() (gas: 49861727)
+[PASS] test_row22_fragmentedFees() (gas: 50904197)
+[PASS] test_row27_packedSizeRange() (gas: 46719458)
+[PASS] test_row29_rolloverGate() (gas: 47845495)
+[PASS] test_row34_sameBlockSingleTouch() (gas: 49488044)
+Suite result: FAILED. 16 passed; 2 failed; 0 skipped; finished in 20.96ms (166.75ms CPU time)
+
+Ran 1 test suite in 97.96ms (20.96ms CPU time): 16 tests passed, 2 failed, 0 skipped (18 total tests)
+
+Failing tests:
+Encountered 2 failing tests in test/risk/B/B027.t.sol:B027Test
+[FAIL: global YES shortfall stops the taker; the maker is kept] test_row15_bothReserveOutcomes() (gas: 47992190)
+[FAIL: valid second maker is not cancelled for a global shortfall] test_row20_expectedStop() (gas: 49861727)
+
+Encountered a total of 2 failing tests, 16 tests succeeded

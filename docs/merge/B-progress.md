@@ -40,3 +40,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B025 | FAILED (exit 1) | 39f3f58 | 1 | reduce-only 10 vs long 3 fills 3 releases 7 once; no revival (MakerPruned STALE_ORDER); inclusive expiry; stale generation no-op on reused slot; size-down keeps priority; widened amend = replace; crossed remainder dropped |
 | B025 | lane-pass (mock book + scripted A port) | 606ac45 | 0 | rerun: revival case now proves positionVersion prune (MakerPruned STALE_ORDER); earlier FAILED row superseded |
 | B026 | lane-pass (scripted A views; S-9 requirement on A) | bd4ba8d | 0 | preview cap == executed fill (1e6 of 2e6), IM 120 required; bootstrap/sweep/stale rejections identical; projections labelled estimates; usable release = decision boundary |
+| B027 | FAILED (exit 1) | b717ad4 | 1 | spec 7.8 rows 1,2,3,4,5,8,9,10,14,15,16,17,20,22,27,29,34 + G4 call sequence; fixes global-vs-maker preflight (M-17) |
