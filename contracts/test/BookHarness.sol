@@ -17,6 +17,67 @@ contract BookHarness is Book {
         return _rest(_openBook(market), market, _traderOf(msg.sender), tick, size, isBuy ? FLAG_BUY : 0);
     }
 
+    // ------------------------------------------------------------------ Clearing stand-in
+
+    error TakerRejected();
+
+    /// @dev Signed position per (market, trader); + is long.
+    mapping(uint256 => mapping(uint32 => int256)) public position;
+    mapping(uint32 => bool) public failMaker;
+    bool public rejectTaker;
+    uint256 public takerDoneCalls;
+
+    function setPosition(uint256 market, uint32 trader, int256 pos) external {
+        position[market][trader] = pos;
+    }
+
+    function setFailMaker(uint32 trader, bool fail) external {
+        failMaker[trader] = fail;
+    }
+
+    function setRejectTaker(bool reject) external {
+        rejectTaker = reject;
+    }
+
+    function _reducible(uint256 market, uint32 trader, bool isBuy) internal view returns (uint256) {
+        int256 p = position[market][trader];
+        if (isBuy) return p < 0 ? uint256(-p) : 0;
+        return p > 0 ? uint256(p) : 0;
+    }
+
+    function _apply(uint256 market, uint32 trader, bool isBuy, uint96 size) internal {
+        position[market][trader] += isBuy ? int256(uint256(size)) : -int256(uint256(size));
+    }
+
+    function _takerStart(Ctx memory c, uint96 size) internal view override returns (uint96) {
+        if (c.flags & FLAG_REDUCE_ONLY == 0) return size;
+        uint256 r = _reducible(c.market, c.taker, c.takerBuys);
+        return r < size ? uint96(r) : size;
+    }
+
+    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16, uint96 size, uint8 flags)
+        internal
+        override
+        returns (uint96 filled)
+    {
+        if (failMaker[maker]) return 0;
+        filled = size;
+        if (flags & FLAG_REDUCE_ONLY != 0) {
+            uint256 r = _reducible(c.market, maker, makerBuys);
+            if (r < filled) filled = uint96(r);
+        }
+        _apply(c.market, maker, makerBuys, filled);
+    }
+
+    function _takerFill(Ctx memory c, bool takerBuys, uint16, uint96 size) internal override {
+        _apply(c.market, c.taker, takerBuys, size);
+    }
+
+    function _takerDone(Ctx memory) internal override {
+        if (rejectTaker) revert TakerRejected();
+        ++takerDoneCalls;
+    }
+
     // ------------------------------------------------------------------ hooks
 
     function _onRest(uint256 market, uint32 trader, bool isBuy, uint16, uint96 size) internal override {
