@@ -1,0 +1,20 @@
+No files changed, compilation skipped
+
+Ran 14 tests for test/math/B/B012.t.sol:B012Test
+[PASS] testFuzz_eminLowerBoundOneOrder(uint16,uint8,uint8,uint64,bool) (runs: 1000, μ: 6383, ~: 6343)
+[PASS] test_cancelUsesTickAndExtremaStay() (gas: 5983)
+[PASS] test_deficitCap() (gas: 13290)
+[PASS] test_directFiveXAdmitted() (gas: 38889)
+[PASS] test_directFiveXFailsWithSmallReserve() (gas: 13111)
+[PASS] test_enumerateAdmittedStates() (gas: 70841451)
+[PASS] test_exactOneXBid() (gas: 18534)
+[PASS] test_halvingBoundedAndMinSize() (gas: 538151)
+[PASS] test_halvingCap() (gas: 41527)
+[PASS] test_oversizedAskRejectedAtOneX() (gas: 13289)
+[PASS] test_reduceOnlyCap() (gas: 1190)
+[PASS] test_sideFlipEvaluatesShortSide() (gas: 53245)
+[PASS] test_staleExtremaConservative() (gas: 8078)
+[PASS] test_underflowReverts() (gas: 13111)
+Suite result: ok. 14 passed; 0 failed; 0 skipped; finished in 70.87ms (84.76ms CPU time)
+
+Ran 1 test suite in 81.78ms (70.87ms CPU time): 14 tests passed, 0 failed, 0 skipped (14 total tests)

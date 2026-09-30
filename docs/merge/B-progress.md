@@ -24,3 +24,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B010 | lane-pass (stand-in QMath/MathTypes) | ca9b5c0 | 0 | bounds >= reference brackets (T-1), eps/T/max-size edges, fuzz monotone; uses provisional QMath (S-2) |
 | B011 | lane-pass (stand-in QMath/MathTypes) | 5106ddd | 0 | B005 vectors within T-1; long IM 120 exact; short 80/100; 1x exact endpoints; wad-second horizon (M-8) |
 | B010 | lane-pass (stand-in QMath/MathTypes) | b1936e7 | 0 | rerun after M-8 wad-second horizon; test arithmetic fix |
+| B012 | lane-pass (stand-in QMath/MathTypes; scripted A coverage fn) | f8f02e1 | 0 | Emin, reach envelope, <=64 halvings via coverage fn pointer; enumeration of admitted states; direct 5x; side flip; stale extrema |
