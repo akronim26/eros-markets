@@ -47,7 +47,8 @@ fields without touching Book.
 
 | Function | For |
 |---|---|
-| `_initBook(market)` | Markets: create a market's book |
+| `_initBook(market, maxFills)` | Markets: create a market's book with its fill bound (no default) |
+| `_setMaxFills(market, maxFills)` | retune the bound after gas measurements; emits `MaxFillsSet` |
 | `_traderOf(address) → id` | Clearing: the trader id accounts are keyed by |
 | `_touch(market) → (bid, bidSize, ask, askSize)` | Pricing: mark inputs with the D_min depth filter |
 | `_forceCancel(market, id, RISK \| STAGE) → bool` | liquidation, stage changes, keepers; no owner check, stale ids return false |
@@ -66,7 +67,12 @@ fields without touching Book.
    after 256 reuses. The cost is one fresh slot per 256 reuses.
 4. **`_onRest` / `_onUnrest` receive the order's flags** (side and reduce-only), and
    `_forceCancel` plus two cancel reasons (`RISK`, `STAGE`) let other modules remove orders.
-5. **Protocol cap `MAX_FILLS = 64`** (the master spec's placeholder). The UI should request about 8.
+5. **The fill bound is per-market config, not a constant.** The master spec's 64 is a placeholder
+   to be set from measured gas, so each market gets its bound at creation (`_initBook`), can be
+   retuned (`_setMaxFills`) and is readable (`maxFillsOf`). Orders asking for more revert with
+   `BadMaxFills`. It shares `freeHead`'s storage slot, which also keeps that slot non-zero.
+   Nothing else is hardcoded: the tick grid (0.001, ticks 1–999) is a locked design decision the
+   storage layout is sized from, and the bitmap word count and level array length derive from it.
 6. A reduce-only maker with nothing left to reduce comes back from `_makerFill` as 0 and is
    cancelled with `FAILED_CHECK`. A partial clip is cancelled with `CLIPPED`.
 
