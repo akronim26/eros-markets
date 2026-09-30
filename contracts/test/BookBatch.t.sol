@@ -7,6 +7,7 @@ import {BookHarness} from "./BookHarness.sol";
 
 contract BookBatchTest is Test {
     BookHarness book;
+    uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
     uint256 constant M = 1;
     address mm = makeAddr("mm"); // trader 1
     address taker = makeAddr("taker"); // trader 2
@@ -17,7 +18,7 @@ contract BookBatchTest is Test {
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M);
+        book.createMarket(M, MAX_FILLS);
     }
 
     function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint96 size)

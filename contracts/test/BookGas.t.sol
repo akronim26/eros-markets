@@ -8,8 +8,8 @@ import {Book} from "../src/Book.sol";
 contract LeanBook is Book {
     bool public failAll;
 
-    function createMarket(uint256 market) external {
-        _initBook(market);
+    function createMarket(uint256 market, uint8 maxFills) external {
+        _initBook(market, maxFills);
     }
 
     function setFailAll(bool fail) external {
@@ -51,6 +51,7 @@ contract LeanBook is Book {
 ///      cooled before each measured call.
 contract BookGasTest is Test {
     LeanBook book;
+    uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
     uint256 constant M = 1;
     address mm = makeAddr("mm");
     address mm2 = makeAddr("mm2");
@@ -60,7 +61,7 @@ contract BookGasTest is Test {
     /// is non-zero) and some dead order slots waiting on the free list.
     function setUp() public {
         book = new LeanBook();
-        book.createMarket(M);
+        book.createMarket(M, MAX_FILLS);
         uint32[] memory ids = new uint32[](4);
         ids[0] = _post(mm, true, 499, 1);
         ids[1] = _post(mm, true, 500, 1);
@@ -82,7 +83,7 @@ contract BookGasTest is Test {
     function test_Gas_PlaceRestingRecycledSlot() public {
         vm.cool(address(book));
         _post(mm, false, 502, 100);
-        vm.snapshotGasLastCall("BookGas", "placeResting_recycledSlot");
+        vm.snapshotGasLastFrame("BookGas", "placeResting_recycledSlot");
     }
 
     function test_Gas_PlaceRestingFreshSlot() public {
@@ -91,7 +92,7 @@ contract BookGasTest is Test {
         }
         vm.cool(address(book));
         _post(mm, false, 502, 100);
-        vm.snapshotGasLastCall("BookGas", "placeResting_freshSlot");
+        vm.snapshotGasLastFrame("BookGas", "placeResting_freshSlot");
     }
 
     function test_Gas_CancelReplaceBatch() public {
@@ -105,7 +106,7 @@ contract BookGasTest is Test {
         vm.cool(address(book));
         vm.prank(mm);
         book.batch(M, cancels, ps);
-        vm.snapshotGasLastCall("BookGas", "cancelReplace_twoSidedBatch");
+        vm.snapshotGasLastFrame("BookGas", "cancelReplace_twoSidedBatch");
     }
 
     function test_Gas_TakerOneFill() public {
@@ -113,7 +114,7 @@ contract BookGasTest is Test {
         vm.cool(address(book));
         vm.prank(taker);
         book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
-        vm.snapshotGasLastCall("BookGas", "taker_oneFill");
+        vm.snapshotGasLastFrame("BookGas", "taker_oneFill");
     }
 
     function test_Gas_TakerFourFillsSameMaker() public {
@@ -123,7 +124,7 @@ contract BookGasTest is Test {
         vm.cool(address(book));
         vm.prank(taker);
         book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
-        vm.snapshotGasLastCall("BookGas", "taker_fourFills_sameMaker");
+        vm.snapshotGasLastFrame("BookGas", "taker_fourFills_sameMaker");
     }
 
     function test_Gas_TakerFourFillsTwoMakersTwoLevels() public {
@@ -134,7 +135,7 @@ contract BookGasTest is Test {
         vm.cool(address(book));
         vm.prank(taker);
         book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 502, 100, 8));
-        vm.snapshotGasLastCall("BookGas", "taker_fourFills_twoMakers_twoLevels");
+        vm.snapshotGasLastFrame("BookGas", "taker_fourFills_twoMakers_twoLevels");
     }
 
     function test_Gas_CancelOne() public {
@@ -142,7 +143,7 @@ contract BookGasTest is Test {
         vm.cool(address(book));
         vm.prank(mm);
         book.cancel(M, id);
-        vm.snapshotGasLastCall("BookGas", "cancel_one");
+        vm.snapshotGasLastFrame("BookGas", "cancel_one");
     }
 
     /// Worst case the protocol allows: 64 examined orders, all failing the maker check.
@@ -154,6 +155,6 @@ contract BookGasTest is Test {
         vm.cool(address(book));
         vm.prank(taker);
         book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 501, 64, 64));
-        vm.snapshotGasLastCall("BookGas", "taker_64steps_allFailing");
+        vm.snapshotGasLastFrame("BookGas", "taker_64steps_allFailing");
     }
 }

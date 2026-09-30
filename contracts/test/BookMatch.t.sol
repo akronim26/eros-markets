@@ -7,6 +7,7 @@ import {BookHarness} from "./BookHarness.sol";
 
 contract BookMatchTest is Test {
     BookHarness book;
+    uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
     uint256 constant M = 1;
     address alice = makeAddr("alice"); // trader 1
     address bob = makeAddr("bob"); // trader 2
@@ -27,7 +28,7 @@ contract BookMatchTest is Test {
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M);
+        book.createMarket(M, MAX_FILLS);
         // Register traders in a fixed order so their ids are 1..4.
         address[4] memory who = [alice, bob, carol, taker];
         for (uint256 i; i < 4; ++i) {
@@ -60,7 +61,7 @@ contract BookMatchTest is Test {
         return _place(taker, _p(IOC, isBuy, limit, size, false, maxFills));
     }
 
-    function _fills() internal returns (F[] memory out) {
+    function _fills() internal view returns (F[] memory out) {
         Vm.Log[] memory logs = vm.getRecordedLogs();
         uint256 n;
         for (uint256 i; i < logs.length; ++i) {

@@ -9,13 +9,14 @@ import {BookHarness} from "./BookHarness.sol";
 ///         Ctx (R2), admission gates (R4 stages), protocol cancels (R3) and touch depth (pricing).
 contract BookSeamTest is Test {
     BookHarness book;
+    uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
     uint256 constant M = 1;
     address maker = makeAddr("maker"); // trader 1
     address taker = makeAddr("taker"); // trader 2
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M);
+        book.createMarket(M, MAX_FILLS);
         vm.prank(maker);
         book.batch(M, new uint32[](0), new Book.Place[](0));
         vm.prank(taker);
@@ -189,6 +190,52 @@ contract BookSeamTest is Test {
     function test_RevertWhen_ForceCancelUnknownMarket() public {
         vm.expectRevert(Book.NoMarket.selector);
         book.forceCancel(9, 1, Book.CancelReason.RISK);
+    }
+
+    // ------------------------------------------------------------------ per-market maxFills
+
+    function test_MaxFillsIsSetPerMarketAtCreation() public {
+        vm.expectEmit(address(book));
+        emit Book.MaxFillsSet(2, 3);
+        book.createMarket(2, 3);
+        assertEq(book.maxFillsOf(2), 3);
+        assertEq(book.maxFillsOf(M), MAX_FILLS, "other market untouched");
+    }
+
+    function test_OrdersAboveTheMarketBoundAreRejected() public {
+        book.createMarket(2, 3);
+        vm.startPrank(taker);
+        book.placeOrder(2, Book.Place(Book.OrderType.IOC, true, false, 500, 1, 3));
+        vm.expectRevert(Book.BadMaxFills.selector);
+        book.placeOrder(2, Book.Place(Book.OrderType.IOC, true, false, 500, 1, 4));
+        vm.stopPrank();
+    }
+
+    function test_MaxFillsCanBeRetuned() public {
+        book.setMaxFills(M, 2);
+        vm.prank(taker);
+        vm.expectRevert(Book.BadMaxFills.selector);
+        book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 500, 1, 3));
+
+        vm.expectEmit(address(book));
+        emit Book.MaxFillsSet(M, 255);
+        book.setMaxFills(M, 255);
+        vm.prank(taker);
+        book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 500, 1, 255));
+    }
+
+    function test_RevertWhen_MaxFillsZero() public {
+        vm.expectRevert(Book.BadMaxFills.selector);
+        book.createMarket(2, 0);
+        vm.expectRevert(Book.BadMaxFills.selector);
+        book.setMaxFills(M, 0);
+    }
+
+    function test_RevertWhen_MaxFillsForUnknownMarket() public {
+        vm.expectRevert(Book.NoMarket.selector);
+        book.setMaxFills(9, 5);
+        vm.expectRevert(Book.NoMarket.selector);
+        book.maxFillsOf(9);
     }
 
     // ------------------------------------------------------------------ touch depth
