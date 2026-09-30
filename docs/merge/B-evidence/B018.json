@@ -1,0 +1,29 @@
+{
+ "task": "B018",
+ "commit": "22bb4902b6d78cd0315f68ea594549005ff647f2",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B018.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 8 tests for test/risk/B/B018.t.sol:B018Test",
+  "[PASS] test_contextCarriesTimeAndStage() (gas: 37480)",
+  "[PASS] test_emptyBookBootstrapUsesIndexOnly() (gas: 5239535)",
+  "[PASS] test_haltOverridesBootstrap() (gas: 5124161)",
+  "[PASS] test_missingPerpAfterNormalFallsBackToBackedOnly() (gas: 39143774)",
+  "[PASS] test_noIndexNoExposure() (gas: 48940)",
+  "[PASS] test_normalOnlyAtEpochOpeningWithAllWindows() (gas: 36849333)",
+  "[PASS] test_openingWithoutFullWindowsStaysBootstrap() (gas: 13138157)",
+  "[PASS] test_profileActivatesOnlyAtEpochOpening() (gas: 91304)",
+  "Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 5.06ms (11.98ms CPU time)",
+  "",
+  "Ran 1 test suite in 82.73ms (5.06ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)"
+ ],
+ "component_status": "lane-pass (epoch-opening hook called by test, A stand-in S-4)",
+ "recorded_at_utc": "2026-09-30T19:42:53+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
