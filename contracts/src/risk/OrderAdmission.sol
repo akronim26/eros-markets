@@ -304,8 +304,14 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
     }
 
     /// @notice Preflight both accounts after the candidate fill using A's coverage values.
-    ///         Taker shortfall -> STOP_TAKER; maker account-specific shortfall -> PRUNE_MAKER.
-    function _preflight(FillPlan memory f) internal view returns (bool takerOk, bool makerOk) {
+    ///         `makerCapOk` is the maker's account-specific test (per-account deficit cap) -> a
+    ///         failure prunes the maker. `takerCapOk` and `marketOk` (both reserve inequalities)
+    ///         failing stop the taker; a valid maker is never cancelled for a global shortfall.
+    function _preflight(FillPlan memory f)
+        internal
+        view
+        returns (bool takerCapOk, bool makerCapOk, bool marketOk)
+    {
         int256 notional = int256(uint256(f.lots) * f.makerTick * 1e18);
         int256 dx = f.takerBuys ? int256(uint256(f.lots)) : -int256(uint256(f.lots));
         OA.OrderSums memory ts = _combined(f.taker);
@@ -316,7 +322,8 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
             OA.removeOrder(_resSums(f.maker), !f.takerBuys, f.lots, f.makerTick, f.makerFeeCapUsedQ);
         OA.CoverageInput memory mc =
             _acctCoverage(f.maker, ms, (f.takerBuys ? notional : -notional) - int256(f.makerFeeQ), -dx);
-        takerOk = tc.marketOk && tc.d0Q <= tc.deficitCapQ && tc.d1Q <= tc.deficitCapQ;
-        makerOk = mc.marketOk && mc.d0Q <= mc.deficitCapQ && mc.d1Q <= mc.deficitCapQ;
+        takerCapOk = tc.d0Q <= tc.deficitCapQ && tc.d1Q <= tc.deficitCapQ;
+        makerCapOk = mc.d0Q <= mc.deficitCapQ && mc.d1Q <= mc.deficitCapQ;
+        marketOk = tc.marketOk && mc.marketOk;
     }
 }

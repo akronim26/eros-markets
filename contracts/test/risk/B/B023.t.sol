@@ -62,8 +62,8 @@ contract AdmHarness is OrderAdmission, MockAccountingPort {
             c, MakerInput(mk, false, _res[mk].marketEpoch, _res[mk].accountEpoch, false, 0, lots)
         );
         require(!md.prune, "maker pruned");
-        (bool tOk, bool mOk) = _preflight(FillPlan(tk, mk, true, tick, lots, 0, 0, tick, 0, 0));
-        require(tOk && mOk, "preflight");
+        (bool tOk, bool mOk, bool marketOk) = _preflight(FillPlan(tk, mk, true, tick, lots, 0, 0, tick, 0, 0));
+        require(tOk && mOk && marketOk, "preflight");
         _acctPostFill(IAccountingPort.FillDelta(mk, tk, true, lots, tick, 0, 0));
         _resConsumeFill(mk, false, tick, lots, 0);
         _permitConsume(tk, true, tick, lots, 0);
