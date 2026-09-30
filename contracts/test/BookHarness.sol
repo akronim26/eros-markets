@@ -98,6 +98,80 @@ contract BookHarness is Book {
         return _books[market].freeHead;
     }
 
+    // ------------------------------------------------------------------ INV-8
+
+    /// @dev Full structural check of one market's book; reverts with the first violation.
+    ///      `traders` bounds the reservation check to ids 1..traders.
+    function checkInvariants(uint256 market, uint32 traders) external view {
+        BookState storage b = _books[market];
+        uint256 n = b.orders.length;
+        uint256[2][] memory resting = new uint256[2][](traders + 1);
+        uint256 linked;
+
+        for (uint8 side; side < 2; ++side) {
+            for (uint256 w; w < WORDS; ++w) {
+                uint256 word = b.bits[side][w];
+                require(word & SENTINEL != 0, "sentinel cleared");
+                require(word & ~(SENTINEL | TICK_MASK) == 0, "stray high bit");
+            }
+            require(b.bits[side][3] & (1 << 249) == 0, "tick 1000 bit set");
+            for (uint16 k = MIN_TICK; k <= MAX_TICK; ++k) {
+                Level storage lv = b.levels[k][side];
+                uint256 i = k - 1;
+                bool bit = b.bits[side][i / TICKS_PER_WORD] & (1 << (i % TICKS_PER_WORD)) != 0;
+                require(bit == (lv.head != 0), "bit != non-empty");
+                require((lv.head == 0) == (lv.tail == 0), "head/tail mismatch");
+                require(lv.head == 0 || lv.used, "live level not marked used");
+                uint256 sum;
+                uint32 prev;
+                for (uint32 s = lv.head; s != 0; s = b.orders[s].next) {
+                    require(s < n, "link out of range");
+                    require(++linked <= n, "cycle");
+                    Order storage o = b.orders[s];
+                    require(o.flags & FLAG_LIVE != 0, "dead order linked");
+                    require(o.size != 0, "empty live order");
+                    require(o.tick == k, "wrong tick");
+                    require((o.flags & FLAG_BUY != 0) == (side == BID), "wrong side");
+                    require(o.prev == prev, "prev link");
+                    require(o.owner != 0 && o.owner <= traders, "bad owner");
+                    resting[o.owner][side] += o.size;
+                    sum += o.size;
+                    prev = s;
+                }
+                require(prev == lv.tail, "tail link");
+                require(sum == lv.size, "level size != sum of orders");
+            }
+        }
+
+        // Every live slot is linked exactly once; every dead recyclable slot is on the free list.
+        uint256 live;
+        uint256 recyclable;
+        for (uint256 s = 1; s < n; ++s) {
+            Order storage o = b.orders[s];
+            require(o.owner != 0, "slot returned to zero");
+            if (o.flags & FLAG_LIVE != 0) ++live;
+            else if (o.gen != MAX_GEN) ++recyclable;
+            if (o.flags & FLAG_LIVE == 0) require(o.size == 0 && o.flags == 0, "tombstone not cleared");
+        }
+        require(live == linked, "live orders != linked orders");
+        uint256 free;
+        for (uint32 s = b.freeHead; s != 0; s = b.orders[s].next) {
+            require(++free <= n, "free-list cycle");
+            require(b.orders[s].flags == 0, "live order on free list");
+            require(b.orders[s].gen != MAX_GEN, "retired slot on free list");
+        }
+        require(free == recyclable, "free list incomplete");
+
+        for (uint32 t = 1; t <= traders; ++t) {
+            require(reserved[market][t][false] == resting[t][ASK], "ask reservation");
+            require(reserved[market][t][true] == resting[t][BID], "bid reservation");
+        }
+
+        uint16 bid = _bestBid(b);
+        uint16 ask = _bestAsk(b);
+        require(bid == NONE || ask == NONE || bid < ask, "crossed book");
+    }
+
     function setBit(uint256 market, bool isBuy, uint16 tick) external {
         _setBit(_openBook(market), isBuy ? BID : ASK, tick);
     }
