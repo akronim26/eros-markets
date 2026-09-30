@@ -54,3 +54,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B026 | lane-pass (scripted A views; S-9 requirement on A) | bd4ba8d | 0 | preview cap == executed fill (1e6 of 2e6), IM 120 required; bootstrap/sweep/stale rejections identical; projections labelled estimates; usable release = decision boundary |
 | B027 | FAILED (exit 1) | b717ad4 | 1 | spec 7.8 rows 1,2,3,4,5,8,9,10,14,15,16,17,20,22,27,29,34 + G4 call sequence; fixes global-vs-maker preflight (M-17) |
 | B027 | lane-pass (MOCK book + SCRIPTED A; not real A/CP-BOOK integration) | 59b333a | 0 | rerun after M-17/M-18: all 18 seam cases pass incl. rows 15 and 20; G4 call sequence in log |
+| B028 | lane-pass (mock book + scripted A) | 46adb08 | 0 | below MM no grace; nonrenewable anchor survives touches and new risk epochs; recovery clears; grace window by time alone; floor invalidates orders on first action; halt beats bootstrap and monitor; adds _afterTouch hook to BookRiskAdapter |
