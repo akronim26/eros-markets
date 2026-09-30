@@ -97,6 +97,17 @@ abstract contract IAccountingPort {
 
     function _acctBumpMarketOrderEpoch() internal virtual returns (uint64 newEpoch);
 
+    /// @dev Current market order epoch (A storage; bumped by stage/rollover invalidation).
+    function _acctMarketOrderEpoch() internal view virtual returns (uint64);
+
+    /// @dev Projected (unmaterialized) funding debit and premium owed at `atTime` for previews.
+    ///      Positive fundingQ = the account pays. View only: never an authorization.
+    function _acctProjectedAccrual(uint32 trader, uint64 atTime)
+        internal
+        view
+        virtual
+        returns (int256 fundingQ, uint256 premiumQ);
+
     // ---------------------------------------------------------------- liquidation (A028–A031)
 
     function _acctTakeover(TakeoverAuth memory auth) internal virtual;

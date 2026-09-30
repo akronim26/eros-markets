@@ -201,8 +201,25 @@ abstract contract MockAccountingPort is IAccountingPort {
         return _mMarketEpoch;
     }
 
-    function _mockMarketEpoch() internal view returns (uint64) {
+    function _acctMarketOrderEpoch() internal view virtual override returns (uint64) {
         return _mMarketEpoch;
+    }
+
+    mapping(uint32 => int256) internal _mProjFunding;
+    mapping(uint32 => uint256) internal _mProjPremium;
+
+    function mockSetProjection(uint32 trader, int256 fundingQ, uint256 premiumQ) public {
+        (_mProjFunding[trader], _mProjPremium[trader]) = (fundingQ, premiumQ);
+    }
+
+    function _acctProjectedAccrual(uint32 trader, uint64)
+        internal
+        view
+        virtual
+        override
+        returns (int256, uint256)
+    {
+        return (_mProjFunding[trader], _mProjPremium[trader]);
     }
 
     // ---------------------------------------------------------------- liquidation
