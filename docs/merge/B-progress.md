@@ -21,3 +21,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B007 | lane-pass (pure) | 790d444 | 0 | validity-weighted TWAP, 30s carry, same-second dedupe, basis, median+band clamp, trunc0 funding rate, movement trigger |
 | B008 | lane-pass (pure) | 4a0e32e | 0 | eligibility/takeover split (no budget input), x-free estimate, fee-aware bankruptcy tick, fee waiver, pacing, NEEDS_MORE_WORK |
 | B009 | lane-pass (pure) | bf0b821 | 0 | stage precedence, cutoffs (halt/roll order equal), nonrenewable grace, bootstrap, INVALID readiness, finality |
+| B010 | lane-pass (stand-in QMath/MathTypes) | ca9b5c0 | 0 | bounds >= reference brackets (T-1), eps/T/max-size edges, fuzz monotone; uses provisional QMath (S-2) |

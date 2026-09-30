@@ -1,0 +1,24 @@
+No files changed, compilation skipped
+
+Ran 18 tests for test/math/B/B010.t.sol:B010Test
+[PASS] testFuzz_driftNotBelowSourceDrift(uint64,uint64,uint64,bool) (runs: 1000, μ: 2890, ~: 2921)
+[PASS] testFuzz_horizonMonotone(uint64,uint64,uint32) (runs: 1000, μ: 2199, ~: 2205)
+[PASS] testFuzz_kMonotoneInAdverse(uint64,uint64) (runs: 1000, μ: 5235, ~: 5083)
+[PASS] testFuzz_sigmaMonotoneInHorizon(uint64,uint32,uint32,uint32) (runs: 1000, μ: 3515, ~: 3473)
+[PASS] testFuzz_sigmaSquareBracketsRadicand(uint64,uint32,uint32) (runs: 1000, μ: 2675, ~: 2672)
+[PASS] test_badEpsilonReverts() (gas: 10134)
+[PASS] test_driftEnclosesReference() (gas: 2913)
+[PASS] test_endpointPriceReverts() (gas: 10641)
+[PASS] test_envelopeRejectsNoisyOrExpired() (gas: 7560)
+[PASS] test_envelopeStepUp() (gas: 6572)
+[PASS] test_fixtureHorizon() (gas: 3074)
+[PASS] test_fullBackingBranches() (gas: 5806)
+[PASS] test_hazardExactUp() (gas: 2522)
+[PASS] test_maxPositionHorizonNoOverflow() (gas: 1016)
+[PASS] test_nearTCapsAtOne() (gas: 3838)
+[PASS] test_sigmaEnclosesReference() (gas: 5101)
+[PASS] test_tailEnclosesReference() (gas: 11994)
+[PASS] test_zeroAbsorptionReverts() (gas: 8474)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 11.17ms (45.43ms CPU time)
+
+Ran 1 test suite in 82.24ms (11.17ms CPU time): 18 tests passed, 0 failed, 0 skipped (18 total tests)
