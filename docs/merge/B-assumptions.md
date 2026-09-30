@@ -100,3 +100,14 @@ open questions for Person A, the counterpart teams or the spec owner.
 - **I-4 (B016) Perp observations** come from this market's own book depth (impact mid at N),
   recorded internally by the engine, not from a signed source; only the independent index is
   signed. The index must never come from this market's book (spec §4.1).
+- **M-9 (B018) Bootstrap order band.** "Inside the index order band" has no numeric value in the
+  spec. Choice: an immutable listing parameter `bootstrapBandWad` (fixture 0.05) around the
+  300 s index TWAP; backed-only orders outside `[I - band, I + band]` are rejected. Question for the
+  spec owner / CP-FACTORY listing template.
+- **M-10 (B018) Mark availability.** The normal mark is reported only in NORMAL_PRICING; warm-up
+  windows that happen to be complete in BOOTSTRAP are not a leveraged mark until an epoch opening
+  switches the mode (spec §4.1, DEC-14). `_onEpochOpening()` is the hook Person A's rollover commit
+  must call (A025/A026) — interface guess, see S-4.
+- **S-4 (B018 onward) Epoch-opening hook.** B exposes `_onEpochOpening()` (applies a staged risk
+  profile, may switch BOOTSTRAP -> NORMAL_PRICING). A's `EpochRollover` commit must call it once per
+  completed epoch. Until merge, tests call it directly.
