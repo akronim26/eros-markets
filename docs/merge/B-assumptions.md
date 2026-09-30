@@ -72,3 +72,18 @@ open questions for Person A, the counterpart teams or the spec owner.
   monitor) > BACKING_FLOOR > BACKING_GRACE > TRADING`. The monitor flag can make a floor market
   REDUCE_ONLY; the time flags (`fullBackingByTime`, `fundingFrozen`, legacy takeover window) are
   reported separately so REDUCE_ONLY never hides floor rules.
+- **S-2 (B010–B015) `contracts/provisional/QMath.sol`** stands in for A009 `contracts/src/math/QMath.sol`.
+  Guessed signatures: `mulDivDown`, `mulDivUp` (512-bit via solady `fullMulDiv[Up]`), `divUp`,
+  `sqrtDown`, `sqrtUp`, `sDivFloor`, `sDivCeil`, `toInt`, `abs`, `min`, `max`. At merge: delete the
+  file, repoint `import {QMath} from "../../provisional/QMath.sol"` to `./QMath.sol`, and rename
+  any call whose A name differs. Rerun B010–B015.
+- **S-3 (B010 onward) `contracts/provisional/MathTypes.sol`** stands in for A001 `MathTypes.sol`:
+  constants `Q`, `WAD`, `PAYOFF_Q_PER_LOT`, `Q_PER_USDC`, tick bounds, and the spec enums `Side`,
+  `Stage`, `AccountingState`, `PricingMode`, `FinalOutcome`, `ClearingPhase`, `AdmissionMode`,
+  `StepStatus`, `RejectCode`, `RemovalReason` with spec §5.3/§7.2/§8.1 member order. At merge use
+  A's declarations; any member-order difference changes ABI and must be reconciled at G0.
+- **M-7 (B010) eps' floor.** With wad inputs, `eps - a_adv >= 1 wei` so `floor((eps-a) WAD/(WAD-a)) >= 1`;
+  the "eps' rounds to 0" branch is kept but is unreachable. A tiny eps' gives a huge k and the
+  margin's worst-loss cap then yields full backing.
+- **T-1 (B010, B015) Differential tolerance.** Solidity upper bounds must be `>=` the reference
+  upper bracket and exceed it by at most `max(1e3 wad, 1e-12 relative)`.
