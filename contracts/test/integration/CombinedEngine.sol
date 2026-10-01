@@ -35,6 +35,14 @@ contract CombinedEngine is RiskAccountingBridge, MockBookAdapter {
         }
     }
 
+    /// Index-only samples every `step` seconds (INVALID capture window after a halt).
+    function feedIndex(uint64 from, uint64 to, uint64 step, uint256 idx, uint64 gapFrom, uint64 gapTo) external {
+        for (uint64 t = from; t <= to; t += step) {
+            if (t > gapFrom && t < gapTo) continue;
+            _onIndexObservation(t, idx, true);
+        }
+    }
+
     // ---- CP-BOOK stand-in entry points (MockBookAdapter drives B's real hooks).
     function _liqSubmitIoc(OrderRequest memory req) internal override returns (uint64, uint256) {
         PlaceResult memory r = _mockPlaceWithMode(req, AdmissionMode.FORCED_REDUCTION);
