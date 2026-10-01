@@ -218,3 +218,10 @@ open questions for Person A, the counterpart teams or the spec owner.
   digest; B composes `snapshotId` per spec §8.3 step 5.
 - **M-20 (B034) Halt invalidates book epochs.** The halt bumps the market order epoch through A
   (`frozenBookEpoch` = the new epoch), so no pre-halt order can match even if a book forgets it.
+- **P-7 (B038, B042) TypeScript runner.** No TypeScript compiler is installed. A previously cached
+  `tsx` 4.20.6 / esbuild 0.25.11 exists in `~/.npm/_npx/ef9ef3f50c7d7dc1` (user's earlier hardhat
+  install). B uses it only to execute SDK files/tests locally (type-stripping, no type-check); it
+  is not added to the repo and is not a chosen toolchain. The SDK toolchain is an open G0 item.
+- **S-12 (B038) Cash-claim hook.** A's ClaimEscrow (A037) must call `_riskBeforeCashClaim()` before
+  the first payout so cash and token claims stay mutually exclusive. Conversion is disabled
+  (`_conversionEnabled()` false) in the baseline.
