@@ -93,4 +93,22 @@ Findings: Critical 0, High 0, Medium 1 (A-F01), Low 2 (A-F02, A-F03), Info/needs
 
 **STOP after Phase 1** (user instruction). Phase 2 starts only after the user says "go".
 
-## Phase 2 — not started
+## Phase 2 — merge and gates (user said "go", 2026-10-01)
+
+| Step | Commit | Result |
+|---|---|---|
+| Merge A lane `61be284` | `8cc0be2` | no conflicts |
+| Merge `feat/risk` `ffc9f52` | `8f98985` | no conflicts (no file overlap; the 2 newer `feat/clob` book commits were already in the base) |
+| Remove provisional stand-ins; rewire to A QMath/MathTypes (R-01, R-02) | `73ecb17` fix(B) | forge 518 pass / 8 BookGas fail (local forge 1.3.5 lacks a cheatcode the book's gas test uses; book-owned, pre-existing on feat/clob); RiskDifferential regenerates byte-identical |
+| Adapt B to A's real interface (R-05, R-07, R-09, R-15) | `af1643f` fix(B) | B 317/317 |
+| Compose A+B: `RiskAccountingBridge`, CombinedEngine harness, smoke | `41e32ec` | smoke passes: bootstrap fill, rollover into NORMAL_PRICING, direct 5x posted by A |
+| G0 record + test | `966444d`, `8f564c8` | `bash scripts/check-gate.sh G0` exit 0 (checks_passed) |
+| fix(A) runner path | `90e7518` | check-gate.sh now reads docs/spec/gate_status.json |
+| G1 | `9c55836`, `c69264f` | technical checks passed; official runner exit 2 ("previous gate has no reviewed accepted commit": Person A has not reviewed) |
+| G2 | `c190774`, `ce43245` | technical checks passed; official runner exit 2 (same reason) |
+
+Gate review: A's runner requires the previous gate to be reviewed by A and B. Person A has not
+reviewed anything; gates are recorded with `reviewed_by: ["B"]`, `review_pending: ["A"]`, and
+the official runner result is kept in each `artifacts/gates/Gn.json` next to the technical
+result (`scripts/integration/gate-record.py`). Once Person A reviews, rerun
+`bash scripts/check-gate.sh Gn` in order.
