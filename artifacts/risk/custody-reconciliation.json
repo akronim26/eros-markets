@@ -1,0 +1,8 @@
+{
+  "status": "A_local_pass",
+  "tests": 2,
+  "peer_decisions": "scripted_mock",
+  "token": "deterministic MockUSDC with failure/tax/reentry tests",
+  "real_counterpart_integration": "pending_merge",
+  "source_commit": "4c528549ff30396b22c312ccca5835aaf23e7ee6"
+}

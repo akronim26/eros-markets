@@ -1,0 +1,289 @@
+{
+  "status": "A_LOCAL_HANDOFF_READY_PEER_MERGE_PENDING",
+  "economic_baseline": "1.0",
+  "plan_version": "1.1",
+  "scope": "A only; all combined gates and B review pending merge",
+  "source_commit": "4c528549ff30396b22c312ccca5835aaf23e7ee6",
+  "local_tasks": {
+    "A001": {
+      "status": "passed",
+      "tests": 12,
+      "evidence": "artifacts/tasks/A001.json"
+    },
+    "A002": {
+      "status": "passed",
+      "tests": 15,
+      "evidence": "artifacts/tasks/A002.json"
+    },
+    "A003": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A003.json"
+    },
+    "A004": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A004.json"
+    },
+    "A005": {
+      "status": "passed",
+      "tests": 3,
+      "evidence": "artifacts/tasks/A005.json"
+    },
+    "A006": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A006.json"
+    },
+    "A007": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A007.json"
+    },
+    "A008": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A008.json"
+    },
+    "A009": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A009.json"
+    },
+    "A010": {
+      "status": "passed",
+      "tests": 3,
+      "evidence": "artifacts/tasks/A010.json"
+    },
+    "A011": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A011.json"
+    },
+    "A012": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A012.json"
+    },
+    "A013": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A013.json"
+    },
+    "A014": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A014.json"
+    },
+    "A015": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A015.json"
+    },
+    "A016": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A016.json"
+    },
+    "A017": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A017.json"
+    },
+    "A018": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A018.json"
+    },
+    "A019": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A019.json"
+    },
+    "A020": {
+      "status": "passed",
+      "tests": 3,
+      "evidence": "artifacts/tasks/A020.json"
+    },
+    "A021": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A021.json"
+    },
+    "A022": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A022.json"
+    },
+    "A023": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A023.json"
+    },
+    "A024": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A024.json"
+    },
+    "A025": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A025.json"
+    },
+    "A026": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A026.json"
+    },
+    "A027": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A027.json"
+    },
+    "A028": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A028.json"
+    },
+    "A029": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A029.json"
+    },
+    "A030": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A030.json"
+    },
+    "A031": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A031.json"
+    },
+    "A032": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A032.json"
+    },
+    "A033": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A033.json"
+    },
+    "A034": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A034.json"
+    },
+    "A035": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A035.json"
+    },
+    "A036": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A036.json"
+    },
+    "A037": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A037.json"
+    },
+    "A038": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A038.json"
+    },
+    "A039": {
+      "status": "passed",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A039.json"
+    },
+    "A040": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A040.json"
+    },
+    "A041": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A041.json"
+    },
+    "A042": {
+      "status": "passed",
+      "tests": 2,
+      "evidence": "artifacts/tasks/A042.json"
+    },
+    "A043": {
+      "status": "blocked",
+      "tests": 1,
+      "evidence": "artifacts/tasks/A043.json"
+    }
+  },
+  "module_hashes": {
+    "contracts/src/math/CoverageMath.sol": "7b03ff590fc91509f38440fae1896a199d1fb1e3432ae44c219ec0d57c5e0995",
+    "contracts/src/math/FeeMath.sol": "7e9680cd4fe4b1ea4f8a76ead9d502148962791982f2d3ea432c2ee0bab05da4",
+    "contracts/src/math/FundingMath.sol": "4401bf5a142119bb215ec375f2d18746a35aa4578fc36140b1763a5c589dbfec",
+    "contracts/src/math/LedgerMath.sol": "d1e97120fe251a901d0541186c19ea3372b2e34519d21d3a8c590fc10cbe3ae8",
+    "contracts/src/math/MathTypes.sol": "caf35bd8815a14cb245f17a5df80d1d4906be37b6b6ba4bab187cccea3d3e7c0",
+    "contracts/src/math/PremiumMath.sol": "b4d1e2efa584dd2a09efc3bbd8d518b7636d3832a34853c5d4d723f7c7ee1bd6",
+    "contracts/src/math/QMath.sol": "ee5f5883dedcd476ab165cb2930fd7f88e6625e6a627e404b3a922f1c8a55b62",
+    "contracts/src/math/SettlementMath.sol": "f3d0ec1b3bbe7d42515617cfa6647688cacf8ff4c38f438f0a9348083b3437fa",
+    "contracts/src/risk/Accounting.sol": "e62a4c11701196e8ad2c311f5b85b5f061199a41e8619d28d2e7c53ea428304f",
+    "contracts/src/risk/AccountingEvents.sol": "035e67f88c93486c44ce2e3fe0ee66bef916300b9cea427fee3b7bf1e5f143f1",
+    "contracts/src/risk/AccountingPort.sol": "0e0cdfa11df577f7ce3772bab0d42d6fab11c24063a0965495dfd3174f4018e9",
+    "contracts/src/risk/AccountRegistry.sol": "995a10f8fa60c36aec2bcb641659201893fdce1f529b97c4198ae3206637bab0",
+    "contracts/src/risk/AccountSync.sol": "16f147b4009cd4a86a73afcecdd9810da7d24958b746c2d918feacf5bf202358",
+    "contracts/src/risk/ClearingCore.sol": "4731571214c6ab9a2a39c18d7e80eddbfb65875b4918fbe311821d42659b0ec3",
+    "contracts/src/risk/EpochRollover.sol": "bc63d98ae903043d1fa9786e7dd82f44b0698400fc3493dbc6c0df0a0975d802",
+    "contracts/src/risk/FeeAccounting.sol": "acc022cc7fc78f90bc13acdc665a619b4ec0ff4acc7928e837dc24ef7edf993f",
+    "contracts/src/risk/FloorAccounting.sol": "38b33425ebd9f9c1df85df1b79a01d5aa431e9c838d8dd708c407cd4083b1977",
+    "contracts/src/risk/FreezeAccounting.sol": "3622e9e0df060cca558164a07018871120db5aa9ad0fc96674b72ebdcb2d186b",
+    "contracts/src/risk/FundingAccounting.sol": "8bbd10927444a3cb5ade8f9d15ace169c23c5d332e58423e23e1c9fc7889f22b",
+    "contracts/src/risk/LiquidationFees.sol": "71e3bc0fe197a9d0f0a4911e327feb55e101250ea8675f9b56cc7428a3b094aa",
+    "contracts/src/risk/PremiumAccounting.sol": "e20413c837dd7151174d33cf907ce2501f501dee295fd38f34682ebdb2586c45",
+    "contracts/src/risk/ReserveAccounting.sol": "a7b358e4e111dfdf1a95875f9a2a489c2ba69ca2e9af84dbc52b81741352197b",
+    "contracts/src/risk/RiskStorage.sol": "0670bb94b9c5d910e0054555430359ea5f62228abcd6150fc50e17137af53866",
+    "contracts/src/risk/TakeoverAccounting.sol": "f27aae64d4fe9e731926b50d2576c9a03af543c63492f374db33d6d7501e4ef9",
+    "contracts/src/settlement/ClaimEscrow.sol": "3211ef8eea965ff1dd3cb905b9fbaaf543bcd95ed7a7ff41f6240ffeb8aa84a9",
+    "contracts/src/settlement/PayoutLedger.sol": "2e9ef490c1cfb0995cb84d3b924b56792838968d1e20062bde8eb764e6c8be56",
+    "contracts/src/settlement/RecoveryAccounting.sol": "f50012a55c2a70ea997f0926b5f8c5ac5bcd7183bd1e66cc05f40273805ff233",
+    "contracts/src/settlement/ReserveClaims.sol": "dfae2cdde712c5c53863b5de70f1c5d77deee56799871d33179a2e433671b8c0",
+    "contracts/src/settlement/SnapshotLedger.sol": "406d00a8ffe39d4e9e3f5507cb55035a2172ef4de96c59a235e5ab3efeeaf199",
+    "contracts/src/vaults/BackstopPool.sol": "e9e704d9451c6f50031acc7e740c99406d84d7b770c9361236e3ba37a3e62748",
+    "contracts/src/vaults/CollateralVault.sol": "93e6f2d62aed1b5518e1d40a3ff79ff45c041799c897b4234bb3c068be37de01",
+    "contracts/src/vaults/ReserveVault.sol": "49830ee6755e669c16e252b4c4f6822eb34528b8f3ccba52ab539278af9878fe",
+    "packages/risk-sdk/src/accounting.ts": "a4ec6f8d775933589a38306f87efde5f3c447974a8fc1249e8d3ae92fff2131b",
+    "reference/a/coverage.py": "28d6b746eab869506986a4453e797a22c009a5aefb7a53e4ce5114030fe85c3e",
+    "reference/a/export_vectors.py": "896573e0e55f3ce1c248a3c189c37d79d4f1bc5ac7720413ce4d8a909cb1b966",
+    "reference/a/funding.py": "a8db0c0e0ae16872e72ce4551d670e40faa29a442ea0b4a9e4163f2f22865dbf",
+    "reference/a/integer_bounds.py": "10718a6a35391c8f2d2a167093baf26f3d301e504285705d0ee38ed3034eaf2d",
+    "reference/a/integrated_traces.py": "2d4ed1435711a1c5a7b81fa5c3878b9b094f90e771db1be12d47ffc5ad152798",
+    "reference/a/ledger.py": "1bb6b26eb5489613126eaddeb7780236ffd7142bddf1dd16b93ffb72798199ce",
+    "reference/a/premium_epochs.py": "b328d801b24496f93507c43571fdfdda710fa5e6032d72893f7415ac9c8c4b08",
+    "reference/a/premium_integral.py": "dbefa75622c5af271262fdbd30e48c03b22c65fb03063faaca4c07851c24f81f",
+    "reference/a/settlement.py": "6d6950d7b26d6640d7ca8ef86773a313bdaf942b23a3e12de7791d20cfc65567",
+    "reference/fixtures/a/vectors.json": "032112c0c9c0de733ac31f18bacf3f72856a8c65bc4ea3a5dc83820d6554d5a7"
+  },
+  "components": {
+    "A": "real",
+    "B": "scripted_mock",
+    "book": "not_integrated; unchanged",
+    "price_source": "scripted_context",
+    "oracle": "scripted_internal_calls",
+    "token": "MockUSDC"
+  },
+  "release_defaults": {
+    "funding_enabled": false,
+    "recovery_enabled": false,
+    "conversion_enabled": false,
+    "B_leverage_caps_required": 1
+  },
+  "production_approved": false,
+  "independent_audit": false,
+  "live_counterpart_status": "PENDING_MERGE",
+  "gas": "artifacts/risk/gas-accounting.json",
+  "custody": "artifacts/risk/custody-reconciliation.json",
+  "runbook": "docs/runbooks/accounting.md"
+}
