@@ -69,3 +69,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B040 | needs-merge (exact command needs A002 scripts/check-task.sh; stand-in runner used; all counterparts mocked/blocked) | 6a57f0d | 0 | bootstrap->normal->stale maker->5x->liquidation->no-keeper floor->late scheduled halt->YES claims; early NO; early INVALID capture; conversion off; counterpart-status.json all live joins BLOCKED |
 | B040-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | recorded for honesty; stand-in row above |
 | B041 | needs-merge (stand-in runner; mock book scan inflates traversal gas) | bd48d9c | 0 | 64 examined incl 35 stale counted; settle callback 49.6k gas with few vs 1000 accounts (<1%); ring-full observation 50.6k gas; liquidation and chunk costs recorded; local EVM only, not Monad |
+| B041-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | stand-in row above |

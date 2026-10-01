@@ -1,0 +1,25 @@
+{
+ "task": "B041",
+ "runner": "provisional/scripts/check-task.sh (stand-in for A002 scripts/check-task.sh)",
+ "commit": "bd48d9c6c0727ed6a1da1a5455b94d392aa623ad",
+ "spec_version": "1.1",
+ "steps": [
+  {
+   "step": "forge",
+   "exit_code": 0
+  },
+  {
+   "step": "exists:artifacts/risk/gas-adapters.json",
+   "exit_code": 0
+  },
+  {
+   "step": "json:artifacts/risk/gas-adapters.json",
+   "exit_code": 0
+  }
+ ],
+ "exit_code": 0,
+ "counterparts": "all mocked or blocked; see artifacts/risk/counterpart-status.json",
+ "person_a": "provisional stand-ins and scripted doubles; no real A module",
+ "gate_credit": "none",
+ "recorded_at_utc": "2026-10-01T03:36:30+00:00"
+}
