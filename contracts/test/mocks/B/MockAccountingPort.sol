@@ -312,12 +312,23 @@ abstract contract MockAccountingPort is IAccountingPort {
         _log(CallKind.FREEZE, 0, 0, accrualCutoff);
     }
 
+    uint256 internal _mFailChunkBlock;
+
+    /// @notice Inject an interrupted job call (e.g. out of gas): snapshot chunks revert while
+    ///         block.number == `b`; a retry in a later block proceeds.
+    function mockFailChunkInBlock(uint256 b) public {
+        _mFailChunkBlock = b;
+    }
+
     function _acctPrepareSnapshotChunk(uint256 maxAccounts)
         internal
         virtual
         override
         returns (JobProgress memory p)
     {
+        if (_mFailChunkBlock != 0 && block.number == _mFailChunkBlock) {
+            revert MockSequence("interrupted chunk");
+        }
         if (!_mFrozen) revert MockSequence("snapshot before freeze");
         uint64 n = _mFreeze.frozenAccountCount;
         uint64 step = uint64(maxAccounts);
