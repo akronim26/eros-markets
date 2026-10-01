@@ -1,0 +1,3 @@
+[exists] artifacts/reviews/B-on-A.md
+[status] exit 1: grep -q '^Review status: COMPLETE' artifacts/reviews/B-on-A.md
+overall exit 1
