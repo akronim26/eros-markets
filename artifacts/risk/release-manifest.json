@@ -1,0 +1,67 @@
+{
+ "kind": "local_fixture_release_manifest",
+ "production_approved": false,
+ "deployment": "none \u2014 no deployment of any kind is authorized",
+ "branch": "integration/risk",
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "engine": {
+  "composition": "contracts/src/engine/RiskAccountingBridge.sol (Person B controllers on Person A accounting/custody/settlement)",
+  "test_composition": "contracts/test/integration/CombinedEngine.sol (+ MockBookAdapter)",
+  "runtime_bytes_with_mock_book": 108270,
+  "eip170": 24576
+ },
+ "initial_defaults": {
+  "leverage_caps": "1x (listing.deploymentCapX = 1; uncalibrated profile forces full backing)",
+  "fundingEnabled": false,
+  "recoveryEnabled": false,
+  "conversionEnabled": false,
+  "trading_fee": "0 (DEC-11)",
+  "premium_load": "1",
+  "new_deficit_multiplier": 4,
+  "surcharge_seconds": 21600
+ },
+ "defaults_test": {
+  "command": "cd contracts && forge test --match-path test/integration/ReleaseDefaults.t.sol",
+  "result": "pass (funding rate 0 and budget 0 with fundingEnabled=false; recovery false; conversion DISABLED; 5x-sized IOC halved to an exactly backed fill at cap 1)"
+ },
+ "fixture_constants": {
+  "cash_q_per_atom": "1000000000000000000",
+  "atom_decimals": 6,
+  "lot_claims": "0.001",
+  "tick_size": "0.001",
+  "max_traders": 1024,
+  "max_reserve_shareholders": 256,
+  "batch_accounts": 32,
+  "max_examined_makers": 64,
+  "risk_epoch_seconds": 3600,
+  "staleness_seconds": 30,
+  "invalid_window_seconds": 86400,
+  "invalid_capture_grace_seconds": 3600,
+  "invalid_fallback_wad": "500000000000000000",
+  "min_listing_horizon_seconds": 86400,
+  "max_listing_horizon_seconds": 2588400
+ },
+ "missing_production_inputs": [
+  "token/code hashes",
+  "price source addresses and signer domain",
+  "impact depth N",
+  "monotone empirical volatility upper envelopes",
+  "stressed spread/impact",
+  "absorption and keeper queue bounds",
+  "OI and liquidation pacing caps",
+  "hazard evidence/validity",
+  "governance implementation/delay",
+  "compiler/dependency hashes",
+  "gas benchmark",
+  "real counterpart ABI status",
+  "review/calibration release evidence",
+  "premium load as a manifest field (engine immutable today, fixture 1e18)",
+  "Monad gas measurements (only local Ethereum/Prague schedule measured)",
+  "contract size / split decision for the composed engine",
+  "toolchain agreement (local forge 1.3.5, CI 1.8.3, Person A 1.5.1; TypeScript not pinned)"
+ ],
+ "counterparts": "artifacts/risk/counterpart-status.json (all live joins BLOCKED_BY_COUNTERPART)",
+ "gates": "docs/spec/gate_status.json (G0-G6 technical pass, A review pending; G7 open)",
+ "source_commit": "4a848c4ebf73019fd4fa6c1fdf6c8e7486c7820d"
+}

@@ -225,8 +225,9 @@ No Critical or High finding was found.
 - **A-I06 (needs confirmation)** `_chargeCloseFee` requires exactly one position change since
   `beforeVersion` (`LiquidationFees.sol:75`). A multi-maker IOC close must charge per fill. Reconcile
   with B's per-fill `_acctPostLiquidationFill` in Phase 2.
-- **A-I07 (needs confirmation)** The constructor rejects `scheduledT > now + 2,588,400 s`
-  (~29.96 days) (`RiskStorage.sol:138-139`). That limit is not in the spec.
+- **A-I07 (resolved)** The constructor rejects `scheduledT > now + 2,588,400 s`
+  (~29.96 days) (`RiskStorage.sol:138-139`). This equals `max_listing_horizon_seconds` in
+  `docs/spec/local_fixture_manifest.json`, so it is a spec fixture bound, not an A invention.
 - **A-I08** Total OI is capped at 2^40 lots (`Accounting.sol:21`). A's documented assumption.
 - **A-I09** A does not enforce the 2% per-account deficit cap (`CoverageMath.concentration` is
   unused in A's state code). B's admission must receive `reserveCapBaseQ`. Phase 2 interface item.
