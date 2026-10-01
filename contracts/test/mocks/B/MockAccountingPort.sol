@@ -349,6 +349,42 @@ abstract contract MockAccountingPort is IAccountingPort {
         return _mFinish;
     }
 
+    uint64 internal _mEpochEnd = type(uint64).max;
+    uint64 internal _mFrozenRollover;
+    bool internal _mClaimsComplete;
+    bool internal _mAnyCashClaim;
+    bool internal _mAllBacked;
+
+    function mockSetEpochBounds(uint64 end, uint64 frozen) public {
+        (_mEpochEnd, _mFrozenRollover) = (end, frozen);
+    }
+
+    function mockSetClaimState(bool complete, bool anyCash, bool allBacked) public {
+        (_mClaimsComplete, _mAnyCashClaim, _mAllBacked) = (complete, anyCash, allBacked);
+    }
+
+    function _acctEpochBounds() internal view virtual override returns (uint64, uint64) {
+        return (_mEpochEnd, _mFrozenRollover);
+    }
+
+    function _acctClaimsComplete() internal view virtual override returns (bool) {
+        return _mClaimsComplete;
+    }
+
+    function _acctAnyCashClaim() internal view virtual override returns (bool) {
+        return _mAnyCashClaim;
+    }
+
+    function _acctAllFullyBackedAtHalt() internal view virtual override returns (bool) {
+        return _mAllBacked;
+    }
+
+    function mockFreezeCount() external view returns (uint256 n) {
+        for (uint256 i; i < mockCalls.length; ++i) {
+            if (mockCalls[i].kind == CallKind.FREEZE) ++n;
+        }
+    }
+
     function _mockEndAction() internal {
         _mActionOpen = false;
     }
