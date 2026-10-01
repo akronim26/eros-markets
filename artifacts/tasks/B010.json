@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "kind": "task",
-  "id": "A014",
+  "id": "B010",
   "scope": "task_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-10-01T10:53:03.627886+00:00",
+  "recorded_at": "2026-10-01T10:53:04.110576+00:00",
   "source_commit": "c19077405ec200c4bee0f8adfb14da3d698b8bed",
   "worktree_dirty": true,
   "toolchain": {
@@ -130,7 +130,7 @@
     "contracts/foundry.toml": "a475316648911492e3146ec5bb4cd3ee54470f095b662c4eaa6d1e253915acd4",
     "scripts/check-task.sh": "68db7925dafb098159e0ce89737510072450ea89386375329fc7470cc2a1cbb8",
     ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14",
-    "contracts/test/math/A/A014.t.sol": "47526d6883c96b1b93c96e5592445c266cded05409a6e88ad4d6c1f97727b7c4"
+    "contracts/test/math/B/B010.t.sol": "4d82ce1abd7b5cec9aa8e4977728d387c0592fbb126adb494c1bc04d70ce4c73"
   },
   "components": {
     "selected_suite": "real",
@@ -143,23 +143,23 @@
         "forge",
         "test",
         "--match-path",
-        "test/math/A/A014.t.sol",
+        "test/math/B/B010.t.sol",
         "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/math/A/A014.t.sol:A014Test\": {\"duration\": \"92\\u00b5s\", \"test_results\": {\"testRecoveryAndFrozenShares()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1731}}, \"duration\": \"29\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/math/B/B010.t.sol:B010Test\": {\"duration\": \"10ms 606\\u00b5s 42ns\", \"test_results\": {\"testFuzz_driftNotBelowSourceDrift(uint64,uint64,uint64,bool)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"calldata\": \"0xbd32721500000000000000000000000000000000000000000000000000000000000001ac00000000000000000000000000000000000000000000000000000000bf1e2a02000000000000000000000000000000000000000000000000000000000000136e0000000000000000000000000000000000000000000000000000000000000001\", \"gas\": 24561, \"stipend\": 21684}, \"runs\": 1000, \"mean_gas\": 2841, \"median_gas\": 2877}}, \"duration\": \"7ms 57\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"testFuzz_horizonMonotone(uint64,uint64,uint32)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"calldata\": \"0x17ea6e6000000000000000000000000000000000000000000000000000000000000001ac00000000000000000000000000000000000000000000000000000000bf1e2a02000000000000000000000000000000000000000000000000000000000000002e\", \"gas\": 23639, \"stipend\": 21532}, \"runs\": 1000, \"mean_gas\": 2110, \"median_gas\": 2107}}, \"duration\": \"5ms 777\\u00b5s 333ns\", \"gas_snapshots\": {}}, \"testFuzz_kMonotoneInAdverse(uint64,uint64)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"calldata\": \"0xbe1f0c3600000000000000000000000000000000000000000000000000000000000001ac00000000000000000000000000000000000000000000000000000000bf1e2a02\", \"gas\": 26331, \"stipend\": 21392}, \"runs\": 1000, \"mean_gas\": 5110, \"median_gas\": 4949}}, \"duration\": \"10ms 421\\u00b5s 959ns\", \"gas_snapshots\": {}}, \"testFuzz_sigmaMonotoneInHorizon(uint64,uint32,uint32,uint32)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"calldata\": \"0xe59665f500000000000000000000000000000000000000000000000000000000000001ac0000000000000000000000000000000000000000000000000000000000002a02000000000000000000000000000000000000000000000000000000000000002e0000000000000000000000000000000000000000000000000000000000002fc3\", \"gas\": 25075, \"stipend\": 21660}, \"runs\": 1000, \"mean_gas\": 3456, \"median_gas\": 3405}}, \"duration\": \"8ms 242\\u00b5s\", \"gas_snapshots\": {}}, \"testFuzz_sigmaSquareBracketsRadicand(uint64,uint32,uint32)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"calldata\": \"0xeb9e65e900000000000000000000000000000000000000000000000000000000000001ac0000000000000000000000000000000000000000000000000000000000002a02000000000000000000000000000000000000000000000000000000000000002e\", \"gas\": 24146, \"stipend\": 21508}, \"runs\": 1000, \"mean_gas\": 2644, \"median_gas\": 2638}}, \"duration\": \"9ms 930\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_badEpsilonReverts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 10112}}, \"duration\": \"77\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_driftEnclosesReference()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2825}}, \"duration\": \"7\\u00b5s 667ns\", \"gas_snapshots\": {}}, \"test_endpointPriceReverts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 10706}}, \"duration\": \"84\\u00b5s 41ns\", \"gas_snapshots\": {}}, \"test_envelopeRejectsNoisyOrExpired()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 7538}}, \"duration\": \"57\\u00b5s 250ns\", \"gas_snapshots\": {}}, \"test_envelopeStepUp()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 6572}}, \"duration\": \"29\\u00b5s 250ns\", \"gas_snapshots\": {}}, \"test_fixtureHorizon()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3015}}, \"duration\": \"9\\u00b5s 167ns\", \"gas_snapshots\": {}}, \"test_fullBackingBranches()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 5672}}, \"duration\": \"45\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_hazardExactUp()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2390}}, \"duration\": \"30\\u00b5s 667ns\", \"gas_snapshots\": {}}, \"test_maxPositionHorizonNoOverflow()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 945}}, \"duration\": \"9\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_nearTCapsAtOne()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3814}}, \"duration\": \"37\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_sigmaEnclosesReference()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 4977}}, \"duration\": \"26\\u00b5s 83ns\", \"gas_snapshots\": {}}, \"test_tailEnclosesReference()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 11692}}, \"duration\": \"64\\u00b5s\", \"gas_snapshots\": {}}, \"test_wadHorizonVariants()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 7940}}, \"duration\": \"37\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_zeroAbsorptionReverts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 8452}}, \"duration\": \"54\\u00b5s 708ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],
-  "test_count": 1,
+  "test_count": 19,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
   "reason": "",
   "checks": [],
   "artifacts": [
-    "artifacts/tasks/A014.json"
+    "artifacts/tasks/B010.json"
   ]
 }
