@@ -3,7 +3,15 @@
   "title": "MATH ENGINE COMPLETE",
   "spec_version": "1.1",
   "composition": "contracts/test/gates/G2.t.sol composes A (LedgerMath, CoverageMath, FundingMath, PremiumMath, SettlementMath) and B (MarginMath, OrderAdmissionMath, LifecycleMath) pure libraries; B admission consumes A coverage.",
-  "scenarios": ["direct 5x entry (IM 120 USDC)", "short 100 vs 80 USDC at 29 days", "all-prefix IM envelope monotone to 120", "reserve funding payer/receiver", "neutral-touch premium vs combined reference", "halt cutoffs", "NO/YES/INVALID payoffs"],
+  "scenarios": [
+    "direct 5x entry (IM 120 USDC)",
+    "short 100 vs 80 USDC at 29 days",
+    "all-prefix IM envelope monotone to 120",
+    "reserve funding payer/receiver",
+    "neutral-touch premium vs combined reference",
+    "halt cutoffs",
+    "NO/YES/INVALID payoffs"
+  ],
   "differentials": {
     "A": "contracts/test/math/A/AccountingDifferential.t.sol from reference/a/export_vectors.py (regenerates byte-identical)",
     "B": "contracts/test/math/B/RiskDifferential.t.sol from reference/b/export_vectors.py (regenerates byte-identical)"
@@ -12,6 +20,6 @@
     "premium": "A's Solidity premium >= ceil(exact) and < ceil(exact) + 12 Q per segment (A-F02, Low, open)",
     "margin": "B tolerance T-1: >= reference upper bracket, <= max(1e3 Q, 1e-12 relative) above"
   },
-  "math_layer_purity": "no storage, external call, token, block or msg access in contracts/src/math/*.sol (grep check in the gate record)",
+  "math_layer_purity": "no storage, external call, token, block or msg access in contracts/src/math/*.sol (grep check, comments excluded). OrderAdmissionMath.safeTakerCap is `view` only because it takes a caller-supplied coverage callback; the library itself reads no state.",
   "port_schemas_frozen_for_W3": "contracts/src/interfaces/IAccountingPort.sol (B view) and A AccountingPort Context/Decision/PairInput, joined by contracts/src/engine/RiskAccountingBridge.sol (docs/merge/interface-reconciliation.md)"
 }
