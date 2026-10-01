@@ -74,3 +74,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B042-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | stand-in row above |
 | B043 | FAILED (exit 1) | 6c4c873 | 1 | 19 routes listed with concrete reproducers, all NOT RUN; review must be redone at G6/G7; stand-in check fails honestly |
 | B043-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | B043 blocked regardless: no A code |
+| B044 | needs-merge (stand-in runner; no deployment) | f754a30 | 0 | release record (interfaces, real/mock, keeper jobs, disabled features, test counts), lifecycle runbook, G7 checkpoint, merge guide |
