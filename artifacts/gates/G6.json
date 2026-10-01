@@ -1,0 +1,202 @@
+{
+  "gate": "G6",
+  "recorded_at": "2026-10-01T11:04:38.842220+00:00",
+  "branch": "integration/risk",
+  "commit": "ec5a22b419a9e1903833748ec2b5e1d95d294573",
+  "worktree_dirty_after_runs": true,
+  "official_runner": {
+    "command": "bash scripts/check-gate.sh G6",
+    "exit_code": 2,
+    "status": "blocked",
+    "reason": "previous gate has no reviewed accepted commit",
+    "test_count": 0
+  },
+  "technical_checks": [
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A034"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A034.t.sol:A034Test\": {\"duration\": \"877\\u00b5s 666ns\", \"test_results\": {\"testSnapshotIncludesFlatCashAndRetriesOnce()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1061921}}, \"duration\": \"245\\u00b5s 542ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A034: passed; 1 tests; artifacts/tasks/A034.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A035"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A035.t.sol:A035Test\": {\"duration\": \"1ms 510\\u00b5s 875ns\", \"test_results\": {\"testAllOutcomeClaimsPreparedBeforeEnabled()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3030469}}, \"duration\": \"855\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"testFinalPriceAndPartialEscrowDoNotEnableClaims()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1111663}}, \"duration\": \"229\\u00b5s 500ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A035: passed; 2 tests; artifacts/tasks/A035.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A036"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A036.t.sol:A036Test\": {\"duration\": \"1ms 213\\u00b5s 625ns\", \"test_results\": {\"testBaselineCannotEnableRecoveryAndRatioFloors()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1218570}}, \"duration\": \"252\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"testCappedBackstopBecomesRealCustodyBeforeListedRecovery()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 8967925}}, \"duration\": \"408\\u00b5s 84ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A036: passed; 2 tests; artifacts/tasks/A036.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A037"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A037.t.sol:A037Test\": {\"duration\": \"935\\u00b5s 625ns\", \"test_results\": {\"testBlockedRecipientDoesNotBlockOthersOrLoseClaim()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1507299}}, \"duration\": \"309\\u00b5s 709ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A037: passed; 1 tests; artifacts/tasks/A037.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A038"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A038.t.sol:A038Test\": {\"duration\": \"1ms 107\\u00b5s 625ns\", \"test_results\": {\"testLpExitPreservesUserAndFractionalKeeperLiabilities()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1867065}}, \"duration\": \"458\\u00b5s 625ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A038: passed; 1 tests; artifacts/tasks/A038.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A039"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A039.t.sol:A039Test\": {\"duration\": \"237ms 83\\u00b5s 666ns\", \"test_results\": {\"testFuzzPageSizesAndClaimOrder(uint8,bool,uint64)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"calldata\": \"0xf1c3b77a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006796b4a237c\", \"gas\": 1309616, \"stipend\": 21520}, \"runs\": 1000, \"mean_gas\": 1268005, \"median_gas\": 1264295}}, \"duration\": \"236ms 441\\u00b5s 541ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A039: passed; 1 tests; artifacts/tasks/A039.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B034"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B034.t.sol:B034Test\": {\"duration\": \"1ms 420\\u00b5s 208ns\", \"test_results\": {\"test_accrualCutoffUsesEpochAndRollover()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 403377}}, \"duration\": \"58\\u00b5s 166ns\", \"gas_snapshots\": {}}, \"test_constantWorkFinality()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 10728239}}, \"duration\": \"602\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_earlyHaltOnceAndIdempotent()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 432854}}, \"duration\": \"133\\u00b5s 667ns\", \"gas_snapshots\": {}}, \"test_failedDeliveryNotDropped()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 475104}}, \"duration\": \"104\\u00b5s 750ns\", \"gas_snapshots\": {}}, \"test_haltDuringRolloverUsesFrozenCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 403245}}, \"duration\": \"51\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_onlyZeroOrOneY()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 25742}}, \"duration\": \"44\\u00b5s 542ns\", \"gas_snapshots\": {}}, \"test_scheduledHaltPermissionlessAtT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 373961}}, \"duration\": \"72\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_settleLatchesOnceSameIdempotentConflictReverts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 439662}}, \"duration\": \"134\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_unauthorizedActorsFail()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 62514}}, \"duration\": \"110\\u00b5s 917ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B034: passed; 9 tests; artifacts/tasks/B034.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B035"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B035.t.sol:B035Test\": {\"duration\": \"151ms 601\\u00b5s 209ns\", \"test_results\": {\"test_completeWindowCapturedOnceAtT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 249450592}}, \"duration\": \"151ms 157\\u00b5s 791ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidWaitsForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 17481073}}, \"duration\": \"723\\u00b5s 84ns\", \"gas_snapshots\": {}}, \"test_incompleteNewListingFallbackAfterGrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 249207132}}, \"duration\": \"150ms 953\\u00b5s\", \"gas_snapshots\": {}}, \"test_legacyListingBlockedNeverFallback()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 249060834}}, \"duration\": \"151ms 152\\u00b5s 334ns\", \"gas_snapshots\": {}}, \"test_listingHorizonBoundary()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 16512240}}, \"duration\": \"455\\u00b5s 542ns\", \"gas_snapshots\": {}}, \"test_postHaltSamplesDoNotResumeRisk()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 30874313}}, \"duration\": \"3ms 270\\u00b5s 916ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B035: passed; 6 tests; artifacts/tasks/B035.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B036"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B036.t.sol:B036Test\": {\"duration\": \"146ms 61\\u00b5s 834ns\", \"test_results\": {\"test_callbacksDoNoAccountWork()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 429873}}, \"duration\": \"66\\u00b5s 958ns\", \"gas_snapshots\": {}}, \"test_claimsNeedReconciledLiabilities()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 674804}}, \"duration\": \"130\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_invalidPricePendingBlocksPayouts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 231508571}}, \"duration\": \"145ms 153\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"test_jobsNeedHaltAndBounds()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 358215}}, \"duration\": \"74\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_jobsRetryAfterInterruption()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 748235}}, \"duration\": \"119\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"test_phasesDistinct()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 827781}}, \"duration\": \"217\\u00b5s 916ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B036: passed; 6 tests; artifacts/tasks/B036.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B037"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B037.t.sol:B037Test\": {\"duration\": \"1ms 7\\u00b5s 875ns\", \"test_results\": {\"test_deliveryRetriesAndDuplicates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 455433}}, \"duration\": \"97\\u00b5s 959ns\", \"gas_snapshots\": {}}, \"test_earlyBinaryDoesNotWaitForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 745716}}, \"duration\": \"83\\u00b5s\", \"gas_snapshots\": {}}, \"test_earlyInvalidStaysPending()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 476615}}, \"duration\": \"61\\u00b5s 791ns\", \"gas_snapshots\": {}}, \"test_enumMappingRows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 461821}}, \"duration\": \"105\\u00b5s 84ns\", \"gas_snapshots\": {}}, \"test_oiIncludesReserveAndConvertsExplicitly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 420815}}, \"duration\": \"61\\u00b5s 708ns\", \"gas_snapshots\": {}}, \"test_onlyPinnedOracle()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 18047}}, \"duration\": \"69\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_scheduledLateKeeperClock()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 395164}}, \"duration\": \"113\\u00b5s 708ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B037: passed; 7 tests; artifacts/tasks/B037.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B038"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B038.t.sol:B038Test\": {\"duration\": \"1ms 34\\u00b5s 916ns\", \"test_results\": {\"test_baselineDisabled()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 16910}}, \"duration\": \"55\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"test_cashFirstLocksOutConversion()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 39639}}, \"duration\": \"24\\u00b5s 42ns\", \"gas_snapshots\": {}}, \"test_modesMutuallyExclusive()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 46032}}, \"duration\": \"39\\u00b5s 667ns\", \"gas_snapshots\": {}}, \"test_noTokenPathAfterCashClaim()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 25590}}, \"duration\": \"51\\u00b5s 209ns\", \"gas_snapshots\": {}}, \"test_noTokenPathWithUnderbacking()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 25860}}, \"duration\": \"41\\u00b5s 667ns\", \"gas_snapshots\": {}}, \"test_oracleFinalNotClaimableWithoutReadiness()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 209307}}, \"duration\": \"107\\u00b5s 41ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B038: passed; 6 tests; artifacts/tasks/B038.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B039"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B039.t.sol:B039Test\": {\"duration\": \"151ms 766\\u00b5s 125ns\", \"test_results\": {\"test_duplicateDeliveryAndReplayNoSecondEffect()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 711429}}, \"duration\": \"134\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidDelayedWindowThenCapture()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 232000587}}, \"duration\": \"149ms 115\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_haltBeforeOrAfterRollSameCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 18838904}}, \"duration\": \"486\\u00b5s 791ns\", \"gas_snapshots\": {}}, \"test_haltDuringRolloverKeepsFrozenCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 437535}}, \"duration\": \"72\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_scheduledPathStatuses()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 711358}}, \"duration\": \"145\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_staleHistoryUsesDisclosedFallbackOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 233132778}}, \"duration\": \"150ms 844\\u00b5s 250ns\", \"gas_snapshots\": {}}, \"test_transientPreparationIssueKeepsOutcome()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 737344}}, \"duration\": \"193\\u00b5s 83ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B039: passed; 7 tests; artifacts/tasks/B039.json"
+      ]
+    },
+    {
+      "argv": [
+        "forge",
+        "test",
+        "--match-path",
+        "test/gates/G6.t.sol"
+      ],
+      "cwd": "contracts",
+      "exit_code": 0,
+      "tail": [
+        "Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 159.52ms (368.63ms CPU time)",
+        "",
+        "Ran 1 test suite in 159.82ms (159.52ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)"
+      ]
+    }
+  ],
+  "technical_status": "passed",
+  "components": {
+    "person_a": "real",
+    "person_b": "real",
+    "combined": "real (contracts/test/gates/G6.t.sol)",
+    "book": "mock (MockBookAdapter)",
+    "price_source": "mock (test-fed observations)",
+    "oracle": "mock (MockResolutionAuthority)",
+    "factory": "constructor fixture",
+    "token": "MockUSDC"
+  },
+  "review": {
+    "B": "integration agent for Person B",
+    "A": "pending (not reviewed)"
+  }
+}
