@@ -73,3 +73,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B042 | needs-merge (stand-in runner + cached tsx; A accounting shape provisional S-13) | 358abe1 | 0 | read-only decoders with block/version/price identity; unavailable is undefined not 0; projections labelled non-withdrawable; all 7 settlement states distinct; claimable only with claimsEnabled; 6 node:test cases pass |
 | B042-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | stand-in row above |
 | B043 | FAILED (exit 1) | 6c4c873 | 1 | 19 routes listed with concrete reproducers, all NOT RUN; review must be redone at G6/G7; stand-in check fails honestly |
+| B043-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | B043 blocked regardless: no A code |
