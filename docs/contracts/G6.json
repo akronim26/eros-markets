@@ -1,0 +1,15 @@
+{
+  "gate": "G6",
+  "title": "Resolution-to-cash joined",
+  "spec_version": "1.1",
+  "checks": [
+    "section 11 bilateral position settled through NO (pages of 1, Alice first, LP redeems before any trader claim), YES (pages of 32, Bob first) and early INVALID (complete [T-24h,T] TWAP; and missing data -> disclosed 0.5 fallback after the one-hour grace)",
+    "claims open only after finality, price availability and complete allocation; finality alone is not claimable; identical finality repeat is a no-op; conflicting finality reverts; each claim pays once",
+    "allocated entitlement equals floor(max(0, frozen cash + 1000*lots*price)/Q) for every account",
+    "all Q classified after settlement: LP atoms outstanding + treasury Q + keeper Q == market allocation; a 0.6-atom fee fraction is retained, only whole atoms leave",
+    "finality acceptance gas identical with 2 and 34 participants (49,670 gas, local forge EVM)",
+    "conversion eligibility reports DISABLED; recovery flag false"
+  ],
+  "frozen_output": "end-to-end cash settlement engine on integration/risk; ABI = RiskAccountingBridge + B externals + A externals",
+  "mocks": ["book: MockBookAdapter", "price source: test-fed observations", "oracle: MockResolutionAuthority", "token: MockUSDC"]
+}
