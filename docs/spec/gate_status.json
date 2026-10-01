@@ -38,10 +38,20 @@
     },
     {
       "id": "G2",
-      "status": "not_started",
-      "merge_sha": null,
-      "reviewed_by": [],
-      "evidence": []
+      "status": "passed",
+      "merge_sha": "c19077405ec200c4bee0f8adfb14da3d698b8bed",
+      "reviewed_by": [
+        "B"
+      ],
+      "evidence": [
+        "artifacts/gates/G2.json",
+        "docs/contracts/G2.json",
+        "contracts/test/gates/G2.t.sol"
+      ],
+      "review_pending": [
+        "A"
+      ],
+      "note": "Technical checks passed on integration/risk (real A+B; book/price/oracle/factory mocked). Official runner bash scripts/check-gate.sh G2: exit 2 (previous gate has no reviewed accepted commit). Marked passed on the user instruction of 2026-10-01; Person A has not reviewed."
     },
     {
       "id": "G3",
