@@ -1,0 +1,28 @@
+{
+ "task": "B037",
+ "commit": "c16179e8afad1af83355960e6f6afcda46a54048",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B037.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 7 tests for test/risk/B/B037.t.sol:B037Test",
+  "[PASS] test_deliveryRetriesAndDuplicates() (gas: 455433)",
+  "[PASS] test_earlyBinaryDoesNotWaitForT() (gas: 745716)",
+  "[PASS] test_earlyInvalidStaysPending() (gas: 476615)",
+  "[PASS] test_enumMappingRows() (gas: 461821)",
+  "[PASS] test_oiIncludesReserveAndConvertsExplicitly() (gas: 420815)",
+  "[PASS] test_onlyPinnedOracle() (gas: 18047)",
+  "[PASS] test_scheduledLateKeeperClock() (gas: 395164)",
+  "Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 1.19ms (691.58\u00b5s CPU time)",
+  "",
+  "Ran 1 test suite in 85.95ms (1.19ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)"
+ ],
+ "component_status": "lane-pass (CP-ORACLE mocked; A jobs scripted; live join BLOCKED_BY_COUNTERPART)",
+ "recorded_at_utc": "2026-10-01T03:28:39+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
