@@ -157,7 +157,9 @@ library OrderAdmissionMath {
         MarginMath.RiskParams memory p,
         CoverageInput memory cov
     ) internal pure returns (bool ok, RejectCode reason) {
-        if (pr.qWad == 0 || pr.qWad >= 1e18) return (false, RejectCode.INVALID_PRICE_OR_SIZE);
+        if (pr.qWad == 0 || pr.qWad >= 1e18) {
+            return (false, RejectCode.INVALID_PRICE_OR_SIZE);
+        }
         if (!cov.marketOk) return (false, RejectCode.MARKET_COVERAGE);
         if (cov.d0Q > cov.deficitCapQ || cov.d1Q > cov.deficitCapQ) {
             return (false, RejectCode.ACCOUNT_DEFICIT_CAP);

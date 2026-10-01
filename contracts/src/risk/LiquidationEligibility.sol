@@ -53,11 +53,7 @@ abstract contract LiquidationEligibility is FloorLifecycle {
     event PairSkipped(uint32 indexed target, uint32 indexed partner, RejectCode reason);
 
     /// @notice Eligibility of an already-touched account at the frozen action context.
-    function _eligibility(uint32 trader, RiskContext memory c)
-        internal
-        view
-        returns (Eligibility memory el)
-    {
+    function _eligibility(uint32 trader, RiskContext memory c) internal view returns (Eligibility memory el) {
         AccountView memory a = _acctAccount(trader);
         (el.e0Q, el.e1Q) = MarginMath.endpoints(a.cashQ, a.lots);
         el.priceFresh = _markLiquidationAllowed(c);
@@ -94,14 +90,16 @@ abstract contract LiquidationEligibility is FloorLifecycle {
         s.emQ = MarginMath.markEquityQ(cashQ, lots, c.markWad);
         s.xLots = lots;
         if (lots != 0) {
-            s.mmQ = MarginMath.sideMargin(
+            s.mmQ =
+            MarginMath.sideMargin(
                 _absLots(lots),
                 lots > 0,
                 c.markWad,
                 c.secsToT,
                 c.economicTime,
                 _effectiveParams(c.economicTime)
-            ).mmQ;
+            )
+            .mmQ;
         }
     }
 

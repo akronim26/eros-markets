@@ -38,10 +38,7 @@ abstract contract LiquidationBookAdapter is LiquidationEligibility {
     /// @dev Book entry supplied by the composed engine: run `req` as an IOC through the book's
     ///      ordinary traversal with FORCED_REDUCTION (CP-BOOK interface item I-10). Returns filled
     ///      lots and examined makers.
-    function _liqSubmitIoc(OrderRequest memory req)
-        internal
-        virtual
-        returns (uint64 filled, uint256 examined);
+    function _liqSubmitIoc(OrderRequest memory req) internal virtual returns (uint64 filled, uint256 examined);
 
     function _forcedReductionAuthorized() internal view virtual override returns (bool) {
         return _liqActive;
@@ -80,8 +77,9 @@ abstract contract LiquidationBookAdapter is LiquidationEligibility {
         RiskContext memory c,
         address keeper
     ) internal returns (CloseOutcome memory o) {
-        (uint256 allowed, bool disabled) =
-            LM.pacing(maxLots, maxExaminations, _listing.maxLiqLotsPerBlock != 0, _blockRemaining());
+        (uint256 allowed, bool disabled) = LM.pacing(
+            maxLots, maxExaminations, _listing.maxLiqLotsPerBlock != 0, _blockRemaining()
+        );
         if (disabled) return _closeResult(trader, o, LM.Result.DISABLED);
         AccountView memory a = _acctAccount(trader);
         if (a.lots == 0) return _closeResult(trader, o, LM.Result.DONE);
@@ -128,11 +126,7 @@ abstract contract LiquidationBookAdapter is LiquidationEligibility {
         return uint64(size);
     }
 
-    function _worstTick(AccountView memory a, uint64 n, RiskContext memory c)
-        internal
-        view
-        returns (uint16)
-    {
+    function _worstTick(AccountView memory a, uint64 n, RiskContext memory c) internal view returns (uint16) {
         LM.Snap memory b = _snapAt(a.cashQ, a.lots, c);
         int256 remaining = a.lots > 0 ? a.lots - int256(uint256(n)) : a.lots + int256(uint256(n));
         int256 th = LM.thresholdQ(_snapAt(0, remaining, c).mmQ, b.emQ, b.mmQ);

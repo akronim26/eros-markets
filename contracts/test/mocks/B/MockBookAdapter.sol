@@ -2,9 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {IBookRiskHooks} from "../../../src/interfaces/IBookRiskHooks.sol";
-import {
-    Side, AdmissionMode, StepStatus, RejectCode, RemovalReason
-} from "../../../provisional/MathTypes.sol";
+import {Side, AdmissionMode, StepStatus, RejectCode, RemovalReason} from "../../../provisional/MathTypes.sol";
 
 /// @title MockBookAdapter (B020)
 /// @notice Tiny deterministic mock book for Risk tests (spec §7.8): ordered `OrderView` fixtures,

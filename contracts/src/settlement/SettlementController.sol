@@ -83,7 +83,7 @@ abstract contract SettlementController is InvalidPrice {
         if (!_snapJob.done || !_payJob.done) revert PreparationIncomplete();
         FinishResult memory r = _acctFinishPreparation();
         (_recoveryRequired, _totalPayoutAtoms, _reserveContributionAtoms) =
-            (r.recoveryRequired, r.totalTraderPayoutAtoms, r.reserveContributionAtoms);
+        (r.recoveryRequired, r.totalTraderPayoutAtoms, r.reserveContributionAtoms);
         if (r.recoveryRequired || !r.claimsEnabled) {
             emit RecoveryRequired(_listing.marketId, _halt.snapshotId);
             return false;

@@ -71,7 +71,7 @@ abstract contract RiskView is RiskLiquidation {
         v.orders = _resSums(trader);
         Eligibility memory el = _eligibility(trader, c);
         (v.e0Q, v.e1Q, v.liquidationMode, v.takeoverPredicate) =
-            (el.e0Q, el.e1Q, el.mode, el.takeoverPredicate);
+        (el.e0Q, el.e1Q, el.mode, el.takeoverPredicate);
         v.markAvailable = c.markOk;
         if (c.markOk) {
             (, MarginMath.Health memory h) = _health(trader, c);
@@ -92,7 +92,7 @@ abstract contract RiskView is RiskLiquidation {
         v.pricingMode = c.pricingMode;
         v.accountingState = _acctAccountingState();
         (v.indexAvailable, v.indexWad, v.markAvailable, v.markWad) =
-            (c.indexOk, c.indexWad, c.markOk, c.markWad);
+        (c.indexOk, c.indexWad, c.markOk, c.markWad);
         (v.riskVersion, v.profileHash, v.secsToT) = (c.riskVersion, c.profileHash, c.secsToT);
         (v.monitorRestricted, v.fundingFreshThrough) = (c.monitorRestricted, c.fundingFreshThrough);
         (v.floorStatus, v.floorCursor, v.floorCount) = (_floorStatus, _floorCursor, _floorCount);
