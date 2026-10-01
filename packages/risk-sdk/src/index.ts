@@ -1,14 +1,16 @@
 // Eros Markets risk SDK — read-only risk + settlement read model (B042).
 //
-// Combines Person A's accounting fields (shape owned by A032 `accounting.ts`; provisional type
-// below until merge) with B's risk, stage and settlement decoders. Every decoded value carries
+// Combines Person A's ledger replay (A032 `accounting.ts`, re-exported below) with B's risk, stage
+// and settlement decoders. Every decoded value carries
 // the read identity (chain, engine, block, risk version, price and cutoff). Nothing computed here
 // is authoritative: the contract views are. Unavailable values are `undefined`, never 0, and
 // projections are labelled estimates, never withdrawable amounts.
 
 export * from "./settlement";
-
-export const Q = 10n ** 18n; // cashQ per USDC atom
+export { AccountingReplay, markedEquityQ, unsignedAtoms } from "./accounting";
+export type { AccountBalance, MarketBalance, AccountingEvent } from "./accounting";
+import { Q } from "./accounting";
+export { Q }; // cashQ per USDC atom (one definition, A032)
 export const ATOMS_PER_USDC = 1_000_000n;
 export const LOTS_PER_CLAIM = 1000n;
 export const WAD = 10n ** 18n;
@@ -81,7 +83,8 @@ export interface AccountRiskViewRaw {
   takeoverPredicate: number;
 }
 
-/** Person A accounting fields (provisional shape; A032 `accounting.ts` replaces it at merge). */
+/** Projection and release fields of the engine's `previewAccount` view (TradePreview, read at the
+ *  same block). Integration: A032 `accounting.ts` does not carry these; they are contract views. */
 export interface AccountingFields {
   projectedFundingQ: bigint; // estimate, positive = account pays
   projectedPremiumQ: bigint; // estimate
