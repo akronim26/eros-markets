@@ -5,13 +5,14 @@ import {AccountingState} from "../math/RiskTypes.sol";
 import {MathTypes} from "../math/MathTypes.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
 
-/// @title IAccountingPort (PROVISIONAL B-lane stand-in)
-/// @notice B's guess of the internal accounting port Person A freezes at G2/G3 (A021
-///         `AccountingPort.sol`), extended with the liquidation (A028–A031) and settlement
-///         (A030, A034–A036) job ports B's controllers drive. Every function here is implemented by
-///         Person A in the real engine; B only calls them. Listed one by one in
-///         docs/merge/B-assumptions.md (S-5). Delete at merge and adapt B call sites to A's names.
-/// @dev Units: cash and fees in Q (1e18 per atom), positions in lots, times in seconds.
+/// @title IAccountingPort
+/// @notice Person B's internal view of the accounting layer: the calls B's risk, liquidation and
+///         settlement controllers make. In the composed engine it is implemented on Person A's
+///         real modules by `src/engine/RiskAccountingBridge.sol` (every posting stays in A's
+///         functions). B unit tests use the scripted `test/mocks/B/MockAccountingPort.sol`.
+///         Shape reconciled with A at integration: docs/merge/interface-reconciliation.md.
+/// @dev Units: cash and fees in Q (1e18 per atom), positions in lots, times in seconds. Trader ids
+///      are uint32; in the composed engine id = Person A registry index + 1.
 abstract contract IAccountingPort {
     struct AccountView {
         int256 cashQ; // settled at the current action cutoff
@@ -113,15 +114,30 @@ abstract contract IAccountingPort {
 
     function _acctTakeover(TakeoverAuth memory auth) internal virtual;
 
-    function _acctPostLiquidationFill(FillDelta memory d, uint256 liquidationFeeQ, address keeper)
+    /// @dev Book-close (forced IOC) fill: the taker is the liquidated account. A posts the fill and
+    ///      then charges its own liquidation fee only if a fee <= `allowedFeeQ` keeps the reduction
+    ///      predicate; returns the fee actually charged (A029 `_chargeCloseFee`).
+    function _acctPostLiquidationFill(FillDelta memory d, uint256 allowedFeeQ, address keeper)
         internal
-        virtual;
+        virtual
+        returns (uint256 chargedFeeQ);
 
+    /// @dev Pair reduction between two eligible accounts at one common tick. `d.takerFeeQ` and
+    ///      `d.makerFeeQ` are B's allowed fee per side; A charges its fee on both sides only if
+    ///      both are within B's allowance, else none (A029 `_liquidationPair`). Returns total charged.
+    function _acctPostPairLiquidation(FillDelta memory d, address keeper)
+        internal
+        virtual
+        returns (uint256 chargedFeeQ);
+
+    /// @dev Begin the bounded backing-floor sweep (A031 `_beginFloor`): stops funding, bumps the
+    ///      market order epoch, freezes the participant count and pauses live mutations.
     function _acctFloorBegin() internal virtual returns (uint64 frozenCount);
 
-    function _acctFloorTraderAt(uint64 index) internal view virtual returns (uint32 trader);
-
-    function _acctFloorComplete() internal virtual;
+    /// @dev One page (<= 32 accounts) of A's floor sweep: touch at the floor cutoff and take over
+    ///      any account with a negative endpoint (price-free predicate 2). `p.done` once every
+    ///      frozen participant was visited; A then marks the market reconciled and READY.
+    function _acctFloorPage(uint256 maxAccounts) internal virtual returns (JobProgress memory p, uint64 takeovers);
 
     function _acctAccountCount() internal view virtual returns (uint64);
 

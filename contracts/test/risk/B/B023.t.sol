@@ -30,7 +30,7 @@ contract AdmHarness is OrderAdmission, MockAccountingPort {
     }
 
     function ctx() public view returns (RiskContext memory) {
-        return _riskContext();
+        return _pricingContext();
     }
 
     function rest(uint32 owner, bool isBid, uint16 tick, uint64 lots) external {

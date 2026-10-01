@@ -66,11 +66,11 @@ contract B034Test is Test {
         address[3] memory who = [address(0x30), address(0x60), address(0xBAD)];
         for (uint256 i; i < 3; ++i) {
             vm.startPrank(who[i]);
-            vm.expectRevert(RiskContextPort.Unauthorized.selector);
+            vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
             e.halt();
-            vm.expectRevert(RiskContextPort.Unauthorized.selector);
+            vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
             e.settle(1);
-            vm.expectRevert(RiskContextPort.Unauthorized.selector);
+            vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
             e.settleInvalid();
             vm.stopPrank();
         }

@@ -18,7 +18,7 @@ import {RiskPricing, RiskContext} from "../pricing/RiskPricing.sol";
 abstract contract RiskContextPort is RiskPricing, IMarketConfig {
     error AlreadyInitialized();
     error BadListing(uint8 reason);
-    error Unauthorized();
+    error RiskUnauthorized();
     error ProfileHashMismatch();
 
     uint8 internal constant L_HORIZON_MIN = 1;
@@ -103,15 +103,15 @@ abstract contract RiskContextPort is RiskPricing, IMarketConfig {
     // ------------------------------------------------------------------ roles
 
     function _onlyResolutionAuthority() internal view {
-        if (msg.sender != _listing.resolutionAuthority) revert Unauthorized();
+        if (msg.sender != _listing.resolutionAuthority) revert RiskUnauthorized();
     }
 
     function _onlyMonitor() internal view {
-        if (msg.sender != _listing.monitor) revert Unauthorized();
+        if (msg.sender != _listing.monitor) revert RiskUnauthorized();
     }
 
     function _onlyGovernance() internal view {
-        if (msg.sender != _listing.governance) revert Unauthorized();
+        if (msg.sender != _listing.governance) revert RiskUnauthorized();
     }
 
     // ------------------------------------------------------------------ calibration
@@ -142,7 +142,7 @@ abstract contract RiskContextPort is RiskPricing, IMarketConfig {
 
     /// @notice Frozen per-action context: prices, stage, versions. No cash/OI/coverage inside.
     function _riskContextForAction() internal view returns (RiskContext memory) {
-        return _riskContext();
+        return _pricingContext();
     }
 
     function _riskAccrualCutoff(uint64 activeEpochEnd, uint64 frozenRolloverCutoff)
@@ -186,7 +186,7 @@ abstract contract RiskContextPort is RiskPricing, IMarketConfig {
     ///         if the account stays exactly backed (bootstrap path, index valid). Otherwise the
     ///         all-prefix IM envelope must still pass at the current mark.
     function _riskReleaseDecision(ReleaseInput memory r) internal view returns (bool ok, RejectCode reason) {
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         if (c.halted) return (false, RejectCode.HALTED);
         if (!r.coverageAfter.marketOk) return (false, RejectCode.MARKET_COVERAGE);
         bool exactlyBacked = r.coverageAfter.d0Q == 0 && r.coverageAfter.d1Q == 0;

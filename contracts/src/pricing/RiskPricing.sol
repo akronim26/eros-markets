@@ -91,7 +91,7 @@ abstract contract RiskPricing is ObservationStore {
 
     // ------------------------------------------------------------------ context
 
-    function _riskContext() internal view returns (RiskContext memory c) {
+    function _pricingContext() internal view returns (RiskContext memory c) {
         uint64 nowTs = uint64(block.timestamp);
         c.economicTime = nowTs;
         c.scheduledT = _scheduledT;
@@ -191,6 +191,6 @@ abstract contract RiskPricing is ObservationStore {
     /// @notice Unit-labelled context view (prices wad, times seconds). Unavailable prices are
     ///         flagged, never reported as a zero price.
     function riskContext() external view returns (RiskContext memory) {
-        return _riskContext();
+        return _pricingContext();
     }
 }

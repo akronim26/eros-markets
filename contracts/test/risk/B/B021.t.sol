@@ -131,7 +131,7 @@ contract B021Test is Test {
     }
 
     function test_monitorAuthenticatedReduceOnly() public {
-        vm.expectRevert(RiskContextPort.Unauthorized.selector);
+        vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
         h.requestReduceOnly("x");
         vm.prank(MONITOR);
         h.requestReduceOnly("suspected news");
@@ -140,13 +140,13 @@ contract B021Test is Test {
 
     function test_monitorCannotHaltSettleOrLowerHazards() public {
         vm.prank(MONITOR);
-        vm.expectRevert(RiskContextPort.Unauthorized.selector);
+        vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
         h.oracleOnly();
         vm.prank(MONITOR);
         vm.expectRevert(MonitorPolicy.HazardDecrease.selector);
         h.raiseHazards(5e13, 1e14);
         vm.prank(MONITOR);
-        vm.expectRevert(RiskContextPort.Unauthorized.selector);
+        vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
         h.stageRiskParams(RiskFixture.profile(5, true));
     }
 

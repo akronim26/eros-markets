@@ -32,7 +32,7 @@ abstract contract RiskLifecycle is TradePreview {
     }
 
     function _syncStage() internal {
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         if (c.fundingFrozen && !_floorOrdersInvalidated) {
             _floorOrdersInvalidated = true;
             uint64 e = _invalidateMarketOrders();
@@ -86,6 +86,6 @@ abstract contract RiskLifecycle is TradePreview {
 
     /// @notice Current derived stage (no keeper needed).
     function currentStage() external view returns (Stage) {
-        return _riskContext().stage;
+        return _pricingContext().stage;
     }
 }

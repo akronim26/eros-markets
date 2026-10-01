@@ -43,7 +43,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
 
     function _riskBeginAction() internal virtual override returns (RiskSnapshot memory s) {
         AccrualView memory av = _acctBeginAction();
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         _actionCtx = c;
         _actionId += 1;
         s.marketOrderEpoch = av.marketOrderEpoch;
@@ -234,14 +234,17 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             - maker.remainingFeeCapQ * (maker.remainingLots - lots) / maker.remainingLots;
     }
 
+    /// @dev Reservations are consumed first, so Person A's paired posting (A026 `_pairedFill`)
+    ///      receives the exact post-fill order aggregates of both accounts and its own coverage
+    ///      assertion sees the true post-fill state (interface-reconciliation R-05).
     function _commitFill(FillPlan memory f, TakerPermit memory permit, OrderView memory maker) internal {
+        _resConsumeFill(f.maker, maker.side == MathTypes.Side.BUY, maker.tick, f.lots, f.makerFeeCapUsedQ);
+        _permitConsume(f.taker, f.takerBuys, permit.limitTick, f.lots, f.takerPermitFeeUsedQ);
+        _acctReplaceContribution(f.taker, _combined(f.taker));
         _postFillDelta(
             FillDelta(f.maker, f.taker, f.takerBuys, f.lots, f.makerTick, f.makerFeeQ, f.takerFeeQ),
             permit.mode == AdmissionMode.FORCED_REDUCTION
         );
-        _resConsumeFill(f.maker, maker.side == MathTypes.Side.BUY, maker.tick, f.lots, f.makerFeeCapUsedQ);
-        _permitConsume(f.taker, f.takerBuys, permit.limitTick, f.lots, f.takerPermitFeeUsedQ);
-        _acctReplaceContribution(f.taker, _combined(f.taker));
         permit.remainingLots -= f.lots;
         permit.remainingFeeCapQ -= f.takerPermitFeeUsedQ;
         _recheck(f.taker, _combined(f.taker));

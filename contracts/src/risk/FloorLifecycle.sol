@@ -2,7 +2,6 @@
 pragma solidity ^0.8.30;
 
 import {RiskContext} from "../pricing/RiskPricing.sol";
-import {MarginMath} from "../math/MarginMath.sol";
 import {RiskLifecycle} from "./RiskLifecycle.sol";
 
 /// @title FloorLifecycle
@@ -14,13 +13,14 @@ import {RiskLifecycle} from "./RiskLifecycle.sol";
 ///         participant was visited; no clock shortcut exists. A halt abandons unfinished work.
 /// @dev B decides; A performs every cash/position movement (`_acctTakeover`) and freezes the
 ///      registry (`_acctFloorBegin` puts the market in FLOOR_SWEEP, so live book calls and new
-///      joins are rejected until `_acctFloorComplete`).
+///      joins are rejected until the last `_acctFloorPage`). Integration: A's page performs the
+///      touch and the price-free endpoint-deficit takeover itself (A031); B orchestrates the
+///      bounded pages, the reconciled flag and halt abandonment (interface-reconciliation R-07).
 abstract contract FloorLifecycle is RiskLifecycle {
     error FloorNotActive();
     error BadWorkBudget();
 
     uint256 internal constant MAX_FLOOR_BATCH = 32;
-    uint8 internal constant PREDICATE_FLOOR_DEFICIT = 2;
 
     enum FloorStatus {
         NOT_STARTED,
@@ -38,46 +38,27 @@ abstract contract FloorLifecycle is RiskLifecycle {
     event FloorSweepProgress(
         uint64 generation, uint64 cursor, uint64 count, uint64 takeovers, FloorStatus status
     );
-    event FloorTakeover(uint32 indexed trader, int256 e0Q, int256 e1Q, uint64 cutoff);
 
     function floorSweep(uint256 maxAccounts) external returns (FloorStatus) {
         if (maxAccounts == 0 || maxAccounts > MAX_FLOOR_BATCH) revert BadWorkBudget();
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         if (c.halted) {
             if (_floorStatus == FloorStatus.SWEEPING) _floorStatus = FloorStatus.ABANDONED_BY_HALT;
             return _emitProgress();
         }
         if (!c.fundingFrozen) revert FloorNotActive();
         if (_floorStatus == FloorStatus.RECONCILED) return _floorStatus;
-        RiskSnapshot memory snap = _riskBeginAction(); // also invalidates orders once at the floor
+        _riskBeginAction(); // also invalidates orders once at the floor
         if (_floorStatus == FloorStatus.NOT_STARTED) {
             _floorCount = _acctFloorBegin();
             _floorGeneration += 1;
             _floorStatus = FloorStatus.SWEEPING;
         }
-        uint64 end = _floorCursor + uint64(maxAccounts);
-        if (end > _floorCount) end = _floorCount;
-        for (uint64 i = _floorCursor; i < end; ++i) {
-            _visit(_acctFloorTraderAt(i), snap);
-        }
-        _floorCursor = end;
-        if (_floorCursor == _floorCount) {
-            _acctFloorComplete();
-            _floorStatus = FloorStatus.RECONCILED;
-        }
+        (JobProgress memory jp, uint64 taken) = _acctFloorPage(maxAccounts);
+        _floorCursor = jp.cursor;
+        _floorTakeovers += taken;
+        if (jp.done) _floorStatus = FloorStatus.RECONCILED;
         return _emitProgress();
-    }
-
-    function _visit(uint32 trader, RiskSnapshot memory snap) internal {
-        _touch(trader);
-        AccountView memory a = _acctAccount(trader);
-        (int256 e0, int256 e1) = MarginMath.endpoints(a.cashQ, a.lots);
-        if (e0 < 0 || e1 < 0) {
-            _resCancelAll(trader);
-            _acctTakeover(TakeoverAuth(trader, PREDICATE_FLOOR_DEFICIT, snap.premiumCutoff, snap.riskVersion));
-            _floorTakeovers += 1;
-            emit FloorTakeover(trader, e0, e1, snap.premiumCutoff);
-        }
     }
 
     function _emitProgress() internal returns (FloorStatus) {

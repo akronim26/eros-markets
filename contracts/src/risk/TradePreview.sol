@@ -87,7 +87,7 @@ abstract contract TradePreview is OrderLifecycle {
         view
         returns (OrderPreview memory p)
     {
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         p.id = _identity(c);
         TakerInput memory t = TakerInput(trader, side == MathTypes.Side.BUY, limitTick, lots, reduceOnly);
         TakerDecision memory d = _takerDecision(c, t);
@@ -108,7 +108,7 @@ abstract contract TradePreview is OrderLifecycle {
     }
 
     function previewAccount(uint32 trader) external view returns (AccountPreview memory p) {
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         p.id = _identity(c);
         AccountView memory a = _acctAccount(trader);
         (p.cashQ, p.positionLots) = (a.cashQ, a.lots);

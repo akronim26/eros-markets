@@ -96,10 +96,10 @@ abstract contract OracleCompatibilityCases is SettleFixture {
 
     function test_onlyPinnedOracle() public {
         vm.prank(address(0x30)); // monitor
-        vm.expectRevert(RiskContextPort.Unauthorized.selector);
+        vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
         IResolutionEngine(address(e)).settle(1);
         vm.prank(address(0x5555)); // keeper / arbitrary
-        vm.expectRevert(RiskContextPort.Unauthorized.selector);
+        vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
         IResolutionEngine(address(e)).halt();
     }
 }

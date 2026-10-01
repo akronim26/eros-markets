@@ -163,7 +163,7 @@ contract B019Test is Test {
         address[4] memory who = [MONITOR, GOV, SIGNER, address(0xBAD)];
         for (uint256 i; i < 4; ++i) {
             vm.prank(who[i]);
-            vm.expectRevert(RiskContextPort.Unauthorized.selector);
+            vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
             h.oracleSettle(1);
         }
     }
@@ -172,7 +172,7 @@ contract B019Test is Test {
         h.init(l, RiskFixture.profile(5, true));
         bytes32 before = h.listingHash();
         vm.prank(ORACLE);
-        vm.expectRevert(RiskContextPort.Unauthorized.selector);
+        vm.expectRevert(RiskContextPort.RiskUnauthorized.selector);
         h.stageRiskParams(RiskFixture.profile(1, true));
         vm.prank(ORACLE);
         h.oracleSettle(1);
