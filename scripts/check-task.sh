@@ -104,6 +104,52 @@ try:
         record["exit_code"] = 0 if passed else 1
         record["commands"].append({"argv": command, "cwd": ".", "exit_code": record["exit_code"],
                                    "execution": "in_process_unittest_discovery", "output": log})
+    elif lane == "B" and number >= 40:
+        # Integration fix: A002's runner had no B W7 configuration. Each B W7 task runs its own
+        # suites plus the combined (real A + real B) suites that carry its evidence.
+        def step(argv, cwd=".", env_extra=None):
+            env = {**os.environ, **(env_extra or {})}
+            run = subprocess.run(argv, cwd=root / cwd, env=env, capture_output=True, text=True)
+            print(run.stdout[-2000:], end=""); print(run.stderr[-2000:], end="", file=sys.stderr)
+            record["commands"].append({"argv": argv, "cwd": cwd, "exit_code": run.returncode,
+                                       "execution": "subprocess", "output": (run.stdout + run.stderr)[-4000:]})
+            record["test_count"] += 1
+            return run.returncode
+        def forge(path):
+            return step(["forge", "test", "--match-path", path], "contracts", {"FOUNDRY_PROFILE": "risk"})
+        def need_json(path, forbid_live_pass=False):
+            data = json.loads((root / path).read_text())
+            if forbid_live_pass and any(c.get("live_status") == "PASS" for c in data.get("counterparts", [])):
+                raise ValueError(path + ": a live counterpart PASS needs a real counterpart run")
+            hash_path(root / path)
+        codes = []
+        if task == "B040":
+            codes += [forge("test/integration/B/FullLifecycle.t.sol"), forge("test/integration/EndToEnd.t.sol")]
+            need_json("artifacts/risk/counterpart-status.json", forbid_live_pass=True)
+        elif task == "B041":
+            codes += [forge("test/gas/B/AdapterGas.t.sol"), forge("test/gas/integration/EngineGas.t.sol")]
+            need_json("artifacts/risk/gas-adapters.json"); need_json("artifacts/risk/gas-engine.json")
+        elif task == "B042":
+            out = "tmp/risk-sdk-b"
+            codes.append(step(["tsc", "--noEmit", "--strict", "--target", "es2020", "--module", "commonjs",
+                               "--moduleResolution", "node", "packages/risk-sdk/src/index.ts"]))
+            codes.append(step(["tsc", "--noCheck", "--esModuleInterop", "--target", "es2020", "--module", "commonjs", "--outDir", out,
+                               "packages/risk-sdk/src/index.ts", "packages/risk-sdk/test/read-model.test.ts"]))
+            codes.append(step(["node", "--test", out + "/test/read-model.test.js"]))
+            need_json("docs/app-state-fixtures.json")
+        elif task == "B043":
+            text = (root / "artifacts/reviews/B-on-A.md").read_text()
+            if "Review status: COMPLETE" not in text:
+                raise ValueError("B043: review is not complete")
+            hash_path(root / "artifacts/reviews/B-on-A.md")
+            codes.append(forge("test/reviews/B043Review.t.sol"))
+        elif task == "B044":
+            need_json("artifacts/risk/integration-release.json"); need_json("artifacts/risk/release-manifest.json")
+            if not (root / "docs/runbooks/lifecycle.md").is_file():
+                raise ValueError("missing docs/runbooks/lifecycle.md")
+            codes.append(forge("test/integration/ReleaseDefaults.t.sol"))
+        record["exit_code"] = 0 if all(c == 0 for c in codes) else 1
+        record["components"].update(peer_lane="real", external_counterparts="mocked; live status in artifacts/risk/counterpart-status.json")
     elif lane == "A" and number >= 43:
         command = [sys.executable, "scripts/check-a-handoff.py", task]
         run = subprocess.run(command, cwd=root, capture_output=True, text=True)
@@ -213,7 +259,7 @@ except (OSError, ValueError, ImportError) as error:
 destination = root / record["artifacts"][0]
 destination.parent.mkdir(parents=True, exist_ok=True)
 destination.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-if lane == "A" and number >= 40:
+if number >= 40:
     acceptance=root / f"artifacts/acceptance/{task}.json";acceptance.parent.mkdir(parents=True,exist_ok=True)
     acceptance.write_text(json.dumps(record,indent=2)+"\n",encoding="utf-8")
 print(f"{task}: {record['status']}; {record['test_count']} tests; {record['artifacts'][0]}")
