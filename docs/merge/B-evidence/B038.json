@@ -1,0 +1,27 @@
+{
+ "task": "B038",
+ "commit": "cccc92ac106d038792b6c0635877e3e5bd3e8348",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B038.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 6 tests for test/risk/B/B038.t.sol:B038Test",
+  "[PASS] test_baselineDisabled() (gas: 16910)",
+  "[PASS] test_cashFirstLocksOutConversion() (gas: 39639)",
+  "[PASS] test_modesMutuallyExclusive() (gas: 46032)",
+  "[PASS] test_noTokenPathAfterCashClaim() (gas: 25590)",
+  "[PASS] test_noTokenPathWithUnderbacking() (gas: 25860)",
+  "[PASS] test_oracleFinalNotClaimableWithoutReadiness() (gas: 209307)",
+  "Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 4.24ms (2.96ms CPU time)",
+  "",
+  "Ran 1 test suite in 95.14ms (4.24ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A claim state; SDK file executed via cached tsx only)",
+ "recorded_at_utc": "2026-10-01T03:30:41+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

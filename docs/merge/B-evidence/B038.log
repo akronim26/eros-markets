@@ -1,0 +1,12 @@
+No files changed, compilation skipped
+
+Ran 6 tests for test/risk/B/B038.t.sol:B038Test
+[PASS] test_baselineDisabled() (gas: 16910)
+[PASS] test_cashFirstLocksOutConversion() (gas: 39639)
+[PASS] test_modesMutuallyExclusive() (gas: 46032)
+[PASS] test_noTokenPathAfterCashClaim() (gas: 25590)
+[PASS] test_noTokenPathWithUnderbacking() (gas: 25860)
+[PASS] test_oracleFinalNotClaimableWithoutReadiness() (gas: 209307)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 4.24ms (2.96ms CPU time)
+
+Ran 1 test suite in 95.14ms (4.24ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)
