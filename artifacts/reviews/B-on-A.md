@@ -1,44 +1,45 @@
 # B review of Person A cash and reserve transitions (B043)
 
-Review status: BLOCKED — no Person A module exists on `feat/risk` (A001–A044 not merged).
+Review status: COMPLETE
 
-Spec v1.1, economic baseline v1.0. This is a cross-review, not an external audit. B does not edit
-A files; every finding goes to A as a reproducer. Nothing below was run against A code, because
-there is no A code on this branch. Each item is a concrete reproducer to run at G6/G7 against A's
-real modules (or against `contracts/test/harness/B/RiskHarness.sol` with A's port swapped in).
+Reviewed on `integration/risk` (merged Person A `61be284` + Person B `fecd2fb`, composed through
+`contracts/src/engine/RiskAccountingBridge.sol`). Spec v1.1, economic baseline v1.0. This is a
+cross-review by Person B's integration agent, not an external audit and not Person A's review of B
+(A043, which only Person A can do). B did not edit A files except the two `fix(A)` runner commits
+recorded in `docs/merge/integration-progress.md`. Counterparts (book, price feed, oracle, token)
+are mocks in every run below.
 
-## Routes and protected liabilities to review
+## Routes and protected liabilities
 
-| # | Route / liability (A owner) | Required property (spec) | Reproducer to run | Result |
+Every reproducer listed in the earlier BLOCKED version was run on real A modules. "Evidence" names
+the test that ran; all listed tests pass on `integration/risk`.
+
+| # | Route (A owner) | Property (spec) | Evidence on merged code | Result |
 |---|---|---|---|---|
-| 1 | Deposit / allocate (A017 CollateralVault) | received atoms == credited; fee-on-transfer rejected; allocation credits cashQ atom-for-atom (§2.3) | deposit 120 USDC with a 1% fee-on-transfer token -> revert; allocate 120,000,000 atoms -> cashQ += 120e6*Q exactly | NOT RUN (A absent) |
-| 2 | Guarded release (A017 + B `_riskReleaseDecision`) | release cannot bypass B's decision; missing mark -> only exactly backed (§4.1) | bootstrap account with d0>0 requests release -> A must refuse because B returns INVALID_PRICE_OR_SIZE | NOT RUN |
-| 3 | Paired posting (A018 Accounting) | dc = -dx*tick*Q both legs, fees credit exactly, no lone leg (§6.1) | 17 lots @613: +-17 lots, -/+10,421*Q; inject failure on leg 2 -> whole tx reverts | NOT RUN |
-| 4 | Funding accrual (A022) | reserve payer/receiver slack identity; cushion += A - max(p,0) (§6.2) | reserve +40, traders +60/-100, dF = .01: R -0.4, Dbar +0.6, B -1 -> slack unchanged; a `Dbar += 1` implementation must fail this test | NOT RUN |
-| 5 | Funding budget / OI change (A022) | affordable seconds at new OI, no reauthorization (§6.2) | rate .001/claim/s, OI 100->200 after 20 s, B 10: stop at the 40th further second | NOT RUN |
-| 6 | Freshness stop (A022 + B S-7) | `_onFreshnessAdvance(old)` accrues to the old endpoint before it moves; no restart in a stopped epoch | gap at t+630 then fresh at t+700: funding cutoff stays t+630 for the epoch (B021 test, A side) | NOT RUN |
-| 7 | Premium integral (A023) | neutral touches charge the same cumulative Q; ceil per segment (§6.3) | deficit 100->110 over 1 h at .0002/day = .000875 USDC; sync at 30 and 60 min == sync at 60 min only | NOT RUN |
-| 8 | Premium surcharge / capitalization (A023) | 4x six-hour renewal only on new principal deficit; capitalize once at rollover | 4x case = .0035 USDC; repeated rollover page does not capitalize twice | NOT RUN |
-| 9 | Account touch (A024) | removes exactly its cushion share; contribution replaced once | B027 G4 sequence (I-9) must be accepted; two touches in one action charge once | NOT RUN |
-| 10 | Rollover (A025) | <= 32/page, frozen cutoff, clearing and cushion zero at commit; calls B `_riskEpochOpenedWithGuards()` | interrupted page retried: same totals; skipped hours accrue nothing | NOT RUN |
-| 11 | Takeover (A028) | moves cash AND position; slack change max(e_y,0) per outcome; fee 0 (§3.1) | E = 0 account (cash -600, long 1,000 claims): reserve NO slack +0, YES slack +400 USDC | NOT RUN |
-| 12 | Liquidation fee (A029) | one atom per lot, half reserve half keeper in Q, odd half-atom kept; waived amount honoured (M-19) | close 1 lot: keeper gets Q/2; withdraw keeper atoms -> 0 atoms, Q/2 retained | NOT RUN |
-| 13 | Freeze (A030) | accrual cutoff = min(halt, epoch end, frozen rollover); OI includes reserve | B034/B037 fixtures with real freeze: OI 1,500,000 lots for long 1e6 + reserve 0.5e6 | NOT RUN |
-| 14 | Floor sweep (A031) | frozen registry; takeover only via B predicate 2 | B029 suite with real FloorAccounting | NOT RUN |
-| 15 | Snapshot/payout (A034/A035) | once per account; YES/NO/INVALID claims = golden G06 | Alice/Bob: NO 0/700, YES 520/0, INVALID(0.5) 20/200 USDC | NOT RUN |
-| 16 | Fee escrow before LP residual (A035/A038) | protocol/keeper Q reclassified before reserve residual; fractions never LP dust | half-atom keeper liability survives LP redemption (verify_spec_vectors V17) | NOT RUN |
-| 17 | Recovery calculator (A036) | baseline recoveryEnabled=false immutable; rho floor, P=0 safe | baseline finish with shortfall -> RECOVERY_REQUIRED, no haircut | NOT RUN |
-| 18 | Claims (A037) | once-only, CEI, failed transfer keeps liability; must call B `_riskBeforeCashClaim()` (S-12) | blocked recipient does not block another; second claim no effect | NOT RUN |
-| 19 | Reserve claims (A038) | matured notices against frozen denominator after all escrows | LP redeems before some trader claims; every trader still receives fixed entitlement | NOT RUN |
+| 1 | Deposit / allocate (A017) | exact receipt, fee-on-transfer rejected, cashQ += atoms·Q | `test/audit/AuditStateful.t.sol::testFeeOnTransferTokenRejected`; `test/gates/G3.t.sol::test_allocationVisibleToBothLanes` | PASS |
+| 2 | Guarded release (A017 + B decision) | release cannot bypass B; missing mark: only exactly backed | `G3::test_guardedReleaseCannotBypassRiskDecision` (usable exact, usable+1 reverts); `test/reviews/B043Review.t.sol::test_route2_missingMarkReleaseOnlyIfExactlyBacked` | PASS |
+| 3 | Paired posting (A018) | same Q both legs; fees credited exactly; no lone leg | `AuditSpecVectors::testV01*`, `testPairedFillConservation`; `G4::test_restFillFeesCoveragePermitRelease`; `G4::test_unexpectedAssertionRollsBackAllFills` | PASS |
+| 4 | Funding accrual (A022) | reserve payer/receiver slack identity | `AuditSpecVectors::testV09ReserveFundingCases`, `testV10FundingZeroSum`; `G2::test_reserveFundingPayerReceiver` | PASS |
+| 5 | Budget / OI change (A022) | old OI first, affordable seconds at new OI, no reauthorization | `AuditSpecVectors::testV11OiChangeBudget`; `AuditStateful::testFundingEpochBudgetAndStop`; `G4::test_fundingOldThenNewOiAndNeutralPremium`; EndToEnd step 4 | PASS |
+| 6 | Freshness stop (A022 + B021) | accrue to the old endpoint; no restart in a stopped epoch | `B043Review::test_route6_freshnessGapStopsFundingNoRestart` (stop at start+30; index unchanged after fresh data) | PASS |
+| 7 | Premium integral (A023) | neutral touches charge the same cumulative Q | `AuditSpecVectors::testV12V14PremiumExact`, `testV13NeutralTouch`; `G4` and EndToEnd twin-account checks | PASS, with A-F02 (Low): rounding per piece, up to +4 Q vs ceil(exact) |
+| 8 | Surcharge / capitalization (A023) | 4x on new principal deficit; capitalized once at rollover | `AuditSpecVectors::testV12V14PremiumExact`; `AuditStateful::testPremiumCapitalizedAtRollover`; repeated `rollPage` after completion touches nobody (cursor == count) | PASS |
+| 9 | Account touch (A024) | cushion share removed exactly; contribution replaced once | INV-05 campaign (stored contribution == A deficits of own state, sums exact); B `_touchedIn` once per action | PASS |
+| 10 | Rollover (A025) | ≤32/page, one cutoff, clearing and cushion zero; B epoch hook at opening | `G4::test_rolloverBlocksTradingAndInvalidatesOrders`; EndToEnd step 5; bridge `finishRollover` runs B `_riskEpochOpenedWithGuards()` before A opens the epoch | PASS |
+| 11 | Takeover (A028) | whole cash + position, slack +max(e_y,0), no fee | `AuditSpecVectors::testV16TakeoverSlackIdentity`; `AuditStateful::testTakeoverEligibilityWholeAccountNoFee`; `G5::test_authorizedTakeoverWholeAccountNoFee` | PASS |
+| 12 | Liquidation fee (A029) | 1 atom/lot, half reserve half keeper in Q, residual kept | `G5::test_bookCloseNeedsMoreWorkKeeperFees`; `G5::test_pairReductionBothSidesEligible` (keeper +1,000 atoms); EndToEnd step 6 keeper residual | PASS. A charges the full fee or waives it (no partial); B's allowance is respected (R-09) |
+| 13 | Freeze (A030) | cutoff = min(halt, epoch end); OI includes reserve | `G5::test_halt*` (4 rollover states, economicHaltAt ≠ cutoff); `B043Review::test_route13_oiAtHaltIncludesReserve` | PASS |
+| 14 | Floor sweep (A031) | frozen registry; price-free endpoint-deficit takeover only | `G5::test_floorSweepTakesOverDeficitsOnly`; seeded campaign (16 reconciled floors, INV-01..10 after every step) | PASS |
+| 15 | Snapshot / payout (A034/A035) | once per account; NO/YES/INVALID golden values | `AuditStateful::testBilateral*` (6 runs); `G6`; EndToEnd 4 outcomes | PASS |
+| 16 | Fee escrow before LP residual (A035/A038) | fee/keeper Q classified before residual; fractions never LP dust | `G6::test_feeFractionStaysClassified`; A038 | PASS, with A-F03 (Low): protocol fee folded into the reserve-treasury escrow |
+| 17 | Recovery (A036) | baseline recovery off; no haircut | `ReleaseDefaults`, `AuditStateful::testRecoveryDisabledFlag`, A036 (counterfactual shortfall) | PASS (flag is a constructor argument; the engine composition passes false) |
+| 18 | Claims (A037) | once-only, CEI, blocked recipient isolated; B cash-claim hook | `G6` (second claim reverts), A037 | PASS for claims. B's `_riskBeforeCashClaim()` is not called by A's path (no hook); conversion stays disabled, fence reported conservatively (R-11, request filed) |
+| 19 | Reserve claims (A038) | matured notice, frozen denominator, after all escrows | `G6::test_NO_pages1_aliceFirst_lpRedeemsBeforeClaims`; EndToEnd (LP redeems before trader claims, both orders) | PASS |
 
-## Interface demands B places on A (from the B lane)
+## Findings carried from the Phase 1 audit (docs/merge/A-audit.md)
 
-S-2, S-3 (QMath, MathTypes names), S-5 (every accounting-port function), S-7 (freshness hook),
-S-9 (virtually settled views), S-10 (floor port), S-11 (epoch bounds, claim-state views), S-12
-(cash-claim hook), S-13 (SDK accounting shape), I-9 (G4 call sequence). See
-`docs/merge/B-assumptions.md`.
+- A-F01 (Medium, open): allocations made before activation are locked if T passes without activation.
+- A-F02 (Low, open): premium rounding per piece (≤ +4 Q observed).
+- A-F03 (Low, open): protocol fee folded into the reserve-treasury dust escrow.
 
-## Open critical defects
-
-None can be stated: nothing was reviewable. This review must be redone on the merged G6 commit;
-until then B043 stays blocked.
+No Critical or High defect was found in A's cash and reserve transitions on the merged code.
