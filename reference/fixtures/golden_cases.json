@@ -1,0 +1,182 @@
+{
+  "schema": "eros-golden-cases/1",
+  "owner": "B",
+  "task": "B002",
+  "spec_version": "1.1",
+  "economic_baseline": "1.0",
+  "note": "Hand-derived from the selected rules. kind=exact: integer ledger values (strings, Q = 1e18 per atom). kind=interval: high-precision risk values given as [lo, hi] decimal strings that bracket the exact real value. No value here was produced by B or A implementation code.",
+  "constants": {"Q": "1000000000000000000", "PAYOFF_Q_PER_LOT": "1000000000000000000000", "ATOMS_PER_USDC": "1000000", "LOTS_PER_CLAIM": "1000"},
+  "cases": [
+    {
+      "id": "G01_fill_17_at_613",
+      "kind": "exact",
+      "derivation": "spec §2.1: notionalQ = lots*tick*Q; 17*613 = 10,421 atoms",
+      "input": {"lots": 17, "tick": 613, "taker_side": "BUY"},
+      "expected": {"notional_atoms": "10421", "notional_Q": "10421000000000000000000", "taker_dx_lots": 17, "maker_dx_lots": -17, "taker_dcash_Q": "-10421000000000000000000", "maker_dcash_Q": "10421000000000000000000"}
+    },
+    {
+      "id": "G02_long_endpoints",
+      "kind": "exact",
+      "derivation": "Alice deposits 120 USDC, buys 1,000 claims at 0.60: c = 120e6 - 600e6 = -480e6 atoms; E0 = c; E1 = c + 1000*Q*n with n = 1,000,000 lots",
+      "input": {"cash_Q": "-480000000000000000000000000", "position_lots": 1000000, "mark_wad": "600000000000000000"},
+      "expected": {"E0_Q": "-480000000000000000000000000", "E1_Q": "520000000000000000000000000", "mark_equity_Q": "120000000000000000000000000", "d0_Q": "480000000000000000000000000", "d1_Q": "0"}
+    },
+    {
+      "id": "G03_short_endpoints",
+      "kind": "exact",
+      "derivation": "Bob deposits 100 USDC, sells 1,000 claims at 0.60: c = 100e6 + 600e6 = 700e6 atoms; E1 = 700 - 1000 = -300 USDC",
+      "input": {"cash_Q": "700000000000000000000000000", "position_lots": -1000000, "mark_wad": "600000000000000000"},
+      "expected": {"E0_Q": "700000000000000000000000000", "E1_Q": "-300000000000000000000000000", "mark_equity_Q": "100000000000000000000000000", "d0_Q": "0", "d1_Q": "300000000000000000000000000"}
+    },
+    {
+      "id": "G04_flat",
+      "kind": "exact",
+      "derivation": "x = 0: both endpoints equal cash; margin is zero and nothing divides by x",
+      "input": {"cash_Q": "5000000000000000000000000", "position_lots": 0, "mark_wad": "600000000000000000"},
+      "expected": {"E0_Q": "5000000000000000000000000", "E1_Q": "5000000000000000000000000", "mark_equity_Q": "5000000000000000000000000", "MM_Q": "0", "IM_Q": "0", "full_backing_required": false}
+    },
+    {
+      "id": "G05_zero_equity_takeover",
+      "kind": "exact",
+      "derivation": "long 1,000 claims, c = -600 USDC, mark 0.60: E = -600 + 600 = 0. Fresh E <= 0 selects the fee-free takeover branch (spec §5.2); no negative-equity cash close. Slack change e + max(-e,0) = max(e,0) per outcome (spec §3.1)",
+      "input": {"cash_Q": "-600000000000000000000000000", "position_lots": 1000000, "mark_wad": "600000000000000000"},
+      "expected": {"mark_equity_Q": "0", "E0_Q": "-600000000000000000000000000", "E1_Q": "400000000000000000000000000", "liquidation_mode": "TAKEOVER", "takeover_fee_Q": "0", "reserve_slack_change_NO_Q": "0", "reserve_slack_change_YES_Q": "400000000000000000000000000"}
+    },
+    {
+      "id": "G06_settlement_all_outcomes",
+      "kind": "exact",
+      "derivation": "spec §11.1 table: claims = floor(max(0, c + n*1000*Q*p)/Q); market cash 100,220 USDC",
+      "input": {"alice": {"cash_Q": "-480000000000000000000000000", "position_lots": 1000000}, "bob": {"cash_Q": "700000000000000000000000000", "position_lots": -1000000}, "market_assets_atoms": "100220000000"},
+      "expected": {
+        "NO":      {"p_wad": "0", "alice_atoms": "0", "bob_atoms": "700000000", "total_atoms": "700000000", "reserve_residual_atoms": "99520000000"},
+        "YES":     {"p_wad": "1000000000000000000", "alice_atoms": "520000000", "bob_atoms": "0", "total_atoms": "520000000", "reserve_residual_atoms": "99700000000"},
+        "INVALID": {"p_wad": "500000000000000000", "alice_atoms": "20000000", "bob_atoms": "200000000", "total_atoms": "220000000", "reserve_residual_atoms": "100000000000"}
+      }
+    },
+    {
+      "id": "G07_direct5x_long_29d",
+      "kind": "interval",
+      "derivation": "spec §7.9 fixture: q=0.6, 1,000 claims, h = 300 + 1000/1000*60 = 360 s, T-t = 29 d, hazards 0.0001/day, eps 0.01, gamma 1.5, s 0.005, lambda 1e-6, cap 5. a = 0.0001*360/86400; eps' = (eps-a)/(1-a); k = sqrt((1-eps')/eps'); sigma = sqrt(0.24*360/2505600); mLong = 0.4a/(1-2a); MM = 1000(m + k sigma + s) + 0.5e-6*1e6; IM = min(600, max(1.5 MM, 120)) = 120 exactly (cap branch). 60-digit Decimal, then widened by 1e-9",
+      "input": {"q_wad": "600000000000000000", "position_lots": 1000000, "secs_to_T": 2505600, "cap_x": 5, "hazard0_wad_per_day": "100000000000000", "hazard1_wad_per_day": "100000000000000", "h0_secs": 300, "absorption_claims_per_min": 1000, "queue_secs": 0, "epsilon_wad": "10000000000000000", "gamma_wad": "1500000000000000000", "s_wad": "5000000000000000", "lambda_wad_per_claim": "1000000000000", "collateral_usdc": "120"},
+      "expected": {
+        "h_secs": {"exact": "360"},
+        "a_upper": {"lo": "4.16666666666e-7", "hi": "4.16666666667e-7"},
+        "k": {"lo": "9.950081666", "hi": "9.950081667"},
+        "sigma": {"lo": "0.005872202195", "hi": "0.005872202196"},
+        "MM_usdc": {"lo": "63.929058070", "hi": "63.929058072"},
+        "gammaMM_usdc": {"lo": "95.893587106", "hi": "95.893587108"},
+        "IM_usdc": {"exact": "120"},
+        "worst_loss_usdc": {"exact": "600"},
+        "full_backing_required": false,
+        "admits_with_120_usdc": true,
+        "display_leverage_x": {"exact": "5"}
+      }
+    },
+    {
+      "id": "G08_short_100_vs_80",
+      "kind": "interval",
+      "derivation": "Same fixture, short side: w = 0.4, mShort = 0.6a/(1-2a), cap branch 400/5 = 80 < 1.5 MM, so IM = 1.5 MM ~= 95.8937. 80 USDC fails, 100 passes",
+      "input": {"q_wad": "600000000000000000", "position_lots": -1000000, "secs_to_T": 2505600, "cap_x": 5},
+      "expected": {
+        "MM_usdc": {"lo": "63.929141404", "hi": "63.929141405"},
+        "IM_usdc": {"lo": "95.893712107", "hi": "95.893712108"},
+        "worst_loss_usdc": {"exact": "400"},
+        "collateral_80_passes": false,
+        "collateral_100_passes": true
+      }
+    },
+    {
+      "id": "G09_missing_calibration_is_1x",
+      "kind": "exact",
+      "derivation": "DEC-09 / spec §4.2: missing or expired calibration forces full backing; IM = MM = |x| w; long 1,000 claims at 0.6 needs 600 USDC",
+      "input": {"q_wad": "600000000000000000", "position_lots": 1000000, "calibration": "missing"},
+      "expected": {"IM_Q": "600000000000000000000000000", "MM_Q": "600000000000000000000000000", "full_backing_required": true, "cap_x": 1}
+    },
+    {
+      "id": "G10_oversized_ask_both_outcomes",
+      "kind": "exact",
+      "derivation": "spec §7.9 table: long 1 claim, cash 0, rest ask 2.3 claims at 0.55. YES value if filled: 1000*1000*Q - 2300*1000*Q + 2300*550*Q = -35,000 atoms. Reject at 1x",
+      "input": {"cash_Q": "0", "position_lots": 1000, "ask_lots": 2300, "ask_tick": 550},
+      "expected": {"d0_Q": "0", "yes_value_after_full_fill_Q": "-35000000000000000000000", "d1_Q": "35000000000000000000000", "admit_1x": false}
+    },
+    {
+      "id": "G11_cancel_needs_tick",
+      "kind": "exact",
+      "derivation": "bids 7@400 and 11@600, cancel the first: Qb = 11, Vb = 11*600 = 6,600 atoms (not an average price)",
+      "input": {"rests": [[7, 400], [11, 600]], "cancel_index": 0},
+      "expected": {"bid_lots": 11, "bid_value_atoms": "6600", "bid_value_Q": "6600000000000000000000"}
+    },
+    {
+      "id": "G12_direct5x_emin",
+      "kind": "exact",
+      "derivation": "spec §7.9: flat, c = 120 USDC, temporary bid 1,000,000 lots at tick 600, mark 0.60. mQ = 1000*qWad = 600e18 = 600*Q; adverse bid term max(600Q - 600Q, 0) = 0 so Emin = c. The prohibited rectangle c - Vb would give -480 USDC",
+      "input": {"cash_Q": "120000000000000000000000000", "position_lots": 0, "bid_lots": 1000000, "max_bid_tick": 600, "ask_lots": 0, "min_ask_tick": 1000, "fee_cap_Q": "0", "q_wad": "600000000000000000"},
+      "expected": {"emin_Q": "120000000000000000000000000", "rectangle_Q": "-480000000000000000000000000", "reachable_x_hi_lots": 1000000, "reachable_x_lo_lots": 0}
+    },
+    {
+      "id": "G13_stale_boundaries",
+      "kind": "exact",
+      "derivation": "spec §4.1: sample carries forward at most 30 s from observedAt (freshness uses observedAt, not acceptedAt). ASSUMPTION M-3: usable through observedAt+30 inclusive as a window end, stale after",
+      "input": {"observed_at": 1000, "stale_secs": 30},
+      "expected": {"fresh_at": [1000, 1015, 1030], "stale_at": [1031, 1100], "delayed_accept": {"observed_at": 1000, "accepted_at": 1040, "fresh_on_accept": false}}
+    },
+    {
+      "id": "G14_stage_boundaries",
+      "kind": "exact",
+      "derivation": "spec §5.1 inclusive boundaries with T = 1,000,000: grace T-45000, floor T-43200, reduce-only T-3600, halted T",
+      "input": {"T": 1000000},
+      "expected": {
+        "954999": "TRADING", "955000": "BACKING_GRACE", "956799": "BACKING_GRACE", "956800": "BACKING_FLOOR",
+        "996399": "BACKING_FLOOR", "996400": "REDUCE_ONLY", "999999": "REDUCE_ONLY", "1000000": "HALTED"
+      }
+    },
+    {
+      "id": "G15_future_window_invalid",
+      "kind": "exact",
+      "derivation": "spec §8.4, DEC-08: early halt at T-5d with settleInvalid now: price pending until T. Window [T-86400, T]. Complete window of constant index 0.42 gives 0.42. Incomplete window (new listing) waits to T+3600 then 0.5 fallback; legacy listing is BLOCKED",
+      "input": {"T": 5000000, "early_halt_at": 4568000, "grace_secs": 3600},
+      "expected": {
+        "window": [4913600, 5000000],
+        "status_at": {"4568000": "NOT_YET", "4999999": "NOT_YET"},
+        "complete_constant_042": {"at": 5000000, "status": "CAPTURE_TWAP", "price_wad": "420000000000000000"},
+        "incomplete_new_listing": {"5000000": "WAIT_GRACE", "5003599": "WAIT_GRACE", "5003600": "CAPTURE_FALLBACK", "fallback_wad": "500000000000000000"},
+        "incomplete_legacy_listing": {"5003600": "BLOCKED"}
+      }
+    },
+    {
+      "id": "G16_funding_rate_quantization",
+      "kind": "exact",
+      "derivation": "spec §6.2: f = clamp(q - I, +-0.05 min(I, 1-I)); r = trunc0(fWad*1000/86400). q=0.62, I=0.60: f=0.02 (= clamp), r = trunc(2e19/86400) = 231481481481481. q=0.55, I=0.60: f = -0.05 clamped to -0.02, r = -231481481481481 (toward zero)",
+      "input": [{"q_wad": "620000000000000000", "i_wad": "600000000000000000"}, {"q_wad": "550000000000000000", "i_wad": "600000000000000000"}],
+      "expected": [{"f_wad": "20000000000000000", "rate_Q_per_lot_sec": "231481481481481"}, {"f_wad": "-20000000000000000", "rate_Q_per_lot_sec": "-231481481481481"}]
+    },
+    {
+      "id": "G17_pair_tick",
+      "kind": "exact",
+      "derivation": "spec §5.2: tick = clamp(floor(qWad/1e15), 1, 999)",
+      "input": ["600400000000000000", "500000000000000", "999900000000000000", "0"],
+      "expected": [600, 1, 999, 1]
+    },
+    {
+      "id": "G18_bankruptcy_tick_long",
+      "kind": "exact",
+      "derivation": "long 1,000,000 lots, c = -540 USDC, mark 0.6 (E = 60 USDC), close all at fee 1 atom/lot (1 USDC total), threshold 0: need -540e6 + 1e6 t - 1e6 >= 0, so t >= 541",
+      "input": {"cash_Q": "-540000000000000000000000000", "position_lots": 1000000, "close_lots": 1000000, "fee_Q": "1000000000000000000000000", "threshold_Q": "0", "q_wad": "600000000000000000"},
+      "expected": {"worst_tick": 541, "feasible": true}
+    },
+    {
+      "id": "G19_small_budget_no_takeover",
+      "kind": "exact",
+      "derivation": "DEC-13 / spec §5.2: positive equity 60 USDC below MM, caller maxLots = 1 and ample book: close 1 lot, positive equity remains, result NEEDS_MORE_WORK; takeover not authorized",
+      "input": {"mark_equity_Q": "60000000000000000000000000", "below_mm": true, "caller_max_lots": 1, "position_lots": 1000000},
+      "expected": {"result": "NEEDS_MORE_WORK", "takeover_authorized": false}
+    },
+    {
+      "id": "G20_mark_band",
+      "kind": "exact",
+      "derivation": "spec §4.1: b(t) = 0.05*max(T-t,0)/(T-listedAt). listed 10 d before T, t = T-5d: b = 0.025. Candidates I+basis = 0.64, perpTwap = 0.66, perpLive = 0.70, I = 0.60: median 0.66 clamped to I+b = 0.625",
+      "input": {"T": 864000, "listed_at": 0, "now": 432000, "index_wad": "600000000000000000", "basis_wad": "40000000000000000", "perp_twap_wad": "660000000000000000", "perp_live_wad": "700000000000000000"},
+      "expected": {"band_wad": "25000000000000000", "median_wad": "660000000000000000", "mark_wad": "625000000000000000"}
+    }
+  ]
+}

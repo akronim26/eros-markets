@@ -1,0 +1,29 @@
+{
+ "task": "B030",
+ "commit": "099b7dc8e3cc4a6d41f0e14ba98869f1e8f61e7c",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B030.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 8 tests for test/risk/B/B030.t.sol:B030Test",
+  "[PASS] test_belowMmReduceCancelsFirst() (gas: 1697657)",
+  "[PASS] test_floorDeficitPriceFree() (gas: 1007297)",
+  "[PASS] test_nonEligibleKeepsOrdersNoReward() (gas: 1587913)",
+  "[PASS] test_pairPredicateBlocksWorseningClose() (gas: 1843313)",
+  "[PASS] test_pairReductionBothPredicates() (gas: 1977744)",
+  "[PASS] test_pairRejectsIneligibleOrSameSide() (gas: 2241079)",
+  "[PASS] test_staleMarkPositiveEquityNotEligible() (gas: 821497)",
+  "[PASS] test_takeoverPredicates() (gas: 1845377)",
+  "Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 7.20ms (6.09ms CPU time)",
+  "",
+  "Ran 1 test suite in 87.50ms (7.20ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A port)",
+ "recorded_at_utc": "2026-09-30T20:13:03+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

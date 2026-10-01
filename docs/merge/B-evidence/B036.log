@@ -1,0 +1,12 @@
+No files changed, compilation skipped
+
+Ran 6 tests for test/risk/B/B036.t.sol:B036Test
+[PASS] test_callbacksDoNoAccountWork() (gas: 429839)
+[PASS] test_claimsNeedReconciledLiabilities() (gas: 674770)
+[PASS] test_invalidPricePendingBlocksPayouts() (gas: 231508611)
+[PASS] test_jobsNeedHaltAndBounds() (gas: 358181)
+[PASS] test_jobsRetryAfterInterruption() (gas: 748201)
+[PASS] test_phasesDistinct() (gas: 827747)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 154.42ms (153.96ms CPU time)
+
+Ran 1 test suite in 154.74ms (154.42ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)

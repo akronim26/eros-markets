@@ -1,0 +1,48 @@
+{
+  "schema": "eros-app-state-fixtures/1",
+  "task": "B042",
+  "note": "Frontend fixtures for packages/risk-sdk. Raw values mirror contract views (RiskView, SettlementView); sources name the B test or reference that established each number. Integers are decimal strings (bigint). Nothing here is authoritative: the UI must show the contract value at the named block.",
+  "identity_template": {"chainId": 31337, "engine": "0x0000000000000000000000000000000000000E05", "blockNumber": "1", "asOfTime": "1043200", "riskVersion": "1", "profileHash": "0x00"},
+  "accounts": [
+    {
+      "id": "direct5x_long_after_fill",
+      "source": "B024/B026 tests; MM from reference/b margin.to_q_up (Solidity value is >= and within T-1)",
+      "markAvailable": true,
+      "markWad": "600000000000000000",
+      "raw": {"trader": 1, "asOfTime": "1043200", "stage": 0, "cashQ": "-480000000000000000000000000", "positionLots": "1000000", "e0Q": "-480000000000000000000000000", "e1Q": "520000000000000000000000000", "markAvailable": true, "markEquityQ": "120000000000000000000000000", "mmQ": "63929058071268787211717393", "imQ": "120000000000000000000000000", "status": 1, "graceActive": false, "graceEndsAt": "0", "liquidationMode": 0, "takeoverPredicate": 0},
+      "accounting": {"projectedFundingQ": "3000000000000000000", "projectedPremiumQ": "2000000000000000000", "usableReleaseAtoms": "0"},
+      "expected": {"cashUsdc": "-480.000000", "positionClaims": "1000.000", "markEquityUsdc": "120.000000", "initialUsdc": "120.000000", "health": "healthy", "liquidation": "not eligible", "withdrawableAtoms": "0", "projectionKind": "estimate"}
+    },
+    {
+      "id": "stale_mark_account",
+      "source": "B032 test_viewsLabelState (mark windows lapsed)",
+      "markAvailable": false,
+      "raw": {"trader": 1, "asOfTime": "1043600", "stage": 0, "cashQ": "-500000000000000000000000000", "positionLots": "1000000", "e0Q": "-500000000000000000000000000", "e1Q": "500000000000000000000000000", "markAvailable": false, "markEquityQ": "0", "mmQ": "0", "imQ": "0", "status": 0, "graceActive": true, "graceEndsAt": "1046800", "liquidationMode": 0, "takeoverPredicate": 0},
+      "accounting": {"projectedFundingQ": "0", "projectedPremiumQ": "0", "usableReleaseAtoms": "0"},
+      "expected": {"markEquityUsdc": null, "initialUsdc": null, "health": "unavailable (no valid mark)", "graceEndsAt": "1046800"}
+    },
+    {
+      "id": "below_mm_reduce",
+      "source": "B030 test_belowMmReduceCancelsFirst (E = 60 USDC < MM)",
+      "markAvailable": true,
+      "markWad": "600000000000000000",
+      "raw": {"trader": 1, "asOfTime": "1043200", "stage": 0, "cashQ": "-540000000000000000000000000", "positionLots": "1000000", "e0Q": "-540000000000000000000000000", "e1Q": "460000000000000000000000000", "markAvailable": true, "markEquityQ": "60000000000000000000000000", "mmQ": "63929058071268787211717393", "imQ": "120000000000000000000000000", "status": 3, "graceActive": false, "graceEndsAt": "0", "liquidationMode": 1, "takeoverPredicate": 0},
+      "accounting": {"projectedFundingQ": "0", "projectedPremiumQ": "0", "usableReleaseAtoms": "0"},
+      "expected": {"markEquityUsdc": "60.000000", "health": "below maintenance margin", "liquidation": "eligible for reduction"}
+    }
+  ],
+  "markets": [
+    {"id": "bootstrap_empty_book", "source": "B018/B040", "raw": {"asOfTime": "1021600", "stage": 0, "pricingMode": 0, "accountingState": 0, "indexAvailable": true, "indexWad": "600000000000000000", "markAvailable": false, "markWad": "0", "riskVersion": "1", "secsToT": "2527200", "monitorRestricted": false, "floorStatus": 0, "floorCursor": "0", "floorCount": "0", "pendingWork": 0}, "expected": {"stage": "TRADING", "pricing": "BOOTSTRAP", "mark": null, "index": "0.600000", "pending": [], "tradingPausedForSweep": false}},
+    {"id": "floor_pending_sweep", "source": "B032/B033", "raw": {"asOfTime": "3548800", "stage": 2, "pricingMode": 1, "accountingState": 0, "indexAvailable": true, "indexWad": "600000000000000000", "markAvailable": true, "markWad": "600000000000000000", "riskVersion": "1", "secsToT": "43200", "monitorRestricted": false, "floorStatus": 0, "floorCursor": "0", "floorCount": "0", "pendingWork": 1}, "expected": {"stage": "BACKING_FLOOR", "pricing": "NORMAL_PRICING", "mark": "0.600000", "pending": ["FLOOR_SWEEP"], "tradingPausedForSweep": false}},
+    {"id": "rollover_paused", "source": "B027 row 29 / B033", "raw": {"asOfTime": "1046800", "stage": 0, "pricingMode": 1, "accountingState": 1, "indexAvailable": true, "indexWad": "600000000000000000", "markAvailable": true, "markWad": "600000000000000000", "riskVersion": "1", "secsToT": "2520000", "monitorRestricted": false, "floorStatus": 0, "floorCursor": "0", "floorCount": "0", "pendingWork": 2}, "expected": {"stage": "TRADING", "pending": ["ROLLOVER_SWEEP"], "tradingPausedForSweep": true}}
+  ],
+  "settlements": [
+    {"id": "live", "raw": {"phase": 0, "halted": false, "finalOutcome": 0, "oracleFinalityAccepted": false, "invalidPriceReady": false, "settlementPriceE18": "0", "claimsEnabled": false, "recoveryRequired": false}, "expected": {"status": "LIVE", "claimable": false, "price": null}},
+    {"id": "halted_awaiting", "raw": {"phase": 1, "halted": true, "finalOutcome": 0, "oracleFinalityAccepted": false, "invalidPriceReady": false, "settlementPriceE18": "0", "claimsEnabled": false, "recoveryRequired": false}, "expected": {"status": "HALTED_AWAITING_OUTCOME", "claimable": false, "price": null}},
+    {"id": "invalid_price_pending", "source": "B036/B039", "raw": {"phase": 2, "halted": true, "finalOutcome": 3, "oracleFinalityAccepted": true, "invalidPriceReady": false, "settlementPriceE18": "0", "claimsEnabled": false, "recoveryRequired": false}, "expected": {"status": "ORACLE_FINAL_PRICE_PENDING", "claimable": false, "price": null}},
+    {"id": "final_preparing", "raw": {"phase": 2, "halted": true, "finalOutcome": 2, "oracleFinalityAccepted": true, "invalidPriceReady": false, "settlementPriceE18": "1000000000000000000", "claimsEnabled": false, "recoveryRequired": false}, "expected": {"status": "ORACLE_FINAL_PREPARING", "claimable": false, "price": "1000000000000000000"}},
+    {"id": "recovery_required", "source": "B036 test_claimsNeedReconciledLiabilities", "raw": {"phase": 2, "halted": true, "finalOutcome": 2, "oracleFinalityAccepted": true, "invalidPriceReady": false, "settlementPriceE18": "1000000000000000000", "claimsEnabled": false, "recoveryRequired": true}, "expected": {"status": "RECOVERY_REQUIRED", "claimable": false}},
+    {"id": "claimable_invalid", "source": "B039 delayed window capture 0.40", "raw": {"phase": 3, "halted": true, "finalOutcome": 3, "oracleFinalityAccepted": true, "invalidPriceReady": true, "settlementPriceE18": "400000000000000000", "claimsEnabled": true, "recoveryRequired": false}, "expected": {"status": "CLAIMABLE", "claimable": true, "price": "400000000000000000"}},
+    {"id": "complete", "raw": {"phase": 4, "halted": true, "finalOutcome": 1, "oracleFinalityAccepted": true, "invalidPriceReady": false, "settlementPriceE18": "0", "claimsEnabled": true, "recoveryRequired": false}, "expected": {"status": "COMPLETE", "claimable": true, "price": "0"}}
+  ]
+}

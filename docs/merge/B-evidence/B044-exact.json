@@ -1,0 +1,16 @@
+{
+ "task": "B044-exact",
+ "commit": "ce432597b94da61c052f01af223ebef6e97b1ec3",
+ "working_tree_dirty_files": 4,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "bash scripts/check-task.sh B044",
+ "exit_code": 127,
+ "output_tail": [
+  "bash: scripts/check-task.sh: No such file or directory"
+ ],
+ "component_status": "exact acceptance command as written",
+ "recorded_at_utc": "2026-10-01T03:41:58+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

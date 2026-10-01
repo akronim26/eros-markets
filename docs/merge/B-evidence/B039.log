@@ -1,0 +1,13 @@
+No files changed, compilation skipped
+
+Ran 7 tests for test/risk/B/B039.t.sol:B039Test
+[PASS] test_duplicateDeliveryAndReplayNoSecondEffect() (gas: 711429)
+[PASS] test_earlyInvalidDelayedWindowThenCapture() (gas: 232000661)
+[PASS] test_haltBeforeOrAfterRollSameCutoff() (gas: 18866256)
+[PASS] test_haltDuringRolloverKeepsFrozenCutoff() (gas: 437535)
+[PASS] test_scheduledPathStatuses() (gas: 711358)
+[PASS] test_staleHistoryUsesDisclosedFallbackOnly() (gas: 233132778)
+[PASS] test_transientPreparationIssueKeepsOutcome() (gas: 737344)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 183.48ms (358.79ms CPU time)
+
+Ran 1 test suite in 187.25ms (183.48ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)

@@ -1,0 +1,12 @@
+No files changed, compilation skipped
+
+Ran 6 tests for test/risk/B/B035.t.sol:B035Test
+[PASS] test_completeWindowCapturedOnceAtT() (gas: 249040301)
+[PASS] test_earlyInvalidWaitsForT() (gas: 17454330)
+[PASS] test_incompleteNewListingFallbackAfterGrace() (gas: 248797116)
+[PASS] test_legacyListingBlockedNeverFallback() (gas: 248650796)
+[PASS] test_listingHorizonBoundary() (gas: 16487751)
+[PASS] test_postHaltSamplesDoNotResumeRisk() (gas: 30838700)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 166.37ms (495.69ms CPU time)
+
+Ran 1 test suite in 166.66ms (166.37ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)

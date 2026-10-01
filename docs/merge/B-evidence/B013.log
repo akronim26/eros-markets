@@ -1,0 +1,26 @@
+No files changed, compilation skipped
+
+Ran 20 tests for test/math/B/B013.t.sol:B013Test
+[PASS] testFuzz_cumulativeMatchesDirect(uint8,uint256,uint16) (runs: 1000, μ: 44270, ~: 37965)
+[PASS] test_allMedianOrderings() (gas: 14354)
+[PASS] test_bandZeroAtT() (gas: 2121)
+[PASS] test_carryInAndFutureIgnored() (gas: 105038)
+[PASS] test_emptyWindow() (gas: 945)
+[PASS] test_epochRecommendation() (gas: 2132)
+[PASS] test_exact30sBoundary() (gas: 5543)
+[PASS] test_floorRounding() (gas: 18555)
+[PASS] test_freshnessBoundary() (gas: 2671)
+[PASS] test_gapNotCarried() (gas: 6052)
+[PASS] test_goldenFundingRate() (gas: 5133)
+[PASS] test_goldenMarkBand() (gas: 2678)
+[PASS] test_impactMid() (gas: 1731)
+[PASS] test_invalidSampleBreaksCoverage() (gas: 7491)
+[PASS] test_irregularSpacingTimeWeighted() (gas: 6667)
+[PASS] test_manySamplesOneSecond() (gas: 15555)
+[PASS] test_missingCandidateUnavailable() (gas: 687)
+[PASS] test_movementTrigger() (gas: 56102)
+[PASS] test_sameTimestampNoWeight() (gas: 7926)
+[PASS] test_unsortedReverts() (gas: 10378)
+Suite result: ok. 20 passed; 0 failed; 0 skipped; finished in 71.42ms (72.29ms CPU time)
+
+Ran 1 test suite in 81.46ms (71.42ms CPU time): 20 tests passed, 0 failed, 0 skipped (20 total tests)

@@ -1,0 +1,28 @@
+{
+ "task": "B022",
+ "commit": "5ae35baf53155c5fae06868b600ac25c9a1b9fe7",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B022.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 7 tests for test/risk/B/B022.t.sol:B022Test",
+  "[PASS] test_cancelUsesExactTick() (gas: 822389)",
+  "[PASS] test_feeCommitmentExact() (gas: 868389)",
+  "[PASS] test_fullUint64Epochs() (gas: 1391014)",
+  "[PASS] test_marketEpochInvalidatesWithoutVisiting() (gas: 808660)",
+  "[PASS] test_oldEpochPruneCannotSubtractNew() (gas: 1248932)",
+  "[PASS] test_sidecarGenerationGuard() (gas: 55265)",
+  "[PASS] test_underflowAndWrongTickRevert() (gas: 771443)",
+  "Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 533.96\u00b5s (1.11ms CPU time)",
+  "",
+  "Ran 1 test suite in 78.80ms (533.96\u00b5s CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)"
+ ],
+ "component_status": "lane-pass (A port stand-in S-5 via MockAccountingPort)",
+ "recorded_at_utc": "2026-09-30T19:53:31+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

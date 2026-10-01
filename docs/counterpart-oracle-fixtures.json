@@ -1,0 +1,52 @@
+{
+  "schema": "eros-oracle-seam-fixtures/1",
+  "task": "B037",
+  "spec_version": "1.1",
+  "status": "B-side published fixture; the live CP-ORACLE join is BLOCKED_BY_COUNTERPART until the oracle team runs it against its ResolutionOracle",
+  "engine_entry_points": [
+    {"signature": "halt()", "caller": "ResolutionOracle only", "effect": "idempotent economic halt; returns HaltView"},
+    {"signature": "settle(uint8)", "caller": "ResolutionOracle only", "argument": "Y = 0 (NO) or 1 (YES); any other value reverts BadOutcome"},
+    {"signature": "settleInvalid()", "caller": "ResolutionOracle only", "argument": "none; the oracle never supplies a price"},
+    {"signature": "materializeScheduledHalt()", "caller": "anyone at/after T", "effect": "same halt routine, economicHaltAt = T"},
+    {"signature": "getHaltSnapshot()", "caller": "view"},
+    {"signature": "getSettlementStatus()", "caller": "view"}
+  ],
+  "enum_mapping": {
+    "note": "Engine-local FinalOutcome {UNSET=0, NO=1, YES=2, INVALID=3} is never ABI-cast from the oracle enum.",
+    "oracle_source_enum_assumed": {"NONE": 0, "YES": 1, "NO": 2, "INVALID": 3, "VOIDED": 4},
+    "rows": [
+      {"oracle": "YES", "engine_call": "settle(1)", "local_outcome": "YES", "local_value": 2},
+      {"oracle": "NO", "engine_call": "settle(0)", "local_outcome": "NO", "local_value": 1},
+      {"oracle": "INVALID", "engine_call": "settleInvalid()", "local_outcome": "INVALID", "local_value": 3},
+      {"oracle": "VOIDED", "engine_call": "settleInvalid()", "local_outcome": "INVALID", "local_value": 3},
+      {"oracle": "NONE", "engine_call": "none", "local_outcome": "unchanged"}
+    ]
+  },
+  "halt_view_units": {
+    "economicHaltAt": "uint64 seconds; T for a scheduled halt, the oracle tx time for an early halt",
+    "haltRecordedAt": "uint64 seconds; telemetry only",
+    "oiHaltLots": "uint256 lots, one-sided, includes the reserve account",
+    "accrualCutoff": "uint64 seconds = min(economicHaltAt, active epoch end, frozen rollover cutoff)",
+    "snapshotId": "keccak256(abi.encode(chainid, engine, marketId, economicHaltAt, accrualCutoff, frozenAccountCount, frozenBookEpoch, frozenAccountingState, oiHaltLots)); an identifier, not a Merkle commitment"
+  },
+  "bond_exposure_conversion": {
+    "rule": "exposureAtoms = oiHaltLots * 1000 (1 claim = 1,000 lots, 1 USDC = 1,000,000 atoms); computed by the oracle-side adapter, never by the engine",
+    "examples": [
+      {"positions_lots": {"trader_long": 1000000, "trader_short": -1500000, "reserve": 500000}, "oiHaltLots": 1500000, "exposureAtoms": 1500000000, "exposureUsdc": "1500"},
+      {"positions_lots": {"trader_long": 17, "trader_short": -17, "reserve": 0}, "oiHaltLots": 17, "exposureAtoms": 17000, "exposureUsdc": "0.017"}
+    ]
+  },
+  "clock_cases": [
+    {"id": "scheduled_late_keeper", "T": "T", "materialized_at": "T+500", "expected_economicHaltAt": "T", "expected_haltRecordedAt": "T+500", "oracle_haltedAt_must_copy": "economicHaltAt"},
+    {"id": "early_halt", "halt_at": "T-5d", "expected_economicHaltAt": "T-5d"},
+    {"id": "settle_before_halt", "settle_at": "T-5d", "expected": "settle materializes the early halt first, then latches"}
+  ],
+  "finality_cases": [
+    {"id": "same_outcome_repeat", "expected": "newlyAccepted=false, no state change"},
+    {"id": "conflicting_outcome", "expected": "revert ConflictingFinalOutcome; the oracle's Final transition in the same tx rolls back"},
+    {"id": "unauthorized_caller", "expected": "revert Unauthorized (monitor, governance, keeper, any address)"},
+    {"id": "early_binary", "expected": "YES/NO claims can open before T (no TWAP wait)"},
+    {"id": "early_invalid", "expected": "INVALID latched now; status ORACLE_FINAL_PRICE_PENDING until captureInvalidPrice() at/after T (or 0.5 after T+1h for disclosed new listings)"},
+    {"id": "delayed_delivery_retry", "expected": "an external result stored by the oracle is retried later without changing it; a reverted delivery stays pending"}
+  ]
+}
