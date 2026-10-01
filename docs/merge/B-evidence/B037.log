@@ -1,0 +1,13 @@
+No files changed, compilation skipped
+
+Ran 7 tests for test/risk/B/B037.t.sol:B037Test
+[PASS] test_deliveryRetriesAndDuplicates() (gas: 455433)
+[PASS] test_earlyBinaryDoesNotWaitForT() (gas: 745716)
+[PASS] test_earlyInvalidStaysPending() (gas: 476615)
+[PASS] test_enumMappingRows() (gas: 461821)
+[PASS] test_oiIncludesReserveAndConvertsExplicitly() (gas: 420815)
+[PASS] test_onlyPinnedOracle() (gas: 18047)
+[PASS] test_scheduledLateKeeperClock() (gas: 395164)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 1.19ms (691.58µs CPU time)
+
+Ran 1 test suite in 85.95ms (1.19ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)

@@ -1,0 +1,14 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/risk/B/B018.t.sol:B018Test
+[PASS] test_contextCarriesTimeAndStage() (gas: 37480)
+[PASS] test_emptyBookBootstrapUsesIndexOnly() (gas: 5239535)
+[PASS] test_haltOverridesBootstrap() (gas: 5124161)
+[PASS] test_missingPerpAfterNormalFallsBackToBackedOnly() (gas: 39143774)
+[PASS] test_noIndexNoExposure() (gas: 48940)
+[PASS] test_normalOnlyAtEpochOpeningWithAllWindows() (gas: 36849333)
+[PASS] test_openingWithoutFullWindowsStaysBootstrap() (gas: 13138157)
+[PASS] test_profileActivatesOnlyAtEpochOpening() (gas: 91304)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 5.06ms (11.98ms CPU time)
+
+Ran 1 test suite in 82.73ms (5.06ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

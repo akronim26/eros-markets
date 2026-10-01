@@ -1,0 +1,29 @@
+{
+ "task": "B042",
+ "runner": "provisional/scripts/check-task.sh (stand-in for A002 scripts/check-task.sh)",
+ "commit": "358abe1f78f5d66d0bbcee7650cd3fb6e280a49a",
+ "spec_version": "1.1",
+ "steps": [
+  {
+   "step": "sdk",
+   "exit_code": 0
+  },
+  {
+   "step": "exists:packages/risk-sdk/src/index.ts",
+   "exit_code": 0
+  },
+  {
+   "step": "exists:docs/app-state-fixtures.json",
+   "exit_code": 0
+  },
+  {
+   "step": "json:docs/app-state-fixtures.json",
+   "exit_code": 0
+  }
+ ],
+ "exit_code": 0,
+ "counterparts": "all mocked or blocked; see artifacts/risk/counterpart-status.json",
+ "person_a": "provisional stand-ins and scripted doubles; no real A module",
+ "gate_credit": "none",
+ "recorded_at_utc": "2026-10-01T03:39:09+00:00"
+}

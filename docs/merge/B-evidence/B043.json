@@ -1,0 +1,18 @@
+{
+ "task": "B043",
+ "commit": "6c4c8733e69efb2383c00447663d2a7b9bce0f85",
+ "working_tree_dirty_files": 1,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "bash provisional/scripts/check-task.sh B043",
+ "exit_code": 1,
+ "output_tail": [
+  "[exists] artifacts/reviews/B-on-A.md",
+  "[status] exit 1: grep -q '^Review status: COMPLETE' artifacts/reviews/B-on-A.md",
+  "overall exit 1"
+ ],
+ "component_status": "blocked (no Person A code on this branch)",
+ "recorded_at_utc": "2026-10-01T03:39:47+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

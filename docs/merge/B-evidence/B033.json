@@ -1,0 +1,28 @@
+{
+ "task": "B033",
+ "commit": "c99f15d28f6f9cbfe003852eedb80dda095d6b91",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B033.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 7 tests for test/risk/B/B033.t.sol:B033Test",
+  "[PASS] test_emptyBookPositiveEquityStaysCovered() (gas: 3469519)",
+  "[PASS] test_haltAbandonsSweep() (gas: 35108219)",
+  "[PASS] test_noKeeperTimeChangesGatesNotBalances() (gas: 68429607)",
+  "[PASS] test_registryFrozenDuringSweep() (gas: 36800246)",
+  "[PASS] test_rolloverPausesTrading() (gas: 34840952)",
+  "[PASS] test_staleMarkNoMarkLiquidation() (gas: 2280468)",
+  "[PASS] test_tinyBudgetNeverConfiscates() (gas: 8848406)",
+  "Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 19.04ms (44.60ms CPU time)",
+  "",
+  "Ran 1 test suite in 85.12ms (19.04ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A ports + mock book; not real integration)",
+ "recorded_at_utc": "2026-10-01T03:19:39+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

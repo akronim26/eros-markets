@@ -1,0 +1,13 @@
+No files changed, compilation skipped
+
+Ran 7 tests for test/risk/B/B033.t.sol:B033Test
+[PASS] test_emptyBookPositiveEquityStaysCovered() (gas: 3469519)
+[PASS] test_haltAbandonsSweep() (gas: 35108219)
+[PASS] test_noKeeperTimeChangesGatesNotBalances() (gas: 68429607)
+[PASS] test_registryFrozenDuringSweep() (gas: 36800246)
+[PASS] test_rolloverPausesTrading() (gas: 34840952)
+[PASS] test_staleMarkNoMarkLiquidation() (gas: 2280468)
+[PASS] test_tinyBudgetNeverConfiscates() (gas: 8848406)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 19.04ms (44.60ms CPU time)
+
+Ran 1 test suite in 85.12ms (19.04ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)

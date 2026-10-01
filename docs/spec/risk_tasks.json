@@ -1,0 +1,2430 @@
+[
+  {
+    "id": "A001",
+    "owner": "A",
+    "wave": "W0",
+    "effort_points": 2,
+    "title": "Freeze units and pure calculation input types",
+    "action": "Encode lot, tick, Q, signed rounding, position/cash bounds and explicit outcome encodings. Define pure account, order, funding and payoff input records from the selected specification; do not create vault storage.",
+    "write_files": [
+      "reference/common/units.py",
+      "contracts/src/math/MathTypes.sol",
+      "docs/math/units.md",
+      "reference/tests/a/test_a001.py"
+    ],
+    "read_contract": "Published selected specification; G0 reconciles and freezes the initial shared contract.",
+    "depends_on": [],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a001.py\"",
+    "acceptance": "One lot at one tick equals one atom; mark equity has no extra WAD division. Types name units and prohibit implicit oracle-enum casts.",
+    "handoff_at": "G0",
+    "legacy_ids": [
+      "R001",
+      "R002",
+      "R004"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a7\u00a717\u201318, pp.30\u201333; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; O \u00a74, pp.6\u20137; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A002",
+    "owner": "A",
+    "wave": "W0",
+    "effort_points": 2,
+    "title": "Create math test runners and evidence schema",
+    "action": "Prepare separate A/B test discovery, exact-fixture result schema, compiler/dependency lock declarations and deterministic seeds. Gate commands must execute checks and fail on missing suites; this task does not implement economic functions.",
+    "write_files": [
+      "scripts/check-task.sh",
+      "scripts/check-gate.sh",
+      "reference/common/result_schema.json",
+      "contracts/foundry.toml",
+      "reference/tests/a/test_a002.py"
+    ],
+    "read_contract": "Published selected specification; G0 reconciles and freezes the initial shared contract.",
+    "depends_on": [
+      "A001"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a002.py\"",
+    "acceptance": "A and B smoke fixtures run independently; an intentionally failing or missing suite produces nonzero exit status. No production deployment is configured.",
+    "handoff_at": "G0",
+    "legacy_ids": [
+      "R006",
+      "R079",
+      "R080"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a718, pp.31\u201332; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a7\u00a717\u201318, pp.30\u201333; O \u00a7\u00a710\u201313, pp.20\u201325",
+    "status": "not_started"
+  },
+  {
+    "id": "B001",
+    "owner": "B",
+    "wave": "W0",
+    "effort_points": 2,
+    "title": "Freeze risk function contracts and ownership map",
+    "action": "Declare the pure risk, pricing, lifecycle and liquidation function inputs/outputs using the published units. Record single-editor module ownership and external CP-BOOK/PRICE/ORACLE/FACTORY/APP boundaries; reconcile units with A at G0.",
+    "write_files": [
+      "docs/math/risk-function-contracts.json",
+      "docs/ownership.json",
+      "docs/counterpart-contracts.md",
+      "reference/tests/b/test_b001.py"
+    ],
+    "read_contract": "Published selected specification; G0 reconciles and freezes the initial shared contract.",
+    "depends_on": [],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b001.py\"",
+    "acceptance": "Each function has an explicit domain, rounding direction and unavailable/error result; ownership has no duplicate writers. Full CLOB and AI/UMA internals stay outside scope.",
+    "handoff_at": "G0",
+    "legacy_ids": [
+      "R001",
+      "R003",
+      "R008",
+      "R009"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a7\u00a717\u201318, pp.30\u201333; selected v1 decision register DEC-01\u201312 where amended; B \u00a711, pp.16\u201319; D \u00a79.8, p.17; B \u00a713, pp.20\u201322; B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321",
+    "status": "not_started"
+  },
+  {
+    "id": "B002",
+    "owner": "B",
+    "wave": "W0",
+    "effort_points": 2,
+    "title": "Author independent golden scenarios",
+    "action": "Manually derive small binary/interior payoff, direct-leverage, stale-price, time-boundary, margin and takeover cases from the selected rules. Store inputs and expected results with derivation labels; do not obtain expected values by calling the implementation being tested.",
+    "write_files": [
+      "reference/fixtures/golden_cases.json",
+      "docs/math/golden-case-rationale.md",
+      "reference/tests/b/test_b002.py"
+    ],
+    "read_contract": "Published selected specification; G0 reconciles and freezes the initial shared contract.",
+    "depends_on": [
+      "B001"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b002.py\"",
+    "acceptance": "Cases include long/short/flat, zero equity, 17 lots at tick613, future-window INVALID and a 29-day direct5x long. Distinguish exact ledger values from high-precision risk intervals.",
+    "handoff_at": "G0",
+    "legacy_ids": [
+      "R015",
+      "R017",
+      "R023",
+      "R071",
+      "R073"
+    ],
+    "source": "B \u00a74, pp.5\u20136; D \u00a73, pp.6\u20137; B \u00a74, pp.5\u20136; B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "A003",
+    "owner": "A",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement rational ledger and terminal equity",
+    "action": "Implement paired signed fills, cash transfers, position conservation and NO/YES/interior raw equity with Fraction arithmetic. Produce state deltas without persistence or token calls.",
+    "write_files": [
+      "reference/a/ledger.py",
+      "reference/tests/a/test_a003.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a003.py\"",
+    "acceptance": "17@613 transfers10421 atoms; long120USDC and short100USDC at1000claims/.6 yield cash\u2212480/700, with net position zero and exact paired cash conservation.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R006",
+      "R014",
+      "R015",
+      "R017"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a718, pp.31\u201332; B \u00a74, pp.5\u20136; B \u00a74, pp.5\u20136; D \u00a73, pp.6\u20137",
+    "status": "not_started"
+  },
+  {
+    "id": "A004",
+    "owner": "A",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement exact order-deficit and reserve calculations",
+    "action": "Calculate fee-aware order endpoint deficits, trader sums, reserve endpoint values, concentration limit and coverage slack. Keep pending premium and future funding allowance distinct.",
+    "write_files": [
+      "reference/a/coverage.py",
+      "reference/tests/a/test_a004.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "A003"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a004.py\"",
+    "acceptance": "The1-claim/cash0 ask2.3@.55 is rejected at1x; both reserve outcomes are checked independently and pending premium credits/debits preserve coverage.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R025",
+      "R026",
+      "R033",
+      "R034"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a717 INV-2/3, p.30; B \u00a79, pp.11\u201314; B \u00a711, pp.16\u201319",
+    "status": "not_started"
+  },
+  {
+    "id": "A005",
+    "owner": "A",
+    "wave": "W1",
+    "effort_points": 5,
+    "title": "Implement funding transition reference",
+    "action": "Model fixed-rate epochs, per-step old OI, budget consumption, reserve payer/receiver, funding clearing and attributable cushion retirement. Accept time/freshness cutoffs as explicit inputs.",
+    "write_files": [
+      "reference/a/funding.py",
+      "reference/tests/a/test_a005.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "A003",
+      "A004"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a005.py\"",
+    "acceptance": "Reserve+40/trader+60/\u2212100 atdeltaF.01 moves.4/.6/\u22121 and preserves slack. OI changes, zero OI, stale gaps and exhausted budget cannot create catch-up funding.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R027",
+      "R028",
+      "R029"
+    ],
+    "source": "B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A006",
+    "owner": "A",
+    "wave": "W1",
+    "effort_points": 5,
+    "title": "Implement clipped-affine premium integration",
+    "action": "Integrate the positive part of each funding-affine deficit analytically, split at funding stop, and charge differences of one cumulative upward-rounded Q integral. Retain origin across neutral touches.",
+    "write_files": [
+      "reference/a/premium_integral.py",
+      "reference/tests/a/test_a006.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "A005"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a006.py\"",
+    "acceptance": "Deficit100\u2192110 over1h atloadedhazard.0002/day costs.000875USDC. Crossing triangles match rational integration and neutral sync does not change the charge.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R030"
+    ],
+    "source": "B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A007",
+    "owner": "A",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement premium surcharge and epoch capitalization",
+    "action": "Apply the account-wide4x six-hour renewal only to new principal deficit; split at expiry. Exclude current-epoch paid premium from the tariff base, then capitalize once at completed rollover.",
+    "write_files": [
+      "reference/a/premium_epochs.py",
+      "reference/tests/a/test_a007.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "A006"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a007.py\"",
+    "acceptance": "The preceding premium becomes.0035USDC during4x. Funding/premium-only touches do not renew expiry; repeated rollover pages do not capitalize twice.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R031",
+      "R032"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a721, p.36; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A008",
+    "owner": "A",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement payout, fee-escrow and capital arithmetic",
+    "action": "Calculate positive raw claims, atom floors, exact keeper/protocol Q escrow, reserve residual, frozen-share entitlements, capped backstop and disabled pro-rata recovery amounts as pure functions.",
+    "write_files": [
+      "reference/a/settlement.py",
+      "reference/tests/a/test_a008.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "A003"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a008.py\"",
+    "acceptance": "YES/NO/INVALID claims conserve assets; half-atom keeper liability survives reserve redemption. P=0 and fractional residuals have explicit owners; recovery remains disabled by default.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R035",
+      "R036",
+      "R037",
+      "R066",
+      "R067",
+      "R068",
+      "R070"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; O \u00a77.9, p.15; selected v1 decision register DEC-01\u201312 where amended; B \u00a714, pp.22\u201323; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; selected v1 decision register DEC-01\u201312 where amended; B \u00a714, pp.22\u201323; B \u00a717 INV-12/15, p.31; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A009",
+    "owner": "A",
+    "wave": "W1",
+    "effort_points": 5,
+    "title": "Implement directed integer primitives for both tracks",
+    "action": "Implement checked signed floor/ceil division, full-product directed division, sqrtUp, bounds and Q/atom/lot conversions. Publish pure signatures frozen for B before G1; no protocol state.",
+    "write_files": [
+      "contracts/src/math/QMath.sol",
+      "reference/a/integer_bounds.py",
+      "reference/tests/a/test_a009.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "A003"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/a -p \"test_a009.py\"",
+    "acceptance": "Negative signed division differs correctly from truncation; overflow edges fail explicitly. sqrtUp brackets the exact square root and all conversions match A003/B002 independent values.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R007",
+      "R017"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a717 INV-15, p.31; B \u00a74, pp.5\u20136",
+    "status": "not_started"
+  },
+  {
+    "id": "B003",
+    "owner": "B",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement horizon and volatility reference",
+    "action": "Compute size and queue-dependent closeout horizon and the maximum theoretical/empirical/template volatility bound. Enforce nondecreasing empirical horizon envelopes and unavailable-calibration behavior.",
+    "write_files": [
+      "reference/b/horizon_volatility.py",
+      "reference/tests/b/test_b003.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b003.py\"",
+    "acceptance": "Zero size, nearT, large size and queued closeout are handled. Noisy decreasing calibration is rejected or converted by the declared conservative envelope rule.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R018",
+      "R020"
+    ],
+    "source": "B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a710, pp.14\u201316; B \u00a7\u00a76\u20138, pp.7\u201311",
+    "status": "not_started"
+  },
+  {
+    "id": "B004",
+    "owner": "B",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement hazard, tail and drift reference",
+    "action": "Implement selected linear hazard upper bounds, directional adverse probability, residual tail budget, Cantelli factor and conservative drift. Use high-precision directed intervals for nonrational operations.",
+    "write_files": [
+      "reference/b/hazards.py",
+      "reference/tests/b/test_b004.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "B003"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b004.py\"",
+    "acceptance": "Adverse probability at epsilon or exhausted denominator forces full backing. Long/short direction swaps are correct and no favorable hazard term understates drift.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R019",
+      "R021"
+    ],
+    "source": "B \u00a7\u00a76\u20138, pp.7\u201311; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B005",
+    "owner": "B",
+    "wave": "W1",
+    "effort_points": 5,
+    "title": "Implement margin, health and template reference",
+    "action": "Compute MM, IM, full-backing switch, directional/template caps, health and displayed leverage. Include zero/negative equity and prove the per-sign monotone envelope assumptions.",
+    "write_files": [
+      "reference/b/margin.py",
+      "reference/tests/b/test_b005.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "B003",
+      "B004"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b005.py\"",
+    "acceptance": "The29-day fixture requires longIM120USDC and shortIM about95.894USDC; short collateral80 fails and100 passes. Missing calibration gives1x, not guessed leverage.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R017",
+      "R022",
+      "R023",
+      "R024"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a77, pp.8\u20139; \u00a718, pp.31\u201333; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B006",
+    "owner": "B",
+    "wave": "W1",
+    "effort_points": 5,
+    "title": "Implement all-prefix order admission reference",
+    "action": "Compute conservative marked-fill deductions with maxBid/minAsk, reachable sign intervals, certified IM envelopes and bounded halving quantity selection. Accept endpoint-deficit/coverage values via a scripted input port until G1.",
+    "write_files": [
+      "reference/b/order_admission.py",
+      "reference/tests/b/test_b006.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "B005"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b006.py\"",
+    "acceptance": "Direct5x entry can pass; sign flips and an artificial interior IM hump cannot bypass the envelope. Enumerate small order-fill mixtures and compare all accepted prefixes.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R042",
+      "R043",
+      "R046"
+    ],
+    "source": "B \u00a711, pp.16\u201319; D \u00a79.8, p.17; B \u00a711, pp.16\u201319; selected v1 decision register DEC-01\u201312 where amended; B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a711, pp.16\u201319; B \u00a716, pp.27\u201330",
+    "status": "not_started"
+  },
+  {
+    "id": "B007",
+    "owner": "B",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement pure time-weighted pricing reference",
+    "action": "Calculate valid-interval TWAP integrals, gaps, basis/mark median and clamp, and epoch funding recommendation from supplied observations. Do not fetch external venues or verify network signatures yet.",
+    "write_files": [
+      "reference/b/pricing.py",
+      "reference/tests/b/test_b007.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b007.py\"",
+    "acceptance": "Irregular sample spacing is time-weighted;30-second gaps are not carried through; mark inputs/clamp and beta0 rate quantization obey explicit units.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R038",
+      "R039",
+      "R040",
+      "R041"
+    ],
+    "source": "B \u00a713, pp.20\u201322; B \u00a712, pp.19\u201320; B \u00a713, pp.20\u201322",
+    "status": "not_started"
+  },
+  {
+    "id": "B008",
+    "owner": "B",
+    "wave": "W1",
+    "effort_points": 5,
+    "title": "Implement liquidation decision reference",
+    "action": "Calculate eligible reduction, conservative size estimate, fee-aware bankruptcy tick and pacing decisions from immutable inputs. Return NEEDS_MORE_WORK on work exhaustion; model takeover authorization separately.",
+    "write_files": [
+      "reference/b/liquidation.py",
+      "reference/tests/b/test_b008.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0",
+      "B005"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b008.py\"",
+    "acceptance": "Positive equity plus small caller budget cannot authorize takeover. Invalid roots use bounded full-close attempt; each proposed close is rechecked against actual size-dependent margin.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R050",
+      "R052",
+      "R053",
+      "R054",
+      "R055",
+      "R056",
+      "R057"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a713, pp.20\u201322; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a710, pp.14\u201316; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a711, pp.16\u201319; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a717 INV-16, p.31; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a716, p.29; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B009",
+    "owner": "B",
+    "wave": "W1",
+    "effort_points": 3,
+    "title": "Implement clock and settlement-readiness reference",
+    "action": "Model derived stages, grace anchors, funding/epoch/halt cutoff precedence, bootstrap transition, INVALID window readiness and same/conflicting finality outcomes as pure transitions.",
+    "write_files": [
+      "reference/b/lifecycle.py",
+      "reference/tests/b/test_b009.py"
+    ],
+    "read_contract": "G0 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G0"
+    ],
+    "acceptance_command": "python -m unittest discover -s reference/tests/b -p \"test_b009.py\"",
+    "acceptance": "Halt-before-roll and roll-before-halt share the same accrual cutoff; earlyINVALID waits for T; missing index uses only the disclosed fallback rule. No clock alone rewrites balances.",
+    "handoff_at": "G1",
+    "legacy_ids": [
+      "R047",
+      "R048",
+      "R049",
+      "R058",
+      "R061",
+      "R064",
+      "R065"
+    ],
+    "source": "B \u00a710, pp.14\u201316; O \u00a72, pp.2\u20134; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a710, pp.14\u201316; B \u00a717 INV-6/7/11, pp.30\u201331; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a714, pp.22\u201323; B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321; B \u00a714, pp.22\u201323; O \u00a7\u00a77.4,9\u201310, pp.14,18\u201321; B \u00a714, pp.22\u201323; O \u00a7\u00a73,7.7, pp.4\u20136,15; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A010",
+    "owner": "A",
+    "wave": "W2",
+    "effort_points": 3,
+    "title": "Port ledger and payoff primitives to Solidity",
+    "action": "Port exact fill, endpoint/interior equity and paired delta calculations. Import frozen QMath/MathTypes from G1; return values rather than mutating storage.",
+    "write_files": [
+      "contracts/src/math/LedgerMath.sol",
+      "contracts/test/math/A/A010.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/A/A010.t.sol",
+    "acceptance": "Solidity matches rational reference exactly for bounded signed vectors, including no extra WAD division and terminal YES1000atoms per lot.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R014",
+      "R015",
+      "R017"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a74, pp.5\u20136; D \u00a73, pp.6\u20137",
+    "status": "not_started"
+  },
+  {
+    "id": "A011",
+    "owner": "A",
+    "wave": "W2",
+    "effort_points": 5,
+    "title": "Port funding budget and cushion math",
+    "action": "Implement pure epoch rate quantization, affordable seconds, reserve/trader funding flow, clearing and cushion deltas. Keep global commit logic outside this library.",
+    "write_files": [
+      "contracts/src/math/FundingMath.sol",
+      "contracts/test/math/A/A011.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "A010"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/A/A011.t.sol",
+    "acceptance": "Fuzz bounded reserve payer/receiver and OI changes against A005. Full common-index materialization has zero clearing/cushion; intermediate coverage slack does not decrease.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R027",
+      "R028",
+      "R029"
+    ],
+    "source": "B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A012",
+    "owner": "A",
+    "wave": "W2",
+    "effort_points": 5,
+    "title": "Port premium integral and tariff math",
+    "action": "Implement pure clipped-affine integration, cumulative Q rounding, funding-stop/expiry splitting and premium-base updates against fixed epoch inputs.",
+    "write_files": [
+      "contracts/src/math/PremiumMath.sol",
+      "contracts/test/math/A/A012.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "A010"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/A/A012.t.sol",
+    "acceptance": "Solidity is within the specified directed Q bound of the independent rational reference. Inserting neutral touches gives identical integer cumulative charge.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R030",
+      "R031"
+    ],
+    "source": "B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a721, p.36; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A013",
+    "owner": "A",
+    "wave": "W2",
+    "effort_points": 3,
+    "title": "Port exposure, fee and reserve math",
+    "action": "Implement pure fee caps/cumulative allocation, order endpoint deficits, reserve slacks, concentration limit and fee-free takeover deltas.",
+    "write_files": [
+      "contracts/src/math/CoverageMath.sol",
+      "contracts/src/math/FeeMath.sol",
+      "contracts/test/math/A/A013.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "A010"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/A/A013.t.sol",
+    "acceptance": "Both outcome inequalities and exact reservation-release values hold; fragmented fills stay within committed fee cap and takeover moves both cash and position.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R016",
+      "R025",
+      "R026",
+      "R033",
+      "R034",
+      "R055",
+      "R057"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a721, pp.37\u201338; B \u00a79, pp.11\u201314; B \u00a717 INV-2/3, p.30; B \u00a79, pp.11\u201314; B \u00a711, pp.16\u201319; B \u00a710, pp.14\u201316; B \u00a717 INV-16, p.31; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a716, p.29; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A014",
+    "owner": "A",
+    "wave": "W2",
+    "effort_points": 4,
+    "title": "Port settlement and capital allocation math",
+    "action": "Port atom floors, exact Q escrow reclassification, final-share residual,20%-seed backstop bound and disabled recovery arithmetic. Outputs include every rounding owner.",
+    "write_files": [
+      "contracts/src/math/SettlementMath.sol",
+      "contracts/test/math/A/A014.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "A010"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/A/A014.t.sol",
+    "acceptance": "Claim order cannot affect prepared amounts; fee fractions are never LP residual; recovery ratio cannot round upward or divide by zero.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R035",
+      "R036",
+      "R037",
+      "R066",
+      "R067",
+      "R070"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; O \u00a77.9, p.15; selected v1 decision register DEC-01\u201312 where amended; B \u00a714, pp.22\u201323; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A015",
+    "owner": "A",
+    "wave": "W2",
+    "effort_points": 4,
+    "title": "Differential-test accounting math as one engine",
+    "action": "Export independently calculated A-reference traces and run the pure Solidity accounting kernels through fills, funding, premium, takeover and payoff. Report exact versus bounded comparisons explicitly.",
+    "write_files": [
+      "contracts/test/math/A/AccountingDifferential.t.sol",
+      "reference/a/export_vectors.py",
+      "contracts/test/math/A/A015.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "A011",
+      "A012",
+      "A013",
+      "A014"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/A/A015.t.sol",
+    "acceptance": "Every ledger transition is exact in Q; premium rounding and risk-free arithmetic tolerances are enforced rather than silently widened. No storage or token dependency appears in math libraries.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R015",
+      "R071",
+      "R072"
+    ],
+    "source": "B \u00a74, pp.5\u20136; D \u00a73, pp.6\u20137; B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "B010",
+    "owner": "B",
+    "wave": "W2",
+    "effort_points": 4,
+    "title": "Port horizon and hazard bounds",
+    "action": "Implement directed horizon/volatility and hazard/tail/drift upper bounds using G1 QMath. Handle all full-backing and domain branches without external calls.",
+    "write_files": [
+      "contracts/src/math/HorizonMath.sol",
+      "contracts/src/math/HazardMath.sol",
+      "contracts/test/math/B/B010.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/B/B010.t.sol",
+    "acceptance": "Bounds enclose B003/B004 high-precision intervals and remain conservative near epsilon, T and maximum position size.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R018",
+      "R019",
+      "R020",
+      "R021"
+    ],
+    "source": "B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a710, pp.14\u201316; B \u00a7\u00a76\u20138, pp.7\u201311; selected v1 decision register DEC-01\u201312 where amended; B \u00a7\u00a76\u20138, pp.7\u201311",
+    "status": "not_started"
+  },
+  {
+    "id": "B011",
+    "owner": "B",
+    "wave": "W2",
+    "effort_points": 4,
+    "title": "Port margin and account-health math",
+    "action": "Implement MM/IM, cap selection, explicit fullBackingRequired, health and display helpers. Account storage is not read by this library.",
+    "write_files": [
+      "contracts/src/math/MarginMath.sol",
+      "contracts/test/math/B/B011.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "B010"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/B/B011.t.sol",
+    "acceptance": "Long/short/flat and direct-leverage vectors match B005;1x uses exact endpoints and negative equity is never used as a safety divisor.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R022",
+      "R023",
+      "R024"
+    ],
+    "source": "B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a77, pp.8\u20139; \u00a718, pp.31\u201333; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B012",
+    "owner": "B",
+    "wave": "W2",
+    "effort_points": 5,
+    "title": "Port certified order-risk calculations",
+    "action": "Port all-prefix marked-equity bound, monotone sign envelope and at-most64-step safe halving cap. Consume G1/G2-design coverage results through explicit values.",
+    "write_files": [
+      "contracts/src/math/OrderAdmissionMath.sol",
+      "contracts/test/math/B/B012.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "B011"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/B/B012.t.sol",
+    "acceptance": "Every admitted small-state prefix passes reference enumeration; direct5x entry is admitted; side-flip and stale extrema remain conservative.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R043",
+      "R046"
+    ],
+    "source": "B \u00a711, pp.16\u201319; selected v1 decision register DEC-01\u201312 where amended; B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a711, pp.16\u201319; B \u00a716, pp.27\u201330",
+    "status": "not_started"
+  },
+  {
+    "id": "B013",
+    "owner": "B",
+    "wave": "W2",
+    "effort_points": 3,
+    "title": "Port pricing calculations",
+    "action": "Implement interval accumulation, weighted averages, median/clamp, depth-validity calculation and beta0 rate recommendation. Signature authentication and storage ring buffers remain later tasks.",
+    "write_files": [
+      "contracts/src/math/PricingMath.sol",
+      "contracts/test/math/B/B013.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "B010"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/B/B013.t.sol",
+    "acceptance": "Irregular samples, empty windows, stale gaps and all median orderings match B007; same timestamp cannot add elapsed price weight.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R039",
+      "R040",
+      "R041"
+    ],
+    "source": "B \u00a713, pp.20\u201322; B \u00a712, pp.19\u201320; B \u00a713, pp.20\u201322",
+    "status": "not_started"
+  },
+  {
+    "id": "B014",
+    "owner": "B",
+    "wave": "W2",
+    "effort_points": 4,
+    "title": "Port liquidation and clock predicates",
+    "action": "Port reduction target/bankruptcy/pacing decisions and stage/cutoff/readiness predicates. Keep orchestration outside; encode positive-equity work exhaustion and floor-only takeovers explicitly.",
+    "write_files": [
+      "contracts/src/math/LiquidationMath.sol",
+      "contracts/src/math/LifecycleMath.sol",
+      "contracts/test/math/B/B014.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "B011"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/B/B014.t.sol",
+    "acceptance": "Fee-aware candidate sizes obey B008; boundary timestamps and earlyINVALID obey B009. Takeover eligibility never depends only on requested max work.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R047",
+      "R048",
+      "R050",
+      "R053",
+      "R054",
+      "R056",
+      "R058"
+    ],
+    "source": "B \u00a710, pp.14\u201316; O \u00a72, pp.2\u20134; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a710, pp.14\u201316; B \u00a713, pp.20\u201322; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a711, pp.16\u201319; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a714, pp.22\u201323",
+    "status": "not_started"
+  },
+  {
+    "id": "B015",
+    "owner": "B",
+    "wave": "W2",
+    "effort_points": 4,
+    "title": "Differential-test risk math as one engine",
+    "action": "Compare pure Solidity risk/price/lifecycle results with independent high-precision B-reference outputs; verify monotonic envelopes, full-backing branches and order-prefix acceptance.",
+    "write_files": [
+      "contracts/test/math/B/RiskDifferential.t.sol",
+      "reference/b/export_vectors.py",
+      "contracts/test/math/B/B015.t.sol"
+    ],
+    "read_contract": "G1 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G1",
+      "B012",
+      "B013",
+      "B014"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/math/B/B015.t.sol",
+    "acceptance": "All required risk bounds round conservatively with documented tolerances; direct5x, short100-versus80, boundary domains and invalid inputs pass the right accept/reject cases.",
+    "handoff_at": "G2",
+    "legacy_ids": [
+      "R023",
+      "R024",
+      "R043",
+      "R072",
+      "R073"
+    ],
+    "source": "B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a77, pp.8\u20139; \u00a718, pp.31\u201333; selected v1 decision register DEC-01\u201312 where amended; B \u00a711, pp.16\u201319; selected v1 decision register DEC-01\u201312 where amended; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "A016",
+    "owner": "A",
+    "wave": "W3",
+    "effort_points": 4,
+    "title": "Implement isolated storage and account registry",
+    "action": "Store selected account/market fields, append-only1024-trader registry, separate reserve and checked epochs. Adapt frozen MathTypes through one explicit state conversion; do not edit B-owned math.",
+    "write_files": [
+      "contracts/src/risk/RiskStorage.sol",
+      "contracts/src/risk/AccountRegistry.sol",
+      "contracts/test/risk/A/A016.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A016.t.sol",
+    "acceptance": "No market aliasing or ID reuse; trader1025 fails; zero-position cash holders remain registered. Storage-to-math conversions preserve units.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R004",
+      "R025"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a717 INV-2/3, p.30",
+    "status": "not_started"
+  },
+  {
+    "id": "A017",
+    "owner": "A",
+    "wave": "W3",
+    "effort_points": 4,
+    "title": "Implement collateral custody and allocation",
+    "action": "Implement approved-token deposit, free-balance withdrawal, market allocation and guarded release. G2 frozen admission port supplies release decisions through an A-owned scripted double until G3.",
+    "write_files": [
+      "contracts/src/vaults/CollateralVault.sol",
+      "contracts/test/risk/A/A017.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "A016"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A017.t.sol",
+    "acceptance": "Actual received atoms equal credits; releases cannot bypass the risk decision; allocation plus free balances and escrows reconcile to custody; reentry/wrong token fails.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R010",
+      "R011",
+      "R012",
+      "R013"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a717 INV-1, p.30; B \u00a716, pp.27\u201330; B \u00a716, pp.27\u201330; B \u00a711, pp.16\u201317",
+    "status": "not_started"
+  },
+  {
+    "id": "A018",
+    "owner": "A",
+    "wave": "W3",
+    "effort_points": 4,
+    "title": "Implement paired ledger posting and fee ledgers",
+    "action": "Commit pure LedgerMath/FeeMath deltas to state through internal-only paired functions. Add protocol and per-beneficiary keeper Q liabilities; retain single-authority cash mutation.",
+    "write_files": [
+      "contracts/src/risk/Accounting.sol",
+      "contracts/src/risk/FeeAccounting.sol",
+      "contracts/test/risk/A/A018.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "A016"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A018.t.sol",
+    "acceptance": "No public arbitrary cash/position setter; opposite legs, fees and OI update atomically; a failing second leg leaves no earlier state/log.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R014",
+      "R016",
+      "R057"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a716, pp.27\u201330; B \u00a721, pp.37\u201338; B \u00a710, pp.14\u201316; B \u00a716, p.29; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A019",
+    "owner": "A",
+    "wave": "W3",
+    "effort_points": 3,
+    "title": "Implement live reserve coverage accumulator",
+    "action": "Maintain reserve account, trader stored deficits, funding cushion and allowance as separate quantities; replace touched contributions atomically through frozen accounting port.",
+    "write_files": [
+      "contracts/src/risk/ReserveAccounting.sol",
+      "contracts/test/risk/A/A019.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "A018"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A019.t.sol",
+    "acceptance": "Reserve position is in OI/net position but not trader deficits; both coverage inequalities hold after each posted action.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R025",
+      "R026",
+      "R034"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a717 INV-2/3, p.30; B \u00a79, pp.11\u201314",
+    "status": "not_started"
+  },
+  {
+    "id": "A020",
+    "owner": "A",
+    "wave": "W3",
+    "effort_points": 3,
+    "title": "Implement locked reserve shares and backstop registry",
+    "action": "Implement preactivation1share/atom issuance,256-holder bound, seven-day share notice, live lock/donation behavior and pre-funded per-market20%-seed backstop allocation. Final redemption execution follows W6.",
+    "write_files": [
+      "contracts/src/vaults/ReserveVault.sol",
+      "contracts/src/vaults/BackstopPool.sol",
+      "contracts/test/risk/A/A020.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "A017",
+      "A019"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A020.t.sol",
+    "acceptance": "No live mint/redeem or cross-market promised capital counts as cover; notice fixes shares, not a USDC amount.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R035",
+      "R036",
+      "R037"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; O \u00a77.9, p.15; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A021",
+    "owner": "A",
+    "wave": "W3",
+    "effort_points": 3,
+    "title": "Expose internal accounting ports and harness",
+    "action": "Implement the G2 internal posting/coverage/release port over real A state, with action-cutoff and version checks. Harness simulates callers without exposing production ledger setters.",
+    "write_files": [
+      "contracts/src/risk/AccountingPort.sol",
+      "contracts/test/mocks/A/MockRiskDecision.sol",
+      "contracts/test/harness/A/AccountingHarness.sol",
+      "contracts/test/risk/A/A021.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "A017",
+      "A018",
+      "A019",
+      "A020"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A021.t.sol",
+    "acceptance": "B can supply prevalidated deltas through the internal interface; unauthorized/stale permits fail. Actual storage matches the reference on deposit\u2192allocation\u2192paired posting.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R003",
+      "R005",
+      "R012",
+      "R015"
+    ],
+    "source": "B \u00a711, pp.16\u201319; D \u00a79.8, p.17; B \u00a716, pp.27\u201330; D \u00a79.8, p.17; B \u00a716, pp.27\u201330; B \u00a711, pp.16\u201317; B \u00a74, pp.5\u20136; D \u00a73, pp.6\u20137",
+    "status": "not_started"
+  },
+  {
+    "id": "B016",
+    "owner": "B",
+    "wave": "W3",
+    "effort_points": 4,
+    "title": "Implement authenticated observation ingress",
+    "action": "Verify source identity, chain/engine domain, sequence and observed/published/accepted timestamps. Accept supplied signed payloads; external venue fetching remains CP-PRICE responsibility.",
+    "write_files": [
+      "contracts/src/pricing/PriceIngress.sol",
+      "contracts/src/interfaces/IPriceSource.sol",
+      "contracts/test/risk/B/B016.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B016.t.sol",
+    "acceptance": "Wrong domain/signer/source, duplicate/backwards sequence and future observation fail. A delayed observation does not become fresh at acceptance.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R008",
+      "R038"
+    ],
+    "source": "B \u00a713, pp.20\u201322",
+    "status": "not_started"
+  },
+  {
+    "id": "B017",
+    "owner": "B",
+    "wave": "W3",
+    "effort_points": 4,
+    "title": "Implement valid-window observation storage",
+    "action": "Persist index/perp/basis cumulative integrals and coverage intervals using PricingMath. Keep separate24h INVALID capture history and bounded query/growth rules.",
+    "write_files": [
+      "contracts/src/pricing/ObservationStore.sol",
+      "contracts/test/risk/B/B017.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "B016"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B017.t.sol",
+    "acceptance": "300s/60s/15min windows time-weight irregular observations; stale gaps invalidate coverage; history required by INVALID is not pruned early.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R039"
+    ],
+    "source": "B \u00a713, pp.20\u201322",
+    "status": "not_started"
+  },
+  {
+    "id": "B018",
+    "owner": "B",
+    "wave": "W3",
+    "effort_points": 4,
+    "title": "Implement risk context and pricing bootstrap",
+    "action": "Build immutable per-action RiskContext from current index, mark, config and time. Implement exactly-backed bootstrap and full-window normal-pricing transition at epoch opening.",
+    "write_files": [
+      "contracts/src/pricing/RiskPricing.sol",
+      "contracts/test/risk/B/B018.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "B017"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B018.t.sol",
+    "acceptance": "Empty book can seed fully-backed depth using valid independent index. Missing normal mark never enables leveraged admission or mark liquidation.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R040",
+      "R041"
+    ],
+    "source": "B \u00a713, pp.20\u201322; B \u00a712, pp.19\u201320; B \u00a713, pp.20\u201322",
+    "status": "not_started"
+  },
+  {
+    "id": "B019",
+    "owner": "B",
+    "wave": "W3",
+    "effort_points": 3,
+    "title": "Implement config, authority and boundary ports",
+    "action": "Validate immutable listing/rules/INVALID horizon, role addresses, profile hashes and internal book/oracle ABI against G2 contract. Treat mutable calibration as versioned risk input.",
+    "write_files": [
+      "contracts/src/interfaces/IMarketConfig.sol",
+      "contracts/src/interfaces/IBookRiskHooks.sol",
+      "contracts/src/interfaces/IResolutionIngress.sol",
+      "contracts/src/risk/RiskContextPort.sol",
+      "contracts/test/risk/B/B019.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B019.t.sol",
+    "acceptance": "ExternalYES1/NO2 maps through payoff1/0 to localYES2/NO1; wrong role cannot choose outcome. No oracle callback can rewrite balances or market rules.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R003",
+      "R009",
+      "R024"
+    ],
+    "source": "B \u00a711, pp.16\u201319; D \u00a79.8, p.17; B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321; B \u00a77, pp.8\u20139; \u00a718, pp.31\u201333; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B020",
+    "owner": "B",
+    "wave": "W3",
+    "effort_points": 3,
+    "title": "Build counterpart and accounting doubles",
+    "action": "Build bounded deterministic book, resolution and scripted accounting doubles implementing the G2 contracts. Keep signatures identical to real ports; doubles supply scripted results, not a second risk engine.",
+    "write_files": [
+      "contracts/test/mocks/B/MockBookAdapter.sol",
+      "contracts/test/mocks/B/MockResolutionAuthority.sol",
+      "contracts/test/mocks/B/MockAccountingPort.sol",
+      "contracts/test/harness/B/RiskHarness.sol",
+      "contracts/test/risk/B/B020.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "B019"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B020.t.sol",
+    "acceptance": "Risk/price modules compile and test independently of A state. Doubles record calls/units and fail unexpected sequencing rather than always return success.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R005",
+      "R008",
+      "R009"
+    ],
+    "source": "B \u00a716, pp.27\u201330; D \u00a79.8, p.17; B \u00a713, pp.20\u201322; B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321",
+    "status": "not_started"
+  },
+  {
+    "id": "B021",
+    "owner": "B",
+    "wave": "W3",
+    "effort_points": 3,
+    "title": "Implement source guards and monitor restrictions",
+    "action": "Track continuous fundingFreshThrough,30-second stale threshold,0.10/five-minute movement and authenticated reduce-only requests. Emit fixed context inputs without modifying A funding state directly.",
+    "write_files": [
+      "contracts/src/pricing/SourceGuards.sol",
+      "contracts/src/risk/MonitorPolicy.sol",
+      "contracts/test/risk/B/B021.t.sol"
+    ],
+    "read_contract": "G2 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G2",
+      "B018",
+      "B019",
+      "B020"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B021.t.sol",
+    "acceptance": "A late fresh observation cannot erase an old funding gap; monitor cannot settle/halt or lower hazards; missing calibration forces specified unavailable/1x mode.",
+    "handoff_at": "G3",
+    "legacy_ids": [
+      "R040",
+      "R041",
+      "R047"
+    ],
+    "source": "B \u00a713, pp.20\u201322; B \u00a712, pp.19\u201320; B \u00a713, pp.20\u201322; B \u00a710, pp.14\u201316; O \u00a72, pp.2\u20134; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A022",
+    "owner": "A",
+    "wave": "W4",
+    "effort_points": 4,
+    "title": "Integrate fixed-epoch funding into state",
+    "action": "Use FundingMath with current old OI, fixed epoch rate, G3 context cutoffs, budget and reserve funding. Accrue before any position mutation; initial zero OI disables the epoch.",
+    "write_files": [
+      "contracts/src/risk/FundingAccounting.sol",
+      "contracts/test/risk/A/A022.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A022.t.sol",
+    "acceptance": "No rate reversal/restart within epoch; budget exhaustion and stale-gap stops use authorized seconds only; reserve payer/receiver and clearing remain exact.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R027",
+      "R028",
+      "R029"
+    ],
+    "source": "B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A023",
+    "owner": "A",
+    "wave": "W4",
+    "effort_points": 5,
+    "title": "Integrate premium segments and surcharge state",
+    "action": "Persist premium origin, posted cumulative integral, epoch-paid amount and surcharge expiry. Use PremiumMath without resetting origin on neutral touch; genuine principal mutations close/reopen segments.",
+    "write_files": [
+      "contracts/src/risk/PremiumAccounting.sol",
+      "contracts/test/risk/A/A023.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A023.t.sol",
+    "acceptance": "Repeated neutral sync equals one delayed sync; new principal deficit renews4x while funding/premium alone does not; all premium transfers credit reserve exactly.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R030",
+      "R031"
+    ],
+    "source": "B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a721, p.36; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A024",
+    "owner": "A",
+    "wave": "W4",
+    "effort_points": 4,
+    "title": "Implement the authoritative account-touch sequence",
+    "action": "Combine old funding, premium, cushion retirement and stored-deficit replacement through A ports. Clear invalid reservation generations only through the agreed aggregate contract.",
+    "write_files": [
+      "contracts/src/risk/AccountSync.sol",
+      "contracts/test/risk/A/A024.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "A022",
+      "A023"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A024.t.sol",
+    "acceptance": "No touch double-charges or retires another account cushion; a completed common-index set has zero funding clearing and correct deficits.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R026",
+      "R029",
+      "R030",
+      "R033"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a74, pp.5\u20136; B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended; B \u00a711, pp.16\u201319",
+    "status": "not_started"
+  },
+  {
+    "id": "A025",
+    "owner": "A",
+    "wave": "W4",
+    "effort_points": 4,
+    "title": "Implement bounded accounting rollover",
+    "action": "Freeze cutoff/count, block all live market-ledger mutations, process at most32 traders, stage next bases and commit next epoch only when reconciliation passes. Halt can adopt the frozen work generation.",
+    "write_files": [
+      "contracts/src/risk/EpochRollover.sol",
+      "contracts/test/risk/A/A025.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "A024"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A025.t.sol",
+    "acceptance": "Repeated/interrupted pages charge once; no market top-up/fill/release slips into a sweep; skipped hours add no accrual.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R032"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a712, pp.19\u201320; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A026",
+    "owner": "A",
+    "wave": "W4",
+    "effort_points": 3,
+    "title": "Compose atomic clearing actions behind the port",
+    "action": "Implement the single mutation envelope around G3 AccountingPort: old global accrual, touched account settlement, paired deltas/reservations, OI, coverage and events. Consume a B decision adapter via frozen signatures.",
+    "write_files": [
+      "contracts/src/risk/ClearingCore.sol",
+      "contracts/test/risk/A/A026.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "A024",
+      "A025"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A026.t.sol",
+    "acceptance": "Each successful fill checks updated mutable aggregates; injected postcondition failure rolls back all legs/logs. Prices can freeze per action but cash/OI cannot.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R034",
+      "R044"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a711, pp.16\u201319; D \u00a7\u00a79.6\u20139.8, pp.16\u201317",
+    "status": "not_started"
+  },
+  {
+    "id": "A027",
+    "owner": "A",
+    "wave": "W4",
+    "effort_points": 3,
+    "title": "Verify fee, withdrawal and conservation paths",
+    "action": "Exercise real A clearing against a scripted B decision port, including fragmented fees, guarded releases, same-time fills and two-outcome coverage. Fix A modules only.",
+    "write_files": [
+      "contracts/test/risk/A/TradeAccountingInvariant.t.sol",
+      "contracts/test/risk/A/A027.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "A026"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A027.t.sol",
+    "acceptance": "Fee caps cover every fragment, keeper fractions persist, and custody/zero-sum/coverage invariants hold per transaction; rejection preserves expected synchronization only.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R012",
+      "R016",
+      "R034",
+      "R057",
+      "R071",
+      "R075"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a711, pp.16\u201317; B \u00a716, pp.27\u201330; B \u00a721, pp.37\u201338; B \u00a79, pp.11\u201314; B \u00a710, pp.14\u201316; B \u00a716, p.29; selected v1 decision register DEC-01\u201312 where amended; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a79, pp.11\u201314; B \u00a711, pp.16\u201319; B \u00a712, pp.19\u201320",
+    "status": "not_started"
+  },
+  {
+    "id": "B022",
+    "owner": "B",
+    "wave": "W4",
+    "effort_points": 4,
+    "title": "Implement generation-scoped reservations",
+    "action": "Maintain exact bid/ask quantities, valueQ, fee commitment and conservative price extrema. Implement rest/unrest with tick, remaining fees, full epochs and generation-safe sidecars.",
+    "write_files": [
+      "contracts/src/risk/OrderRisk.sol",
+      "contracts/test/risk/B/B022.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B022.t.sol",
+    "acceptance": "Cancel7@400 from7@400+11@600 leaves11lots/value6600atoms. Old-epoch pruning cannot subtract new reservations.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R042",
+      "R045"
+    ],
+    "source": "B \u00a711, pp.16\u201319; D \u00a79.8, p.17; B \u00a711, pp.16\u201319",
+    "status": "not_started"
+  },
+  {
+    "id": "B023",
+    "owner": "B",
+    "wave": "W4",
+    "effort_points": 5,
+    "title": "Implement maker/taker admission decisions",
+    "action": "Use G2 OrderAdmissionMath and G3 RiskContext to issue all-prefix taker permits and re-admit each maker after the accounting port touches it. Preserve reduction-mode permissions.",
+    "write_files": [
+      "contracts/src/risk/OrderAdmission.sol",
+      "contracts/test/risk/B/B023.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "B022"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B023.t.sol",
+    "acceptance": "Direct5x fixture completes a paired fill through the mock port; side flips, under-margin makers and coverage shortage produce specified prune/stop results before mutation.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R043",
+      "R044"
+    ],
+    "source": "B \u00a711, pp.16\u201319; selected v1 decision register DEC-01\u201312 where amended; B \u00a711, pp.16\u201319; D \u00a7\u00a79.6\u20139.8, pp.16\u201317",
+    "status": "not_started"
+  },
+  {
+    "id": "B024",
+    "owner": "B",
+    "wave": "W4",
+    "effort_points": 4,
+    "title": "Implement bounded internal book adapter",
+    "action": "Compose matcher hook calls over the frozen G3 accounting port, with at-most64 examined makers, permit release/rest conversion and no external calls in the loop.",
+    "write_files": [
+      "contracts/src/risk/BookRiskAdapter.sol",
+      "contracts/test/risk/B/B024.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "B023"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B024.t.sol",
+    "acceptance": "Stale/self/expired makers consume steps; expected maker skip retains prior valid fills; unexpected invariant failure reverts the entire transaction. No duplicate unrest on filled size.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R003",
+      "R044",
+      "R045"
+    ],
+    "source": "B \u00a711, pp.16\u201319; D \u00a79.8, p.17; B \u00a711, pp.16\u201319; D \u00a7\u00a79.6\u20139.8, pp.16\u201317; B \u00a711, pp.16\u201319",
+    "status": "not_started"
+  },
+  {
+    "id": "B025",
+    "owner": "B",
+    "wave": "W4",
+    "effort_points": 4,
+    "title": "Implement reductions and order amendments",
+    "action": "Apply inclusive expiry, positionVersion, cancel-all, size-down priority and cancel/replace for widened permissions. Enforce no revival after long\u2192flat\u2192short\u2192long.",
+    "write_files": [
+      "contracts/src/risk/OrderLifecycle.sol",
+      "contracts/test/risk/B/B025.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "B024"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B025.t.sol",
+    "acceptance": "Reduce-only10 against currentlong3 fills at most3 and releases7 once. Stale generation cannot affect slot reuse; crossed LIMIT remainder is dropped.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R042",
+      "R045"
+    ],
+    "source": "B \u00a711, pp.16\u201319; D \u00a79.8, p.17; B \u00a711, pp.16\u201319",
+    "status": "not_started"
+  },
+  {
+    "id": "B026",
+    "owner": "B",
+    "wave": "W4",
+    "effort_points": 3,
+    "title": "Implement trade and release previews",
+    "action": "Return authoritative unit-tagged order/account previews using B math and G3 accounting views. Include version/cutoff and the same bootstrap/stale/sweep rejection semantics as execution.",
+    "write_files": [
+      "contracts/src/risk/TradePreview.sol",
+      "contracts/test/risk/B/B026.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "B023",
+      "B025"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B026.t.sol",
+    "acceptance": "Projected premium/funding is labeled; preview vs execution at the same immutable context agrees on accepted cap and required collateral.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R023",
+      "R046",
+      "R059"
+    ],
+    "source": "B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a7\u00a76\u20138, pp.7\u201311; B \u00a711, pp.16\u201319; B \u00a716, pp.27\u201330; B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320",
+    "status": "not_started"
+  },
+  {
+    "id": "B027",
+    "owner": "B",
+    "wave": "W4",
+    "effort_points": 3,
+    "title": "Verify the complete book seam against a double",
+    "action": "Run the specified book boundary cases through real B hooks plus scripted accounting; record exact call sequence expected from A for G4 compatibility.",
+    "write_files": [
+      "contracts/test/risk/B/BookSeam.t.sol",
+      "contracts/test/risk/B/B027.t.sol"
+    ],
+    "read_contract": "G3 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G3",
+      "B024",
+      "B025",
+      "B026"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B027.t.sol",
+    "acceptance": "All-prefix, mutable-aggregate, stale maker, post-only/IOC and rollback cases pass; no mock result is reported as real A integration.",
+    "handoff_at": "G4",
+    "legacy_ids": [
+      "R044",
+      "R045",
+      "R075",
+      "R076"
+    ],
+    "source": "B \u00a711, pp.16\u201319; D \u00a7\u00a79.6\u20139.8, pp.16\u201317; B \u00a711, pp.16\u201319; B \u00a79, pp.11\u201314; B \u00a711, pp.16\u201319; B \u00a712, pp.19\u201320; B \u00a716, pp.27\u201330; O \u00a7\u00a79\u201310, pp.18\u201321; D \u00a79.8, p.17",
+    "status": "not_started"
+  },
+  {
+    "id": "A028",
+    "owner": "A",
+    "wave": "W5",
+    "effort_points": 4,
+    "title": "Implement authorized whole-account takeover",
+    "action": "Touch and invalidate account orders via existing ports, transfer both cash and position to reserve, zero obligations and preserve fee-free takeover. Consume B eligibility capability without choosing a mark.",
+    "write_files": [
+      "contracts/src/risk/TakeoverAccounting.sol",
+      "contracts/test/risk/A/A028.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A028.t.sol",
+    "acceptance": "Fresh E<=0, floor legacy deficit or both endpoints nonpositive are the only authorized routes. Positive equity plus work shortage never suffices; each outcome slack is nondecreasing.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R055"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a717 INV-16, p.31; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A029",
+    "owner": "A",
+    "wave": "W5",
+    "effort_points": 3,
+    "title": "Implement liquidation fee and keeper escrow posting",
+    "action": "Post executed-close fee of one atom per lot, half reserve/half keeper in Q, including explicit reduction/waiver when full fee fails predicates. Separate withdrawal of owned keeper atoms.",
+    "write_files": [
+      "contracts/src/risk/LiquidationFees.sol",
+      "contracts/test/risk/A/A029.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "A028"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A029.t.sol",
+    "acceptance": "No-action and takeover pay zero; an odd half-atom remains owned; keeper withdrawal cannot consume trader or reserve coverage.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R057"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a716, p.29; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A030",
+    "owner": "A",
+    "wave": "W5",
+    "effort_points": 4,
+    "title": "Implement epoch-to-halt freeze handoff",
+    "action": "Freeze opening ledgers, fundingFQ and premium cutoff at min(halt event, active epoch end), with earlier funding stops. Expose resumable working snapshots even during rollover.",
+    "write_files": [
+      "contracts/src/risk/FreezeAccounting.sol",
+      "contracts/test/risk/A/A030.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A030.t.sol",
+    "acceptance": "Halt-before-first-roll and halt-during-roll produce identical legal accrual for matching cutoffs; no processing-time accrual or premature reserve snapshot finalization.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R058",
+      "R061",
+      "R062"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a714, pp.22\u201323; B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321; B \u00a714, pp.22\u201323; D \u00a78, p.13",
+    "status": "not_started"
+  },
+  {
+    "id": "A031",
+    "owner": "A",
+    "wave": "W5",
+    "effort_points": 3,
+    "title": "Implement floor-sweep accounting operations",
+    "action": "Provide bounded sync/reconcile/takeover operations for the B floor lifecycle, including cursor/count and no account enrollment/live mutation during the frozen sweep.",
+    "write_files": [
+      "contracts/src/risk/FloorAccounting.sol",
+      "contracts/test/risk/A/A031.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "A028",
+      "A030"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A031.t.sol",
+    "acceptance": "Clock alone never reports reconciled; each frozen account is visited once and every takeover maintains reserve coverage.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R049",
+      "R055"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a717 INV-6/7/11, pp.30\u201331; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a717 INV-16, p.31; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A032",
+    "owner": "A",
+    "wave": "W5",
+    "effort_points": 3,
+    "title": "Publish ledger events and reconciliation reader",
+    "action": "Expose exact accounting event schema and A-side views for funding, premium, fees, takeover, vault allocation and sweep progress. Keep one canonical paired Fill emission owned by the orchestrator.",
+    "write_files": [
+      "contracts/src/risk/AccountingEvents.sol",
+      "packages/risk-sdk/src/accounting.ts",
+      "contracts/test/risk/A/A032.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "A029",
+      "A030",
+      "A031"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A032.t.sol",
+    "acceptance": "An event replay matches stored/virtual cash with fundingClearing included; Q and atoms are never conflated and canonical fills are not counted twice.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R059",
+      "R060"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a716, pp.27\u201330; D \u00a711.5, p.23",
+    "status": "not_started"
+  },
+  {
+    "id": "A033",
+    "owner": "A",
+    "wave": "W5",
+    "effort_points": 4,
+    "title": "Verify liquidation accounting under interruption",
+    "action": "Use scripted eligibility/book outcomes to replay partial closes, takeover, empty liquidity, fee waiver, floor sweep and early halt in every page state.",
+    "write_files": [
+      "contracts/test/risk/A/LiquidationAccounting.t.sol",
+      "contracts/test/risk/A/A033.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "A028",
+      "A029",
+      "A030",
+      "A031",
+      "A032"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A033.t.sol",
+    "acceptance": "All cash/position invariants survive interruption; frozen cutoff and exactly-once sync hold; short caller budget cannot create a reward or confiscation.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R055",
+      "R057",
+      "R058",
+      "R071",
+      "R073"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a717 INV-16, p.31; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a716, p.29; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a714, pp.22\u201323; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "B028",
+    "owner": "B",
+    "wave": "W5",
+    "effort_points": 4,
+    "title": "Implement derived stage and grace state",
+    "action": "Apply G2 LifecycleMath to time-derived stage precedence, nonrenewable grace, risk epochs, monitor restrictions and stronger halt/sweep gates.",
+    "write_files": [
+      "contracts/src/risk/RiskLifecycle.sol",
+      "contracts/test/risk/B/B028.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B028.t.sol",
+    "acceptance": "BelowMM has no grace; repeated touch cannot reset grace; stage restriction applies without keeper transition and bootstrap cannot override a halt.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R047",
+      "R048"
+    ],
+    "source": "B \u00a710, pp.14\u201316; O \u00a72, pp.2\u20134; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316",
+    "status": "not_started"
+  },
+  {
+    "id": "B029",
+    "owner": "B",
+    "wave": "W5",
+    "effort_points": 3,
+    "title": "Implement floor reconciliation controller",
+    "action": "Start invalidation and bounded floor generation at T\u221212h; coordinate G4/G5-design floor accounting port without writing cash. Halt overrides unfinished compression.",
+    "write_files": [
+      "contracts/src/risk/FloorLifecycle.sol",
+      "contracts/test/risk/B/B029.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "B028"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B029.t.sol",
+    "acceptance": "No new exposure increases endpoint deficits; reconciled only after complete frozen list; live book calls cannot mutate a floor sweep.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R049"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a717 INV-6/7/11, pp.30\u201331; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B030",
+    "owner": "B",
+    "wave": "W5",
+    "effort_points": 4,
+    "title": "Implement liquidation eligibility and pair selection",
+    "action": "Authorize liquidation modes from synchronized health; cancel commitments first; validate at most one explicitly supplied opposite eligible partner at deterministic common tick.",
+    "write_files": [
+      "contracts/src/risk/LiquidationEligibility.sol",
+      "contracts/test/risk/B/B030.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "B028"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B030.t.sol",
+    "acceptance": "Noneligible attempts do not cancel valid orders or earn rewards; both pair participants satisfy fee-aware allowed-reduction predicate before a paired posting.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R050",
+      "R051",
+      "R052"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a713, pp.20\u201322; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a711, pp.16\u201319; B \u00a710, pp.14\u201316",
+    "status": "not_started"
+  },
+  {
+    "id": "B031",
+    "owner": "B",
+    "wave": "W5",
+    "effort_points": 3,
+    "title": "Implement bounded book close and continuation",
+    "action": "Use LiquidationMath size and bankruptcy limits to submit reduce-only IOC through the existing book adapter; enforce per-block lot pacing and examination bounds.",
+    "write_files": [
+      "contracts/src/risk/LiquidationBookAdapter.sol",
+      "contracts/test/risk/B/B031.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "B030"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B031.t.sol",
+    "acceptance": "Actual post-fill health is recomputed; insufficient work/liquidity returns NEEDS_MORE_WORK for positive equity, retaining cover and valid remainder semantics.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R053",
+      "R054",
+      "R056"
+    ],
+    "source": "B \u00a710, pp.14\u201316; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a711, pp.16\u201319; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B032",
+    "owner": "B",
+    "wave": "W5",
+    "effort_points": 3,
+    "title": "Compose liquidation lifecycle and views",
+    "action": "Orchestrate pair/book/takeover requests through fixed accounting ports; expose complete risk/stage/progress/rejection views without an alternative cash ledger.",
+    "write_files": [
+      "contracts/src/risk/RiskLiquidation.sol",
+      "contracts/src/risk/RiskView.sol",
+      "contracts/test/risk/B/B032.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "B029",
+      "B030",
+      "B031"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B032.t.sol",
+    "acceptance": "Takeover request carries the exact authorized predicate/cutoff; partial reductions cannot flip side; views label unavailable prices and pending work.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R056",
+      "R059"
+    ],
+    "source": "B \u00a710, pp.14\u201316; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320",
+    "status": "not_started"
+  },
+  {
+    "id": "B033",
+    "owner": "B",
+    "wave": "W5",
+    "effort_points": 4,
+    "title": "Verify lifecycle with no keeper and scarce liquidity",
+    "action": "Warp across epochs, grace, backing floor and halt using real B controllers with scripted A ports. Test no keeper, empty book, stale mark and tiny caller budget separately.",
+    "write_files": [
+      "contracts/test/risk/B/LifecycleBoundaries.t.sol",
+      "contracts/test/risk/B/B033.t.sol"
+    ],
+    "read_contract": "G4 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G4",
+      "B032"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B033.t.sol",
+    "acceptance": "No temporal or mock shortcut bypasses coverage/gates; account registry remains frozen during sweeps; positive equity remains covered when closeout cannot finish.",
+    "handoff_at": "G5",
+    "legacy_ids": [
+      "R049",
+      "R056",
+      "R073"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a717 INV-6/7/11, pp.30\u201331; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "A034",
+    "owner": "A",
+    "wave": "W6",
+    "effort_points": 4,
+    "title": "Implement frozen account materialization",
+    "action": "Process at most32 frozen participants per page from G5 freeze inputs; materialize funding/premium once into immutable working account snapshots and reserve accumulator.",
+    "write_files": [
+      "contracts/src/settlement/SnapshotLedger.sol",
+      "contracts/test/risk/A/A034.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A034.t.sol",
+    "acceptance": "Visited and unvisited rollover accounts reconcile at one cutoff; zero-position cash holders remain; final clearing and cushion equal zero.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R062"
+    ],
+    "source": "B \u00a714, pp.22\u201323; D \u00a78, p.13",
+    "status": "not_started"
+  },
+  {
+    "id": "A035",
+    "owner": "A",
+    "wave": "W6",
+    "effort_points": 4,
+    "title": "Implement payout preparation and escrow allocation",
+    "action": "Use SettlementMath over complete frozen snapshots and B finality/price inputs; prepare every nonnegative atom claim, exact fee escrows and reserve residual before enabling claims.",
+    "write_files": [
+      "contracts/src/settlement/PayoutLedger.sol",
+      "contracts/test/risk/A/A035.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "A034"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A035.t.sol",
+    "acceptance": "YES/NO/INVALID totals fit assets or return RECOVERY_REQUIRED; protocol/keeper fractions are reclassified before LP residual and claim order cannot change amounts.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R063",
+      "R066",
+      "R070"
+    ],
+    "source": "B \u00a714, pp.22\u201323; B \u00a717 INV-12, p.31; B \u00a714, pp.22\u201323; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A036",
+    "owner": "A",
+    "wave": "W6",
+    "effort_points": 3,
+    "title": "Implement prelisted disabled recovery calculator",
+    "action": "Wire the pre-funded capped backstop contribution and disabled pro-rata recovery calculation to finalized deficits. Baseline recoveryEnabled=false is immutable.",
+    "write_files": [
+      "contracts/src/settlement/RecoveryAccounting.sol",
+      "contracts/test/risk/A/A036.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "A035"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A036.t.sol",
+    "acceptance": "No live admin switch can haircut baseline claims; recovery-enabled test listings floor fixed pro-rata entitlements and handle zero total claims.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R037",
+      "R067"
+    ],
+    "source": "B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; O \u00a77.9, p.15; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A037",
+    "owner": "A",
+    "wave": "W6",
+    "effort_points": 4,
+    "title": "Implement independent once-only cash claims",
+    "action": "Transfer prepared trader atoms using fixed owner/recipient policy and checks-effects-interactions; retain liability for a failed transfer and prevent double claims.",
+    "write_files": [
+      "contracts/src/settlement/ClaimEscrow.sol",
+      "contracts/test/risk/A/A037.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "A035",
+      "A036"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A037.t.sol",
+    "acceptance": "Repeated claim has no second effect; one blocked recipient cannot block another; claims cannot start from oracleFinal alone.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R068"
+    ],
+    "source": "B \u00a714, pp.22\u201323; B \u00a717 INV-12/15, p.31",
+    "status": "not_started"
+  },
+  {
+    "id": "A038",
+    "owner": "A",
+    "wave": "W6",
+    "effort_points": 3,
+    "title": "Implement terminal reserve and fee release",
+    "action": "Pay matured-notice reserve shares against frozen final denominator only after all other entitlements are escrowed. Preserve unclaimed trader/fee liabilities and classify every fraction/dust.",
+    "write_files": [
+      "contracts/src/settlement/ReserveClaims.sol",
+      "contracts/test/risk/A/A038.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "A037"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A038.t.sol",
+    "acceptance": "LP redemption before trader/keeper clicks claim is safe; no final-redeemer windfall and no live-share path unlocks early.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R036",
+      "R070"
+    ],
+    "source": "B \u00a79, pp.11\u201314; selected v1 decision register DEC-01\u201312 where amended; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "A039",
+    "owner": "A",
+    "wave": "W6",
+    "effort_points": 3,
+    "title": "Verify payout batches and custody conservation",
+    "action": "Run real A frozen-ledger/claim modules against scripted B finality. Permute page sizes, interruptions, outcome prices and claim/redemption order.",
+    "write_files": [
+      "contracts/test/risk/A/SettlementConservation.t.sol",
+      "contracts/test/risk/A/A039.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "A034",
+      "A035",
+      "A036",
+      "A037",
+      "A038"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/A/A039.t.sol",
+    "acceptance": "Cash+fee+keeper+reserve classifications reconcile exactly in Q; individual external transfers floor only at their stated boundary and retries never duplicate amounts.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R063",
+      "R066",
+      "R068",
+      "R070",
+      "R071"
+    ],
+    "source": "B \u00a714, pp.22\u201323; B \u00a717 INV-12, p.31; B \u00a714, pp.22\u201323; B \u00a714, pp.22\u201323; B \u00a717 INV-12/15, p.31; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "B034",
+    "owner": "B",
+    "wave": "W6",
+    "effort_points": 4,
+    "title": "Implement authenticated immutable finality ingress",
+    "action": "Accept only configured ResolutionOracle halt/settle0/1/INVALID calls, materialize scheduled halt permissionlessly and latch once-only outcome in constant bounded work.",
+    "write_files": [
+      "contracts/src/settlement/ResolutionIngress.sol",
+      "contracts/test/risk/B/B034.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B034.t.sol",
+    "acceptance": "Unauthorized actors and conflicting finality fail; repeated same outcome is idempotent; oracle Final transition cannot silently drop a failed engine delivery.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R009",
+      "R061",
+      "R064"
+    ],
+    "source": "B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321; B \u00a714, pp.22\u201323; O \u00a7\u00a77.4,9\u201310, pp.14,18\u201321",
+    "status": "not_started"
+  },
+  {
+    "id": "B035",
+    "owner": "B",
+    "wave": "W6",
+    "effort_points": 4,
+    "title": "Implement deterministic INVALID capture",
+    "action": "Use G3 independent observation history for the immutable preT24h interval; earlyINVALID waits. Capture complete data once or disclosed.5 fallback only after T+1h.",
+    "write_files": [
+      "contracts/src/settlement/InvalidPrice.sol",
+      "contracts/test/risk/B/B035.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "B034"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B035.t.sol",
+    "acceptance": "No post-halt sample resumes risk/funding; incomplete windows never silently replace the listed rule; listing horizon and capture-boundary cases are exact.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R065"
+    ],
+    "source": "B \u00a714, pp.22\u201323; O \u00a7\u00a73,7.7, pp.4\u20136,15; selected v1 decision register DEC-01\u201312 where amended",
+    "status": "not_started"
+  },
+  {
+    "id": "B036",
+    "owner": "B",
+    "wave": "W6",
+    "effort_points": 3,
+    "title": "Implement snapshot and preparation controller",
+    "action": "Drive frozen snapshot and payout cursors through G5-defined A settlement ports; distinguish finality accepted, price pending, preparing, claims-ready and complete.",
+    "write_files": [
+      "contracts/src/settlement/SettlementController.sol",
+      "contracts/test/risk/B/B036.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "B034",
+      "B035"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B036.t.sol",
+    "acceptance": "Callbacks perform no account loop/token transfer; jobs retry after interruption; claims-ready requires complete reconciled liabilities rather than oracle status alone.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R061",
+      "R063",
+      "R066"
+    ],
+    "source": "B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321; B \u00a714, pp.22\u201323; B \u00a717 INV-12, p.31; B \u00a714, pp.22\u201323",
+    "status": "not_started"
+  },
+  {
+    "id": "B037",
+    "owner": "B",
+    "wave": "W6",
+    "effort_points": 4,
+    "title": "Publish oracle-team compatibility fixture",
+    "action": "Exercise exact halt tuple/OI units, external/local enum mapping, scheduled/early clocks and oracle-delivery retries using the external team interface and mock authority.",
+    "write_files": [
+      "contracts/test/risk/B/OracleCompatibility.t.sol",
+      "docs/counterpart-oracle-fixtures.json",
+      "contracts/test/risk/B/B037.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "B036"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B037.t.sol",
+    "acceptance": "OI includes reserve and lots convert explicitly to bond exposure; accepted binary resolution need not wait forT; INVALID remains pending as required.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R009",
+      "R064",
+      "R065",
+      "R076"
+    ],
+    "source": "B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321; B \u00a714, pp.22\u201323; O \u00a7\u00a77.4,9\u201310, pp.14,18\u201321; B \u00a714, pp.22\u201323; O \u00a7\u00a73,7.7, pp.4\u20136,15; selected v1 decision register DEC-01\u201312 where amended; B \u00a716, pp.27\u201330; O \u00a7\u00a79\u201310, pp.18\u201321; D \u00a79.8, p.17",
+    "status": "not_started"
+  },
+  {
+    "id": "B038",
+    "owner": "B",
+    "wave": "W6",
+    "effort_points": 3,
+    "title": "Fence conversion and publish settlement read model",
+    "action": "Keep optional token conversion disabled; encode mutually exclusive future cash/token claims and full-backing prerequisite. Decode state/views into explicit pending/claimable status.",
+    "write_files": [
+      "contracts/src/settlement/ConversionGate.sol",
+      "packages/risk-sdk/src/settlement.ts",
+      "contracts/test/risk/B/B038.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "B036"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B038.t.sol",
+    "acceptance": "No token path can activate after a cash claim or with underbacking; UI never presents oracleFinal as claimable without readiness.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R069",
+      "R078"
+    ],
+    "source": "B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; D \u00a711.5, p.23",
+    "status": "not_started"
+  },
+  {
+    "id": "B039",
+    "owner": "B",
+    "wave": "W6",
+    "effort_points": 3,
+    "title": "Verify the resolution-to-claim lifecycle",
+    "action": "Exercise real B ingress/capture/controller using scripted A snapshots and claims. Include halt during rollover, delayed windows, stale history and duplicate delivery.",
+    "write_files": [
+      "contracts/test/risk/B/SettlementLifecycle.t.sol",
+      "contracts/test/risk/B/B039.t.sol"
+    ],
+    "read_contract": "G5 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G5",
+      "B037",
+      "B038"
+    ],
+    "acceptance_command": "cd contracts && forge test --match-path test/risk/B/B039.t.sol",
+    "acceptance": "Every branch has a deterministic next action/status; no conflicting cutoff, replay or transient preparation issue changes the latched outcome.",
+    "handoff_at": "G6",
+    "legacy_ids": [
+      "R061",
+      "R064",
+      "R065",
+      "R069",
+      "R073",
+      "R074"
+    ],
+    "source": "B \u00a714, pp.22\u201323; O \u00a7\u00a77,9\u201310, pp.13\u201321; B \u00a714, pp.22\u201323; O \u00a7\u00a77.4,9\u201310, pp.14,18\u201321; B \u00a714, pp.22\u201323; O \u00a7\u00a73,7.7, pp.4\u20136,15; selected v1 decision register DEC-01\u201312 where amended; B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a719, pp.33\u201334",
+    "status": "not_started"
+  },
+  {
+    "id": "A040",
+    "owner": "A",
+    "wave": "W7",
+    "effort_points": 5,
+    "title": "Run integrated accounting invariant campaign",
+    "action": "Run real integrated modules from G6 through adversarial deposits/fills/funding/premium/liquidation/claim sequences against independent rational transitions.",
+    "write_files": [
+      "contracts/test/invariant/A/AccountingInvariants.t.sol",
+      "reference/a/integrated_traces.py",
+      "artifacts/acceptance/A040.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh A040",
+    "acceptance": "Zero-sum positions, custody, both reserve sides, clearing and immutable entitlements hold after every successful mutation. Report seeds and minimized failing traces.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R071",
+      "R072",
+      "R075"
+    ],
+    "source": "B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a79, pp.11\u201314; B \u00a711, pp.16\u201319; B \u00a712, pp.19\u201320",
+    "status": "not_started"
+  },
+  {
+    "id": "A041",
+    "owner": "A",
+    "wave": "W7",
+    "effort_points": 3,
+    "title": "Measure accounting and sweep gas bounds",
+    "action": "Measure math, premium-touch,1024-account/32-page rollover, snapshot and claim costs using pinned local/testnet gas model; do not infer network ceilings from an unverified mode.",
+    "write_files": [
+      "contracts/test/gas/A/AccountingGas.t.sol",
+      "artifacts/risk/gas-accounting.json",
+      "artifacts/acceptance/A041.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "A040"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh A041",
+    "acceptance": "Report worst measured counts/limits and failure behavior at bounds. Ledger sweeps remain resumable at proposed deployment transaction limits.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R077"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a718, p.32; D \u00a79.9, p.17",
+    "status": "not_started"
+  },
+  {
+    "id": "A042",
+    "owner": "A",
+    "wave": "W7",
+    "effort_points": 3,
+    "title": "Reconcile token custody and capital exit",
+    "action": "Run end-to-end cash and fee escrow exits including partial keeper withdrawals, unclaimed users, LP notices, donations and backstop limits.",
+    "write_files": [
+      "contracts/test/integration/A/CustodyExit.t.sol",
+      "artifacts/risk/custody-reconciliation.json",
+      "artifacts/acceptance/A042.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "A040"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh A042",
+    "acceptance": "Every Q liability remains recognized after LP exit; prohibited token behavior fails safely and no market borrows another market allocation.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R010",
+      "R013",
+      "R037",
+      "R068",
+      "R070",
+      "R074"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a717 INV-1, p.30; B \u00a716, pp.27\u201330; B \u00a79, pp.11\u201314; B \u00a716, pp.27\u201330; O \u00a77.9, p.15; selected v1 decision register DEC-01\u201312 where amended; B \u00a714, pp.22\u201323; B \u00a717 INV-12/15, p.31; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; B \u00a716, pp.27\u201330; selected v1 decision register DEC-01\u201312 where amended; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a719, pp.33\u201334",
+    "status": "not_started"
+  },
+  {
+    "id": "A043",
+    "owner": "A",
+    "wave": "W7",
+    "effort_points": 3,
+    "title": "Review B decision and callback boundaries",
+    "action": "Review B margin/admission predicates, cutoff selection, finality authorization and status-to-claim gates. Write concrete findings/reproducers; B remains the editor for B files.",
+    "write_files": [
+      "artifacts/reviews/A-on-B.md",
+      "artifacts/acceptance/A043.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "A040"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh A043",
+    "acceptance": "No open critical finding in reviewed decisions; each fix links B task/commit and rerun. Cross-review is not represented as an external audit.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R079"
+    ],
+    "source": "B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "A044",
+    "owner": "A",
+    "wave": "W7",
+    "effort_points": 2,
+    "title": "Publish accounting handoff evidence",
+    "action": "Record accounting module/fixture hashes, actual commands, gas model, escrow and invariant status, and startup/rollover/claim operational steps.",
+    "write_files": [
+      "artifacts/risk/accounting-release.json",
+      "docs/runbooks/accounting.md",
+      "artifacts/acceptance/A044.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "A041",
+      "A042",
+      "A043"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh A044",
+    "acceptance": "Manifest has no invented tests, addresses or deployment success; baseline1x/funding-off/recovery-off flags stay explicit until applicable release gates pass.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R080"
+    ],
+    "source": "B \u00a7\u00a717\u201318, pp.30\u201333; O \u00a7\u00a710\u201313, pp.20\u201325",
+    "status": "not_started"
+  },
+  {
+    "id": "B040",
+    "owner": "B",
+    "wave": "W7",
+    "effort_points": 5,
+    "title": "Run integrated lifecycle and counterpart campaign",
+    "action": "Run real G6 engine through bootstrap, leveraged local fixture, stale maker, no keeper, liquidation, early/scheduled halt and all payoff modes. Connect real CP contracts when available; otherwise retain explicit mock status.",
+    "write_files": [
+      "contracts/test/integration/B/FullLifecycle.t.sol",
+      "artifacts/risk/counterpart-status.json",
+      "artifacts/acceptance/B040.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh B040",
+    "acceptance": "Real and mocked counterparts pass the same versioned ABI fixtures; absent real book/oracle is reported blocked for live join, not replaced with a false pass.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R073",
+      "R074",
+      "R075",
+      "R076"
+    ],
+    "source": "B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a7\u00a717\u201318, pp.30\u201333; B \u00a719, pp.33\u201334; B \u00a79, pp.11\u201314; B \u00a711, pp.16\u201319; B \u00a712, pp.19\u201320; B \u00a716, pp.27\u201330; O \u00a7\u00a79\u201310, pp.18\u201321; D \u00a79.8, p.17",
+    "status": "not_started"
+  },
+  {
+    "id": "B041",
+    "owner": "B",
+    "wave": "W7",
+    "effort_points": 3,
+    "title": "Measure pricing and matching bounds",
+    "action": "Measure observation updates,64-node dirty-book traversal, liquidation continuation, oracle callback and settlement-controller costs at configured bounds.",
+    "write_files": [
+      "contracts/test/gas/B/AdapterGas.t.sol",
+      "artifacts/risk/gas-adapters.json",
+      "artifacts/acceptance/B041.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "B040"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh B041",
+    "acceptance": "Invalid/stale/self nodes count against work limit; callback is independent of participant count; no unbounded observation/account iteration enters matching.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R077"
+    ],
+    "source": "B \u00a716, pp.27\u201330; B \u00a718, p.32; D \u00a79.9, p.17",
+    "status": "not_started"
+  },
+  {
+    "id": "B042",
+    "owner": "B",
+    "wave": "W7",
+    "effort_points": 3,
+    "title": "Publish SDK views and frontend fixtures",
+    "action": "Combine frozen A accounting fields with B risk/settlement decoders in a read-only SDK. Provide every frontend state and unit with block/config/price/cutoff identity.",
+    "write_files": [
+      "packages/risk-sdk/src/index.ts",
+      "packages/risk-sdk/test/read-model.test.ts",
+      "docs/app-state-fixtures.json",
+      "artifacts/acceptance/B042.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "B040"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh B042",
+    "acceptance": "SDK reproduces authoritative values and pending labels; unavailable is not zero, projections are not withdrawable amounts, and no SDK-side balance is authoritative.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R059",
+      "R060",
+      "R078"
+    ],
+    "source": "B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a710, pp.14\u201316; B \u00a712, pp.19\u201320; B \u00a716, pp.27\u201330; D \u00a711.5, p.23; B \u00a74, pp.5\u20136; B \u00a79, pp.11\u201314; B \u00a714, pp.22\u201323; D \u00a711.5, p.23",
+    "status": "not_started"
+  },
+  {
+    "id": "B043",
+    "owner": "B",
+    "wave": "W7",
+    "effort_points": 3,
+    "title": "Review A cash and reserve transitions",
+    "action": "Review A units, cash mutations, funding cushion, premium rounding, escrow allocation and capital exits. Write concrete reproducers; A fixes A-owned files.",
+    "write_files": [
+      "artifacts/reviews/B-on-A.md",
+      "artifacts/acceptance/B043.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "B040"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh B043",
+    "acceptance": "Every cash-changing route and protected liability has a review result; no open critical defect and each accepted fix has a rerun record.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R079"
+    ],
+    "source": "B \u00a7\u00a717\u201318, pp.30\u201333",
+    "status": "not_started"
+  },
+  {
+    "id": "B044",
+    "owner": "B",
+    "wave": "W7",
+    "effort_points": 2,
+    "title": "Publish integration handoff evidence",
+    "action": "Record external interface versions, real/mock status, keeper jobs, pending-state runbooks, disabled features and complete source/task migration links.",
+    "write_files": [
+      "artifacts/risk/integration-release.json",
+      "docs/runbooks/lifecycle.md",
+      "artifacts/acceptance/B044.json"
+    ],
+    "read_contract": "G6 interface snapshot; specification economic baseline v1.0",
+    "depends_on": [
+      "G6",
+      "B041",
+      "B042",
+      "B043"
+    ],
+    "acceptance_command": "bash scripts/check-task.sh B044",
+    "acceptance": "Another developer can replay local lifecycle and identify every blocked live integration; no production deploy is implied by the document.",
+    "handoff_at": "G7",
+    "legacy_ids": [
+      "R080"
+    ],
+    "source": "B \u00a7\u00a717\u201318, pp.30\u201333; O \u00a7\u00a710\u201313, pp.20\u201325",
+    "status": "not_started"
+  }
+]

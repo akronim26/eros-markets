@@ -1,0 +1,29 @@
+{
+ "task": "B021",
+ "commit": "6de08495ac48c3dc78178ac8dffcf2dc77c386ae",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B021.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 8 tests for test/risk/B/B021.t.sol:B021Test",
+  "[PASS] test_hazardRaiseReduceOnlyNowProfileNextEpoch() (gas: 621752)",
+  "[PASS] test_invalidSampleEndsCoverage() (gas: 1751656)",
+  "[PASS] test_lateFreshObservationCannotEraseGap() (gas: 11585205)",
+  "[PASS] test_missingCalibrationForcesOneX() (gas: 6914757)",
+  "[PASS] test_monitorAuthenticatedReduceOnly() (gas: 67405)",
+  "[PASS] test_monitorCannotHaltSettleOrLowerHazards() (gas: 71159)",
+  "[PASS] test_movementTriggersReduceOnly() (gas: 4469502)",
+  "[PASS] test_staleThreshold30s() (gas: 303391)",
+  "Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 3.01ms (4.46ms CPU time)",
+  "",
+  "Ran 1 test suite in 80.46ms (3.01ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)"
+ ],
+ "component_status": "lane-pass (A freshness hook stand-in S-7; A accounting mocked)",
+ "recorded_at_utc": "2026-09-30T19:51:17+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

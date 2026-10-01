@@ -1,0 +1,179 @@
+{
+  "status": "passed",
+  "scope": "Specification arithmetic only. No production contracts, gas, feed adapters, security audit or live integration tested.",
+  "check_count": 26,
+  "checks": [
+    {
+      "id": "V01",
+      "passed": true,
+      "detail": "17 lots @613 transfers 10,421 atoms exactly."
+    },
+    {
+      "id": "V02",
+      "passed": true,
+      "detail": "mark-equity and fill scales coincide; no second WAD division."
+    },
+    {
+      "id": "V03",
+      "passed": true,
+      "detail": "1,000-claim long with120USDC at.6 has NO deficit480USDC."
+    },
+    {
+      "id": "V04",
+      "passed": true,
+      "detail": "1,000-claim short with100USDC at.6 has YES deficit300USDC."
+    },
+    {
+      "id": "V05_NO",
+      "passed": true,
+      "detail": "NO: trader payouts [0, 700000000] atoms, funded before claims."
+    },
+    {
+      "id": "V05_YES",
+      "passed": true,
+      "detail": "YES: trader payouts [520000000, 0] atoms, funded before claims."
+    },
+    {
+      "id": "V05_INVALID",
+      "passed": true,
+      "detail": "INVALID: trader payouts [20000000, 200000000] atoms, funded before claims."
+    },
+    {
+      "id": "V06",
+      "passed": true,
+      "detail": "Interior-price arithmetic checked at1,001 prices; general argument is convexity in the PDF."
+    },
+    {
+      "id": "V07",
+      "passed": true,
+      "detail": "Oversized ask creates35,000 atom YES deficit and must reject at1x."
+    },
+    {
+      "id": "V08",
+      "passed": true,
+      "detail": "Cancel quantity and exact price contribution, not average."
+    },
+    {
+      "id": "V09_reserve_payer",
+      "passed": true,
+      "detail": "A=1, reservePayment=2/5, cushionIncrement=3/5, slackChange=0."
+    },
+    {
+      "id": "V09_reserve_receiver",
+      "passed": true,
+      "detail": "A=1, reservePayment=-2/5, cushionIncrement=1, slackChange=2/5."
+    },
+    {
+      "id": "V09_flat_reserve",
+      "passed": true,
+      "detail": "A=1, reservePayment=0, cushionIncrement=1, slackChange=0."
+    },
+    {
+      "id": "V10",
+      "passed": true,
+      "detail": "Trader60, reserve40, trader\u2212100 atdeltaF.01: funding clearing netszero."
+    },
+    {
+      "id": "V11",
+      "passed": true,
+      "detail": "OI100\u2192200: spend2 then remaining8 permits40seconds at.2/sec."
+    },
+    {
+      "id": "V12",
+      "passed": true,
+      "detail": "100\u2192110 deficit/hour at.0002/day charges.000875USDC."
+    },
+    {
+      "id": "V13",
+      "passed": true,
+      "detail": "Cumulative ceil difference is neutral-touch invariant."
+    },
+    {
+      "id": "V14",
+      "passed": true,
+      "detail": "4x premium on same segment is.0035USDC."
+    },
+    {
+      "id": "V15",
+      "passed": true,
+      "detail": "Positive-part crossing uses exact clipped triangle, not sampled average."
+    },
+    {
+      "id": "V16_-480",
+      "passed": true,
+      "detail": "Whole-account fee-free takeover slack identity."
+    },
+    {
+      "id": "V16_0",
+      "passed": true,
+      "detail": "Whole-account fee-free takeover slack identity."
+    },
+    {
+      "id": "V16_520",
+      "passed": true,
+      "detail": "Whole-account fee-free takeover slack identity."
+    },
+    {
+      "id": "V17",
+      "passed": true,
+      "detail": "Fee Q reclassification retains fractional liabilities; no LP dust sweep."
+    },
+    {
+      "id": "V18",
+      "passed": true,
+      "detail": "29-day selected linear-hazard fixture supportsdirect5x entry with120USDC; empirical upper envelopes explicitly set belowtheoreticalfixturebound."
+    },
+    {
+      "id": "V20",
+      "passed": true,
+      "detail": "Counterparty100USDC collateral passes selected short IM;80USDC would fail at29days."
+    },
+    {
+      "id": "V19",
+      "passed": true,
+      "detail": "Numerical prefixcheck:1,000,000 positive lot sizes; IM monotoneandmax120. Not a universalprooforSolidityexecution."
+    }
+  ],
+  "settlement_fixture": [
+    {
+      "outcome": "NO",
+      "p": "0",
+      "trader_payout_atoms": [
+        0,
+        700000000
+      ],
+      "reserve_residual_atoms": 99520000000
+    },
+    {
+      "outcome": "YES",
+      "p": "1",
+      "trader_payout_atoms": [
+        520000000,
+        0
+      ],
+      "reserve_residual_atoms": 99700000000
+    },
+    {
+      "outcome": "INVALID",
+      "p": "1/2",
+      "trader_payout_atoms": [
+        20000000,
+        200000000
+      ],
+      "reserve_residual_atoms": 100000000000
+    }
+  ],
+  "direct_leverage_fixture": {
+    "days_to_T": 29,
+    "q": "0.6",
+    "claims": 1000,
+    "lots": 1000000,
+    "collateral_USDC": "120",
+    "MM_USDC": "63.9290580712687872117173924534106454333502405004302490789045",
+    "IM_USDC": "120.0",
+    "hazard_probability_upper": "4.16666666666666666666666666666666666666666666666666666666667E-7",
+    "k_upper_reference": "9.95008166659360448471255280432468428731403556155132788993834",
+    "sigma_reference": "0.00587220219514703488487355924961286989875507420378566263010438",
+    "status": "High-precision arithmetic reference, not bounded Solidity math validation."
+  }
+}

@@ -1,0 +1,29 @@
+{
+ "task": "B031",
+ "commit": "2608da530c0010634dcd2b5ba475246b261943c9",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B031.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 8 tests for test/risk/B/B031.t.sol:B031Test",
+  "[PASS] test_bidsBelowWorstTickNotHit() (gas: 50939177)",
+  "[PASS] test_blockPacing() (gas: 53398346)",
+  "[PASS] test_closeRestoresHealthRecomputed() (gas: 51629438)",
+  "[PASS] test_emptyBookNeedsMoreWork() (gas: 50150584)",
+  "[PASS] test_examinationBound() (gas: 54417553)",
+  "[PASS] test_forcedModeNotUserSelectable() (gas: 49164700)",
+  "[PASS] test_missingCapDisables() (gas: 50409845)",
+  "[PASS] test_smallBudgetNeedsMoreWorkKeepsCover() (gas: 51542826)",
+  "Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 13.99ms (73.83ms CPU time)",
+  "",
+  "Ran 1 test suite in 89.09ms (13.99ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)"
+ ],
+ "component_status": "lane-pass (mock book + scripted A port)",
+ "recorded_at_utc": "2026-10-01T03:15:46+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

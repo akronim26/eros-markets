@@ -1,0 +1,30 @@
+{
+ "task": "B024",
+ "commit": "bfdf40a73b2444931eb7fb5b519b57433c22ae27",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B024.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 9 tests for test/risk/B/B024.t.sol:B024Test",
+  "[PASS] test_directFiveXThroughBook() (gas: 2069947)",
+  "[PASS] test_expectedPruneKeepsPriorFills() (gas: 3911177)",
+  "[PASS] test_iocNoLiquidityReleasesPermit() (gas: 989667)",
+  "[PASS] test_limitRemainderConvertsPermitOnce() (gas: 2064980)",
+  "[PASS] test_noDuplicateUnrestOnFilledSize() (gas: 2323395)",
+  "[PASS] test_staleSelfExpiredConsumeSteps() (gas: 2909579)",
+  "[PASS] test_stepCapEnforced() (gas: 11951)",
+  "[PASS] test_twoMakerFragmentation() (gas: 3033355)",
+  "[PASS] test_unexpectedFailureRevertsWholeTransaction() (gas: 2900023)",
+  "Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 7.76ms (8.82ms CPU time)",
+  "",
+  "Ran 1 test suite in 79.20ms (7.76ms CPU time): 9 tests passed, 0 failed, 0 skipped (9 total tests)"
+ ],
+ "component_status": "lane-pass (mock book + scripted A port; CP-BOOK and A not real)",
+ "recorded_at_utc": "2026-09-30T19:58:39+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
