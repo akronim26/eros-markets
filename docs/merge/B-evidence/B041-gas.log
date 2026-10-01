@@ -1,0 +1,30 @@
+No files changed, compilation skipped
+
+Ran 5 tests for test/gas/B/AdapterGas.t.sol:AdapterGasTest
+[PASS] test_dirtyBook64Examined() (gas: 87210824)
+Logs:
+  GAS taker_64_examined_35_stale_29_filled_mockscan 22144269
+
+[PASS] test_liquidationContinuation() (gas: 4606670)
+Logs:
+  GAS liquidate_one_lot_continuation 1912020
+  GAS liquidate_full_restore 1564319
+
+[PASS] test_observationUpdateConstantWithFullRing() (gas: 328652119)
+Logs:
+  GAS observation_index_plus_perp_update_ring_partial 464537
+  GAS observation_index_plus_perp_update_ring_full 50636
+
+[PASS] test_oracleCallbackIndependentOfParticipants() (gas: 70937420)
+Logs:
+  GAS settle_callback_few_accounts 49672
+  GAS settle_callback_1000_accounts 49566
+
+[PASS] test_settlementControllerChunk() (gas: 3947944)
+Logs:
+  GAS prepare_snapshot_chunk_32_scripted_A 98751
+  GAS prepare_payout_chunk_32_scripted_A 75454
+
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 74.81ms (119.67ms CPU time)
+
+Ran 1 test suite in 85.02ms (74.81ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)
