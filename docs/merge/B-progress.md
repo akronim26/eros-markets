@@ -12,7 +12,7 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 
 ## Resume notes (keep current)
 
-- Next task: see the last row below; blocks done so far have `B-checkpoint-Gn.md`.
+- All 44 B tasks attempted (B001–B044). Next step is the merge: `docs/merge/B-merge-guide.md`.
 - Composition used by B tests: `OrderLifecycle` (-> BookRiskAdapter -> OrderAdmission ->
   {MonitorPolicy -> RiskContextPort + SourceGuards -> RiskPricing -> ObservationStore ->
   PriceIngress}, OrderRisk -> provisional IAccountingPort) + `MockBookAdapter` +
@@ -76,3 +76,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B043-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | B043 blocked regardless: no A code |
 | B044 | needs-merge (stand-in runner; no deployment) | f754a30 | 0 | release record (interfaces, real/mock, keeper jobs, disabled features, test counts), lifecycle runbook, G7 checkpoint, merge guide |
 | B044-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | stand-in row above |
+| B043 (status) | blocked: no Person A code on this branch; runner exit 1 is by design until the review is redone at G6/G7 | 6c4c873 | 1 | see artifacts/reviews/B-on-A.md |
