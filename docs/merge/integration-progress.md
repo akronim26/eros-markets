@@ -131,7 +131,7 @@ result (`scripts/integration/gate-record.py`). Once Person A reviews, rerun
 | fix(A) runner B040–B044 | `ea2140f` | B040–B044 pass through A's `scripts/check-task.sh` |
 | B043 review of A, B042 SDK on A032 | `3f5b030` | COMPLETE: 19 routes with results; no Critical/High |
 | HANDOFF + ABIs | `3089a1a` | `docs/risk/HANDOFF.md`, `artifacts/risk/{engine,vault}-abi.json` |
-| G7 | `ec2b7ef`… `8f11beb` | blocked only on A043 (Person A's review of B, Person A only) |
+| G7 | `bdc9cd5`, `8f11beb` | blocked only on A043 (Person A's review of B, Person A only) |
 
 Final regression on integration/risk: forge 609 pass, 8 fail (book-owned `BookGas.t.sol`, local
 forge 1.3.5 lacks cheatcode 0x04eedcdf; same on feat/clob); audit finding reproducers 3/3 fail by
