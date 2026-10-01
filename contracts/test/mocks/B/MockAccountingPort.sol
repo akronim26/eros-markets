@@ -307,6 +307,15 @@ abstract contract MockAccountingPort is IAccountingPort {
         _mFrozen = true;
         f = _mFreeze;
         f.accrualCutoff = accrualCutoff;
+        if (f.oiHaltLots == 0) {
+            // Literal one-sided OI over the scripted table incl. the reserve (no economics).
+            uint256 oi = mockReserveLots > 0 ? uint256(mockReserveLots) : 0;
+            for (uint256 i; i < _mTraders.length; ++i) {
+                int256 x = _mAccts[_mTraders[i]].lots;
+                if (x > 0) oi += uint256(x);
+            }
+            f.oiHaltLots = oi;
+        }
         if (f.frozenAccountCount == 0) f.frozenAccountCount = uint64(_mTraders.length);
         _mFreeze = f;
         _log(CallKind.FREEZE, 0, 0, accrualCutoff);
@@ -368,6 +377,10 @@ abstract contract MockAccountingPort is IAccountingPort {
 
     function mockSetEpochBounds(uint64 end, uint64 frozen) public {
         (_mEpochEnd, _mFrozenRollover) = (end, frozen);
+    }
+
+    function mockSetReserve(int256 cashQ, int256 lots) public {
+        (mockReserveCashQ, mockReserveLots) = (cashQ, lots);
     }
 
     function mockSetClaimState(bool complete, bool anyCash, bool allBacked) public {
