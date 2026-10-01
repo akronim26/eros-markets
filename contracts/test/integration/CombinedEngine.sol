@@ -53,6 +53,10 @@ contract CombinedEngine is RiskAccountingBridge, MockBookAdapter {
         _cancelAllTopLevel(t);
     }
 
+    function cancelSlot(uint32 slot) external returns (bool) {
+        return _mockCancel(slot);
+    }
+
     /// Person A's per-action context as answered by B (test view).
     function accountingContext() external view returns (Context memory) {
         return _checkedContext();
@@ -63,5 +67,51 @@ contract CombinedEngine is RiskAccountingBridge, MockBookAdapter {
         returns (RiskLiquidation.LiquidationResult memory r)
     {
         r = this.liquidate(t, maxLots, maxExam, partner);
+    }
+}
+
+/// @notice Fee-enabled variant (DEC-11: the initial profile has zero fees; fee accounting must still
+///         be exercised). Linear exact fee of `feeWad` on notional; cap at the limit tick.
+contract CombinedEngineFee is CombinedEngine {
+    uint256 public immutable feeWad;
+
+    constructor(
+        CollateralVault vault,
+        address treasury_,
+        IMarketConfig.Listing memory l,
+        MarginMath.RiskParams memory p,
+        uint256 feeWad_
+    ) CombinedEngine(vault, treasury_, l, p, 1e18) {
+        feeWad = feeWad_;
+    }
+
+    function _tradeFeeQ(uint64 lots, uint16 tick, bool isMaker) internal view override returns (uint256) {
+        return isMaker ? 0 : uint256(lots) * tick * feeWad;
+    }
+
+    function _feeCapQ(uint64 lots, uint16 tick) internal view override returns (uint256) {
+        return uint256(lots) * tick * feeWad;
+    }
+}
+
+/// @notice Fault-injection variant: the k-th accounting posting reverts (unexpected assertion).
+contract CombinedEngineFault is CombinedEngine {
+    error InjectedAccountingFailure();
+
+    uint256 public failAt;
+    uint256 public posts;
+
+    constructor(CollateralVault vault, address treasury_, IMarketConfig.Listing memory l, MarginMath.RiskParams memory p)
+        CombinedEngine(vault, treasury_, l, p, 1e18)
+    {}
+
+    function setFailAt(uint256 k) external {
+        (failAt, posts) = (k, 0);
+    }
+
+    function _acctPostFill(FillDelta memory d) internal override {
+        posts += 1;
+        if (posts == failAt) revert InjectedAccountingFailure();
+        super._acctPostFill(d);
     }
 }
