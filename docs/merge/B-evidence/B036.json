@@ -1,0 +1,27 @@
+{
+ "task": "B036",
+ "commit": "9b3b98e7898a271268d76ca23c3bb87625f8cd4d",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B036.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 6 tests for test/risk/B/B036.t.sol:B036Test",
+  "[PASS] test_callbacksDoNoAccountWork() (gas: 429839)",
+  "[PASS] test_claimsNeedReconciledLiabilities() (gas: 674770)",
+  "[PASS] test_invalidPricePendingBlocksPayouts() (gas: 231508611)",
+  "[PASS] test_jobsNeedHaltAndBounds() (gas: 358181)",
+  "[PASS] test_jobsRetryAfterInterruption() (gas: 748201)",
+  "[PASS] test_phasesDistinct() (gas: 827747)",
+  "Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 154.42ms (153.96ms CPU time)",
+  "",
+  "Ran 1 test suite in 154.74ms (154.42ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A snapshot/payout/finish jobs)",
+ "recorded_at_utc": "2026-10-01T03:26:32+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
