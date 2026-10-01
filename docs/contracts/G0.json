@@ -1,0 +1,44 @@
+{
+  "gate": "G0",
+  "title": "Math contract frozen",
+  "spec_version": "1.1",
+  "economic_baseline": "1.0",
+  "interface_version": "risk-integration-1",
+  "units": {
+    "Q_per_atom": "1e18",
+    "WAD": "1e18",
+    "PAYOFF_Q_PER_LOT": "1000*Q",
+    "lot": "0.001 claim",
+    "tick": "1..999, price = tick/1000",
+    "E0": "c",
+    "E1": "c + 1000*Q*n",
+    "markEquity": "c + 1000*n*pWad (no second WAD division)",
+    "position_bound_lots": "2^40 inclusive",
+    "cash_bound_Q": "|cashQ| < 2^180"
+  },
+  "types": {
+    "MathTypes (A001, contracts/src/math/MathTypes.sol)": ["Side{BUY,SELL}", "FinalOutcome{UNSET,NO,YES,INVALID}", "OracleOutcome{NONE,YES,NO,INVALID} (mapped explicitly, never cast)"],
+    "RiskTypes (B, contracts/src/math/RiskTypes.sol)": ["Stage", "AccountingState (== A RiskStorage.Work ordinals)", "PricingMode", "ClearingPhase", "AdmissionMode", "StepStatus", "RejectCode", "RemovalReason"],
+    "unit constants": "RiskTypes re-exports A001 MathTypes constants"
+  },
+  "primitives": {
+    "QMath (A009)": ["abs", "signed", "position", "cash", "floorDiv", "ceilDiv", "mulDiv", "mulDivUp", "sqrtUp", "min", "max", "positive"],
+    "floor sqrt": "solady FixedPointMathLib.sqrt (same library A's QMath wraps)"
+  },
+  "rounding": {
+    "requirements, hazards, k, adverse probabilities, premium debits": "up",
+    "epsilon', usable assets, payouts, releases": "down",
+    "funding rate": "truncate toward zero (only use of truncation)",
+    "paired transfers": "same exact Q on both sides"
+  },
+  "fixtures": "reference/fixtures/golden_cases.json (B002), reference/fixtures/a/vectors.json (A015)",
+  "owner_map": "docs/ownership.json",
+  "gate_test": "contracts/test/gates/G0.t.sol",
+  "toolchain_recorded_not_chosen": {
+    "forge_local": "1.3.5-stable", "forge_ci_pin": "1.8.3", "forge_used_by_A": "1.5.1",
+    "solc": "0.8.30", "evm": "prague", "solady": "2afba69", "forge_std": "f3dae6e",
+    "python_local": "3.13.13", "python_used_by_A": "3.12.10",
+    "open_item": "toolchain agreement between lanes and CI is still open"
+  },
+  "note": "Recorded on integration/risk after both lanes were already implemented (user-directed solo mode). G0's 'no vault/feed/engine implementation has started' criterion cannot hold retroactively; this record freezes the contract both implementations actually use."
+}

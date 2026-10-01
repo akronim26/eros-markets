@@ -2,7 +2,7 @@
  "schema": "eros-ownership/1",
  "task": "B001",
  "spec_version": "1.1",
- "status": "B-side proposal; reconciled and frozen at G0",
+ "status": "B-side proposal reconciled with Person A's delivered tree at integration (integration/risk); A review pending",
  "rule": "Exactly one implementation editor per path. Counterpart teams own their paths; Risk & Clearing only builds interfaces and deterministic mocks for them.",
  "module_owners": [
   {
@@ -72,6 +72,22 @@
   {
    "module": "docs/merge/** (B merge log, evidence, checkpoints)",
    "editor": "B"
+  },
+  {
+   "module": "contracts/src/math/RiskTypes.sol (B enums + re-export of A unit constants), contracts/src/interfaces/IAccountingPort.sol (B's view of accounting)",
+   "editor": "B"
+  },
+  {
+   "module": "contracts/src/engine/RiskAccountingBridge.sol (composition glue: B port on A functions, A ports answered by B)",
+   "editor": "integration coordinator; changes reviewed by A and B"
+  },
+  {
+   "module": "contracts/test/integration/Combined*.sol, contracts/test/gates/Gn.t.sol, docs/contracts/Gn.json, artifacts/gates/Gn.json",
+   "editor": "gate coordinator of Gn"
+  },
+  {
+   "module": "contracts/test/audit/, reference/tests/audit/, docs/merge/A-audit.md",
+   "editor": "B (audit of A; no A file edited)"
   }
  ],
  "counterparts": [
