@@ -27,9 +27,10 @@ depth = 128
 # A002: isolate reproducible risk checks from the existing Book test profiles.
 # solc and dependencies stay pinned above / by the repository's Git submodules.
 [profile.risk]
-# The test-only A harness exposes every internal port in one deployment. Final
-# A+B composition and chain code-size limits are separate merge/release checks.
-code_size_limit = 65536
+# Test harnesses expose every internal port in one deployment, so they are larger
+# than a release build. Cap them at Monad's chain limit (128 KiB, spec §11.1):
+# anything a test deploys must still be deployable on Monad.
+code_size_limit = 131072
 
 [profile.risk.fuzz]
 runs = 1000
