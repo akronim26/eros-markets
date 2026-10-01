@@ -83,9 +83,13 @@ try:
         raise ValueError("missing gate inputs: " + ", ".join(missing))
     if index:
         # Acceptance is written only by the actual coordinator after both reviews.
-        status_path = root / "gate_status.json"
+        # The packet keeps the record at docs/spec/gate_status.json (integration fix: the runner
+        # previously looked only at the repository root and could never find it).
+        status_path = root / "docs" / "spec" / "gate_status.json"
         if not status_path.is_file():
-            raise ValueError("missing accepted predecessor record: gate_status.json")
+            status_path = root / "gate_status.json"
+        if not status_path.is_file():
+            raise ValueError("missing accepted predecessor record: docs/spec/gate_status.json")
         statuses = json.loads(status_path.read_text(encoding="utf-8"))["gates"]
         previous = next((item for item in statuses if item["id"] == f"G{index - 1}"), None)
         if (not previous or previous.get("status") != "passed"
