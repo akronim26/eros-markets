@@ -1,0 +1,9 @@
+[forge] exit 0: cd contracts && forge test --match-path test/gas/B/AdapterGas.t.sol
+[PASS] test_oracleCallbackIndependentOfParticipants() (gas: 70937420)
+[PASS] test_settlementControllerChunk() (gas: 3947944)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 78.33ms (122.82ms CPU time)
+
+Ran 1 test suite in 89.82ms (78.33ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)
+[exists] artifacts/risk/gas-adapters.json
+[json] exit 0: artifacts/risk/gas-adapters.json
+overall exit 0
