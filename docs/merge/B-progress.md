@@ -70,3 +70,4 @@ Evidence: `docs/merge/B-evidence/<TASK>.json` (command, exit code, commit, outpu
 | B040-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | recorded for honesty; stand-in row above |
 | B041 | needs-merge (stand-in runner; mock book scan inflates traversal gas) | bd48d9c | 0 | 64 examined incl 35 stale counted; settle callback 49.6k gas with few vs 1000 accounts (<1%); ring-full observation 50.6k gas; liquidation and chunk costs recorded; local EVM only, not Monad |
 | B041-exact | exact command fails: scripts/check-task.sh absent (A002) | - | 127 | stand-in row above |
+| B042 | needs-merge (stand-in runner + cached tsx; A accounting shape provisional S-13) | 358abe1 | 0 | read-only decoders with block/version/price identity; unavailable is undefined not 0; projections labelled non-withdrawable; all 7 settlement states distinct; claimable only with claimsEnabled; 6 node:test cases pass |
