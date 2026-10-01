@@ -1,0 +1,25 @@
+{
+ "task": "B042",
+ "commit": "358abe1f78f5d66d0bbcee7650cd3fb6e280a49a",
+ "working_tree_dirty_files": 1,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "bash provisional/scripts/check-task.sh B042",
+ "exit_code": 0,
+ "output_tail": [
+  "[sdk] exit 0: /Users/sohamvijay/.npm/_npx/ef9ef3f50c7d7dc1/node_modules/.bin/tsx --test packages/risk-sdk/test/read-model.test.ts",
+  "# fail 0",
+  "# cancelled 0",
+  "# skipped 0",
+  "# todo 0",
+  "# duration_ms 87.853542",
+  "[exists] packages/risk-sdk/src/index.ts",
+  "[exists] docs/app-state-fixtures.json",
+  "[json] exit 0: docs/app-state-fixtures.json",
+  "overall exit 0"
+ ],
+ "component_status": "needs-merge (stand-in runner + cached tsx; A accounting shape provisional S-13)",
+ "recorded_at_utc": "2026-10-01T03:39:09+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
