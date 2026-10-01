@@ -87,8 +87,11 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         override
         returns (TakerPermit memory p, RejectCode rejection)
     {
-        if (mode == AdmissionMode.FORCED_REDUCTION) revert ForcedReductionNotUserSelectable();
         if (req.maxSteps > MAX_EXAMINED) revert TooManySteps();
+        if (mode == AdmissionMode.FORCED_REDUCTION) {
+            if (!_forcedReductionAuthorized()) revert ForcedReductionNotUserSelectable();
+            return _forcedPermit(req, snap);
+        }
         _checkSnap(snap);
         _touch(req.trader);
         TakerDecision memory d = _takerDecision(
@@ -106,6 +109,53 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         p.remainingLots = d.capLots;
         p.remainingFeeCapQ = d.feeCapQ;
         _permitReserve(req.trader, req.side == Side.BUY, req.limitTick, d.capLots, d.feeCapQ);
+        return (p, RejectCode.NONE);
+    }
+
+    // ------------------------------------------------------------------ forced reduction (B031)
+
+    /// @dev Only the liquidation module can grant FORCED_REDUCTION, and only inside its own call.
+    function _forcedReductionAuthorized() internal view virtual returns (bool) {
+        return false;
+    }
+
+    /// @dev Fee and allowed-reduction check for one forced (liquidation) fill; default refuses.
+    function _forcedFillFee(TakerPermit memory, OrderView memory, uint64)
+        internal
+        view
+        virtual
+        returns (bool ok, uint256 feeQ)
+    {
+        return (false, 0);
+    }
+
+    /// @dev Posting route: ordinary fills via `_acctPostFill`; liquidation overrides for forced fills.
+    function _postFillDelta(FillDelta memory d, bool) internal virtual {
+        _acctPostFill(d);
+    }
+
+    /// @notice Reduce-only permit for a liquidation IOC: clipped to |x|, opposite side, no IM test
+    ///         (each fill is checked against the allowed-reduction predicate instead).
+    function _forcedPermit(OrderRequest memory req, RiskSnapshot memory snap)
+        internal
+        returns (TakerPermit memory p, RejectCode rejection)
+    {
+        _checkSnap(snap);
+        _touch(req.trader);
+        p.localPermitId = ++_permitSeq;
+        p.trader = req.trader;
+        p.side = req.side;
+        p.limitTick = req.limitTick;
+        p.reduceOnly = true;
+        p.mode = AdmissionMode.FORCED_REDUCTION;
+        if (_actionCtx.halted) return (p, RejectCode.HALTED);
+        if (_acctAccountingState() != AccountingState.READY) return (p, RejectCode.BAD_STAGE);
+        AccountView memory a = _acctAccount(req.trader);
+        p.reduceVersion = a.positionVersion;
+        uint64 cap = uint64(OA.reduceOnlyCap(a.lots, req.side == Side.BUY, req.requestedLots));
+        if (cap == 0) return (p, RejectCode.NO_REDUCIBLE_POSITION);
+        p.remainingLots = cap;
+        _permitReserve(req.trader, req.side == Side.BUY, req.limitTick, cap, 0);
         return (p, RejectCode.NONE);
     }
 
@@ -144,6 +194,11 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             lots = clip;
         }
         FillPlan memory f = _plan(permit, maker, lots);
+        if (permit.mode == AdmissionMode.FORCED_REDUCTION) {
+            (bool ok, uint256 fee) = _forcedFillFee(permit, maker, lots);
+            if (!ok) return _stop(RejectCode.TAKER_CAPACITY);
+            f.takerFeeQ = fee;
+        }
         (bool takerCapOk, bool makerCapOk, bool marketOk) = _preflight(f);
         if (!makerCapOk) return _prune(maker, true, RejectCode.ACCOUNT_DEFICIT_CAP);
         if (!takerCapOk) return _stop(RejectCode.TAKER_CAPACITY);
@@ -179,7 +234,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
     }
 
     function _commitFill(FillPlan memory f, TakerPermit memory permit, OrderView memory maker) internal {
-        _acctPostFill(FillDelta(f.maker, f.taker, f.takerBuys, f.lots, f.makerTick, f.makerFeeQ, f.takerFeeQ));
+        _postFillDelta(
+            FillDelta(f.maker, f.taker, f.takerBuys, f.lots, f.makerTick, f.makerFeeQ, f.takerFeeQ),
+            permit.mode == AdmissionMode.FORCED_REDUCTION
+        );
         _resConsumeFill(f.maker, maker.side == Side.BUY, maker.tick, f.lots, f.makerFeeCapUsedQ);
         _permitConsume(f.taker, f.takerBuys, permit.limitTick, f.lots, f.takerPermitFeeUsedQ);
         _acctReplaceContribution(f.taker, _combined(f.taker));

@@ -101,11 +101,19 @@ abstract contract MockBookAdapter is IBookRiskHooks {
 
     /// @notice placeOrder per spec §7.7 against the mock book.
     function _mockPlace(OrderRequest memory req) internal returns (PlaceResult memory r) {
+        return _mockPlaceWithMode(req, AdmissionMode.NORMAL);
+    }
+
+    /// @notice Same traversal with an explicit admission mode (liquidation IOC uses FORCED_REDUCTION).
+    function _mockPlaceWithMode(OrderRequest memory req, AdmissionMode mode)
+        internal
+        returns (PlaceResult memory r)
+    {
         if (req.limitTick < 1 || req.limitTick > 999 || req.requestedLots == 0 || req.maxSteps > 64) {
             revert MockBookBadInput();
         }
         RiskSnapshot memory snap = _riskBeginAction();
-        (TakerPermit memory permit, RejectCode reject) = _riskPrepareTaker(req, snap, AdmissionMode.NORMAL);
+        (TakerPermit memory permit, RejectCode reject) = _riskPrepareTaker(req, snap, mode);
         if (permit.remainingLots == 0) {
             r.rejection = reject;
             return r;
@@ -120,19 +128,25 @@ abstract contract MockBookAdapter is IBookRiskHooks {
             r.filledLots = _matchLoop(req, snap, permit);
         }
         if (req.kind != OrderKind.IOC && permit.remainingLots >= minRestLots) {
-            if (!_wouldCross(req.side, req.limitTick)) {
-                uint64 rest = permit.remainingLots;
-                (EpochTag memory tag, uint64 rv, uint256 fee) =
-                    _riskConvertPermitToRest(snap, permit, rest, req.expiryBlock);
-                r.restedSlot = _append(
-                    req.trader, req.side, req.limitTick, rest, req.expiryBlock, tag, req.reduceOnly, rv, fee
-                );
-            } else {
-                emit OrderRemainderDropped(req.trader, permit.remainingLots, RemovalReason.CROSSED_REMAINDER);
-            }
+            r.restedSlot = _restRemainder(req, snap, permit);
         }
         _riskFinishTaker(snap, permit);
         lastFilled = r.filledLots;
+    }
+
+    function _restRemainder(OrderRequest memory req, RiskSnapshot memory snap, TakerPermit memory permit)
+        internal
+        returns (uint32 slot)
+    {
+        if (_wouldCross(req.side, req.limitTick)) {
+            emit OrderRemainderDropped(req.trader, permit.remainingLots, RemovalReason.CROSSED_REMAINDER);
+            return 0;
+        }
+        uint64 rest = permit.remainingLots;
+        (EpochTag memory tag, uint64 rv, uint256 fee) =
+            _riskConvertPermitToRest(snap, permit, rest, req.expiryBlock);
+        slot =
+            _append(req.trader, req.side, req.limitTick, rest, req.expiryBlock, tag, req.reduceOnly, rv, fee);
     }
 
     function _matchLoop(OrderRequest memory req, RiskSnapshot memory snap, TakerPermit memory permit)

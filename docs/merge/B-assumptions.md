@@ -200,3 +200,13 @@ open questions for Person A, the counterpart teams or the spec owner.
   negative endpoint, `_acctTakeover(TakeoverAuth{trader, predicate 2, cutoff, riskVersion})`, and
   `_acctFloorComplete()` after the last index (A returns to READY). The double mirrors those state
   changes. A031 must implement this contract or report the difference at G5.
+- **I-10 (B031) Liquidation IOC entry on the book.** The liquidation module needs the book to run
+  a reduce-only IOC through its ordinary traversal with `AdmissionMode.FORCED_REDUCTION`
+  (`_liqSubmitIoc(req) -> (filled, examined)`). The spec hook set has no such entry; the mock book
+  exposes `_mockPlaceWithMode`. CP-BOOK must provide an equivalent internal entry. FORCED mode is
+  granted only while the liquidation call runs (`_forcedReductionAuthorized`), never to users.
+- **M-19 (B031) Liquidation fill fee and posting.** Each forced fill charges the liquidated taker
+  `feeAllowedQ` (<= one atom per lot, waived to keep the allowed-reduction predicate and both
+  deficits nonincreasing) and is posted through `_acctPostLiquidationFill(d, fee, keeper)`; A
+  splits it half reserve / half keeper (A029). The worst tick is computed with the full fee, so a
+  waived fee only improves the account.
