@@ -210,3 +210,11 @@ open questions for Person A, the counterpart teams or the spec owner.
   deficits nonincreasing) and is posted through `_acctPostLiquidationFill(d, fee, keeper)`; A
   splits it half reserve / half keeper (A029). The worst tick is computed with the full fee, so a
   waived fee only improves the account.
+- **S-11 (B034–B038) Settlement-side port views.** Added to the provisional port:
+  `_acctEpochBounds()` (active epoch end, frozen rollover cutoff; A025/A030),
+  `_acctClaimsComplete()` (A037), `_acctAnyCashClaim()` (A037), `_acctAllFullyBackedAtHalt()`
+  (A034). The halt calls `_acctFreeze(economicHaltAt, accrualCutoff)` once; A returns the frozen
+  count, OI (lots, incl. reserve), funding index, epoch id, tariff hash and an accounting-state
+  digest; B composes `snapshotId` per spec §8.3 step 5.
+- **M-20 (B034) Halt invalidates book epochs.** The halt bumps the market order epoch through A
+  (`frozenBookEpoch` = the new epoch), so no pre-halt order can match even if a book forgets it.

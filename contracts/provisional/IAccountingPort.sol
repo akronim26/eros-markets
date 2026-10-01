@@ -139,4 +139,21 @@ abstract contract IAccountingPort {
         returns (JobProgress memory);
 
     function _acctFinishPreparation() internal virtual returns (FinishResult memory);
+
+    /// @dev Active accounting epoch end and any already-frozen rollover cutoff (0 = none), so the
+    ///      halt can use accrualCutoff = min(economicHaltAt, end, frozen) (A025/A030).
+    function _acctEpochBounds()
+        internal
+        view
+        virtual
+        returns (uint64 activeEpochEnd, uint64 frozenRolloverCutoff);
+
+    /// @dev True once every prepared entitlement has been claimed (A037) -> ClearingPhase.COMPLETE.
+    function _acctClaimsComplete() internal view virtual returns (bool);
+
+    /// @dev True once any cash claim was paid (A037); conversion can never start afterwards.
+    function _acctAnyCashClaim() internal view virtual returns (bool);
+
+    /// @dev True iff every frozen account incl. the reserve is fully backed at the halt snapshot (A034).
+    function _acctAllFullyBackedAtHalt() internal view virtual returns (bool);
 }
