@@ -1,0 +1,252 @@
+{
+  "gate": "G1",
+  "recorded_at": "2026-10-01T10:51:24.240853+00:00",
+  "branch": "integration/risk",
+  "commit": "9c558365ff67da7d88951113d312705b3803de6e",
+  "worktree_dirty_after_runs": true,
+  "official_runner": {
+    "command": "bash scripts/check-gate.sh G1",
+    "exit_code": 2,
+    "status": "blocked",
+    "reason": "previous gate has no reviewed accepted commit",
+    "test_count": 0
+  },
+  "technical_checks": [
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A003"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "A003: passed; 2 tests; artifacts/tasks/A003.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A004"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "A004: passed; 2 tests; artifacts/tasks/A004.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A005"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "A005: passed; 3 tests; artifacts/tasks/A005.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A006"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "A006: passed; 2 tests; artifacts/tasks/A006.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A007"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "A007: passed; 2 tests; artifacts/tasks/A007.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A008"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "A008: passed; 2 tests; artifacts/tasks/A008.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A009"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "A009: passed; 2 tests; artifacts/tasks/A009.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B003"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "B003: passed; 15 tests; artifacts/tasks/B003.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B004"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "B004: passed; 12 tests; artifacts/tasks/B004.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B005"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "B005: passed; 16 tests; artifacts/tasks/B005.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B006"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "B006: passed; 16 tests; artifacts/tasks/B006.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B007"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "B007: passed; 24 tests; artifacts/tasks/B007.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B008"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "B008: passed; 24 tests; artifacts/tasks/B008.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B009"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "",
+        "OK",
+        "B009: passed; 19 tests; artifacts/tasks/B009.json"
+      ]
+    },
+    {
+      "argv": [
+        "forge",
+        "test",
+        "--match-path",
+        "test/gates/G1.t.sol"
+      ],
+      "cwd": "contracts",
+      "exit_code": 0,
+      "tail": [
+        "Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 7.13ms (17.66ms CPU time)",
+        "",
+        "Ran 1 test suite in 80.78ms (7.13ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)"
+      ]
+    },
+    {
+      "argv": "python3 -m unittest discover -s reference/tests/integration -t .",
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "Ran 7 tests in 0.000s",
+        "",
+        "OK"
+      ]
+    }
+  ],
+  "technical_status": "passed",
+  "components": {
+    "person_a": "real",
+    "person_b": "real",
+    "combined": "real (contracts/test/gates/G1.t.sol)",
+    "book": "mock (MockBookAdapter)",
+    "price_source": "mock (test-fed observations)",
+    "oracle": "mock (MockResolutionAuthority)",
+    "factory": "constructor fixture",
+    "token": "MockUSDC"
+  },
+  "review": {
+    "B": "integration agent for Person B",
+    "A": "pending (not reviewed)"
+  }
+}
