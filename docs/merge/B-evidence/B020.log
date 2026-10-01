@@ -1,0 +1,20 @@
+No files changed, compilation skipped
+
+Ran 14 tests for test/risk/B/B020.t.sol:B020Test
+[PASS] test_crossedRemainderDropped() (gas: 1834188)
+[PASS] test_delayedDeliveryRetries() (gas: 1049372)
+[PASS] test_dirtyQueueBoundedSteps() (gas: 2259222)
+[PASS] test_expiryBoundaryInclusive() (gas: 1869332)
+[PASS] test_noUnrestOnFilledSize() (gas: 1729078)
+[PASS] test_postDuringSweepFails() (gas: 330841)
+[PASS] test_postRecordsUnitsAndExactDeltas() (gas: 488836)
+[PASS] test_postUntouchedFails() (gas: 261549)
+[PASS] test_resolutionDoubleMapping() (gas: 1059862)
+[PASS] test_riskModulesRunOnScriptedPort() (gas: 36436591)
+[PASS] test_settlementJobsInOrder() (gas: 510663)
+[PASS] test_stopTakerKeepsMaker() (gas: 1886539)
+[PASS] test_touchBeforeBeginFails() (gas: 83497)
+[PASS] test_unscriptedCoverageFails() (gas: 398483)
+Suite result: ok. 14 passed; 0 failed; 0 skipped; finished in 4.17ms (4.88ms CPU time)
+
+Ran 1 test suite in 80.73ms (4.17ms CPU time): 14 tests passed, 0 failed, 0 skipped (14 total tests)

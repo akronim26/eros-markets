@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.30;
+import {RiskStorage} from "./RiskStorage.sol";
+
+abstract contract AccountRegistry is RiskStorage {
+    function _register(address owner) internal {
+        if (registered[owner]) return;
+        if (owner == address(0) || work != Work.READY || halted || participants.length == 1024) {
+            revert BadState();
+        }
+        registered[owner] = true;
+        participants.push(owner);
+        Account storage a = accounts[owner];
+        a.fundingCheckpoint = fundingFQ;
+        a.orderEpoch = 1;
+        a.reservationMarketEpoch = marketOrderEpoch;
+        a.segmentStart = _clock();
+        emit AccountRegistered(owner, participants.length - 1);
+    }
+}

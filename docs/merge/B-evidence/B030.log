@@ -1,0 +1,14 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/risk/B/B030.t.sol:B030Test
+[PASS] test_belowMmReduceCancelsFirst() (gas: 1697657)
+[PASS] test_floorDeficitPriceFree() (gas: 1007297)
+[PASS] test_nonEligibleKeepsOrdersNoReward() (gas: 1587913)
+[PASS] test_pairPredicateBlocksWorseningClose() (gas: 1843313)
+[PASS] test_pairReductionBothPredicates() (gas: 1977744)
+[PASS] test_pairRejectsIneligibleOrSameSide() (gas: 2241079)
+[PASS] test_staleMarkPositiveEquityNotEligible() (gas: 821497)
+[PASS] test_takeoverPredicates() (gas: 1845377)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 7.20ms (6.09ms CPU time)
+
+Ran 1 test suite in 87.50ms (7.20ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

@@ -1,0 +1,14 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/risk/B/B032.t.sol:B032Test
+[PASS] test_haltAndSweepGates() (gas: 880060)
+[PASS] test_noEffectCallKeepsOrdersNoReward() (gas: 1551401)
+[PASS] test_pairThenBookNeverFlips() (gas: 1870917)
+[PASS] test_partialPairThenBookClose() (gas: 3181924)
+[PASS] test_takeoverCarriesPredicateAndCutoff() (gas: 1296456)
+[PASS] test_tinyBudgetNeedsMoreWork() (gas: 3083870)
+[PASS] test_viewsLabelState() (gas: 1327808)
+[PASS] test_zeroBudgetRejected() (gas: 17133)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 7.99ms (7.42ms CPU time)
+
+Ran 1 test suite in 84.63ms (7.99ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

@@ -1,0 +1,21 @@
+{
+ "task": "B043",
+ "runner": "provisional/scripts/check-task.sh (stand-in for A002 scripts/check-task.sh)",
+ "commit": "6c4c8733e69efb2383c00447663d2a7b9bce0f85",
+ "spec_version": "1.1",
+ "steps": [
+  {
+   "step": "exists:artifacts/reviews/B-on-A.md",
+   "exit_code": 0
+  },
+  {
+   "step": "status",
+   "exit_code": 1
+  }
+ ],
+ "exit_code": 1,
+ "counterparts": "all mocked or blocked; see artifacts/risk/counterpart-status.json",
+ "person_a": "provisional stand-ins and scripted doubles; no real A module",
+ "gate_credit": "none",
+ "recorded_at_utc": "2026-10-01T03:39:47+00:00"
+}

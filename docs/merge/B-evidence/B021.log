@@ -1,0 +1,14 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/risk/B/B021.t.sol:B021Test
+[PASS] test_hazardRaiseReduceOnlyNowProfileNextEpoch() (gas: 621752)
+[PASS] test_invalidSampleEndsCoverage() (gas: 1751656)
+[PASS] test_lateFreshObservationCannotEraseGap() (gas: 11585205)
+[PASS] test_missingCalibrationForcesOneX() (gas: 6914757)
+[PASS] test_monitorAuthenticatedReduceOnly() (gas: 67405)
+[PASS] test_monitorCannotHaltSettleOrLowerHazards() (gas: 71159)
+[PASS] test_movementTriggersReduceOnly() (gas: 4469502)
+[PASS] test_staleThreshold30s() (gas: 303391)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 3.01ms (4.46ms CPU time)
+
+Ran 1 test suite in 80.46ms (3.01ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

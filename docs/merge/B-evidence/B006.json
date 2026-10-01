@@ -1,0 +1,20 @@
+{
+ "task": "B006",
+ "commit": "789ed4de961bf0c79cb6189e35548466651e1c71",
+ "working_tree_dirty_files": 2,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "python -m unittest discover -s reference/tests/b -p \"test_b006.py\"",
+ "exit_code": 0,
+ "output_tail": [
+  "................",
+  "----------------------------------------------------------------------",
+  "Ran 16 tests in 0.424s",
+  "",
+  "OK"
+ ],
+ "component_status": "lane-pass (scripted A coverage port)",
+ "recorded_at_utc": "2026-09-30T19:19:22+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

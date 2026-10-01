@@ -1,0 +1,24 @@
+{
+ "task": "B040",
+ "commit": "6a57f0d9c928f1f2eb2b31bedc9a9154f947892d",
+ "working_tree_dirty_files": 1,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "bash provisional/scripts/check-task.sh B040",
+ "exit_code": 0,
+ "output_tail": [
+  "[forge] exit 0: cd contracts && forge test --match-path test/integration/B/FullLifecycle.t.sol",
+  "[PASS] test_earlyHaltNoPath() (gas: 34047490)",
+  "[PASS] test_earlyInvalidPendingThenCapture() (gas: 233338209)",
+  "Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 160.40ms (182.24ms CPU time)",
+  "",
+  "Ran 1 test suite in 163.23ms (160.40ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)",
+  "[exists] artifacts/risk/counterpart-status.json",
+  "[json] exit 0: artifacts/risk/counterpart-status.json",
+  "overall exit 0"
+ ],
+ "component_status": "needs-merge (exact command needs A002 scripts/check-task.sh; stand-in runner used; all counterparts mocked/blocked)",
+ "recorded_at_utc": "2026-10-01T03:35:06+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

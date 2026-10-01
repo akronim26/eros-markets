@@ -1,0 +1,28 @@
+{
+ "task": "B039",
+ "commit": "6e904560d6f1102090ba4585203a294b740c2a96",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B039.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 7 tests for test/risk/B/B039.t.sol:B039Test",
+  "[PASS] test_duplicateDeliveryAndReplayNoSecondEffect() (gas: 711429)",
+  "[PASS] test_earlyInvalidDelayedWindowThenCapture() (gas: 232000661)",
+  "[PASS] test_haltBeforeOrAfterRollSameCutoff() (gas: 18866256)",
+  "[PASS] test_haltDuringRolloverKeepsFrozenCutoff() (gas: 437535)",
+  "[PASS] test_scheduledPathStatuses() (gas: 711358)",
+  "[PASS] test_staleHistoryUsesDisclosedFallbackOnly() (gas: 233132778)",
+  "[PASS] test_transientPreparationIssueKeepsOutcome() (gas: 737344)",
+  "Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 183.48ms (358.79ms CPU time)",
+  "",
+  "Ran 1 test suite in 187.25ms (183.48ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A jobs + mock oracle; not real A/CP-ORACLE)",
+ "recorded_at_utc": "2026-10-01T03:33:18+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

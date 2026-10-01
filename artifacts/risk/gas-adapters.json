@@ -1,0 +1,36 @@
+{
+ "schema": "eros-gas-adapters/1",
+ "task": "B041",
+ "source": "parsed from `cd contracts && forge test --match-path test/gas/B/AdapterGas.t.sol -vv` (docs/merge/B-evidence/B041-gas.log)",
+ "suite_passed": true,
+ "toolchain": {
+  "forge": "forge Version: 1.3.5-stable",
+  "solc": "0.8.30",
+  "optimizer_runs": 200,
+  "evm": "prague"
+ },
+ "gas_model": "local forge EVM (Ethereum gas schedule). Not Monad MIP-8 page pricing; not a network cost estimate.",
+ "includes_mock_overhead": "MockBookAdapter linear price-time scan over all live nodes; MockAccountingPort scripted storage. Production book/A costs differ.",
+ "bounds": {
+  "max_examined_makers": 64,
+  "floor_batch": 32,
+  "settlement_chunk": 32,
+  "ring_entries_per_series": 1024
+ },
+ "measurements_gas": {
+  "taker_64_examined_35_stale_29_filled_mockscan": 22144269,
+  "liquidate_one_lot_continuation": 1912020,
+  "liquidate_full_restore": 1564319,
+  "observation_index_plus_perp_update_ring_partial": 464537,
+  "observation_index_plus_perp_update_ring_full": 50636,
+  "settle_callback_few_accounts": 49672,
+  "settle_callback_1000_accounts": 49566,
+  "prepare_snapshot_chunk_32_scripted_A": 98751,
+  "prepare_payout_chunk_32_scripted_A": 75454
+ },
+ "assertions": [
+  "64 examined with 35 stale nodes counted against the limit (filled 29)",
+  "settle callback gas with 1,000 accounts within 1% of few accounts",
+  "observation update with a full ring no more than 2x the partial-ring update"
+ ]
+}

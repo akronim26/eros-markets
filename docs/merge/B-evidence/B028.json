@@ -1,0 +1,28 @@
+{
+ "task": "B028",
+ "commit": "46adb08a7618397175f043d231647f3014b9bf45",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B028.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 7 tests for test/risk/B/B028.t.sol:B028Test",
+  "[PASS] test_belowMmHasNoGrace() (gas: 1063221)",
+  "[PASS] test_bootstrapCannotOverrideHalt() (gas: 329986)",
+  "[PASS] test_floorInvalidatesOrdersOnFirstAction() (gas: 35829003)",
+  "[PASS] test_graceNonrenewable() (gas: 69433474)",
+  "[PASS] test_haltStrongerThanMonitor() (gas: 301268)",
+  "[PASS] test_recoveryClearsGrace() (gas: 1243934)",
+  "[PASS] test_stageAppliesWithoutKeeper() (gas: 34130095)",
+  "Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 18.54ms (27.35ms CPU time)",
+  "",
+  "Ran 1 test suite in 86.31ms (18.54ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)"
+ ],
+ "component_status": "lane-pass (mock book + scripted A)",
+ "recorded_at_utc": "2026-09-30T20:09:59+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}
