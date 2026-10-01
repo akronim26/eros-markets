@@ -1,0 +1,11 @@
+{
+  "gate": "G1",
+  "title": "Reference engines and numeric primitives joined",
+  "spec_version": "1.1",
+  "combined_reference": "reference/integration/combined_trace.py (A ledger/coverage/funding/premium/settlement + B margin/admission/pricing/liquidation; B admission uses A's real coverage port, no scripted port)",
+  "reference_test": "reference/tests/integration/test_g1.py (hand-derived expectations)",
+  "trace_steps": ["5x admission with A coverage", "paired fill", "IM/MM health", "fixed-rate funding with zero-sum sync", "premium with 4x surcharge and neutral touch", "liquidation decisions (REDUCE at 0.50, takeover at 0.48, none on stale mark)", "terminal payoff NO/YES/INVALID with asset conservation"],
+  "qmath_interface_frozen": ["abs", "signed", "position", "cash", "floorDiv", "ceilDiv", "mulDiv", "mulDivUp", "sqrtUp", "min", "max", "positive"],
+  "gate_test": "contracts/test/gates/G1.t.sol (QMath directed bounds vs rational definitions, fuzzed; trace replay on Solidity libraries)",
+  "fixture_hashes": "recorded by scripts/check-gate.sh in artifacts/gates/G1.json"
+}
