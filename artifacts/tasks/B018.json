@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "kind": "task",
-  "id": "A021",
+  "id": "B018",
   "scope": "task_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-10-01T10:54:14.153073+00:00",
+  "recorded_at": "2026-10-01T10:54:16.079502+00:00",
   "source_commit": "c1d241c2b645e06d84d31f69c09971804f4f7a2b",
   "worktree_dirty": true,
   "toolchain": {
@@ -129,11 +129,12 @@
     "packages/risk-sdk/test/read-model.test.ts": "fccf7eb09dbd440b21eda00d54571799186ef45c1ee83367fd081d4202e99f6d",
     "contracts/foundry.toml": "a475316648911492e3146ec5bb4cd3ee54470f095b662c4eaa6d1e253915acd4",
     "scripts/check-task.sh": "68db7925dafb098159e0ce89737510072450ea89386375329fc7470cc2a1cbb8",
-    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14"
+    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14",
+    "contracts/test/risk/B/B018.t.sol": "37381062f3da4227c9688a4153f1c1737104b6a3763f3ae1acf8e208d1578f98"
   },
   "components": {
     "selected_suite": "real",
-    "peer_lane": "scripted_mock",
+    "peer_lane": "not_exercised",
     "external_counterparts": "not_exercised"
   },
   "commands": [
@@ -142,23 +143,23 @@
         "forge",
         "test",
         "--match-path",
-        "test/risk/A/A021.t.sol",
+        "test/risk/B/B018.t.sol",
         "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A021.t.sol:A021Test\": {\"duration\": \"812\\u00b5s 750ns\", \"test_results\": {\"testDecisionPortCannotBeBypassed()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 384926}}, \"duration\": \"152\\u00b5s 42ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B018.t.sol:B018Test\": {\"duration\": \"4ms 553\\u00b5s 209ns\", \"test_results\": {\"test_contextCarriesTimeAndStage()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 37480}}, \"duration\": \"52\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"test_emptyBookBootstrapUsesIndexOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 5239091}}, \"duration\": \"804\\u00b5s 959ns\", \"gas_snapshots\": {}}, \"test_haltOverridesBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 5124087}}, \"duration\": \"452\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_missingPerpAfterNormalFallsBackToBackedOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 39143330}}, \"duration\": \"4ms 165\\u00b5s 167ns\", \"gas_snapshots\": {}}, \"test_noIndexNoExposure()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 48940}}, \"duration\": \"112\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_normalOnlyAtEpochOpeningWithAllWindows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 36848135}}, \"duration\": \"4ms 200\\u00b5s 84ns\", \"gas_snapshots\": {}}, \"test_openingWithoutFullWindowsStaysBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 13138083}}, \"duration\": \"1ms 231\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"test_profileActivatesOnlyAtEpochOpening()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 91304}}, \"duration\": \"134\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],
-  "test_count": 1,
+  "test_count": 8,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
   "reason": "",
   "checks": [],
   "artifacts": [
-    "artifacts/tasks/A021.json"
+    "artifacts/tasks/B018.json"
   ]
 }

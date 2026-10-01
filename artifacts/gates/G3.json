@@ -1,0 +1,202 @@
+{
+  "gate": "G3",
+  "recorded_at": "2026-10-01T10:54:19.213705+00:00",
+  "branch": "integration/risk",
+  "commit": "c1d241c2b645e06d84d31f69c09971804f4f7a2b",
+  "worktree_dirty_after_runs": true,
+  "official_runner": {
+    "command": "bash scripts/check-gate.sh G3",
+    "exit_code": 2,
+    "status": "blocked",
+    "reason": "previous gate has no reviewed accepted commit",
+    "test_count": 0
+  },
+  "technical_checks": [
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A016"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A016.t.sol:A016Test\": {\"duration\": \"4ms 649\\u00b5s 333ns\", \"test_results\": {\"testRegistryBoundAndNoReuse()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 97322670}}, \"duration\": \"3ms 951\\u00b5s 875ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A016: passed; 1 tests; artifacts/tasks/A016.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A017"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A017.t.sol:A017Test\": {\"duration\": \"863\\u00b5s 709ns\", \"test_results\": {\"testCustodyReleaseAndTaxRejection()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 323082}}, \"duration\": \"157\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"testDepositReentryRejected()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 184507}}, \"duration\": \"73\\u00b5s 917ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A017: passed; 2 tests; artifacts/tasks/A017.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A018"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A018.t.sol:A018Test\": {\"duration\": \"886\\u00b5s 167ns\", \"test_results\": {\"testPairedPostingAndSecondLegRollback()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 621356}}, \"duration\": \"260\\u00b5s 208ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A018: passed; 1 tests; artifacts/tasks/A018.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A019"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A019.t.sol:A019Test\": {\"duration\": \"921\\u00b5s 625ns\", \"test_results\": {\"testBothCoverageSidesAndExcessRollback()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 542689}}, \"duration\": \"285\\u00b5s 42ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A019: passed; 1 tests; artifacts/tasks/A019.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A020"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A020.t.sol:A020Test\": {\"duration\": \"1ms 406\\u00b5s 209ns\", \"test_results\": {\"testReserveHolderBoundAllowsExistingHolderTopUp()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 12473894}}, \"duration\": \"722\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"testReserveLiveDonationHasNoSharesAndNoLiveRedemption()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 329853}}, \"duration\": \"132\\u00b5s 958ns\", \"gas_snapshots\": {}}, \"testSeedTopUpDoesNotDuplicateHolderAndNoticeMustCoverNewShares()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 745025}}, \"duration\": \"91\\u00b5s 458ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A020: passed; 3 tests; artifacts/tasks/A020.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "A021"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/A/A021.t.sol:A021Test\": {\"duration\": \"812\\u00b5s 750ns\", \"test_results\": {\"testDecisionPortCannotBeBypassed()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 384926}}, \"duration\": \"152\\u00b5s 42ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "A021: passed; 1 tests; artifacts/tasks/A021.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B016"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B016.t.sol:B016Test\": {\"duration\": \"3ms 244\\u00b5s 42ns\", \"test_results\": {\"test_acceptsValidAndRecordsObservedAt()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 134336}}, \"duration\": \"2ms 246\\u00b5s 416ns\", \"gas_snapshots\": {}}, \"test_backwardsTimeFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 141927}}, \"duration\": \"2ms 445\\u00b5s 708ns\", \"gas_snapshots\": {}}, \"test_delayedObservationKeepsItsObservedAt()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 131934}}, \"duration\": \"2ms 126\\u00b5s 166ns\", \"gas_snapshots\": {}}, \"test_duplicateAndBackwardsSequenceFail()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 152355}}, \"duration\": \"2ms 408\\u00b5s 42ns\", \"gas_snapshots\": {}}, \"test_eventCarriesAllClocks()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 133919}}, \"duration\": \"2ms 267\\u00b5s 792ns\", \"gas_snapshots\": {}}, \"test_futureObservationFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 170477}}, \"duration\": \"2ms 495\\u00b5s 42ns\", \"gas_snapshots\": {}}, \"test_priceMustMatchDepthMid()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 36115}}, \"duration\": \"2ms 109\\u00b5s 959ns\", \"gas_snapshots\": {}}, \"test_sourcePinnedOnce()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 10871}}, \"duration\": \"41\\u00b5s 42ns\", \"gas_snapshots\": {}}, \"test_thinDepthRecordedInvalid()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 91673}}, \"duration\": \"2ms 391\\u00b5s 416ns\", \"gas_snapshots\": {}}, \"test_wrongDomainFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 868987}}, \"duration\": \"2ms 381\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_wrongMarketOrSourceFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 38307}}, \"duration\": \"376\\u00b5s\", \"gas_snapshots\": {}}, \"test_wrongSignerFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 26379}}, \"duration\": \"1ms 842\\u00b5s 41ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B016: passed; 12 tests; artifacts/tasks/B016.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B017"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B017.t.sol:B017Test\": {\"duration\": \"38ms 527\\u00b5s 542ns\", \"test_results\": {\"test_basisInvalidWhenIndexStale()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 367768}}, \"duration\": \"103\\u00b5s 750ns\", \"gas_snapshots\": {}}, \"test_index300IrregularTimeWeighted()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2018065}}, \"duration\": \"184\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_invalidHistoryNotPrunedByRing()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 146592376}}, \"duration\": \"38ms 257\\u00b5s 250ns\", \"gas_snapshots\": {}}, \"test_invalidWindowGapIncomplete()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 144859861}}, \"duration\": \"36ms 344\\u00b5s 916ns\", \"gas_snapshots\": {}}, \"test_nonMonotoneRejected()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 270377}}, \"duration\": \"99\\u00b5s 583ns\", \"gas_snapshots\": {}}, \"test_perpAndBasisWindows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 36401411}}, \"duration\": \"3ms 508\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_postTSamplesDoNotChangeInvalidCapture()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 143538501}}, \"duration\": \"33ms 891\\u00b5s 541ns\", \"gas_snapshots\": {}}, \"test_ringWrapKeepsLiveWindows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 138131650}}, \"duration\": \"28ms 819\\u00b5s 959ns\", \"gas_snapshots\": {}}, \"test_sameSecondReplacement()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1550578}}, \"duration\": \"316\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_staleGapInvalidates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1426237}}, \"duration\": \"292\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_thinPerpDepthInvalid()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 832105}}, \"duration\": \"186\\u00b5s 625ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B017: passed; 11 tests; artifacts/tasks/B017.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B018"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B018.t.sol:B018Test\": {\"duration\": \"4ms 553\\u00b5s 209ns\", \"test_results\": {\"test_contextCarriesTimeAndStage()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 37480}}, \"duration\": \"52\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"test_emptyBookBootstrapUsesIndexOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 5239091}}, \"duration\": \"804\\u00b5s 959ns\", \"gas_snapshots\": {}}, \"test_haltOverridesBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 5124087}}, \"duration\": \"452\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_missingPerpAfterNormalFallsBackToBackedOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 39143330}}, \"duration\": \"4ms 165\\u00b5s 167ns\", \"gas_snapshots\": {}}, \"test_noIndexNoExposure()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 48940}}, \"duration\": \"112\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_normalOnlyAtEpochOpeningWithAllWindows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 36848135}}, \"duration\": \"4ms 200\\u00b5s 84ns\", \"gas_snapshots\": {}}, \"test_openingWithoutFullWindowsStaysBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 13138083}}, \"duration\": \"1ms 231\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"test_profileActivatesOnlyAtEpochOpening()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 91304}}, \"duration\": \"134\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B018: passed; 8 tests; artifacts/tasks/B018.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B019"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B019.t.sol:B019Test\": {\"duration\": \"1ms 253\\u00b5s 459ns\", \"test_results\": {\"test_boundsAndAddresses()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 75090}}, \"duration\": \"67\\u00b5s 41ns\", \"gas_snapshots\": {}}, \"test_calibrationVersionedAtEpoch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1852507}}, \"duration\": \"267\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_cutoffPort()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1328078}}, \"duration\": \"119\\u00b5s 666ns\", \"gas_snapshots\": {}}, \"test_fallbackRuleFixed()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 63820}}, \"duration\": \"77\\u00b5s 209ns\", \"gas_snapshots\": {}}, \"test_listingHorizonGate()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 69514}}, \"duration\": \"95\\u00b5s 42ns\", \"gas_snapshots\": {}}, \"test_oracleCannotRewriteRulesOrCalibration()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1333926}}, \"duration\": \"194\\u00b5s 83ns\", \"gas_snapshots\": {}}, \"test_outcomeMappingNeverCasts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1334463}}, \"duration\": \"174\\u00b5s 708ns\", \"gas_snapshots\": {}}, \"test_releaseDecision()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 6468129}}, \"duration\": \"764\\u00b5s 917ns\", \"gas_snapshots\": {}}, \"test_resolutionAbiMatchesSpec()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 654}}, \"duration\": \"11\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"test_validListingInitializesOnce()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1352343}}, \"duration\": \"145\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_wrongRoleCannotChooseOutcome()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1336325}}, \"duration\": \"184\\u00b5s 333ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B019: passed; 11 tests; artifacts/tasks/B019.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B020"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B020.t.sol:B020Test\": {\"duration\": \"3ms 955\\u00b5s 625ns\", \"test_results\": {\"test_crossedRemainderDropped()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1847050}}, \"duration\": \"126\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_delayedDeliveryRetries()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1049372}}, \"duration\": \"110\\u00b5s 666ns\", \"gas_snapshots\": {}}, \"test_dirtyQueueBoundedSteps()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2272002}}, \"duration\": \"187\\u00b5s 834ns\", \"gas_snapshots\": {}}, \"test_expiryBoundaryInclusive()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1882258}}, \"duration\": \"236\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_noUnrestOnFilledSize()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1741857}}, \"duration\": \"178\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_postDuringSweepFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 359555}}, \"duration\": \"103\\u00b5s 541ns\", \"gas_snapshots\": {}}, \"test_postRecordsUnitsAndExactDeltas()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 517661}}, \"duration\": \"123\\u00b5s 166ns\", \"gas_snapshots\": {}}, \"test_postUntouchedFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 288085}}, \"duration\": \"107\\u00b5s 666ns\", \"gas_snapshots\": {}}, \"test_resolutionDoubleMapping()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1059862}}, \"duration\": \"151\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_riskModulesRunOnScriptedPort()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 36436148}}, \"duration\": \"3ms 230\\u00b5s 209ns\", \"gas_snapshots\": {}}, \"test_settlementJobsInOrder()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 519807}}, \"duration\": \"165\\u00b5s 542ns\", \"gas_snapshots\": {}}, \"test_stopTakerKeepsMaker()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1899319}}, \"duration\": \"182\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_touchBeforeBeginFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 83521}}, \"duration\": \"83\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_unscriptedCoverageFails()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 398418}}, \"duration\": \"89\\u00b5s 292ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B020: passed; 14 tests; artifacts/tasks/B020.json"
+      ]
+    },
+    {
+      "argv": [
+        "bash",
+        "scripts/check-task.sh",
+        "B021"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "tail": [
+        "{\"test/risk/B/B021.t.sol:B021Test\": {\"duration\": \"2ms 744\\u00b5s 375ns\", \"test_results\": {\"test_hazardRaiseReduceOnlyNowProfileNextEpoch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 621731}}, \"duration\": \"159\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_invalidSampleEndsCoverage()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1751635}}, \"duration\": \"393\\u00b5s 709ns\", \"gas_snapshots\": {}}, \"test_lateFreshObservationCannotEraseGap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 11585180}}, \"duration\": \"2ms 281\\u00b5s 209ns\", \"gas_snapshots\": {}}, \"test_missingCalibrationForcesOneX()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 7073243}}, \"duration\": \"243\\u00b5s 750ns\", \"gas_snapshots\": {}}, \"test_monitorAuthenticatedReduceOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 67384}}, \"duration\": \"123\\u00b5s 167ns\", \"gas_snapshots\": {}}, \"test_monitorCannotHaltSettleOrLowerHazards()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 71248}}, \"duration\": \"108\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"test_movementTriggersReduceOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 4469312}}, \"duration\": \"848\\u00b5s 584ns\", \"gas_snapshots\": {}}, \"test_staleThreshold30s()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 303437}}, \"duration\": \"40\\u00b5s 709ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+        "B021: passed; 8 tests; artifacts/tasks/B021.json"
+      ]
+    },
+    {
+      "argv": [
+        "forge",
+        "test",
+        "--match-path",
+        "test/gates/G3.t.sol"
+      ],
+      "cwd": "contracts",
+      "exit_code": 0,
+      "tail": [
+        "Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 23.57ms (23.90ms CPU time)",
+        "",
+        "Ran 1 test suite in 84.04ms (23.57ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)"
+      ]
+    }
+  ],
+  "technical_status": "passed",
+  "components": {
+    "person_a": "real",
+    "person_b": "real",
+    "combined": "real (contracts/test/gates/G3.t.sol)",
+    "book": "mock (MockBookAdapter)",
+    "price_source": "mock (test-fed observations)",
+    "oracle": "mock (MockResolutionAuthority)",
+    "factory": "constructor fixture",
+    "token": "MockUSDC"
+  },
+  "review": {
+    "B": "integration agent for Person B",
+    "A": "pending (not reviewed)"
+  }
+}
