@@ -1,0 +1,9 @@
+[forge] exit 0: cd contracts && forge test --match-path test/integration/B/FullLifecycle.t.sol
+[PASS] test_earlyHaltNoPath() (gas: 34047490)
+[PASS] test_earlyInvalidPendingThenCapture() (gas: 233338209)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 160.40ms (182.24ms CPU time)
+
+Ran 1 test suite in 163.23ms (160.40ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)
+[exists] artifacts/risk/counterpart-status.json
+[json] exit 0: artifacts/risk/counterpart-status.json
+overall exit 0

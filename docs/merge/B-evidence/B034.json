@@ -1,0 +1,30 @@
+{
+ "task": "B034",
+ "commit": "fb3827d249956785b6959111a051d57a89a9d89a",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B034.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 9 tests for test/risk/B/B034.t.sol:B034Test",
+  "[PASS] test_accrualCutoffUsesEpochAndRollover() (gas: 403277)",
+  "[PASS] test_constantWorkFinality() (gas: 10728138)",
+  "[PASS] test_earlyHaltOnceAndIdempotent() (gas: 432775)",
+  "[PASS] test_failedDeliveryNotDropped() (gas: 474869)",
+  "[PASS] test_haltDuringRolloverUsesFrozenCutoff() (gas: 403145)",
+  "[PASS] test_onlyZeroOrOneY() (gas: 25608)",
+  "[PASS] test_scheduledHaltPermissionlessAtT() (gas: 373927)",
+  "[PASS] test_settleLatchesOnceSameIdempotentConflictReverts() (gas: 439293)",
+  "[PASS] test_unauthorizedActorsFail() (gas: 62379)",
+  "Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 1.71ms (1.28ms CPU time)",
+  "",
+  "Ran 1 test suite in 87.59ms (1.71ms CPU time): 9 tests passed, 0 failed, 0 skipped (9 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A freeze, MockResolutionAuthority; CP-ORACLE live join BLOCKED)",
+ "recorded_at_utc": "2026-10-01T03:22:23+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

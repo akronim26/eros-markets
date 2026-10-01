@@ -1,0 +1,20 @@
+No files changed, compilation skipped
+
+Ran 2 tests for test/risk/B/B023.t.sol:B023BootstrapTest
+[PASS] test_exactlyBackedAdmittedLeveragedNot() (gas: 191880)
+[PASS] test_outsideBand() (gas: 102395)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 1.57ms (254.04µs CPU time)
+
+Ran 9 tests for test/risk/B/B023.t.sol:B023Test
+[PASS] test_contextIsNormalAt29Days() (gas: 211515)
+[PASS] test_coverageShortageStopsBeforeMutation() (gas: 657401)
+[PASS] test_directFiveXPairedFillThroughMockPort() (gas: 1267647)
+[PASS] test_directFiveXRejectedWithSmallReserve() (gas: 339308)
+[PASS] test_healthyMakerAdmitted() (gas: 749024)
+[PASS] test_reduceOnlyStageAndMode() (gas: 490495)
+[PASS] test_sideFlipUsesShortEnvelope() (gas: 588712)
+[PASS] test_sizeAndPriceGates() (gas: 286453)
+[PASS] test_underMarginMakerPrunedWithCancelAll() (gas: 801438)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 6.54ms (4.10ms CPU time)
+
+Ran 2 test suites in 80.25ms (8.12ms CPU time): 11 tests passed, 0 failed, 0 skipped (11 total tests)

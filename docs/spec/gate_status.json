@@ -1,0 +1,62 @@
+{
+  "plan_version": "1.1",
+  "economic_baseline": "1.0",
+  "gates": [
+    {
+      "id": "G0",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    },
+    {
+      "id": "G1",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    },
+    {
+      "id": "G2",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    },
+    {
+      "id": "G3",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    },
+    {
+      "id": "G4",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    },
+    {
+      "id": "G5",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    },
+    {
+      "id": "G6",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    },
+    {
+      "id": "G7",
+      "status": "not_started",
+      "merge_sha": null,
+      "reviewed_by": [],
+      "evidence": []
+    }
+  ]
+}

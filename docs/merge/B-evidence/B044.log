@@ -1,0 +1,4 @@
+[exists] artifacts/risk/integration-release.json
+[json] exit 0: artifacts/risk/integration-release.json
+[exists] docs/runbooks/lifecycle.md
+overall exit 0

@@ -1,0 +1,47 @@
+{
+  "schema": "eros-integration-release/1",
+  "task": "B044",
+  "lane": "Person B (Risk & Clearing)",
+  "branch": "feat/risk",
+  "spec_version": "1.1",
+  "economic_baseline": "1.0",
+  "deployment": "NONE. No deployment is implied or authorized.",
+  "gates": "G0-G7 all not passed (docs/spec/gate_status.json unchanged; no merge SHA recorded)",
+  "interface_versions": {
+    "book_hooks": "spec §7.5 hook set as contracts/src/interfaces/IBookRiskHooks.sol (B-side proposal)",
+    "resolution": "IResolutionEngine in contracts/src/interfaces/IResolutionIngress.sol; fixture docs/counterpart-oracle-fixtures.json",
+    "price_source": "IPriceSource envelope in contracts/src/interfaces/IPriceSource.sol (assumption I-3)",
+    "market_config": "IMarketConfig.Listing in contracts/src/interfaces/IMarketConfig.sol (assumption I-6)",
+    "accounting_port": "contracts/provisional/IAccountingPort.sol (B guess S-5/S-10/S-11; replaced by A021+)",
+    "sdk": "packages/risk-sdk (settlement.ts, index.ts)"
+  },
+  "real_vs_mock": {
+    "person_a": "MOCK (MockAccountingPort scripted double + provisional QMath/MathTypes)",
+    "CP-BOOK": "MOCK (MockBookAdapter); live BLOCKED_BY_COUNTERPART",
+    "CP-PRICE": "MOCK (test signer); live BLOCKED_BY_COUNTERPART",
+    "CP-ORACLE": "MOCK (MockResolutionAuthority); live BLOCKED_BY_COUNTERPART",
+    "CP-FACTORY": "MOCK (ListingFixture); live BLOCKED_BY_COUNTERPART",
+    "CP-TOKEN": "NOT IN RELEASE (conversion disabled)",
+    "CP-APP": "fixtures only; live BLOCKED_BY_COUNTERPART"
+  },
+  "test_counts_at_release_commit": {
+    "b_solidity_suites": "33 suites / 317 tests passed (`forge test --match-path \"test/*/B/*.t.sol\"`)",
+    "whole_forge_project": "42 suites / 427 tests passed (book + B)",
+    "b_python_reference": "156 tests OK",
+    "sdk": "6 node:test cases via cached tsx (P-7)"
+  },
+  "keeper_jobs": ["floorSweep(<=32)", "liquidate(trader,maxLots,maxExaminations<=64,partner)", "materializeScheduledHalt()", "captureInvalidPrice()", "prepareSnapshotChunk(<=32)", "preparePayoutChunk(<=32)", "finishPreparation()"],
+  "disabled_features": ["token conversion", "recovery haircut", "funding (initial manifest)", "leverage above 1x (initial manifest)", "forced-book liquidation without measured maxLiqLotsPerBlock"],
+  "runbook": "docs/runbooks/lifecycle.md",
+  "task_records": {
+    "progress": "docs/merge/B-progress.md",
+    "evidence": "docs/merge/B-evidence/",
+    "assumptions": "docs/merge/B-assumptions.md",
+    "checkpoints": ["docs/merge/B-checkpoint-G0.md", "docs/merge/B-checkpoint-G1.md", "docs/merge/B-checkpoint-G2.md", "docs/merge/B-checkpoint-G3.md", "docs/merge/B-checkpoint-G4.md", "docs/merge/B-checkpoint-G5.md", "docs/merge/B-checkpoint-G6.md", "docs/merge/B-checkpoint-G7.md"],
+    "merge_guide": "docs/merge/B-merge-guide.md"
+  },
+  "source_task_migration": "docs/spec/task_migration.json is missing from the spec packet (validate_parallel_plan.py fails); legacy R-id links are in docs/spec/tasks_B.json legacy_ids per task",
+  "measurements": "artifacts/risk/gas-adapters.json (local EVM, mock overhead, not Monad cost)",
+  "known_blocked_tasks": ["B043 (no Person A code to review)"],
+  "needs_merge_tasks": ["B040", "B041", "B042", "B044 (acceptance runner scripts/check-task.sh is A002)"]
+}

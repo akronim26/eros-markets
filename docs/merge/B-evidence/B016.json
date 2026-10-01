@@ -1,0 +1,33 @@
+{
+ "task": "B016",
+ "commit": "a6243e1d5583a4db419d87d86de684f231e4c7a1",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B016.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 12 tests for test/risk/B/B016.t.sol:B016Test",
+  "[PASS] test_acceptsValidAndRecordsObservedAt() (gas: 134336)",
+  "[PASS] test_backwardsTimeFails() (gas: 141927)",
+  "[PASS] test_delayedObservationKeepsItsObservedAt() (gas: 131934)",
+  "[PASS] test_duplicateAndBackwardsSequenceFail() (gas: 152355)",
+  "[PASS] test_eventCarriesAllClocks() (gas: 133919)",
+  "[PASS] test_futureObservationFails() (gas: 170477)",
+  "[PASS] test_priceMustMatchDepthMid() (gas: 36115)",
+  "[PASS] test_sourcePinnedOnce() (gas: 10871)",
+  "[PASS] test_thinDepthRecordedInvalid() (gas: 91673)",
+  "[PASS] test_wrongDomainFails() (gas: 868987)",
+  "[PASS] test_wrongMarketOrSourceFails() (gas: 38307)",
+  "[PASS] test_wrongSignerFails() (gas: 26379)",
+  "Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 853.00\u00b5s (3.44ms CPU time)",
+  "",
+  "Ran 1 test suite in 79.66ms (853.00\u00b5s CPU time): 12 tests passed, 0 failed, 0 skipped (12 total tests)"
+ ],
+ "component_status": "lane-pass (no A stand-in; CP-PRICE mocked by test signer)",
+ "recorded_at_utc": "2026-09-30T19:40:17+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

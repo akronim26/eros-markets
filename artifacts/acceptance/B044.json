@@ -1,0 +1,25 @@
+{
+ "task": "B044",
+ "runner": "provisional/scripts/check-task.sh (stand-in for A002 scripts/check-task.sh)",
+ "commit": "f754a3075bb34d6f0a522516cd43a1f7576abdb2",
+ "spec_version": "1.1",
+ "steps": [
+  {
+   "step": "exists:artifacts/risk/integration-release.json",
+   "exit_code": 0
+  },
+  {
+   "step": "json:artifacts/risk/integration-release.json",
+   "exit_code": 0
+  },
+  {
+   "step": "exists:docs/runbooks/lifecycle.md",
+   "exit_code": 0
+  }
+ ],
+ "exit_code": 0,
+ "counterparts": "all mocked or blocked; see artifacts/risk/counterpart-status.json",
+ "person_a": "provisional stand-ins and scripted doubles; no real A module",
+ "gate_credit": "none",
+ "recorded_at_utc": "2026-10-01T03:41:58+00:00"
+}

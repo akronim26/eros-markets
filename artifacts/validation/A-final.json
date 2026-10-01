@@ -1,0 +1,126 @@
+{
+  "scope": "A local regression; real A, scripted B, no combined acceptance",
+  "recorded_at": "2026-09-30T21:28:30.495718+00:00",
+  "source_commit": "4c528549ff30396b22c312ccca5835aaf23e7ee6",
+  "commands": [
+    {
+      "argv": [
+        "forge",
+        "fmt",
+        "--check",
+        "src/math",
+        "src/risk",
+        "src/settlement",
+        "src/vaults",
+        "test/math/A",
+        "test/risk/A",
+        "test/mocks/A",
+        "test/harness/A",
+        "test/invariant/A",
+        "test/gas/A",
+        "test/integration/A"
+      ],
+      "cwd": "contracts",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "forge",
+        "build",
+        "--sizes"
+      ],
+      "cwd": "contracts",
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "forge",
+        "test",
+        "--json"
+      ],
+      "cwd": "contracts",
+      "exit_code": 0
+    }
+  ],
+  "build_notes": "Foundry test fixtures excluded via IS_TEST; actual 33,617-byte A harness separately recorded in gas-accounting.json. Compiler/lint warnings are not audit approval.",
+  "solidity": {
+    "suites": 44,
+    "total_tests": 163,
+    "A_tests": 53,
+    "book_tests": 110,
+    "A_invariants": {
+      "invariantConservationCoverageAndCustody()": {
+        "Invariant": {
+          "runs": 48,
+          "calls": 3072,
+          "reverts": 0,
+          "metrics": {
+            "test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.paired": {
+              "calls": 567,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.liquidation": {
+              "calls": 638,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.sync": {
+              "calls": 635,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.rollover": {
+              "calls": 583,
+              "reverts": 0,
+              "discards": 0
+            },
+            "test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.allocation": {
+              "calls": 649,
+              "reverts": 0,
+              "discards": 0
+            }
+          },
+          "failed_corpus_replays": 0
+        }
+      }
+    },
+    "skipped": 0,
+    "failures": 0,
+    "environment": {
+      "FOUNDRY_PROFILE": "risk",
+      "FORGE_SNAPSHOT_EMIT": "false"
+    }
+  },
+  "protected_files": {
+    "command": [
+      "git",
+      "diff",
+      "3cfa48d69e799b73f92a9955fdc7932c08cd925f",
+      "--name-only",
+      "--",
+      "contracts/src/Book.sol",
+      "contracts/src/RiskSnapshot.sol",
+      "contracts/test/Book*",
+      "contracts/snapshots/BookGas.json"
+    ],
+    "changed": [],
+    "sha256": {
+      "contracts/snapshots/BookGas.json": "2f0d6181152e183d9e66575c4cd02e19ef66510abc2635637e51760e932fe888",
+      "contracts/src/Book.sol": "8e629aaf21d0a8d87ec815c28dfd97c935cfc96b93965522a2589f1c2ceb5c56",
+      "contracts/src/RiskSnapshot.sol": "d19dfd65604a6ccb954c7f38447eac039aa5f17effa71d8ffd0ea3a36dfd38b3",
+      "contracts/test/BookBatch.t.sol": "4b01fb922660883aee1f89c8fbab8649aa778f11894c7cfd87c53057cf126ba7",
+      "contracts/test/BookBitmap.t.sol": "3e02dd35a96523ff2c088015b47d2dba5bb1eff4ef8535c6da31e1388619f2c1",
+      "contracts/test/BookComposition.t.sol": "8fccb151066d61bb953403602117a9a8302f62cbafdc9f500395fa5056a54755",
+      "contracts/test/BookDifferential.t.sol": "b2eb33a4fbff9e7a9b911126671ea1a4ba7e7053515f1a07572bcbc02e814602",
+      "contracts/test/BookGas.t.sol": "92b5555c348009fedc2163b77a00420a93d569340361b5a6e8a31eb653a558b9",
+      "contracts/test/BookHarness.sol": "8e5742bb6683f08bf1cfc888dba4e93e1a7af4493d1d79403927afbc52ddfa5d",
+      "contracts/test/BookInvariant.t.sol": "92f8c9a9a9b26f8327b0f38de056339f25ed7cd262ddcee131c228bf49eb363e",
+      "contracts/test/BookMatch.t.sol": "d26d01a3b5e9c14e4ba72610e9cc01bf7ffe0c479466e79bba96a8f4a2a0223f",
+      "contracts/test/BookRest.t.sol": "cbea26a6b0a2d64ff960b68cecd6a2e08e2ebe49799a0057075546ad49a850bd",
+      "contracts/test/BookSeam.t.sol": "4dcfe49aa03166336c1562c73d0da4f58c33afe472c89a55ea76cf8d3fa7bd8b"
+    }
+  },
+  "diff_check": "passed",
+  "status": "A_LOCAL_PASS_PEER_MERGE_PENDING"
+}

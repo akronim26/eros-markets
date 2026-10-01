@@ -1,0 +1,27 @@
+{
+ "task": "B029",
+ "commit": "2d27d7fd366ead96af841594e22dcfb054ce08b0",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B029.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 6 tests for test/risk/B/B029.t.sol:B029Test",
+  "[PASS] test_badBudget() (gas: 33735148)",
+  "[PASS] test_beforeFloorReverts() (gas: 211492)",
+  "[PASS] test_haltOverridesUnfinishedCompression() (gas: 34794728)",
+  "[PASS] test_liveBookCallsCannotMutateSweep() (gas: 34988893)",
+  "[PASS] test_noNewExposureIncreasesDeficits() (gas: 36472087)",
+  "[PASS] test_reconciledOnlyAfterCompleteList() (gas: 36871475)",
+  "Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 14.40ms (36.46ms CPU time)",
+  "",
+  "Ran 1 test suite in 91.33ms (14.40ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A floor accounting S-10)",
+ "recorded_at_utc": "2026-09-30T20:11:23+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

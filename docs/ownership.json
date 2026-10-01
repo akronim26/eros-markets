@@ -1,0 +1,1810 @@
+{
+ "schema": "eros-ownership/1",
+ "task": "B001",
+ "spec_version": "1.1",
+ "status": "B-side proposal; reconciled and frozen at G0",
+ "rule": "Exactly one implementation editor per path. Counterpart teams own their paths; Risk & Clearing only builds interfaces and deterministic mocks for them.",
+ "module_owners": [
+  {
+   "module": "reference/a/, reference/common/, QMath, MathTypes, LedgerMath, FundingMath, PremiumMath, CoverageMath, FeeMath, SettlementMath",
+   "editor": "A"
+  },
+  {
+   "module": "reference/b/, risk-function contracts, HorizonMath, HazardMath, MarginMath, OrderAdmissionMath, PricingMath, LiquidationMath, LifecycleMath",
+   "editor": "B"
+  },
+  {
+   "module": "RiskStorage, AccountRegistry, CollateralVault, ReserveVault, BackstopPool, AccountingPort, Accounting, FeeAccounting, ReserveAccounting",
+   "editor": "A"
+  },
+  {
+   "module": "FundingAccounting, PremiumAccounting, AccountSync, EpochRollover, ClearingCore",
+   "editor": "A"
+  },
+  {
+   "module": "PriceIngress, ObservationStore, RiskPricing, SourceGuards, MonitorPolicy, IMarketConfig, IBookRiskHooks, IResolutionIngress, IPriceSource, RiskContextPort",
+   "editor": "B"
+  },
+  {
+   "module": "OrderRisk, OrderAdmission, BookRiskAdapter, OrderLifecycle, TradePreview",
+   "editor": "B"
+  },
+  {
+   "module": "TakeoverAccounting, LiquidationFees, FreezeAccounting, FloorAccounting, AccountingEvents",
+   "editor": "A"
+  },
+  {
+   "module": "RiskLifecycle, FloorLifecycle, LiquidationEligibility, LiquidationBookAdapter, RiskLiquidation, RiskView",
+   "editor": "B"
+  },
+  {
+   "module": "SnapshotLedger, PayoutLedger, RecoveryAccounting, ClaimEscrow, ReserveClaims",
+   "editor": "A"
+  },
+  {
+   "module": "ResolutionIngress, InvalidPrice, SettlementController, ConversionGate, packages/risk-sdk settlement/index facade",
+   "editor": "B"
+  },
+  {
+   "module": "scripts/check-task.sh, scripts/check-gate.sh, contracts/foundry.toml, reference/common/result_schema.json",
+   "editor": "A"
+  },
+  {
+   "module": "test/**/A/, A mocks, A review reports",
+   "editor": "A"
+  },
+  {
+   "module": "test/**/B/, B mocks, B review reports",
+   "editor": "B"
+  },
+  {
+   "module": "test/gates/Gn.t.sol, docs/contracts/Gn.json, artifacts/gates/Gn.json",
+   "editor": "gate coordinator (G0,G2,G4,G6: A; G1,G3,G5,G7: B)"
+  },
+  {
+   "module": "docs/spec/** (spec packet), CLAUDE.md",
+   "editor": "nobody in a coding task (input documents)"
+  },
+  {
+   "module": "provisional/** and contracts/provisional/** (B-lane stand-ins for A outputs; deleted at merge)",
+   "editor": "B"
+  },
+  {
+   "module": "docs/merge/** (B merge log, evidence, checkpoints)",
+   "editor": "B"
+  }
+ ],
+ "counterparts": [
+  {
+   "id": "CP-BOOK",
+   "owner": "order-book team",
+   "paths": [
+    "contracts/src/Book.sol",
+    "contracts/test/Book*.sol",
+    "contracts/snapshots/BookGas.json",
+    "contracts/README.md"
+   ],
+   "risk_side": "IBookRiskHooks + MockBookAdapter (B)"
+  },
+  {
+   "id": "CP-BOOK-SHARED",
+   "owner": "order-book team file, content declared Clearing-owned",
+   "paths": [
+    "contracts/src/RiskSnapshot.sol"
+   ],
+   "risk_side": "Not edited by B; B context lives in RiskContextPort.sol. Mapping decided at merge (see docs/merge/B-assumptions.md)."
+  },
+  {
+   "id": "CP-PRICE",
+   "owner": "price-collector team",
+   "paths": [],
+   "risk_side": "IPriceSource + mock observations (B)"
+  },
+  {
+   "id": "CP-ORACLE",
+   "owner": "resolution-oracle team (2 people)",
+   "paths": [],
+   "risk_side": "IResolutionIngress + MockResolutionAuthority (B)"
+  },
+  {
+   "id": "CP-FACTORY",
+   "owner": "shared registry/factory (coordinate with the other three developers)",
+   "paths": [],
+   "risk_side": "IMarketConfig + fixture harness (B)"
+  },
+  {
+   "id": "CP-TOKEN",
+   "owner": "OutcomeVault team",
+   "paths": [],
+   "risk_side": "ConversionGate stays disabled (B)"
+  },
+  {
+   "id": "CP-APP",
+   "owner": "indexer/frontend",
+   "paths": [],
+   "risk_side": "RiskView schema + SDK fixtures (B)"
+  }
+ ],
+ "files": [
+  {
+   "path": "artifacts/acceptance/A040.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A040"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/A041.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A041"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/A042.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A042"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/A043.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A043"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/A044.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A044"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/B040.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B040"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/B041.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B041"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/B042.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B042"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/B043.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B043"
+   ]
+  },
+  {
+   "path": "artifacts/acceptance/B044.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B044"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G0.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G0"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G1.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G1"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G2.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G2"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G3.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G3"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G4.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G4"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G5.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G5"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G6.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G6"
+   ]
+  },
+  {
+   "path": "artifacts/gates/G7.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G7"
+   ]
+  },
+  {
+   "path": "artifacts/reviews/A-on-B.md",
+   "sole_editor": "A",
+   "tasks": [
+    "A043"
+   ]
+  },
+  {
+   "path": "artifacts/reviews/B-on-A.md",
+   "sole_editor": "B",
+   "tasks": [
+    "B043"
+   ]
+  },
+  {
+   "path": "artifacts/risk/accounting-release.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A044"
+   ]
+  },
+  {
+   "path": "artifacts/risk/counterpart-status.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B040"
+   ]
+  },
+  {
+   "path": "artifacts/risk/custody-reconciliation.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A042"
+   ]
+  },
+  {
+   "path": "artifacts/risk/gas-accounting.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A041"
+   ]
+  },
+  {
+   "path": "artifacts/risk/gas-adapters.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B041"
+   ]
+  },
+  {
+   "path": "artifacts/risk/integration-release.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B044"
+   ]
+  },
+  {
+   "path": "contracts/foundry.toml",
+   "sole_editor": "A",
+   "tasks": [
+    "A002"
+   ]
+  },
+  {
+   "path": "contracts/src/interfaces/IBookRiskHooks.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B019"
+   ]
+  },
+  {
+   "path": "contracts/src/interfaces/IMarketConfig.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B019"
+   ]
+  },
+  {
+   "path": "contracts/src/interfaces/IPriceSource.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B016"
+   ]
+  },
+  {
+   "path": "contracts/src/interfaces/IResolutionIngress.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B019"
+   ]
+  },
+  {
+   "path": "contracts/src/math/CoverageMath.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A013"
+   ]
+  },
+  {
+   "path": "contracts/src/math/FeeMath.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A013"
+   ]
+  },
+  {
+   "path": "contracts/src/math/FundingMath.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A011"
+   ]
+  },
+  {
+   "path": "contracts/src/math/HazardMath.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B010"
+   ]
+  },
+  {
+   "path": "contracts/src/math/HorizonMath.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B010"
+   ]
+  },
+  {
+   "path": "contracts/src/math/LedgerMath.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A010"
+   ]
+  },
+  {
+   "path": "contracts/src/math/LifecycleMath.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B014"
+   ]
+  },
+  {
+   "path": "contracts/src/math/LiquidationMath.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B014"
+   ]
+  },
+  {
+   "path": "contracts/src/math/MarginMath.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B011"
+   ]
+  },
+  {
+   "path": "contracts/src/math/MathTypes.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A001"
+   ]
+  },
+  {
+   "path": "contracts/src/math/OrderAdmissionMath.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B012"
+   ]
+  },
+  {
+   "path": "contracts/src/math/PremiumMath.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A012"
+   ]
+  },
+  {
+   "path": "contracts/src/math/PricingMath.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B013"
+   ]
+  },
+  {
+   "path": "contracts/src/math/QMath.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A009"
+   ]
+  },
+  {
+   "path": "contracts/src/math/SettlementMath.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A014"
+   ]
+  },
+  {
+   "path": "contracts/src/pricing/ObservationStore.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B017"
+   ]
+  },
+  {
+   "path": "contracts/src/pricing/PriceIngress.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B016"
+   ]
+  },
+  {
+   "path": "contracts/src/pricing/RiskPricing.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B018"
+   ]
+  },
+  {
+   "path": "contracts/src/pricing/SourceGuards.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B021"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/AccountRegistry.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A016"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/AccountSync.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A024"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/Accounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A018"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/AccountingEvents.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A032"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/AccountingPort.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A021"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/BookRiskAdapter.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B024"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/ClearingCore.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A026"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/EpochRollover.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A025"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/FeeAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A018"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/FloorAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A031"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/FloorLifecycle.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B029"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/FreezeAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A030"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/FundingAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A022"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/LiquidationBookAdapter.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B031"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/LiquidationEligibility.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B030"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/LiquidationFees.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A029"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/MonitorPolicy.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B021"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/OrderAdmission.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B023"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/OrderLifecycle.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B025"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/OrderRisk.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B022"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/PremiumAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A023"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/ReserveAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A019"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/RiskContextPort.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B019"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/RiskLifecycle.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B028"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/RiskLiquidation.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B032"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/RiskStorage.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A016"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/RiskView.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B032"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/TakeoverAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A028"
+   ]
+  },
+  {
+   "path": "contracts/src/risk/TradePreview.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B026"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/ClaimEscrow.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A037"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/ConversionGate.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B038"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/InvalidPrice.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B035"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/PayoutLedger.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A035"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/RecoveryAccounting.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A036"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/ReserveClaims.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A038"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/ResolutionIngress.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B034"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/SettlementController.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B036"
+   ]
+  },
+  {
+   "path": "contracts/src/settlement/SnapshotLedger.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A034"
+   ]
+  },
+  {
+   "path": "contracts/src/vaults/BackstopPool.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A020"
+   ]
+  },
+  {
+   "path": "contracts/src/vaults/CollateralVault.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A017"
+   ]
+  },
+  {
+   "path": "contracts/src/vaults/ReserveVault.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A020"
+   ]
+  },
+  {
+   "path": "contracts/test/gas/A/AccountingGas.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A041"
+   ]
+  },
+  {
+   "path": "contracts/test/gas/B/AdapterGas.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B041"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G0.t.sol",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G0"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G1.t.sol",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G1"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G2.t.sol",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G2"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G3.t.sol",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G3"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G4.t.sol",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G4"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G5.t.sol",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G5"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G6.t.sol",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G6"
+   ]
+  },
+  {
+   "path": "contracts/test/gates/G7.t.sol",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G7"
+   ]
+  },
+  {
+   "path": "contracts/test/harness/A/AccountingHarness.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A021"
+   ]
+  },
+  {
+   "path": "contracts/test/harness/B/RiskHarness.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B020"
+   ]
+  },
+  {
+   "path": "contracts/test/integration/A/CustodyExit.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A042"
+   ]
+  },
+  {
+   "path": "contracts/test/integration/B/FullLifecycle.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B040"
+   ]
+  },
+  {
+   "path": "contracts/test/invariant/A/AccountingInvariants.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A040"
+   ]
+  },
+  {
+   "path": "contracts/test/math/A/A010.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A010"
+   ]
+  },
+  {
+   "path": "contracts/test/math/A/A011.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A011"
+   ]
+  },
+  {
+   "path": "contracts/test/math/A/A012.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A012"
+   ]
+  },
+  {
+   "path": "contracts/test/math/A/A013.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A013"
+   ]
+  },
+  {
+   "path": "contracts/test/math/A/A014.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A014"
+   ]
+  },
+  {
+   "path": "contracts/test/math/A/A015.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A015"
+   ]
+  },
+  {
+   "path": "contracts/test/math/A/AccountingDifferential.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A015"
+   ]
+  },
+  {
+   "path": "contracts/test/math/B/B010.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B010"
+   ]
+  },
+  {
+   "path": "contracts/test/math/B/B011.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B011"
+   ]
+  },
+  {
+   "path": "contracts/test/math/B/B012.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B012"
+   ]
+  },
+  {
+   "path": "contracts/test/math/B/B013.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B013"
+   ]
+  },
+  {
+   "path": "contracts/test/math/B/B014.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B014"
+   ]
+  },
+  {
+   "path": "contracts/test/math/B/B015.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B015"
+   ]
+  },
+  {
+   "path": "contracts/test/math/B/RiskDifferential.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B015"
+   ]
+  },
+  {
+   "path": "contracts/test/mocks/A/MockRiskDecision.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A021"
+   ]
+  },
+  {
+   "path": "contracts/test/mocks/B/MockAccountingPort.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B020"
+   ]
+  },
+  {
+   "path": "contracts/test/mocks/B/MockBookAdapter.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B020"
+   ]
+  },
+  {
+   "path": "contracts/test/mocks/B/MockResolutionAuthority.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B020"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A016.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A016"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A017.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A017"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A018.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A018"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A019.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A019"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A020.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A020"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A021.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A021"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A022.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A022"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A023.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A023"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A024.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A024"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A025.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A025"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A026.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A026"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A027.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A027"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A028.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A028"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A029.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A029"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A030.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A030"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A031.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A031"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A032.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A032"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A033.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A033"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A034.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A034"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A035.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A035"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A036.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A036"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A037.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A037"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A038.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A038"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/A039.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A039"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/LiquidationAccounting.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A033"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/SettlementConservation.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A039"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/A/TradeAccountingInvariant.t.sol",
+   "sole_editor": "A",
+   "tasks": [
+    "A027"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B016.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B016"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B017.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B017"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B018.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B018"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B019.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B019"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B020.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B020"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B021.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B021"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B022.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B022"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B023.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B023"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B024.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B024"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B025.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B025"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B026.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B026"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B027.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B027"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B028.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B028"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B029.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B029"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B030.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B030"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B031.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B031"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B032.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B032"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B033.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B033"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B034.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B034"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B035.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B035"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B036.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B036"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B037.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B037"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B038.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B038"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/B039.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B039"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/BookSeam.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B027"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/LifecycleBoundaries.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B033"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/OracleCompatibility.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B037"
+   ]
+  },
+  {
+   "path": "contracts/test/risk/B/SettlementLifecycle.t.sol",
+   "sole_editor": "B",
+   "tasks": [
+    "B039"
+   ]
+  },
+  {
+   "path": "docs/app-state-fixtures.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B042"
+   ]
+  },
+  {
+   "path": "docs/contracts/G0.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G0"
+   ]
+  },
+  {
+   "path": "docs/contracts/G1.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G1"
+   ]
+  },
+  {
+   "path": "docs/contracts/G2.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G2"
+   ]
+  },
+  {
+   "path": "docs/contracts/G3.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G3"
+   ]
+  },
+  {
+   "path": "docs/contracts/G4.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G4"
+   ]
+  },
+  {
+   "path": "docs/contracts/G5.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G5"
+   ]
+  },
+  {
+   "path": "docs/contracts/G6.json",
+   "sole_editor": "coordinator:A",
+   "tasks": [
+    "G6"
+   ]
+  },
+  {
+   "path": "docs/contracts/G7.json",
+   "sole_editor": "coordinator:B",
+   "tasks": [
+    "G7"
+   ]
+  },
+  {
+   "path": "docs/counterpart-contracts.md",
+   "sole_editor": "B",
+   "tasks": [
+    "B001"
+   ]
+  },
+  {
+   "path": "docs/counterpart-oracle-fixtures.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B037"
+   ]
+  },
+  {
+   "path": "docs/math/golden-case-rationale.md",
+   "sole_editor": "B",
+   "tasks": [
+    "B002"
+   ]
+  },
+  {
+   "path": "docs/math/risk-function-contracts.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B001"
+   ]
+  },
+  {
+   "path": "docs/math/units.md",
+   "sole_editor": "A",
+   "tasks": [
+    "A001"
+   ]
+  },
+  {
+   "path": "docs/ownership.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B001"
+   ]
+  },
+  {
+   "path": "docs/runbooks/accounting.md",
+   "sole_editor": "A",
+   "tasks": [
+    "A044"
+   ]
+  },
+  {
+   "path": "docs/runbooks/lifecycle.md",
+   "sole_editor": "B",
+   "tasks": [
+    "B044"
+   ]
+  },
+  {
+   "path": "packages/risk-sdk/src/accounting.ts",
+   "sole_editor": "A",
+   "tasks": [
+    "A032"
+   ]
+  },
+  {
+   "path": "packages/risk-sdk/src/index.ts",
+   "sole_editor": "B",
+   "tasks": [
+    "B042"
+   ]
+  },
+  {
+   "path": "packages/risk-sdk/src/settlement.ts",
+   "sole_editor": "B",
+   "tasks": [
+    "B038"
+   ]
+  },
+  {
+   "path": "packages/risk-sdk/test/read-model.test.ts",
+   "sole_editor": "B",
+   "tasks": [
+    "B042"
+   ]
+  },
+  {
+   "path": "reference/a/coverage.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A004"
+   ]
+  },
+  {
+   "path": "reference/a/export_vectors.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A015"
+   ]
+  },
+  {
+   "path": "reference/a/funding.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A005"
+   ]
+  },
+  {
+   "path": "reference/a/integer_bounds.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A009"
+   ]
+  },
+  {
+   "path": "reference/a/integrated_traces.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A040"
+   ]
+  },
+  {
+   "path": "reference/a/ledger.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A003"
+   ]
+  },
+  {
+   "path": "reference/a/premium_epochs.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A007"
+   ]
+  },
+  {
+   "path": "reference/a/premium_integral.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A006"
+   ]
+  },
+  {
+   "path": "reference/a/settlement.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A008"
+   ]
+  },
+  {
+   "path": "reference/b/export_vectors.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B015"
+   ]
+  },
+  {
+   "path": "reference/b/hazards.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B004"
+   ]
+  },
+  {
+   "path": "reference/b/horizon_volatility.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B003"
+   ]
+  },
+  {
+   "path": "reference/b/lifecycle.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B009"
+   ]
+  },
+  {
+   "path": "reference/b/liquidation.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B008"
+   ]
+  },
+  {
+   "path": "reference/b/margin.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B005"
+   ]
+  },
+  {
+   "path": "reference/b/order_admission.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B006"
+   ]
+  },
+  {
+   "path": "reference/b/pricing.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B007"
+   ]
+  },
+  {
+   "path": "reference/common/result_schema.json",
+   "sole_editor": "A",
+   "tasks": [
+    "A002"
+   ]
+  },
+  {
+   "path": "reference/common/units.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A001"
+   ]
+  },
+  {
+   "path": "reference/fixtures/golden_cases.json",
+   "sole_editor": "B",
+   "tasks": [
+    "B002"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a001.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A001"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a002.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A002"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a003.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A003"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a004.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A004"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a005.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A005"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a006.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A006"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a007.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A007"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a008.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A008"
+   ]
+  },
+  {
+   "path": "reference/tests/a/test_a009.py",
+   "sole_editor": "A",
+   "tasks": [
+    "A009"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b001.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B001"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b002.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B002"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b003.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B003"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b004.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B004"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b005.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B005"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b006.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B006"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b007.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B007"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b008.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B008"
+   ]
+  },
+  {
+   "path": "reference/tests/b/test_b009.py",
+   "sole_editor": "B",
+   "tasks": [
+    "B009"
+   ]
+  },
+  {
+   "path": "scripts/check-gate.sh",
+   "sole_editor": "A",
+   "tasks": [
+    "A002"
+   ]
+  },
+  {
+   "path": "scripts/check-task.sh",
+   "sole_editor": "A",
+   "tasks": [
+    "A002"
+   ]
+  }
+ ]
+}

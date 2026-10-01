@@ -1,0 +1,28 @@
+{
+ "task": "B026",
+ "commit": "bd4ba8d3eb559601c6ea99c06c3c4f308f719eb5",
+ "working_tree_dirty_files": 0,
+ "spec_version": "1.1",
+ "economic_baseline": "1.0",
+ "interface_version": "pre-G0 B-side proposal (no gate recorded in docs/spec/gate_status.json)",
+ "command": "cd contracts && forge test --match-path test/risk/B/B026.t.sol",
+ "exit_code": 0,
+ "output_tail": [
+  "No files changed, compilation skipped",
+  "",
+  "Ran 7 tests for test/risk/B/B026.t.sol:B026Test",
+  "[PASS] test_accountPreviewAfterDirectFiveX() (gas: 48278997)",
+  "[PASS] test_bootstrapSameSemantics() (gas: 27965513)",
+  "[PASS] test_previewMatchesExecutionCapAndCollateral() (gas: 48473831)",
+  "[PASS] test_projectionsLabelledNotApplied() (gas: 48761460)",
+  "[PASS] test_staleIndexSameAsExecution() (gas: 46936470)",
+  "[PASS] test_sweepRejectionSameAsExecution() (gas: 47002812)",
+  "[PASS] test_usableReleaseMatchesDecision() (gas: 53389940)",
+  "Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 17.44ms (60.07ms CPU time)",
+  "",
+  "Ran 1 test suite in 83.12ms (17.44ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)"
+ ],
+ "component_status": "lane-pass (scripted A views; S-9 requirement on A)",
+ "recorded_at_utc": "2026-09-30T20:01:50+00:00",
+ "gate_credit": "none; lane result only, not a gate pass"
+}

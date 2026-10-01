@@ -1,0 +1,18 @@
+No files changed, compilation skipped
+
+Ran 12 tests for test/risk/B/B016.t.sol:B016Test
+[PASS] test_acceptsValidAndRecordsObservedAt() (gas: 134336)
+[PASS] test_backwardsTimeFails() (gas: 141927)
+[PASS] test_delayedObservationKeepsItsObservedAt() (gas: 131934)
+[PASS] test_duplicateAndBackwardsSequenceFail() (gas: 152355)
+[PASS] test_eventCarriesAllClocks() (gas: 133919)
+[PASS] test_futureObservationFails() (gas: 170477)
+[PASS] test_priceMustMatchDepthMid() (gas: 36115)
+[PASS] test_sourcePinnedOnce() (gas: 10871)
+[PASS] test_thinDepthRecordedInvalid() (gas: 91673)
+[PASS] test_wrongDomainFails() (gas: 868987)
+[PASS] test_wrongMarketOrSourceFails() (gas: 38307)
+[PASS] test_wrongSignerFails() (gas: 26379)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 853.00µs (3.44ms CPU time)
+
+Ran 1 test suite in 79.66ms (853.00µs CPU time): 12 tests passed, 0 failed, 0 skipped (12 total tests)

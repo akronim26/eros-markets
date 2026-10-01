@@ -1,0 +1,25 @@
+{
+ "task": "B040",
+ "runner": "provisional/scripts/check-task.sh (stand-in for A002 scripts/check-task.sh)",
+ "commit": "6a57f0d9c928f1f2eb2b31bedc9a9154f947892d",
+ "spec_version": "1.1",
+ "steps": [
+  {
+   "step": "forge",
+   "exit_code": 0
+  },
+  {
+   "step": "exists:artifacts/risk/counterpart-status.json",
+   "exit_code": 0
+  },
+  {
+   "step": "json:artifacts/risk/counterpart-status.json",
+   "exit_code": 0
+  }
+ ],
+ "exit_code": 0,
+ "counterparts": "all mocked or blocked; see artifacts/risk/counterpart-status.json",
+ "person_a": "provisional stand-ins and scripted doubles; no real A module",
+ "gate_credit": "none",
+ "recorded_at_utc": "2026-10-01T03:35:06+00:00"
+}
