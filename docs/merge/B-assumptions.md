@@ -229,3 +229,6 @@ open questions for Person A, the counterpart teams or the spec owner.
   `AccountingFields` (projected funding/premium estimates, contract-decided usable release). A032
   `packages/risk-sdk/src/accounting.ts` owns the real shape; replace the provisional interface at
   merge. The SDK never computes an authoritative balance (`authoritative: false` on every value).
+- **P-8 (B044) Book gas snapshot.** Running the whole forge project locally (forge 1.3.5) rewrote
+  the book team's `contracts/snapshots/BookGas.json`; it was restored unchanged before commit. Run
+  B suites with `--match-path "test/*/B/*.t.sol"` to avoid touching counterpart snapshots.

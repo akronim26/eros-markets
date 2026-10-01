@@ -21,8 +21,8 @@ and mocks for the counterpart teams. Use this guide when the two lanes merge.
 
 Files importing a provisional path (rewrite at merge): every `contracts/src/math/*.sol` B library,
 every `contracts/src/{pricing,risk,settlement}/*.sol` B module, `contracts/src/interfaces/
-{IBookRiskHooks,IResolutionIngress}.sol`, and the B test/mocks. `grep -rl provisional/ contracts`
-lists them (51 files at hand-off).
+{IBookRiskHooks,IResolutionIngress}.sol`, and the B test/mocks. `grep -rl provisional/ contracts/src contracts/test`
+lists them (51 files at hand-off; build output under `contracts/out` also matches and is ignored).
 
 ## 2. Accounting-port functions B calls (A must provide)
 
