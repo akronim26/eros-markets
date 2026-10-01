@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "kind": "task",
-  "id": "A033",
+  "id": "B028",
   "scope": "task_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-10-01T11:01:44.696800+00:00",
+  "recorded_at": "2026-10-01T11:01:44.944973+00:00",
   "source_commit": "c236e5ec004356f9bea6a87b62fcf1515e6df462",
   "worktree_dirty": true,
   "toolchain": {
@@ -129,11 +129,12 @@
     "packages/risk-sdk/test/read-model.test.ts": "fccf7eb09dbd440b21eda00d54571799186ef45c1ee83367fd081d4202e99f6d",
     "contracts/foundry.toml": "a475316648911492e3146ec5bb4cd3ee54470f095b662c4eaa6d1e253915acd4",
     "scripts/check-task.sh": "68db7925dafb098159e0ce89737510072450ea89386375329fc7470cc2a1cbb8",
-    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14"
+    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14",
+    "contracts/test/risk/B/B028.t.sol": "0186a97615d4bd120de364af829ee8eb3b7ef6906c17553ec4226301fae8f1b8"
   },
   "components": {
     "selected_suite": "real",
-    "peer_lane": "scripted_mock",
+    "peer_lane": "not_exercised",
     "external_counterparts": "not_exercised"
   },
   "commands": [
@@ -142,23 +143,23 @@
         "forge",
         "test",
         "--match-path",
-        "test/risk/A/A033.t.sol",
+        "test/risk/B/B028.t.sol",
         "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A033.t.sol:A033Test\": {\"duration\": \"992\\u00b5s 500ns\", \"test_results\": {\"testHaltInterruptsFloorAndPreservesRemainingAccounts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1002660}}, \"duration\": \"336\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"testPositiveEquityAndStaleMarkAreNotTakeoverPermission()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 478488}}, \"duration\": \"237\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B028.t.sol:B028Test\": {\"duration\": \"17ms 349\\u00b5s 84ns\", \"test_results\": {\"test_belowMmHasNoGrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1061998}}, \"duration\": \"397\\u00b5s 583ns\", \"gas_snapshots\": {}}, \"test_bootstrapCannotOverrideHalt()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 330074}}, \"duration\": \"228\\u00b5s 667ns\", \"gas_snapshots\": {}}, \"test_floorInvalidatesOrdersOnFirstAction()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35827849}}, \"duration\": \"6ms 105\\u00b5s 458ns\", \"gas_snapshots\": {}}, \"test_graceNonrenewable()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 69429719}}, \"duration\": \"12ms 29\\u00b5s 166ns\", \"gas_snapshots\": {}}, \"test_haltStrongerThanMonitor()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 300958}}, \"duration\": \"427\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_recoveryClearsGrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1242020}}, \"duration\": \"813\\u00b5s 417ns\", \"gas_snapshots\": {}}, \"test_stageAppliesWithoutKeeper()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 34129182}}, \"duration\": \"5ms 670\\u00b5s 750ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],
-  "test_count": 2,
+  "test_count": 7,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
   "reason": "",
   "checks": [],
   "artifacts": [
-    "artifacts/tasks/A033.json"
+    "artifacts/tasks/B028.json"
   ]
 }

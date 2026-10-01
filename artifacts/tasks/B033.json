@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "kind": "task",
-  "id": "A033",
+  "id": "B033",
   "scope": "task_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-10-01T11:01:44.696800+00:00",
+  "recorded_at": "2026-10-01T11:01:46.245376+00:00",
   "source_commit": "c236e5ec004356f9bea6a87b62fcf1515e6df462",
   "worktree_dirty": true,
   "toolchain": {
@@ -129,11 +129,12 @@
     "packages/risk-sdk/test/read-model.test.ts": "fccf7eb09dbd440b21eda00d54571799186ef45c1ee83367fd081d4202e99f6d",
     "contracts/foundry.toml": "a475316648911492e3146ec5bb4cd3ee54470f095b662c4eaa6d1e253915acd4",
     "scripts/check-task.sh": "68db7925dafb098159e0ce89737510072450ea89386375329fc7470cc2a1cbb8",
-    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14"
+    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14",
+    "contracts/test/risk/B/B033.t.sol": "8fe3bfd469b50a934e74a4e9703c4a80e70a81fc000f460edfe57b74783c05f1"
   },
   "components": {
     "selected_suite": "real",
-    "peer_lane": "scripted_mock",
+    "peer_lane": "not_exercised",
     "external_counterparts": "not_exercised"
   },
   "commands": [
@@ -142,23 +143,23 @@
         "forge",
         "test",
         "--match-path",
-        "test/risk/A/A033.t.sol",
+        "test/risk/B/B033.t.sol",
         "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A033.t.sol:A033Test\": {\"duration\": \"992\\u00b5s 500ns\", \"test_results\": {\"testHaltInterruptsFloorAndPreservesRemainingAccounts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1002660}}, \"duration\": \"336\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"testPositiveEquityAndStaleMarkAreNotTakeoverPermission()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 478488}}, \"duration\": \"237\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B033.t.sol:B033Test\": {\"duration\": \"20ms 492\\u00b5s 166ns\", \"test_results\": {\"test_emptyBookPositiveEquityStaysCovered()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3456146}}, \"duration\": \"2ms 322\\u00b5s\", \"gas_snapshots\": {}}, \"test_haltAbandonsSweep()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 34669125}}, \"duration\": \"7ms 60\\u00b5s 834ns\", \"gas_snapshots\": {}}, \"test_noKeeperTimeChangesGatesNotBalances()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 68428207}}, \"duration\": \"14ms 920\\u00b5s 584ns\", \"gas_snapshots\": {}}, \"test_registryFrozenDuringSweep()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35730834}}, \"duration\": \"6ms 512\\u00b5s 291ns\", \"gas_snapshots\": {}}, \"test_rolloverPausesTrading()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 34840152}}, \"duration\": \"6ms 192\\u00b5s\", \"gas_snapshots\": {}}, \"test_staleMarkNoMarkLiquidation()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1448054}}, \"duration\": \"594\\u00b5s 209ns\", \"gas_snapshots\": {}}, \"test_tinyBudgetNeverConfiscates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 8813100}}, \"duration\": \"5ms 850\\u00b5s 709ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],
-  "test_count": 2,
+  "test_count": 7,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
   "reason": "",
   "checks": [],
   "artifacts": [
-    "artifacts/tasks/A033.json"
+    "artifacts/tasks/B033.json"
   ]
 }

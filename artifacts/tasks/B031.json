@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "kind": "task",
-  "id": "A033",
+  "id": "B031",
   "scope": "task_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-10-01T11:01:44.696800+00:00",
+  "recorded_at": "2026-10-01T11:01:45.724408+00:00",
   "source_commit": "c236e5ec004356f9bea6a87b62fcf1515e6df462",
   "worktree_dirty": true,
   "toolchain": {
@@ -129,11 +129,12 @@
     "packages/risk-sdk/test/read-model.test.ts": "fccf7eb09dbd440b21eda00d54571799186ef45c1ee83367fd081d4202e99f6d",
     "contracts/foundry.toml": "a475316648911492e3146ec5bb4cd3ee54470f095b662c4eaa6d1e253915acd4",
     "scripts/check-task.sh": "68db7925dafb098159e0ce89737510072450ea89386375329fc7470cc2a1cbb8",
-    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14"
+    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14",
+    "contracts/test/risk/B/B031.t.sol": "f59e7d0b5e6ad45d0d28957949850c356a23fe932058c77791a87b6cdd7f1104"
   },
   "components": {
     "selected_suite": "real",
-    "peer_lane": "scripted_mock",
+    "peer_lane": "not_exercised",
     "external_counterparts": "not_exercised"
   },
   "commands": [
@@ -142,23 +143,23 @@
         "forge",
         "test",
         "--match-path",
-        "test/risk/A/A033.t.sol",
+        "test/risk/B/B031.t.sol",
         "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A033.t.sol:A033Test\": {\"duration\": \"992\\u00b5s 500ns\", \"test_results\": {\"testHaltInterruptsFloorAndPreservesRemainingAccounts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1002660}}, \"duration\": \"336\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"testPositiveEquityAndStaleMarkAreNotTakeoverPermission()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 478488}}, \"duration\": \"237\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B031.t.sol:B031Test\": {\"duration\": \"12ms 791\\u00b5s 875ns\", \"test_results\": {\"test_bidsBelowWorstTickNotHit()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 51745053}}, \"duration\": \"6ms 383\\u00b5s\", \"gas_snapshots\": {}}, \"test_blockPacing()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 54193713}}, \"duration\": \"8ms 84\\u00b5s 458ns\", \"gas_snapshots\": {}}, \"test_closeRestoresHealthRecomputed()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 52432791}}, \"duration\": \"11ms 245\\u00b5s 125ns\", \"gas_snapshots\": {}}, \"test_emptyBookNeedsMoreWork()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 50957349}}, \"duration\": \"6ms 20\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_examinationBound()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 55213573}}, \"duration\": \"12ms 339\\u00b5s 166ns\", \"gas_snapshots\": {}}, \"test_forcedModeNotUserSelectable()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 49975353}}, \"duration\": \"8ms 782\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_missingCapDisables()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 51218718}}, \"duration\": \"6ms 925\\u00b5s 958ns\", \"gas_snapshots\": {}}, \"test_smallBudgetNeedsMoreWorkKeepsCover()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 52346934}}, \"duration\": \"9ms 101\\u00b5s 417ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],
-  "test_count": 2,
+  "test_count": 8,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
   "reason": "",
   "checks": [],
   "artifacts": [
-    "artifacts/tasks/A033.json"
+    "artifacts/tasks/B031.json"
   ]
 }

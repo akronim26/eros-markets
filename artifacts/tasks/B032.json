@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "kind": "task",
-  "id": "A033",
+  "id": "B032",
   "scope": "task_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-10-01T11:01:44.696800+00:00",
+  "recorded_at": "2026-10-01T11:01:45.985895+00:00",
   "source_commit": "c236e5ec004356f9bea6a87b62fcf1515e6df462",
   "worktree_dirty": true,
   "toolchain": {
@@ -129,11 +129,12 @@
     "packages/risk-sdk/test/read-model.test.ts": "fccf7eb09dbd440b21eda00d54571799186ef45c1ee83367fd081d4202e99f6d",
     "contracts/foundry.toml": "a475316648911492e3146ec5bb4cd3ee54470f095b662c4eaa6d1e253915acd4",
     "scripts/check-task.sh": "68db7925dafb098159e0ce89737510072450ea89386375329fc7470cc2a1cbb8",
-    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14"
+    ".gitmodules": "e080da4e7939761d190216b2137a990d4d37d769ffd7902bd0cbff2ac125aa14",
+    "contracts/test/risk/B/B032.t.sol": "da7869a05d04c994b32d0c11dc23143b76014b6081b7a6b0a98c0ce5c17a66c1"
   },
   "components": {
     "selected_suite": "real",
-    "peer_lane": "scripted_mock",
+    "peer_lane": "not_exercised",
     "external_counterparts": "not_exercised"
   },
   "commands": [
@@ -142,23 +143,23 @@
         "forge",
         "test",
         "--match-path",
-        "test/risk/A/A033.t.sol",
+        "test/risk/B/B032.t.sol",
         "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A033.t.sol:A033Test\": {\"duration\": \"992\\u00b5s 500ns\", \"test_results\": {\"testHaltInterruptsFloorAndPreservesRemainingAccounts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1002660}}, \"duration\": \"336\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"testPositiveEquityAndStaleMarkAreNotTakeoverPermission()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 478488}}, \"duration\": \"237\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B032.t.sol:B032Test\": {\"duration\": \"7ms 333\\u00b5s 667ns\", \"test_results\": {\"test_haltAndSweepGates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 879615}}, \"duration\": \"475\\u00b5s 83ns\", \"gas_snapshots\": {}}, \"test_noEffectCallKeepsOrdersNoReward()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1550111}}, \"duration\": \"622\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_pairThenBookNeverFlips()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1867887}}, \"duration\": \"619\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"test_partialPairThenBookClose()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3173806}}, \"duration\": \"1ms 411\\u00b5s 458ns\", \"gas_snapshots\": {}}, \"test_takeoverCarriesPredicateAndCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1294885}}, \"duration\": \"847\\u00b5s 917ns\", \"gas_snapshots\": {}}, \"test_tinyBudgetNeedsMoreWork()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3076901}}, \"duration\": \"1ms 776\\u00b5s 917ns\", \"gas_snapshots\": {}}, \"test_viewsLabelState()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1326090}}, \"duration\": \"1ms 65\\u00b5s 166ns\", \"gas_snapshots\": {}}, \"test_zeroBudgetRejected()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 17221}}, \"duration\": \"123\\u00b5s 583ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],
-  "test_count": 2,
+  "test_count": 8,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
   "reason": "",
   "checks": [],
   "artifacts": [
-    "artifacts/tasks/A033.json"
+    "artifacts/tasks/B032.json"
   ]
 }
