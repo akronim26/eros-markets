@@ -107,8 +107,26 @@ Findings: Critical 0, High 0, Medium 1 (A-F01), Low 2 (A-F02, A-F03), Info/needs
 | G1 | `9c55836`, `c69264f` | technical checks passed; official runner exit 2 ("previous gate has no reviewed accepted commit": Person A has not reviewed) |
 | G2 | `c190774`, `ce43245` | technical checks passed; official runner exit 2 (same reason) |
 
+| G3 storage + context | `c1d241c`, `84c0864` | technical passed; official exit 2 (A review) |
+| G4 trading with accrual | `d01f0ee`, `9dc2084` | technical passed; official exit 2 (A review) |
+| G5 liquidation + freeze | `c236e5e`, `52ff05e` | technical passed; official exit 2 (A review). A032 runner needs `tsc`: run with a locally installed TypeScript 5.9.3 (`/Users/sohamvijay/Desktop/Capsule/node_modules/typescript`) on PATH; no repo pin |
+| G6 resolution to cash | `ec5a22b`, `819ff2a` | technical passed; official exit 2 (A review) |
+| G7 | — | needs W7 inputs (Phase 3): B040–B044 are not configured in A's `scripts/check-task.sh`; A043 (A's review of B) can only be done by Person A |
+
 Gate review: A's runner requires the previous gate to be reviewed by A and B. Person A has not
 reviewed anything; gates are recorded with `reviewed_by: ["B"]`, `review_pending: ["A"]`, and
 the official runner result is kept in each `artifacts/gates/Gn.json` next to the technical
 result (`scripts/integration/gate-record.py`). Once Person A reviews, rerun
 `bash scripts/check-gate.sh Gn` in order.
+
+### Resume point (if a new session starts)
+
+Branch `integration/risk`. Next: Phase 3 (W7 content) then G7:
+1. fix(A) `scripts/check-task.sh`: add B040–B044 acceptance (blocks G7).
+2. B043 review of A on merged code -> `artifacts/reviews/B-on-A.md` (Review status: COMPLETE).
+3. A043 (A's review of B): Person A only — stays blocked; G7's runner will exit 2 until A does it.
+4. Invariant campaign INV-01..INV-10 on CombinedEngine (`contracts/test/invariant/integration/`).
+5. Section 11 minimum end-to-end scenario on real A+B.
+6. Gas table (state EVM pricing used), counterpart compatibility, release manifest, `docs/risk/HANDOFF.md`.
+Commands: `cd contracts && forge test --match-path "test/gates/*"`; `python3 scripts/integration/gate-record.py Gn`
+(prefix PATH with a dir containing `tsc` for A032); `python3 scripts/integration/mark-gate.py Gn`.
