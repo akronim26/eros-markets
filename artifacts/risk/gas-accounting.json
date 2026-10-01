@@ -1,0 +1,25 @@
+{
+  "status": "measured_locally",
+  "measurements": {
+    "roll_begin_gas": 82606,
+    "roll_32_account_max_gas": 3297328,
+    "halt_1024_gas": 72104,
+    "snapshot_32_account_max_gas": 2354829,
+    "trader_claim_gas": 91541,
+    "participant_count": 1024,
+    "premium_math_gas": 16641,
+    "funding_premium_touch_gas": 191487
+  },
+  "gas_model": "Foundry local Prague EVM; test-call gas, excludes transaction base; not a Monad/testnet gas certificate",
+  "harness_runtime_bytes": 33617,
+  "harness_code_size_limit": 65536,
+  "production_composition_size": "pending A+B merge",
+  "source_commit": "4c528549ff30396b22c312ccca5835aaf23e7ee6",
+  "toolchain": {
+    "python": "3.12.10",
+    "forge": "forge Version: 1.5.1-stable\nCommit SHA: b0a9dd9ceda36f63e2326ce530c10e6916f4b8a2\nBuild Timestamp: 2025-12-22T11:40:33.870895500Z (1766403633)\nBuild Profile: maxperf",
+    "solc_declared": "0.8.30",
+    "foundry_profile": "risk",
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
+  }
+}

@@ -24,5 +24,23 @@ runs = 10000
 runs = 256
 depth = 128
 
+# A002: isolate reproducible risk checks from the existing Book test profiles.
+# solc and dependencies stay pinned above / by the repository's Git submodules.
+[profile.risk]
+# The test-only A harness exposes every internal port in one deployment. Final
+# A+B composition and chain code-size limits are separate merge/release checks.
+code_size_limit = 65536
+
+[profile.risk.fuzz]
+runs = 1000
+seed = "0x45524f53"
+
+[profile.risk.invariant]
+runs = 48
+depth = 64
+fail_on_revert = true
+
 [fmt]
 line_length = 110
+# Deterministic machine-generated arrays retain the reference exporter's layout.
+ignore = ["test/math/A/ReferenceVectors.sol", "test/invariant/A/IntegratedVectors.sol"]
