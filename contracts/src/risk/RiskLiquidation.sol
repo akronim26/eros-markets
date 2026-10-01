@@ -41,7 +41,9 @@ abstract contract RiskLiquidation is LiquidationBookAdapter {
         external
         returns (LiquidationResult memory r)
     {
-        if (maxLots == 0 || maxExaminations == 0 || maxExaminations > MAX_EXAMINED) revert BadWorkBudget();
+        if (maxLots == 0 || maxExaminations == 0 || maxExaminations > MAX_EXAMINED) {
+            revert BadWorkBudget();
+        }
         RiskSnapshot memory snap = _riskBeginAction();
         RiskContext memory c = _actionCtx;
         r.cutoff = snap.premiumCutoff;

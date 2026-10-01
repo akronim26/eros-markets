@@ -98,7 +98,7 @@ abstract contract TradePreview is OrderLifecycle {
         TakerInput memory t = TakerInput(trader, side == Side.BUY, limitTick, lots, reduceOnly);
         TakerDecision memory d = _takerDecision(c, t);
         (p.rejection, p.acceptedCapLots, p.feeCapQ, p.mode, p.halvingSteps) =
-            (d.reason, d.capLots, d.feeCapQ, d.mode, d.steps);
+        (d.reason, d.capLots, d.feeCapQ, d.mode, d.steps);
         if (d.capLots == 0) return p;
         OA.OrderSums memory s = _withExtra(trader, t.isBid, limitTick, d.capLots, d.feeCapQ);
         OA.CoverageInput memory cov = _acctCoverage(trader, s, 0, 0);
@@ -133,7 +133,7 @@ abstract contract TradePreview is OrderLifecycle {
             );
             MarginMath.Health memory h = MarginMath.health(a.cashQ, a.lots, c.markWad, m);
             (p.markEquityQ, p.mmQ, p.imQ, p.fullBackingRequired, p.status) =
-                (h.markEquityQ, h.mmQ, h.imQ, h.fullBacking, h.status);
+            (h.markEquityQ, h.mmQ, h.imQ, h.fullBacking, h.status);
         } else if (c.markOk) {
             p.markEquityQ = a.cashQ;
             p.status = a.cashQ >= 0 ? MarginMath.Status.FLAT : MarginMath.Status.NONPOSITIVE;
@@ -142,11 +142,7 @@ abstract contract TradePreview is OrderLifecycle {
     }
 
     /// @notice Same decision as the guarded release (A017 -> `_riskReleaseDecision`).
-    function previewRelease(uint32 trader, uint256 atoms)
-        external
-        view
-        returns (bool ok, RejectCode reason)
-    {
+    function previewRelease(uint32 trader, uint256 atoms) external view returns (bool ok, RejectCode reason) {
         return _releaseDecision(trader, _acctAccount(trader), atoms);
     }
 

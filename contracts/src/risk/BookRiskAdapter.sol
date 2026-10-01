@@ -227,10 +227,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         f.takerFeeQ = _tradeFeeQ(lots, maker.tick, false);
         f.makerFeeQ = _tradeFeeQ(lots, maker.tick, true);
         // Fee caps are consumed pro rata to the filled share (assumption M-11).
-        f.takerPermitFeeUsedQ = permit.remainingFeeCapQ
-            - permit.remainingFeeCapQ * (permit.remainingLots - lots) / permit.remainingLots;
-        f.makerFeeCapUsedQ = maker.remainingFeeCapQ
-            - maker.remainingFeeCapQ * (maker.remainingLots - lots) / maker.remainingLots;
+        f.takerPermitFeeUsedQ = permit.remainingFeeCapQ - permit.remainingFeeCapQ
+            * (permit.remainingLots - lots) / permit.remainingLots;
+        f.makerFeeCapUsedQ = maker.remainingFeeCapQ - maker.remainingFeeCapQ * (maker.remainingLots - lots)
+            / maker.remainingLots;
     }
 
     function _commitFill(FillPlan memory f, TakerPermit memory permit, OrderView memory maker) internal {
