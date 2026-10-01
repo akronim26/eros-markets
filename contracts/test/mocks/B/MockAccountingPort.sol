@@ -247,8 +247,11 @@ abstract contract MockAccountingPort is IAccountingPort {
 
     // ---------------------------------------------------------------- liquidation
 
+    TakeoverAuth public mockLastTakeover;
+
     function _acctTakeover(TakeoverAuth memory auth) internal virtual override {
         _requireTouched(auth.trader);
+        mockLastTakeover = auth;
         if (auth.predicate == 0) revert MockSequence("takeover without predicate");
         AccountView storage a = _mAccts[auth.trader];
         mockReserveCashQ += a.cashQ;
