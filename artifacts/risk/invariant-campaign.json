@@ -1,0 +1,90 @@
+{
+ "scope": "Combined A+B invariant campaign on integration/risk (CombinedEngine: real Person A + real Person B; book, price feed, oracle, token mocked)",
+ "source": "contracts/test/invariant/integration/CombinedInvariants.t.sol",
+ "base_commit_before_this_record": "860793dc67f2ff74597aec49717a073519aa2ed0",
+ "invariants": {
+  "INV-01": "net position zero",
+  "INV-02": "virtual cash + fee/keeper/clearing ledgers == allocationQ (final identity after payout pages)",
+  "INV-03": "recognized custody <= token custody; market atoms * Q == allocationQ",
+  "INV-04": "R_y >= Dbar_y + B both outcomes (until reserve residual assigned)",
+  "INV-05": "each stored contribution == A order-aware deficits of its own state; sums exact",
+  "INV-06": "not a stateful invariant here: admission/withdrawal IM gates are covered by G3/G4 deterministic tests",
+  "INV-07": "stopped funding epoch never moves the index (ghost)",
+  "INV-08": "positions change only via fills/takeovers (ghost over non-trading actions)",
+  "INV-09": "no claim before claims enabled; claimed <= allocated",
+  "INV-10": "every account frozen at the one accrual cutoff"
+ },
+ "random_campaigns": [
+  {
+   "command": "cd contracts && FOUNDRY_PROFILE=risk forge test --match-contract '^CombinedInvariantsTest$'",
+   "runs": 48,
+   "depth": 64,
+   "calls_per_invariant": 3072,
+   "reverts": 0,
+   "result": "9/9 pass, no counterexample"
+  },
+  {
+   "command": "cd contracts && FOUNDRY_PROFILE=ci forge test --match-contract '^CombinedInvariantsTest$'",
+   "runs": 256,
+   "depth": 128,
+   "calls_per_invariant": 32768,
+   "reverts": 0,
+   "result": "9/9 pass, no counterexample"
+  }
+ ],
+ "seeded_campaign": {
+  "command": "cd contracts && FOUNDRY_PROFILE=risk forge test --match-test test_seededCampaign -vv",
+  "seeds": 24,
+  "steps_per_seed": "64 random actions + halt/finality/INVALID capture + 40 preparation + 12 claim steps",
+  "check": "all INV checks after every step",
+  "result": "8/8 tests pass",
+  "effective_outcomes_total": {
+   "steps": 512,
+   "leverage": 50,
+   "fill": 16,
+   "filledLots": 1727867,
+   "release": 45,
+   "rollover": 136,
+   "liqReduce": 0,
+   "takeover": 3,
+   "floorReconciled": 16,
+   "halt": 24,
+   "finality": 24,
+   "invalidCaptured": 9,
+   "claimsEnabled": 910,
+   "claimPaid": 114
+  },
+  "lines": [
+   "CAMPAIGN seeds=0..2 steps=64+settlement leverage=9 fill=4 filledLots=371004 release=4 rollover=13 liqReduce=0 takeover=1 floorReconciled=2 halt=3 finality=3 invalidCaptured=2 claimsEnabled=93 claimPaid=14",
+   "  CAMPAIGN seeds=12..14 steps=64+settlement leverage=8 fill=5 filledLots=732004 release=6 rollover=22 liqReduce=0 takeover=0 floorReconciled=2 halt=3 finality=3 invalidCaptured=1 claimsEnabled=117 claimPaid=14",
+   "  CAMPAIGN seeds=15..17 steps=64+settlement leverage=8 fill=2 filledLots=121138 release=7 rollover=16 liqReduce=0 takeover=0 floorReconciled=2 halt=3 finality=3 invalidCaptured=1 claimsEnabled=117 claimPaid=16",
+   "  CAMPAIGN seeds=18..20 steps=64+settlement leverage=4 fill=0 filledLots=0 release=5 rollover=20 liqReduce=0 takeover=0 floorReconciled=3 halt=3 finality=3 invalidCaptured=2 claimsEnabled=117 claimPaid=13",
+   "  CAMPAIGN seeds=21..23 steps=64+settlement leverage=6 fill=0 filledLots=0 release=8 rollover=18 liqReduce=0 takeover=0 floorReconciled=3 halt=3 finality=3 invalidCaptured=1 claimsEnabled=119 claimPaid=15",
+   "  CAMPAIGN seeds=3..5 steps=64+settlement leverage=5 fill=3 filledLots=103924 release=7 rollover=17 liqReduce=0 takeover=1 floorReconciled=2 halt=3 finality=3 invalidCaptured=1 claimsEnabled=112 claimPaid=14",
+   "  CAMPAIGN seeds=6..8 steps=64+settlement leverage=6 fill=0 filledLots=0 release=3 rollover=16 liqReduce=0 takeover=1 floorReconciled=0 halt=3 finality=3 invalidCaptured=1 claimsEnabled=117 claimPaid=15",
+   "  CAMPAIGN seeds=9..11 steps=64+settlement leverage=4 fill=2 filledLots=399797 release=5 rollover=14 liqReduce=0 takeover=0 floorReconciled=2 halt=3 finality=3 invalidCaptured=0 claimsEnabled=118 claimPaid=13"
+  ],
+  "gaps": [
+   "book-close liquidation reductions (liqReduce) did not occur in the random sequences; covered deterministically by contracts/test/gates/G5.t.sol",
+   "claimsEnabled counts finishPreparation calls that returned true (repeated calls counted)"
+  ]
+ },
+ "actions": [
+  "allocate",
+  "rest",
+  "place (IOC)",
+  "cancelAll",
+  "release",
+  "advance time + feed + rollover pages",
+  "5x leverage entry",
+  "price shock + keeper liquidation",
+  "liquidate (book/pair/takeover)",
+  "floor sweep",
+  "halt",
+  "finality YES/NO/INVALID",
+  "INVALID capture (fallback)",
+  "snapshot/payout preparation",
+  "claims"
+ ],
+ "gas_note": "local forge 1.3.5 EVM (prague); not Monad"
+}
