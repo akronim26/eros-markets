@@ -1,0 +1,13 @@
+{
+  "gate": "G3",
+  "title": "Storage and risk context joined",
+  "spec_version": "1.1",
+  "harness": "contracts/test/integration/CombinedEngine.sol = RiskAccountingBridge (real A + real B) + MockBookAdapter",
+  "checks": ["vault allocation reaches A account cash and B account/preview views in the same Q", "A Context.at/version/mark == B RiskContext economicTime/riskVersion/markOk", "bootstrap: exactly backed fill, leveraged order rejected", "guarded release in bootstrap only when exactly backed", "A release(atoms) cannot bypass B's release decision; usable release from B's preview is exact (usable passes, usable+1 reverts)", "margin from stored values equals B kernel"],
+  "frozen_for_W4": {
+    "accrual_action_port": "IAccountingPort._acctBeginAction/_acctTouch/_acctPostFill/_acctReplaceContribution as implemented by RiskAccountingBridge",
+    "reservation_delta": "OrderAdmissionMath.OrderSums -> CoverageMath.Orders (bid/ask lots, values Q, fee cap Q)",
+    "book_hooks": "contracts/src/interfaces/IBookRiskHooks.sol (B), driven by MockBookAdapter"
+  },
+  "mocks": ["book: MockBookAdapter", "price source: test-fed observations", "oracle: MockResolutionAuthority", "token: MockUSDC"]
+}

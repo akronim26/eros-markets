@@ -53,6 +53,11 @@ contract CombinedEngine is RiskAccountingBridge, MockBookAdapter {
         _cancelAllTopLevel(t);
     }
 
+    /// Person A's per-action context as answered by B (test view).
+    function accountingContext() external view returns (Context memory) {
+        return _checkedContext();
+    }
+
     function liq(uint32 t, uint64 maxLots, uint16 maxExam, uint32 partner)
         external
         returns (RiskLiquidation.LiquidationResult memory r)
