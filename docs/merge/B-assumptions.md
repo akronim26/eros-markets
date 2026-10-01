@@ -225,3 +225,7 @@ open questions for Person A, the counterpart teams or the spec owner.
 - **S-12 (B038) Cash-claim hook.** A's ClaimEscrow (A037) must call `_riskBeforeCashClaim()` before
   the first payout so cash and token claims stay mutually exclusive. Conversion is disabled
   (`_conversionEnabled()` false) in the baseline.
+- **S-13 (B042) SDK accounting fields.** `packages/risk-sdk/src/index.ts` defines a provisional
+  `AccountingFields` (projected funding/premium estimates, contract-decided usable release). A032
+  `packages/risk-sdk/src/accounting.ts` owns the real shape; replace the provisional interface at
+  merge. The SDK never computes an authoritative balance (`authoritative: false` on every value).
