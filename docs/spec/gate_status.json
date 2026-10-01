@@ -123,10 +123,19 @@
     },
     {
       "id": "G7",
-      "status": "not_started",
+      "status": "blocked",
       "merge_sha": null,
       "reviewed_by": [],
-      "evidence": []
+      "evidence": [
+        "artifacts/gates/G7.json",
+        "docs/contracts/G7.json",
+        "contracts/test/gates/G7.t.sol"
+      ],
+      "review_pending": [
+        "A",
+        "B"
+      ],
+      "note": "Tested at bdc9cd5dcfde12602150b40416639aa9d6f0db91: G7.t.sol, A040-A042, A044 and B040-B044 pass; A043 (Person A's peer review of B) exits 2 (pending; only Person A can do it). Gate not passed. Live counterparts BLOCKED_BY_COUNTERPART."
     }
   ]
 }
