@@ -11,7 +11,8 @@ import {MarginMath} from "../../../src/math/MarginMath.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side, AdmissionMode} from "../../../provisional/MathTypes.sol";
+import {AdmissionMode} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -40,7 +41,7 @@ contract CloseEngine is LiquidationBookAdapter, MockBookAdapter, MockAccountingP
         return (r.filledLots, lastExamined);
     }
 
-    function rest(uint32 owner, Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
+    function rest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
         s = _mockRest(owner, side, tick, lots, 0, false);
         _mockEndAction();
     }
@@ -93,7 +94,7 @@ contract B031Test is Test {
 
     function test_closeRestoresHealthRecomputed() public {
         build(10_000_000);
-        e.rest(2, Side.BUY, 600, 2_000_000);
+        e.rest(2, MathTypes.Side.BUY, 600, 2_000_000);
         LiquidationBookAdapter.CloseOutcome memory o = e.close(1, 2_000_000, 8);
         assertEq(uint8(o.result), uint8(LM.Result.DONE));
         assertGe(o.closedLots, 522_929);
@@ -105,7 +106,7 @@ contract B031Test is Test {
 
     function test_smallBudgetNeedsMoreWorkKeepsCover() public {
         build(10_000_000);
-        e.rest(2, Side.BUY, 600, 2_000_000);
+        e.rest(2, MathTypes.Side.BUY, 600, 2_000_000);
         LiquidationBookAdapter.CloseOutcome memory o = e.close(1, 1, 8);
         assertEq(uint8(o.result), uint8(LM.Result.NEEDS_MORE_WORK));
         assertEq(o.closedLots, 1);
@@ -124,7 +125,7 @@ contract B031Test is Test {
 
     function test_bidsBelowWorstTickNotHit() public {
         build(10_000_000);
-        e.rest(2, Side.BUY, 100, 2_000_000);
+        e.rest(2, MathTypes.Side.BUY, 100, 2_000_000);
         LiquidationBookAdapter.CloseOutcome memory o = e.close(1, 2_000_000, 8);
         assertGt(o.worstTick, 100);
         assertEq(o.closedLots, 0);
@@ -133,7 +134,7 @@ contract B031Test is Test {
 
     function test_blockPacing() public {
         build(50_000); // small cap: the account stays below MM between calls
-        e.rest(2, Side.BUY, 600, 2_000_000);
+        e.rest(2, MathTypes.Side.BUY, 600, 2_000_000);
         LiquidationBookAdapter.CloseOutcome memory o = e.close(1, 2_000_000, 8);
         assertEq(o.closedLots, 50_000, "capped by the per-block budget");
         assertEq(uint8(o.result), uint8(LM.Result.NEEDS_MORE_WORK));
@@ -146,7 +147,7 @@ contract B031Test is Test {
 
     function test_missingCapDisables() public {
         build(0);
-        e.rest(2, Side.BUY, 600, 2_000_000);
+        e.rest(2, MathTypes.Side.BUY, 600, 2_000_000);
         LiquidationBookAdapter.CloseOutcome memory o = e.close(1, 2_000_000, 8);
         assertEq(uint8(o.result), uint8(LM.Result.DISABLED));
         assertEq(e.mockAccount(1).lots, 1_000_000);
@@ -155,7 +156,7 @@ contract B031Test is Test {
     function test_examinationBound() public {
         build(10_000_000);
         for (uint32 i; i < 5; ++i) {
-            e.rest(3, Side.BUY, 600, 1);
+            e.rest(3, MathTypes.Side.BUY, 600, 1);
         }
         LiquidationBookAdapter.CloseOutcome memory o = e.close(1, 2_000_000, 3);
         assertEq(o.examined, 3);
@@ -165,7 +166,7 @@ contract B031Test is Test {
     function test_forcedModeNotUserSelectable() public {
         build(10_000_000);
         IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(1, Side.SELL, IBookRiskHooks.OrderKind.IOC, 500, 10, 0, true, 8);
+            IBookRiskHooks.OrderRequest(1, MathTypes.Side.SELL, IBookRiskHooks.OrderKind.IOC, 500, 10, 0, true, 8);
         vm.expectRevert(BookRiskAdapter.ForcedReductionNotUserSelectable.selector);
         e.forcedAsUser(r);
     }

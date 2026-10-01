@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
-import {AccountingState, FinalOutcome} from "../../../provisional/MathTypes.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
+import {AccountingState} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {OrderAdmissionMath as OA} from "../../../src/math/OrderAdmissionMath.sol";
 
 /// @notice Test-side coverage script: the test contract answers A's coverage question for fixed
@@ -15,7 +16,7 @@ interface ICoverageScript {
 }
 
 /// @title MockAccountingPort (B020)
-/// @notice Scripted double of Person A's accounting port (provisional/IAccountingPort.sol). It
+/// @notice Scripted double of Person A's accounting port (src/interfaces/IAccountingPort.sol). It
 ///         records every call and reverts on unexpected sequencing (touch before begin, posting an
 ///         untouched account, posting during a sweep, jobs out of order). It holds a scripted
 ///         account table and applies only the exact paired lot/cash deltas it is told to post;
@@ -346,7 +347,7 @@ abstract contract MockAccountingPort is IAccountingPort {
         _log(CallKind.SNAPSHOT_CHUNK, 0, 0, _mSnapCursor);
     }
 
-    function _acctPreparePayoutChunk(uint256 maxAccounts, FinalOutcome o, uint256)
+    function _acctPreparePayoutChunk(uint256 maxAccounts, MathTypes.FinalOutcome o, uint256)
         internal
         virtual
         override
@@ -354,7 +355,7 @@ abstract contract MockAccountingPort is IAccountingPort {
     {
         uint64 n = _mFreeze.frozenAccountCount;
         if (_mSnapCursor != n) revert MockSequence("payout before snapshot complete");
-        if (o == FinalOutcome.UNSET) revert MockSequence("payout without outcome");
+        if (o == MathTypes.FinalOutcome.UNSET) revert MockSequence("payout without outcome");
         uint64 step = uint64(maxAccounts);
         _mPayCursor = _mPayCursor + step >= n ? n : _mPayCursor + step;
         p = JobProgress(_mPayCursor, n, _mPayCursor == n);

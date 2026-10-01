@@ -10,7 +10,8 @@ import {MarginMath} from "../../../src/math/MarginMath.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side, RejectCode, AccountingState} from "../../../provisional/MathTypes.sol";
+import {RejectCode, AccountingState} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -99,7 +100,7 @@ contract B029Test is Test {
         e.sweep(1);
         assertEq(e.mockAccount(1).lots, 0);
         IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(1, Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 10, 0, false, 8);
+            IBookRiskHooks.OrderRequest(1, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 10, 0, false, 8);
         MockBookAdapter.PlaceResult memory res = e.place(r);
         assertEq(uint8(res.rejection), uint8(RejectCode.BAD_STAGE));
     }
@@ -110,7 +111,7 @@ contract B029Test is Test {
         assertTrue(e.floorReconciled());
         // trading reopens only under exact backing: the flat 600 USDC holder may buy at most
         // what it can fully back, never a leveraged size
-        TradePreview.OrderPreview memory p = e.previewOrder(1, Side.BUY, 600, 2_000_000, false);
+        TradePreview.OrderPreview memory p = e.previewOrder(1, MathTypes.Side.BUY, 600, 2_000_000, false);
         assertEq(p.d0AfterQ, 0);
         assertEq(p.d1AfterQ, 0);
         assertLe(uint256(p.acceptedCapLots) * 600 * 1e18, 600 * USDC);

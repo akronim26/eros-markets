@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {FinalOutcome, ClearingPhase} from "../../provisional/MathTypes.sol";
+import {ClearingPhase} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 import {SettlementView} from "../interfaces/IResolutionIngress.sol";
 import {LifecycleMath} from "../math/LifecycleMath.sol";
 import {InvalidPrice} from "./InvalidPrice.sol";
@@ -34,7 +35,7 @@ abstract contract SettlementController is InvalidPrice {
     event ClaimsEnabled(
         bytes32 indexed marketId,
         bytes32 snapshotId,
-        FinalOutcome outcome,
+        MathTypes.FinalOutcome outcome,
         uint256 priceE18,
         uint256 totalTraderPayoutAtoms,
         uint256 reserveContributionAtoms
@@ -48,9 +49,9 @@ abstract contract SettlementController is InvalidPrice {
     /// @notice Settlement price for the latched outcome: YES 1e18, NO 0, INVALID the captured
     ///         price. `ready` false while INVALID is still pending.
     function _settlementPrice() internal view returns (bool ready, uint256 priceE18) {
-        if (_finalOutcome == FinalOutcome.YES) return (true, 1e18);
-        if (_finalOutcome == FinalOutcome.NO) return (true, 0);
-        if (_finalOutcome == FinalOutcome.INVALID && _invalidCaptured) return (true, _invalidPriceWad);
+        if (_finalOutcome == MathTypes.FinalOutcome.YES) return (true, 1e18);
+        if (_finalOutcome == MathTypes.FinalOutcome.NO) return (true, 0);
+        if (_finalOutcome == MathTypes.FinalOutcome.INVALID && _invalidCaptured) return (true, _invalidPriceWad);
         return (false, 0);
     }
 
@@ -104,7 +105,7 @@ abstract contract SettlementController is InvalidPrice {
     function _phase() internal view returns (ClearingPhase) {
         if (!_halt.halted) return ClearingPhase.LIVE;
         if (_claimsEnabled) return _acctClaimsComplete() ? ClearingPhase.COMPLETE : ClearingPhase.READY;
-        if (_finalOutcome == FinalOutcome.UNSET) return ClearingPhase.HALTED;
+        if (_finalOutcome == MathTypes.FinalOutcome.UNSET) return ClearingPhase.HALTED;
         return ClearingPhase.PREPARING;
     }
 
@@ -112,7 +113,7 @@ abstract contract SettlementController is InvalidPrice {
         v.phase = _phase();
         v.halted = _halt.halted;
         v.finalOutcome = _finalOutcome;
-        v.oracleFinalityAccepted = _finalOutcome != FinalOutcome.UNSET;
+        v.oracleFinalityAccepted = _finalOutcome != MathTypes.FinalOutcome.UNSET;
         v.invalidPriceReady = _invalidCaptured;
         (bool ready, uint256 price) = _settlementPrice();
         v.settlementPriceE18 = ready ? price : 0;

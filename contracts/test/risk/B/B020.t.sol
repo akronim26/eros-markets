@@ -7,18 +7,12 @@ import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {IBookRiskHooks} from "../../../src/interfaces/IBookRiskHooks.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {IResolutionEngine, HaltView, SettlementView} from "../../../src/interfaces/IResolutionIngress.sol";
 import {RiskContext} from "../../../src/pricing/RiskPricing.sol";
 import {OrderAdmissionMath as OA} from "../../../src/math/OrderAdmissionMath.sol";
-import {
-    AccountingState,
-    FinalOutcome,
-    Side,
-    AdmissionMode,
-    StepStatus,
-    RejectCode
-} from "../../../provisional/MathTypes.sol";
+import {AccountingState, AdmissionMode, StepStatus, RejectCode} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -41,7 +35,7 @@ contract PortProbe is RiskHarness {
     }
 
     function pay(uint256 n) external returns (IAccountingPort.JobProgress memory) {
-        return _acctPreparePayoutChunk(n, FinalOutcome.YES, 1e18);
+        return _acctPreparePayoutChunk(n, MathTypes.FinalOutcome.YES, 1e18);
     }
 
     function finish() external returns (IAccountingPort.FinishResult memory) {
@@ -61,7 +55,7 @@ contract ScriptedBook is MockBookAdapter {
         script.push(s);
     }
 
-    function rest(uint32 owner, Side side, uint16 tick, uint64 lots, uint32 expiry)
+    function rest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots, uint32 expiry)
         external
         returns (uint32)
     {
@@ -104,7 +98,7 @@ contract ScriptedBook is MockBookAdapter {
         }
     }
 
-    function _riskAdmitRest(RiskSnapshot memory, uint32, Side, uint16, uint64, uint32, bool)
+    function _riskAdmitRest(RiskSnapshot memory, uint32, MathTypes.Side, uint16, uint64, uint32, bool)
         internal
         pure
         override
@@ -123,7 +117,7 @@ contract ScriptedBook is MockBookAdapter {
         t = EpochTag(1, 1);
     }
 
-    function _riskOnUnrest(RiskSnapshot memory, uint32, EpochTag memory, Side, uint16, uint64 lots, uint256)
+    function _riskOnUnrest(RiskSnapshot memory, uint32, EpochTag memory, MathTypes.Side, uint16, uint64 lots, uint256)
         internal
         override
     {
@@ -297,7 +291,7 @@ contract B020Test is Test {
         returns (IBookRiskHooks.OrderRequest memory r)
     {
         r.trader = trader;
-        r.side = Side.BUY;
+        r.side = MathTypes.Side.BUY;
         r.limitTick = limit;
         r.requestedLots = lots;
         r.maxSteps = steps;
@@ -306,11 +300,11 @@ contract B020Test is Test {
     function test_dirtyQueueBoundedSteps() public {
         ScriptedBook b = new ScriptedBook();
         vm.roll(100);
-        b.rest(5, Side.SELL, 500, 3, 99); // expired
-        b.rest(7, Side.SELL, 500, 3, 0); // self
-        b.rest(6, Side.SELL, 500, 3, 0); // pruned by risk
-        b.rest(8, Side.SELL, 500, 3, 0); // pruned by risk
-        b.rest(9, Side.SELL, 500, 3, 0); // would fill, never examined
+        b.rest(5, MathTypes.Side.SELL, 500, 3, 99); // expired
+        b.rest(7, MathTypes.Side.SELL, 500, 3, 0); // self
+        b.rest(6, MathTypes.Side.SELL, 500, 3, 0); // pruned by risk
+        b.rest(8, MathTypes.Side.SELL, 500, 3, 0); // pruned by risk
+        b.rest(9, MathTypes.Side.SELL, 500, 3, 0); // would fill, never examined
         b.pushScript(StepStatus.PRUNE_MAKER);
         b.pushScript(StepStatus.PRUNE_MAKER);
         IBookRiskHooks.OrderRequest memory r = req(7, 500, 3, 4);
@@ -325,18 +319,18 @@ contract B020Test is Test {
     function test_expiryBoundaryInclusive() public {
         ScriptedBook b = new ScriptedBook();
         vm.roll(50);
-        b.rest(5, Side.SELL, 500, 3, 50);
+        b.rest(5, MathTypes.Side.SELL, 500, 3, 50);
         IBookRiskHooks.OrderRequest memory r = req(1, 500, 3, 4);
         r.kind = IBookRiskHooks.OrderKind.IOC;
         assertEq(b.place(r).filledLots, 3, "executable at K");
-        b.rest(5, Side.SELL, 500, 3, 50);
+        b.rest(5, MathTypes.Side.SELL, 500, 3, 50);
         vm.roll(51);
         assertEq(b.place(r).filledLots, 0, "pruned at K+1");
     }
 
     function test_noUnrestOnFilledSize() public {
         ScriptedBook b = new ScriptedBook();
-        b.rest(5, Side.SELL, 500, 10, 0);
+        b.rest(5, MathTypes.Side.SELL, 500, 10, 0);
         IBookRiskHooks.OrderRequest memory r = req(1, 500, 4, 4);
         r.kind = IBookRiskHooks.OrderKind.IOC;
         b.place(r);
@@ -347,8 +341,8 @@ contract B020Test is Test {
 
     function test_stopTakerKeepsMaker() public {
         ScriptedBook b = new ScriptedBook();
-        b.rest(5, Side.SELL, 500, 2, 0);
-        b.rest(6, Side.SELL, 500, 2, 0);
+        b.rest(5, MathTypes.Side.SELL, 500, 2, 0);
+        b.rest(6, MathTypes.Side.SELL, 500, 2, 0);
         b.pushScript(StepStatus.FILLED);
         b.pushScript(StepStatus.STOP_TAKER);
         IBookRiskHooks.OrderRequest memory r = req(1, 500, 4, 4);
@@ -361,8 +355,8 @@ contract B020Test is Test {
 
     function test_crossedRemainderDropped() public {
         ScriptedBook b = new ScriptedBook();
-        b.rest(5, Side.SELL, 500, 2, 0);
-        b.rest(6, Side.SELL, 500, 2, 0);
+        b.rest(5, MathTypes.Side.SELL, 500, 2, 0);
+        b.rest(6, MathTypes.Side.SELL, 500, 2, 0);
         IBookRiskHooks.OrderRequest memory r = req(1, 500, 4, 1); // one step: second maker still crosses
         r.kind = IBookRiskHooks.OrderKind.LIMIT;
         MockBookAdapter.PlaceResult memory res = b.place(r);

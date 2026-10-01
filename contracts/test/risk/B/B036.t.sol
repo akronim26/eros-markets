@@ -7,11 +7,12 @@ import {LifecycleMath} from "../../../src/math/LifecycleMath.sol";
 import {SettlementView} from "../../../src/interfaces/IResolutionIngress.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
-import {AdmissionMode, ClearingPhase, FinalOutcome, Stage} from "../../../provisional/MathTypes.sol";
+import {AdmissionMode, ClearingPhase, Stage} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 

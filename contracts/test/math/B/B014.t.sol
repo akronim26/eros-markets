@@ -5,15 +5,16 @@ import {Test} from "forge-std/Test.sol";
 import {LiquidationMath as LM} from "../../../src/math/LiquidationMath.sol";
 import {LifecycleMath as LC} from "../../../src/math/LifecycleMath.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
-import {Stage, PricingMode, FinalOutcome} from "../../../provisional/MathTypes.sol";
+import {Stage, PricingMode} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {RiskFixture} from "./B011.t.sol";
 
 contract B014Wrapper {
-    function accept(FinalOutcome a, FinalOutcome b) external pure returns (FinalOutcome, bool) {
+    function accept(MathTypes.FinalOutcome a, MathTypes.FinalOutcome b) external pure returns (MathTypes.FinalOutcome, bool) {
         return LC.acceptFinality(a, b);
     }
 
-    function fromY(uint8 y) external pure returns (FinalOutcome) {
+    function fromY(uint8 y) external pure returns (MathTypes.FinalOutcome) {
         return LC.outcomeFromY(y);
     }
 
@@ -276,37 +277,37 @@ contract B014Test is Test {
     }
 
     function test_finality() public {
-        (FinalOutcome o, bool n) = LC.acceptFinality(FinalOutcome.UNSET, FinalOutcome.YES);
-        assertEq(uint8(o), uint8(FinalOutcome.YES));
+        (MathTypes.FinalOutcome o, bool n) = LC.acceptFinality(MathTypes.FinalOutcome.UNSET, MathTypes.FinalOutcome.YES);
+        assertEq(uint8(o), uint8(MathTypes.FinalOutcome.YES));
         assertTrue(n);
-        (o, n) = LC.acceptFinality(o, FinalOutcome.YES);
+        (o, n) = LC.acceptFinality(o, MathTypes.FinalOutcome.YES);
         assertFalse(n);
         vm.expectRevert(LC.ConflictingFinalOutcome.selector);
-        w.accept(FinalOutcome.YES, FinalOutcome.NO);
+        w.accept(MathTypes.FinalOutcome.YES, MathTypes.FinalOutcome.NO);
         vm.expectRevert(LC.BadOutcome.selector);
         w.fromY(2);
-        assertEq(uint8(LC.outcomeFromY(1)), uint8(FinalOutcome.YES));
-        assertEq(uint8(LC.outcomeFromY(0)), uint8(FinalOutcome.NO));
+        assertEq(uint8(LC.outcomeFromY(1)), uint8(MathTypes.FinalOutcome.YES));
+        assertEq(uint8(LC.outcomeFromY(0)), uint8(MathTypes.FinalOutcome.NO));
     }
 
     function test_claimsStatus() public pure {
         assertEq(
-            uint8(LC.claimsStatus(FinalOutcome.INVALID, false, true, true, true)),
+            uint8(LC.claimsStatus(MathTypes.FinalOutcome.INVALID, false, true, true, true)),
             uint8(LC.ClaimsStatus.ORACLE_FINAL_PRICE_PENDING)
         );
         assertEq(
-            uint8(LC.claimsStatus(FinalOutcome.YES, true, true, false, true)),
+            uint8(LC.claimsStatus(MathTypes.FinalOutcome.YES, true, true, false, true)),
             uint8(LC.ClaimsStatus.ORACLE_FINAL_PREPARING)
         );
         assertEq(
-            uint8(LC.claimsStatus(FinalOutcome.YES, true, true, true, false)),
+            uint8(LC.claimsStatus(MathTypes.FinalOutcome.YES, true, true, true, false)),
             uint8(LC.ClaimsStatus.RECOVERY_REQUIRED)
         );
         assertEq(
-            uint8(LC.claimsStatus(FinalOutcome.YES, true, true, true, true)), uint8(LC.ClaimsStatus.CLAIMABLE)
+            uint8(LC.claimsStatus(MathTypes.FinalOutcome.YES, true, true, true, true)), uint8(LC.ClaimsStatus.CLAIMABLE)
         );
         assertEq(
-            uint8(LC.claimsStatus(FinalOutcome.UNSET, true, true, true, true)),
+            uint8(LC.claimsStatus(MathTypes.FinalOutcome.UNSET, true, true, true, true)),
             uint8(LC.ClaimsStatus.AWAITING_OUTCOME)
         );
     }

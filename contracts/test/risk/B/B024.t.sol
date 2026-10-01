@@ -7,11 +7,12 @@ import {IBookRiskHooks} from "../../../src/interfaces/IBookRiskHooks.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
 import {OrderAdmissionMath as OA} from "../../../src/math/OrderAdmissionMath.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side, RejectCode} from "../../../provisional/MathTypes.sol";
+import {RejectCode} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -37,7 +38,7 @@ contract TradeEngine is BookRiskAdapter, MockBookAdapter, MockAccountingPort {
         _mockEndAction();
     }
 
-    function rest(uint32 owner, Side side, uint16 tick, uint64 lots, uint32 expiry, bool ro)
+    function rest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots, uint32 expiry, bool ro)
         external
         returns (uint32 s)
     {
@@ -82,7 +83,7 @@ abstract contract TradeFixture is Test {
         pure
         returns (IBookRiskHooks.OrderRequest memory r)
     {
-        r = IBookRiskHooks.OrderRequest(trader, Side.BUY, kind, limit, lots, 0, false, steps);
+        r = IBookRiskHooks.OrderRequest(trader, MathTypes.Side.BUY, kind, limit, lots, 0, false, steps);
     }
 }
 
@@ -97,7 +98,7 @@ contract B024Test is TradeFixture {
     }
 
     function test_directFiveXThroughBook() public {
-        e.rest(2, Side.SELL, 600, 1_000_000, 0, false);
+        e.rest(2, MathTypes.Side.SELL, 600, 1_000_000, 0, false);
         MockBookAdapter.PlaceResult memory r =
             e.place(buy(1, 600, 1_000_000, 8, IBookRiskHooks.OrderKind.IOC));
         assertEq(r.filledLots, 1_000_000, "admitted and filled, not stopped");
@@ -109,8 +110,8 @@ contract B024Test is TradeFixture {
     }
 
     function test_twoMakerFragmentation() public {
-        e.rest(2, Side.SELL, 600, 400_000, 0, false);
-        e.rest(3, Side.SELL, 600, 600_000, 0, false);
+        e.rest(2, MathTypes.Side.SELL, 600, 400_000, 0, false);
+        e.rest(3, MathTypes.Side.SELL, 600, 600_000, 0, false);
         MockBookAdapter.PlaceResult memory r =
             e.place(buy(1, 600, 1_000_000, 8, IBookRiskHooks.OrderKind.IOC));
         assertEq(r.filledLots, 1_000_000);
@@ -120,9 +121,9 @@ contract B024Test is TradeFixture {
 
     function test_staleSelfExpiredConsumeSteps() public {
         vm.roll(100);
-        e.rest(2, Side.SELL, 600, 10, 99, false); // expires before now
-        e.rest(1, Side.SELL, 600, 10, 0, false); // taker's own order
-        e.rest(3, Side.SELL, 600, 10, 0, false); // valid, but beyond the 2-step budget
+        e.rest(2, MathTypes.Side.SELL, 600, 10, 99, false); // expires before now
+        e.rest(1, MathTypes.Side.SELL, 600, 10, 0, false); // taker's own order
+        e.rest(3, MathTypes.Side.SELL, 600, 10, 0, false); // valid, but beyond the 2-step budget
         MockBookAdapter.PlaceResult memory r = e.place(buy(1, 600, 30, 2, IBookRiskHooks.OrderKind.IOC));
         assertEq(e.lastExamined(), 2, "expired and self consumed both steps");
         assertEq(r.filledLots, 0);
@@ -131,11 +132,11 @@ contract B024Test is TradeFixture {
     }
 
     function test_expectedPruneKeepsPriorFills() public {
-        e.rest(2, Side.SELL, 600, 10, 0, false);
+        e.rest(2, MathTypes.Side.SELL, 600, 10, 0, false);
         e.mockSetAccount(5, int256(1 * USDC), 0);
-        e.rest(5, Side.SELL, 600, 1, 0, false); // tiny exactly backed ask
+        e.rest(5, MathTypes.Side.SELL, 600, 1, 0, false); // tiny exactly backed ask
         e.mockSetAccount(5, 0, 0); // cash later disappears (scripted): maker now fails readmission
-        e.rest(3, Side.SELL, 600, 10, 0, false);
+        e.rest(3, MathTypes.Side.SELL, 600, 10, 0, false);
         MockBookAdapter.PlaceResult memory r = e.place(buy(1, 600, 21, 8, IBookRiskHooks.OrderKind.IOC));
         assertEq(r.filledLots, 20, "fills before and after the pruned maker persist");
         (, bool live) = e.mockOrder(2);
@@ -143,8 +144,8 @@ contract B024Test is TradeFixture {
     }
 
     function test_unexpectedFailureRevertsWholeTransaction() public {
-        e.rest(2, Side.SELL, 600, 10, 0, false);
-        e.rest(3, Side.SELL, 600, 10, 0, false);
+        e.rest(2, MathTypes.Side.SELL, 600, 10, 0, false);
+        e.rest(3, MathTypes.Side.SELL, 600, 10, 0, false);
         e.mockFailPostAt(2);
         vm.recordLogs();
         vm.expectRevert(
@@ -160,7 +161,7 @@ contract B024Test is TradeFixture {
     }
 
     function test_noDuplicateUnrestOnFilledSize() public {
-        uint32 slot = e.rest(2, Side.SELL, 600, 10, 0, false);
+        uint32 slot = e.rest(2, MathTypes.Side.SELL, 600, 10, 0, false);
         e.place(buy(1, 600, 4, 8, IBookRiskHooks.OrderKind.IOC));
         assertEq(e.sums(2).askLots, 6);
         assertTrue(e.cancel(slot));
@@ -177,7 +178,7 @@ contract B024Test is TradeFixture {
     }
 
     function test_limitRemainderConvertsPermitOnce() public {
-        e.rest(2, Side.SELL, 600, 4, 0, false);
+        e.rest(2, MathTypes.Side.SELL, 600, 4, 0, false);
         MockBookAdapter.PlaceResult memory r = e.place(buy(1, 590, 10, 8, IBookRiskHooks.OrderKind.LIMIT));
         assertEq(r.filledLots, 0, "limit below the ask");
         assertGt(r.restedSlot, 0);

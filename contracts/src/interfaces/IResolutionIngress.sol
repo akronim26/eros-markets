@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {FinalOutcome, ClearingPhase} from "../../provisional/MathTypes.sol";
+import {ClearingPhase} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 
 /// @notice Engine halt snapshot (spec §8.1). `snapshotId` is an identifier, not a Merkle
 ///         commitment to every account. `oiHaltLots` is one-sided OI in lots incl. the reserve.
@@ -24,7 +25,7 @@ struct HaltView {
 struct SettlementView {
     ClearingPhase phase;
     bool halted;
-    FinalOutcome finalOutcome;
+    MathTypes.FinalOutcome finalOutcome;
     bool oracleFinalityAccepted;
     bool invalidPriceReady;
     uint256 settlementPriceE18;
@@ -88,9 +89,9 @@ library OracleOutcomeMap {
     }
 
     /// @notice Binary payoff Y -> engine-local outcome (YES = 2, NO = 1 in FinalOutcome).
-    function localOutcome(uint8 y) internal pure returns (FinalOutcome) {
-        if (y == 1) return FinalOutcome.YES;
-        if (y == 0) return FinalOutcome.NO;
+    function localOutcome(uint8 y) internal pure returns (MathTypes.FinalOutcome) {
+        if (y == 1) return MathTypes.FinalOutcome.YES;
+        if (y == 0) return MathTypes.FinalOutcome.NO;
         revert NoEngineCall();
     }
 }

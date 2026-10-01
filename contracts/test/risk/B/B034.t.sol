@@ -8,12 +8,13 @@ import {LifecycleMath} from "../../../src/math/LifecycleMath.sol";
 import {IResolutionEngine, HaltView, SettlementView} from "../../../src/interfaces/IResolutionIngress.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {AdmissionMode, FinalOutcome, Stage} from "../../../provisional/MathTypes.sol";
+import {AdmissionMode, Stage} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -30,7 +31,7 @@ contract IngressEngine is ResolutionIngress, MockBookAdapter, MockAccountingPort
     function getSettlementStatus() external view virtual returns (SettlementView memory v) {
         v.halted = _halt.halted;
         v.finalOutcome = _finalOutcome;
-        v.oracleFinalityAccepted = _finalOutcome != FinalOutcome.UNSET;
+        v.oracleFinalityAccepted = _finalOutcome != MathTypes.FinalOutcome.UNSET;
     }
 }
 
@@ -102,14 +103,14 @@ contract B034Test is Test {
     function test_settleLatchesOnceSameIdempotentConflictReverts() public {
         vm.warp(L0 + 5 days);
         assertTrue(oracle.finalize(1)); // YES; materializes the early halt first
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.YES));
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.YES));
         assertEq(e.getHaltSnapshot().economicHaltAt, L0 + 5 days);
         assertFalse(oracle.finalize(1), "same outcome: newlyAccepted false");
         vm.expectRevert(LifecycleMath.ConflictingFinalOutcome.selector);
         oracle.finalize(2);
         vm.expectRevert(LifecycleMath.ConflictingFinalOutcome.selector);
         oracle.finalize(3);
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.YES));
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.YES));
     }
 
     function test_onlyZeroOrOneY() public {
@@ -125,7 +126,7 @@ contract B034Test is Test {
         oracle.storeExternalFinality(1); // a conflicting external result
         assertFalse(oracle.retryDelivery());
         assertTrue(oracle.hasPending(), "the failed delivery stays pending, not silently dropped");
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.NO));
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.NO));
     }
 
     function test_accrualCutoffUsesEpochAndRollover() public {

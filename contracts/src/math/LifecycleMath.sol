@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Stage, PricingMode, FinalOutcome} from "../../provisional/MathTypes.sol";
+import {Stage, PricingMode} from "./RiskTypes.sol";
+import {MathTypes} from "./MathTypes.sol";
 
 /// @title LifecycleMath
 /// @notice Time-derived stage, cutoff precedence, grace, bootstrap transition, INVALID readiness
@@ -187,32 +188,32 @@ library LifecycleMath {
     }
 
     /// @notice UNSET accepts; the same outcome is idempotent; a different outcome reverts.
-    function acceptFinality(FinalOutcome stored, FinalOutcome incoming)
+    function acceptFinality(MathTypes.FinalOutcome stored, MathTypes.FinalOutcome incoming)
         internal
         pure
-        returns (FinalOutcome, bool newlyAccepted)
+        returns (MathTypes.FinalOutcome, bool newlyAccepted)
     {
-        if (incoming == FinalOutcome.UNSET) revert BadOutcome();
-        if (stored == FinalOutcome.UNSET) return (incoming, true);
+        if (incoming == MathTypes.FinalOutcome.UNSET) revert BadOutcome();
+        if (stored == MathTypes.FinalOutcome.UNSET) return (incoming, true);
         if (stored == incoming) return (stored, false);
         revert ConflictingFinalOutcome();
     }
 
     /// @notice Oracle binary Y (0 = NO, 1 = YES) to the engine-local outcome; other values revert.
-    function outcomeFromY(uint8 y) internal pure returns (FinalOutcome) {
-        if (y == 0) return FinalOutcome.NO;
-        if (y == 1) return FinalOutcome.YES;
+    function outcomeFromY(uint8 y) internal pure returns (MathTypes.FinalOutcome) {
+        if (y == 0) return MathTypes.FinalOutcome.NO;
+        if (y == 1) return MathTypes.FinalOutcome.YES;
         revert BadOutcome();
     }
 
     function claimsStatus(
-        FinalOutcome finality,
+        MathTypes.FinalOutcome finality,
         bool priceReady,
         bool snapshotComplete,
         bool payoutComplete,
         bool liabilitiesCovered
     ) internal pure returns (ClaimsStatus) {
-        if (finality == FinalOutcome.UNSET) return ClaimsStatus.AWAITING_OUTCOME;
+        if (finality == MathTypes.FinalOutcome.UNSET) return ClaimsStatus.AWAITING_OUTCOME;
         if (!priceReady) return ClaimsStatus.ORACLE_FINAL_PRICE_PENDING;
         if (!snapshotComplete || !payoutComplete) return ClaimsStatus.ORACLE_FINAL_PREPARING;
         if (!liabilitiesCovered) return ClaimsStatus.RECOVERY_REQUIRED;

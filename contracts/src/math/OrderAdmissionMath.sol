@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {QMath} from "../../provisional/QMath.sol";
-import {Q, RejectCode} from "../../provisional/MathTypes.sol";
+import {QMath} from "./QMath.sol";
+import {Q, RejectCode} from "./RiskTypes.sol";
 import {MarginMath} from "./MarginMath.sol";
 
 /// @title OrderAdmissionMath
@@ -112,13 +112,13 @@ library OrderAdmissionMath {
         e = MarginMath.markEquityQ(cashQ, lots, qWad);
         if (s.bidLots != 0) {
             uint256 pb = uint256(s.maxBidTick) * Q;
-            if (pb > mQ) e -= QMath.toInt(uint256(s.bidLots) * (pb - mQ));
+            if (pb > mQ) e -= QMath.signed(uint256(s.bidLots) * (pb - mQ));
         }
         if (s.askLots != 0) {
             uint256 pa = uint256(s.minAskTick) * Q;
-            if (mQ > pa) e -= QMath.toInt(uint256(s.askLots) * (mQ - pa));
+            if (mQ > pa) e -= QMath.signed(uint256(s.askLots) * (mQ - pa));
         }
-        e -= QMath.toInt(s.feeCapQ);
+        e -= QMath.signed(s.feeCapQ);
     }
 
     /// @notice Reachable inventory [x - Qa, x + Qb].
@@ -168,7 +168,7 @@ library OrderAdmissionMath {
             if (cov.d0Q == 0 && cov.d1Q == 0) return (true, RejectCode.NONE);
             return (false, RejectCode.TAKER_CAPACITY);
         }
-        if (eMinQ(a.cashQ, a.lots, pr.qWad, s) >= QMath.toInt(im)) return (true, RejectCode.NONE);
+        if (eMinQ(a.cashQ, a.lots, pr.qWad, s) >= QMath.signed(im)) return (true, RejectCode.NONE);
         return (false, RejectCode.TAKER_CAPACITY);
     }
 

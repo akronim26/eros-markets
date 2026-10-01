@@ -8,7 +8,7 @@ import {RiskContext} from "../../../src/pricing/RiskPricing.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
-import {Stage} from "../../../provisional/MathTypes.sol";
+import {Stage} from "../../../src/math/RiskTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 

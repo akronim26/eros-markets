@@ -4,7 +4,7 @@ pragma solidity ^0.8.30;
 import {Test} from "forge-std/Test.sol";
 import {OrderAdmissionMath as OA} from "../../../src/math/OrderAdmissionMath.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
-import {RejectCode} from "../../../provisional/MathTypes.sol";
+import {RejectCode} from "../../../src/math/RiskTypes.sol";
 import {RiskFixture} from "./B011.t.sol";
 
 /// B012: certified order-risk calculations. The coverage function below is a scripted stand-in

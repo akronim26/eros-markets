@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {RejectCode} from "../../provisional/MathTypes.sol";
+import {RejectCode} from "../math/RiskTypes.sol";
 import {IMarketConfig} from "../interfaces/IMarketConfig.sol";
 import {MarginMath} from "../math/MarginMath.sol";
 import {LifecycleMath} from "../math/LifecycleMath.sol";

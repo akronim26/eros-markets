@@ -8,11 +8,12 @@ import {FloorLifecycle} from "../../../src/risk/FloorLifecycle.sol";
 import {LiquidationMath as LM} from "../../../src/math/LiquidationMath.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side, AdmissionMode, RejectCode, AccountingState} from "../../../provisional/MathTypes.sol";
+import {AdmissionMode, RejectCode, AccountingState} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -37,7 +38,7 @@ contract LiqEngine is RiskView, MockBookAdapter, MockAccountingPort {
         return (r.filledLots, lastExamined);
     }
 
-    function rest(uint32 owner, Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
+    function rest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
         s = _mockRest(owner, side, tick, lots, 0, false);
         _mockEndAction();
     }
@@ -86,7 +87,7 @@ contract B032Test is Test {
 
     function test_noEffectCallKeepsOrdersNoReward() public {
         e.mockSetAccount(1, int256(1000 * USDC), 0);
-        e.rest(1, Side.BUY, 590, 100);
+        e.rest(1, MathTypes.Side.BUY, 590, 100);
         RiskLiquidation.LiquidationResult memory r = e.liq(1, 1000, 8, 0);
         assertEq(uint8(r.result), uint8(LM.Result.NOT_ELIGIBLE));
         assertEq(e.bidLots(1), 100);
@@ -120,7 +121,7 @@ contract B032Test is Test {
     function test_partialPairThenBookClose() public {
         e.mockSetAccount(1, -int256(540 * USDC), 1_000_000);
         e.mockSetAccount(2, int256(660 * USDC), -1_000_000);
-        e.rest(9, Side.BUY, 600, 2_000_000);
+        e.rest(9, MathTypes.Side.BUY, 600, 2_000_000);
         e.mockSetAccount(3, int256(660 * USDC), -1_000_000);
         RiskLiquidation.LiquidationResult memory r = e.liq(1, 300_000, 8, 2);
         assertEq(r.pairedLots, 300_000);
@@ -132,7 +133,7 @@ contract B032Test is Test {
 
     function test_tinyBudgetNeedsMoreWork() public {
         e.mockSetAccount(1, -int256(540 * USDC), 1_000_000);
-        e.rest(9, Side.BUY, 600, 2_000_000);
+        e.rest(9, MathTypes.Side.BUY, 600, 2_000_000);
         RiskLiquidation.LiquidationResult memory r = e.liq(1, 1, 8, 0);
         assertEq(uint8(r.result), uint8(LM.Result.NEEDS_MORE_WORK));
         assertEq(e.mockReserveLots(), 0);

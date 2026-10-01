@@ -12,19 +12,13 @@ import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {HaltView, SettlementView} from "../../../src/interfaces/IResolutionIngress.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
 import {RiskContext} from "../../../src/pricing/RiskPricing.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {
-    Side,
-    Stage,
-    PricingMode,
-    AdmissionMode,
-    ClearingPhase,
-    FinalOutcome
-} from "../../../provisional/MathTypes.sol";
+import {Stage, PricingMode, AdmissionMode, ClearingPhase} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "../../risk/B/B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -56,7 +50,7 @@ contract FullEngine is ConversionGate, MockBookAdapter, MockAccountingPort {
         _mockEndAction();
     }
 
-    function rest(uint32 owner, Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
+    function rest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
         s = _mockRest(owner, side, tick, lots, 0, false);
         _mockEndAction();
     }
@@ -109,7 +103,7 @@ contract FullLifecycleTest is Test {
         e.mockScriptFinish(IAccountingPort.FinishResult(true, false, 1_220_000_000, 480_000_000));
     }
 
-    function ioc(uint32 t, Side s, uint16 limit, uint64 lots)
+    function ioc(uint32 t, MathTypes.Side s, uint16 limit, uint64 lots)
         internal
         pure
         returns (IBookRiskHooks.OrderRequest memory)
@@ -126,9 +120,9 @@ contract FullLifecycleTest is Test {
         // 1. Bootstrap: index only, empty book; exactly backed trade inside the index band.
         keep(L0 + 6 hours, 6e17, false);
         assertEq(uint8(e.riskContext().pricingMode), uint8(PricingMode.BOOTSTRAP));
-        e.rest(2, Side.SELL, 600, 1000);
-        assertEq(e.place(ioc(3, Side.BUY, 600, 1000)).filledLots, 1000, "exactly backed bootstrap fill");
-        assertEq(e.place(ioc(1, Side.BUY, 600, 1_000_000)).filledLots, 0, "no leverage before normal pricing");
+        e.rest(2, MathTypes.Side.SELL, 600, 1000);
+        assertEq(e.place(ioc(3, MathTypes.Side.BUY, 600, 1000)).filledLots, 1000, "exactly backed bootstrap fill");
+        assertEq(e.place(ioc(1, MathTypes.Side.BUY, 600, 1_000_000)).filledLots, 0, "no leverage before normal pricing");
 
         // 2. Perp depth accumulates; NORMAL_PRICING only at a completed epoch opening.
         keep(L0 + 12 hours, 6e17, true);
@@ -136,19 +130,19 @@ contract FullLifecycleTest is Test {
         assertEq(uint8(e.riskContext().pricingMode), uint8(PricingMode.NORMAL_PRICING));
 
         // 3. Stale maker: maker 5 rests then cancels-all; its node is pruned and consumes a step.
-        e.rest(5, Side.SELL, 600, 10);
+        e.rest(5, MathTypes.Side.SELL, 600, 10);
         e.cancelAll(5);
 
         // 4. Direct 5x entry (fixture leverage).
-        e.rest(4, Side.SELL, 600, 1_000_000);
-        MockBookAdapter.PlaceResult memory r = e.place(ioc(1, Side.BUY, 600, 1_000_000));
+        e.rest(4, MathTypes.Side.SELL, 600, 1_000_000);
+        MockBookAdapter.PlaceResult memory r = e.place(ioc(1, MathTypes.Side.BUY, 600, 1_000_000));
         assertEq(r.filledLots, 1_000_000);
         assertEq(e.mockAccount(1).cashQ, -int256(480 * USDC));
         assertEq(e.mockAccount(4).lots, -1_000_000);
 
         // 5. Price falls to 0.54: Alice below MM; a keeper liquidates against provider bids.
         keep(L0 + 12 hours + 1000, 54e16, true);
-        e.rest(9, Side.BUY, 540, 2_000_000);
+        e.rest(9, MathTypes.Side.BUY, 540, 2_000_000);
         RiskLiquidation.LiquidationResult memory lr = e.liq(1, 2_000_000, 8);
         assertEq(uint8(lr.mode), uint8(LM.Mode.REDUCE));
         assertEq(uint8(lr.result), uint8(LM.Result.DONE));
@@ -183,7 +177,7 @@ contract FullLifecycleTest is Test {
         e.preparePayoutChunk(32);
         assertTrue(e.finishPreparation());
         SettlementView memory v = e.getSettlementStatus();
-        assertEq(uint8(v.finalOutcome), uint8(FinalOutcome.NO));
+        assertEq(uint8(v.finalOutcome), uint8(MathTypes.FinalOutcome.NO));
         assertEq(v.settlementPriceE18, 0);
         assertLt(block.timestamp, T, "binary payoffs do not wait for T");
     }

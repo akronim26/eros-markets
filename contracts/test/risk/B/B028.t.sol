@@ -12,7 +12,8 @@ import {RiskContext} from "../../../src/pricing/RiskPricing.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side, Stage, RejectCode} from "../../../provisional/MathTypes.sol";
+import {Stage, RejectCode} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -43,7 +44,7 @@ contract StageEngine is RiskLifecycle, MockBookAdapter, MockAccountingPort {
         _mockEndAction();
     }
 
-    function rest(uint32 owner, Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
+    function rest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
         s = _mockRest(owner, side, tick, lots, 0, false);
         _mockEndAction();
     }
@@ -115,7 +116,7 @@ contract B028Test is Test {
         e.mockSetAccount(2, int256(120 * USDC), 0);
         keepFresh(T - 45_000); // BACKING_GRACE by time alone
         assertEq(uint8(e.currentStage()), uint8(Stage.BACKING_GRACE));
-        TradePreview.OrderPreview memory p = e.previewOrder(2, Side.BUY, 600, 1_000_000, false);
+        TradePreview.OrderPreview memory p = e.previewOrder(2, MathTypes.Side.BUY, 600, 1_000_000, false);
         assertEq(p.acceptedCapLots, 125_000, "halving stops at the first exactly backed size (<= 200,000)");
         assertTrue(p.fullBackingRequired);
     }
@@ -123,10 +124,10 @@ contract B028Test is Test {
     function test_floorInvalidatesOrdersOnFirstAction() public {
         e.mockSetAccount(2, int256(100 * USDC), 0);
         e.mockSetAccount(3, int256(1000 * USDC), 0);
-        uint32 slot = e.rest(2, Side.SELL, 600, 1_000_000); // leveraged short commitment
+        uint32 slot = e.rest(2, MathTypes.Side.SELL, 600, 1_000_000); // leveraged short commitment
         keepFresh(T - 43_200); // floor
         IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(3, Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 1000, 0, false, 8);
+            IBookRiskHooks.OrderRequest(3, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 1000, 0, false, 8);
         MockBookAdapter.PlaceResult memory res = e.place(r);
         assertEq(res.filledLots, 0, "old epoch order cannot execute at the floor");
         (, bool live) = e.mockOrder(slot);
@@ -140,7 +141,7 @@ contract B028Test is Test {
         assertEq(uint8(c.stage), uint8(Stage.HALTED));
         assertEq(uint8(c.admission), uint8(LifecycleMath.Admission.NONE));
         e.mockSetAccount(2, int256(100 * USDC), 0);
-        TradePreview.OrderPreview memory p = e.previewOrder(2, Side.BUY, 600, 10, false);
+        TradePreview.OrderPreview memory p = e.previewOrder(2, MathTypes.Side.BUY, 600, 10, false);
         assertEq(uint8(p.rejection), uint8(RejectCode.HALTED));
     }
 

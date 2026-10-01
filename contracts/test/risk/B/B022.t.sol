@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {OrderRisk} from "../../../src/risk/OrderRisk.sol";
 import {OrderAdmissionMath as OA} from "../../../src/math/OrderAdmissionMath.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
-import {Side} from "../../../provisional/MathTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 
 contract ResHarness is OrderRisk, MockAccountingPort {
     function act(uint32 t) public {
@@ -48,7 +48,7 @@ contract ResHarness is OrderRisk, MockAccountingPort {
     }
 
     function writeSidecar(uint32 slot, uint24 gen, uint64 a) external {
-        _sidecarWrite(slot, Sidecar(gen, 1, Side.BUY, 500, 1, a, 0, 0, false));
+        _sidecarWrite(slot, Sidecar(gen, 1, MathTypes.Side.BUY, 500, 1, a, 0, 0, false));
     }
 
     function readSidecar(uint32 slot, uint24 gen) external view returns (Sidecar memory) {

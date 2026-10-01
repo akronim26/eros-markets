@@ -12,7 +12,8 @@ import {RiskContextPort} from "../../../src/risk/RiskContextPort.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
-import {AdmissionMode, FinalOutcome, Stage} from "../../../provisional/MathTypes.sol";
+import {AdmissionMode, Stage} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -69,7 +70,7 @@ contract B035Test is Test {
         vm.warp(T - 5 days);
         oracle.haltEarly();
         oracle.finalize(3); // INVALID accepted now
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.INVALID));
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.INVALID));
         (LifecycleMath.InvalidReadiness s, bool captured) = e.captureInvalidPrice();
         assertEq(uint8(s), uint8(LifecycleMath.InvalidReadiness.NOT_YET));
         assertFalse(captured);
