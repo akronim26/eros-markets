@@ -4,10 +4,20 @@
   "gates": [
     {
       "id": "G0",
-      "status": "not_started",
-      "merge_sha": null,
-      "reviewed_by": [],
-      "evidence": []
+      "status": "passed",
+      "merge_sha": "966444deae066fc6ea2d948f76fd187a460be950",
+      "reviewed_by": [
+        "B"
+      ],
+      "evidence": [
+        "artifacts/gates/G0.json",
+        "docs/contracts/G0.json",
+        "contracts/test/gates/G0.t.sol"
+      ],
+      "review_pending": [
+        "A"
+      ],
+      "note": "bash scripts/check-gate.sh G0 exit 0 (checks_passed) on integration/risk at 966444d, clean tree. Marked passed on the user instruction of 2026-10-01; Person A has not reviewed. Branch integration/risk, not merged to main."
     },
     {
       "id": "G1",
