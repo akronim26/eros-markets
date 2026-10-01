@@ -1,0 +1,17 @@
+{
+  "gate": "G4",
+  "title": "Trading with real accrual joined",
+  "spec_version": "1.1",
+  "harness": "CombinedEngine / CombinedEngineFee (0.1% taker fee, linear exact) / CombinedEngineFault (k-th posting reverts)",
+  "checks": [
+    "rest -> maker touch -> two paired fills -> taker fee to protocolFeeQ exactly -> OI and coverage -> permit released (A orders empty)",
+    "fixed epoch funding rate from A FundingMath at the opening; budget consumed with the old OI for the first 20 s, then the new OI",
+    "neutral premium: an account touched twice equals its twin touched once at the same time",
+    "an old account epoch never releases or fills against a new reservation (stale node pruned)",
+    "rollover: trading rejected (BAD_STAGE) from epoch end until the last page; old-epoch orders cannot execute afterwards; clearing and cushion zero",
+    "cancel-all then full withdrawal through the guarded release",
+    "an unexpected accounting failure on the second fill reverts the first fill (cash, OI, reservations unchanged)"
+  ],
+  "frozen_for_W5": "liquidation/freeze ports: IAccountingPort._acctTakeover/_acctPostLiquidationFill/_acctPostPairLiquidation/_acctFloorBegin/_acctFloorPage/_acctFreeze/_acctEpochBounds on RiskAccountingBridge",
+  "mocks": ["book: MockBookAdapter", "price source: test-fed observations", "oracle: MockResolutionAuthority", "token: MockUSDC"]
+}

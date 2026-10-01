@@ -2,7 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
-import {CombinedEngine} from "./CombinedEngine.sol";
+import {CombinedEngine, CombinedEngineFee, CombinedEngineFault} from "./CombinedEngine.sol";
 import {CollateralVault} from "../../src/vaults/CollateralVault.sol";
 import {RiskStorage} from "../../src/risk/RiskStorage.sol";
 import {IBookRiskHooks} from "../../src/interfaces/IBookRiskHooks.sol";
@@ -32,6 +32,8 @@ abstract contract CombinedBase is Test {
     address constant LP = address(0xCAFE);
     address constant KEEPER = address(0xBEEF);
 
+    uint8 internal _variant; // 0 base, 1 fee (0.1% taker), 2 fault injection
+
     function _deploy(uint256 capX, uint256 seedUsdc) internal {
         vm.warp(L0);
         token = new MockUSDC();
@@ -42,7 +44,9 @@ abstract contract CombinedBase is Test {
         l.token = address(token);
         l.deploymentCapX = capX;
         T = l.scheduledT;
-        e = new CombinedEngine(vault, TREASURY, l, RiskFixture.profile(capX, true), 1e18);
+        if (_variant == 1) e = new CombinedEngineFee(vault, TREASURY, l, RiskFixture.profile(capX, true), 1e15);
+        else if (_variant == 2) e = new CombinedEngineFault(vault, TREASURY, l, RiskFixture.profile(capX, true));
+        else e = new CombinedEngine(vault, TREASURY, l, RiskFixture.profile(capX, true), 1e18);
         vault.registerEngine(address(e));
         oracle.bind(e);
         if (seedUsdc != 0) _fund(LP, seedUsdc * 1e6, true);
