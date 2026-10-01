@@ -1,0 +1,15 @@
+No files changed, compilation skipped
+
+Ran 9 tests for test/risk/B/B034.t.sol:B034Test
+[PASS] test_accrualCutoffUsesEpochAndRollover() (gas: 403277)
+[PASS] test_constantWorkFinality() (gas: 10728138)
+[PASS] test_earlyHaltOnceAndIdempotent() (gas: 432775)
+[PASS] test_failedDeliveryNotDropped() (gas: 474869)
+[PASS] test_haltDuringRolloverUsesFrozenCutoff() (gas: 403145)
+[PASS] test_onlyZeroOrOneY() (gas: 25608)
+[PASS] test_scheduledHaltPermissionlessAtT() (gas: 373927)
+[PASS] test_settleLatchesOnceSameIdempotentConflictReverts() (gas: 439293)
+[PASS] test_unauthorizedActorsFail() (gas: 62379)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 1.71ms (1.28ms CPU time)
+
+Ran 1 test suite in 87.59ms (1.71ms CPU time): 9 tests passed, 0 failed, 0 skipped (9 total tests)
