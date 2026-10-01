@@ -29,7 +29,13 @@ contract CombinedEngine is RiskAccountingBridge, MockBookAdapter {
 
     // ---- CP-PRICE stand-in: authenticated-observation plumbing is B016/B017; tests feed samples.
     function feed(uint64 from, uint64 to, uint256 idx, uint256 bid, uint256 ask) external {
-        for (uint64 t = from; t <= to; t += 10) {
+        feedStep(from, to, 10, idx, bid, ask);
+    }
+
+    /// Samples every `step` seconds (a sample carries forward at most 30 s, so step <= 30 keeps
+    /// coverage continuous).
+    function feedStep(uint64 from, uint64 to, uint64 step, uint256 idx, uint256 bid, uint256 ask) public {
+        for (uint64 t = from; t <= to; t += step) {
             _onIndexObservation(t, idx, true);
             if (ask != 0) _recordPerp(t, bid, ask, 1e6, 1e6);
         }
