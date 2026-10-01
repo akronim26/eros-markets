@@ -2,9 +2,8 @@
 pragma solidity ^0.8.30;
 
 import {IBookRiskHooks} from "../../../src/interfaces/IBookRiskHooks.sol";
-import {
-    Side, AdmissionMode, StepStatus, RejectCode, RemovalReason
-} from "../../../provisional/MathTypes.sol";
+import {AdmissionMode, StepStatus, RejectCode, RemovalReason} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 
 /// @title MockBookAdapter (B020)
 /// @notice Tiny deterministic mock book for Risk tests (spec §7.8): ordered `OrderView` fixtures,
@@ -21,7 +20,7 @@ abstract contract MockBookAdapter is IBookRiskHooks {
         uint32 indexed trader,
         uint32 indexed slot,
         uint24 generation,
-        Side side,
+        MathTypes.Side side,
         uint16 tick,
         uint64 lots,
         uint32 expiryBlock,
@@ -43,7 +42,7 @@ abstract contract MockBookAdapter is IBookRiskHooks {
         uint32 indexed taker,
         uint32 makerSlot,
         uint24 makerGeneration,
-        Side takerSide,
+        MathTypes.Side takerSide,
         uint16 tick,
         uint64 lots,
         uint256 makerFeeQ,
@@ -77,8 +76,8 @@ abstract contract MockBookAdapter is IBookRiskHooks {
         return (o.v, o.live);
     }
 
-    function _best(Side takerSide, uint16 limit) internal view returns (bool found, uint256 idx) {
-        bool buy = takerSide == Side.BUY;
+    function _best(MathTypes.Side takerSide, uint16 limit) internal view returns (bool found, uint256 idx) {
+        bool buy = takerSide == MathTypes.Side.BUY;
         for (uint256 i; i < _bk.length; ++i) {
             BookOrder storage o = _bk[i];
             if (!o.live || o.v.side == takerSide) continue;
@@ -93,7 +92,7 @@ abstract contract MockBookAdapter is IBookRiskHooks {
         }
     }
 
-    function _wouldCross(Side side, uint16 limit) internal view returns (bool found) {
+    function _wouldCross(MathTypes.Side side, uint16 limit) internal view returns (bool found) {
         (found,) = _best(side, limit);
     }
 
@@ -227,7 +226,7 @@ abstract contract MockBookAdapter is IBookRiskHooks {
 
     function _append(
         uint32 owner,
-        Side side,
+        MathTypes.Side side,
         uint16 tick,
         uint64 lots,
         uint32 expiry,
@@ -256,7 +255,7 @@ abstract contract MockBookAdapter is IBookRiskHooks {
     }
 
     /// @notice Rest directly (post-only path without matching).
-    function _mockRest(uint32 owner, Side side, uint16 tick, uint64 lots, uint32 expiry, bool reduceOnly)
+    function _mockRest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots, uint32 expiry, bool reduceOnly)
         internal
         returns (uint32 slot)
     {

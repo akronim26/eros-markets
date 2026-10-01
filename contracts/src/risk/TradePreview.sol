@@ -1,14 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {
-    Side,
-    Stage,
-    PricingMode,
-    AccountingState,
-    AdmissionMode,
-    RejectCode
-} from "../../provisional/MathTypes.sol";
+import {Stage, PricingMode, AccountingState, AdmissionMode, RejectCode} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
 import {MarginMath} from "../math/MarginMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
@@ -88,14 +82,14 @@ abstract contract TradePreview is OrderLifecycle {
     }
 
     /// @notice Same decision as `_riskPrepareTaker` at this block's context.
-    function previewOrder(uint32 trader, Side side, uint16 limitTick, uint64 lots, bool reduceOnly)
+    function previewOrder(uint32 trader, MathTypes.Side side, uint16 limitTick, uint64 lots, bool reduceOnly)
         external
         view
         returns (OrderPreview memory p)
     {
         RiskContext memory c = _riskContext();
         p.id = _identity(c);
-        TakerInput memory t = TakerInput(trader, side == Side.BUY, limitTick, lots, reduceOnly);
+        TakerInput memory t = TakerInput(trader, side == MathTypes.Side.BUY, limitTick, lots, reduceOnly);
         TakerDecision memory d = _takerDecision(c, t);
         (p.rejection, p.acceptedCapLots, p.feeCapQ, p.mode, p.halvingSteps) =
             (d.reason, d.capLots, d.feeCapQ, d.mode, d.steps);

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Side} from "../../provisional/MathTypes.sol";
-import {IAccountingPort} from "../../provisional/IAccountingPort.sol";
+import {MathTypes} from "../math/MathTypes.sol";
+import {IAccountingPort} from "../interfaces/IAccountingPort.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
 
 /// @title OrderRisk
@@ -28,7 +28,7 @@ abstract contract OrderRisk is IAccountingPort {
     struct Sidecar {
         uint24 generation;
         uint32 owner;
-        Side side;
+        MathTypes.Side side;
         uint16 tick;
         uint64 marketEpoch;
         uint64 accountEpoch;

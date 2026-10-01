@@ -11,8 +11,9 @@ import {
 } from "../../../src/interfaces/IResolutionIngress.sol";
 import {LifecycleMath} from "../../../src/math/LifecycleMath.sol";
 import {RiskContextPort} from "../../../src/risk/RiskContextPort.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
-import {ClearingPhase, FinalOutcome} from "../../../provisional/MathTypes.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
+import {ClearingPhase} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 
 /// Oracle-team compatibility cases mirroring docs/counterpart-oracle-fixtures.json, run against
 /// the real B engine (ResolutionIngress/InvalidPrice/SettlementController) through
@@ -90,7 +91,7 @@ abstract contract OracleCompatibilityCases is SettleFixture {
         assertFalse(oracle.finalize(1), "duplicate is idempotent");
         vm.expectRevert(LifecycleMath.ConflictingFinalOutcome.selector);
         oracle.finalize(3);
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.YES));
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.YES));
     }
 
     function test_onlyPinnedOracle() public {

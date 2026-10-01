@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {QMath} from "../../provisional/QMath.sol";
-import {WAD} from "../../provisional/MathTypes.sol";
+import {QMath} from "./QMath.sol";
+import {WAD} from "./RiskTypes.sol";
 
 /// @title HorizonMath
 /// @notice Closeout horizon and volatility upper bounds (spec §4.2; reference/b/horizon_volatility.py).
@@ -27,7 +27,7 @@ library HorizonMath {
         returns (uint256)
     {
         if (absorptionClaimsPerMin == 0) revert BadUnits();
-        return h0Secs + queueSecs + QMath.divUp(absLots * 60, 1000 * absorptionClaimsPerMin);
+        return h0Secs + queueSecs + QMath.mulDivUp(absLots * 60, 1, 1000 * absorptionClaimsPerMin);
     }
 
     /// @notice Same horizon in wad-seconds (1e18 = 1 s), rounded up. The margin kernel uses this so
@@ -38,7 +38,7 @@ library HorizonMath {
         returns (uint256)
     {
         if (absorptionClaimsPerMin == 0) revert BadUnits();
-        return (h0Secs + queueSecs) * WAD + QMath.divUp(absLots * 60 * WAD, 1000 * absorptionClaimsPerMin);
+        return (h0Secs + queueSecs) * WAD + QMath.mulDivUp(absLots * 60 * WAD, 1, 1000 * absorptionClaimsPerMin);
     }
 
     /// @notice sigmaTheoryUp with the horizon in wad-seconds.

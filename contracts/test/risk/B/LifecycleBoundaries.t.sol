@@ -13,7 +13,8 @@ import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {OrderAdmissionMath as OA} from "../../../src/math/OrderAdmissionMath.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side, Stage, RejectCode, AccountingState} from "../../../provisional/MathTypes.sol";
+import {Stage, RejectCode, AccountingState} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -66,7 +67,7 @@ abstract contract LifecycleBoundaryCases is Test {
         e.feed(to - 990, to, 6e17, 59e16, 61e16);
     }
 
-    function ioc(uint32 t, Side s, uint16 limit, uint64 lots)
+    function ioc(uint32 t, MathTypes.Side s, uint16 limit, uint64 lots)
         internal
         pure
         returns (IBookRiskHooks.OrderRequest memory)
@@ -80,7 +81,7 @@ abstract contract LifecycleBoundaryCases is Test {
         int256 x1 = e.mockAccount(1).lots;
         fresh(T - 45_000);
         assertEq(uint8(e.currentStage()), uint8(Stage.BACKING_GRACE));
-        TradePreview.OrderPreview memory p = e.previewOrder(3, Side.BUY, 600, 2_000_000, false);
+        TradePreview.OrderPreview memory p = e.previewOrder(3, MathTypes.Side.BUY, 600, 2_000_000, false);
         assertTrue(p.fullBackingRequired, "exact backing applies with no transition transaction");
         fresh(T - 43_200);
         assertEq(uint8(e.currentStage()), uint8(Stage.BACKING_FLOOR));
@@ -126,7 +127,7 @@ abstract contract LifecycleBoundaryCases is Test {
     /// executed lots.
     function test_tinyBudgetNeverConfiscates() public {
         e.mockSetAccount(9, int256(100_000 * USDC), 0);
-        e.rest(9, Side.BUY, 600, 2_000_000);
+        e.rest(9, MathTypes.Side.BUY, 600, 2_000_000);
         for (uint256 i; i < 5; ++i) {
             RiskLiquidation.LiquidationResult memory r = e.liq(1, 1, 1, 0);
             assertEq(uint8(r.result), uint8(LM.Result.NEEDS_MORE_WORK));
@@ -145,7 +146,7 @@ abstract contract LifecycleBoundaryCases is Test {
         e.mockSetAccount(7, int256(50 * USDC), 0); // a would-be new participant
         (,, uint64 count2,,) = e.floorProgress();
         assertEq(count2, count, "frozen count");
-        MockBookAdapter.PlaceResult memory res = e.place(ioc(7, Side.BUY, 600, 10));
+        MockBookAdapter.PlaceResult memory res = e.place(ioc(7, MathTypes.Side.BUY, 600, 10));
         assertEq(uint8(res.rejection), uint8(RejectCode.BAD_STAGE));
         RiskLiquidation.LiquidationResult memory r = e.liq(1, 1000, 8, 0);
         assertEq(uint8(r.reason), uint8(RejectCode.BAD_STAGE), "no ordinary liquidation inside the sweep");
@@ -156,7 +157,7 @@ abstract contract LifecycleBoundaryCases is Test {
     /// Rollover sweep: matching and releases pause; resumed only after the sweep completes.
     function test_rolloverPausesTrading() public {
         e.mockSetState(AccountingState.ROLLOVER_SWEEP);
-        MockBookAdapter.PlaceResult memory res = e.place(ioc(3, Side.BUY, 600, 10));
+        MockBookAdapter.PlaceResult memory res = e.place(ioc(3, MathTypes.Side.BUY, 600, 10));
         assertEq(uint8(res.rejection), uint8(RejectCode.BAD_STAGE));
         (bool ok,) = e.previewRelease(3, 1);
         assertFalse(ok);

@@ -6,11 +6,11 @@ import {FullEngine} from "../../integration/B/FullLifecycle.t.sol";
 import {RiskLiquidation} from "../../../src/risk/RiskLiquidation.sol";
 import {IBookRiskHooks} from "../../../src/interfaces/IBookRiskHooks.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side} from "../../../provisional/MathTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "../../risk/B/B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -68,7 +68,7 @@ contract AdapterGasTest is Test {
         vm.roll(10);
         for (uint32 i; i < 70; ++i) {
             e.mockSetAccount(100 + i, int256(1000 * USDC), 0);
-            e.rest(100 + i, Side.SELL, 600, 1);
+            e.rest(100 + i, MathTypes.Side.SELL, 600, 1);
         }
         vm.roll(11);
         // make every node dirty: owners cancel-all (stale epoch) for half, the rest are self
@@ -77,7 +77,7 @@ contract AdapterGasTest is Test {
         }
         e.mockSetAccount(1, int256(1000 * USDC), 0);
         IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(1, Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 100, 0, false, 64);
+            IBookRiskHooks.OrderRequest(1, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 100, 0, false, 64);
         uint256 g0 = gasleft();
         MockBookAdapter.PlaceResult memory res = e.place(r);
         uint256 used = g0 - gasleft();
@@ -89,7 +89,7 @@ contract AdapterGasTest is Test {
     function test_liquidationContinuation() public {
         e.mockSetAccount(1, -int256(540 * USDC), 1_000_000);
         e.mockSetAccount(9, int256(100_000 * USDC), 0);
-        e.rest(9, Side.BUY, 600, 2_000_000);
+        e.rest(9, MathTypes.Side.BUY, 600, 2_000_000);
         uint256 g0 = gasleft();
         RiskLiquidation.LiquidationResult memory r = e.liq(1, 1, 8);
         report("liquidate_one_lot_continuation", g0 - gasleft());

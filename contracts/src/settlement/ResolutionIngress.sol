@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {FinalOutcome} from "../../provisional/MathTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 import {IResolutionEngine, HaltView} from "../interfaces/IResolutionIngress.sol";
 import {LifecycleMath} from "../math/LifecycleMath.sol";
 import {RiskView} from "../risk/RiskView.sol";
@@ -21,7 +21,7 @@ abstract contract ResolutionIngress is RiskView, IResolutionEngine {
     error ScheduledHaltNotYet();
 
     HaltView internal _halt;
-    FinalOutcome internal _finalOutcome;
+    MathTypes.FinalOutcome internal _finalOutcome;
     uint64 internal _earlyHalt; // 0 = none
     uint64 internal _finalityAcceptedAt;
 
@@ -34,7 +34,7 @@ abstract contract ResolutionIngress is RiskView, IResolutionEngine {
         uint64 frozenAccountCount,
         uint64 frozenBookEpoch
     );
-    event OracleFinalityAccepted(bytes32 indexed marketId, bytes32 snapshotId, FinalOutcome outcome);
+    event OracleFinalityAccepted(bytes32 indexed marketId, bytes32 snapshotId, MathTypes.FinalOutcome outcome);
 
     function _earlyHaltAt() internal view virtual override returns (uint64) {
         return _earlyHalt;
@@ -61,7 +61,7 @@ abstract contract ResolutionIngress is RiskView, IResolutionEngine {
 
     function settleInvalid() external returns (bool newlyAccepted) {
         _onlyResolutionAuthority();
-        return _acceptFinality(FinalOutcome.INVALID);
+        return _acceptFinality(MathTypes.FinalOutcome.INVALID);
     }
 
     function getHaltSnapshot() external view returns (HaltView memory) {
@@ -70,7 +70,7 @@ abstract contract ResolutionIngress is RiskView, IResolutionEngine {
 
     // ------------------------------------------------------------------ internals
 
-    function _acceptFinality(FinalOutcome o) internal returns (bool newlyAccepted) {
+    function _acceptFinality(MathTypes.FinalOutcome o) internal returns (bool newlyAccepted) {
         _materializeHalt(true); // no-op if already halted; else the oracle's halt routine
         (_finalOutcome, newlyAccepted) = LifecycleMath.acceptFinality(_finalOutcome, o);
         if (newlyAccepted) {
@@ -118,7 +118,7 @@ abstract contract ResolutionIngress is RiskView, IResolutionEngine {
         );
     }
 
-    function finalOutcome() external view returns (FinalOutcome) {
+    function finalOutcome() external view returns (MathTypes.FinalOutcome) {
         return _finalOutcome;
     }
 }

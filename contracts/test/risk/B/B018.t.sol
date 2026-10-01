@@ -4,7 +4,7 @@ pragma solidity ^0.8.30;
 import {Test} from "forge-std/Test.sol";
 import {RiskPricing, RiskContext} from "../../../src/pricing/RiskPricing.sol";
 import {LifecycleMath} from "../../../src/math/LifecycleMath.sol";
-import {PricingMode, Stage} from "../../../provisional/MathTypes.sol";
+import {PricingMode, Stage} from "../../../src/math/RiskTypes.sol";
 
 contract PricingHarness is RiskPricing {
     uint64 public earlyHalt;

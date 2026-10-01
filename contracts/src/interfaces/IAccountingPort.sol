@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {AccountingState, FinalOutcome} from "./MathTypes.sol";
-import {OrderAdmissionMath as OA} from "../src/math/OrderAdmissionMath.sol";
+import {AccountingState} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
+import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
 
 /// @title IAccountingPort (PROVISIONAL B-lane stand-in)
 /// @notice B's guess of the internal accounting port Person A freezes at G2/G3 (A021
@@ -133,7 +134,7 @@ abstract contract IAccountingPort {
 
     function _acctPrepareSnapshotChunk(uint256 maxAccounts) internal virtual returns (JobProgress memory);
 
-    function _acctPreparePayoutChunk(uint256 maxAccounts, FinalOutcome outcome, uint256 priceWad)
+    function _acctPreparePayoutChunk(uint256 maxAccounts, MathTypes.FinalOutcome outcome, uint256 priceWad)
         internal
         virtual
         returns (JobProgress memory);

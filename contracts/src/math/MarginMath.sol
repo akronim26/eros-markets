@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {QMath} from "../../provisional/QMath.sol";
-import {WAD, PAYOFF_Q_PER_LOT, MAX_ABS_POSITION_LOTS} from "../../provisional/MathTypes.sol";
+import {QMath} from "./QMath.sol";
+import {WAD, PAYOFF_Q_PER_LOT, MAX_ABS_POSITION_LOTS} from "./RiskTypes.sol";
 import {HorizonMath} from "./HorizonMath.sol";
 import {HazardMath} from "./HazardMath.sol";
 
@@ -111,9 +111,9 @@ library MarginMath {
         if (qWad == 0 || qWad >= WAD) revert HorizonMath.PriceNotInterior();
         (uint8 reason, uint256 rate) = _rateWad(absLots, isLong, qWad, secsToT, nowTs, p);
         if (reason != R_OK) return _full(m, reason);
-        uint256 mm = absLots * 1000 * rate + QMath.divUp(p.lambdaWadPerClaim * absLots * absLots, 2);
+        uint256 mm = absLots * 1000 * rate + QMath.mulDivUp(p.lambdaWadPerClaim * absLots * absLots, 1, 2);
         m.mmQ = QMath.min(m.worstQ, mm);
-        uint256 im = QMath.max(QMath.mulDivUp(p.gammaWad, m.mmQ, WAD), QMath.divUp(m.worstQ, m.capX));
+        uint256 im = QMath.max(QMath.mulDivUp(p.gammaWad, m.mmQ, WAD), QMath.mulDivUp(m.worstQ, 1, m.capX));
         m.imQ = QMath.min(m.worstQ, im);
         if (m.imQ >= m.worstQ) {
             m.fullBacking = true;
@@ -148,7 +148,7 @@ library MarginMath {
         pure
         returns (uint256)
     {
-        uint256 hSecs = QMath.divUp(hWad, WAD);
+        uint256 hSecs = QMath.mulDivUp(hWad, 1, WAD);
         (bool okR, uint256 sR) = HorizonMath.envelopeAt(p.realized, hSecs, nowTs);
         (bool okT, uint256 sT) = HorizonMath.envelopeAt(p.templateEnv, hSecs, nowTs);
         if (!okR || !okT) return type(uint256).max;
@@ -217,6 +217,6 @@ library MarginMath {
         returns (bool available, uint256 bps)
     {
         if (equityQ <= 0) return (false, 0);
-        return (true, QMath.mulDivDown(exposureQ, 10_000, uint256(equityQ)));
+        return (true, QMath.mulDiv(exposureQ, 10_000, uint256(equityQ)));
     }
 }

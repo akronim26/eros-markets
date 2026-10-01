@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {AccountingState, RejectCode} from "../../provisional/MathTypes.sol";
+import {AccountingState, RejectCode} from "../math/RiskTypes.sol";
 import {LiquidationMath as LM} from "../math/LiquidationMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
 import {LiquidationBookAdapter} from "./LiquidationBookAdapter.sol";

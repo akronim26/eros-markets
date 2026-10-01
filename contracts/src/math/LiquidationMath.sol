@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {QMath} from "../../provisional/QMath.sol";
-import {Q, WAD} from "../../provisional/MathTypes.sol";
+import {QMath} from "./QMath.sol";
+import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
+import {Q, WAD} from "./RiskTypes.sol";
 
 /// @title LiquidationMath
 /// @notice Liquidation predicates (spec §4.3, §5.2, DEC-13; reference/b/liquidation.py): allowed
@@ -51,8 +52,8 @@ library LiquidationMath {
         if (a.xLots != 0 && (a.xLots > 0) != (b.xLots > 0)) return false;
         if (_deficit(a.e0Q) > _deficit(b.e0Q) || _deficit(a.e1Q) > _deficit(b.e1Q)) return false;
         if (a.emQ < 0) return false;
-        int256 slackB = b.emQ - QMath.toInt(b.mmQ);
-        return a.emQ - QMath.toInt(a.mmQ) >= (slackB < 0 ? slackB : int256(0));
+        int256 slackB = b.emQ - QMath.signed(b.mmQ);
+        return a.emQ - QMath.signed(a.mmQ) >= (slackB < 0 ? slackB : int256(0));
     }
 
     /// @notice Price-free routes first; a stale mark alone never authorizes a mark liquidation.
@@ -96,7 +97,7 @@ library LiquidationMath {
     {
         uint256 n = QMath.abs(xLots);
         if (n == 0) return (0, false);
-        if (emQ >= QMath.toInt(imQ)) return (n, true);
+        if (emQ >= QMath.signed(imQ)) return (n, true);
         uint256 g = emQ < 0 ? imQ + uint256(-emQ) : imQ - uint256(emQ);
         uint256 sx = n * 1000 * sWad;
         if (imQ <= sx) return (n, true);
@@ -104,7 +105,7 @@ library LiquidationMath {
         uint256 d2 = d * d;
         uint256 sub = 2 * lambdaWadPerClaim * g * n * n;
         if (sub > d2) return (n, true);
-        uint256 denom = d + QMath.sqrtDown(d2 - sub); // smaller root -> larger estimate
+        uint256 denom = d + FixedPointMathLib.sqrt(d2 - sub); // smaller root -> larger estimate
         lots = QMath.mulDivUp(2 * g, n, denom);
         if (lots > n) lots = n;
     }
@@ -126,12 +127,12 @@ library LiquidationMath {
         int256 nq = n * int256(Q);
         if (xLots > 0) {
             int256 need = threshold - cashQ + int256(feeQ) - (xLots - n) * mQ;
-            int256 t = QMath.sDivCeil(need, nq);
+            int256 t = QMath.ceilDiv(need, nq);
             if (t > 999) return (0, false);
             return (uint16(uint256(t < 1 ? int256(1) : t)), true);
         }
         int256 have = cashQ - int256(feeQ) + (xLots + n) * mQ - threshold;
-        int256 tt = QMath.sDivFloor(have, nq);
+        int256 tt = QMath.floorDiv(have, nq);
         if (tt < 1) return (0, false);
         return (uint16(uint256(tt > 999 ? int256(999) : tt)), true);
     }
@@ -142,8 +143,8 @@ library LiquidationMath {
         pure
         returns (int256)
     {
-        int256 slack = emBeforeQ - QMath.toInt(mmBeforeQ);
-        int256 t = QMath.toInt(mmAfterQ) + (slack < 0 ? slack : int256(0));
+        int256 slack = emBeforeQ - QMath.signed(mmBeforeQ);
+        int256 t = QMath.signed(mmAfterQ) + (slack < 0 ? slack : int256(0));
         return t > 0 ? t : int256(0);
     }
 
@@ -154,7 +155,7 @@ library LiquidationMath {
         pure
         returns (uint256)
     {
-        int256 f = QMath.toInt(lots * FEE_Q_PER_LOT);
+        int256 f = QMath.signed(lots * FEE_Q_PER_LOT);
         int256 byEquity = afterNoFee.emQ - thresholdQ_;
         int256 byNo = afterNoFee.e0Q + int256(_deficit(b.e0Q));
         int256 byYes = afterNoFee.e1Q + int256(_deficit(b.e1Q));

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Stage} from "../../provisional/MathTypes.sol";
+import {Stage} from "../math/RiskTypes.sol";
 import {LifecycleMath} from "../math/LifecycleMath.sol";
 import {MarginMath} from "../math/MarginMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";

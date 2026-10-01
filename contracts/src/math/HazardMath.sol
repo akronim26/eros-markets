@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {QMath} from "../../provisional/QMath.sol";
-import {WAD} from "../../provisional/MathTypes.sol";
+import {QMath} from "./QMath.sol";
+import {WAD} from "./RiskTypes.sol";
 
 /// @title HazardMath
 /// @notice Linear hazard bounds, directional adverse probability, tail budget eps', Cantelli k and
@@ -55,7 +55,7 @@ library HazardMath {
             t.reason = ADVERSE_AT_EPSILON;
             return t;
         }
-        t.epsPrimeWad = QMath.mulDivDown(epsilonWad - t.aAdvWad, WAD, WAD - t.aAdvWad);
+        t.epsPrimeWad = QMath.mulDiv(epsilonWad - t.aAdvWad, WAD, WAD - t.aAdvWad);
         if (t.epsPrimeWad == 0) {
             t.fullBacking = true;
             t.reason = EPS_PRIME_ZERO;

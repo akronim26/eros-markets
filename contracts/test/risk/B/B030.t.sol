@@ -10,7 +10,8 @@ import {RiskContext} from "../../../src/pricing/RiskPricing.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "../../mocks/B/MockBookAdapter.sol";
 import {FormulaCoverage} from "../../harness/B/RiskHarness.sol";
-import {Side, RejectCode} from "../../../provisional/MathTypes.sol";
+import {RejectCode} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -30,7 +31,7 @@ contract EligEngine is LiquidationEligibility, MockBookAdapter, MockAccountingPo
         _riskEpochOpenedWithGuards();
     }
 
-    function rest(uint32 owner, Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
+    function rest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots) external returns (uint32 s) {
         s = _mockRest(owner, side, tick, lots, 0, false);
         _mockEndAction();
     }
@@ -82,7 +83,7 @@ contract B030Test is Test {
 
     function test_nonEligibleKeepsOrdersNoReward() public {
         e.mockSetAccount(1, int256(1000 * USDC), 0);
-        e.rest(1, Side.BUY, 590, 1000);
+        e.rest(1, MathTypes.Side.BUY, 590, 1000);
         uint256 n0 = e.mockCallCount();
         LiquidationEligibility.Eligibility memory el = e.check(1);
         assertEq(uint8(el.mode), uint8(LM.Mode.NONE));
@@ -99,7 +100,7 @@ contract B030Test is Test {
 
     function test_belowMmReduceCancelsFirst() public {
         e.mockSetAccount(1, int256(400 * USDC), 0);
-        e.rest(1, Side.BUY, 590, 1000);
+        e.rest(1, MathTypes.Side.BUY, 590, 1000);
         e.mockSetAccount(1, -int256(540 * USDC), 1_000_000); // E = 60 < MM
         LiquidationEligibility.Eligibility memory el = e.check(1);
         assertEq(uint8(el.mode), uint8(LM.Mode.REDUCE));

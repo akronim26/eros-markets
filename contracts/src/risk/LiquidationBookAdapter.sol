@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Side, AdmissionMode} from "../../provisional/MathTypes.sol";
+import {AdmissionMode} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 import {LiquidationMath as LM} from "../math/LiquidationMath.sol";
 import {MarginMath} from "../math/MarginMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
@@ -91,7 +92,7 @@ abstract contract LiquidationBookAdapter is LiquidationEligibility {
         if (o.worstTick == 0) return _closeResult(trader, o, LM.Result.NEEDS_MORE_WORK);
         o.requestedLots = n;
         OrderRequest memory req = OrderRequest(
-            trader, a.lots > 0 ? Side.SELL : Side.BUY, OrderKind.IOC, o.worstTick, n, 0, true, maxExaminations
+            trader, a.lots > 0 ? MathTypes.Side.SELL : MathTypes.Side.BUY, OrderKind.IOC, o.worstTick, n, 0, true, maxExaminations
         );
         (_liqActive, _liqKeeper, _liqTarget) = (true, keeper, trader);
         (o.closedLots, o.examined) = _liqSubmitIoc(req);

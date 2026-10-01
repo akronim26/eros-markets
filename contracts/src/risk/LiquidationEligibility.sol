@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {RejectCode} from "../../provisional/MathTypes.sol";
+import {RejectCode} from "../math/RiskTypes.sol";
 import {LiquidationMath as LM} from "../math/LiquidationMath.sol";
 import {MarginMath} from "../math/MarginMath.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";

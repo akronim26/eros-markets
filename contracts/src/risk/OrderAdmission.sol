@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Side, Stage, AccountingState, AdmissionMode, RejectCode} from "../../provisional/MathTypes.sol";
+import {Stage, AccountingState, AdmissionMode, RejectCode} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
 import {MarginMath} from "../math/MarginMath.sol";
 import {LifecycleMath} from "../math/LifecycleMath.sol";

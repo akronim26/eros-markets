@@ -6,10 +6,11 @@ import {SettleEngine, SettleFixture} from "./B036.t.sol";
 import {LifecycleMath} from "../../../src/math/LifecycleMath.sol";
 import {HaltView, SettlementView} from "../../../src/interfaces/IResolutionIngress.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
-import {IAccountingPort} from "../../../provisional/IAccountingPort.sol";
+import {IAccountingPort} from "../../../src/interfaces/IAccountingPort.sol";
 import {MockAccountingPort} from "../../mocks/B/MockAccountingPort.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
-import {ClearingPhase, FinalOutcome} from "../../../provisional/MathTypes.sol";
+import {ClearingPhase} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {ListingFixture} from "./B019.t.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
@@ -112,7 +113,7 @@ abstract contract SettlementLifecycleCases is SettleFixture {
         assertEq(e.mockCallCount(), calls, "completed jobs are not re-driven");
         vm.expectRevert(LifecycleMath.ConflictingFinalOutcome.selector);
         oracle.finalize(1);
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.NO));
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.NO));
     }
 
     function test_transientPreparationIssueKeepsOutcome() public {
@@ -122,7 +123,7 @@ abstract contract SettlementLifecycleCases is SettleFixture {
         vm.expectRevert(abi.encodeWithSelector(MockAccountingPort.MockSequence.selector, "interrupted chunk"));
         e.prepareSnapshotChunk(32);
         assertEq(
-            uint8(e.finalOutcome()), uint8(FinalOutcome.YES), "transient failure does not touch finality"
+            uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.YES), "transient failure does not touch finality"
         );
         assertEq(uint8(status()), uint8(LifecycleMath.ClaimsStatus.ORACLE_FINAL_PREPARING));
         vm.roll(block.number + 1);

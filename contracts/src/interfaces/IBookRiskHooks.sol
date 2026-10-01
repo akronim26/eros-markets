@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Side, Stage, AdmissionMode, StepStatus, RejectCode} from "../../provisional/MathTypes.sol";
+import {Stage, AdmissionMode, StepStatus, RejectCode} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 
 /// @title IBookRiskHooks
 /// @notice CP-BOOK boundary, spec §7.2 and §7.5 verbatim: the internal hook set a per-market
@@ -30,7 +31,7 @@ abstract contract IBookRiskHooks {
     struct OrderView {
         OrderKey key;
         uint32 owner;
-        Side side;
+        MathTypes.Side side;
         uint16 tick;
         uint64 remainingLots;
         uint32 expiryBlock; // zero = no expiry; executable while block.number <= expiryBlock
@@ -42,7 +43,7 @@ abstract contract IBookRiskHooks {
 
     struct OrderRequest {
         uint32 trader;
-        Side side;
+        MathTypes.Side side;
         OrderKind kind;
         uint16 limitTick;
         uint64 requestedLots;
@@ -69,7 +70,7 @@ abstract contract IBookRiskHooks {
     struct TakerPermit {
         uint64 localPermitId;
         uint32 trader;
-        Side side;
+        MathTypes.Side side;
         uint16 limitTick;
         uint64 remainingLots;
         uint256 remainingFeeCapQ;
@@ -108,7 +109,7 @@ abstract contract IBookRiskHooks {
     function _riskAdmitRest(
         RiskSnapshot memory snap,
         uint32 owner,
-        Side side,
+        MathTypes.Side side,
         uint16 tick,
         uint64 lots,
         uint32 expiryBlock,
@@ -126,7 +127,7 @@ abstract contract IBookRiskHooks {
         RiskSnapshot memory snap,
         uint32 owner,
         EpochTag memory admittedAt,
-        Side side,
+        MathTypes.Side side,
         uint16 tick,
         uint64 removedLots,
         uint256 releasedFeeCapQ

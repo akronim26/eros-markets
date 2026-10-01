@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Side, RejectCode, RemovalReason} from "../../provisional/MathTypes.sol";
+import {RejectCode, RemovalReason} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 import {BookRiskAdapter} from "./BookRiskAdapter.sol";
 
 /// @title OrderLifecycle
@@ -21,7 +22,7 @@ abstract contract OrderLifecycle is BookRiskAdapter {
     }
 
     struct OrderTerms {
-        Side side;
+        MathTypes.Side side;
         uint16 tick;
         uint64 lots;
         uint32 expiryBlock;

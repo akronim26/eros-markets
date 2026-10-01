@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {QMath} from "../../provisional/QMath.sol";
-import {WAD} from "../../provisional/MathTypes.sol";
+import {QMath} from "./QMath.sol";
+import {WAD} from "./RiskTypes.sol";
 
 /// @title PricingMath
 /// @notice Validity-weighted time integrals, TWAP windows, impact-mid depth validity, basis, mark
@@ -79,7 +79,7 @@ library PricingMath {
         }
         if (r.coveredSecs == windowSecs) {
             r.available = true;
-            r.twapWad = QMath.sDivFloor(r.integral, int256(uint256(windowSecs)));
+            r.twapWad = QMath.floorDiv(r.integral, int256(uint256(windowSecs)));
         }
     }
 
@@ -142,7 +142,7 @@ library PricingMath {
         r.integral = i1 - i0;
         if (r.coveredSecs == windowSecs) {
             r.available = true;
-            r.twapWad = QMath.sDivFloor(r.integral, int256(uint256(windowSecs)));
+            r.twapWad = QMath.floorDiv(r.integral, int256(uint256(windowSecs)));
         }
     }
 
@@ -169,7 +169,7 @@ library PricingMath {
     function bandWad(uint256 nowTs, uint256 scheduledT, uint256 listedAt) internal pure returns (uint256) {
         if (scheduledT <= listedAt) revert BadUnits();
         uint256 left = scheduledT > nowTs ? scheduledT - nowTs : 0;
-        return QMath.mulDivDown(BAND_WAD, left, scheduledT - listedAt);
+        return QMath.mulDiv(BAND_WAD, left, scheduledT - listedAt);
     }
 
     function median3(int256 a, int256 b, int256 c) internal pure returns (int256) {
@@ -198,9 +198,9 @@ library PricingMath {
         returns (bool ok, uint256 markWad)
     {
         if (!(m.indexOk && m.basisOk && m.perpTwapOk && m.perpLiveOk)) return (false, 0);
-        int256 idx = QMath.toInt(m.indexWad);
-        int256 med = median3(idx + m.basisTwapWad, QMath.toInt(m.perpTwapWad), QMath.toInt(m.perpLiveWad));
-        int256 b = QMath.toInt(bandWad(nowTs, scheduledT, listedAt));
+        int256 idx = QMath.signed(m.indexWad);
+        int256 med = median3(idx + m.basisTwapWad, QMath.signed(m.perpTwapWad), QMath.signed(m.perpLiveWad));
+        int256 b = QMath.signed(bandWad(nowTs, scheduledT, listedAt));
         if (med > idx + b) med = idx + b;
         if (med < idx - b) med = idx - b;
         if (med < 0) med = 0;
@@ -214,7 +214,7 @@ library PricingMath {
     ///         f = clamp(q - I, +-0.05 min(I, 1 - I)) per claim per day (beta = 0).
     function fundingRate(uint256 markWad, uint256 indexWad) internal pure returns (int256) {
         if (markWad > WAD || indexWad > WAD) revert BadUnits();
-        uint256 bound = QMath.mulDivDown(FUNDING_CLAMP_WAD, QMath.min(indexWad, WAD - indexWad), WAD);
+        uint256 bound = QMath.mulDiv(FUNDING_CLAMP_WAD, QMath.min(indexWad, WAD - indexWad), WAD);
         int256 f = int256(markWad) - int256(indexWad);
         if (f > int256(bound)) f = int256(bound);
         if (f < -int256(bound)) f = -int256(bound);

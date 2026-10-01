@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Side, AccountingState, AdmissionMode, StepStatus, RejectCode} from "../../provisional/MathTypes.sol";
+import {AccountingState, AdmissionMode, StepStatus, RejectCode} from "../math/RiskTypes.sol";
+import {MathTypes} from "../math/MathTypes.sol";
 import {IBookRiskHooks} from "../interfaces/IBookRiskHooks.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
@@ -96,7 +97,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         _touch(req.trader);
         TakerDecision memory d = _takerDecision(
             _actionCtx,
-            TakerInput(req.trader, req.side == Side.BUY, req.limitTick, req.requestedLots, req.reduceOnly)
+            TakerInput(req.trader, req.side == MathTypes.Side.BUY, req.limitTick, req.requestedLots, req.reduceOnly)
         );
         p.localPermitId = ++_permitSeq;
         p.trader = req.trader;
@@ -108,7 +109,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         if (d.capLots == 0) return (p, d.reason);
         p.remainingLots = d.capLots;
         p.remainingFeeCapQ = d.feeCapQ;
-        _permitReserve(req.trader, req.side == Side.BUY, req.limitTick, d.capLots, d.feeCapQ);
+        _permitReserve(req.trader, req.side == MathTypes.Side.BUY, req.limitTick, d.capLots, d.feeCapQ);
         return (p, RejectCode.NONE);
     }
 
@@ -152,10 +153,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         if (_acctAccountingState() != AccountingState.READY) return (p, RejectCode.BAD_STAGE);
         AccountView memory a = _acctAccount(req.trader);
         p.reduceVersion = a.positionVersion;
-        uint64 cap = uint64(OA.reduceOnlyCap(a.lots, req.side == Side.BUY, req.requestedLots));
+        uint64 cap = uint64(OA.reduceOnlyCap(a.lots, req.side == MathTypes.Side.BUY, req.requestedLots));
         if (cap == 0) return (p, RejectCode.NO_REDUCIBLE_POSITION);
         p.remainingLots = cap;
-        _permitReserve(req.trader, req.side == Side.BUY, req.limitTick, cap, 0);
+        _permitReserve(req.trader, req.side == MathTypes.Side.BUY, req.limitTick, cap, 0);
         return (p, RejectCode.NONE);
     }
 
@@ -176,7 +177,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             _actionCtx,
             MakerInput(
                 maker.owner,
-                maker.side == Side.BUY,
+                maker.side == MathTypes.Side.BUY,
                 maker.admittedAt.marketOrderEpoch,
                 maker.admittedAt.accountOrderEpoch,
                 maker.reduceOnly,
@@ -189,7 +190,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         if (permit.reduceOnly) {
             AccountView memory ta = _acctAccount(permit.trader);
             if (ta.positionVersion != permit.reduceVersion) return _stop(RejectCode.NO_REDUCIBLE_POSITION);
-            uint64 clip = uint64(OA.reduceOnlyCap(ta.lots, permit.side == Side.BUY, lots));
+            uint64 clip = uint64(OA.reduceOnlyCap(ta.lots, permit.side == MathTypes.Side.BUY, lots));
             if (clip == 0) return _stop(RejectCode.NO_REDUCIBLE_POSITION);
             lots = clip;
         }
@@ -220,7 +221,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
     {
         f.taker = permit.trader;
         f.maker = maker.owner;
-        f.takerBuys = permit.side == Side.BUY;
+        f.takerBuys = permit.side == MathTypes.Side.BUY;
         f.makerTick = maker.tick;
         f.lots = lots;
         f.permitTick = permit.limitTick;
@@ -238,7 +239,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             FillDelta(f.maker, f.taker, f.takerBuys, f.lots, f.makerTick, f.makerFeeQ, f.takerFeeQ),
             permit.mode == AdmissionMode.FORCED_REDUCTION
         );
-        _resConsumeFill(f.maker, maker.side == Side.BUY, maker.tick, f.lots, f.makerFeeCapUsedQ);
+        _resConsumeFill(f.maker, maker.side == MathTypes.Side.BUY, maker.tick, f.lots, f.makerFeeCapUsedQ);
         _permitConsume(f.taker, f.takerBuys, permit.limitTick, f.lots, f.takerPermitFeeUsedQ);
         _acctReplaceContribution(f.taker, _combined(f.taker));
         permit.remainingLots -= f.lots;
@@ -274,7 +275,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
     function _riskAdmitRest(
         RiskSnapshot memory snap,
         uint32 owner,
-        Side side,
+        MathTypes.Side side,
         uint16 tick,
         uint64 lots,
         uint32,
@@ -283,12 +284,12 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         _checkSnap(snap);
         _touch(owner);
         TakerDecision memory d =
-            _takerDecision(_actionCtx, TakerInput(owner, side == Side.BUY, tick, lots, reduceOnly));
+            _takerDecision(_actionCtx, TakerInput(owner, side == MathTypes.Side.BUY, tick, lots, reduceOnly));
         if (d.capLots != lots) {
             revert RestRejected(d.reason == RejectCode.NONE ? RejectCode.TAKER_CAPACITY : d.reason);
         }
         (tag.marketOrderEpoch, tag.accountOrderEpoch) =
-            _resAdd(owner, side == Side.BUY, tick, lots, d.feeCapQ);
+            _resAdd(owner, side == MathTypes.Side.BUY, tick, lots, d.feeCapQ);
         return (tag, d.reduceVersion, d.feeCapQ);
     }
 
@@ -304,7 +305,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             revert RestRejected(RejectCode.INVALID_PRICE_OR_SIZE);
         }
         feeCapQ = permit.remainingFeeCapQ * lotsToRest / permit.remainingLots;
-        bool isBid = permit.side == Side.BUY;
+        bool isBid = permit.side == MathTypes.Side.BUY;
         _permitConsume(permit.trader, isBid, permit.limitTick, lotsToRest, feeCapQ);
         (tag.marketOrderEpoch, tag.accountOrderEpoch) =
             _resAdd(permit.trader, isBid, permit.limitTick, lotsToRest, feeCapQ);
@@ -318,7 +319,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         RiskSnapshot memory,
         uint32 owner,
         EpochTag memory admittedAt,
-        Side side,
+        MathTypes.Side side,
         uint16 tick,
         uint64 removedLots,
         uint256 releasedFeeCapQ
@@ -328,7 +329,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             owner,
             admittedAt.marketOrderEpoch,
             admittedAt.accountOrderEpoch,
-            side == Side.BUY,
+            side == MathTypes.Side.BUY,
             tick,
             removedLots,
             releasedFeeCapQ

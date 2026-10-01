@@ -7,7 +7,8 @@ import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {IResolutionEngine, OracleOutcomeMap} from "../../../src/interfaces/IResolutionIngress.sol";
 import {MarginMath} from "../../../src/math/MarginMath.sol";
 import {OrderAdmissionMath as OA} from "../../../src/math/OrderAdmissionMath.sol";
-import {FinalOutcome, RejectCode, PricingMode} from "../../../provisional/MathTypes.sol";
+import {RejectCode, PricingMode} from "../../../src/math/RiskTypes.sol";
+import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {RiskFixture} from "../../math/B/B011.t.sol";
 
 /// @dev Shared B test listing (local fixture profile, spec §5.4). Times relative to `listedAt`.
@@ -50,10 +51,10 @@ contract PortHarness is RiskContextPort {
     }
 
     /// Stand-in for B034: authority check then explicit mapping; returns the local outcome.
-    function oracleSettle(uint8 oracleOutcome) external view returns (FinalOutcome) {
+    function oracleSettle(uint8 oracleOutcome) external view returns (MathTypes.FinalOutcome) {
         _onlyResolutionAuthority();
         (OracleOutcomeMap.EngineCall call, uint8 y) = OracleOutcomeMap.engineCallFor(oracleOutcome);
-        if (call == OracleOutcomeMap.EngineCall.SETTLE_INVALID) return FinalOutcome.INVALID;
+        if (call == OracleOutcomeMap.EngineCall.SETTLE_INVALID) return MathTypes.FinalOutcome.INVALID;
         return OracleOutcomeMap.localOutcome(y);
     }
 
@@ -146,12 +147,12 @@ contract B019Test is Test {
         h.init(l, RiskFixture.profile(5, true));
         vm.startPrank(ORACLE);
         // external YES = 1 -> settle(1) -> local YES = 2; external NO = 2 -> settle(0) -> local NO = 1
-        assertEq(uint8(h.oracleSettle(1)), uint8(FinalOutcome.YES));
-        assertEq(uint8(FinalOutcome.YES), 2);
-        assertEq(uint8(h.oracleSettle(2)), uint8(FinalOutcome.NO));
-        assertEq(uint8(FinalOutcome.NO), 1);
-        assertEq(uint8(h.oracleSettle(3)), uint8(FinalOutcome.INVALID));
-        assertEq(uint8(h.oracleSettle(4)), uint8(FinalOutcome.INVALID), "voided is INVALID");
+        assertEq(uint8(h.oracleSettle(1)), uint8(MathTypes.FinalOutcome.YES));
+        assertEq(uint8(MathTypes.FinalOutcome.YES), 2);
+        assertEq(uint8(h.oracleSettle(2)), uint8(MathTypes.FinalOutcome.NO));
+        assertEq(uint8(MathTypes.FinalOutcome.NO), 1);
+        assertEq(uint8(h.oracleSettle(3)), uint8(MathTypes.FinalOutcome.INVALID));
+        assertEq(uint8(h.oracleSettle(4)), uint8(MathTypes.FinalOutcome.INVALID), "voided is INVALID");
         vm.expectRevert(OracleOutcomeMap.NoEngineCall.selector);
         h.oracleSettle(0);
         vm.stopPrank();
