@@ -119,14 +119,31 @@ the official runner result is kept in each `artifacts/gates/Gn.json` next to the
 result (`scripts/integration/gate-record.py`). Once Person A reviews, rerun
 `bash scripts/check-gate.sh Gn` in order.
 
+## Phase 3 — complete the layer (2026-10-01)
+
+| Step | Commit | Result |
+|---|---|---|
+| Invariant campaign INV-01..INV-10 on CombinedEngine | `a2af6a8` | random: risk 48×64 and ci 256×128, 9/9 pass, 0 reverts, no counterexample; seeded 24 seeds × (64 actions + settlement), every invariant after every step. Book-close reductions did not occur in random runs (covered by G5). `artifacts/risk/invariant-campaign.json` |
+| §11 minimum end-to-end scenario | `95213ba` | 5/5 pass: NO (halt mid-rollover, pages 1, reverse claims), YES (halt at T, pages 32), early INVALID TWAP (pages 7), early INVALID fallback (pages 3, reverse), step-6 shortfall fixtures |
+| Gas (forge EVM, Ethereum/Prague schedule; not Monad) | `f05f076` | 24 entry points, `artifacts/risk/gas-engine.json` |
+| Counterparts | `4a848c4` | Book.sol present: 10 exact hook mismatches, fixtures not runnable (`docs/requests/B-to-book-hooks.md`); oracle, price collector, factory absent: BLOCKED_BY_COUNTERPART |
+| Release manifest (local fixture, no deployment) | `cb36161` | defaults tested (`test/integration/ReleaseDefaults.t.sol`); `artifacts/risk/release-manifest.json` |
+| fix(A) runner B040–B044 | `ea2140f` | B040–B044 pass through A's `scripts/check-task.sh` |
+| B043 review of A, B042 SDK on A032 | `3f5b030` | COMPLETE: 19 routes with results; no Critical/High |
+| HANDOFF + ABIs | `3089a1a` | `docs/risk/HANDOFF.md`, `artifacts/risk/{engine,vault}-abi.json` |
+| G7 | `ec2b7ef`… `8f11beb` | blocked only on A043 (Person A's review of B, Person A only) |
+
+Final regression on integration/risk: forge 609 pass, 8 fail (book-owned `BookGas.t.sol`, local
+forge 1.3.5 lacks cheatcode 0x04eedcdf; same on feat/clob); audit finding reproducers 3/3 fail by
+design; Python A 42, B 156, audit 8, integration 7 OK.
+
+Nothing pushed. `origin/main` still has the book developer's edits to B sources and A's
+`foundry.toml` (`253ebd5`, `2db4e08`, `c5db208`); merging integration/risk into main will conflict
+there.
+
 ### Resume point (if a new session starts)
 
-Branch `integration/risk`. Next: Phase 3 (W7 content) then G7:
-1. fix(A) `scripts/check-task.sh`: add B040–B044 acceptance (blocks G7).
-2. B043 review of A on merged code -> `artifacts/reviews/B-on-A.md` (Review status: COMPLETE).
-3. A043 (A's review of B): Person A only — stays blocked; G7's runner will exit 2 until A does it.
-4. Invariant campaign INV-01..INV-10 on CombinedEngine (`contracts/test/invariant/integration/`).
-5. Section 11 minimum end-to-end scenario on real A+B.
-6. Gas table (state EVM pricing used), counterpart compatibility, release manifest, `docs/risk/HANDOFF.md`.
-Commands: `cd contracts && forge test --match-path "test/gates/*"`; `python3 scripts/integration/gate-record.py Gn`
-(prefix PATH with a dir containing `tsc` for A032); `python3 scripts/integration/mark-gate.py Gn`.
+Remaining work needs other people: Person A's reviews (G0–G6 `review_pending`, A043), the book
+team's seam (docs/requests/B-to-book-hooks.md), the oracle/price/factory implementations, the
+production inputs in `artifacts/risk/release-manifest.json`, and toolchain agreement. Open audit
+findings A-F01 (Medium), A-F02/A-F03 (Low) are A-owned.
