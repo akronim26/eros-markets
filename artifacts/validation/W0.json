@@ -1,0 +1,209 @@
+{
+  "kind": "w0_validation",
+  "recorded_at": "2026-09-30T19:03:22.614601+00:00",
+  "implementation_base_commit": "3cfa48d69e799b73f92a9955fdc7932c08cd925f",
+  "worktree_dirty_at_run": true,
+  "forge_version": "1.5.1-stable",
+  "solc_version": "0.8.30",
+  "build": {
+    "command": [
+      "forge",
+      "build",
+      "--sizes"
+    ],
+    "cwd": "contracts",
+    "exit_code": 0,
+    "warnings": "Existing Book warnings and a MathTypes Q acronym naming note; no errors."
+  },
+  "book_regression": {
+    "command": [
+      "forge",
+      "test",
+      "--json"
+    ],
+    "cwd": "contracts",
+    "environment": {
+      "FORGE_SNAPSHOT_EMIT": "false"
+    },
+    "exit_code": 0,
+    "test_count": 110,
+    "suite_count": 9,
+    "suites": {
+      "test/BookBatch.t.sol:BookBatchTest": {
+        "test_count": 12,
+        "statuses": {
+          "test_BatchCanTakeLiquidity()": "Success",
+          "test_CancelsRunBeforePlaces()": "Success",
+          "test_CrossingPostOnlyIsSkippedWithIdZero()": "Success",
+          "test_DuplicateCancelInBatchIsIdempotent()": "Success",
+          "test_EmptyBatchRegistersTrader()": "Success",
+          "test_InitialQuoteRestsBothSides()": "Success",
+          "test_RequoteCancelsThenPlaces()": "Success",
+          "test_RevertWhen_BatchCancelsSomeoneElsesLiveOrder()": "Success",
+          "test_RevertWhen_BatchHasBadOrder()": "Success",
+          "test_RevertWhen_BatchUnknownMarket()": "Success",
+          "test_StaleCancelAfterFillDoesNotRevertRequote()": "Success",
+          "test_StaleCancelOfReusedSlotIsSkipped()": "Success"
+        }
+      },
+      "test/BookBitmap.t.sol:BookBitmapTest": {
+        "test_count": 10,
+        "statuses": {
+          "testFuzz_BestPricesMatchFullScan(uint16[12],bool[12])": "Success",
+          "test_BestBidIsHighestAndBestAskIsLowest()": "Success",
+          "test_BoundaryTicksMapToExpectedWordAndBit()": "Success",
+          "test_EmptyBookHasNoBestPrices()": "Success",
+          "test_ExtremeTicks()": "Success",
+          "test_InitSetsSentinelsAndNullSlot()": "Success",
+          "test_RevertWhen_MarketCreatedTwice()": "Success",
+          "test_RevertWhen_MarketUnknown()": "Success",
+          "test_SentinelNeverReturnedAfterClear()": "Success",
+          "test_SidesAreIndependent()": "Success"
+        }
+      },
+      "test/BookComposition.t.sol:BookCompositionTest": {
+        "test_count": 4,
+        "statuses": {
+          "test_LiquidationPullsRestingOrders()": "Success",
+          "test_MarketsStageGatesTheBook()": "Success",
+          "test_PricingSeesDepthFilteredTouch()": "Success",
+          "test_TradeSettlesThroughClearingWithOneTakerWrite()": "Success"
+        }
+      },
+      "test/BookDifferential.t.sol:BookDifferentialTest": {
+        "test_count": 2,
+        "statuses": {
+          "testFuzz_MatchesReference(uint256[48])": "Success",
+          "test_LongDeterministicTrace()": "Success"
+        }
+      },
+      "test/BookGas.t.sol:BookGasTest": {
+        "test_count": 8,
+        "statuses": {
+          "test_Gas_CancelOne()": "Success",
+          "test_Gas_CancelReplaceBatch()": "Success",
+          "test_Gas_PlaceRestingFreshSlot()": "Success",
+          "test_Gas_PlaceRestingRecycledSlot()": "Success",
+          "test_Gas_TakerFourFillsSameMaker()": "Success",
+          "test_Gas_TakerFourFillsTwoMakersTwoLevels()": "Success",
+          "test_Gas_TakerMaxFillsAllFailing()": "Success",
+          "test_Gas_TakerOneFill()": "Success"
+        }
+      },
+      "test/BookInvariant.t.sol:BookInvariantTest": {
+        "test_count": 3,
+        "statuses": {
+          "invariant_BookStructure()": "Success",
+          "invariant_IdsNeverReissued()": "Success",
+          "invariant_PositionsNetToZero()": "Success"
+        }
+      },
+      "test/BookMatch.t.sol:BookMatchTest": {
+        "test_count": 35,
+        "statuses": {
+          "testFuzz_TakerRespectsLimitSizeAndBudget(uint16[8],uint96[8],uint16,uint96,uint8)": "Success",
+          "test_BetterPriceFillsFirstAtMakerPrice()": "Success",
+          "test_CrossedRemainderIsDroppedWhenBudgetRunsOut()": "Success",
+          "test_CrossedSellRemainderIsDropped()": "Success",
+          "test_ExtremeTicksTrade()": "Success",
+          "test_FailedMakerIsCancelledAndSkipped()": "Success",
+          "test_FillCarriesRecycledOrderId()": "Success",
+          "test_IocDropsRemainder()": "Success",
+          "test_IocWithNoLiquidityDoesNothing()": "Success",
+          "test_LimitStopsAtPrice()": "Success",
+          "test_MaxFillsAtProtocolBound()": "Success",
+          "test_MaxFillsCountsFailedAndSelfTradeSteps()": "Success",
+          "test_MaxFillsCountsFills()": "Success",
+          "test_NonCrossingLimitRestsWithoutFill()": "Success",
+          "test_PartialMakerFillStaysAtHead()": "Success",
+          "test_PostOnlyRestsWhenNotCrossing()": "Success",
+          "test_ReduceOnlyMakerClipEmitsClipped()": "Success",
+          "test_ReduceOnlyMakerExactReductionStaysLive()": "Success",
+          "test_ReduceOnlyMakerIsClippedAndRestCancelled()": "Success",
+          "test_ReduceOnlyMakerWithNothingToReduceIsCancelled()": "Success",
+          "test_ReduceOnlyTakerIsClippedToPosition()": "Success",
+          "test_ReduceOnlyTakerRemainderRestsReduceOnly()": "Success",
+          "test_ReduceOnlyTakerWithoutPositionDoesNothing()": "Success",
+          "test_RejectedTakerRevertsEveryFill()": "Success",
+          "test_RemainderRestsOnceBookNoLongerCrosses()": "Success",
+          "test_RevertWhen_BadInputs()": "Success",
+          "test_RevertWhen_PostOnlyCrosses()": "Success",
+          "test_RevertWhen_PostOnlyCrossesOwnOrder()": "Success",
+          "test_RevertWhen_PostOnlySellCrossesBid()": "Success",
+          "test_SameTickFillsOldestFirst()": "Success",
+          "test_SelfTradeCancelsRestingOrderAndContinues()": "Success",
+          "test_SellSweepsBidsHighestFirst()": "Success",
+          "test_TakerDoneCalledOncePerTakerNotForPostOnly()": "Success",
+          "test_TakerFillsSingleMakerExactly()": "Success",
+          "test_ZeroMaxFillsNeverMatches()": "Success"
+        }
+      },
+      "test/BookRest.t.sol:BookRestTest": {
+        "test_count": 20,
+        "statuses": {
+          "testFuzz_RestCancelKeepsLevelSums(uint16[16],uint8)": "Success",
+          "test_BuyOrderCarriesBuyFlag()": "Success",
+          "test_CancelHead()": "Success",
+          "test_CancelKeepsOtherLevelsAndBits()": "Success",
+          "test_CancelMiddle()": "Success",
+          "test_CancelOnlyOrderEmptiesLevel()": "Success",
+          "test_CancelTail()": "Success",
+          "test_FifoLinksAndLevelSize()": "Success",
+          "test_FirstOrderRests()": "Success",
+          "test_FreedSlotsAreReusedLifoWithNewGeneration()": "Success",
+          "test_RevertWhen_CancelByNonOwner()": "Success",
+          "test_RevertWhen_CancelByUnregistered()": "Success",
+          "test_RevertWhen_CancelTwice()": "Success",
+          "test_RevertWhen_CancelUnknownIds()": "Success",
+          "test_RevertWhen_GetLevelBadTick()": "Success",
+          "test_RevertWhen_UnknownMarket()": "Success",
+          "test_SlotRetiresAtMaxGeneration()": "Success",
+          "test_StaleIdCannotTouchReusedSlot()": "Success",
+          "test_TombstoneStaysNonZero()": "Success",
+          "test_TradersGetDistinctIds()": "Success"
+        }
+      },
+      "test/BookSeam.t.sol:BookSeamTest": {
+        "test_count": 16,
+        "statuses": {
+          "test_CancelsStillWorkWhenHalted()": "Success",
+          "test_FailedMakersDoNotCountInTotals()": "Success",
+          "test_ForceCancelOfDeadOrStaleIdIsNoOp()": "Success",
+          "test_ForceCancelRemovesAnyOwnersOrder()": "Success",
+          "test_ForceCancelStageReasonAndSlotRecycled()": "Success",
+          "test_HaltedMarketRejectsEveryOrderType()": "Success",
+          "test_MinSizeGate()": "Success",
+          "test_ReduceOnlyStageAdmitsOnlyReduceOnlyOrders()": "Success",
+          "test_RestAndUnrestHooksGetFlagsWithoutLiveBit()": "Success",
+          "test_RevertWhen_ForceCancelUnknownMarket()": "Success",
+          "test_SellerTotalsUseMakerPrices()": "Success",
+          "test_SnapshotLoadedAtStartReachesEveryHook()": "Success",
+          "test_TakerDoneSeesFilledAndCost()": "Success",
+          "test_TakerDoneSeesZeroTotalsWithoutFills()": "Success",
+          "test_TouchFollowsFillsAndEmptyLevels()": "Success",
+          "test_TouchReportsBestLevelsAndSizes()": "Success"
+        }
+      }
+    }
+  },
+  "protected_files_sha256": {
+    "contracts/src/Book.sol": "8e629aaf21d0a8d87ec815c28dfd97c935cfc96b93965522a2589f1c2ceb5c56",
+    "contracts/src/RiskSnapshot.sol": "d19dfd65604a6ccb954c7f38447eac039aa5f17effa71d8ffd0ea3a36dfd38b3",
+    "contracts/test/BookBatch.t.sol": "4b01fb922660883aee1f89c8fbab8649aa778f11894c7cfd87c53057cf126ba7",
+    "contracts/test/BookBitmap.t.sol": "3e02dd35a96523ff2c088015b47d2dba5bb1eff4ef8535c6da31e1388619f2c1",
+    "contracts/test/BookComposition.t.sol": "8fccb151066d61bb953403602117a9a8302f62cbafdc9f500395fa5056a54755",
+    "contracts/test/BookDifferential.t.sol": "b2eb33a4fbff9e7a9b911126671ea1a4ba7e7053515f1a07572bcbc02e814602",
+    "contracts/test/BookGas.t.sol": "92b5555c348009fedc2163b77a00420a93d569340361b5a6e8a31eb653a558b9",
+    "contracts/test/BookHarness.sol": "8e5742bb6683f08bf1cfc888dba4e93e1a7af4493d1d79403927afbc52ddfa5d",
+    "contracts/test/BookInvariant.t.sol": "92f8c9a9a9b26f8327b0f38de056339f25ed7cd262ddcee131c228bf49eb363e",
+    "contracts/test/BookMatch.t.sol": "d26d01a3b5e9c14e4ba72610e9cc01bf7ffe0c479466e79bba96a8f4a2a0223f",
+    "contracts/test/BookRest.t.sol": "cbea26a6b0a2d64ff960b68cecd6a2e08e2ebe49799a0057075546ad49a850bd",
+    "contracts/test/BookSeam.t.sol": "4dcfe49aa03166336c1562c73d0da4f58c33afe472c89a55ea76cf8d3fa7bd8b",
+    "contracts/snapshots/BookGas.json": "2f0d6181152e183d9e66575c4cd02e19ef66510abc2635637e51760e932fe888"
+  },
+  "protected_tracked_diff": 0,
+  "source_pdf_sha256": {
+    "full-risk-analysis.pdf": "c0df0d7817f78b569dd487377c0e8cb610fe164eb9151a4d927c94f9f4117bcd",
+    "Eros_Risk_Clearing_Specification.pdf": "1f84812a0141e0cd673e06c68ef9cfca644bf8cdbc8f4014d55c8948e02e0ed9"
+  }
+}
