@@ -1,60 +1,51 @@
 {
-  "schema": "eros-counterpart-status/1",
-  "task": "B040",
-  "spec_version": "1.1",
-  "note": "Lane-local status on feat/risk. A mock-only pass is never a live pass. No deployment of any kind.",
-  "counterparts": [
-    {
-      "id": "CP-BOOK",
-      "local_double": "contracts/test/mocks/B/MockBookAdapter.sol",
-      "mock_status": "PASS (B024, B025, B027, B031, B033, B040 suites)",
-      "live_status": "BLOCKED_BY_COUNTERPART",
-      "reason": "contracts/src/Book.sol uses a different hook set: _onUnrest without tick, unrest on filled size, no uint64 market/account epochs, no expiry, no reduceVersion, no STOP_TAKER, size unit likely claims (docs/counterpart-contracts.md I-1); no FORCED_REDUCTION IOC entry (I-10)"
-    },
-    {
-      "id": "CP-PRICE",
-      "local_double": "test signer keys in contracts/test/risk/B/B016.t.sol; direct store feeds in other suites",
-      "mock_status": "PASS (B016-B018, B021)",
-      "live_status": "BLOCKED_BY_COUNTERPART",
-      "reason": "no collector/signing service available; envelope I-3 unconfirmed"
-    },
-    {
-      "id": "CP-ORACLE",
-      "local_double": "contracts/test/mocks/B/MockResolutionAuthority.sol",
-      "mock_status": "PASS (B034-B037, B039, B040); fixture docs/counterpart-oracle-fixtures.json",
-      "live_status": "BLOCKED_BY_COUNTERPART",
-      "reason": "no ResolutionOracle implementation in this repository; oracle enum values I-5 unconfirmed"
-    },
-    {
-      "id": "CP-FACTORY",
-      "local_double": "ListingFixture in contracts/test/risk/B/B019.t.sol",
-      "mock_status": "PASS (B019)",
-      "live_status": "BLOCKED_BY_COUNTERPART",
-      "reason": "no factory/registry; listing field additions I-6 unconfirmed"
-    },
-    {
-      "id": "CP-TOKEN",
-      "local_double": "none (ConversionGate disabled)",
-      "mock_status": "N/A",
-      "live_status": "NOT_IN_RELEASE",
-      "reason": "DEC-10: cash settlement first; conversion fenced and disabled"
-    },
-    {
-      "id": "CP-APP",
-      "local_double": "packages/risk-sdk + docs/app-state-fixtures.json (B042)",
-      "mock_status": "see B042",
-      "live_status": "BLOCKED_BY_COUNTERPART",
-      "reason": "no indexer/frontend consumer in this repository"
-    }
-  ],
-  "person_a": {
-    "status": "NOT_INTEGRATED",
-    "stand_ins": [
-      "contracts/provisional/QMath.sol",
-      "contracts/provisional/MathTypes.sol",
-      "contracts/provisional/IAccountingPort.sol",
-      "contracts/test/mocks/B/MockAccountingPort.sol (scripted double)"
-    ],
-    "reason": "Solo-mode lane build; A's modules are merged at G0-G7 (docs/merge/B-merge-guide.md)"
+ "schema": "eros-counterpart-status/1",
+ "task": "B040",
+ "spec_version": "1.1",
+ "note": "Integration status on integration/risk (real Person A + real Person B). A mock-only pass is never a live pass. No deployment of any kind.",
+ "counterparts": [
+  {
+   "id": "CP-BOOK",
+   "local_double": "contracts/test/mocks/B/MockBookAdapter.sol",
+   "mock_status": "PASS on real A+B: contracts/test/gates/G4.t.sol, G5.t.sol, test/integration/EndToEnd.t.sol (MockBookAdapter)",
+   "live_status": "BLOCKED_BY_COUNTERPART",
+   "reason": "contracts/src/Book.sol present but its hook set cannot host the risk seam (10 exact mismatches: docs/requests/B-to-book-hooks.md); fixtures not run against it"
+  },
+  {
+   "id": "CP-PRICE",
+   "local_double": "test signer keys in contracts/test/risk/B/B016.t.sol; direct store feeds in other suites",
+   "mock_status": "PASS (B016-B018, B021)",
+   "live_status": "BLOCKED_BY_COUNTERPART",
+   "reason": "no collector/signing service in this repository; tests feed observations directly; envelope I-3 unconfirmed"
+  },
+  {
+   "id": "CP-ORACLE",
+   "local_double": "contracts/test/mocks/B/MockResolutionAuthority.sol",
+   "mock_status": "PASS on real A+B: contracts/test/gates/G5.t.sol, G6.t.sol, test/integration/EndToEnd.t.sol (MockResolutionAuthority)",
+   "live_status": "BLOCKED_BY_COUNTERPART",
+   "reason": "no ResolutionOracle implementation in this repository (searched contracts/src on integration/risk); oracle enum values I-5 unconfirmed"
+  },
+  {
+   "id": "CP-FACTORY",
+   "local_double": "ListingFixture in contracts/test/risk/B/B019.t.sol",
+   "mock_status": "PASS (B019)",
+   "live_status": "BLOCKED_BY_COUNTERPART",
+   "reason": "no factory/registry; listing field additions I-6 unconfirmed"
+  },
+  {
+   "id": "CP-TOKEN",
+   "local_double": "none (ConversionGate disabled)",
+   "mock_status": "N/A",
+   "live_status": "NOT_IN_RELEASE",
+   "reason": "DEC-10: cash settlement first; conversion fenced and disabled"
+  },
+  {
+   "id": "CP-APP",
+   "local_double": "packages/risk-sdk + docs/app-state-fixtures.json (B042)",
+   "mock_status": "see B042",
+   "live_status": "BLOCKED_BY_COUNTERPART",
+   "reason": "no indexer/frontend consumer in this repository"
   }
+ ],
+ "person_a": "real (merged into integration/risk; CombinedEngine)"
 }
