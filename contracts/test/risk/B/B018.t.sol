@@ -39,15 +39,15 @@ contract PricingHarness is RiskPricing {
     }
 
     function bandCheck(uint16 tick) external view {
-        _checkBootstrapBand(_riskContext(), tick);
+        _checkBootstrapBand(_pricingContext(), tick);
     }
 
     function leveraged() external view returns (bool) {
-        return _leveragedAllowed(_riskContext());
+        return _leveragedAllowed(_pricingContext());
     }
 
     function markLiq() external view returns (bool) {
-        return _markLiquidationAllowed(_riskContext());
+        return _markLiquidationAllowed(_pricingContext());
     }
 }
 

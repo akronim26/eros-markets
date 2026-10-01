@@ -50,7 +50,7 @@ contract StageEngine is RiskLifecycle, MockBookAdapter, MockAccountingPort {
     }
 
     function graceExpiredNow(uint32 t, bool belowMm) external view returns (bool) {
-        return _graceExpired(t, _riskContext(), belowMm);
+        return _graceExpired(t, _pricingContext(), belowMm);
     }
 }
 

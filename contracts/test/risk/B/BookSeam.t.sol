@@ -446,9 +446,10 @@ abstract contract BookSeamCases is Test {
             "FINISH"
         ];
         // BEGIN; TOUCH taker; REPLACE taker (first-epoch sync); REPLACE taker (permit reserved);
-        // TOUCH maker; POST_FILL; REPLACE maker (reservation consumed); REPLACE taker (permit
-        // consumed); REPLACE taker (permit released at finish)
-        uint8[9] memory expected = [0, 1, 2, 2, 1, 3, 2, 2, 2];
+        // TOUCH maker; REPLACE maker (reservation consumed); REPLACE taker (permit consumed);
+        // POST_FILL with exact post-fill aggregates (integration R-05); REPLACE taker (permit
+        // released at finish)
+        uint8[9] memory expected = [0, 1, 2, 2, 1, 2, 2, 3, 2];
         uint256 n = e.mockCallCount() - n0;
         assertEq(n, 9);
         for (uint256 i; i < n; ++i) {

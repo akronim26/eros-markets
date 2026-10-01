@@ -156,11 +156,12 @@ abstract contract LiquidationEligibility is FloorLifecycle {
         }
         _resCancelAll(partner);
         // The target is the taker: it sells when long and buys when short.
-        _acctPostLiquidationFill(
-            FillDelta(partner, target, ta.lots < 0, n, r.tick, r.feePartnerQ, r.feeTargetQ),
-            r.feeTargetQ + r.feePartnerQ,
-            keeper
+        uint256 charged = _acctPostPairLiquidation(
+            FillDelta(partner, target, ta.lots < 0, n, r.tick, r.feePartnerQ, r.feeTargetQ), keeper
         );
+        // A charges its fee on both sides or on neither (A029); report what was actually charged.
+        if (charged == 0) (r.feeTargetQ, r.feePartnerQ) = (0, 0);
+        else (r.feeTargetQ, r.feePartnerQ) = (charged / 2, charged - charged / 2);
         r.executed = true;
         r.lots = n;
         emit PairReduction(target, partner, n, r.tick, r.feeTargetQ, r.feePartnerQ);

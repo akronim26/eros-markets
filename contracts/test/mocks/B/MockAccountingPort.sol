@@ -262,34 +262,70 @@ abstract contract MockAccountingPort is IAccountingPort {
         _log(CallKind.TAKEOVER, auth.trader, 0, auth.predicate);
     }
 
-    function _acctPostLiquidationFill(FillDelta memory d, uint256 liquidationFeeQ, address)
+    function _acctPostLiquidationFill(FillDelta memory d, uint256 allowedFeeQ, address)
         internal
         virtual
         override
+        returns (uint256)
     {
         _acctPostFill(d);
-        mockKeeperFeesQ += liquidationFeeQ;
-        _log(CallKind.POST_LIQ_FILL, d.maker, d.taker, liquidationFeeQ);
+        mockKeeperFeesQ += allowedFeeQ;
+        _log(CallKind.POST_LIQ_FILL, d.maker, d.taker, allowedFeeQ);
+        return allowedFeeQ;
     }
+
+    function _acctPostPairLiquidation(FillDelta memory d, address) internal virtual override returns (uint256) {
+        uint256 fee = d.takerFeeQ + d.makerFeeQ;
+        _acctPostFill(d);
+        mockKeeperFeesQ += fee;
+        _log(CallKind.POST_LIQ_FILL, d.maker, d.taker, fee);
+        return fee;
+    }
+
+    uint64 internal _mFloorCursor;
 
     function _acctFloorBegin() internal virtual override returns (uint64) {
         if (_mFloorOpen) revert MockSequence("floor begun twice");
         _mFloorOpen = true;
+        _mFloorCursor = 0;
         _mState = AccountingState.FLOOR_SWEEP; // scripted A: live market mutations pause
         _log(CallKind.FLOOR_BEGIN, 0, 0, _mTraders.length);
         return uint64(_mTraders.length);
     }
 
-    function _acctFloorTraderAt(uint64 index) internal view virtual override returns (uint32) {
+    /// @dev Scripted A floor page: visits the next accounts and applies the literal spec
+    ///      predicate (E0 < 0 or E1 < 0 on the scripted values) by moving the whole account to
+    ///      the reserve; no funding/premium is computed here.
+    function _acctFloorPage(uint256 maxAccounts)
+        internal
+        virtual
+        override
+        returns (JobProgress memory p, uint64 takeovers)
+    {
         if (!_mFloorOpen) revert MockSequence("floor not begun");
-        return _mTraders[index];
-    }
-
-    function _acctFloorComplete() internal virtual override {
-        if (!_mFloorOpen) revert MockSequence("floor not begun");
-        _mFloorOpen = false;
-        _mState = AccountingState.READY;
-        _log(CallKind.FLOOR_COMPLETE, 0, 0, 0);
+        uint64 n = uint64(_mTraders.length);
+        uint64 end = _mFloorCursor + uint64(maxAccounts);
+        if (end > n) end = n;
+        for (uint64 i = _mFloorCursor; i < end; ++i) {
+            uint32 t = _mTraders[i];
+            AccountView storage a = _mAccts[t];
+            if (a.cashQ < 0 || a.cashQ + a.lots * int256(1000 * QM) < 0) {
+                mockReserveCashQ += a.cashQ;
+                mockReserveLots += a.lots;
+                (a.cashQ, a.lots) = (0, 0);
+                a.orderEpoch += 1;
+                mockLastTakeover = TakeoverAuth(t, 2, 0, 0);
+                _log(CallKind.TAKEOVER, t, 0, 2);
+                ++takeovers;
+            }
+        }
+        _mFloorCursor = end;
+        p = JobProgress(end, n, end == n);
+        if (end == n) {
+            _mFloorOpen = false;
+            _mState = AccountingState.READY;
+            _log(CallKind.FLOOR_COMPLETE, 0, 0, 0);
+        }
     }
 
     function _acctAccountCount() internal view virtual override returns (uint64) {

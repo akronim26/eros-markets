@@ -64,7 +64,7 @@ contract CloseEngine is LiquidationBookAdapter, MockBookAdapter, MockAccountingP
     }
 
     function healthOf(uint32 t) external view returns (MarginMath.Health memory h) {
-        (, h) = _health(t, _riskContext());
+        (, h) = _health(t, _pricingContext());
     }
 }
 

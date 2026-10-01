@@ -62,7 +62,7 @@ abstract contract RiskView is RiskLiquidation {
     }
 
     function accountRiskView(uint32 trader) external view returns (AccountRiskView memory v) {
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         AccountView memory a = _acctAccount(trader);
         v.trader = trader;
         v.asOfTime = c.economicTime;
@@ -86,7 +86,7 @@ abstract contract RiskView is RiskLiquidation {
     }
 
     function marketRiskView() external view returns (MarketRiskView memory v) {
-        RiskContext memory c = _riskContext();
+        RiskContext memory c = _pricingContext();
         v.asOfTime = c.economicTime;
         v.stage = c.stage;
         v.pricingMode = c.pricingMode;
