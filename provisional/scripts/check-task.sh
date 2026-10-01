@@ -40,7 +40,9 @@ case "$TASK" in
     else steps+=("sdk"); codes+=(127); echo "[sdk] no TypeScript runner available"; fi
     need packages/risk-sdk/src/index.ts; need docs/app-state-fixtures.json; json docs/app-state-fixtures.json ;;
   B043)
-    need artifacts/reviews/B-on-A.md ;;
+    need artifacts/reviews/B-on-A.md
+    # A review can only pass when it reviewed real A code: the document must say COMPLETE.
+    run status "grep -q '^Review status: COMPLETE' artifacts/reviews/B-on-A.md" ;;
   B044)
     need artifacts/risk/integration-release.json; json artifacts/risk/integration-release.json
     need docs/runbooks/lifecycle.md ;;
