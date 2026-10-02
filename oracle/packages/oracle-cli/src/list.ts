@@ -12,7 +12,7 @@ import { getAddress, type Hex, keccak256, toBytes } from 'viem'
 import { checkPack, ORACLE_ROOT, renderClaim } from './forge'
 import { type Listing, listingSchema, stringify } from './schema'
 
-const ZERO32 = `0x${'00'.repeat(32)}` as Hex
+export const ZERO32 = `0x${'00'.repeat(32)}` as Hex
 
 export class ListError extends Error {}
 
@@ -42,15 +42,25 @@ export type ListResult = {
   check?: string
 }
 
-const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'))
+export const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'))
+
+/** The listing input, validated against the schema (ListError on any issue). */
+export function readListing(path: string): Listing {
+  const parsed = listingSchema.safeParse(readJson(path))
+  if (!parsed.success) throw new ListError(`bad listing input: ${parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`)
+  return parsed.data
+}
+
+export const readParams = (network: string) => readJson(join(ORACLE_ROOT, 'deployments', `params.${network}.json`))
+
+/** listings/<marketId>/ for a listing input (marketId = keccak256 of the slug). */
+export const packDir = (input: Listing, out?: string) => join(out ?? join(ORACLE_ROOT, 'listings'), keccak256(toBytes(input.slug)))
 
 export async function list(o: ListOptions): Promise<ListResult> {
   const network = o.network ?? 'monad-testnet'
-  const parsed = listingSchema.safeParse(readJson(o.input))
-  if (!parsed.success) throw new ListError(`bad listing input: ${parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`)
-  const input = parsed.data
+  const input = readListing(o.input)
   const paramsPath = join('deployments', `params.${network}.json`)
-  const params = readJson(join(ORACLE_ROOT, paramsPath))
+  const params = readParams(network)
   const g = params.globals
   const m = input.marketInput
   const feed: FeedSpec = { ...m.feed }
@@ -122,7 +132,7 @@ export async function list(o: ListOptions): Promise<ListResult> {
   // createMarket in a Foundry dry-run: every registry rule, applied by the contracts.
   const check = o.check === false ? undefined : checkPack(packJson, { params: paramsPath, now: o.now, providers: o.providers })
 
-  const dir = join(o.out ?? join(ORACLE_ROOT, 'listings'), marketId)
+  const dir = packDir(input, o.out)
   if (existsSync(dir) && !o.force) throw new ListError(`${dir} exists (pass --force to replace it)`)
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'pack.json'), packJson)
@@ -142,23 +152,31 @@ function claimOracle(network: string, o: ListOptions): Hex {
   return getAddress(readJson(path).contracts.ResolutionOracle.address)
 }
 
-/** GET the reference URL as a DON node would, with the authRef's secret from the workflow config (§7.4). */
-async function fetchReference(url: string, authRef: string, network: string, o: ListOptions): Promise<Uint8Array> {
+/** The headers a DON node sends: accept, plus the authRef's secret from the workflow config (§7.4). */
+export function nodeHeaders(authRef: string, network: string, env: Record<string, string | undefined> = process.env): Record<string, string> {
   const headers: Record<string, string> = { accept: 'application/json' }
-  if (authRef !== ZERO32) {
-    const target = network === 'monad-mainnet' ? 'production' : 'staging'
-    const cfg = readJson(join(ORACLE_ROOT, 'workflows', 'resolution', `config.${target}.json`))
-    const entry = (cfg.authSecrets as { authRef: string; secretId: string; header: string; prefix: string }[])
-      .find((a) => a.authRef.toLowerCase() === authRef.toLowerCase())
-    if (!entry) throw new ListError(`authRef ${authRef} is not in workflows/resolution/config.${target}.json`)
-    const secrets = Bun.YAML.parse(readFileSync(join(ORACLE_ROOT, 'workflows', 'secrets.yaml'), 'utf8')) as {
-      secretsNames: Record<string, string[]>
-    }
-    const envVar = secrets.secretsNames[entry.secretId]?.[0]
-    const value = envVar ? (o.env ?? process.env)[envVar] : undefined
-    if (!value) throw new ListError(`set ${envVar ?? entry.secretId} (secret ${entry.secretId}) to fetch the reference`)
-    headers[entry.header] = entry.prefix + value
+  if (authRef === ZERO32) return headers
+  const entry = authSecretsFor(network).find((a) => a.authRef.toLowerCase() === authRef.toLowerCase())
+  if (!entry) throw new ListError(`authRef ${authRef} is not in workflows/resolution/${workflowConfigName(network)}`)
+  const secrets = Bun.YAML.parse(readFileSync(join(ORACLE_ROOT, 'workflows', 'secrets.yaml'), 'utf8')) as {
+    secretsNames: Record<string, string[]>
   }
+  const envVar = secrets.secretsNames[entry.secretId]?.[0]
+  const value = envVar ? env[envVar] : undefined
+  if (!value) throw new ListError(`set ${envVar ?? entry.secretId} (secret ${entry.secretId}) to call the provider`)
+  headers[entry.header] = entry.prefix + value
+  return headers
+}
+
+export type AuthSecret = { authRef: string; secretId: string; header: string; prefix: string }
+const workflowConfigName = (network: string) => `config.${network === 'monad-mainnet' ? 'production' : 'staging'}.json`
+/** The resolution workflow's authRef table for the network (the dry-run workflow uses the same one). */
+export const authSecretsFor = (network: string): AuthSecret[] =>
+  readJson(join(ORACLE_ROOT, 'workflows', 'resolution', workflowConfigName(network))).authSecrets
+
+/** GET the reference URL as a DON node would. */
+async function fetchReference(url: string, authRef: string, network: string, o: ListOptions): Promise<Uint8Array> {
+  const headers = nodeHeaders(authRef, network, o.env)
   const resp = await (o.fetchImpl ?? fetch)(url, { headers, signal: AbortSignal.timeout(10_000) })
   if (resp.status !== 200) throw new ListError(`reference fetch: HTTP ${resp.status} from ${url}`)
   return new Uint8Array(await resp.arrayBuffer())
