@@ -129,7 +129,7 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
 
     /// @notice Commits a new market's bond at its OI cap: ASSERTION must cover every open commitment
     ///         plus this one (§6.3 step 7, §6.6).
-    function commitListing(bytes32 id, uint256 bondAtCap) external onlyRegistry nonReentrant {
+    function commitListing(bytes32 id, uint256 bondAtCap) external nonReentrant onlyRegistry {
         if (_commitment[id] != Commitment.NONE) revert AlreadyCommitted();
         uint256 need = totalCommitted + bondAtCap;
         uint256 have = _ledgers[Ledger.ASSERTION];
@@ -143,7 +143,7 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
     // ------------------------------------------------------------------ ResolutionOracle
 
     /// @notice Frees the market's listing commitment (called in `_final`). No-op without an open one.
-    function releaseListing(bytes32 id) external onlyOracle nonReentrant {
+    function releaseListing(bytes32 id) external nonReentrant onlyOracle {
         if (_commitment[id] != Commitment.OPEN) return;
         uint256 amount = committedListing[id];
         _commitment[id] = Commitment.RELEASED;
@@ -154,7 +154,7 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
 
     /// @notice Funds a team-path assertion: debits ASSERTION and approves `venue` (the market's pinned
     ///         venue, passed by the oracle) for exactly `bond`; the venue pulls it in the same transaction.
-    function fundAssertion(bytes32 id, uint8 attempt, address venue, uint256 bond) external onlyOracle nonReentrant {
+    function fundAssertion(bytes32 id, uint8 attempt, address venue, uint256 bond) external nonReentrant onlyOracle {
         uint256 have = _ledgers[Ledger.ASSERTION];
         if (have < bond) revert InsufficientLedger(Ledger.ASSERTION, bond, have);
         uint256 funded = fundedTotal[id] + bond;
@@ -169,7 +169,7 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
 
     /// @notice The assertion settled true: the venue paid the bond back to the treasury (the asserter),
     ///         so ASSERTION is credited with it.
-    function onBondReturned(bytes32 id, uint8 attempt) external onlyOracle nonReentrant {
+    function onBondReturned(bytes32 id, uint8 attempt) external nonReentrant onlyOracle {
         uint256 amount = _clearOutstanding(id, attempt);
         if (amount == 0) return;
         _ledgers[Ledger.ASSERTION] += amount;
@@ -177,14 +177,14 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
     }
 
     /// @notice The assertion settled false: the bond went to the disputer. Clears the record, no credit.
-    function onBondLost(bytes32 id, uint8 attempt) external onlyOracle nonReentrant {
+    function onBondLost(bytes32 id, uint8 attempt) external nonReentrant onlyOracle {
         uint256 amount = _clearOutstanding(id, attempt);
         if (amount != 0) emit BondLost(id, attempt, amount);
     }
 
     /// @notice The market voided with this bond still live. Clears the record, no credit; if the bond
     ///         ever comes back it arrives as plain USDC and `skim` credits it (O12.3).
-    function markStuck(bytes32 id, uint8 attempt) external onlyOracle nonReentrant {
+    function markStuck(bytes32 id, uint8 attempt) external nonReentrant onlyOracle {
         uint256 amount = _clearOutstanding(id, attempt);
         if (amount != 0) emit BondStuck(id, attempt, amount);
     }
@@ -194,8 +194,8 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
     /// @return paid true when the reward was transferred (or is zero).
     function payProposerReward(bytes32 id, address proposer, uint256 amount)
         external
-        onlyOracle
         nonReentrant
+        onlyOracle
         returns (bool paid)
     {
         if (amount == 0) return true;
@@ -267,7 +267,7 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
     // ------------------------------------------------------------------ governance (Timelock)
 
     /// @notice Pays out of one ledger: ASSERTION only down to `totalCommitted`, the others down to 0.
-    function withdraw(Ledger ledger, address to, uint256 amount) external onlyGovernance nonReentrant {
+    function withdraw(Ledger ledger, address to, uint256 amount) external nonReentrant onlyGovernance {
         uint256 have = _ledgers[ledger];
         if (amount > have) revert InsufficientLedger(ledger, amount, have);
         if (ledger == Ledger.ASSERTION && have - amount < totalCommitted) {
@@ -280,7 +280,7 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
 
     /// @notice Production start: `maxPerMarket` = 3 × the bond at the largest OI cap, `maxOpenDisputes` = 20
     ///         (§6.6, §14.1). Both start at 0, so bonds and disputes are refused until this is called.
-    function setLimits(uint256 maxPerMarket_, uint32 maxOpenDisputes_) external onlyGovernance nonReentrant {
+    function setLimits(uint256 maxPerMarket_, uint32 maxOpenDisputes_) external nonReentrant onlyGovernance {
         maxPerMarket = maxPerMarket_;
         maxOpenDisputes = maxOpenDisputes_;
         emit LimitsSet(maxPerMarket_, maxOpenDisputes_);

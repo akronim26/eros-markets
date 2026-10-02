@@ -402,11 +402,10 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         if (r.assertionId != 0) {
             _applyVenue(id, r);
             if (r.state == RState.Final) return true;
-            if (r.assertionId != 0 && r.path != Path.PERMISSIONLESS) {
-                IBondTreasury(treasury).markStuck(id, r.attempts - 1);
-            }
         }
+        bool stuck = r.assertionId != 0 && r.path != Path.PERMISSIONLESS; // a live team bond
         _void(id, r, FinalReason.VOID_DEADLINE);
+        if (stuck) IBondTreasury(treasury).markStuck(id, r.attempts - 1);
         return true;
     }
 
@@ -415,7 +414,7 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
     /// @notice Creates a trust set (not active until `activateTrustSet`). `BadTrustSet` codes:
     ///         1 forwarder, 2 workflowIds, 3 owner, 4 attestor, 5 committee, 6 threshold, 7 watchdog,
     ///         8 venue, 9 currency.
-    function createTrustSet(TrustSetInput calldata t) external onlyGovernance nonReentrant returns (uint32 setId) {
+    function createTrustSet(TrustSetInput calldata t) external nonReentrant onlyGovernance returns (uint32 setId) {
         uint8 code = _trustSetCode(t);
         if (code != 0) revert IResolutionOracle.BadTrustSet(code);
         setId = ++trustSetCount;
@@ -427,7 +426,7 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
     }
 
     /// @notice Markets halting from now on pin this set; markets already halted keep theirs.
-    function activateTrustSet(uint32 setId) external onlyGovernance nonReentrant {
+    function activateTrustSet(uint32 setId) external nonReentrant onlyGovernance {
         _existingSet(setId);
         activeTrustSetId = setId;
         emit IResolutionOracle.TrustSetActivated(setId);
@@ -435,7 +434,7 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     // ------------------------------------------------------------------ guardian (revoke only, immediate)
 
-    function revokeWorkflowId(uint32 setId, bytes32 workflowId) external onlyGuardian nonReentrant {
+    function revokeWorkflowId(uint32 setId, bytes32 workflowId) external nonReentrant onlyGuardian {
         TrustSet storage s = _existingSet(setId);
         if (workflowId == 0) revert IResolutionOracle.BadTrustSet(2);
         bool found;
@@ -446,20 +445,20 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         emit IResolutionOracle.TrustSetRevoked(setId, 0, workflowId);
     }
 
-    function revokeAttestor(uint32 setId) external onlyGuardian nonReentrant {
+    function revokeAttestor(uint32 setId) external nonReentrant onlyGuardian {
         TrustSet storage s = _existingSet(setId);
         s.attestorRevoked = true;
         emit IResolutionOracle.TrustSetRevoked(setId, 1, _word(s.cfg.runnerAttestor));
     }
 
-    function revokeCommitteeMember(uint32 setId, address member) external onlyGuardian nonReentrant {
+    function revokeCommitteeMember(uint32 setId, address member) external nonReentrant onlyGuardian {
         TrustSet storage s = _existingSet(setId);
         if (!_isMember(s.cfg.committee, member)) revert IResolutionOracle.NotCommitteeMember(member);
         _memberRevoked[setId][member] = true;
         emit IResolutionOracle.TrustSetRevoked(setId, 2, _word(member));
     }
 
-    function revokeWatchdog(uint32 setId) external onlyGuardian nonReentrant {
+    function revokeWatchdog(uint32 setId) external nonReentrant onlyGuardian {
         TrustSet storage s = _existingSet(setId);
         if (!s.watchdogRevoked) {
             s.watchdogRevoked = true;
@@ -872,9 +871,9 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         if (!both) r.retryOpensAt = retryOpensAt;
         emit IResolutionOracle.AssertionRejected(id, assertionId, o, mask, retryOpensAt);
         _releaseYesLock(id);
-        if (team) IBondTreasury(treasury).onBondLost(id, r.attempts - 1);
         if (both) _void(id, r, FinalReason.REJECTED_YES_AND_NO);
         else _setState(id, r, RState.Review);
+        if (team) IBondTreasury(treasury).onBondLost(id, r.attempts - 1);
     }
 
     function _void(bytes32 id, Resolution storage r, FinalReason reason) internal {

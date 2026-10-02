@@ -29,9 +29,9 @@ contract StubMarketFactory is IMarketFactory {
         if (msg.sender != registry) revert OnlyRegistry();
         if (engineOf[listing.marketId] != address(0)) revert MarketExists();
         ResolutionEngineStub stub = new ResolutionEngineStub();
-        stub.initialize(listing, engineInit);
         engine = address(stub);
         engineOf[listing.marketId] = engine;
+        stub.initialize(listing, engineInit);
         emit MarketDeployed(listing.marketId, engine);
     }
 }
