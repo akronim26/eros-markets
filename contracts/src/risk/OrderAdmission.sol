@@ -319,6 +319,25 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
         }
     }
 
+    /// @notice Spec §4.3 allowed-reduction predicate for one voluntary reduce-only fill of `lots`
+    ///         at the maker `tick` after `feeQ`, at the frozen mark. Without a normal mark the
+    ///         predicate is undefined and only the deficit and coverage checks apply.
+    function _reductionOk(
+        RiskContext memory c,
+        uint32 trader,
+        bool buys,
+        uint64 lots,
+        uint16 tick,
+        uint256 feeQ
+    ) internal view returns (bool) {
+        if (!c.markOk) return true;
+        AccountView memory a = _acctAccount(trader);
+        int256 notional = int256(uint256(lots) * tick * 1e18);
+        int256 dx = buys ? int256(uint256(lots)) : -int256(uint256(lots));
+        int256 cashAfter = a.cashQ + (buys ? -notional : notional) - int256(feeQ);
+        return LM.allowedReduction(_snapAt(a.cashQ, a.lots, c), _snapAt(cashAfter, a.lots + dx, c));
+    }
+
     // ------------------------------------------------------------------ fill preflight
 
     struct FillPlan {
