@@ -25,6 +25,7 @@ const time = z
   ])
   .transform((v) => BigInt(v))
 const small = (max: number) => z.number().int().min(0).max(max)
+const modelId = z.string().regex(/^[a-z0-9-]+:[^@\s]+@\S+$/, 'a model is "provider:model-id@version"')
 
 export const feedSchema = z.object({
   urlTemplate: z.string(),
@@ -46,6 +47,10 @@ export const listingSchema = z.object({
   slug: z.string().min(1),
   /** The finished event of the same type whose response becomes reference.json (§12.9 step 2). */
   reference: z.object({ urlParam: z.string() }),
+  /** §12.9 step 3: an event of the same type that is not final yet, for the NOT_READY run (oracle-cli dryrun). */
+  dryRun: z.object({ liveUrlParam: z.string() }).optional(),
+  /** §12.9 step 5: the panel models as "provider:model-id@version"; their keccak256 must be ai.modelIdHashes. */
+  ambiguity: z.object({ models: z.tuple([modelId, modelId, modelId]) }).optional(),
   marketInput: z.object({
     question: z.string().min(1),
     rules: z.string().min(1),
