@@ -330,11 +330,12 @@ Plan §13: owner OA · 1.5 PD · depends O14 · acceptance: signature test vecto
 - Depends: O14.5, O14.6
 - Plan: §6.4, D7, C.7, V-R4, ADJ-15
 - Cut: no
-- Status: todo
-- Files: oracle/test/unit/OracleEip712.t.sol, oracle/vectors/eip712.json
+- Status: done
+- Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleEip712.t.sol, oracle/vectors/eip712.json
 - Build: `hashPanelResult`, `hashReviewedProposal`, `domainSeparator` views; deploy the oracle at `0x…AA` on chainId 10143 (`deployCodeTo`) and assert the P1 and R1 digests from `vectors/eip712.json`; add signed examples (fixed test keys) to the vector file for oracle-sdk.
 - Done when: both digests match C.7 through the oracle's own views.
 - Check: cd oracle && forge test --match-path test/unit/OracleEip712.t.sol
+- Notes: The three views are `_hashTypedData(SigLib.hash…)` and Solady's `_domainSeparator()`, the same digest the panel and committee checks verify; with them the contract implements all of C.3 and now declares `is IResolutionOracle` (errors and events keep their qualified names). Solady's ERC-5267 `eip712Domain()` is also exposed and tested. The vector oracle is deployed with `deployCodeTo` at `0x…AA` on 10143, so its constructor runs there and the cached domain is C.7's; expected separators are built in the test from the vector file's domain strings, not with SigLib. Also tested: the separator changes with the chain (`vm.chainId(143)`) and the address (`0x…BB`), and signatures made over the views are accepted by the fixture oracle's `submitPanelResult` and `submitReviewedProposal`. `vectors/eip712.json` gains `domainSeparator` and a `signed` section for oracle-sdk (O30.2): P1 signed by test key 1, R1 by test keys 2 and 3 (signers ascending), 65-byte r‖s‖v, v 27/28, low s; RFC 6979 nonces make the signatures reproducible, and Foundry `vm.sign`, `cast wallet sign --no-hash` and viem 2.57.2 `signTypedData` gave identical bytes (viem also gave the same separator and P1/R1 digests). The test keys are public and must never be funded. ResolutionOracle is 41,545 B runtime (was 41,215). 4 tests; 6/6 mutations caught (separator zeroed, struct hash returned without the domain, wrong struct hashed, domain name or version changed).
 
 ### O16.2 · Panel signature and payload rejections
 - Owner: OA
