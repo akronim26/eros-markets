@@ -103,7 +103,8 @@
       "UmaAdapter": 4445,
       "ErosSandboxOracle": 2684,
       "StubMarketFactory": 8331,
-      "ResolutionEngineStub": 6762
+      "ResolutionEngineStub": 6762,
+      "KeeperRouter": 1754
     },
     "testOnlyRuntimeBytes": {
       "EngineHarness": 78244,
