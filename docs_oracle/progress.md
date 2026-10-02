@@ -13,3 +13,4 @@ new row. `check_tasks.py` fails when a `done` task has no row here.
 | 2026-10-02 | O01.1 | (this commit) | manual | reworked for the hackathon: seam request removed, oracle team decides S-01–S-15 in seam-decisions.md (ADJ-29) |
 | 2026-10-02 | O01.2 | (this commit) | 0 | decisions applied: OG0 criteria, TestUSDC in O19.3/X03, DEP-3/DEP-4, ADJ-24/25; validator passes |
 | 2026-10-02 | O02.1 | (this commit) | 0 | C.2–C.6 and B.7 copied byte for byte from the plan (10 files); fmt clean; build ok; ci profile tests 2/2 |
+| 2026-10-02 | O02.2 | (this commit) | 0 | 10/10 constants and C.7 vector tests; digests/specHash/topic also matched with viem 2.57.2; 11 interface ABIs + SHA256SUMS; ./vectors read permission (ADJ-28) |
