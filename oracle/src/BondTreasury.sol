@@ -3,8 +3,10 @@ pragma solidity 0.8.30;
 
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
-import {Ledger} from "./types/OracleTypes.sol";
+import {Ledger, Resolution, RState, FinalReason} from "./types/OracleTypes.sol";
 import {IBondTreasury} from "./interfaces/IBondTreasury.sol";
+import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
+import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
 
 interface IERC20Transfer {
     function transfer(address to, uint256 amount) external returns (bool);
@@ -15,9 +17,8 @@ interface IERC20Transfer {
 ///         WATCHDOG_FLOAT (watchdog disputes) and PROPOSER_REWARD (permissionless proposer rewards)
 ///         (plan §6.6, Appendix C.1, C.5). Funded from the protocol fee share; it never touches market
 ///         reserves or the CollateralVault. Not upgradeable; governance is the Timelock.
-/// @dev Tasks O12.1 (ledgers, deposits, listing commitments, withdraw, limits) and O12.2 (bond flows and
-///      proposer rewards); watchdog disputes follow in O12.3, which also declares `is IBondTreasury`. Until
-///      then errors and events are the C.5 declarations, used by qualified name.
+/// @dev Tasks O12.1 (ledgers, deposits, listing commitments, withdraw, limits), O12.2 (bond flows and
+///      proposer rewards) and O12.3 (watchdog disputes, closeDispute, skim).
 ///
 ///      Bonds are keyed by `(marketId, attempt)`, the 0-based assertion index (ADJ-27). `fundAssertion`
 ///      debits ASSERTION, approves the market's venue for exactly the bond (the venue pulls it), and adds
@@ -32,10 +33,26 @@ interface IERC20Transfer {
 ///      below `totalCommitted`. `releaseListing` is a no-op for an id with no open commitment, because
 ///      the oracle calls it inside `_final` and the treasury must never block finalization (ORC-9).
 ///
+///      Watchdog disputes: only the market's pinned watchdog (`oracle.watchdogOf(id)`, 0 once revoked)
+///      can spend WATCHDOG_FLOAT, one dispute per live assertion, at most `maxOpenDisputes` at once. The
+///      bond is the venue's own figure for the assertion (exactly what the venue pulls), and the
+///      assertion must still be disputable on the venue (exists, unsettled, undisputed, liveness
+///      running). Each dispute is recorded by assertionId until `closeDispute` sees it settled on the
+///      venue, or its market Final with VOID_DEADLINE (a never-answered vote never pays).
+///
 ///      Solvency (ORC-14): a deposit credits the balance increase actually received, so
-///      `usdc.balanceOf(this) ≥ Σ ledgers` holds for any token.
-contract BondTreasury is ReentrancyGuard {
+///      `usdc.balanceOf(this) ≥ Σ ledgers` holds for any token. `skim` credits WATCHDOG_FLOAT with only
+///      `balance − Σ ledgers − totalOutstanding − openDisputeBonds` when positive: money an in-flight
+///      bond return will book is never credited twice, and dispute winnings are credited once no bond
+///      that could still claim them is out.
+contract BondTreasury is IBondTreasury, ReentrancyGuard {
     using SafeTransferLib for address;
+
+    struct DisputeRecord {
+        bytes32 marketId;
+        address venue; // 0 = no recorded dispute
+        uint256 bond;
+    }
 
     enum Commitment {
         NONE,
@@ -58,19 +75,22 @@ contract BondTreasury is ReentrancyGuard {
     mapping(address proposer => uint256) public owed; // reward IOUs
     uint256 public maxPerMarket; // 0 until setLimits
     uint32 public maxOpenDisputes; // 0 until setLimits
+    uint32 public openDisputes;
+    uint256 public openDisputeBonds; // Σ bonds of the recorded open disputes, used by skim
+    mapping(bytes32 assertionId => DisputeRecord) public disputes;
 
     modifier onlyGovernance() {
-        if (msg.sender != governance) revert IBondTreasury.Unauthorized();
+        if (msg.sender != governance) revert Unauthorized();
         _;
     }
 
     modifier onlyRegistry() {
-        if (msg.sender != registry) revert IBondTreasury.Unauthorized();
+        if (msg.sender != registry) revert Unauthorized();
         _;
     }
 
     modifier onlyOracle() {
-        if (msg.sender != oracle) revert IBondTreasury.Unauthorized();
+        if (msg.sender != oracle) revert Unauthorized();
         _;
     }
 
@@ -90,7 +110,7 @@ contract BondTreasury is ReentrancyGuard {
         usdc.safeTransferFrom(msg.sender, address(this), amount);
         uint256 received = usdc.balanceOf(address(this)) - before;
         _ledgers[ledger] += received;
-        emit IBondTreasury.Deposited(ledger, msg.sender, received);
+        emit Deposited(ledger, msg.sender, received);
     }
 
     /// @notice Pays the caller's whole reward IOU once PROPOSER_REWARD covers it; nothing owed is a no-op.
@@ -98,11 +118,11 @@ contract BondTreasury is ReentrancyGuard {
         uint256 amount = owed[msg.sender];
         if (amount == 0) return;
         uint256 have = _ledgers[Ledger.PROPOSER_REWARD];
-        if (have < amount) revert IBondTreasury.InsufficientLedger(Ledger.PROPOSER_REWARD, amount, have);
+        if (have < amount) revert InsufficientLedger(Ledger.PROPOSER_REWARD, amount, have);
         owed[msg.sender] = 0;
         _ledgers[Ledger.PROPOSER_REWARD] = have - amount;
         usdc.safeTransfer(msg.sender, amount);
-        emit IBondTreasury.OwedClaimed(msg.sender, amount);
+        emit OwedClaimed(msg.sender, amount);
     }
 
     // ------------------------------------------------------------------ MarketRegistry
@@ -110,14 +130,14 @@ contract BondTreasury is ReentrancyGuard {
     /// @notice Commits a new market's bond at its OI cap: ASSERTION must cover every open commitment
     ///         plus this one (§6.3 step 7, §6.6).
     function commitListing(bytes32 id, uint256 bondAtCap) external onlyRegistry nonReentrant {
-        if (_commitment[id] != Commitment.NONE) revert IBondTreasury.AlreadyCommitted();
+        if (_commitment[id] != Commitment.NONE) revert AlreadyCommitted();
         uint256 need = totalCommitted + bondAtCap;
         uint256 have = _ledgers[Ledger.ASSERTION];
-        if (have < need) revert IBondTreasury.BelowCommitments(need, have);
+        if (have < need) revert BelowCommitments(need, have);
         _commitment[id] = Commitment.OPEN;
         committedListing[id] = bondAtCap;
         totalCommitted = need;
-        emit IBondTreasury.ListingCommitted(id, bondAtCap);
+        emit ListingCommitted(id, bondAtCap);
     }
 
     // ------------------------------------------------------------------ ResolutionOracle
@@ -129,22 +149,22 @@ contract BondTreasury is ReentrancyGuard {
         _commitment[id] = Commitment.RELEASED;
         committedListing[id] = 0;
         totalCommitted -= amount;
-        emit IBondTreasury.ListingReleased(id, amount);
+        emit ListingReleased(id, amount);
     }
 
     /// @notice Funds a team-path assertion: debits ASSERTION and approves `venue` (the market's pinned
     ///         venue, passed by the oracle) for exactly `bond`; the venue pulls it in the same transaction.
     function fundAssertion(bytes32 id, uint8 attempt, address venue, uint256 bond) external onlyOracle nonReentrant {
         uint256 have = _ledgers[Ledger.ASSERTION];
-        if (have < bond) revert IBondTreasury.InsufficientLedger(Ledger.ASSERTION, bond, have);
+        if (have < bond) revert InsufficientLedger(Ledger.ASSERTION, bond, have);
         uint256 funded = fundedTotal[id] + bond;
-        if (funded > maxPerMarket) revert IBondTreasury.PerMarketCapExceeded();
+        if (funded > maxPerMarket) revert PerMarketCapExceeded();
         _ledgers[Ledger.ASSERTION] = have - bond;
         outstanding[id][attempt] += bond;
         fundedTotal[id] = funded;
         totalOutstanding += bond;
         usdc.safeApprove(venue, bond);
-        emit IBondTreasury.AssertionFunded(id, attempt, venue, bond);
+        emit AssertionFunded(id, attempt, venue, bond);
     }
 
     /// @notice The assertion settled true: the venue paid the bond back to the treasury (the asserter),
@@ -153,20 +173,20 @@ contract BondTreasury is ReentrancyGuard {
         uint256 amount = _clearOutstanding(id, attempt);
         if (amount == 0) return;
         _ledgers[Ledger.ASSERTION] += amount;
-        emit IBondTreasury.BondReturned(id, attempt, amount);
+        emit BondReturned(id, attempt, amount);
     }
 
     /// @notice The assertion settled false: the bond went to the disputer. Clears the record, no credit.
     function onBondLost(bytes32 id, uint8 attempt) external onlyOracle nonReentrant {
         uint256 amount = _clearOutstanding(id, attempt);
-        if (amount != 0) emit IBondTreasury.BondLost(id, attempt, amount);
+        if (amount != 0) emit BondLost(id, attempt, amount);
     }
 
     /// @notice The market voided with this bond still live. Clears the record, no credit; if the bond
     ///         ever comes back it arrives as plain USDC and `skim` credits it (O12.3).
     function markStuck(bytes32 id, uint8 attempt) external onlyOracle nonReentrant {
         uint256 amount = _clearOutstanding(id, attempt);
-        if (amount != 0) emit IBondTreasury.BondStuck(id, attempt, amount);
+        if (amount != 0) emit BondStuck(id, attempt, amount);
     }
 
     /// @notice Pays a Final permissionless proposer's reward from PROPOSER_REWARD. Never reverts: when the
@@ -183,14 +203,65 @@ contract BondTreasury is ReentrancyGuard {
         if (have >= amount) {
             _ledgers[Ledger.PROPOSER_REWARD] = have - amount;
             if (_tryTransfer(proposer, amount)) {
-                emit IBondTreasury.RewardPaid(id, proposer, amount);
+                emit RewardPaid(id, proposer, amount);
                 return true;
             }
             _ledgers[Ledger.PROPOSER_REWARD] = have;
         }
         owed[proposer] += amount;
-        emit IBondTreasury.RewardOwed(id, proposer, amount);
+        emit RewardOwed(id, proposer, amount);
         return false;
+    }
+
+    // ------------------------------------------------------------------ watchdog disputes
+
+    /// @notice The market's pinned watchdog disputes its live assertion with WATCHDOG_FLOAT; the venue pulls
+    ///         the bond and any winnings return to the treasury as plain USDC (credited by `skim`).
+    function disputeViaVenue(bytes32 id) external nonReentrant {
+        if (msg.sender != IResolutionOracle(oracle).watchdogOf(id)) revert Unauthorized();
+        Resolution memory r = IResolutionOracle(oracle).getResolution(id);
+        if (r.assertionId == 0) revert NoLiveAssertion();
+        IAssertionVenue.AssertionStatus memory st = IAssertionVenue(r.assertionVenue).statusOf(r.assertionId);
+        if (!st.exists || st.settled || st.disputed || block.timestamp >= st.expiresAt) revert NoLiveAssertion();
+        if (openDisputes >= maxOpenDisputes) revert TooManyOpenDisputes();
+        uint256 have = _ledgers[Ledger.WATCHDOG_FLOAT];
+        if (have < st.bond) revert InsufficientLedger(Ledger.WATCHDOG_FLOAT, st.bond, have);
+        _ledgers[Ledger.WATCHDOG_FLOAT] = have - st.bond;
+        ++openDisputes;
+        openDisputeBonds += st.bond;
+        disputes[r.assertionId] = DisputeRecord(id, r.assertionVenue, st.bond);
+        usdc.safeApprove(r.assertionVenue, st.bond);
+        IAssertionVenue(r.assertionVenue).disputeFor(r.assertionId, address(this), address(this));
+        emit DisputeFunded(id, r.assertionId, st.bond);
+    }
+
+    /// @notice Anyone. Closes a dispute `disputeViaVenue` recorded once the venue shows the assertion
+    ///         settled, or once its market is Final with VOID_DEADLINE (the bond is written off). Returns
+    ///         false for anything else, including a second call.
+    function closeDispute(bytes32 assertionId) external nonReentrant returns (bool closed) {
+        DisputeRecord memory d = disputes[assertionId];
+        if (d.venue == address(0)) return false;
+        if (!IAssertionVenue(d.venue).statusOf(assertionId).settled) {
+            Resolution memory r = IResolutionOracle(oracle).getResolution(d.marketId);
+            if (r.state != RState.Final || r.finalReason != FinalReason.VOID_DEADLINE) return false;
+        }
+        delete disputes[assertionId];
+        --openDisputes;
+        openDisputeBonds -= d.bond;
+        emit DisputeClosed(assertionId);
+        return true;
+    }
+
+    /// @notice Anyone. Credits WATCHDOG_FLOAT with USDC no ledger, outstanding bond or open dispute
+    ///         accounts for (dispute winnings, donations). Returns 0 instead of reverting when there is none.
+    function skim() external nonReentrant returns (uint256 credited) {
+        uint256 held = _ledgers[Ledger.ASSERTION] + _ledgers[Ledger.WATCHDOG_FLOAT] + _ledgers[Ledger.PROPOSER_REWARD]
+            + totalOutstanding + openDisputeBonds;
+        uint256 balance = usdc.balanceOf(address(this));
+        if (balance <= held) return 0;
+        credited = balance - held;
+        _ledgers[Ledger.WATCHDOG_FLOAT] += credited;
+        emit Skimmed(credited);
     }
 
     // ------------------------------------------------------------------ governance (Timelock)
@@ -198,13 +269,13 @@ contract BondTreasury is ReentrancyGuard {
     /// @notice Pays out of one ledger: ASSERTION only down to `totalCommitted`, the others down to 0.
     function withdraw(Ledger ledger, address to, uint256 amount) external onlyGovernance nonReentrant {
         uint256 have = _ledgers[ledger];
-        if (amount > have) revert IBondTreasury.InsufficientLedger(ledger, amount, have);
+        if (amount > have) revert InsufficientLedger(ledger, amount, have);
         if (ledger == Ledger.ASSERTION && have - amount < totalCommitted) {
-            revert IBondTreasury.BelowCommitments(totalCommitted + amount, have);
+            revert BelowCommitments(totalCommitted + amount, have);
         }
         _ledgers[ledger] = have - amount;
         usdc.safeTransfer(to, amount);
-        emit IBondTreasury.Withdrawn(ledger, to, amount);
+        emit Withdrawn(ledger, to, amount);
     }
 
     /// @notice Production start: `maxPerMarket` = 3 × the bond at the largest OI cap, `maxOpenDisputes` = 20
@@ -212,7 +283,7 @@ contract BondTreasury is ReentrancyGuard {
     function setLimits(uint256 maxPerMarket_, uint32 maxOpenDisputes_) external onlyGovernance nonReentrant {
         maxPerMarket = maxPerMarket_;
         maxOpenDisputes = maxOpenDisputes_;
-        emit IBondTreasury.LimitsSet(maxPerMarket_, maxOpenDisputes_);
+        emit LimitsSet(maxPerMarket_, maxOpenDisputes_);
     }
 
     // ------------------------------------------------------------------ internals

@@ -162,11 +162,12 @@ Plan §13: owner OA · 2 PD · depends O02 · acceptance: ledger isolation, ORC-
 - Depends: O12.2
 - Plan: §6.6, C.5, ORC-10, ORC-14
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/src/BondTreasury.sol, oracle/test/unit/TreasuryDisputes.t.sol
 - Build: `disputeViaVenue` (caller = `oracle.watchdogOf(id)`, `NoLiveAssertion`, `maxOpenDisputes`, float debit, venue `disputeFor`, record keyed by assertionId, `openDisputeBonds`); `closeDispute` (recorded disputes only; closes when settled on the venue or when the market is Final with `VOID_DEADLINE`; second call false); `skim` (balance − ledgers − outstanding − open dispute bonds, credit only a positive remainder, never reverts).
 - Done when: tests cover watchdog-only and capped disputes, close-once, close after a void write-off, and skim never crediting an in-flight bond twice.
 - Check: cd oracle && forge test --match-path test/unit/TreasuryDisputes.t.sol
+- Notes: Team decision: the dispute bond is the venue's own figure (`statusOf(assertionId).bond`, exactly what the venue pulls), and `disputeViaVenue` reverts `NoLiveAssertion` unless the assertion exists, is unsettled, undisputed and `now < expiresAt`. Check order: watchdog (`Unauthorized`), live assertion, `TooManyOpenDisputes`, float (`InsufficientLedger`). Dispute records are public (`disputes(assertionId)` gives market, venue, bond) for the keeper's closeDispute job. `skim` holds back every ledger, `totalOutstanding` and `openDisputeBonds` exactly as §6.6, so dispute winnings are credited in full only once no bond is still out. The treasury now declares `is IBondTreasury` (C.5 unchanged; ABI snapshot verifies). 28 mutations: 27 caught; removing `!st.exists` survives as equivalent (an unknown assertion reports `expiresAt = 0`, which the liveness check already refuses, on OOv3 too), kept for clarity and covered by an unknown-assertion test.
 
 ## O13 · UmaAdapter, ErosSandboxOracle and real-UMA tests
 Plan §13: owner OA · 1.5 PD · depends O02 · acceptance: A2 suite + extended cases.
