@@ -8,16 +8,16 @@ import {Book} from "../src/Book.sol";
 contract LeanBook is Book {
     bool public failAll;
 
-    function createMarket(uint256 market, uint8 maxFills) external {
-        _initBook(market, maxFills);
+    function createMarket(uint8 maxFills_) external {
+        _initBook(maxFills_);
     }
 
     function setFailAll(bool fail) external {
         failAll = fail;
     }
 
-    function freeHead(uint256 market) external view returns (uint32) {
-        return _books[market].freeHead;
+    function freeHead() external view returns (uint32) {
+        return _book.freeHead;
     }
 
     function _takerStart(Ctx memory, uint96 size) internal pure override returns (uint96) {
@@ -37,11 +37,11 @@ contract LeanBook is Book {
 
     function _takerDone(Ctx memory) internal pure override {}
 
-    function _admit(uint256, uint32, Place calldata) internal pure override {}
+    function _admit(uint32, Place calldata) internal pure override {}
 
-    function _onRest(uint256, uint32, uint16, uint96, uint8) internal pure override {}
+    function _onRest(uint32, uint16, uint96, uint8) internal pure override {}
 
-    function _onUnrest(uint256, uint32, uint96, uint8) internal pure override {}
+    function _onUnrest(uint32, uint96, uint8) internal pure override {}
 }
 
 /// @notice Gas for the operations in spec §9.9, written to snapshots/BookGas.json.
@@ -52,7 +52,6 @@ contract LeanBook is Book {
 contract BookGasTest is Test {
     LeanBook book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 1;
     address mm = makeAddr("mm");
     address mm2 = makeAddr("mm2");
     address taker = makeAddr("taker");
@@ -61,23 +60,23 @@ contract BookGasTest is Test {
     /// is non-zero) and some dead order slots waiting on the free list.
     function setUp() public {
         book = new LeanBook();
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
         uint32[] memory ids = new uint32[](4);
         ids[0] = _post(mm, true, 499, 1);
         ids[1] = _post(mm, true, 500, 1);
         ids[2] = _post(mm, false, 501, 1);
         ids[3] = _post(mm, false, 502, 1);
         vm.prank(mm);
-        book.batch(M, ids, new Book.Place[](0));
+        book.batch(ids, new Book.Place[](0));
         vm.prank(mm2);
-        book.batch(M, new uint32[](0), new Book.Place[](0));
+        book.batch(new uint32[](0), new Book.Place[](0));
         vm.prank(taker);
-        book.batch(M, new uint32[](0), new Book.Place[](0));
+        book.batch(new uint32[](0), new Book.Place[](0));
     }
 
     function _post(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(M, Book.Place(Book.OrderType.POST_ONLY, isBuy, false, tick, size, 0));
+        return book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, isBuy, false, tick, size, 0));
     }
 
     function test_Gas_PlaceRestingRecycledSlot() public {
@@ -87,7 +86,7 @@ contract BookGasTest is Test {
     }
 
     function test_Gas_PlaceRestingFreshSlot() public {
-        while (book.freeHead(M) != 0) {
+        while (book.freeHead() != 0) {
             _post(mm2, true, 400, 1); // drain the free list away from the measured level
         }
         vm.cool(address(book));
@@ -105,7 +104,7 @@ contract BookGasTest is Test {
         ps[1] = Book.Place(Book.OrderType.POST_ONLY, false, false, 502, 100, 0);
         vm.cool(address(book));
         vm.prank(mm);
-        book.batch(M, cancels, ps);
+        book.batch(cancels, ps);
         vm.snapshotGasLastFrame("BookGas", "cancelReplace_twoSidedBatch");
     }
 
@@ -113,7 +112,7 @@ contract BookGasTest is Test {
         _post(mm, false, 501, 100);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
+        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
         vm.snapshotGasLastFrame("BookGas", "taker_oneFill");
     }
 
@@ -123,7 +122,7 @@ contract BookGasTest is Test {
         }
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
+        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
         vm.snapshotGasLastFrame("BookGas", "taker_fourFills_sameMaker");
     }
 
@@ -134,7 +133,7 @@ contract BookGasTest is Test {
         _post(mm2, false, 502, 25);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 502, 100, 8));
+        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 502, 100, 8));
         vm.snapshotGasLastFrame("BookGas", "taker_fourFills_twoMakers_twoLevels");
     }
 
@@ -142,7 +141,7 @@ contract BookGasTest is Test {
         uint32 id = _post(mm, false, 502, 100);
         vm.cool(address(book));
         vm.prank(mm);
-        book.cancel(M, id);
+        book.cancel(id);
         vm.snapshotGasLastFrame("BookGas", "cancel_one");
     }
 
@@ -154,7 +153,7 @@ contract BookGasTest is Test {
         book.setFailAll(true);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 501, 64, 64));
+        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 501, 64, 64));
         vm.snapshotGasLastFrame("BookGas", "taker_64steps_allFailing");
     }
 }

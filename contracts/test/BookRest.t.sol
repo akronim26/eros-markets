@@ -8,27 +8,26 @@ import {BookHarness} from "./BookHarness.sol";
 contract BookRestTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 1;
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
     }
 
     function _rest(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
         vm.prank(who);
-        return book.rest(M, isBuy, tick, size);
+        return book.rest(isBuy, tick, size);
     }
 
     function _cancel(address who, uint32 id) internal {
         vm.prank(who);
-        book.cancel(M, id);
+        book.cancel(id);
     }
 
     function _level(bool isBuy, uint16 tick) internal view returns (Book.Level memory) {
-        return book.getLevel(M, isBuy, tick);
+        return book.getLevel(isBuy, tick);
     }
 
     // ------------------------------------------------------------------ rest
@@ -37,7 +36,7 @@ contract BookRestTest is Test {
         vm.expectEmit(address(book));
         emit Book.TraderRegistered(alice, 1);
         vm.expectEmit(address(book));
-        emit Book.OrderPlaced(M, 1, 1, 502, 300, 0);
+        emit Book.OrderPlaced(1, 1, 502, 300, 0);
         uint32 id = _rest(alice, false, 502, 300);
 
         assertEq(id, 1);
@@ -46,7 +45,7 @@ contract BookRestTest is Test {
         assertEq(lv.tail, 1);
         assertEq(lv.size, 300);
         assertTrue(lv.used);
-        Book.Order memory o = book.getOrder(M, id);
+        Book.Order memory o = book.getOrder(id);
         assertEq(o.owner, 1);
         assertEq(o.size, 300);
         assertEq(o.tick, 502);
@@ -54,17 +53,17 @@ contract BookRestTest is Test {
         assertEq(o.gen, 0);
         assertEq(o.prev, 0);
         assertEq(o.next, 0);
-        (, uint16 ask) = book.bestBidAsk(M);
+        (, uint16 ask) = book.bestBidAsk();
         assertEq(ask, 502);
-        assertEq(book.reserved(M, 1, false), 300);
+        assertEq(book.reserved(1, false), 300);
     }
 
     function test_BuyOrderCarriesBuyFlag() public {
         uint32 id = _rest(alice, true, 400, 10);
-        assertEq(book.getOrder(M, id).flags, book.FLAG_BUY() | book.FLAG_LIVE());
-        (uint16 bid,) = book.bestBidAsk(M);
+        assertEq(book.getOrder(id).flags, book.FLAG_BUY() | book.FLAG_LIVE());
+        (uint16 bid,) = book.bestBidAsk();
         assertEq(bid, 400);
-        assertEq(book.reserved(M, 1, true), 10);
+        assertEq(book.reserved(1, true), 10);
     }
 
     /// The spec's example level: tick 502, orders of 300, 100 and 500 in time order.
@@ -77,11 +76,11 @@ contract BookRestTest is Test {
         assertEq(lv.head, a);
         assertEq(lv.tail, c);
         assertEq(lv.size, 900);
-        assertEq(book.getOrder(M, a).next, b);
-        assertEq(book.getOrder(M, b).prev, a);
-        assertEq(book.getOrder(M, b).next, c);
-        assertEq(book.getOrder(M, c).prev, b);
-        assertEq(book.getOrder(M, c).next, 0);
+        assertEq(book.getOrder(a).next, b);
+        assertEq(book.getOrder(b).prev, a);
+        assertEq(book.getOrder(b).next, c);
+        assertEq(book.getOrder(c).prev, b);
+        assertEq(book.getOrder(c).next, 0);
     }
 
     function test_TradersGetDistinctIds() public {
@@ -98,7 +97,7 @@ contract BookRestTest is Test {
     function test_CancelOnlyOrderEmptiesLevel() public {
         uint32 id = _rest(alice, false, 502, 300);
         vm.expectEmit(address(book));
-        emit Book.OrderCancelled(M, id, 300, Book.CancelReason.USER);
+        emit Book.OrderCancelled(id, 300, Book.CancelReason.USER);
         _cancel(alice, id);
 
         Book.Level memory lv = _level(false, 502);
@@ -106,11 +105,11 @@ contract BookRestTest is Test {
         assertEq(lv.tail, 0);
         assertEq(lv.size, 0);
         assertTrue(lv.used, "level slot stays non-zero");
-        (, uint16 ask) = book.bestBidAsk(M);
+        (, uint16 ask) = book.bestBidAsk();
         assertEq(ask, 0);
-        assertEq(book.bitWord(M, false, 2), 1 << 255);
-        assertEq(book.reserved(M, 1, false), 0);
-        assertEq(book.getOrder(M, id).owner, 0, "dead id reads as empty");
+        assertEq(book.bitWord(false, 2), 1 << 255);
+        assertEq(book.reserved(1, false), 0);
+        assertEq(book.getOrder(id).owner, 0, "dead id reads as empty");
     }
 
     function test_CancelHead() public {
@@ -122,7 +121,7 @@ contract BookRestTest is Test {
         assertEq(lv.head, b);
         assertEq(lv.tail, c);
         assertEq(lv.size, 600);
-        assertEq(book.getOrder(M, b).prev, 0);
+        assertEq(book.getOrder(b).prev, 0);
     }
 
     function test_CancelMiddle() public {
@@ -134,8 +133,8 @@ contract BookRestTest is Test {
         assertEq(lv.head, a);
         assertEq(lv.tail, c);
         assertEq(lv.size, 800);
-        assertEq(book.getOrder(M, a).next, c);
-        assertEq(book.getOrder(M, c).prev, a);
+        assertEq(book.getOrder(a).next, c);
+        assertEq(book.getOrder(c).prev, a);
     }
 
     function test_CancelTail() public {
@@ -147,21 +146,21 @@ contract BookRestTest is Test {
         assertEq(lv.head, a);
         assertEq(lv.tail, b);
         assertEq(lv.size, 400);
-        assertEq(book.getOrder(M, b).next, 0);
+        assertEq(book.getOrder(b).next, 0);
     }
 
     function test_CancelKeepsOtherLevelsAndBits() public {
         uint32 a = _rest(alice, false, 502, 1);
         _rest(alice, false, 503, 1);
         _cancel(alice, a);
-        (, uint16 ask) = book.bestBidAsk(M);
+        (, uint16 ask) = book.bestBidAsk();
         assertEq(ask, 503);
     }
 
     function test_TombstoneStaysNonZero() public {
         uint32 id = _rest(alice, false, 502, 300);
         _cancel(alice, id);
-        Book.Order memory o = book.orderAt(M, id);
+        Book.Order memory o = book.orderAt(id);
         assertEq(o.owner, 1);
         assertEq(o.tick, 502);
         assertEq(o.size, 0);
@@ -200,22 +199,23 @@ contract BookRestTest is Test {
 
     function test_RevertWhen_GetLevelBadTick() public {
         vm.expectRevert(Book.BadTick.selector);
-        book.getLevel(M, true, 0);
+        book.getLevel(true, 0);
         vm.expectRevert(Book.BadTick.selector);
-        book.getLevel(M, false, 1000);
+        book.getLevel(false, 1000);
         vm.expectRevert(Book.BadTick.selector);
-        book.getLevel(M, false, type(uint16).max);
+        book.getLevel(false, type(uint16).max);
     }
 
-    function test_RevertWhen_UnknownMarket() public {
+    function test_RevertWhen_BookNotOpened() public {
+        BookHarness fresh = new BookHarness();
         vm.expectRevert(Book.NoMarket.selector);
-        book.cancel(7, 1);
+        fresh.cancel(1);
         vm.expectRevert(Book.NoMarket.selector);
-        book.getOrder(7, 1);
+        fresh.getOrder(1);
         vm.expectRevert(Book.NoMarket.selector);
-        book.getLevel(7, true, 1);
+        fresh.getLevel(true, 1);
         vm.expectRevert(Book.NoMarket.selector);
-        book.rest(7, true, 1, 1);
+        fresh.rest(true, 1, 1);
     }
 
     // ------------------------------------------------------------------ slot recycling
@@ -225,16 +225,16 @@ contract BookRestTest is Test {
         uint32 b = _rest(alice, false, 502, 1); // slot 2
         _cancel(alice, a);
         _cancel(alice, b);
-        assertEq(book.freeHead(M), 2);
+        assertEq(book.freeHead(), 2);
 
         uint32 c = _rest(bob, true, 100, 5);
         assertEq(c, (1 << 24) | 2, "slot 2, gen 1");
         uint32 d = _rest(bob, true, 100, 5);
         assertEq(d, (1 << 24) | 1, "slot 1, gen 1");
-        assertEq(book.freeHead(M), 0);
-        assertEq(book.orderSlots(M), 3, "no new slots allocated");
+        assertEq(book.freeHead(), 0);
+        assertEq(book.orderSlots(), 3, "no new slots allocated");
 
-        Book.Order memory o = book.getOrder(M, c);
+        Book.Order memory o = book.getOrder(c);
         assertEq(o.owner, 2);
         assertEq(o.size, 5);
         assertEq(o.tick, 100);
@@ -252,8 +252,8 @@ contract BookRestTest is Test {
 
         vm.expectRevert(Book.NotLive.selector);
         _cancel(alice, old);
-        assertEq(book.getOrder(M, old).owner, 0);
-        assertEq(book.getOrder(M, fresh).size, 9);
+        assertEq(book.getOrder(old).owner, 0);
+        assertEq(book.getOrder(fresh).size, 9);
     }
 
     function test_SlotRetiresAtMaxGeneration() public {
@@ -264,10 +264,10 @@ contract BookRestTest is Test {
             _cancel(alice, id);
         }
         // Generation 255 was used once and is now retired, not recycled.
-        assertEq(book.freeHead(M), 0);
+        assertEq(book.freeHead(), 0);
         id = _rest(alice, false, 502, 1);
         assertEq(id, 2, "fresh slot 2");
-        assertEq(book.orderSlots(M), 3);
+        assertEq(book.orderSlots(), 3);
     }
 
     /// Any interleaving of rests and cancels keeps level sizes equal to the live orders on it.
@@ -284,15 +284,15 @@ contract BookRestTest is Test {
             Book.Level memory lv = _level(false, k);
             uint256 sum;
             uint256 count;
-            for (uint32 s = lv.head; s != 0; s = book.orderAt(M, s).next) {
-                sum += book.orderAt(M, s).size;
+            for (uint32 s = lv.head; s != 0; s = book.orderAt(s).next) {
+                sum += book.orderAt(s).size;
                 ++count;
             }
             assertEq(lv.size, sum);
             expected += sum;
-            bool bit = book.bitWord(M, false, (k - 1) / 250) & (1 << ((k - 1) % 250)) != 0;
+            bool bit = book.bitWord(false, (k - 1) / 250) & (1 << ((k - 1) % 250)) != 0;
             assertEq(bit, count != 0);
         }
-        assertEq(book.reserved(M, 1, false), expected);
+        assertEq(book.reserved(1, false), expected);
     }
 }

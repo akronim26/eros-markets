@@ -5,28 +5,28 @@ import {Book} from "../src/Book.sol";
 
 /// @notice Book with trivial Clearing hooks and read access to internals, for tests only.
 contract BookHarness is Book {
-    /// @dev Resting units per (market, trader, isBuy), maintained by the rest/unrest hooks.
-    mapping(uint256 => mapping(uint32 => mapping(bool => uint256))) public reserved;
+    /// @dev Resting units per (trader, isBuy), maintained by the rest/unrest hooks.
+    mapping(uint32 => mapping(bool => uint256)) public reserved;
 
-    function createMarket(uint256 market, uint8 maxFills) external {
-        _initBook(market, maxFills);
+    function createMarket(uint8 maxFills_) external {
+        _initBook(maxFills_);
     }
 
-    function setMaxFills(uint256 market, uint8 maxFills) external {
-        _setMaxFills(market, maxFills);
+    function setMaxFills(uint8 maxFills_) external {
+        _setMaxFills(maxFills_);
     }
 
     /// @dev Rests an order without matching (placement lands with the match loop).
-    function rest(uint256 market, bool isBuy, uint16 tick, uint96 size) external returns (uint32) {
-        return _rest(_openBook(market), market, _traderOf(msg.sender), tick, size, isBuy ? FLAG_BUY : 0);
+    function rest(bool isBuy, uint16 tick, uint96 size) external returns (uint32) {
+        return _rest(_openBook(), _traderOf(msg.sender), tick, size, isBuy ? FLAG_BUY : 0);
     }
 
     // ------------------------------------------------------------------ Clearing stand-in
 
     error TakerRejected();
 
-    /// @dev Signed position per (market, trader); + is long.
-    mapping(uint256 => mapping(uint32 => int256)) public position;
+    /// @dev Signed position per trader; + is long.
+    mapping(uint32 => int256) public position;
     mapping(uint32 => bool) public failMaker;
     bool public rejectTaker;
     uint256 public takerDoneCalls;
@@ -39,8 +39,8 @@ contract BookHarness is Book {
     uint256 public doneCost;
     uint256 public doneSawMark;
 
-    function setPosition(uint256 market, uint32 trader, int256 pos) external {
-        position[market][trader] = pos;
+    function setPosition(uint32 trader, int256 pos) external {
+        position[trader] = pos;
     }
 
     function setFailMaker(uint32 trader, bool fail) external {
@@ -55,20 +55,20 @@ contract BookHarness is Book {
         rejectTaker = reject;
     }
 
-    function _reducible(uint256 market, uint32 trader, bool isBuy) internal view returns (uint256) {
-        int256 p = position[market][trader];
+    function _reducible(uint32 trader, bool isBuy) internal view returns (uint256) {
+        int256 p = position[trader];
         if (isBuy) return p < 0 ? uint256(-p) : 0;
         return p > 0 ? uint256(p) : 0;
     }
 
-    function _apply(uint256 market, uint32 trader, bool isBuy, uint96 size) internal {
-        position[market][trader] += isBuy ? int256(uint256(size)) : -int256(uint256(size));
+    function _apply(uint32 trader, bool isBuy, uint96 size) internal {
+        position[trader] += isBuy ? int256(uint256(size)) : -int256(uint256(size));
     }
 
     function _takerStart(Ctx memory c, uint96 size) internal view override returns (uint96) {
         c.risk.mark = snapshotMark;
         if (c.flags & FLAG_REDUCE_ONLY == 0) return size;
-        uint256 r = _reducible(c.market, c.taker, c.takerBuys);
+        uint256 r = _reducible(c.taker, c.takerBuys);
         return r < size ? uint96(r) : size;
     }
 
@@ -81,15 +81,15 @@ contract BookHarness is Book {
         if (failMaker[maker]) return 0;
         filled = size;
         if (flags & FLAG_REDUCE_ONLY != 0) {
-            uint256 r = _reducible(c.market, maker, makerBuys);
+            uint256 r = _reducible(maker, makerBuys);
             if (r < filled) filled = uint96(r);
         }
-        _apply(c.market, maker, makerBuys, filled);
+        _apply(maker, makerBuys, filled);
     }
 
     function _takerFill(Ctx memory c, bool takerBuys, uint16, uint96 size) internal override {
         takerFillSawMark = c.risk.mark;
-        _apply(c.market, c.taker, takerBuys, size);
+        _apply(c.taker, takerBuys, size);
     }
 
     function _takerDone(Ctx memory c) internal override {
@@ -111,56 +111,56 @@ contract BookHarness is Book {
     error ReduceOnlyStage();
     error BelowMinSize();
 
-    mapping(uint256 => Stage) public stage;
+    Stage public stage;
     uint8 public lastRestFlags;
     uint8 public lastUnrestFlags;
     uint96 public minSize;
 
-    function setStage(uint256 market, Stage s) external {
-        stage[market] = s;
+    function setStage(Stage s) external {
+        stage = s;
     }
 
     function setMinSize(uint96 size) external {
         minSize = size;
     }
 
-    function _admit(uint256 market, uint32, Place calldata p) internal view override {
-        Stage s = stage[market];
+    function _admit(uint32, Place calldata p) internal view override {
+        Stage s = stage;
         if (s == Stage.Halted) revert MarketHalted();
         if (s == Stage.ReduceOnly && !p.reduceOnly) revert ReduceOnlyStage();
         if (p.size < minSize) revert BelowMinSize();
     }
 
-    function _onRest(uint256 market, uint32 trader, uint16, uint96 size, uint8 flags) internal override {
-        reserved[market][trader][flags & FLAG_BUY != 0] += size;
+    function _onRest(uint32 trader, uint16, uint96 size, uint8 flags) internal override {
+        reserved[trader][flags & FLAG_BUY != 0] += size;
         lastRestFlags = flags;
     }
 
-    function _onUnrest(uint256 market, uint32 trader, uint96 size, uint8 flags) internal override {
-        reserved[market][trader][flags & FLAG_BUY != 0] -= size;
+    function _onUnrest(uint32 trader, uint96 size, uint8 flags) internal override {
+        reserved[trader][flags & FLAG_BUY != 0] -= size;
         lastUnrestFlags = flags;
     }
 
     // ------------------------------------------------------------------ internals
 
-    function forceCancel(uint256 market, uint32 id, CancelReason reason) external returns (bool) {
-        return _forceCancel(market, id, reason);
+    function forceCancel(uint32 id, CancelReason reason) external returns (bool) {
+        return _forceCancel(id, reason);
     }
 
-    function orderAt(uint256 market, uint32 slot) external view returns (Order memory) {
-        return _books[market].orders[slot];
+    function orderAt(uint32 slot) external view returns (Order memory) {
+        return _book.orders[slot];
     }
 
-    function freeHead(uint256 market) external view returns (uint32) {
-        return _books[market].freeHead;
+    function freeHead() external view returns (uint32) {
+        return _book.freeHead;
     }
 
     // ------------------------------------------------------------------ INV-8
 
-    /// @dev Full structural check of one market's book; reverts with the first violation.
+    /// @dev Full structural check of the book; reverts with the first violation.
     ///      `traders` bounds the reservation check to ids 1..traders.
-    function checkInvariants(uint256 market, uint32 traders) external view {
-        BookState storage b = _books[market];
+    function checkInvariants(uint32 traders) external view {
+        BookState storage b = _book;
         uint256 n = b.orders.length;
         uint256[2][] memory resting = new uint256[2][](traders + 1);
         uint256 linked;
@@ -222,8 +222,8 @@ contract BookHarness is Book {
         require(free == recyclable, "free list incomplete");
 
         for (uint32 t = 1; t <= traders; ++t) {
-            require(reserved[market][t][false] == resting[t][ASK], "ask reservation");
-            require(reserved[market][t][true] == resting[t][BID], "bid reservation");
+            require(reserved[t][false] == resting[t][ASK], "ask reservation");
+            require(reserved[t][true] == resting[t][BID], "bid reservation");
         }
 
         uint16 bid = _bestBid(b);
@@ -231,19 +231,19 @@ contract BookHarness is Book {
         require(bid == NONE || ask == NONE || bid < ask, "crossed book");
     }
 
-    function setBit(uint256 market, bool isBuy, uint16 tick) external {
-        _setBit(_openBook(market), isBuy ? BID : ASK, tick);
+    function setBit(bool isBuy, uint16 tick) external {
+        _setBit(_openBook(), isBuy ? BID : ASK, tick);
     }
 
-    function clearBit(uint256 market, bool isBuy, uint16 tick) external {
-        _clearBit(_openBook(market), isBuy ? BID : ASK, tick);
+    function clearBit(bool isBuy, uint16 tick) external {
+        _clearBit(_openBook(), isBuy ? BID : ASK, tick);
     }
 
-    function bitWord(uint256 market, bool isBuy, uint256 w) external view returns (uint256) {
-        return _books[market].bits[isBuy ? BID : ASK][w];
+    function bitWord(bool isBuy, uint256 w) external view returns (uint256) {
+        return _book.bits[isBuy ? BID : ASK][w];
     }
 
-    function orderSlots(uint256 market) external view returns (uint256) {
-        return _books[market].orders.length;
+    function orderSlots() external view returns (uint256) {
+        return _book.orders.length;
     }
 }
