@@ -2,7 +2,7 @@
 
 Task O00.1. Plan §6.1, §12.2a, D18; ADJ-04.
 
-The oracle team (OA, OB) is the only editor of these paths:
+The oracle team is the only editor of these paths. It works every task itself; the plan's OA and OB labels are workload labels, not assignments (team decision of 3 Oct 2026, ADJ-35).
 
 | Path | What it holds |
 | --- | --- |

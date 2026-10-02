@@ -1,0 +1,12 @@
+{
+  "name": "@eros-oracle/feedspec",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FeedSpec evaluator shared by the CRE workflow, the watchdog and the listing CLI (plan 7.3, Appendix B.2).",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "bun test"
+  }
+}
