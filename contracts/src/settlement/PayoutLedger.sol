@@ -50,6 +50,9 @@ abstract contract PayoutLedger is SnapshotLedger {
         complete = payoutCursor == sweepCount;
         if (complete) {
             payoutScanComplete = true;
+            // A-I01: the frozen fees leave the market for vault escrows before any residual exists.
+            _reclassifyFees();
+            if (reclassifiedProtocolFeeQ + reclassifiedKeeperQ != frozenFeeQ) revert BadState();
             _assessAvailable();
         }
     }

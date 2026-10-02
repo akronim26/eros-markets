@@ -318,3 +318,8 @@ FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/rev
 
 The `risk`/`ci` code-size allowance is for oversized local fixtures, including test contracts
 that embed multiple engine deployments. It is not evidence of target-chain deployability.
+
+**A-I01 update (2026-10-02, shared ownership):** implemented by 0xr10t: global per-beneficiary vault
+fee escrows, exact `allocationQ` reduction at payout-scan completion, floor withdrawals with retained
+fractions. Choices and evidence: `docs/questions/A-I01.md`. Pending teammate review; this note does
+not close the finding.

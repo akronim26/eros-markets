@@ -43,7 +43,7 @@ Mutating entry points:
 | Pinned oracle | `halt()`, `settle(Y)`, `settleInvalid()` | see section 8 |
 | Anyone | `captureInvalidPrice()`, `prepareSnapshotChunk(n)`, `preparePayoutChunk(n)`, `finishPreparation()` | bounded jobs (n <= 32) |
 | Anyone (pays the owner) | `claimTrader(owner)` or `CollateralVault.claim(engine, owner)` | equivalent payout entry points; the wrapper already calls the vault. Recipient fixed; each escrowed entitlement paid once |
-| Keeper / treasury | `withdrawKeeper()`, `withdrawTreasury()`, `withdrawProtocolFees()` | whole atoms; fractional Q retained. Treasury/protocol withdrawals escrow to the same immutable treasury beneficiary |
+| Keeper / treasury | `withdrawKeeper()`, `withdrawTreasury()`, `CollateralVault.withdrawFees()` | whole atoms; fractional Q retained. When the payout scan completes, protocol and keeper fee Q move to global per-beneficiary vault fee escrows (A-I01). After that, `withdrawKeeper()` moves the keeper's exact Q to their vault escrow and pays its whole atoms to their free balance; the protocol fee beneficiary (the immutable treasury) calls `CollateralVault.withdrawFees()`. `withdrawTreasury()` pays reserve-owned dust only |
 | Price adapter | `submitObservation(obs, sig)` | authenticated; see `IPriceSource` |
 | Disabled | `selectConversionMode()` | reverts: conversion is disabled (DEC-10) |
 
@@ -120,7 +120,10 @@ Reverts are kept for authorization, arithmetic and invariant failures: `RiskUnau
 - `getHaltSnapshot()` → `HaltView` {halted, economicHaltAt, haltRecordedAt, accrualCutoff, oiHaltLots, …}.
 - Ledger views: `account(owner)`, `reserve()`, `coverageSlacks()`, `allocationQ()`, `traderAtoms(owner)`,
   `claimableAtoms(owner)`, `unpaidTraderClaims()`, `traderClaimed(owner)`, `anyCashClaim()`,
-  `allTraderClaimsPaid()`, `protocolFeeEscrowQ()`.
+  `allTraderClaimsPaid()`, `feesReclassified()`, `reclassifiedProtocolFeeQ()`, `reclassifiedKeeperQ()`.
+- Vault fee views (A-I01): `feeEscrowQ(owner)`, `keeperPoolQ(engine)`, `marketDebitQ(engine)`,
+  `totalFeeEscrowQ()`. A market's vault allocation in Q is `marketAtoms * 1e18 - marketDebitQ`.
+  Vault events `FeesReclassified`, `KeeperFeeAssigned`, `FeesPaid`; engine event `FeesReclassified`.
 - SDK: `packages/risk-sdk` (`decodeAccount`, `decodeMarket`, `decodeSettlementStatus`, `isClaimable`,
   `AccountingReplay`). SDK values are never authoritative; fixtures in `docs/app-state-fixtures.json`.
 
@@ -201,11 +204,11 @@ an amount that passes the current release preview. It is checked again at execut
   641 passes and no failures, including all eight BookGas tests; Python has 217 passes.
   Fresh per-suite evidence is `artifacts/risk/review-validation.json`.
   The original audit is preserved with a dated resolution addendum in `docs/merge/A-audit.md`.
-- Protocol fees now remain in separate engine `protocolFeeEscrowQ`; reserve dust stays in
-  `treasuryQ`. Both withdrawals pay the same immutable treasury beneficiary. A-I01 remains
-  deferred: protocol/keeper fee Q is still held within market allocation until withdrawal,
-  rather than immediately reclassified into separate vault-level fee escrows. No complete
-  spec-conformance claim is made for that classification.
+- A-I01 (implemented 2026-10-02, pending teammate review): at payout-scan completion the engine
+  moves exact `protocolFeeQ` and `keeperPayableQ` into the vault's global fee escrows and reduces
+  `allocationQ` by exactly that Q; reserve dust stays in `treasuryQ`. The removed engine
+  `protocolFeeEscrowQ()` / `withdrawProtocolFees()` are replaced by the vault escrow. Test counts
+  above are from `3b11044`; the current run is in `docs/merge/STATUS.md`.
 
 ## 11. Toolchain and review regressions
 

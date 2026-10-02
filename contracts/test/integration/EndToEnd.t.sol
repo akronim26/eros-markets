@@ -183,13 +183,18 @@ contract EndToEndTest is CombinedBase {
     }
 
     function _reconstruct(Vm.Log[] memory logs) internal view {
-        // Custody: recognized == sum(free) + sum(market) + sum(claims) over every holder here.
+        // Custody in Q: recognized == free + market (less its reclassified debit) + fee escrows
+        // + claims over every holder here (A-I01).
         uint256 sum = vault.marketAtoms(address(e)) + vault.freeAtoms(LP) + vault.claimAtoms(address(e), LP)
-            + vault.claimAtoms(address(e), TREASURY) + vault.freeAtoms(KEEPER);
+            + vault.claimAtoms(address(e), TREASURY) + vault.freeAtoms(KEEPER) + vault.freeAtoms(TREASURY);
         for (uint32 i = 1; i <= 8; ++i) {
             sum += vault.freeAtoms(_who(i)) + vault.claimAtoms(address(e), _who(i));
         }
-        assertEq(sum, vault.recognizedAtoms(), "custody reconstructed from vault views");
+        assertEq(
+            sum * 1e18 - vault.marketDebitQ(address(e)) + vault.totalFeeEscrowQ(),
+            vault.recognizedAtoms() * 1e18,
+            "custody reconstructed from vault views"
+        );
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms());
         // Account ledger: the last AccountBalance event of every trader equals A's account view.
         bytes32 accTopic = AccountingEvents.AccountBalance.selector;
@@ -217,9 +222,11 @@ contract EndToEndTest is CombinedBase {
                 break;
             }
         }
+        assertEq(e.outstandingReserveAtoms() * 1e18 + e.treasuryQ(), e.allocationQ());
         assertEq(
-            e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.protocolFeeEscrowQ() + e.keeperPayableQ(),
-            e.allocationQ()
+            vault.feeEscrowQ(TREASURY) + vault.keeperPoolQ(address(e)) + vault.feeEscrowQ(KEEPER),
+            vault.totalFeeEscrowQ(),
+            "fee escrows"
         );
     }
 

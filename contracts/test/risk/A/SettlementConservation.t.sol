@@ -14,6 +14,6 @@ abstract contract SettlementConservationChecks is AccountingTestBase {
         if (h.claimableAtoms(first) > 0) h.claimTrader(first);
         if (h.claimableAtoms(second) > 0) h.claimTrader(second);
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms());
-        assertEq(vault.marketAtoms(address(h)) * 1e18, h.allocationQ());
+        assertEq((vault.marketAtoms(address(h)) * 1e18 - vault.marketDebitQ(address(h))), h.allocationQ());
     }
 }

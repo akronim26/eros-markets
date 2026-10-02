@@ -36,14 +36,16 @@ contract FindingAF03ProtocolFeeEscrowTest is Test {
         uint256 reserveDustQ = h.reserveResidualQ() % 1e18;
         while (!h.claimsEnabled()) h.prepareReserve(32);
         // Reserve-treasury escrow should hold only reserve-owned dust; the protocol fee is a
-        // separate beneficiary-owned liability.
+        // separate beneficiary-owned liability, held in the vault's global fee escrow (A-I01).
         assertEq(h.treasuryQ(), reserveDustQ, "protocol fee folded into reserve treasury escrow");
-        assertEq(h.protocolFeeEscrowQ(), 2e18);
+        assertEq(vault.feeEscrowQ(address(0x777)), 2e18);
+        assertEq(h.reclassifiedProtocolFeeQ(), 2e18);
         assertEq(h.protocolFeeQ(), 0);
-        assertEq(h.withdrawProtocolFees(), 2);
-        assertEq(h.protocolFeeEscrowQ(), 0);
+        vm.prank(address(0x777));
+        assertEq(vault.withdrawFees(), 2);
+        assertEq(vault.feeEscrowQ(address(0x777)), 0);
         assertEq(h.treasuryQ(), reserveDustQ);
-        assertEq(vault.claimAtoms(address(h), address(0x777)), 2);
+        assertEq(vault.freeAtoms(address(0x777)), 2);
     }
 
     function _fund(MockUSDC token, CollateralVault vault, AccountingHarness h, address u, uint256 a, bool r)
