@@ -63,11 +63,12 @@ Plan §13: owner OA · 1 PD · depends — · acceptance: written in the seam re
 - Depends: -
 - Plan: §3.2, §3.3, §6.2, DEP-1, DEP-2, DEP-3, DEP-4, DEP-5, ADJ-04, ADJ-24, ADJ-25
 - Cut: no
-- Status: todo
+- Status: done
 - Files: docs_oracle/requests/ORACLE-to-RISK-seam.md
 - Build: One row per item, each with the plan's proposed answer and a status column: oracle enum `{NONE, YES, NO, INVALID}` and B's unused `VOIDED = 4` (I-5); the `Listing` fields the registry overwrites (§6.3 step 8, I-6); the `IMarketFactory` ABI (C.6); `marketRiskView().monitorRestricted` kept on the production engine (DEP-4); `voidSecs` = 45 days versus the engine comment's 30 (DEP-3); `bytes32` marketId; bond exposure `oiHaltLots × 1000`; `listingHash = keccak256(abi.encode(listing))`; the testnet bond token (Circle testnet USDC or the team MockUSDC); DEP-1/2/5 owners and expected timing.
 - Done when: the document is committed and sent to both Risk developers and the factory owner.
 - Check: manual: docs_oracle/requests/ORACLE-to-RISK-seam.md lists every item above with a proposed answer
+- Notes: Rows S-01–S-15 cite the engine source for each fact. Sending it to Person A, Person B and the factory owner is done by the team (not from this repository).
 
 ### O01.2 · Record the answers
 - Owner: OA
