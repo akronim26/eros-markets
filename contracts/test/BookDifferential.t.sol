@@ -20,7 +20,7 @@ contract BookDifferentialTest is Test {
         bool isBuy;
         bool reduceOnly;
         uint16 tick;
-        uint96 size;
+        uint64 size;
     }
 
     struct Fill {
@@ -28,7 +28,7 @@ contract BookDifferentialTest is Test {
         uint32 maker;
         uint32 taker;
         uint16 tick;
-        uint96 size;
+        uint64 size;
     }
 
     RefOrder[] ref; // time order = array order; size 0 = dead
@@ -48,10 +48,10 @@ contract BookDifferentialTest is Test {
 
     // ------------------------------------------------------------------ reference book
 
-    function _reducible(uint32 t, bool isBuy) internal view returns (uint96) {
+    function _reducible(uint32 t, bool isBuy) internal view returns (uint64) {
         int256 p = refPos[t];
-        if (isBuy) return p < 0 ? uint96(uint256(-p)) : 0;
-        return p > 0 ? uint96(uint256(p)) : 0;
+        if (isBuy) return p < 0 ? uint64(uint256(-p)) : 0;
+        return p > 0 ? uint64(uint256(p)) : 0;
     }
 
     function _crossesRef(bool isBuy, uint16 tick) internal view returns (bool) {
@@ -77,7 +77,7 @@ contract BookDifferentialTest is Test {
 
     function _refPlace(uint32 taker, Book.Place memory p, bool inBatch)
         internal
-        returns (bool rests, uint96 restSize)
+        returns (bool rests, uint64 restSize)
     {
         if (p.kind == Book.OrderType.POST_ONLY) {
             if (_crossesRef(p.isBuy, p.tick)) {
@@ -86,9 +86,9 @@ contract BookDifferentialTest is Test {
             }
             return (true, p.size);
         }
-        uint96 want = p.size;
+        uint64 want = p.size;
         if (p.reduceOnly) {
-            uint96 r = _reducible(taker, p.isBuy);
+            uint64 r = _reducible(taker, p.isBuy);
             if (r < want) want = r;
         }
         uint256 steps;
@@ -101,10 +101,10 @@ contract BookDifferentialTest is Test {
                 o.size = 0;
                 continue;
             }
-            uint96 req = want < o.size ? want : o.size;
-            uint96 f = req;
+            uint64 req = want < o.size ? want : o.size;
+            uint64 f = req;
             if (o.reduceOnly) {
-                uint96 r = _reducible(o.owner, o.isBuy);
+                uint64 r = _reducible(o.owner, o.isBuy);
                 if (r < f) f = r;
             }
             if (f == 0) {
@@ -138,7 +138,7 @@ contract BookDifferentialTest is Test {
         p.isBuy = (seed >> 8) % 2 == 0;
         p.reduceOnly = (seed >> 16) % 6 == 0;
         p.tick = uint16(496 + (seed >> 24) % 9);
-        p.size = uint96(1 + (seed >> 40) % 40);
+        p.size = uint64(1 + (seed >> 40) % 40);
         p.maxFills = uint8((seed >> 56) % 7);
     }
 
@@ -152,8 +152,8 @@ contract BookDifferentialTest is Test {
         n = 0;
         for (uint256 i; i < logs.length; ++i) {
             if (logs[i].topics[0] != Book.Fill.selector) continue;
-            (uint32 maker, uint32 taker, uint16 tick, uint96 size) =
-                abi.decode(logs[i].data, (uint32, uint32, uint16, uint96));
+            (uint32 maker, uint32 taker, uint16 tick, uint64 size) =
+                abi.decode(logs[i].data, (uint32, uint32, uint16, uint64));
             out[n++] = Fill(uint32(uint256(logs[i].topics[1])), maker, taker, tick, size);
         }
     }
@@ -178,7 +178,7 @@ contract BookDifferentialTest is Test {
             if (!inBatch && p.kind == Book.OrderType.POST_ONLY && _crossesRef(p.isBuy, p.tick)) {
                 p.kind = Book.OrderType.LIMIT;
             }
-            (bool rests, uint96 restSize) = _refPlace(trader, p, inBatch);
+            (bool rests, uint64 restSize) = _refPlace(trader, p, inBatch);
             uint32 id;
             vm.prank(actors[trader - 1]);
             if (inBatch) {

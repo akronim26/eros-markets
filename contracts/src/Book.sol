@@ -65,7 +65,7 @@ abstract contract Book {
         bool isBuy;
         bool reduceOnly;
         uint16 tick;
-        uint96 size;
+        uint64 size; // lots (0.001 claim)
         uint8 maxFills; // orders the match may examine, counting self-trades and failed makers
     }
 
@@ -74,8 +74,8 @@ abstract contract Book {
         uint32 taker;
         bool takerBuys;
         uint8 flags;
-        uint96 filled; // Book-maintained: taker units filled so far
-        uint256 cost; // Book-maintained: sum of fill size x tick (units of 0.001 USDC)
+        uint64 filled; // Book-maintained: taker lots filled so far
+        uint256 cost; // Book-maintained: sum of fill lots x tick, in USDC atoms
         RiskSnapshot risk; // Clearing-owned; Book never reads it
     }
 
@@ -85,14 +85,14 @@ abstract contract Book {
     struct Level {
         uint32 head; // oldest order slot
         uint32 tail; // newest order slot
-        uint96 size; // total resting units at this tick
+        uint96 size; // total resting lots at this tick (wider than one order's uint64)
         bool used;
     }
 
-    /// @dev One slot (224 bits). A dead order keeps owner/tick/gen as a non-zero tombstone.
+    /// @dev One slot (192 bits). A dead order keeps owner/tick/gen as a non-zero tombstone.
     struct Order {
         uint32 owner; // trader id
-        uint96 size; // remaining units; 0 = dead
+        uint64 size; // remaining lots; 0 = dead
         uint32 next; // next in level; while dead: next free slot
         uint32 prev;
         uint16 tick; // 1..999
@@ -118,9 +118,9 @@ abstract contract Book {
 
     event TraderRegistered(address indexed account, uint32 indexed trader);
     event MaxFillsSet(uint8 maxFills);
-    event OrderPlaced(uint32 indexed id, uint32 indexed trader, uint16 tick, uint96 size, uint8 flags);
-    event OrderCancelled(uint32 indexed id, uint96 size, CancelReason reason);
-    event Fill(uint32 indexed makerOrder, uint32 maker, uint32 taker, uint16 tick, uint96 size);
+    event OrderPlaced(uint32 indexed id, uint32 indexed trader, uint16 tick, uint64 size, uint8 flags);
+    event OrderCancelled(uint32 indexed id, uint64 size, CancelReason reason);
+    event Fill(uint32 indexed makerOrder, uint32 maker, uint32 taker, uint16 tick, uint64 size);
 
     // ------------------------------------------------------------------ errors
 
@@ -138,17 +138,17 @@ abstract contract Book {
 
     /// @dev Load the taker and settle its funding once; returns the size it may trade
     ///      (a reduce-only taker is clipped to its position here).
-    function _takerStart(Ctx memory c, uint96 size) internal virtual returns (uint96 allowed);
+    function _takerStart(Ctx memory c, uint64 size) internal virtual returns (uint64 allowed);
 
     /// @dev Check and update the maker. 0 = failed check (the order is cancelled);
     ///      less than `size` = reduce-only clip (the rest of the order is cancelled).
-    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16 tick, uint96 size, uint8 flags)
+    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16 tick, uint64 size, uint8 flags)
         internal
         virtual
-        returns (uint96 filled);
+        returns (uint64 filled);
 
     /// @dev Taker side of one fill; memory only. `c.filled` and `c.cost` already include it.
-    function _takerFill(Ctx memory c, bool takerBuys, uint16 tick, uint96 size) internal virtual;
+    function _takerFill(Ctx memory c, bool takerBuys, uint16 tick, uint64 size) internal virtual;
 
     /// @dev Final taker checks and the single account write; reverts on failure. `c.filled` and
     ///      `c.cost` hold the order's totals.
@@ -159,12 +159,12 @@ abstract contract Book {
     ///      Reverts to reject; in a batch that reverts the whole batch. Cancels are never gated.
     function _admit(uint32 trader, Place calldata p) internal virtual;
 
-    /// @dev Resting-order margin (R_buy, R_sell): `size` units started resting. `flags` carry the
+    /// @dev Resting-order margin (R_buy, R_sell): `size` lots started resting. `flags` carry the
     ///      side (FLAG_BUY) and FLAG_REDUCE_ONLY. May revert to refuse the rest.
-    function _onRest(uint32 trader, uint16 tick, uint96 size, uint8 flags) internal virtual;
+    function _onRest(uint32 trader, uint16 tick, uint64 size, uint8 flags) internal virtual;
 
-    /// @dev `size` units of an order with `flags` stopped resting (filled or cancelled).
-    function _onUnrest(uint32 trader, uint96 size, uint8 flags) internal virtual;
+    /// @dev `size` lots of an order with `flags` stopped resting (filled or cancelled).
+    function _onUnrest(uint32 trader, uint64 size, uint8 flags) internal virtual;
 
     // ------------------------------------------------------------------ external
 
@@ -275,7 +275,7 @@ abstract contract Book {
 
         Ctx memory c;
         (c.taker, c.takerBuys, c.flags) = (trader, p.isBuy, flags);
-        uint96 want = _takerStart(c, p.size);
+        uint64 want = _takerStart(c, p.size);
         if (want > p.size) want = p.size;
         want = _match(b, c, p.tick, want, p.maxFills);
         _takerDone(c);
@@ -299,10 +299,10 @@ abstract contract Book {
 
     /// @dev Walks the opposite side best price first, oldest first, examining at most `maxFills`
     ///      orders. Self-trades and failed makers are cancelled and still count as a step, so
-    ///      gas stays bounded whatever sits at the touch. Returns the unfilled size.
-    function _match(BookState storage b, Ctx memory c, uint16 limit, uint96 want, uint256 maxFills_)
+    ///      gas stays bounded whatever sits at the touch. Returns the unfilled lots.
+    function _match(BookState storage b, Ctx memory c, uint16 limit, uint64 want, uint256 maxFills_)
         internal
-        returns (uint96)
+        returns (uint64)
     {
         uint256 steps;
         while (want != 0 && steps < maxFills_) {
@@ -324,10 +324,10 @@ abstract contract Book {
         return want;
     }
 
-    /// @dev Examines the order in slot `s` at tick `k` and returns the units filled.
-    function _step(BookState storage b, Ctx memory c, uint32 s, uint16 k, uint96 want)
+    /// @dev Examines the order in slot `s` at tick `k` and returns the lots filled.
+    function _step(BookState storage b, Ctx memory c, uint32 s, uint16 k, uint64 want)
         internal
-        returns (uint96 filled)
+        returns (uint64 filled)
     {
         Order storage o = b.orders[s];
         (uint32 maker, uint8 flags) = (o.owner, o.flags & ~FLAG_LIVE);
@@ -335,8 +335,8 @@ abstract contract Book {
             _cancel(b, s, CancelReason.SELF_TRADE);
             return 0;
         }
-        uint96 size = o.size;
-        uint96 req = want < size ? want : size;
+        uint64 size = o.size;
+        uint64 req = want < size ? want : size;
         filled = _makerFill(c, maker, !c.takerBuys, k, req, flags);
         if (filled == 0) {
             _cancel(b, s, CancelReason.FAILED_CHECK);
@@ -360,7 +360,7 @@ abstract contract Book {
     // ------------------------------------------------------------------ rest / cancel
 
     /// @dev Appends at the tail of the level, reusing a free slot when one exists.
-    function _rest(BookState storage b, uint32 trader, uint16 tick, uint96 size, uint8 flags)
+    function _rest(BookState storage b, uint32 trader, uint16 tick, uint64 size, uint8 flags)
         internal
         returns (uint32 id)
     {
@@ -405,7 +405,7 @@ abstract contract Book {
 
     function _cancel(BookState storage b, uint32 s, CancelReason reason) internal {
         Order storage o = b.orders[s];
-        (uint32 owner, uint96 size, uint8 flags) = (o.owner, o.size, o.flags & ~FLAG_LIVE);
+        (uint32 owner, uint64 size, uint8 flags) = (o.owner, o.size, o.flags & ~FLAG_LIVE);
         emit OrderCancelled(_id(s, o.gen), size, reason);
         _unlink(b, s);
         _onUnrest(owner, size, flags);

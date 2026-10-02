@@ -20,28 +20,28 @@ contract LeanBook is Book {
         return _book.freeHead;
     }
 
-    function _takerStart(Ctx memory, uint96 size) internal pure override returns (uint96) {
+    function _takerStart(Ctx memory, uint64 size) internal pure override returns (uint64) {
         return size;
     }
 
-    function _makerFill(Ctx memory, uint32, bool, uint16, uint96 size, uint8)
+    function _makerFill(Ctx memory, uint32, bool, uint16, uint64 size, uint8)
         internal
         view
         override
-        returns (uint96)
+        returns (uint64)
     {
         return failAll ? 0 : size;
     }
 
-    function _takerFill(Ctx memory, bool, uint16, uint96) internal pure override {}
+    function _takerFill(Ctx memory, bool, uint16, uint64) internal pure override {}
 
     function _takerDone(Ctx memory) internal pure override {}
 
     function _admit(uint32, Place calldata) internal pure override {}
 
-    function _onRest(uint32, uint16, uint96, uint8) internal pure override {}
+    function _onRest(uint32, uint16, uint64, uint8) internal pure override {}
 
-    function _onUnrest(uint32, uint96, uint8) internal pure override {}
+    function _onUnrest(uint32, uint64, uint8) internal pure override {}
 }
 
 /// @notice Gas for the operations in spec §9.9, written to snapshots/BookGas.json.
@@ -74,7 +74,7 @@ contract BookGasTest is Test {
         book.batch(new uint32[](0), new Book.Place[](0));
     }
 
-    function _post(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
+    function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
         return book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, isBuy, false, tick, size, 0));
     }

@@ -17,7 +17,7 @@ contract BookHarness is Book {
     }
 
     /// @dev Rests an order without matching (placement lands with the match loop).
-    function rest(bool isBuy, uint16 tick, uint96 size) external returns (uint32) {
+    function rest(bool isBuy, uint16 tick, uint64 size) external returns (uint32) {
         return _rest(_openBook(), _traderOf(msg.sender), tick, size, isBuy ? FLAG_BUY : 0);
     }
 
@@ -35,7 +35,7 @@ contract BookHarness is Book {
     uint256 public snapshotMark = 555;
     uint256 public makerSawMark;
     uint256 public takerFillSawMark;
-    uint96 public doneFilled;
+    uint64 public doneFilled;
     uint256 public doneCost;
     uint256 public doneSawMark;
 
@@ -61,33 +61,33 @@ contract BookHarness is Book {
         return p > 0 ? uint256(p) : 0;
     }
 
-    function _apply(uint32 trader, bool isBuy, uint96 size) internal {
+    function _apply(uint32 trader, bool isBuy, uint64 size) internal {
         position[trader] += isBuy ? int256(uint256(size)) : -int256(uint256(size));
     }
 
-    function _takerStart(Ctx memory c, uint96 size) internal view override returns (uint96) {
+    function _takerStart(Ctx memory c, uint64 size) internal view override returns (uint64) {
         c.risk.mark = snapshotMark;
         if (c.flags & FLAG_REDUCE_ONLY == 0) return size;
         uint256 r = _reducible(c.taker, c.takerBuys);
-        return r < size ? uint96(r) : size;
+        return r < size ? uint64(r) : size;
     }
 
-    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16, uint96 size, uint8 flags)
+    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16, uint64 size, uint8 flags)
         internal
         override
-        returns (uint96 filled)
+        returns (uint64 filled)
     {
         makerSawMark = c.risk.mark;
         if (failMaker[maker]) return 0;
         filled = size;
         if (flags & FLAG_REDUCE_ONLY != 0) {
             uint256 r = _reducible(maker, makerBuys);
-            if (r < filled) filled = uint96(r);
+            if (r < filled) filled = uint64(r);
         }
         _apply(maker, makerBuys, filled);
     }
 
-    function _takerFill(Ctx memory c, bool takerBuys, uint16, uint96 size) internal override {
+    function _takerFill(Ctx memory c, bool takerBuys, uint16, uint64 size) internal override {
         takerFillSawMark = c.risk.mark;
         _apply(c.taker, takerBuys, size);
     }
@@ -114,13 +114,13 @@ contract BookHarness is Book {
     Stage public stage;
     uint8 public lastRestFlags;
     uint8 public lastUnrestFlags;
-    uint96 public minSize;
+    uint64 public minSize;
 
     function setStage(Stage s) external {
         stage = s;
     }
 
-    function setMinSize(uint96 size) external {
+    function setMinSize(uint64 size) external {
         minSize = size;
     }
 
@@ -131,12 +131,12 @@ contract BookHarness is Book {
         if (p.size < minSize) revert BelowMinSize();
     }
 
-    function _onRest(uint32 trader, uint16, uint96 size, uint8 flags) internal override {
+    function _onRest(uint32 trader, uint16, uint64 size, uint8 flags) internal override {
         reserved[trader][flags & FLAG_BUY != 0] += size;
         lastRestFlags = flags;
     }
 
-    function _onUnrest(uint32 trader, uint96 size, uint8 flags) internal override {
+    function _onUnrest(uint32 trader, uint64 size, uint8 flags) internal override {
         reserved[trader][flags & FLAG_BUY != 0] -= size;
         lastUnrestFlags = flags;
     }

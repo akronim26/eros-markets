@@ -16,7 +16,7 @@ contract BookRestTest is Test {
         book.createMarket(MAX_FILLS);
     }
 
-    function _rest(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
+    function _rest(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
         return book.rest(isBuy, tick, size);
     }
@@ -275,7 +275,7 @@ contract BookRestTest is Test {
         uint32[16] memory ids;
         uint256 expected;
         for (uint256 i; i < 16; ++i) {
-            ids[i] = _rest(alice, false, uint16(bound(ticks[i], 500, 503)), uint96(i + 1));
+            ids[i] = _rest(alice, false, uint16(bound(ticks[i], 500, 503)), uint64(i + 1));
         }
         for (uint256 i; i < 8; ++i) {
             if (cancelMask & (1 << i) != 0) _cancel(alice, ids[i * 2]);

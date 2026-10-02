@@ -20,7 +20,7 @@ contract BookBatchTest is Test {
         book.createMarket(MAX_FILLS);
     }
 
-    function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint96 size)
+    function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint64 size)
         internal
         pure
         returns (Book.Place memory)
@@ -36,7 +36,7 @@ contract BookBatchTest is Test {
         return book.batch(cancels, places);
     }
 
-    function _quote(uint16 bid, uint16 ask, uint96 size) internal returns (uint32[] memory) {
+    function _quote(uint16 bid, uint16 ask, uint64 size) internal returns (uint32[] memory) {
         Book.Place[] memory ps = new Book.Place[](2);
         ps[0] = _p(POST, true, bid, size);
         ps[1] = _p(POST, false, ask, size);
@@ -48,7 +48,7 @@ contract BookBatchTest is Test {
         (x[0], x[1]) = (a, b);
     }
 
-    function _size(uint32 id) internal view returns (uint96) {
+    function _size(uint32 id) internal view returns (uint64) {
         return book.getOrder(id).size;
     }
 

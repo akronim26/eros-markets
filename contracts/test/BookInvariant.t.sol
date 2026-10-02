@@ -39,7 +39,7 @@ contract BookHandler is Test {
         p.isBuy = (seed >> 8) % 2 == 0;
         p.reduceOnly = (seed >> 16) % 8 == 0;
         p.tick = uint16(495 + (seed >> 24) % 11);
-        p.size = uint96(1 + (seed >> 40) % 50);
+        p.size = uint64(1 + (seed >> 40) % 50);
         p.maxFills = uint8((seed >> 56) % 9);
     }
 
