@@ -292,15 +292,8 @@ contract MarketRegistry is IMarketRegistry {
         if (code != 0) revert BadUMAConfig(code);
     }
 
-    /// @dev Groups ship with the oracle's group code (O14.6), so grouped listings are accepted. The switch
-    ///      stays so a build without the group code can turn them off again (plan §13.1 cut).
-    function _groupsEnabled() internal view virtual returns (bool) {
-        return true;
-    }
-
     /// @dev The first market of a group records `{exists, exclusive}`; later ones must match it.
     function _recordGroup(bytes32 groupId, bool exclusive) internal {
-        if (!_groupsEnabled()) revert EarlyCheckOrGroupsDisabled();
         GroupInfo storage gi = _groups[groupId];
         if (!gi.exists) {
             (gi.exists, gi.exclusive) = (true, exclusive);

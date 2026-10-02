@@ -8,17 +8,11 @@ import {RegistryFixture} from "./RegistryFixture.sol";
 import {MockOracleView} from "../mocks/MockOracleView.sol";
 import {MockAssertionVenue} from "../mocks/MockAssertionVenue.sol";
 
-/// @dev Exposes `createMarket` rules 1-6 and the groups switch; marks a market listed for the duplicate rule.
+/// @dev Exposes `createMarket` rules 1-6; marks a market listed for the duplicate rule.
 contract RegistryRulesHarness is MarketRegistry {
-    bool public groupsOn;
-
     constructor(address oracle_, address usdc_, address gov_)
         MarketRegistry(oracle_, address(0x7EA5), address(0xFAC), usdc_, gov_, address(0x1157))
     {}
-
-    function setGroupsOn(bool on) external {
-        groupsOn = on;
-    }
 
     function validate(MarketInput calldata m) external returns (uint256 venueMinimumBond) {
         (, venueMinimumBond) = _validateMarket(m);
@@ -26,10 +20,6 @@ contract RegistryRulesHarness is MarketRegistry {
 
     function markListed(bytes32 id) external {
         _cores[id].engine = address(0xE);
-    }
-
-    function _groupsEnabled() internal view override returns (bool) {
-        return groupsOn;
     }
 }
 
@@ -102,15 +92,7 @@ contract RegistryCreateRulesTest is RegistryFixture {
         fresh.validate(_market());
     }
 
-    /// The harness switch (off by default) stands in for a build without the group code.
-    function test_rule1_groupsSwitchedOff() public {
-        MarketInput memory m = _market();
-        m.groupId = keccak256("group");
-        _rejects(m, IMarketRegistry.EarlyCheckOrGroupsDisabled.selector);
-    }
-
     function test_rule1_groupMismatch() public {
-        reg.setGroupsOn(true);
         MarketInput memory a = _market();
         a.groupId = keccak256("group");
         a.groupExclusive = true;
