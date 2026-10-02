@@ -4,3 +4,16 @@
 [submodule "contracts/lib/forge-std"]
 	path = contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "oracle/lib/forge-std"]
+	path = oracle/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "oracle/lib/solady"]
+	path = oracle/lib/solady
+	url = https://github.com/Vectorized/solady
+[submodule "oracle/lib/openzeppelin-contracts-v4"]
+	path = oracle/lib/openzeppelin-contracts-v4
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "oracle/lib/uma-protocol"]
+	path = oracle/lib/uma-protocol
+	url = https://github.com/UMAprotocol/protocol
+	shallow = true

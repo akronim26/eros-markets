@@ -11,7 +11,7 @@ Plan §13: owner OA+OB · 1 PD · depends — · acceptance: CI green on an empt
 - Depends: -
 - Plan: §6.1, §12.2, §12.2a, D18, ADJ-03, ADJ-04
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/foundry.toml, oracle/.gitignore, .gitmodules, oracle/lib/*, docs_oracle/ownership.md
 - Build: Install Foundry v1.8.3. Write `oracle/foundry.toml` exactly as plan §6.1. Add the four submodules at the pinned commits of §12.2a (forge-std f3dae6e, solady 2afba69, OpenZeppelin dc44c9f = v4.9.6, UMA protocol d1a2373 shallow, with `shallow = true` in `.gitmodules`). `oracle/.gitignore` covers out/, cache/, node_modules/, .env. Write `docs_oracle/ownership.md`: the oracle team owns `oracle/**`, `docs_oracle/**` and `.github/workflows/oracle.yml`; `contracts/**` is read-only and imported through the `@eros/`, `@eros-provisional/`, `@eros-test/` remappings; never import a `contracts/**/*.t.sol`.
 - Done when: `forge config` in `oracle/` prints no warning and resolves both profiles (default 1,000 fuzz / 64×64 invariant; `ci` 10,000 / 256×128); `git submodule status` shows the four pinned commits.
