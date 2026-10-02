@@ -11,6 +11,11 @@ import {
     FinalReason,
     FinalizeStatus,
     Ledger,
+    Phase,
+    PanelLabel,
+    PanelResult,
+    AIConfig,
+    Category,
     Resolution,
     TrustSet,
     TrustSetInput,
@@ -27,6 +32,7 @@ import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
 import {IMarketRegistry} from "./interfaces/IMarketRegistry.sol";
 import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
 import {IBondTreasury} from "./interfaces/IBondTreasury.sol";
+import {IEngineMonitorView} from "./interfaces/IEngineMonitorView.sol";
 import {BondMath} from "./libraries/BondMath.sol";
 import {ClaimRenderer} from "./libraries/ClaimRenderer.sol";
 import {HostLib} from "./libraries/HostLib.sol";
@@ -142,6 +148,33 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         emit IResolutionOracle.WatchdogHeartbeat(msg.sender, nowTs);
     }
 
+    // ------------------------------------------------------------------ early check (§8.5)
+
+    /// @notice The market's monitor, before T, once the engine is reduce-only (`requestReduceOnly`, S-09):
+    ///         None → EarlyCheck. Reverts `Unauthorized` for any other caller, `WrongState` outside None or
+    ///         at/after T, and `EngineCallFailed` while the engine is not monitor-restricted.
+    function requestEarlyCheck(bytes32 id) external nonReentrant {
+        Resolution storage r = _known(id);
+        MarketCore memory c = _core(id);
+        if (msg.sender != c.monitor) revert IResolutionOracle.Unauthorized();
+        if (r.state != RState.None || block.timestamp >= c.tau) revert IResolutionOracle.WrongState(r.state);
+        if (!IEngineMonitorView(c.engine).marketRiskView().monitorRestricted) {
+            revert IResolutionOracle.EngineCallFailed();
+        }
+        r.earlyStartedAt = uint64(block.timestamp);
+        _setState(id, r, RState.EarlyCheck);
+        emit IResolutionOracle.EarlyCheckRequested(id, uint64(block.timestamp));
+    }
+
+    /// @notice EarlyCheck or EarlyReview → None once the early TTL has run out; false otherwise.
+    function expireEarly(bytes32 id) external nonReentrant returns (bool changed) {
+        Resolution storage r = _known(id);
+        if (r.state != RState.EarlyCheck && r.state != RState.EarlyReview) return false;
+        if (block.timestamp < uint256(r.earlyStartedAt) + _core(id).earlyTtlSecs) return false;
+        _clearEarly(id, r, 1);
+        return true;
+    }
+
     // ------------------------------------------------------------------ lifecycle (permissionless)
 
     /// @notice At or after T, halts the engine (scheduled: `economicHaltAt = T`) from None, EarlyCheck or
@@ -195,6 +228,66 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         if (block.timestamp < opensAt) return false;
         _setState(id, r, RState.Open);
         return true;
+    }
+
+    // ------------------------------------------------------------------ panel (single attestor, relayed by anyone)
+
+    /// @notice A signed panel result (EIP-712 `PanelResult`, D5). EarlyCheck (phase EARLY, active set):
+    ///         three identical confident known labels, or any flag → EarlyReview (the committee decides);
+    ///         otherwise → None. L2Pending (phase POST_T, pinned set): two or more NOT_YET → stays; the
+    ///         auto gate passes → Proposed (L2_AUTO); otherwise → Review.
+    function submitPanelResult(bytes32 id, PanelResult calldata p, string calldata evidenceURI, bytes calldata sig)
+        external
+        nonReentrant
+        returns (RState routedTo)
+    {
+        Resolution storage r = _known(id);
+        RState st = r.state;
+        if (st == RState.EarlyCheck) {
+            AIConfig memory ai = _checkPanel(id, r, p, evidenceURI, sig, Phase.EARLY, activeTrustSetId);
+            if (p.flags != 0 || (_unanimous(p.labels, false) && _confident(p.calibratedBps, ai.highConfBps))) {
+                r.earlyStartedAt = uint64(block.timestamp);
+                _setState(id, r, RState.EarlyReview);
+            } else {
+                _clearEarly(id, r, 0);
+            }
+        } else if (st == RState.L2Pending) {
+            AIConfig memory ai = _checkPanel(id, r, p, evidenceURI, sig, Phase.POST_T, r.trustSetId);
+            uint256 notYet;
+            for (uint256 i; i < 3; ++i) {
+                if (p.labels[i] == uint8(PanelLabel.NOT_YET)) ++notYet;
+            }
+            if (notYet >= 2) {
+                emit IResolutionOracle.PanelNotYet(id, p.attempt);
+            } else if (_autoGate(r, p, ai) == 0) {
+                _record(id, r, Outcome(p.labels[0]), Path.L2_AUTO, p.evidenceHash, evidenceURI);
+            } else {
+                _setState(id, r, RState.Review);
+            }
+        } else {
+            revert IResolutionOracle.WrongState(st);
+        }
+        routedTo = r.state;
+        emit IResolutionOracle.PanelResultAccepted(
+            id, Phase(p.phase), p.labels, p.calibratedBps, p.evidenceHash, evidenceURI, routedTo
+        );
+    }
+
+    /// @notice L2Pending only: records the panel's outcome as an L2_AUTO proposal, or reverts
+    ///         `GateClosed(code)` when the auto gate (§6.4) does not pass.
+    function submitPanelProposal(bytes32 id, PanelResult calldata p, string calldata evidenceURI, bytes calldata sig)
+        external
+        nonReentrant
+    {
+        Resolution storage r = _known(id);
+        if (r.state != RState.L2Pending) revert IResolutionOracle.WrongState(r.state);
+        AIConfig memory ai = _checkPanel(id, r, p, evidenceURI, sig, Phase.POST_T, r.trustSetId);
+        uint8 code = _autoGate(r, p, ai);
+        if (code != 0) revert IResolutionOracle.GateClosed(code);
+        emit IResolutionOracle.PanelResultAccepted(
+            id, Phase.POST_T, p.labels, p.calibratedBps, p.evidenceHash, evidenceURI, RState.Proposed
+        );
+        _record(id, r, Outcome(p.labels[0]), Path.L2_AUTO, p.evidenceHash, evidenceURI);
     }
 
     // ------------------------------------------------------------------ proposals
@@ -456,6 +549,71 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     function _word(address a) internal pure returns (bytes32) {
         return bytes32(uint256(uint160(a)));
+    }
+
+    // ------------------------------------------------------------------ panel internals
+
+    /// @dev `PanelResult` payload checks (§6.4): BadPayload 7 marketId, 2 attempt, 4 trust set, 5 evidence URI,
+    ///      1 phase, 3 gateHash; `SignatureExpired`; `BadSignature` unless signed by the set's non-revoked
+    ///      runner attestor. Returns the market's AI config for the routing.
+    function _checkPanel(
+        bytes32 id,
+        Resolution storage r,
+        PanelResult calldata p,
+        string calldata evidenceURI,
+        bytes calldata sig,
+        Phase phase,
+        uint32 setId
+    ) internal view returns (AIConfig memory ai) {
+        if (p.marketId != id) revert IResolutionOracle.BadPayload(7);
+        if (block.timestamp > p.deadline) revert IResolutionOracle.SignatureExpired();
+        if (p.attempt != r.attempts) revert IResolutionOracle.BadPayload(2);
+        if (p.trustSetId != setId) revert IResolutionOracle.BadPayload(4);
+        _checkURI(evidenceURI, p.evidenceURIHash);
+        if (p.phase != uint8(phase)) revert IResolutionOracle.BadPayload(1);
+        if (p.gateHash != _core(id).gateHash) revert IResolutionOracle.BadPayload(3);
+        TrustSet storage s = _trustSets[setId];
+        if (
+            s.attestorRevoked
+                || !SigLib.isValidAttestorSig(s.cfg.runnerAttestor, _hashTypedData(SigLib.hashPanelResult(p)), sig)
+        ) revert IResolutionOracle.BadSignature();
+        ai = IMarketRegistry(registry).getAIConfig(id);
+    }
+
+    /// @dev §6.4 auto gate on the pinned globals version; 0 when it passes, else the `GateClosed` code:
+    ///      1 not 3/3 YES or 3/3 NO, 2 a confidence below θ_hi, 3 category not validated for this gateHash
+    ///      before the halt or outside U95/N, 4 OI above the review limit, 5 flags, 6 no evidence hash.
+    function _autoGate(Resolution storage r, PanelResult calldata p, AIConfig memory ai) internal view returns (uint8) {
+        if (!_unanimous(p.labels, true)) return 1;
+        if (!_confident(p.calibratedBps, ai.highConfBps)) return 2;
+        Globals memory g = _globals(r);
+        Category memory cat = IMarketRegistry(registry).category(ai.categoryId);
+        if (
+            !cat.validated || cat.gateHash != p.gateHash || cat.validatedAt > r.haltedAt || cat.u95Bps > g.deltaPmaxBps
+                || cat.sampleN < g.nMin
+        ) return 3;
+        if (r.oiHaltLots * OracleConst.ATOMS_PER_LOT > g.reviewLimitAtoms) return 4;
+        if (p.flags != 0) return 5;
+        if (p.evidenceHash == 0) return 6;
+        return 0;
+    }
+
+    /// @dev Three identical labels: YES or NO when `binary`, else YES, NO or INVALID.
+    function _unanimous(uint8[3] calldata labels, bool binary) internal pure returns (bool) {
+        uint8 l = labels[0];
+        if (l != labels[1] || l != labels[2]) return false;
+        return l == uint8(PanelLabel.YES) || l == uint8(PanelLabel.NO) || (!binary && l == uint8(PanelLabel.INVALID));
+    }
+
+    function _confident(uint16[3] calldata bps, uint16 floorBps) internal pure returns (bool) {
+        return bps[0] >= floorBps && bps[1] >= floorBps && bps[2] >= floorBps;
+    }
+
+    /// @dev Back to None (`EarlyCheckCleared` reason 0 panel not known, 1 TTL).
+    function _clearEarly(bytes32 id, Resolution storage r, uint8 reason) internal {
+        r.earlyStartedAt = 0;
+        _setState(id, r, RState.None);
+        emit IResolutionOracle.EarlyCheckCleared(id, reason);
     }
 
     // ------------------------------------------------------------------ proposal internals

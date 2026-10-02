@@ -272,11 +272,12 @@ Plan §13: owner OA · 5 PD · depends O10–O13 · acceptance: §11.1 unit test
 - Depends: O14.4
 - Plan: §5.4, §6.4, §8.5, §8.6, D5, ORC-15
 - Cut: no (in the cut `requestEarlyCheck` reverts `NotSupported`)
-- Status: todo
+- Status: done
 - Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OraclePanel.t.sol
 - Build: `requestEarlyCheck` (market monitor only, before T, engine `monitorRestricted`); `expireEarly`; `submitPanelResult` routing (EarlyCheck → EarlyReview or None; L2Pending → stay on ≥ 2 NOT_YET, Proposed on the auto gate, Review otherwise); `submitPanelProposal`; `_autoGate` (unanimous YES/NO, confidence floor, category validated with matching gateHash and `validatedAt ≤ haltedAt`, U95 and N limits, review limit, POST_T, `flags == 0`, evidence present) using the pinned globals version.
 - Done when: every routing row of §5.4 is tested; a category validated after the halt does not open the gate; revoking one closes it at once; L2_AUTO never happens before T.
 - Check: cd oracle && forge test --match-path test/unit/OraclePanel.t.sol
+- Notes: Implemented in full (not the cut's `NotSupported`). `requestEarlyCheck` reverts `Unauthorized` for anyone but the market's monitor, `WrongState` outside None or at/after T (as early proposals in O14.3), and `EngineCallFailed` while the engine's `marketRiskView().monitorRestricted` is false (S-09; the same "engine not in the expected state" error as the halt check). `expireEarly` returns to None with `EarlyCheckCleared(1)` and clears `earlyStartedAt`; an unknown early result clears with reason 0. An EARLY result routed to EarlyReview restarts the TTL (`earlyStartedAt = now`, §5.4). Panel payload checks run marketId (7), deadline (`SignatureExpired`, `now == deadline` valid), attempt (2), trust set (4: active set in EarlyCheck, pinned in L2Pending), evidence URI (5), phase (1), gateHash (3), then the attestor signature (`BadSignature`, also for a revoked attestor or a non-65-byte signature). `PanelResultAccepted` is emitted for every accepted result with the state it routed to (L2Pending for NOT_YET, which also emits `PanelNotYet`). Gate codes in C.3 order; the category needs `validated`, the market's gateHash and `validatedAt ≤ haltedAt`, with U95/N and the review limit read from the pinned globals version. ORC-15 holds by construction: L2Pending is only entered at or after T, and an early-halted market rejected before T sits in Review where a panel result reverts `WrongState` (tested). 27 tests; 51 mutations: 48 caught first, 2 survivors (middle label, middle confidence) closed by new cases, 1 re-run with a unique pattern and caught.
 
 ### O14.6 · Exclusive groups
 - Owner: OA
