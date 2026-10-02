@@ -7,11 +7,24 @@ import {LedgerMath as L} from "../math/LedgerMath.sol";
 import {QMath as Q} from "../math/QMath.sol";
 
 abstract contract PremiumAccounting is FundingAccounting {
+    function _segmentStartOf(Account storage a) internal view returns (uint64) {
+        return a.segmentStart < epoch.start ? epoch.start : a.segmentStart;
+    }
+
     function _premiumTotal(Account storage a, uint64 until) internal view returns (uint256) {
-        uint64 start = a.segmentStart < epoch.start ? epoch.start : a.segmentStart;
+        return _premiumTotalAt(a, until, epoch.stop);
+    }
+
+    /// @dev Cumulative segment premium with an explicit funding stop; previews pass the projected stop.
+    function _premiumTotalAt(Account storage a, uint64 until, uint64 fundingStop)
+        internal
+        view
+        returns (uint256)
+    {
+        uint64 start = _segmentStartOf(a);
         if (until <= start) return 0;
         P.Segment memory s =
-            P.Segment(a.segmentCash, a.value.lots, epoch.rate, start, epoch.stop, a.surchargeUntil);
+            P.Segment(a.segmentCash, a.value.lots, epoch.rate, start, fundingStop, a.surchargeUntil);
         return P.cumulative(s, tariff, until);
     }
 

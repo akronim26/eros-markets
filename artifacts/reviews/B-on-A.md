@@ -109,6 +109,10 @@ No Critical, High or Medium finding remains. Informational notes (no repair requ
 - **B-D02 (Info):** `_previewAccrual/_previewCharges` in the bridge re-derive A's funding and premium
   accrual for views. They match A's rules today (view-only, no authorization), but duplicated logic
   can drift; an A-owned view such as `_projectedTouch(owner, at)` would be safer.
+  *Update 2026-10-02 (implemented, B-D02, pending teammate review):* `FundingAccounting._fundingStep`
+  is now the single cutoff/stop rule used by both `_advanceFunding` and the preview, and
+  `AccountSync._projectedTouch` / `PremiumAccounting._premiumTotalAt` are shared by `_touch` and the
+  preview. Parity: `contracts/test/audit/BD02PreviewParity.t.sol` (fuzz, passes before and after).
 - **B-D03 (Info):** in `PremiumMath._accumulate` the triangle numerator `p²` uses checked
   multiplication, so a positive-part endpoint above 2^128 Q (≈3.4e14 USDC) reverts. That is far
   outside reachable balances, but the documented `|a| < 2^182` domain should say so.
