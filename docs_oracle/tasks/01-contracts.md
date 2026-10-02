@@ -425,8 +425,8 @@ Plan §13: owner OA · 2 PD · depends O17 · acceptance: dry-run on anvil and a
 - Plan: §12.4, §12.5, §12.11, C.1
 - Cut: yes
 - Status: todo
-- Files: oracle/script/DeployUmaSandbox.s.sol, oracle/script/DeployOracle.s.sol, oracle/deployments/params.monad-testnet.json
-- Build: Sandbox script in the eight steps of §12.4 (USDC bond token, ErosSandboxOracle replacing MockOracleAncillary, final asserts on owner and requester). Oracle script: precompute every address, deploy in the §12.5 order (Timelock initialized in the same script), assert each address, refuse stubs on chainId 143, pass factory 0 on mainnet, write `deployments/<network>.json` in the §12.11 schema with code hashes and deploy blocks.
+- Files: oracle/script/DeployUmaSandbox.s.sol, oracle/script/DeployOracle.s.sol, oracle/deployments/params.monad-testnet.json, oracle/src/testnet/TestUSDC.sol
+- Build: `TestUSDC` (TESTNET ONLY, 6 decimals, capped faucet mint, no other knobs; `seam-decisions.md` S-13), deployed first by the sandbox script when no bond token address is given. Sandbox script in the eight steps of §12.4 (USDC bond token, ErosSandboxOracle replacing MockOracleAncillary, final asserts on owner and requester). Oracle script: precompute every address, deploy in the §12.5 order (Timelock initialized in the same script), assert each address, refuse stubs on chainId 143, pass factory 0 on mainnet, write `deployments/<network>.json` in the §12.11 schema with code hashes and deploy blocks.
 - Done when: both scripts run on anvil and on a fork of Monad testnet with every assertion passing.
 - Check: cd oracle && forge script script/DeployOracle.s.sol --fork-url $MONAD_TESTNET_RPC
 

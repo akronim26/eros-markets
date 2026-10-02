@@ -8,7 +8,7 @@
       "title": "Seam frozen",
       "owners": "both",
       "entry": ["O01", "O02"],
-      "exit_criteria": "Seam request acknowledged by both Risk developers; Appendix C types and interfaces compiled in oracle/src unchanged; interface hash recorded here.",
+      "exit_criteria": "Seam decisions recorded in docs_oracle/seam-decisions.md (O01, ADJ-29); Appendix C types and interfaces compiled in oracle/src unchanged; interface hash recorded here.",
       "interface_hash_command": "cd oracle && cat $(ls src/types/*.sol src/interfaces/*.sol | LC_ALL=C sort) | sha256sum",
       "interface_hash": null,
       "evidence_dir": null,
