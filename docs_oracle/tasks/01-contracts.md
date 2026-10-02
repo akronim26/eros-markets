@@ -120,11 +120,12 @@ Plan §13: owner OA · 3 PD · depends O10 · acceptance: every §6.3 rejection 
 - Depends: O11.3
 - Plan: §6.3, §6.8, C.4, ADJ-14
 - Cut: yes
-- Status: todo
-- Files: oracle/src/MarketRegistry.sol, oracle/test/unit/RegistryCreateMarket.t.sol
+- Status: done
+- Files: oracle/src/MarketRegistry.sol, oracle/test/unit/RegistryCreateMarket.t.sol, oracle/test/unit/RegistryFixture.sol
 - Build: Step 7 `treasury.commitListing(id, BondMath.bond(oiCapLots, …))`; step 8 overwrite the listing fields (marketId, registry, resolutionAuthority, monitor, scheduledT, listedAt, rulesHash, `sourceHash = keccak256(abi.encode(specHash, keccak256(abi.encode(allowList))))`, invalidRule `{true, 3600, 5e17, voidSecs}`), `factory.deployMarket`, `ListingHashMismatch`, `EngineAlreadyHalted`; step 9 SSTORE2 writes, `gateHash`, `initResolution`, `MarketListed` (with `umaConfigHash`, ADJ-14). All C.4 views including `minVoidSecs`.
 - Done when: tests cover a listing-hash mismatch from the factory, a pre-halted engine, treasury below the cap, a non-lister caller, `setFactory` affecting only later listings, and a full round trip of every view.
 - Check: cd oracle && forge test --match-path test/unit/RegistryCreateMarket.t.sol
+- Notes: Team decisions: `specHash = keccak256(abi.encode(feed))` for every market, so a no-feed market stores the hash of the all-zero FeedSpec; market views return empty values for an unlisted id (`isListed` tells them apart; C.4 unchanged). The registry now declares `is IMarketRegistry` (C.4 unchanged, ABI snapshot still verifies). Order inside `createMarket`: lister, `NoFactory`, rules 1-6, step 7 commitment, step 8 handshake, step 9 writes, `initResolution`, `MarketListed`; every external call is to a governance-set contract and only the lister can enter, so the state writes after them are safe and atomic. The shared listing fixture moved to `test/unit/RegistryFixture.sol` (used by the O11.3 and O11.4 tests). Expected values: bond at cap 11,120,000 atoms (§12.5), the B.3 specHash from `vectors/spechash.json` (C.7), overwritten fields from §6.3 step 8; the real `StubMarketFactory` path is also listed end to end. MarketRegistry is 28,776 B of runtime code: above the Ethereum 24 KiB limit, within Monad's 128 KiB (§6.9, `code_size_limit`). 40 mutations (each overwritten field, each stored field, each check, the bond and the event hash) caught.
 
 ## O12 · BondTreasury
 Plan §13: owner OA · 2 PD · depends O02 · acceptance: ledger isolation, ORC-10, ORC-14.
