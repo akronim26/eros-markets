@@ -112,6 +112,10 @@ No Critical, High or Medium finding remains. Informational notes (no repair requ
 - **B-D03 (Info):** in `PremiumMath._accumulate` the triangle numerator `p²` uses checked
   multiplication, so a positive-part endpoint above 2^128 Q (≈3.4e14 USDC) reverts. That is far
   outside reachable balances, but the documented `|a| < 2^182` domain should say so.
+  *Update 2026-10-02 (resolved, B-D03):* the bound is tighter than stated. In the sign-crossing
+  branch the positive endpoint is below |lots·rate|·3600 < 2^112 Q, so the square cannot overflow in
+  `cumulative`'s domain at all. Documented on `_accumulate`; checked by
+  `contracts/test/audit/BD03PremiumBounds.t.sol` (max-slope crossing plus a domain fuzz).
 - **B-D04 (Info):** every vault claim on the engine (trader, LP, treasury, protocol-fee escrow) runs
   B's cash fence, so the first LP or treasury withdrawal also fixes claim mode to CASH. Conservative
   and harmless while conversion is disabled (DEC-10); revisit if conversion is ever enabled.

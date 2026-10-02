@@ -75,6 +75,10 @@ library PremiumMath {
         if (charge.remainder % denominator != 0) ++total;
     }
 
+    /// @dev Overflow bound (B-D03): in the sign-crossing branch the endpoints have opposite signs and
+    ///      differ by slope * duration, so the positive endpoint is below |lots * rate| * 3600
+    ///      <= 2^40 * 1e18 * 3600 < 2^112 Q and its checked square stays below 2^224. The trapezoid
+    ///      numerator stays below 2^194 for |cash| < 2^180. Neither reverts inside `cumulative`'s domain.
     function _accumulate(
         Charge memory charge,
         int256 intercept,
