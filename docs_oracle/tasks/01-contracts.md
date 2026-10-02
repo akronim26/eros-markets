@@ -191,11 +191,12 @@ Plan §13: owner OA · 1.5 PD · depends O02 · acceptance: A2 suite + extended 
 - Depends: O13.1
 - Plan: §6.7, §11.1, B.8, V-U1, ADJ-05
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/test/integration-uma/UmaVenue.t.sol
 - Build: Port the B.8 test into `test/integration-uma/` (imports adjusted to `../../src/…`, ADJ-05): real Finder, Store, AddressWhitelist, IdentifierWhitelist and OOv3 from artifacts, MockUSDC from `@eros-test`.
 - Done when: the six A2 cases pass (minimum bond = 2 × final fee; undisputed returns the bond to the asserter; only the team answers; unanswered never reverts; false pays the disputer 2B − 50% burn; stranger callbacks are no-ops; only the oracle asserts).
 - Check: cd oracle && forge test --match-path test/integration-uma/UmaVenue.t.sol
+- Notes: The B.8 test byte for byte (extracted from the plan), only the four `../src/` imports changed to `../../src/` (ADJ-05); fmt clean as given. Real Finder, Store, AddressWhitelist, IdentifierWhitelist and OOv3 (solc 0.8.16) deployed from artifacts. 6/6 A2 cases pass. Adapter mutations: 10 of 14 caught here; the 4 survivors (asserter used as payer, `trySettle` on an already-settled assertion, treasury-only `disputeFor`, `truthful` without `settled`) are exactly the O13.3 extended cases, so they are targeted there rather than changing the verbatim A2 port.
 
 ### O13.3 · Extended real-UMA cases
 - Owner: OA
