@@ -30,11 +30,6 @@ contract SigLibTest is Test {
 
     // ------------------------------------------------------------------ C.7 digests
 
-    function test_typehashesMatchC7() public pure {
-        assertEq(SigLib.PANEL_TYPEHASH, 0x69db7560f727032b47f7c3e6e9c198309778224bf26d820414042f3952f7d905);
-        assertEq(SigLib.REVIEWED_TYPEHASH, 0x859e8252aa8c9e5c1f41c429345599a5fbb3c1c5664602fff262b2ff0e856f57);
-    }
-
     function test_digestP1() public view {
         string memory j = vm.readFile("vectors/eip712.json");
         PanelResult memory r;

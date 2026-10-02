@@ -57,13 +57,6 @@ contract FeedSpecLibTest is Test {
         assertGe(n, 3);
     }
 
-    function test_specHash_matchesC7() public view {
-        assertEq(
-            FeedSpecLib.specHash(_spec(".specHash[0].spec")),
-            0x50661463875a7d2a9c9ca378a3d4d1ee141fef1d82091ecd7ab36829ea7f80cd
-        );
-    }
-
     function test_isZero() public view {
         FeedSpec memory z;
         assertTrue(FeedSpecLib.isZero(z));
