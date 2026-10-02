@@ -55,11 +55,12 @@ Plan §13: owner OB · 2 PD · depends O20, O02 · acceptance: §11.2 tests; no 
 - Depends: O21.1
 - Plan: §7.3, §7.4, D12, B.1, V-C4, V-C6
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/workflows/resolution/main.ts
 - Build: B.1 with the evaluator import changed to `../../packages/feedspec/src/index`. Zod config schema as given. Never `.withDefault(`.
 - Done when: `bun run typecheck` is clean.
 - Check: cd oracle/workflows/resolution && bun run typecheck
+- Notes: `main.ts` is the B.1 code block byte for byte, extracted from the plan, with only the evaluator import changed to `../../packages/feedspec/src/index` (§7.2 layout). It picks up the O20.1 `buildUrl` (registry template rules first); any throw there is still caught as `BAD_URL` and writes nothing. `bun run typecheck` (tsc 5.4.5, the §7.2 tsconfig, tests excluded) exits 0. No `.withDefault(` call (the O21.4 grep finds none; the word appears only in B.1's comment, without the dot and parenthesis). Early check for O21.4: `bun run build` (`cre-compile`, Javy plugin v8.1.0) built `out.wasm` (4,257,836 bytes, the plan's 4.3 MB) with no warning; it also writes an intermediate `out.js`, so O21.4 must git-ignore both; both were deleted here.
 
 ### O21.3 · Handler tests and parity tests
 - Owner: OB
