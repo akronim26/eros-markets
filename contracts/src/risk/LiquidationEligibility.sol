@@ -81,28 +81,6 @@ abstract contract LiquidationEligibility is FloorLifecycle {
         if (a.lots == 0 && el.mode == LM.Mode.REDUCE) el.mode = LM.Mode.NONE; // nothing to reduce
     }
 
-    function _snapAt(int256 cashQ, int256 lots, RiskContext memory c)
-        internal
-        view
-        returns (LM.Snap memory s)
-    {
-        (s.e0Q, s.e1Q) = MarginMath.endpoints(cashQ, lots);
-        s.emQ = MarginMath.markEquityQ(cashQ, lots, c.markWad);
-        s.xLots = lots;
-        if (lots != 0) {
-            s.mmQ =
-            MarginMath.sideMargin(
-                _absLots(lots),
-                lots > 0,
-                c.markWad,
-                c.secsToT,
-                c.economicTime,
-                _effectiveParams(c.economicTime)
-            )
-            .mmQ;
-        }
-    }
-
     struct Leg {
         LM.Snap before;
         LM.Snap afterFee;
