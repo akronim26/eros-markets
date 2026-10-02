@@ -267,7 +267,7 @@ contract GateRunnerSmoke { function testRunnerSmoke() public pure { assert(true)
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
-            hashes[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+            hashes[relative] = hashlib.sha256(content.encode("utf-8")).hexdigest()
         review = {"reviewer": "A", "status": "complete", "source_commit": "a" * 40,
                   "reviewed_files": hashes, "findings": []}
         path = self.root / "artifacts/reviews/A-on-B.json"
@@ -277,6 +277,16 @@ contract GateRunnerSmoke { function testRunnerSmoke() public pure { assert(true)
     def test_peer_review_requires_report_and_evidence(self):
         with self.assertRaisesRegex(ValueError, "source-bound evidence"):
             validate_review(self.root)
+
+    def test_peer_review_accepts_git_checkout_line_endings(self):
+        review, _ = self.prepare_review()
+        with patch("scripts.check_a_review.subprocess.run") as git:
+            git.return_value.returncode = 0
+            for newline in (b"\n", b"\r\n"):
+                for relative in review["reviewed_files"]:
+                    path = self.root / relative
+                    path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", newline))
+                self.assertEqual(validate_review(self.root)["reviewer"], "A")
 
     def test_peer_review_rejects_changed_or_unreviewed_source(self):
         self.prepare_review()

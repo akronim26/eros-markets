@@ -1,5 +1,10 @@
 {
- "note": "CollateralVault ABI (A017)",
+ "note": "CollateralVault ABI, including its production constructor (A017).",
+ "source": {
+  "src/vaults/CollateralVault.sol": "CollateralVault"
+ },
+ "compiler": "0.8.30+commit.73712a01",
+ "source_sha256": "9b64cd78bb2d5ddb66990dcbae3b398e0c8bf60e232fccc15b2dfc2b2b33e3cc",
  "abi": [
   {
    "type": "constructor",
