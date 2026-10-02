@@ -13,14 +13,14 @@ contract AccountingDifferential {
         }
     }
 
-    function testIndependentPremiumBounds() public pure {
+    function testIndependentPremiumExactCeilings() public pure {
         int256[7][] memory vectors = V.premium();
         for (uint256 i; i < vectors.length; i++) {
             int256[7] memory v = vectors[i];
             P.Segment memory s =
                 P.Segment(v[0], int128(v[1]), v[2], 0, uint64(uint256(v[4])), uint64(uint256(v[5])));
             uint256 actual = P.cumulative(s, P.Tariff(1e14, 1e14, 1e18), uint64(uint256(v[3])));
-            assert(actual >= uint256(v[6]) && actual - uint256(v[6]) < 12);
+            assert(actual == uint256(v[6]));
         }
     }
 }
