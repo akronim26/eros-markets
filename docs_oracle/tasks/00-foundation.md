@@ -27,7 +27,8 @@ Plan §13: owner OA+OB · 1 PD · depends — · acceptance: CI green on an empt
 - Files: oracle/test/uma/UmaImports.sol, oracle/test/vectors/Toolchain.t.sol, oracle/foundry.toml
 - Build: Add `test/uma/UmaImports.sol` verbatim from Appendix B.8 (pragma 0.8.16). Add a 0.8.30 test that `deployCode`s `Finder.sol:Finder` and asserts a non-zero address, and that one `@eros/` interface import compiles. This proves auto-detect compiles both solc versions and that `forge test` has at least one test (an empty project fails `forge test`).
 - Done when: `forge build` compiles UMA (0.8.16) and the test (0.8.30); the smoke test passes; `forge fmt --check` is clean.
-- Check: cd oracle && forge fmt --check && forge build --sizes && forge test --match-path test/vectors/Toolchain.t.sol
+- Check: cd oracle && forge fmt --check && forge build --sizes
+- Notes: The smoke test `test/vectors/Toolchain.t.sol` was removed on 2026-10-02 once real suites existed (team decision); `UmaImports.sol` stays and keeps UMA (0.8.16) in the build for O13.2.
 
 ### O00.3 · Bun workspace
 - Owner: OB
