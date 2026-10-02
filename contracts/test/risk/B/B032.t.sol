@@ -130,6 +130,22 @@ contract B032Test is Test {
         assertGt(r.lotsAfter, 0);
     }
 
+    /// Audit F-01: a pair that restores health ends the call; spare budget never sells the rest.
+    function test_pairRestoringHealthSkipsBookClose() public {
+        e.mockSetAccount(1, -int256(540 * USDC), 1_000_000); // E 60 < MM: eligible
+        e.mockSetAccount(2, int256(395 * USDC), -600_000);
+        e.mockSetAccount(9, int256(1812 * USDC / 10), 0);
+        e.rest(9, Side.BUY, 453, 400_000);
+        RiskLiquidation.LiquidationResult memory r = e.liq(1, 1_000_000, 8, 2);
+        assertEq(r.pairedLots, 600_000);
+        assertEq(r.bookLots, 0, "healthy remainder kept");
+        assertEq(uint8(r.result), uint8(LM.Result.DONE));
+        assertEq(e.mockAccount(1).lots, 400_000);
+        // 600 claims at tick 600 less the 0.6 USDC pair fee: E 59.4 >= IM 48
+        assertEq(e.mockAccount(1).cashQ, -int256(1806 * USDC / 10));
+        assertEq(e.bidLots(9), 400_000, "maker bid untouched");
+    }
+
     function test_tinyBudgetNeedsMoreWork() public {
         e.mockSetAccount(1, -int256(540 * USDC), 1_000_000);
         e.rest(9, Side.BUY, 600, 2_000_000);
