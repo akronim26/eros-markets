@@ -93,7 +93,7 @@ contract AccountingInvariantsTest is AccountingTestBase {
         h.prepareReserve(32);
         if (h.claimableAtoms(alice) > 0) h.claimTrader(alice);
         if (h.claimableAtoms(bob) > 0) h.claimTrader(bob);
-        assertEq(vault.marketAtoms(address(h)) * 1e18, h.allocationQ());
+        assertEq((vault.marketAtoms(address(h)) * 1e18 - vault.marketDebitQ(address(h))), h.allocationQ());
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms());
     }
 

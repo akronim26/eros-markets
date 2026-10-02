@@ -132,6 +132,8 @@ No Critical, High or Medium finding remains. Informational notes (no repair requ
   review. Proposed decision: move `protocolFeeEscrowQ` and `keeperQ` into per-beneficiary Q escrows
   in `CollateralVault` (recognized custody identity extended with an escrow-Q term; floor-atom
   withdrawals keep fractions), reducing market `allocationQ` exactly at reclassification, as spec §5.5 states.
+  *Update 2026-10-02:* implemented on `integration/risk` under shared ownership; choices and evidence in
+  `docs/questions/A-I01.md`. Pending the teammate's review (not self-approved).
 - Live counterparts (book, oracle, price collector, factory, app) remain BLOCKED_BY_COUNTERPART.
   `origin/feat/oracle` now exists but contains only `docs_oracle/eros-oracle-implementation-plan.md`.
 - Production blockers in `artifacts/risk/release-manifest.json` remain; no deployment approval.

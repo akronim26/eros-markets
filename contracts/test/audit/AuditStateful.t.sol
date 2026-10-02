@@ -81,7 +81,7 @@ contract AuditStatefulTest is Test {
         assertEq(n, 0, "INV-01");
         assertEq(cash + int256(h.protocolFeeQ() + h.keeperPayableQ()) + h.fundingClearingQ(), int256(h.allocationQ()), "INV-02");
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms(), "INV-03");
-        assertEq(vault.marketAtoms(address(h)) * Q, h.allocationQ(), "market atoms");
+        assertEq((vault.marketAtoms(address(h)) * Q - vault.marketDebitQ(address(h))), h.allocationQ(), "market atoms");
         (int256 s0, int256 s1) = h.coverageSlacks();
         assertGe(s0, 0, "INV-04 NO");
         assertGe(s1, 0, "INV-04 YES");

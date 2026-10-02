@@ -74,11 +74,11 @@ contract G6Test is CombinedBase {
     }
 
     function _common(uint256 priceWad) internal view {
-        // Every Q stays classified: LP atoms outstanding + treasury Q + keeper Q == market allocation.
-        assertEq(
-            e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.protocolFeeEscrowQ() + e.keeperPayableQ(),
-            e.allocationQ()
-        );
+        // Every Q stays classified: fees sit in vault escrows (A-I01), so LP atoms outstanding plus
+        // reserve treasury Q equal the market allocation, and the vault side agrees exactly.
+        assertEq(e.outstandingReserveAtoms() * 1e18 + e.treasuryQ(), e.allocationQ());
+        assertEq(vault.marketAtoms(address(e)) * 1e18 - vault.marketDebitQ(address(e)), e.allocationQ());
+        assertEq(e.protocolFeeQ() + e.keeperPayableQ(), 0, "fees reclassified");
         assertEq(e.conversionEligibility(), e.R_DISABLED(), "conversion stays disabled");
         assertFalse(e.recoveryEnabled(), "recovery disabled");
         assertTrue(e.claimsEnabled());
@@ -205,12 +205,14 @@ contract G6Test is CombinedBase {
         oracle.finalize(ORACLE_YES);
         _prepare(32);
         _common(1e18);
-        uint256 protocolFees = e.protocolFeeEscrowQ();
+        uint256 protocolFees = vault.feeEscrowQ(TREASURY);
         uint256 reserveDust = e.treasuryQ();
         assertEq(protocolFees, fee0 + 600e15);
-        uint256 atoms = e.withdrawProtocolFees();
+        assertEq(e.reclassifiedProtocolFeeQ(), protocolFees);
+        vm.prank(TREASURY);
+        uint256 atoms = vault.withdrawFees();
         assertEq(atoms, protocolFees / 1e18);
-        assertEq(e.protocolFeeEscrowQ(), protocolFees % 1e18, "fraction retained");
+        assertEq(vault.feeEscrowQ(TREASURY), protocolFees % 1e18, "fraction retained");
         assertEq(e.treasuryQ(), reserveDust, "reserve dust remains separate");
         _common(1e18);
     }

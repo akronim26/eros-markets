@@ -130,7 +130,7 @@ abstract contract CombinedBase is Test {
             "INV-02 ledger"
         );
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms(), "INV-03 custody");
-        assertEq(vault.marketAtoms(address(e)) * Q, e.allocationQ(), "market atoms");
+        assertEq((vault.marketAtoms(address(e)) * Q - vault.marketDebitQ(address(e))), e.allocationQ(), "market atoms");
         (int256 s0, int256 s1) = e.coverageSlacks();
         assertGe(s0, 0, "INV-04 NO");
         assertGe(s1, 0, "INV-04 YES");

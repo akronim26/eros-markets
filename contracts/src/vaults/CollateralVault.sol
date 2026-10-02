@@ -16,7 +16,10 @@ interface IAllocationReceiver {
     function onCashClaim(address owner, uint256 atoms) external;
 }
 
-/// @notice Custody in six-decimal atoms, isolated allocations by registered engine.
+/// @notice Custody in six-decimal atoms, isolated allocations by registered engine, and global
+///         per-beneficiary fee escrows in Q (A-I01). Custody identity, in Q:
+///         recognizedAtoms * Q = sum(freeAtoms) * Q + sum(marketAtoms * Q - marketDebitQ)
+///                                + totalFeeEscrowQ + sum(claimAtoms) * Q.
 contract CollateralVault {
     ICollateralToken public immutable token;
     address public immutable governor;
@@ -25,6 +28,15 @@ contract CollateralVault {
     mapping(address => uint256) public marketAtoms;
     mapping(address => mapping(address => uint256)) public claimAtoms;
     uint256 public recognizedAtoms;
+    /// @notice Fractional Q below `marketAtoms * Q` already reclassified out of a market (< 1 atom).
+    mapping(address => uint256) public marketDebitQ;
+    /// @notice Global fee escrow per beneficiary, across markets, in Q.
+    mapping(address => uint256) public feeEscrowQ;
+    /// @notice Per-engine keeper fee Q reclassified but not yet assigned to an individual keeper;
+    ///         the engine's `keeperQ` ledger says who owns it.
+    mapping(address => uint256) public keeperPoolQ;
+    /// @notice Sum of every `feeEscrowQ` and `keeperPoolQ`.
+    uint256 public totalFeeEscrowQ;
     uint256 private entered;
     error Unauthorized();
     error TransferFailed();
@@ -35,6 +47,11 @@ contract CollateralVault {
     event Released(address indexed engine, address indexed owner, uint256 atoms);
     event Escrowed(address indexed engine, address indexed owner, uint256 atoms);
     event Paid(address indexed engine, address indexed owner, uint256 atoms);
+    event FeesReclassified(
+        address indexed engine, address indexed beneficiary, uint256 protocolQ, uint256 keeperQ
+    );
+    event KeeperFeeAssigned(address indexed engine, address indexed keeper, uint256 amountQ);
+    event FeesPaid(address indexed owner, uint256 atoms);
 
     constructor(address token_, address governor_) {
         token = ICollateralToken(token_);
@@ -84,14 +101,14 @@ contract CollateralVault {
     }
 
     function release(address owner, uint256 atoms) external onlyEngine lock {
-        marketAtoms[msg.sender] -= atoms;
+        _takeMarketAtoms(msg.sender, atoms);
         freeAtoms[owner] += atoms;
         emit Released(msg.sender, owner, atoms);
     }
 
     function escrow(address owner, uint256 atoms) external onlyEngine lock {
         if (owner == address(0)) revert BadUnits();
-        marketAtoms[msg.sender] -= atoms;
+        _takeMarketAtoms(msg.sender, atoms);
         claimAtoms[msg.sender][owner] += atoms;
         emit Escrowed(msg.sender, owner, atoms);
     }
@@ -106,6 +123,63 @@ contract CollateralVault {
         IAllocationReceiver(engine).onCashClaim(owner, atoms);
         _send(owner, atoms);
         emit Paid(engine, owner, atoms);
+    }
+
+    /// @notice A-I01: move exact protocol and keeper fee Q out of the calling engine's market
+    ///         allocation into vault fee escrows. Internal bookkeeping only; no token moves.
+    function reclassifyFees(address protocolBeneficiary, uint256 protocolQ, uint256 keeperQ)
+        external
+        onlyEngine
+        lock
+    {
+        if (protocolBeneficiary == address(0)) revert BadUnits();
+        uint256 debit = marketDebitQ[msg.sender] + protocolQ + keeperQ;
+        marketAtoms[msg.sender] -= debit / 1e18;
+        marketDebitQ[msg.sender] = debit % 1e18;
+        _checkMarket(msg.sender);
+        feeEscrowQ[protocolBeneficiary] += protocolQ;
+        keeperPoolQ[msg.sender] += keeperQ;
+        totalFeeEscrowQ += protocolQ + keeperQ;
+        emit FeesReclassified(msg.sender, protocolBeneficiary, protocolQ, keeperQ);
+    }
+
+    /// @notice Move a keeper's exact Q from the calling engine's keeper pool to the keeper's global
+    ///         escrow, then pay the keeper's whole atoms to their free balance.
+    function assignKeeperFee(address keeper, uint256 amountQ)
+        external
+        onlyEngine
+        lock
+        returns (uint256 atoms)
+    {
+        if (keeper == address(0)) revert BadUnits();
+        keeperPoolQ[msg.sender] -= amountQ;
+        feeEscrowQ[keeper] += amountQ;
+        emit KeeperFeeAssigned(msg.sender, keeper, amountQ);
+        atoms = _payFees(keeper);
+    }
+
+    /// @notice Pay floor(feeEscrowQ / Q) atoms to the caller's free balance; the fraction stays owed.
+    function withdrawFees() external lock returns (uint256 atoms) {
+        atoms = _payFees(msg.sender);
+    }
+
+    function _payFees(address owner) private returns (uint256 atoms) {
+        atoms = feeEscrowQ[owner] / 1e18;
+        if (atoms == 0) return 0;
+        feeEscrowQ[owner] -= atoms * 1e18;
+        totalFeeEscrowQ -= atoms * 1e18;
+        freeAtoms[owner] += atoms;
+        emit FeesPaid(owner, atoms);
+    }
+
+    function _takeMarketAtoms(address engine, uint256 atoms) private {
+        marketAtoms[engine] -= atoms;
+        _checkMarket(engine);
+    }
+
+    /// @dev A market can never pay out Q that was reclassified to a fee escrow.
+    function _checkMarket(address engine) private view {
+        if (marketAtoms[engine] * 1e18 < marketDebitQ[engine]) revert BadUnits();
     }
 
     function addBackingFromEngine(uint256 atoms) external onlyEngine lock {

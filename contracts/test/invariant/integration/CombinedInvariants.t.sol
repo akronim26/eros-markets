@@ -399,11 +399,9 @@ contract CombinedInvariantsTest is Test {
             // Payout escrow pages move allocation out page by page (spec: preparation
             // accumulators are incomplete until their cursor finishes); check the final identity.
             if (e.claimsEnabled()) {
-                assertEq(
-                    e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.protocolFeeEscrowQ()
-                        + e.keeperPayableQ(),
-                    e.allocationQ()
-                );
+                // Fees already left for vault escrows (A-I01).
+                assertEq(e.outstandingReserveAtoms() * 1e18 + e.treasuryQ(), e.allocationQ());
+                assertEq(e.protocolFeeQ() + e.keeperPayableQ(), 0);
             }
             return;
         }
@@ -421,7 +419,7 @@ contract CombinedInvariantsTest is Test {
     /// INV-03 recognized custody <= actual token custody; market allocation in atoms.
     function invariant_INV03_custody() public view {
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms());
-        assertEq(vault.marketAtoms(address(e)) * 1e18, e.allocationQ());
+        assertEq(vault.marketAtoms(address(e)) * 1e18 - vault.marketDebitQ(address(e)), e.allocationQ());
     }
 
     /// INV-04 both outcome coverage inequalities (live and frozen).

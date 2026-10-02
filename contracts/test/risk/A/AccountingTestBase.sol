@@ -88,7 +88,7 @@ abstract contract AccountingTestBase is Test {
         (int256 s0, int256 s1) = h.coverageSlacks();
         assertGe(s0, 0);
         assertGe(s1, 0);
-        assertEq(vault.marketAtoms(address(h)) * 1e18, h.allocationQ());
+        assertEq((vault.marketAtoms(address(h)) * 1e18 - vault.marketDebitQ(address(h))), h.allocationQ());
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms());
     }
 }

@@ -21,7 +21,10 @@ contract A038Test is AccountingTestBase {
         h.claimTrader(alice);
         h.claimTrader(bob);
         h.withdrawTreasury();
-        assertEq(h.allocationQ(), h.treasuryQ() + h.keeperPayableQ());
-        assertEq(vault.marketAtoms(address(h)) * 1e18, h.allocationQ());
+        // A-I01: the keeper's half atom sits in the vault's keeper pool, outside the market.
+        assertEq(h.keeperPayableQ(), 0);
+        assertEq(vault.keeperPoolQ(address(h)), 5e17);
+        assertEq(h.allocationQ(), h.treasuryQ());
+        assertEq((vault.marketAtoms(address(h)) * 1e18 - vault.marketDebitQ(address(h))), h.allocationQ());
     }
 }

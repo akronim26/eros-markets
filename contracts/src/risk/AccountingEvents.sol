@@ -16,6 +16,7 @@ abstract contract AccountingEvents {
     event AccountTakenOver(address indexed owner, int128 lots, int256 cashQ, uint64 cutoff);
     event EconomicHalt(uint64 economicHaltAt, uint64 recordedAt, uint64 accrualCutoff, uint256 oiHaltLots);
     event ClaimsPrepared(uint256 traderAtoms, uint256 reserveResidualQ);
+    event FeesReclassified(uint256 protocolFeeQ, uint256 keeperFeeQ);
     event AccountBalance(address indexed owner, int128 positionLots, int256 cashQ, int256 fundingCheckpointQ);
     event MarketBalance(
         uint256 allocationQ,

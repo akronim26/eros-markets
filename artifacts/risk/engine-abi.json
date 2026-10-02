@@ -4,7 +4,7 @@
   "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "88d8bf0ebf38a0aaf78f98d0525bd77f4f9adf47f233d2961d696e70771d9ec8",
+ "source_sha256": "752b065751fd9c1da405be0325db5b4f6c0adaf6a866db2082c880cfc48c6ec0",
  "abi": [
   {
    "type": "function",
@@ -909,6 +909,19 @@
     },
     {
      "name": "stopped",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "feesReclassified",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
      "type": "bool",
      "internalType": "bool"
     }
@@ -3005,19 +3018,6 @@
   },
   {
    "type": "function",
-   "name": "protocolFeeEscrowQ",
-   "inputs": [],
-   "outputs": [
-    {
-     "name": "",
-     "type": "uint256",
-     "internalType": "uint256"
-    }
-   ],
-   "stateMutability": "view"
-  },
-  {
-   "type": "function",
    "name": "protocolFeeQ",
    "inputs": [],
    "outputs": [
@@ -3057,6 +3057,32 @@
      "internalType": "address"
     }
    ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "reclassifiedKeeperQ",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "reclassifiedProtocolFeeQ",
+   "inputs": [],
    "outputs": [
     {
      "name": "",
@@ -4185,19 +4211,6 @@
   },
   {
    "type": "function",
-   "name": "withdrawProtocolFees",
-   "inputs": [],
-   "outputs": [
-    {
-     "name": "atoms",
-     "type": "uint256",
-     "internalType": "uint256"
-    }
-   ],
-   "stateMutability": "nonpayable"
-  },
-  {
-   "type": "function",
    "name": "withdrawTreasury",
    "inputs": [],
    "outputs": [
@@ -4532,6 +4545,25 @@
     },
     {
      "name": "budgetQ",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "FeesReclassified",
+   "inputs": [
+    {
+     "name": "protocolFeeQ",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "keeperFeeQ",
      "type": "uint256",
      "indexed": false,
      "internalType": "uint256"
