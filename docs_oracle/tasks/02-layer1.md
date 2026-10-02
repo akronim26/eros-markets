@@ -27,7 +27,7 @@ Plan §13: owner OB · 1 PD · depends OG0 · acceptance: bun tests (A1) + vecto
 - Cut: yes
 - Status: todo
 - Files: oracle/packages/feedspec/test/vectors.test.ts
-- Build: Read `oracle/vectors/feedspec.json` (created in O10.2): every validation vector gives the same accept/reject result in TypeScript; every specHash vector, computed with viem `encodeAbiParameters` on the FeedSpec tuple, equals the Solidity value.
+- Build: Read `oracle/vectors/feedspec.json` and `oracle/vectors/spechash.json` (O02.2, O10.2): every validation vector gives the same accept/reject result in TypeScript; every specHash vector, computed with viem `encodeAbiParameters` on the FeedSpec tuple, equals the Solidity value.
 - Done when: the same file passes in bun and Foundry, including `0x5066…80cd`.
 - Check: cd oracle/packages/feedspec && bun test test/vectors.test.ts
 

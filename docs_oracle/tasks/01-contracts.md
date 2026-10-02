@@ -27,11 +27,11 @@ Plan §13: owner OA · 3 PD · depends OG0 · acceptance: unit + fuzz; vectors i
 - Plan: §6.3, §7.3, §11.2, C.7, ADJ-08, ADJ-12
 - Cut: yes
 - Status: done
-- Files: oracle/src/libraries/FeedSpecLib.sol, oracle/test/unit/FeedSpecLib.t.sol, oracle/vectors/feedspec.json
-- Build: Path grammar `seg(.seg)*`, `seg = [A-Za-z0-9_$-]+` followed by `[n]` indexes with `n = 0|[1-9][0-9]{0,5}`, at most 256 bytes; non-empty `finalValue`; op per type (STRING: EQ/NEQ; INT/DECIMAL: all six); `decimals > 0` only for DECIMAL and ≤ 18; target parse (INT `-?(0|[1-9]\d*)`, DECIMAL with at most `decimals` fractional digits and no exponent, STRING non-empty); `bufferSecs < l1TimeoutSecs` within the globals bounds passed in; all-zero spec check; `specHash = keccak256(abi.encode(spec))`. Create `vectors/feedspec.json` (valid and invalid specs with the expected error code, plus at least three specHash vectors: with and without `authRef`, empty `urlParam`, long strings) and read it with `vm.readFile`.
+- Files: oracle/src/libraries/FeedSpecLib.sol, oracle/test/unit/FeedSpecLib.t.sol, oracle/vectors/feedspec.json, oracle/vectors/spechash.json
+- Build: Path grammar `seg(.seg)*`, `seg = [A-Za-z0-9_$-]+` followed by `[n]` indexes with `n = 0|[1-9][0-9]{0,5}`, at most 256 bytes; non-empty `finalValue`; op per type (STRING: EQ/NEQ; INT/DECIMAL: all six); `decimals > 0` only for DECIMAL and ≤ 18; target parse (INT `-?(0|[1-9]\d*)`, DECIMAL with at most `decimals` fractional digits and no exponent, STRING non-empty); `bufferSecs < l1TimeoutSecs` within the globals bounds passed in; all-zero spec check; `specHash = keccak256(abi.encode(spec))`. Create `vectors/feedspec.json` (valid and invalid specs with the expected error code) and add to `vectors/spechash.json` at least three more specHash vectors (with `authRef`, empty `urlParam`, long strings); read both with `vm.readFile`.
 - Done when: every vector passes in Foundry, including the C.7 specHash `0x5066…80cd`; O20.2 asserts the same file in TypeScript.
 - Check: cd oracle && forge test --match-path test/unit/FeedSpecLib.t.sol
-- Notes: 71 validation cases (every code 0-12) with hand-assigned expected codes and 5 specHash vectors computed with viem 2.57.2 (B.3 matches C.7). The TypeScript half of the parity check is O20.2. `validate` takes the allowed L1 host and whether `authRef` is known from the registry; code 13 uses `isZero`.
+- Notes: 71 validation cases (every code 0-12) with hand-assigned expected codes in `feedspec.json`; 5 specHash vectors computed with viem 2.57.2 in `spechash.json` (vector 0 is B.3 = C.7; moved there from `feedspec.json` on 2026-10-02 so each vector has one home). The TypeScript half of the parity check is O20.2. `validate` takes the allowed L1 host and whether `authRef` is known from the registry; code 13 uses `isZero`.
 
 ### O10.3 · ClaimRenderer
 - Owner: OA
