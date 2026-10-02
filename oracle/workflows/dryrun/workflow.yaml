@@ -1,0 +1,9 @@
+# Simulation only (plan §7.5): never deployed, so there are no staging or production targets.
+# Each candidate market gets its own config.<market>.json; pass it with --config, or point config-path at it.
+local-sim:
+  user-workflow:
+    workflow-name: "eros-dryrun-sim"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.sample.json"
+    secrets-path: "../secrets.yaml"

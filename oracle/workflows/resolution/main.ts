@@ -32,7 +32,8 @@ import {
   zeroAddress,
 } from 'viem'
 import { z } from 'zod'
-import { allowListed, buildUrl, evaluateResponse, type FeedSpec, MAX_BODY_BYTES } from '../../packages/feedspec/src/index'
+import { allowListed, buildUrl, type FeedSpec } from '../../packages/feedspec/src/index'
+import { nodeFetch, ZERO32 } from '../../packages/feedspec/src/fetch'
 
 const configSchema = z.object({
   chainSelectorName: z.enum(['monad-testnet', 'monad-mainnet']),
@@ -54,38 +55,11 @@ const FEEDSPEC_PARAMS = parseAbiParameters(
   '(string,string,bytes32,string,string,string,uint8,uint8,uint8,string,uint32,uint32)',
 )
 export const STATE_L1_PENDING = 3 // RState.L1Pending (see OracleTypes.sol)
-const ZERO32 = `0x${'00'.repeat(32)}`
 
 // Node mode: each DON node fetches and evaluates independently. Returns "STATUS|valueHash|code".
-const fetchAndEvaluate = (
-  sendRequester: HTTPSendRequester,
-  spec: FeedSpec,
-  url: string,
-  timeout: string,
-  authHeader: string,
-  authValue: string,
-): string => {
-  try {
-    const multiHeaders: Record<string, { values: string[] }> = { accept: { values: ['application/json'] } }
-    if (authHeader !== '') multiHeaders[authHeader] = { values: [authValue] }
-    const resp = sendRequester
-      .sendRequest({
-        url,
-        method: 'GET',
-        multiHeaders,
-        timeout,
-        cacheSettings: { store: false }, // maxAge unset (0) => never read from cache; fresh per node
-      })
-      .result()
-    const bodyBytes = resp.body.length
-    if (bodyBytes > MAX_BODY_BYTES) return 'ERROR|' + ZERO32 + '|BODY_TOO_LARGE'
-    const ev = evaluateResponse(spec, resp.statusCode, text(resp), bodyBytes)
-    const vh = ev.status === 'YES' || ev.status === 'NO' ? keccak256(toBytes(ev.valueLexeme)) : ZERO32
-    return `${ev.status}|${vh}|${ev.code}`
-  } catch {
-    return 'ERROR|' + ZERO32 + '|FETCH_FAILED' // timeout, 429 throttling at transport, >250KB, etc.
-  }
-}
+// The function is shared with workflows/dryrun (packages/feedspec/src/fetch.ts, ADJ-36).
+type HTTPResponse = ReturnType<ReturnType<HTTPSendRequester['sendRequest']>['result']>
+export const fetchAndEvaluate = nodeFetch<HTTPResponse>({ text: (r) => text(r), hashLexeme: (l) => keccak256(toBytes(l)) })
 
 export const onResolutionRequested = (runtime: Runtime<Config>, log: EVMLog): string => {
   const cfg = runtime.config
