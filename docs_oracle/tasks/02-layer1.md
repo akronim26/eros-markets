@@ -68,11 +68,12 @@ Plan §13: owner OB · 2 PD · depends O20, O02 · acceptance: §11.2 tests; no 
 - Depends: O21.2
 - Plan: §11.2, B.3, C.7
 - Cut: yes
-- Status: todo
-- Files: oracle/workflows/resolution/main.test.ts, oracle/workflows/resolution/parity.test.ts
+- Status: done
+- Files: oracle/workflows/resolution/main.test.ts, oracle/workflows/resolution/parity.test.ts, oracle/workflows/resolution/main.ts
 - Build: B.3 tests plus: unknown `authRef`, specHash mismatch and state ≠ L1Pending write nothing; a YES report decodes to v1 bound to selector, oracle, market, observedAt, valueHash and specHash. Parity test: `RESOLUTION_REQUESTED == 0xa3af…3a13` and `STATE_L1_PENDING == 3`, read from the ABI snapshot in `oracle/abi/` (O02.2).
 - Done when: all handler and parity tests pass.
 - Check: cd oracle/workflows/resolution && bun test
+- Notes: `main.test.ts` keeps B.3's three tests as given (YES report decoded after the 109-byte header and bound to selector 2183018362218727504, oracle, market, observedAt = requestedAt, valueHash = keccak256(lexeme) and specHash; LIVE and HTTP 429 write nothing), then adds, through a settable copy of B.3's setup that also records every HTTP request: a NO report (outcome 2, valueHash of "2"); state 0, 4, 7 and 10 (not L1Pending) skip; a specHash mismatch, an unknown authRef and a host that is not `allowList[0]` each return their error and make no HTTP request; a known authRef sends `prefix + secret` in its configured header (secret read from the test runtime's `main` namespace); HTTP 503 and invalid JSON write nothing. `parity.test.ts`: the `ResolutionRequested` topic computed from the ABI snapshot `oracle/abi/IResolutionOracle.json` is 0xa3af…3a13 (C.7) and equals the workflow's `RESOLUTION_REQUESTED`, with marketId indexed and requestedAt and requestCount in data; an ABI carries enums only as uint8, so `L1Pending` = 3 is read from the `RState` declaration in `src/types/OracleTypes.sol` (the source `Constants.t.sol` asserts in Foundry) and equals `STATE_L1_PENDING`; `getL1Job`'s first output is the declared `uint8 state`. To test the workflow's own values, `main.ts` now exports those two constants (the only change to B.1 besides the import). 12 tests; typecheck still clean; 9 planted handler bugs all caught (state, specHash and allow-list checks removed, an unknown authRef fetched without a key, NO reported as YES, observedAt not the request time, a write on NOT_READY, a wrong L1Pending value, a wrong event signature).
 
 ### O21.4 · WASM build and the CI workflow job
 - Owner: OB

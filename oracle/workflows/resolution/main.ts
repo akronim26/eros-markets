@@ -46,14 +46,14 @@ const configSchema = z.object({
 })
 type Config = z.infer<typeof configSchema>
 
-const RESOLUTION_REQUESTED = keccak256(toBytes('ResolutionRequested(bytes32,uint64,uint32)'))
+export const RESOLUTION_REQUESTED = keccak256(toBytes('ResolutionRequested(bytes32,uint64,uint32)'))
 const ORACLE_ABI = parseAbi([
   'function getL1Job(bytes32 marketId) view returns (uint8 state, (string urlTemplate,string urlParam,bytes32 authRef,string finalPath,string finalValue,string valuePath,uint8 valueType,uint8 decimals,uint8 op,string target,uint32 bufferSecs,uint32 l1TimeoutSecs) spec, string[] allowList, bytes32 specHash)',
 ])
 const FEEDSPEC_PARAMS = parseAbiParameters(
   '(string,string,bytes32,string,string,string,uint8,uint8,uint8,string,uint32,uint32)',
 )
-const STATE_L1_PENDING = 3 // RState.L1Pending (see OracleTypes.sol)
+export const STATE_L1_PENDING = 3 // RState.L1Pending (see OracleTypes.sol)
 const ZERO32 = `0x${'00'.repeat(32)}`
 
 // Node mode: each DON node fetches and evaluates independently. Returns "STATUS|valueHash|code".
