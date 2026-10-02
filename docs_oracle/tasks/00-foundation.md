@@ -57,31 +57,33 @@ Plan §13: owner OA+OB · 1 PD · depends — · acceptance: CI green on an empt
 ## O01 · Seam agreement with Risk and the factory owner
 Plan §13: owner OA · 1 PD · depends — · acceptance: written in the seam request, acknowledged by both Risk devs.
 
-### O01.1 · Draft the seam request
+For the hackathon the oracle team decides the seam itself instead of waiting for acknowledgement
+(ADJ-29); the decisions conform to the engine code and need no engine change.
+
+### O01.1 · Decide the seam
 - Owner: OA
 - PD: 0.5
 - Depends: -
-- Plan: §3.2, §3.3, §6.2, DEP-1, DEP-2, DEP-3, DEP-4, DEP-5, ADJ-04, ADJ-24, ADJ-25
-- Cut: no
+- Plan: §3.2, §3.3, §6.2, DEP-1, DEP-2, DEP-3, DEP-4, DEP-5, ADJ-24, ADJ-25, ADJ-29
+- Cut: yes
 - Status: done
-- Files: docs_oracle/requests/ORACLE-to-RISK-seam.md
-- Build: One row per item, each with the plan's proposed answer and a status column: oracle enum `{NONE, YES, NO, INVALID}` and B's unused `VOIDED = 4` (I-5); the `Listing` fields the registry overwrites (§6.3 step 8, I-6); the `IMarketFactory` ABI (C.6); `marketRiskView().monitorRestricted` kept on the production engine (DEP-4); `voidSecs` = 45 days versus the engine comment's 30 (DEP-3); `bytes32` marketId; bond exposure `oiHaltLots × 1000`; `listingHash = keccak256(abi.encode(listing))`; the testnet bond token (Circle testnet USDC or the team MockUSDC); DEP-1/2/5 owners and expected timing.
-- Done when: the document is committed and sent to both Risk developers and the factory owner.
-- Check: manual: docs_oracle/requests/ORACLE-to-RISK-seam.md lists every item above with a proposed answer
-- Notes: Rows S-01–S-15 cite the engine source for each fact. Sending it to Person A, Person B and the factory owner is done by the team (not from this repository).
+- Files: docs_oracle/seam-decisions.md
+- Build: One decision per seam item, each citing the engine source it conforms to: oracle enum and B's unused `VOIDED = 4`; engine calls; clocks; bond units; `bytes32` marketId; listing hash; the `Listing` fields the registry overwrites; `voidSecs`; the monitor flag; the listing horizon; the `IMarketFactory` ABI; the engine used for the hackathon; the testnet bond token; the Disputes Live host; the seam tests.
+- Done when: `docs_oracle/seam-decisions.md` holds S-01–S-15, each with a decision and its basis, and none requires an engine change.
+- Check: manual: docs_oracle/seam-decisions.md lists S-01–S-15 with a decision and a source each
+- Notes: Replaces the earlier seam request (removed); see ADJ-29.
 
-### O01.2 · Record the answers
+### O01.2 · Apply the decisions to the breakdown
 - Owner: OA
 - PD: 0.5
 - Depends: O01.1
-- Plan: §3.3, §12.1, DEP-3, DEP-4
-- Cut: no
-- Status: blocked
-- Files: docs_oracle/requests/ORACLE-to-RISK-seam.md
-- Build: Record each answer, who gave it and the date. Record the bond-token decision (it feeds X03, X04 and `params.monad-testnet.json`). Any change to an Appendix C type is made in O02 before OG0, never after.
-- Done when: both Risk developers have acknowledged in writing; every row is `agreed` or `open` with an owner.
-- Check: manual: acknowledgement of both Risk developers recorded in the document
-- Notes: Blocked on written acknowledgement from Person A and Person B (and a named factory owner). Recorded so far: S-01–S-06, S-09, S-15 `published` (from B's repository docs of 2026-10-01); S-07, S-08, S-10–S-14 `open` with owners. Set to done once both acknowledgements are recorded.
+- Plan: §3.3, §12.1, DEP-3, DEP-4, ADJ-29
+- Cut: yes
+- Status: done
+- Files: docs_oracle/gates.json, docs_oracle/adjustments.md, docs_oracle/tasks/*.md
+- Build: Carry each decision into the tasks it affects: OG0 exit criteria; the testnet bond token in O19.3 and X03; DEP-3/DEP-4 in `tasks/external.md`; ADJ-24/ADJ-25 resolutions. Any change to an Appendix C type would be made in O02 before OG0 (none is needed).
+- Done when: no task or gate still waits on a Risk acknowledgement, and the validator passes.
+- Check: python3 docs_oracle/check_tasks.py
 
 ## O02 · Types and interfaces
 Plan §13: owner OA · 1 PD · depends O00 · acceptance: compiles; ABI snapshot committed.

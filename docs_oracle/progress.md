@@ -10,3 +10,5 @@ new row. `check_tasks.py` fails when a `done` task has no row here.
 | 2026-10-02 | O00.3 | (this commit) | 0 | bun 1.3.13 workspace (packages/*, services/*); no lockfile until the first member (O20.1); ADJ-10 confirmed in a scratch copy |
 | 2026-10-02 | O00.4 | d5c03bd | 0 | oracle CI forge job green: run https://github.com/xipharis/eros-markets/actions/runs/36948818794 (fmt, build --sizes, 2/2 tests, profile ci); contracts.yml unchanged |
 | 2026-10-02 | O01.1 | (this commit) | manual | seam request S-01–S-15 drafted with engine source citations; to be sent to Person A, Person B and the factory owner |
+| 2026-10-02 | O01.1 | (this commit) | manual | reworked for the hackathon: seam request removed, oracle team decides S-01–S-15 in seam-decisions.md (ADJ-29) |
+| 2026-10-02 | O01.2 | (this commit) | 0 | decisions applied: OG0 criteria, TestUSDC in O19.3/X03, DEP-3/DEP-4, ADJ-24/25; validator passes |

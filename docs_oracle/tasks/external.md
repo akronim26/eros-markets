@@ -36,7 +36,7 @@ tracked here so nothing waits on them unnoticed. Format and rules: header of
 - Cut: yes
 - Status: todo
 - Files: oracle/deployments/params.monad-testnet.json
-- Build: Every §12.1 role: hardware-wallet deployer; team Safe (2-of-3) and guardian Safe (2-of-3) on app.safe.global; three committee wallets; KMS secp256k1 runner attestor; watchdog key in a separate cloud account; two keeper/relayer EOAs; the sim relayer EOA (testnet only); fund each with testnet MON. The bond token follows the O01.2 decision.
+- Build: Every §12.1 role: hardware-wallet deployer; team Safe (2-of-3) and guardian Safe (2-of-3) on app.safe.global; three committee wallets; KMS secp256k1 runner attestor; watchdog key in a separate cloud account; two keeper/relayer EOAs; the sim relayer EOA (testnet only); fund each with testnet MON. The testnet bond token is the team TestUSDC (`seam-decisions.md` S-13).
 - Done when: every address is in `params.monad-testnet.json` and no private key is in git.
 - Check: manual: every §12.1 role has an address in oracle/deployments/params.monad-testnet.json
 
@@ -58,6 +58,6 @@ tracked here so nothing waits on them unnoticed. Format and rules: header of
 | --- | --- | --- | --- |
 | DEP-1 | Risk A+B | A concrete `MarketEngine` implementing `IResolutionEngine`, `IMarketConfig`, `RiskView` | O42 (OG3b) |
 | DEP-2 | Shared (CP-FACTORY) | `MarketFactory.deployMarket(listing, engineInit)` per C.6, `onlyRegistry`, atomic | O42 (OG3b) |
-| DEP-3 | Risk B | Confirm the oracle enum, the `Listing` fields and `voidSecs` = 45 days | O01 (OG0) |
-| DEP-4 | Risk B | Keep `RiskView.marketRiskView().monitorRestricted` on the production engine | O01 (OG0), O14.5 |
+| DEP-3 | Risk B | The oracle enum, the `Listing` fields and `voidSecs` = 45 days: decided by the oracle team in `seam-decisions.md` (ADJ-29) | re-checked in O42 |
+| DEP-4 | Risk B | `RiskView.marketRiskView().monitorRestricted` on the production engine (relied on, `seam-decisions.md` S-09) | O14.5, re-checked in O42 |
 | DEP-5 | App team | Indexer/frontend host for Disputes Live | O37.3, O38 |
