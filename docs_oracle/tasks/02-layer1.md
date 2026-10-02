@@ -42,11 +42,12 @@ Plan §13: owner OB · 2 PD · depends O20, O02 · acceptance: §11.2 tests; no 
 - Depends: O20.2, O02.2
 - Plan: §7.1, §7.2, §7.4, V-C17, ADJ-10
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/workflows/{project.yaml,secrets.yaml,.env.example}, oracle/workflows/resolution/{workflow.yaml,config.local-sim.json,config.staging.json,config.production.json,package.json,tsconfig.json,bun.lock}
 - Build: Every file exactly as §7.2 (targets local-sim, staging, production; private registry; `config.local-sim.json` equal to staging except the target). `resolution/` is a standalone package with its own `bun.lock`, outside the bun workspace (ADJ-10). `.env.example` names `CRE_ETH_PRIVATE_KEY`, `MONAD_TESTNET_RPC` and provider keys; `.env` is git-ignored.
 - Done when: `bun install --frozen-lockfile` succeeds in `resolution/`.
 - Check: cd oracle/workflows/resolution && bun install --frozen-lockfile
+- Notes: `project.yaml`, `secrets.yaml`, `workflow.yaml`, `package.json` and `tsconfig.json` are §7.2 byte for byte (targets local-sim, staging, production; private registry for staging and production). `config.local-sim.json` is identical to `config.staging.json` (the target lives in `workflow.yaml`); the configs follow §7.2 with two values filled: `authRef` is keccak256("SPORTSDATA_V1") = 0xd2df…f21e, and `oracle` is the zero address until the oracle is deployed on testnet (it passes the zod address check; set it at the testnet deploy, X04/O23, and the mainnet one before production), never an invented address. `.env.example` names CRE_ETH_PRIVATE_KEY (the sim relayer key), MONAD_TESTNET_RPC (the public testnet RPC), MONAD_MAINNET_RPC and SPORTSDATA_API_KEY_VALUE; `.env` is already git-ignored at any depth by `oracle/.gitignore`. ADJ-10 confirmed: `bun install` in `resolution/` is standalone (its own `bun.lock`, the workspace `oracle/bun.lock` unchanged and not referencing it), and `--frozen-lockfile` passes. Installed versions are exactly the §7.2 pins (cre-sdk 1.23.0, viem 2.57.2, zod 4.6.5, TypeScript 5.4.5, @bufbuild/protobuf 2.6.3), with the SDK's own zod 3.25.76 (V-C17). `main.ts` (O21.2) is not there yet, so nothing typechecks or builds at this step.
 
 ### O21.2 · Handler `main.ts`
 - Owner: OB
