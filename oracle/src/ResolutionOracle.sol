@@ -48,8 +48,8 @@ import {SigLib} from "./libraries/SigLib.sol";
 /// @dev Tasks O14.1-O14.6: trust sets and the guardian, the halt and request lifecycle, committee,
 ///      panel and permissionless proposals, assertions, finalize, reject and void, the early check and
 ///      exclusive groups. O15: the CRE receiver (`onReport`, ERC-165), the sim-mode bridge and
-///      `lockProduction`. The EIP-712 views come in O16, which also declares `is IResolutionOracle`; until
-///      then errors and events are the C.3 declarations, used by qualified name.
+///      `lockProduction`. O16: the EIP-712 views, so the contract now implements the whole C.3 interface;
+///      errors and events are still used by their qualified `IResolutionOracle.` name.
 ///
 ///      Sim mode (D13): before CRE deploy access, `cre workflow simulate --broadcast` sends reports through
 ///      the permissionless MockKeystoneForwarder from a team relayer key. Such a report is accepted only
@@ -71,7 +71,7 @@ import {SigLib} from "./libraries/SigLib.sol";
 ///      Governance creates and activates them; a market pins the active set at its halt and keeps it.
 ///      The guardian can only revoke, with immediate effect on pinned sets too. `BadTrustSet` codes are
 ///      C.3's 1-9 plus 0 = no such trust set (ADJ-31).
-contract ResolutionOracle is EIP712, ReentrancyGuard, IReceiver {
+contract ResolutionOracle is EIP712, ReentrancyGuard, IResolutionOracle {
     /// @notice A constructor address that must be set is zero (deploy-script mistake).
     error ZeroAddress();
 
@@ -642,6 +642,22 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IReceiver {
         uint32 setId = _res[id].trustSetId;
         if (setId == 0 || _trustSets[setId].watchdogRevoked) return address(0);
         return _trustSets[setId].cfg.watchdog;
+    }
+
+    /// @notice EIP-712 digest the runner attestor signs for `submitPanelResult` / `submitPanelProposal`
+    ///         (D7, Appendix C.7), under this oracle's domain.
+    function hashPanelResult(PanelResult calldata r) external view returns (bytes32) {
+        return _hashTypedData(SigLib.hashPanelResult(r));
+    }
+
+    /// @notice EIP-712 digest each committee member signs for `submitReviewedProposal` (D7, Appendix C.7).
+    function hashReviewedProposal(ReviewedProposal calldata p) external view returns (bytes32) {
+        return _hashTypedData(SigLib.hashReviewedProposal(p));
+    }
+
+    /// @notice The EIP-712 domain separator ("ErosResolutionOracle", "1", chainId, this).
+    function domainSeparator() external view returns (bytes32) {
+        return _domainSeparator();
     }
 
     // ------------------------------------------------------------------ internals
