@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
 import {TraderIds} from "./BookHarness.sol";
 
-// Four independent modules, each touching only its own part of Book, composed the way the
+// Three independent modules, each touching only its own part of Book, composed the way the
 // EventPerp core will be (spec §11.2: one contract composing Book, Clearing, Pricing, Markets...).
 // The logic inside is deliberately minimal; the point is that the seams compose.
 
@@ -91,16 +91,7 @@ abstract contract PricingModule is Book {
     }
 }
 
-/// Liquidation (R3): pulls an account's resting orders before taking over its position.
-abstract contract LiquidationModule is Book {
-    function pullOrders(uint32[] calldata ids) external returns (uint256 cancelled) {
-        for (uint256 i; i < ids.length; ++i) {
-            if (_forceCancel(ids[i], CancelReason.RISK)) ++cancelled;
-        }
-    }
-}
-
-contract ComposedCore is MarketsModule, ClearingModule, PricingModule, LiquidationModule {}
+contract ComposedCore is MarketsModule, ClearingModule, PricingModule {}
 
 contract BookCompositionTest is Test {
     ComposedCore core;
@@ -153,17 +144,5 @@ contract BookCompositionTest is Test {
         (uint16 bid, uint16 ask) = core.filteredTouch();
         assertEq(bid, 0);
         assertEq(ask, 520);
-    }
-
-    function test_LiquidationPullsRestingOrders() public {
-        uint32 a = _place(alice, Book.OrderType.POST_ONLY, true, 480, 10);
-        uint32 b = _place(alice, Book.OrderType.POST_ONLY, false, 520, 10);
-        uint32[] memory ids = new uint32[](3);
-        (ids[0], ids[1], ids[2]) = (a, b, a); // a repeated: second pull is a no-op
-        vm.expectEmit(address(core));
-        emit Book.OrderCancelled(a, 10, Book.CancelReason.RISK);
-        assertEq(core.pullOrders(ids), 2);
-        assertEq(core.reserved(1, true), 0);
-        assertEq(core.reserved(1, false), 0);
     }
 }

@@ -160,10 +160,6 @@ contract BookHarness is TraderIds {
 
     // ------------------------------------------------------------------ internals
 
-    function forceCancel(uint32 id, CancelReason reason) external returns (bool) {
-        return _forceCancel(id, reason);
-    }
-
     function orderAt(uint32 slot) external view returns (Order memory) {
         return _book.orders[slot];
     }

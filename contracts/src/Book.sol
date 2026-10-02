@@ -55,9 +55,7 @@ abstract contract Book {
         USER,
         SELF_TRADE, // resting order hit by its own owner
         FAILED_CHECK, // Clearing refused the maker fill
-        CLIPPED, // reduce-only maker exhausted its reducible size
-        RISK, // protocol cancel: liquidation or unhealthy account
-        STAGE // protocol cancel: market stage change
+        CLIPPED // reduce-only maker exhausted its reducible size
     }
 
     struct Place {
@@ -237,18 +235,6 @@ abstract contract Book {
         ask = _bestAsk(b);
         if (bid != NONE) bidSize = b.levels[bid][BID].size;
         if (ask != NONE) askSize = b.levels[ask][ASK].size;
-    }
-
-    /// @dev Protocol cancel for other modules (liquidation, stage change, keepers removing
-    ///      unhealthy makers). No owner check: the calling module authorises it. Order ids come
-    ///      from the caller (e.g. the indexer); the book keeps no per-trader order list. Returns
-    ///      false if `id` is not live, so stale ids are harmless.
-    function _forceCancel(uint32 id, CancelReason reason) internal returns (bool) {
-        BookState storage b = _openBook();
-        (uint32 s, bool live) = _liveSlot(b, id);
-        if (!live) return false;
-        _cancel(b, s, reason);
-        return true;
     }
 
     // ------------------------------------------------------------------ place
