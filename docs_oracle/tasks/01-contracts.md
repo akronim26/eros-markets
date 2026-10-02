@@ -65,11 +65,12 @@ Plan §13: owner OA · 3 PD · depends OG0 · acceptance: unit + fuzz; vectors i
 - Depends: OG0
 - Plan: §6.4, D7, C.7
 - Cut: partial (committee part only)
-- Status: todo
+- Status: done
 - Files: oracle/src/libraries/SigLib.sol, oracle/test/unit/SigLib.t.sol
 - Build: `PanelResult` and `ReviewedProposal` struct hashes with fixed arrays encoded as `keccak256(abi.encode(array))` (C.7); single-signature check for the panel attestor (65-byte r,s,v); m-of-k check: signers strictly ascending, unique, each a member and not revoked (passed in), count ≥ threshold, `SignatureCheckerLib.isValidSignatureNow` so a member may be ERC-1271.
 - Done when: digests for P1 and R1 under the C.7 domain equal `0xc315…b5bc` and `0xc3e6…301b`; each m-of-k failure mode has a test.
 - Check: cd oracle && forge test --match-path test/unit/SigLib.t.sol
+- Notes: Panel signatures must be 65 bytes with `v ∈ {27, 28}` and low `s` (Solady does not reject malleable signatures, so SigLib does). Committee failures revert with the `IResolutionOracle` errors; a duplicate or zero signer is `SignersNotSorted`, and `threshold == 0` is refused. Mutations caught: no low-s check, equal signers allowed, wrong array hashed.
 
 ## O11 · MarketRegistry
 Plan §13: owner OA · 3 PD · depends O10 · acceptance: every §6.3 rejection has a test.
