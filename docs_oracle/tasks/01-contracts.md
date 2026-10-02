@@ -39,11 +39,12 @@ Plan §13: owner OA · 3 PD · depends OG0 · acceptance: unit + fuzz; vectors i
 - Depends: OG0
 - Plan: §6.3, §6.4, D19
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/libraries/ClaimRenderer.sol, oracle/test/unit/ClaimRenderer.t.sol
 - Build: Token check (each of the nine required tokens exactly once, `{{TAU_UNIX}}` at most once, no other `{{…}}`); one-pass renderer with Solady `LibString`/`DateTimeLib` (`{{MARKET_ID}}` 0x hex, `{{ORACLE}}` checksummed, `{{TAU_UTC}}` `YYYY-MM-DDTHH:MM:SSZ`, `{{OUTCOME}}` YES/NO/INVALID, `{{EVIDENCE}}` URI or the L1 text "Layer 1 CRE report, value <valueHash>, source <URL>"); worst-case length formula of §6.3 rule 6.
 - Done when: the §6.4 default template renders the expected text for a fixed input; a fuzz test shows rendered length ≤ the worst-case bound; each token-rule violation is rejected.
 - Check: cd oracle && forge test --match-path test/unit/ClaimRenderer.t.sol
+- Notes: "No other `{{…}}` token" is enforced strictly: every double opening brace must start one of the ten tokens, so `{{foo}}`, lowercase names, spaces inside braces and stray double braces are rejected. The default-template expected text was built independently in TypeScript (viem 2.57.2, `Date.toISOString`). `worstCaseLength` is checked exactly at maximum inputs (only the plan's unix-time slack of 20 − 12 bytes remains); it assumes a chain id below 2^64 and tau before the year 10000.
 
 ### O10.4 · VoidBound and BondMath
 - Owner: OA
