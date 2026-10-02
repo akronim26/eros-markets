@@ -24,3 +24,4 @@ new row. `check_tasks.py` fails when a `done` task has no row here.
 | 2026-10-02 | O19.1 | (this commit) | 0 | ResolutionEngineStub + StubMarketFactory: 24 tests covering every non-accounting case of counterpart-oracle-fixtures.json; error selectors equal the real engine's |
 | 2026-10-02 | O11.1 | (this commit) | 0 | MockResolutionEngine, MockMarketFactory, MockAssertionVenue, MockOracleView, MockBondTreasury: 12 smoke tests, one per knob |
 | 2026-10-02 | O11.2 | (this commit) | 0 | MarketRegistry storage, versioned globals (every §14.4 bound on both sides, chainId 143 and 10143; BadGlobals codes per ADJ-30), governance setters, SSTORE2 text helpers: 47 tests; 35/35 mutations caught; ci suite 168/168 |
+| 2026-10-02 | O11.3 | (this commit) | 0 | createMarket rules 1-6 with exact C.4 codes (BadTimes 1-6, BadFeed 1-13, BadAllowList 1-3, BadAIConfig 1-5, BadUMAConfig 1-6, identity and groups behind the cut switch): 48 tests; 41/41 mutations caught; ci suite 216/216 |

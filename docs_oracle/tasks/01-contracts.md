@@ -107,11 +107,12 @@ Plan §13: owner OA · 3 PD · depends O10 · acceptance: every §6.3 rejection 
 - Depends: O11.2
 - Plan: §6.3, §14.1, §14.2, D15, D19
 - Cut: partial (no groups: `groupId != 0` reverts `EarlyCheckOrGroupsDisabled` in the cut)
-- Status: todo
+- Status: done
 - Files: oracle/src/MarketRegistry.sol, oracle/test/unit/RegistryCreateRules.t.sol
 - Build: Rule 1 identity (`DuplicateMarket`, `NoActiveTrustSet`, `GroupMismatch`); rule 2 times (`BadTimes` 1–6 including the void bound and the engine gate `voidSecs ≥ tau − now + 3600`); rule 3 feed (`BadFeed` 1–13 through HostLib/FeedSpecLib, L1 host = `allowList[0]`, known `authRef`); rule 4 allow-list (`BadAllowList` 1–3); rule 5 AIConfig (`BadAIConfig` 1–5); rule 6 UMAConfig (`BadUMAConfig` 1–6, venue minimum from the active trust set, claim length through ClaimRenderer).
 - Done when: one test per error code asserts the exact code (C.4), plus a test that a fully valid input passes rules 1–6.
 - Check: cd oracle && forge test --match-path test/unit/RegistryCreateRules.t.sol
+- Notes: Rules 1-6 live in the internal `_validateMarket` (plus the C.4 view `minVoidSecs`), exercised through a test harness; O11.4 wires them into `createMarket`. Groups (team decision): the full GroupMismatch rule is coded behind `_groupsEnabled()`, which returns false until O14.6, so every grouped listing reverts `EarlyCheckOrGroupsDisabled` as the cut requires; the harness turns it on to test GroupMismatch. A zero `marketId` reverts `DuplicateMarket` (rule 1 lists both under that error). With no globals set, `BadGlobals(0)` (ADJ-30). A feed market with an empty allow-list fails `BadFeed(5)` (rule 3 runs before rule 4). `BadAllowList` checks every host for code 2 before any for code 3. Expected values: §14.1/§12.11 testnet demo inputs, the §14.2 void bound of 6,000 s, and the claim bound recomputed from the §6.3 rule 6 text. 41 mutations caught (three needed stronger tests: non-exclusive group, T_L1 ignored without a feed, reviewed liveness below L1 only).
 
 ### O11.4 · `createMarket` steps 7–9 and views
 - Owner: OA

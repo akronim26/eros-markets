@@ -2,15 +2,31 @@
 pragma solidity 0.8.30;
 
 import {SSTORE2} from "solady/utils/SSTORE2.sol";
-import {Globals, Category, GroupInfo, OracleConst} from "./types/OracleTypes.sol";
+import {
+    Globals,
+    Category,
+    GroupInfo,
+    MarketCore,
+    MarketInput,
+    AIConfig,
+    UMAConfig,
+    OracleConst
+} from "./types/OracleTypes.sol";
 import {IMarketRegistry} from "./interfaces/IMarketRegistry.sol";
+import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
+import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
+import {HostLib} from "./libraries/HostLib.sol";
+import {FeedSpecLib} from "./libraries/FeedSpecLib.sol";
+import {ClaimRenderer} from "./libraries/ClaimRenderer.sol";
+import {VoidBound} from "./libraries/VoidBound.sol";
 
 /// @title MarketRegistry
 /// @notice Immutable per-market resolution config and the bounded, versioned listing globals
 ///         (plan §6.3, §14.4, Appendix C.1, C.4). Not upgradeable; governance is the Timelock.
-/// @dev Task O11.2 builds storage, globals and the governance setters; `createMarket`, the market views
-///      and `minVoidSecs` follow in O11.3 and O11.4, which also declare `is IMarketRegistry`. Until then
-///      errors and events are the C.4 declarations, used by qualified name.
+/// @dev Task O11.2 builds storage, globals and the governance setters; O11.3 the `createMarket`
+///      validation rules 1-6 (`_validateMarket`) and `minVoidSecs`; O11.4 adds `createMarket` itself
+///      (steps 7-9), the market views and `is IMarketRegistry`. Until then errors and events are the C.4
+///      declarations, used by qualified name.
 ///
 ///      Globals are append-only: `setGlobals` writes version `globalsVersion + 1` and every earlier
 ///      version stays readable through `globalsAt` (markets pin the version current at their halt).
@@ -62,6 +78,9 @@ contract MarketRegistry {
     mapping(bytes32 authRef => bool) public authRefKnown;
     mapping(bytes32 categoryId => Category) internal _categories;
     mapping(bytes32 groupId => GroupInfo) internal _groups;
+
+    // ------------------------------------------------------------------ listed markets (written in createMarket)
+    mapping(bytes32 marketId => MarketCore) internal _cores; // engine != 0 <=> listed
 
     modifier onlyGovernance() {
         if (msg.sender != governance) revert IMarketRegistry.Unauthorized();
@@ -153,6 +172,151 @@ contract MarketRegistry {
 
     function groupInfo(bytes32 groupId) external view returns (GroupInfo memory) {
         return _groups[groupId];
+    }
+
+    /// @notice §14.2 lower bound on `voidSecs` under the current globals (`createMarket` rule 2).
+    function minVoidSecs(bool hasFeed, uint32 l1TimeoutSecs, uint32 l2DeadlineSecs, uint64 livenessReviewed)
+        external
+        view
+        returns (uint256)
+    {
+        return _minVoidSecs(globalsAt(globalsVersion), hasFeed, l1TimeoutSecs, l2DeadlineSecs, livenessReviewed);
+    }
+
+    // ------------------------------------------------------------------ createMarket rules 1-6 (§6.3)
+
+    /// @dev Rules 1-6 of `createMarket`, in order; each rule reverts with its first failing C.4 code.
+    ///      Rule 1 records a new group's `GroupInfo` (createMarket is atomic, so a later revert undoes it).
+    ///      Validates against the current globals version and returns it, with the minimum bond of the
+    ///      active trust set's venue (both used again by steps 7-9).
+    function _validateMarket(MarketInput calldata m) internal returns (Globals memory g, uint256 venueMin) {
+        // Rule 1: identity.
+        if (m.marketId == 0 || _cores[m.marketId].engine != address(0)) revert IMarketRegistry.DuplicateMarket();
+        uint32 setId = IResolutionOracle(oracle).activeTrustSetId();
+        if (setId == 0) revert IMarketRegistry.NoActiveTrustSet();
+        if (m.groupId != 0) _recordGroup(m.groupId, m.groupExclusive);
+        g = globalsAt(globalsVersion);
+
+        uint8 code = _timesCode(m, g); // rule 2
+        if (code != 0) revert IMarketRegistry.BadTimes(code);
+        code = _feedCode(m, g); // rule 3
+        if (code != 0) revert IMarketRegistry.BadFeed(code);
+        code = _allowListCode(m.allowList); // rule 4
+        if (code != 0) revert IMarketRegistry.BadAllowList(code);
+        code = _aiCode(m.ai, g); // rule 5
+        if (code != 0) revert IMarketRegistry.BadAIConfig(code);
+        venueMin = IAssertionVenue(IResolutionOracle(oracle).trustSet(setId).cfg.venue).minimumBond();
+        code = _umaCode(m, g, venueMin); // rule 6
+        if (code != 0) revert IMarketRegistry.BadUMAConfig(code);
+    }
+
+    /// @dev Groups ship with the oracle's group code (O14.6). Until then every grouped listing reverts
+    ///      (plan §13.1 cut): a listing must not promise a YES lock the oracle does not enforce yet.
+    function _groupsEnabled() internal view virtual returns (bool) {
+        return false;
+    }
+
+    /// @dev The first market of a group records `{exists, exclusive}`; later ones must match it.
+    function _recordGroup(bytes32 groupId, bool exclusive) internal {
+        if (!_groupsEnabled()) revert IMarketRegistry.EarlyCheckOrGroupsDisabled();
+        GroupInfo storage gi = _groups[groupId];
+        if (!gi.exists) {
+            (gi.exists, gi.exclusive) = (true, exclusive);
+        } else if (gi.exclusive != exclusive) {
+            revert IMarketRegistry.GroupMismatch();
+        }
+    }
+
+    /// @dev BadTimes: 1 horizon, 2 window, 3 l2 bounds, 4 voidSecs < bound, 5 voidSecs > max,
+    ///      6 engine gate `T + captureGraceSecs ≤ listedAt + voidSecs` (listedAt = now).
+    function _timesCode(MarketInput calldata m, Globals memory g) internal view returns (uint8) {
+        uint256 nowTs = block.timestamp;
+        if (m.tau < nowTs + g.minHorizonSecs || m.tau > nowTs + g.maxListingHorizon) return 1;
+        if (m.windowStart >= m.windowEnd || m.windowEnd > m.tau) return 2;
+        if (m.l2DeadlineSecs < g.l2MinSecs || m.l2DeadlineSecs > g.l2MaxSecs) return 3;
+        uint256 bound = _minVoidSecs(g, m.hasFeed, m.feed.l1TimeoutSecs, m.l2DeadlineSecs, m.uma.livenessReviewed);
+        if (m.voidSecs < bound) return 4;
+        if (m.voidSecs > g.maxVoidSecs) return 5;
+        if (m.voidSecs < m.tau - nowTs + OracleConst.ENGINE_CAPTURE_GRACE_SECS) return 6;
+        return 0;
+    }
+
+    /// @dev BadFeed 1-12 through FeedSpecLib (Layer 1 host = `allowList[0]`, or "" when the list is empty,
+    ///      which fails code 5); without a feed the spec must be all-zero (13).
+    function _feedCode(MarketInput calldata m, Globals memory g) internal view returns (uint8) {
+        if (!m.hasFeed) return FeedSpecLib.isZero(m.feed) ? 0 : 13;
+        string memory l1Host = m.allowList.length > 0 ? m.allowList[0] : "";
+        bool known = m.feed.authRef == 0 || authRefKnown[m.feed.authRef];
+        FeedSpecLib.TimingBounds memory b =
+            FeedSpecLib.TimingBounds(g.bufferMinSecs, g.bufferMaxSecs, g.l1TimeoutMinSecs, g.l1TimeoutMaxSecs);
+        return FeedSpecLib.validate(m.feed, l1Host, known, b);
+    }
+
+    /// @dev BadAllowList: 1 empty, 2 a host breaks the HostLib rules, 3 a host is not an allowed provider.
+    ///      Codes in order: every host is checked for 2 before any is checked for 3.
+    function _allowListCode(string[] calldata hosts) internal view returns (uint8) {
+        if (hosts.length == 0) return 1;
+        for (uint256 i; i < hosts.length; ++i) {
+            if (!HostLib.isValidHost(hosts[i])) return 2;
+        }
+        for (uint256 i; i < hosts.length; ++i) {
+            if (!_providerAllowed[keccak256(bytes(hosts[i]))]) return 3;
+        }
+        return 0;
+    }
+
+    /// @dev BadAIConfig: 1 model hashes (three, distinct, non-zero), 2 prompt, 3 calibrator, 4 category,
+    ///      5 `highConfBps` outside `[highConfFloorBps, 10 000]`.
+    function _aiCode(AIConfig calldata ai, Globals memory g) internal pure returns (uint8) {
+        bytes32[3] calldata h = ai.modelIdHashes;
+        if (h[0] == 0 || h[1] == 0 || h[2] == 0 || h[0] == h[1] || h[0] == h[2] || h[1] == h[2]) return 1;
+        if (ai.promptHash == 0) return 2;
+        if (ai.calibratorHash == 0) return 3;
+        if (ai.categoryId == 0) return 4;
+        if (ai.highConfBps < g.highConfFloorBps || ai.highConfBps > OracleConst.BPS) return 5;
+        return 0;
+    }
+
+    /// @dev BadUMAConfig: 1 currency, 2 minBond below the venue minimum, 3 bondBps below the floor,
+    ///      4 liveness (each ≥ tMinSecs, reviewed ≥ max(L1, auto)), 5 template tokens, 6 worst-case claim
+    ///      length above `maxClaimBytes` (§6.3 rule 6, with the substituted Layer 1 URL for feed markets).
+    function _umaCode(MarketInput calldata m, Globals memory g, uint256 venueMin) internal view returns (uint8) {
+        UMAConfig calldata u = m.uma;
+        if (u.bondCurrency != usdc) return 1;
+        if (u.minBond < venueMin) return 2;
+        if (u.bondBps < g.bondBpsFloor) return 3;
+        if (
+            u.livenessL1 < g.tMinSecs || u.livenessAuto < g.tMinSecs || u.livenessReviewed < g.tMinSecs
+                || u.livenessReviewed < u.livenessL1 || u.livenessReviewed < u.livenessAuto
+        ) return 4;
+        if (!ClaimRenderer.isValidTemplate(m.claimTemplate)) return 5;
+        uint256 l1UrlLen = m.hasFeed ? bytes(HostLib.substitute(m.feed.urlTemplate, m.feed.urlParam)).length : 0;
+        uint256 maxLen =
+            ClaimRenderer.worstCaseLength(m.claimTemplate, bytes(m.question).length, bytes(m.rules).length, l1UrlLen);
+        if (maxLen > g.maxClaimBytes) return 6;
+        return 0;
+    }
+
+    function _minVoidSecs(
+        Globals memory g,
+        bool hasFeed,
+        uint32 l1TimeoutSecs,
+        uint32 l2DeadlineSecs,
+        uint64 livenessReviewed
+    ) internal pure returns (uint256) {
+        return VoidBound.minVoidSecs(
+            VoidBound.Inputs({
+                hasFeed: hasFeed,
+                l1TimeoutSecs: l1TimeoutSecs,
+                l2DeadlineSecs: l2DeadlineSecs,
+                livenessReviewed: livenessReviewed,
+                dvmMaxRolls: g.dvmMaxRolls,
+                dvmRoundSecs: g.dvmRoundSecs,
+                reviewTargetSecs: g.reviewTargetSecs,
+                retryWindowSecs: g.retryWindowSecs,
+                voidSlackSecs: g.voidSlackSecs
+            })
+        );
     }
 
     // ------------------------------------------------------------------ internals
