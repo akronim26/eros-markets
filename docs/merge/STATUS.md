@@ -1,16 +1,18 @@
 # Risk & Clearing — STATUS
 
 - Shared branch: `integration/risk` (remote `origin/integration/risk`)
-- HEAD at the start of this snapshot: `32d30acf4098d7dfacb95fc010717eea9383aea4` (local = remote, clean tree)
+- First snapshot taken at `32d30ac`. Last updated by the 2026-10-02 0xr10t turn (see Turn log); the
+  current HEAD is whatever `git log -1 origin/integration/risk` shows.
 - Working model: shared ownership, turn by turn (rules in `CLAUDE.md`, section "CURRENT MODE").
 - Verification marks: facts were checked against the repo on 2026-10-02. **UNVERIFIED** = could not be
   confirmed from the repo; **MISMATCH** = the repo differs from the stated fact (what was found is given).
 
 ## Summary
 
-Risk & Clearing code is done and tested. G0–G7 pass their technical checks on forge 1.8.3
-(verified: `artifacts/gates/G0.json`…`G7.json`, status `checks_passed`, exit 0, source `3b11044`;
-local forge is 1.8.3 `cae51ad`). Both reviews are complete (verified: `artifacts/reviews/A-on-B.md`
+Risk & Clearing code is done and tested. **Changed 2026-10-02 (second turn):** B-D02 and A-I01 changed
+`contracts/src`, so G0–G6 pass their technical checks at `ba633ed` but the G7 check now stops at A043
+until the teammate reviews those changes and refreshes the A043 fingerprints (`artifacts/gates/G7.json`,
+exit 2, reason "reviewed source changed"). At `3b11044` G0–G7 all passed on forge 1.8.3. Both reviews are complete (verified: `artifacts/reviews/A-on-B.md`
 and `artifacts/reviews/B-on-A.md` incl. the 2026-10-02 addendum). Every audit finding is fixed
 (verified: the three reproducers in `contracts/test/audit/findings/` pass under forge 1.8.3).
 Remaining work: sign-off, the merge to main, other teams' work, production inputs. From now on the
@@ -31,34 +33,43 @@ Gate record (`docs/spec/gate_status.json`, verified):
 
 ## 1. Close the current handoff
 
-- G7 acceptance must be recorded by a human at a real commit (`3b11044` plus review commit `32d30ac`;
-  both verified present on the branch). G7 stays "blocked" until then (verified in `gate_status.json`).
+- G7 acceptance must be recorded by a human at a real commit. `3b11044` + `32d30ac` were acceptable
+  before this turn; since B-D02/A-I01 changed `contracts/src`, the natural point is now the commit where
+  the teammate's review and fingerprint refresh land and G7's check passes again. G7 stays "blocked" in
+  `gate_status.json` (unchanged this turn).
 - Open: the teammate's reply to the review checklist, including whether the info notes B-D01 to B-D05
   are accepted. **UNVERIFIED** — no reply is recorded in the repo; the notes are in
   `artifacts/reviews/B-on-A.md` (Addendum 2026-10-02).
 
 ## 2. Optional cleanups (not blocking; either of us)
 
-- B-D02: the bridge's preview code (`_previewAccrual` / `_previewCharges` in
-  `contracts/src/engine/RiskAccountingBridge.sol`) re-derives the funding/premium accrual. Replace it
-  with a shared view function in the accounting module.
-- B-D03: document that the new premium math (`contracts/src/math/PremiumMath.sol`, `_accumulate`)
-  reverts above about 3.4e14 USDC (positive-part endpoint > 2^128 Q; unreachable in practice).
+- B-D02: **implemented, pending teammate review** (`fe4c4f7`). `FundingAccounting._fundingStep`,
+  `AccountSync._projectedTouch` and `PremiumAccounting._premiumTotalAt` are now shared by execution and
+  the bridge preview. Parity fuzz `contracts/test/audit/BD02PreviewParity.t.sol` passes before and after.
+- B-D03: **done** (`39205c1`, comment + tests only). The bound is tighter than first noted: the
+  sign-crossing endpoint is below 2^112 Q, so the square cannot overflow anywhere in `cumulative`'s
+  domain (`contracts/test/audit/BD03PremiumBounds.t.sol`).
 - B-D04, B-D05: conservative choices. Revisit only if conversion is enabled, or if users need to
   reduce positions while the mark is stale.
 - Any source change needs a fingerprint refresh by the teammate who reviews it (checker:
   `scripts/check_a_review.py`; evidence `artifacts/reviews/A-on-B.json`).
 
-## 3. Fee classification (A-I01, the last open accounting item)
+## 3. Fee classification (A-I01)
 
-- Spec (`docs/spec/risk_spec.md`, section "Fee escrow and exceptional recovery"): protocol and keeper fees,
-  including sub-atom fractions, sit in separate vault-level escrows.
-- Current code: they stay inside the market allocation, as separate ledgers (`protocolFeeEscrowQ`,
-  `keeperQ` / `keeperPayableQ` in the engine). Verified; A-I01 listed open in `docs/merge/A-audit.md`.
-- Proposal: per-beneficiary fee escrows in `CollateralVault` (`contracts/src/vaults/CollateralVault.sol`).
-  Whoever implements it, the other reviews.
+- **Implemented, pending teammate review** (`a073104`). At payout-scan completion the engine moves exact
+  `protocolFeeQ` and `keeperPayableQ` into global per-beneficiary `CollateralVault` fee escrows and
+  reduces `allocationQ` by exactly that Q; floor-atom withdrawals keep fractions.
+- Six implementation choices the spec leaves open are listed for the reviewer to confirm or reject in
+  `docs/questions/A-I01.md`. API change: engine `protocolFeeEscrowQ()` / `withdrawProtocolFees()` removed;
+  vault `withdrawFees()` etc. added; ABIs and `docs/risk/HANDOFF.md` updated.
 
 ## 4. Merge into main (us, plus the book developer)
+
+- **Prep done 2026-10-02** on local branch `scratch/main-merge-prep` (`8b71ed7`, not pushed):
+  `docs/merge/main-merge-prep.md` has the resolutions and results (fmt clean, 653 forge tests, G0–G6
+  pass, G7 stops at A043 for the fingerprint reason above). The real merge is still human-only.
+- **UNVERIFIED:** main's `foundry.toml` sets Monad's 128 KiB limit citing "spec §11.1"; our spec has no
+  such section. A human should confirm the target-chain limit.
 
 - The dry run (`git merge-tree --write-tree HEAD origin/main`, run 2026-10-02 against `origin/main` =
   `c5db208`) shows 3 conflicts: `contracts/foundry.toml`, `contracts/src/risk/TradePreview.sol`,
@@ -89,15 +100,16 @@ Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY
 
 ## 6. Production readiness (no deployment authorized)
 
-- Contract size: the combined engine is about 108–113 KB versus Ethereum's 24,576-byte limit
-  (verified: `CombinedEngine` runtime 112,865 B at `32d30ac` with forge 1.8.3; 108,270 B in
-  `artifacts/risk/gas-engine.json` from the earlier forge 1.3.5 build). Need a decision on the target
-  chain's limit, or a split.
+- Contract size: `CombinedEngine` runtime 112,924 B, initcode 121,706 B at `a073104` (forge 1.8.3).
+  Above Ethereum's 24,576 B; below 131,072 B if main's Monad limit is right (UNVERIFIED, see section 4).
+  Needs a human decision on the target-chain limit, and a measurement of the real production
+  composition once the book seam exists.
 - Gas: measured only with Ethereum pricing on a mock book (verified: `artifacts/risk/gas-engine.json`
   `gas_model`). Re-measure with the real book on Monad.
-- Re-run the invariant campaigns (they predate the latest accounting changes; verified:
-  `artifacts/risk/invariant-campaign.json` base commit `860793d`, before `71576ed..3b11044`) and
-  refresh the gas table (`gas-engine.json` source `95213ba`).
+- Invariant campaigns and gas table **rerun at `a073104`** on forge 1.8.3 (`ba633ed`): random 48×64
+  and 256×128 pass 9/9 with 0 reverts; 24 seeds pass. Gas figures under forge 1.8.3 are about
+  1.2–2.8× the old forge 1.3.5 table for the same source (cause not diagnosed); the comparison is in
+  `artifacts/risk/gas-engine.json`. Still Ethereum pricing on a mock book, not Monad.
 - Missing production inputs (`artifacts/risk/release-manifest.json`, verified): token/code hashes,
   price signer details and depth N, volatility envelopes, stressed spread, absorption/queue bounds,
   OI and liquidation limits, hazard evidence, governance delay, dependency hashes, premium load as a
@@ -108,10 +120,11 @@ Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY
 
 ## Who does what next
 
-- Us (either, turn by turn): A-I01 fee escrows plus cross-review; B-D02 view function; B-D03 docs;
-  the checklist reply; merge prep and gate reruns; invariant and gas reruns; counterpart reruns when
-  they ship.
-- Humans only: G7 acceptance and the merge into main.
+- Teammate (next turn): review B-D02 (`fe4c4f7`) and A-I01 (`a073104`, choices in
+  `docs/questions/A-I01.md`); if accepted, refresh the A043 fingerprints (`scripts/check_a_review.py`,
+  `artifacts/reviews/A-on-B.json`) and rerun G7; answer B-D01…B-D05.
+- Us (either, turn by turn): counterpart reruns when they ship; the real merge once a human asks.
+- Humans only: G7 acceptance; the merge into main; confirming the target-chain code-size limit.
 - Book team: the 10 hook fixes. Oracle team: code, plus confirming VOIDED = 4.
 
 ## Referenced documents
@@ -127,6 +140,10 @@ Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY
 | Interface reconciliation (R-01…R-21) | `docs/merge/interface-reconciliation.md` |
 | Integration log (history) | `docs/merge/integration-progress.md` |
 | Toolchain reproduction | `docs/merge/toolchain-reproduction.md` |
+| A-I01 choices to confirm | `docs/questions/A-I01.md` |
+| Main merge prep (dry run) | `docs/merge/main-merge-prep.md` |
+| B-D02/B-D03 checks | `contracts/test/audit/BD02PreviewParity.t.sol`, `contracts/test/audit/BD03PremiumBounds.t.sol` |
+| A-I01 tests | `contracts/test/integration/AI01FeeEscrow.t.sol` |
 | Handoff for other teams | `docs/risk/HANDOFF.md`, `artifacts/risk/engine-abi.json`, `artifacts/risk/vault-abi.json` |
 | Requests | `docs/requests/B-to-book-hooks.md`, `docs/requests/B-to-A-integration.md` (historical) |
 | Counterparts / release / campaigns / gas | `artifacts/risk/counterpart-status.json`, `artifacts/risk/release-manifest.json`, `artifacts/risk/invariant-campaign.json`, `artifacts/risk/gas-engine.json` |
@@ -160,8 +177,46 @@ Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY
   acceptance of G7.
 - Next turn: open.
 
-### 2026-10-02 — 0xr10t (with Claude agent) — IN PROGRESS
+### 2026-10-02 (second turn) — 0xr10t (with Claude agent) — turn complete
 
-- Started from `d1f0268` (clean, equal to origin). Planned: outdated-doc fixes, B-D03, B-D02, A-I01,
-  invariant and gas reruns, local merge prep. Teammate: please do not start a turn until this entry
-  says "turn complete".
+- Started from `d1f0268` (clean, equal to origin). No commits from the teammate since the previous entry;
+  `main`, `feat/clob`, `feat/oracle` and `feat/risk` had not moved.
+- Done this turn:
+  - Outdated docs fixed: `docs/risk/HANDOFF.md` section 10 and the old resume point in
+    `docs/merge/integration-progress.md` both said B's delta review was pending.
+  - B-D03 done (comment + tests). B-D02 implemented. A-I01 implemented. Both of the last two change
+    `contracts/src` and need the teammate's review (see "Who does what next").
+  - Invariant campaigns and gas table rerun at `a073104`; engine size re-measured.
+  - Gates G0–G7 rerun; evidence committed.
+  - Merge prep against `origin/main` on local `scratch/main-merge-prep` (`8b71ed7`, not pushed);
+    report `docs/merge/main-merge-prep.md`.
+- Commits: `e180c43` (turn marker), `ee42786` (docs), `39205c1` (B-D03), `fe4c4f7` (B-D02),
+  `a073104` (A-I01), `ba633ed` (invariant + gas reruns), `e61c8a7` (gate evidence), and the commit
+  that adds this entry.
+- Tests run (forge 1.8.3, `FORGE_SNAPSHOT_EMIT=false`):
+  - `FOUNDRY_PROFILE=risk forge test`: after B-D02 exit 0 (645 passed); after A-I01 exit 0 (653 passed).
+    The first A-I01 run failed 2 tests (exit 1): `A036` backstop reruns `_assessAvailable`, and
+    `CustodyExit` asserted the old in-market keeper classification. Fixed by moving reclassification
+    to payout-scan completion and updating `CustodyExit` to the new classification with exact values.
+  - `forge test --match-path test/audit/BD03PremiumBounds.t.sol` exit 0 (2 passed);
+    `test/audit/BD02PreviewParity.t.sol` exit 0 at `fe4c4f7` and on the pre-refactor source.
+  - Invariants: `risk` 48×64 exit 0 (9/9, 0 reverts); `ci` 256×128 exit 0 (9/9, 0 reverts);
+    `test_seededCampaign` exit 0 (8/8, 24 seeds).
+  - Gas: `test/gas/integration/EngineGas.t.sol` exit 0 at HEAD, `3b11044` and `f05f076` (comparison).
+  - `bash scripts/check-gate.sh` at `ba633ed`: G0–G6 exit 0 (68/152/117/78/74/62/55);
+    G7 exit 2 (A043 `pending_peer_review`: "reviewed source changed"). The first G5 run exited 2
+    because `tsc` was not on PATH; rerun with the TypeScript 5.9.3 shim exited 0.
+  - `check-task.sh` A040, A041, A042, A044, B040–B044 each exit 0; A043 exit 2 (same reason);
+    `forge test --match-path 'test/reviews/*.t.sol'` exit 0 (37 passed).
+  - Python A/B/audit/integration exit 0 (46/156/8/7); `export-risk-abis.py --check` exit 0.
+  - Scratch merge `8b71ed7`: `forge fmt --check` 0; `ci forge build --sizes` 0; `risk forge test` 0
+    (653); `ci FORGE_SNAPSHOT_CHECK=true forge test --mc BookGasTest` 0; `ci forge test -vvv` 0 (653);
+    G0–G6 0, G7 2 (same A043 reason); Python 0. Scratch gate artifacts discarded.
+- Not done / not claimed: no fingerprints or approvals written for my own changes; `gate_status.json`
+  untouched; no push to `main`; no deployment.
+- Open questions: the teammate's confirmation of A-I01 choices 1–6 (`docs/questions/A-I01.md`) and of
+  B-D02; the teammate's answer on B-D01…B-D05; target-chain code-size limit (main cites Monad
+  128 KiB "spec §11.1", not in our spec; UNVERIFIED); the cause of the forge 1.3.5 → 1.8.3 gas
+  measurement jump (not diagnosed).
+- Next turn: teammate (YASH-ai-bit) — review B-D02 and A-I01, refresh A043 fingerprints if accepted,
+  rerun G7.
