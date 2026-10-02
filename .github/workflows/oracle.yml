@@ -1,0 +1,32 @@
+name: oracle
+
+on:
+  push:
+    paths: ["oracle/**", "contracts/src/**", "contracts/provisional/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+  pull_request:
+    paths: ["oracle/**", "contracts/src/**", "contracts/provisional/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle
+    env:
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.3
+      - name: Format
+        run: forge fmt --check
+      - name: Build and contract sizes
+        run: forge build --sizes
+      - name: Test (unit, fuzz, invariant, real UMA, seam, vectors)
+        run: forge test -vvv
