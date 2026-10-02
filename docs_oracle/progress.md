@@ -23,3 +23,4 @@ new row. `check_tasks.py` fails when a `done` task has no row here.
 | 2026-10-02 | O10.2 | (this commit) | 0 | specHash vectors moved from feedspec.json to spechash.json (one home per vector, plan §6.1 layout); test now requires all 5 |
 | 2026-10-02 | O19.1 | (this commit) | 0 | ResolutionEngineStub + StubMarketFactory: 24 tests covering every non-accounting case of counterpart-oracle-fixtures.json; error selectors equal the real engine's |
 | 2026-10-02 | O11.1 | (this commit) | 0 | MockResolutionEngine, MockMarketFactory, MockAssertionVenue, MockOracleView, MockBondTreasury: 12 smoke tests, one per knob |
+| 2026-10-02 | O11.2 | (this commit) | 0 | MarketRegistry storage, versioned globals (every §14.4 bound on both sides, chainId 143 and 10143; BadGlobals codes per ADJ-30), governance setters, SSTORE2 text helpers: 47 tests; 35/35 mutations caught; ci suite 168/168 |
