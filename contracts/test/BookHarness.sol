@@ -56,8 +56,10 @@ contract BookHarness is TraderIds {
 
     /// @dev Signed position per trader; + is long.
     mapping(uint32 => int256) public position;
-    /// @dev Resting lots per (trader, isBuy): rests add them, fills and unrests take them off.
+    /// @dev Current-epoch resting lots per (trader, isBuy): rests add them, fills and unrests take
+    ///      them off, and cancel-all clears them by moving the trader to a new order epoch.
     mapping(uint32 => mapping(bool => uint256)) public reserved;
+    mapping(uint32 => uint64) public accountEpoch;
     mapping(uint32 => bool) public failMaker;
     bool public stopTaker;
     bool public rejectTaker;
@@ -86,17 +88,22 @@ contract BookHarness is TraderIds {
         uint256 feeCapQ;
     }
 
-    EpochTag internal _restTag;
+    uint64 internal _restMarketEpoch;
     uint64 internal _restReduceVersion;
     uint256 internal _restFeeCapQ;
     OrderView internal _lastMaker;
     Unrest internal _lastUnrest;
 
-    function setRestRecord(uint64 marketEpoch, uint64 accountEpoch, uint64 reduceVersion, uint256 feeCapQ)
-        external
-    {
-        (_restTag, _restReduceVersion, _restFeeCapQ) =
-        (EpochTag(marketEpoch, accountEpoch), reduceVersion, feeCapQ);
+    function setRestRecord(uint64 marketEpoch, uint64 reduceVersion, uint256 feeCapQ) external {
+        (_restMarketEpoch, _restReduceVersion, _restFeeCapQ) = (marketEpoch, reduceVersion, feeCapQ);
+    }
+
+    function _tag(uint32 trader) internal view returns (EpochTag memory) {
+        return EpochTag(_restMarketEpoch, accountEpoch[trader]);
+    }
+
+    function _current(uint32 trader, EpochTag memory t) internal view returns (bool) {
+        return t.accountOrderEpoch == accountEpoch[trader];
     }
 
     function lastMaker() external view returns (OrderView memory) {
@@ -195,7 +202,7 @@ contract BookHarness is TraderIds {
             uint256 m = _reducible(maker.owner, makerBuys);
             if (m < lots) lots = uint64(m);
         }
-        if (failMaker[maker.owner] || lots == 0) {
+        if (failMaker[maker.owner] || lots == 0 || !_current(maker.owner, maker.admittedAt)) {
             r.status = StepStatus.PRUNE_MAKER;
             return r;
         }
@@ -227,7 +234,7 @@ contract BookHarness is TraderIds {
         permit.remainingLots -= lots;
         reserved[permit.trader][permit.side == Side.BUY] += lots;
         lastRestFlags = _flags(permit.side, permit.reduceOnly);
-        return (_restTag, _restReduceVersion, _restFeeCapQ);
+        return (_tag(permit.trader), _restReduceVersion, _restFeeCapQ);
     }
 
     function _riskOnUnrest(
@@ -240,12 +247,16 @@ contract BookHarness is TraderIds {
         uint256 feeCapQ
     ) internal override {
         _lastUnrest = Unrest(owner, tag, side, tick, lots, feeCapQ);
-        reserved[owner][side == Side.BUY] -= lots;
+        if (_current(owner, tag)) reserved[owner][side == Side.BUY] -= lots; // an old epoch is a no-op
         lastUnrestFlags = _flags(side, false);
         ++unrestCalls;
     }
 
-    function _riskCancelAll(uint32) internal pure override returns (EpochTag memory t) {}
+    function _riskCancelAll(uint32 trader) internal override returns (EpochTag memory) {
+        ++accountEpoch[trader];
+        (reserved[trader][true], reserved[trader][false]) = (0, 0);
+        return _tag(trader);
+    }
 
     function _riskFinishTaker(RiskSnapshot memory snap, TakerPermit memory) internal override {
         if (rejectTaker) revert TakerRejected();
@@ -266,7 +277,8 @@ contract BookHarness is TraderIds {
     // ------------------------------------------------------------------ INV-8
 
     /// @dev Full structural check of the book; reverts with the first violation.
-    ///      `traders` bounds the reservation check to ids 1..traders.
+    ///      `traders` bounds the reservation check to ids 1..traders; only current-epoch orders
+    ///      are reserved (cancel-all leaves the old ones resting until they are reached).
     function checkInvariants(uint32 traders) external view {
         BookState storage b = _book;
         uint256 n = b.orders.length;
@@ -301,7 +313,7 @@ contract BookHarness is TraderIds {
                     require((o.flags & FLAG_BUY != 0) == (side == BID), "wrong side");
                     require(o.prev == prev, "prev link");
                     require(o.owner != 0 && o.owner <= traders, "bad owner");
-                    resting[o.owner][side] += o.size;
+                    if (o.accountEpoch == accountEpoch[o.owner]) resting[o.owner][side] += o.size;
                     sum += o.size;
                     prev = s;
                 }
