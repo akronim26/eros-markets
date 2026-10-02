@@ -16,3 +16,4 @@ new row. `check_tasks.py` fails when a `done` task has no row here.
 | 2026-10-02 | O02.2 | (this commit) | 0 | 10/10 constants and C.7 vector tests; digests/specHash/topic also matched with viem 2.57.2; 11 interface ABIs + SHA256SUMS; ./vectors read permission (ADJ-28) |
 | 2026-10-02 | O10.1 | (this commit) | 0 | HostLib: 26 tests incl. 2 fuzz (accept path reached in ~25% of fuzz inputs); ci profile 10,000 runs |
 | 2026-10-02 | O10.2 | (this commit) | 0 | FeedSpecLib: 71 hand-coded validation vectors + 5 viem specHash vectors (B.3 = C.7) all pass; mutation of one expected code caught |
+| 2026-10-02 | O10.3 | (this commit) | 0 | ClaimRenderer: 15 tests; default template equals independently built text; exact worst-case bound at maximum inputs (mutation caught); fuzz 1,000 / ci 10,000 runs |
