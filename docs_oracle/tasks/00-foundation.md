@@ -104,10 +104,11 @@ Plan §13: owner OA · 1 PD · depends O00 · acceptance: compiles; ABI snapshot
 - Owner: OA
 - PD: 0.5
 - Depends: O02.1
-- Plan: C.7, §11.2, ADJ-08, ADJ-09
+- Plan: C.7, §11.2, ADJ-08, ADJ-09, ADJ-28
 - Cut: yes
-- Status: todo
-- Files: oracle/test/vectors/Constants.t.sol, oracle/vectors/{eip712,spechash,voidbound,bond}.json, oracle/abi/*.json, oracle/abi/SHA256SUMS
+- Status: done
+- Files: oracle/test/vectors/Constants.t.sol, oracle/vectors/{eip712,spechash,voidbound,bond}.json, oracle/abi/*.json, oracle/abi/SHA256SUMS, oracle/foundry.toml
 - Build: Assert in Foundry: `type(IReceiver).interfaceId == 0x805f2132`; `ResolutionRequested` topic0 `0xa3af…3a13`; `RState.L1Pending == 3`; `getL1Job` selector `0xad3a62cf`; both EIP-712 typehashes. Commit the C.7 vector inputs and expected values (P1, R1, specHash of the B.3 FeedSpec, both void bounds, the 2,000,000-lot bond) as JSON. Export `forge inspect <X> abi` for every interface into `oracle/abi/` with a `SHA256SUMS` file.
 - Done when: the constants test passes and the ABI snapshot plus checksums are committed.
 - Check: cd oracle && forge test --match-path test/vectors/Constants.t.sol && cd abi && sha256sum -c SHA256SUMS
+- Notes: Every C.7 value was also recomputed with viem 2.57.2 (P1, R1, specHash, topic0) and matched. Regenerate the snapshot after an interface change with: `for f in src/interfaces/*.sol; do for c in $(grep -oE '^interface \w+' $f | awk '{print $2}'); do forge inspect "$f:$c" abi --json > abi/$c.json; done; done; (cd abi && sha256sum *.json > SHA256SUMS)`.

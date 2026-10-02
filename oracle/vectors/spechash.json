@@ -1,0 +1,23 @@
+{
+  "source": "plan Appendix C.7 (FeedSpec of Appendix B.3); checked in Solidity and viem 2.57.2",
+  "vectors": [
+    {
+      "name": "B.3",
+      "spec": {
+        "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+        "urlParam": "evt_1",
+        "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "finalPath": "event.status",
+        "finalValue": "FINAL",
+        "valuePath": "event.home",
+        "valueType": 1,
+        "decimals": 0,
+        "op": 2,
+        "target": "2",
+        "bufferSecs": 900,
+        "l1TimeoutSecs": 21600
+      },
+      "specHash": "0x50661463875a7d2a9c9ca378a3d4d1ee141fef1d82091ecd7ab36829ea7f80cd"
+    }
+  ]
+}

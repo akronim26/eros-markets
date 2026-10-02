@@ -1,0 +1,56 @@
+{
+  "source": "plan Appendix C.7; checked in Solidity and viem 2.57.2",
+  "domain": {
+    "name": "ErosResolutionOracle",
+    "version": "1",
+    "chainId": 10143,
+    "verifyingContract": "0x00000000000000000000000000000000000000AA"
+  },
+  "typeString": {
+    "PanelResult": "PanelResult(bytes32 marketId,uint8 phase,uint8 attempt,uint8[3] labels,uint16[3] calibratedBps,bytes32 evidenceHash,bytes32 evidenceURIHash,bytes32 gateHash,uint8 flags,uint32 trustSetId,uint64 deadline)",
+    "ReviewedProposal": "ReviewedProposal(bytes32 marketId,uint8 outcome,bytes32 evidenceHash,bytes32 evidenceURIHash,bytes32 noteHash,uint8 attempt,uint8 rejectedMask,bool early,uint32 trustSetId,uint64 deadline)"
+  },
+  "typehash": {
+    "PanelResult": "0x69db7560f727032b47f7c3e6e9c198309778224bf26d820414042f3952f7d905",
+    "ReviewedProposal": "0x859e8252aa8c9e5c1f41c429345599a5fbb3c1c5664602fff262b2ff0e856f57"
+  },
+  "P1": {
+    "preimages": {
+      "marketId": "market-1",
+      "evidenceHash": "snapshot",
+      "evidenceURIHash": "ipfs://bafy",
+      "gateHash": "gate"
+    },
+    "phase": 2,
+    "attempt": 0,
+    "labels": [
+      1,
+      1,
+      1
+    ],
+    "calibratedBps": [
+      9500,
+      9400,
+      9300
+    ],
+    "flags": 0,
+    "trustSetId": 1,
+    "deadline": 1800000000,
+    "digest": "0xc31506d1641a8f03330d1ba677ab016d51c96b1af48ae24d475b84413535b5bc"
+  },
+  "R1": {
+    "preimages": {
+      "marketId": "market-1",
+      "evidenceHash": "snapshot",
+      "evidenceURIHash": "ipfs://bafy",
+      "noteHash": "note"
+    },
+    "outcome": 3,
+    "attempt": 1,
+    "rejectedMask": 2,
+    "early": false,
+    "trustSetId": 1,
+    "deadline": 1800000000,
+    "digest": "0xc3e6776ea7d4164e5eae882701e26b5174ff4b13de6d6701ff360b4243a4301b"
+  }
+}
