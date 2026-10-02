@@ -47,6 +47,15 @@ test('health query never labels an old captured sample as currently collecting',
   assert.equal(healthView(payload,1029000n).currentStatus,'COLLECTING');
   assert.equal(healthView(payload,1031000n).currentStatus,'DEGRADED');
   assert.equal(healthView(payload,1031000n).freshAtQuery,false);
+  assert.equal(healthView({...payload,inspection:{...payload.inspection,time:{observedAt:'1000',sourceMs:'1000500'}}},1000499n).freshAtQuery,false);
+});
+test('event metadata age is checked even when the market response is newer',async()=>{
+  const j=new Journal(':memory:');const now=1000100n;
+  const worker=new Worker(cfg,{event:async()=>capture(event,900000n),metadata:async()=>capture(metadata,now),book:async()=>capture(book,now)},j,'owner',()=>now);
+  try{
+    const result=await worker.poll();assert.equal(result.inspection.status,'DEGRADED');
+    assert.equal(result.inspection.reason,'STALE_METADATA');
+  }finally{j.close();}
 });
 test('wrong-event metadata is quarantined and its raw response remains archived',async()=>{
   const j=new Journal(':memory:');const now=1000100n;

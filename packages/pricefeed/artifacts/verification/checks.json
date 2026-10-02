@@ -1,24 +1,11 @@
 {
-  "checkedAt": "2026-10-02T16:05:33.991529+00:00",
-  "headCommit": "12f012bd3dd7717455a917c5564a113c82b54626",
+  "checkedAt": "2026-10-02T16:06:44.046329+00:00",
+  "headCommit": "1e7246730d4da3425d8d3bfe0f736e4e01cbee53",
   "workingTreeChanges": [
-    " M packages/pricefeed/docs/decisions.md",
-    " M packages/pricefeed/package.json",
-    " M packages/pricefeed/src/cli.ts",
-    " M packages/pricefeed/src/collector.ts",
-    " M packages/pricefeed/src/polymarket.ts",
+    " M packages/pricefeed/PROGRESS.md",
+    " M packages/pricefeed/src/health.ts",
     " M packages/pricefeed/src/worker.ts",
-    " M packages/pricefeed/test/collector.test.ts",
-    " M packages/pricefeed/test/integration/foundry.toml",
-    " M packages/pricefeed/test/integration/src/FeedHarness.sol",
-    " M packages/pricefeed/test/integration/test/PricefeedIngress.t.sol",
-    " M packages/pricefeed/test/worker.test.ts",
-    "?? packages/pricefeed/PROGRESS.md",
-    "?? packages/pricefeed/README.md",
-    "?? packages/pricefeed/artifacts/",
-    "?? packages/pricefeed/scripts/report-source.py",
-    "?? packages/pricefeed/scripts/test-engine.py",
-    "?? packages/pricefeed/scripts/verify.py"
+    " M packages/pricefeed/test/worker.test.ts"
   ],
   "checks": [
     {
@@ -44,7 +31,7 @@
         "test"
       ],
       "exitCode": 0,
-      "tests": 164
+      "tests": 165
     },
     {
       "command": [
@@ -78,14 +65,14 @@
     "src/journal.ts": "e6f8104456476730cea8fd87b6283dff4c6af8e9f1125c147c2e4323d9fdd458",
     "src/wire.ts": "579823904d140ef678265200b2123e4f2aa9407a948c016750089dd425c80acb",
     "src/config.ts": "1d53559fd0cec942ccf0aff247b533be4c01526b1af872f90cb585f12635dc6b",
-    "src/health.ts": "d223130f2882029b69a34667e9b6380c9c56b07a65ce3cd831569cb406075423",
+    "src/health.ts": "2bf7756a22a23bb1fc1072dc9e26fd3d159eeabde945cde7dc730d7ad14be9ca",
     "src/cli.ts": "26a63319cfd0ccd6e324c72906e9903afbb3f0a9ae7df7e8211fea84e7777ac9",
     "src/math.ts": "c93f6046c64c1686ee5bf1b6f4338ce241c5bf11f4acc622bc43f572c0a491a2",
     "src/time.ts": "8f61edbe2551609043ee200cbac3c3387362224bd6cdcd5d617b8425cd5bd4c8",
-    "src/worker.ts": "d5ab97d422597d763b5af445b1010b36dc158d1cca665ae6b28296a86a1fdff2",
+    "src/worker.ts": "23841db0751e5d992f1f605d69c601141c536d6848a8898c4b30828808762cd0",
     "test/collector.test.ts": "58bf7b78ef8e8211f595e7fb9d354b9b4c959fbbafcc07030a61daeb2bd5786a",
     "test/config-time.test.ts": "ac982a515073c71f2652043e9aef941116d0dafaf97acae58835b8a3f722aea9",
-    "test/worker.test.ts": "ce0b15975fd227d092b5311f94644ce5eec526d38a4013bd097b8f5d7a45607f",
+    "test/worker.test.ts": "b4950b8932a9a18ac39ae4a5229e1e85cbc3c374d12846cba94a57d1f3344bc5",
     "test/wire-journal.test.ts": "6df42f2bf8842fe327fdb2d786aecb62f6ab968b750644453f68ba29b1ad850a",
     "test/math.test.ts": "059bcf1431d6aca5e3c7178cf08209b413569633500907b2f4072a66cf073075",
     "test/integration/foundry.toml": "2428afb06c28598b253752eb0a204171dbec47bed80db817f4e89e6496d37e08",
