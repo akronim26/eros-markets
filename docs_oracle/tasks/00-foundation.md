@@ -93,13 +93,14 @@ Plan §13: owner OA · 1 PD · depends O00 · acceptance: compiles; ABI snapshot
 - Owner: OA
 - PD: 0.5
 - Depends: O00.1, O00.2, O00.3, O00.4
-- Plan: §5.1, §5.2, §6.2, C.1, C.2, C.3, C.4, C.5, C.6, B.7
+- Plan: §5.1, §5.2, §6.2, C.1, C.2, C.3, C.4, C.5, C.6, B.7, ADJ-33
 - Cut: yes
 - Status: done
 - Files: oracle/src/types/OracleTypes.sol, oracle/src/interfaces/{IResolutionOracle,IMarketRegistry,IBondTreasury,IReceiver,IMarketFactory,IEngineMonitorView,IKeeperRouter,IAssertionVenue,IOptimisticOracleV3}.sol
 - Build: Copy C.2–C.6 and B.7 byte for byte (C.6 is four files). No edits: enum values are ABI.
 - Done when: `forge build` succeeds and `forge fmt --check` is clean.
 - Check: cd oracle && forge fmt --check && forge build
+- Notes: On 2026-10-02 the pragma of these files (and every other oracle source and test) was relaxed from `0.8.30` to `^0.8.30` (team decision, ADJ-33); nothing else changed, the ABI snapshot still verifies, and the OG0 interface hash in `gates.json` is recomputed.
 
 ### O02.2 · Constants test, C.7 vectors and ABI snapshot
 - Owner: OA

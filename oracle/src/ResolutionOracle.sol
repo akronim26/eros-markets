@@ -47,9 +47,14 @@ import {SigLib} from "./libraries/SigLib.sol";
 ///         revokes, and every progress step is permissionless.
 /// @dev Tasks O14.1-O14.6: trust sets and the guardian, the halt and request lifecycle, committee,
 ///      panel and permissionless proposals, assertions, finalize, reject and void, the early check and
-///      exclusive groups. O15.1: the CRE receiver's production path (`onReport`, ERC-165). The sim-mode
-///      bridge comes in O15.2 and the EIP-712 views in O16, which also declares `is IResolutionOracle`;
-///      until then errors and events are the C.3 declarations, used by qualified name.
+///      exclusive groups. O15: the CRE receiver (`onReport`, ERC-165), the sim-mode bridge and
+///      `lockProduction`. The EIP-712 views come in O16, which also declares `is IResolutionOracle`; until
+///      then errors and events are the C.3 declarations, used by qualified name.
+///
+///      Sim mode (D13): before CRE deploy access, `cre workflow simulate --broadcast` sends reports through
+///      the permissionless MockKeystoneForwarder from a team relayer key. Such a report is accepted only
+///      from the configured sim forwarder, with `tx.origin` an allowed relayer, for a market pinned to a
+///      non-production set. Sim mode never exists on chainId 143 and `lockProduction` ends it for good.
 ///
 ///      Keeper functions (`haltScheduled`, `requestResolution`, `escalateToL2`, `openAfterDeadline`,
 ///      `expireEarly`, `assertProposal`, `syncAssertion`, `finalizeMarket`, `voidMarket`) never
@@ -95,8 +100,10 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IReceiver {
     address public immutable guardian; // guardian Safe, revoke only
     bool public immutable simModeAllowed; // false on Monad mainnet (chainId 143)
 
-    // ------------------------------------------------------------------ sim mode (O15.2)
-    bool public simMode;
+    // ------------------------------------------------------------------ sim mode (D13)
+    bool public simMode; // packed with simForwarder: one slot read on every report
+    address public simForwarder; // the MockKeystoneForwarder while sim mode is on; 0 otherwise
+    mapping(address relayer => bool) public isSimRelayer; // allowed tx.origin of sim-path reports
 
     // ------------------------------------------------------------------ trust sets
     uint32 public trustSetCount;
@@ -268,9 +275,10 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IReceiver {
     ///         check makes every replay revert (ORC-4).
     /// @dev Order: the 256-byte report v1 layout (`BadReport(1)`), the market (`UnknownMarket`) and its
     ///      state (`WrongState`, so the trust set it pinned at its halt exists), the sender against that
-    ///      set (`Unauthorized`, `ProductionSetRequired`, `BadMetadata`, `WrongWorkflow`), then the report
-    ///      content (`BadReport` 1 version, 2 chain selector, 3 oracle, 4 outcome, 5 specHash,
-    ///      6 observedAt outside `[T + bufferSecs, now]`).
+    ///      set (sim path: `Unauthorized`; production path: `Unauthorized`, `ProductionSetRequired`,
+    ///      `BadMetadata`, `WrongWorkflow`), then the report content (`BadReport` 1 version, 2 chain
+    ///      selector, 3 oracle, 4 outcome, 5 specHash, 6 observedAt outside `[T + bufferSecs, now]`), which
+    ///      both paths check in full.
     function onReport(bytes calldata metadata, bytes calldata report) external nonReentrant {
         if (report.length != REPORT_V1_BYTES) revert IResolutionOracle.BadReport(1);
         ReportV1 memory p = abi.decode(report, (ReportV1));
@@ -504,6 +512,37 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IReceiver {
         emit IResolutionOracle.TrustSetActivated(setId);
     }
 
+    /// @notice The forwarder whose reports take the sim path (the MockKeystoneForwarder); 0 disables the
+    ///         path. Only while sim mode is on (`SimModeOff` otherwise).
+    function setSimForwarder(address forwarder) external nonReentrant onlyGovernance {
+        if (!simMode) revert IResolutionOracle.SimModeOff();
+        simForwarder = forwarder;
+        emit IResolutionOracle.SimForwarderSet(forwarder);
+    }
+
+    /// @notice Allows or removes a `tx.origin` for sim-path reports. Only while sim mode is on.
+    function setSimRelayer(address relayer, bool allowed) external nonReentrant onlyGovernance {
+        if (!simMode) revert IResolutionOracle.SimModeOff();
+        isSimRelayer[relayer] = allowed;
+        emit IResolutionOracle.SimRelayerSet(relayer, allowed);
+    }
+
+    /// @notice One-way end of sim mode: requires the active trust set to be a production set with a
+    ///         forwarder, a workflow ID that is not revoked and a workflow owner (`ProductionSetRequired`),
+    ///         then turns sim mode off and clears the sim forwarder. Nothing turns sim mode back on: the
+    ///         setters above refuse once it is off. Repeating it is harmless, so it is also the mainnet
+    ///         step before the first listing, where sim mode is off from the constructor (§12.6).
+    function lockProduction() external nonReentrant onlyGovernance {
+        TrustSet storage s = _trustSets[activeTrustSetId];
+        if (
+            !s.cfg.production || s.cfg.forwarder == address(0) || s.cfg.workflowOwner == address(0)
+                || !(_acceptsWorkflow(s, s.cfg.workflowIds[0]) || _acceptsWorkflow(s, s.cfg.workflowIds[1]))
+        ) revert IResolutionOracle.ProductionSetRequired();
+        simMode = false;
+        simForwarder = address(0);
+        emit IResolutionOracle.ProductionLocked();
+    }
+
     // ------------------------------------------------------------------ guardian (revoke only, immediate)
 
     function revokeWorkflowId(uint32 setId, bytes32 workflowId) external nonReentrant onlyGuardian {
@@ -643,12 +682,19 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IReceiver {
 
     // ------------------------------------------------------------------ CRE receiver internals
 
-    /// @dev Production path (§6.4 step 1): the sender is the pinned set's forwarder and the set is a
-    ///      production set; the metadata (`workflowId` [0:32], `workflowName` [32:42], `workflowOwner`
-    ///      [42:62], at least 62 bytes) names one of the set's non-revoked workflow IDs, its owner and, when
-    ///      the set records one, its name.
+    /// @dev §6.4 step 1, branching on the sender so a production forwarder works while sim mode is on.
+    ///      Sim path (sim mode on and the sender is the sim forwarder): `tx.origin` is an allowed relayer
+    ///      and the pinned set is not a production set, else `Unauthorized`; the metadata is not read (the
+    ///      mock forwarder authenticates nothing). Production path (any other sender): the sender is the
+    ///      pinned set's forwarder and the set is a production set; the metadata (`workflowId` [0:32],
+    ///      `workflowName` [32:42], `workflowOwner` [42:62], at least 62 bytes) names one of the set's
+    ///      non-revoked workflow IDs, its owner and, when the set records one, its name.
     function _authenticateReport(uint32 setId, bytes calldata metadata) internal view {
         TrustSet storage s = _trustSets[setId];
+        if (simMode && simModeAllowed && msg.sender == simForwarder) {
+            if (!isSimRelayer[tx.origin] || s.cfg.production) revert IResolutionOracle.Unauthorized();
+            return;
+        }
         if (msg.sender != s.cfg.forwarder) revert IResolutionOracle.Unauthorized();
         if (!s.cfg.production) revert IResolutionOracle.ProductionSetRequired();
         if (metadata.length < METADATA_MIN_BYTES) revert IResolutionOracle.BadMetadata();

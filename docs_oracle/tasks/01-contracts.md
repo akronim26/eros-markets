@@ -1,7 +1,7 @@
 # Block 1 — Contracts (O10–O19, gate OG1)
 
 Plan §5, §6, §11.1, §12.4, §12.5, §12.11, §13 rows O10–O19, §14. Format and rules: header of
-`docs_oracle/check_tasks.py`. All sources use `pragma solidity 0.8.30;`, depend only on Solady and engine
+`docs_oracle/check_tasks.py`. All sources use `pragma solidity ^0.8.30;` (ADJ-33), depend only on Solady and engine
 interfaces, and are not upgradeable (§6.1). Test doubles live in `oracle/test/mocks/` (ADJ-06).
 
 ## O10 · Libraries
@@ -301,11 +301,12 @@ Plan §13: owner OA · 1.5 PD · depends O14 · acceptance: §11.1 onReport test
 - Depends: O14.5, O14.6
 - Plan: §6.4, §7.1, D12, ORC-4, V-C7, V-C8
 - Cut: yes
-- Status: todo
-- Files: oracle/src/ResolutionOracle.sol, oracle/test/mocks/MockKeystoneForwarderLite.sol, oracle/test/unit/OracleReport.t.sol
+- Status: done
+- Files: oracle/src/ResolutionOracle.sol, oracle/test/mocks/MockKeystoneForwarderLite.sol, oracle/test/unit/OracleReport.t.sol, oracle/test/unit/OracleTrustSets.t.sol
 - Build: `MockKeystoneForwarderLite` builds the 109-byte header exactly like `KeystoneForwarder` and passes `rawReport[45:109]` as metadata. `onReport`: production auth (pinned set is production, sender = its forwarder, metadata ≥ 62, workflow ID accepted and not revoked, owner, optional name), decode report v1, `BadReport` codes 1–6, effects, `ProposedL1`; `supportsInterface` true for `0x805f2132` and `0x01ffc9a7`.
 - Done when: every §11.1 onReport revert case, replay after proposal/escalation/Final, and 64-byte metadata acceptance pass; `onReport` uses < 150k gas.
 - Check: cd oracle && forge test --match-path test/unit/OracleReport.t.sol
+- Notes: Team decisions: check order is the 256-byte report v1 layout (`BadReport(1)`; it is needed to find the market), `UnknownMarket`, `WrongState` (only L1Pending, so the pinned trust set exists), then the sender against that set (`Unauthorized` for anyone but its forwarder, then `ProductionSetRequired`, `BadMetadata`, `WrongWorkflow`), then `BadReport` 1-6; every path reverts with no effect, so the order changes only the error. The report is read as eight uint256 words, so an out-of-range or dirty word fails its own code instead of a raw decoding revert. Workflow ID 0 never matches an empty second slot; the metadata's reportId (bytes 62-64) is not read. `T + bufferSecs` is copied from the registry in `initResolution` (both immutable, ORC-1): reading the whole FeedSpec in `onReport` cost 137k-198k gas cold, growing with the spec's string lengths, while one CRE `writeGasLimit` serves every market; now `onReport` is about 86k cold (call included) and flat in the spec size (tested). `initResolution` therefore reads the registry's market views, and `OracleTrustSets` mocks `getMarketCore` for its EOA registry. No group rule in `onReport`: an L1 YES meets it at `assertProposal` (O14.6). The sim-mode branch is O15.2; until then a market pinned to a sim set gets `ProductionSetRequired`. `MockKeystoneForwarderLite`: header layout of §7.1/V-C7, ERC-165 detection as OpenZeppelin's ERC165Checker, the V-C8 transmission rule; its transmission id is a simplified keccak of receiver, execution id and report id, not claimed identical to Chainlink's. Gas is measured with a low-level call on pre-encoded calldata and `vm.cool`, so the caller's memory and warm slots are not counted. 9 tests; 28/28 mutations caught.
 
 ### O15.2 · Sim mode and `lockProduction`
 - Owner: OA
@@ -313,11 +314,12 @@ Plan §13: owner OA · 1.5 PD · depends O14 · acceptance: §11.1 onReport test
 - Depends: O15.1
 - Plan: §6.4, §7.5, D13, ORC-13, V-C9
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleSimMode.t.sol
 - Build: `setSimForwarder` and `setSimRelayer` (Timelock, only while sim mode); sim path (sender = sim forwarder, `tx.origin` is a relayer, pinned set not production, metadata skipped); production-forwarder reports still accepted while sim mode is on; `lockProduction` (one-way, needs an active production set with forwarder, workflow ID and owner; clears the sim forwarder).
 - Done when: the §11.1 "Sim mode" cases pass, including sim mode impossible under `vm.chainId(143)` and a mock-forwarder report reverting after the lock.
 - Check: cd oracle && forge test --match-path test/unit/OracleSimMode.t.sol
+- Notes: Team decisions: the sim path is taken only when sim mode is on and the sender is the configured sim forwarder (§6.4 branches on the sender); a relayer `tx.origin` that is not allowed, or a production-pinned market, reverts `Unauthorized` there (C.3 has no dedicated error). The sim path skips only the metadata: the report content (`BadReport` 1-6, state, replays) is checked as on the production path. Any other sender takes the production path, so the sim set's own forwarder gets `ProductionSetRequired` when it is not the sim forwarder, and after the lock (ORC-13, E11). `setSimForwarder(0)` disables the sim path without ending sim mode. `lockProduction` is repeatable rather than reverting once sim mode is off, because §12.6 calls it on mainnet before the first listing, where sim mode is off from the constructor; each call requires the active set to be a production set with a forwarder, a workflow owner and a workflow ID that is not revoked (a set whose IDs are all revoked is refused), then turns sim mode off and clears the sim forwarder; relayers are kept but unreachable. Nothing turns sim mode back on (the setters revert `SimModeOff`). Governance may still activate a sim set after the lock; markets pinned to it get no reports and time out into Layer 2 (D13, tested). `simForwarder` is packed with `simMode`, so the production path pays one extra cold slot (cold `onReport` 88,473 gas with the call, was 86,164). ResolutionOracle is now 41,215 B runtime, slightly above the §6.9 estimate of 25-40 KiB and within Monad's 128 KiB. 6 tests; 19 mutations: 15 caught (one after a new case: a sim set that names a workflow and owner cannot be locked), 4 equivalent and kept as plan-listed defence: the `simMode` and `simModeAllowed` terms of the sim path (the sim forwarder can only be non-zero while sim mode is on) and the `lockProduction` forwarder and owner checks (`createTrustSet` already requires both for a production set).
 
 ## O16 · EIP-712 panel and committee
 Plan §13: owner OA · 1.5 PD · depends O14 · acceptance: signature test vectors shared with oracle-sdk.
