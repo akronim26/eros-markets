@@ -52,11 +52,12 @@ Plan §13: owner OA · 3 PD · depends OG0 · acceptance: unit + fuzz; vectors i
 - Depends: OG0
 - Plan: §6.5, §14.2, §14.3, D9, D11, D15, C.7
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/libraries/VoidBound.sol, oracle/src/libraries/BondMath.sol, oracle/test/unit/BondMath.t.sol
 - Build: `T_void ≥ T_L1 + T_L2 + A_max·(T_live,max + (R_max + 2)·T_round) + (A_max − 1)·(T_r + T_retry) + T_slack` with `T_L1 = 0` without a feed; `B = max(minBond, venue minimum, ceil(oiHaltLots × 1000 × bondBps / 10 000))`; pure liveness selection (L1 → livenessL1, L2_AUTO → livenessAuto, both → livenessReviewed when the heartbeat is stale or the watchdog revoked; REVIEWED/PERMISSIONLESS → livenessReviewed).
 - Done when: production inputs give 3,837,600 s, testnet demo inputs 6,000 s, 2,000,000 lots at 1,112 bps give 222,400,000 atoms (values read from `vectors/`); fuzz: ceil never under-sizes and the bound is monotone in each input.
 - Check: cd oracle && forge test --match-path test/unit/BondMath.t.sol
+- Notes: Watchdog freshness is a separate helper (`isWatchdogFresh`): not revoked and last heartbeat at most `heartbeatMaxAgeSecs` old; a watchdog that never sent one is stale. `liveness(Path.NONE)` reverts. Mutations (floor instead of ceil; `R_max + 1` rounds) are caught by the tests.
 
 ### O10.5 · SigLib
 - Owner: OA
