@@ -194,10 +194,22 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             lots = clip;
         }
         FillPlan memory f = _plan(permit, maker, lots);
+        // Reduce-only is a voluntary reduction for either side: spec §4.3 predicate per fill.
+        if (
+            maker.reduceOnly
+                && !_reductionOk(_actionCtx, f.maker, !f.takerBuys, lots, maker.tick, f.makerFeeQ)
+        ) {
+            return _prune(maker, false, RejectCode.MAKER_BELOW_MM);
+        }
         if (permit.mode == AdmissionMode.FORCED_REDUCTION) {
             (bool ok, uint256 fee) = _forcedFillFee(permit, maker, lots);
             if (!ok) return _stop(RejectCode.TAKER_CAPACITY);
             f.takerFeeQ = fee;
+        } else if (
+            permit.reduceOnly
+                && !_reductionOk(_actionCtx, f.taker, f.takerBuys, lots, maker.tick, f.takerFeeQ)
+        ) {
+            return _stop(RejectCode.TAKER_CAPACITY);
         }
         (bool takerCapOk, bool makerCapOk, bool marketOk) = _preflight(f);
         if (!makerCapOk) return _prune(maker, true, RejectCode.ACCOUNT_DEFICIT_CAP);
