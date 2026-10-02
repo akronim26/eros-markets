@@ -81,11 +81,12 @@ Plan §13: owner OB · 2 PD · depends O20, O02 · acceptance: §11.2 tests; no 
 - Depends: O21.3
 - Plan: §11.2, §12.2a, V-C18, V-C19, ADJ-02
 - Cut: yes
-- Status: todo
-- Files: .github/workflows/oracle.yml
+- Status: done
+- Files: .github/workflows/oracle.yml, oracle/.gitignore
 - Build: `bun run build` (`cre-compile main.ts out.wasm`; `out.wasm` is git-ignored). Add the `workflow` job of §12.2a verbatim to `oracle.yml`, including the `.withDefault(` grep that skips `node_modules`.
 - Done when: the build prints no determinism warning and the `workflow` CI job is green.
 - Check: cd oracle/workflows/resolution && bun run build && ! grep -rn --exclude-dir=node_modules '.withDefault(' --include='*.ts' . ../../packages
+- Notes: The `workflow` job of §12.2a is added to `oracle.yml` verbatim (bun 1.3.13; frozen install, `bun test`, typecheck, `cre-compile` build, then the `.withDefault(` grep that skips `node_modules`, V-C19). `cre-compile` writes `out.js` (1.54 MB bundle) as well as `out.wasm` (4,257,896 bytes), so `oracle/.gitignore` ignores both under `workflows/`. The build prints no warning of any kind (no determinism warning; Javy plugin v8.1.0). The job's exact steps pass in a clean worktree of the commit (no `node_modules`, fresh frozen install): 12 tests, typecheck, build, grep. The CI run itself happens on the next push; the Done-when's green `workflow` job is confirmed there.
 
 ## O22 · `workflows/dryrun` and `oracle-cli list`
 Plan §13: owner OB · 2.5 PD · depends O21 · acceptance: produces a pack for one real sports market.
