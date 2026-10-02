@@ -2,3 +2,7 @@ out/
 cache/
 node_modules/
 .env
+deployments/dryrun/
+deployments/anvil.json
+broadcast/**/dry-run/
+broadcast/*/31337/
