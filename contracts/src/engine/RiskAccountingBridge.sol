@@ -304,21 +304,15 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
             fundingBudgetQ
         );
         if (!_liveForAccounting() || epoch.stopped) return projected;
-        uint64 cutoff = projected.cutoff;
-        uint64 fresh = _fundingFreshThrough();
-        if (cutoff > fresh) cutoff = fresh;
-        uint64 floorTime = scheduledT - 12 hours;
-        if (cutoff > floorTime) cutoff = floorTime;
-        if (cutoff < epoch.last) cutoff = epoch.last;
-        F.Delta memory delta =
-            F.advance(cutoff - epoch.last, epoch.rate, oiAllLots, reserve.lots, fundingBudgetQ);
+        // B-D02: the same step `_advanceFunding` posts. Live means READY, so the funding cutoff starts
+        // from atTime exactly as an execution at atTime would.
+        FundingStep memory step = _fundingStep(atTime, _fundingFreshThrough());
+        F.Delta memory delta = step.delta;
         projected.fundingIndex += delta.indexQ;
         projected.reserveCashQ = QMath.cash(projected.reserveCashQ - delta.reservePaymentQ);
         projected.cushionQ += delta.traderPayerQ;
         projected.budgetQ -= delta.flowQ;
-        if (delta.stopped || cutoff < atTime || cutoff == epoch.end || cutoff == floorTime) {
-            projected.fundingStop = epoch.last + delta.secondsAccrued;
-        }
+        if (step.stops) projected.fundingStop = epoch.last + delta.secondsAccrued;
     }
 
     function _previewCharges(Account storage account_, PreviewAccrual memory projected)
@@ -326,18 +320,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         view
         returns (int256 fundingQ, uint256 premiumQ)
     {
-        fundingQ = int256(account_.value.lots) * (projected.fundingIndex - account_.fundingCheckpoint);
-        uint64 start = account_.segmentStart < epoch.start ? epoch.start : account_.segmentStart;
-        if (projected.cutoff <= account_.lastTouchedAt || projected.cutoff <= start) return (fundingQ, 0);
-        P.Segment memory segment = P.Segment(
-            account_.segmentCash,
-            account_.value.lots,
-            epoch.rate,
-            start,
-            projected.fundingStop,
-            account_.surchargeUntil
-        );
-        premiumQ = P.cumulative(segment, tariff, projected.cutoff) - account_.segmentPosted;
+        return _projectedTouch(account_, projected.fundingIndex, projected.fundingStop, projected.cutoff);
     }
 
     function _acctPreviewAccount(uint32 trader, uint64 atTime)
