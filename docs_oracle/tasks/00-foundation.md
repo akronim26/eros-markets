@@ -76,11 +76,12 @@ Plan §13: owner OA · 1 PD · depends — · acceptance: written in the seam re
 - Depends: O01.1
 - Plan: §3.3, §12.1, DEP-3, DEP-4
 - Cut: no
-- Status: todo
+- Status: blocked
 - Files: docs_oracle/requests/ORACLE-to-RISK-seam.md
 - Build: Record each answer, who gave it and the date. Record the bond-token decision (it feeds X03, X04 and `params.monad-testnet.json`). Any change to an Appendix C type is made in O02 before OG0, never after.
 - Done when: both Risk developers have acknowledged in writing; every row is `agreed` or `open` with an owner.
 - Check: manual: acknowledgement of both Risk developers recorded in the document
+- Notes: Blocked on written acknowledgement from Person A and Person B (and a named factory owner). Recorded so far: S-01–S-06, S-09, S-15 `published` (from B's repository docs of 2026-10-01); S-07, S-08, S-10–S-14 `open` with owners. Set to done once both acknowledgements are recorded.
 
 ## O02 · Types and interfaces
 Plan §13: owner OA · 1 PD · depends O00 · acceptance: compiles; ABI snapshot committed.
