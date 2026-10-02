@@ -69,8 +69,10 @@ accept any PF gate. I-3 still needs counterpart confirmation.
 
 ## Commit 563893f — configurable read-only collector
 
-Full hash: `563893fb584f9f2c4c439d489ebd5bb5b14b7523`  
-Committed: 2026-10-02 21:02:49 +05:30  
+Full hash: `563893fb584f9f2c4c439d489ebd5bb5b14b7523`
+
+Committed: 2026-10-02 21:02:49 +05:30
+
 Message: `feat(pricefeed): add configurable read-only Polymarket collector`
 
 **What happened.** Added the isolated package/toolchain, disabled category
@@ -103,8 +105,10 @@ delivery, signing and admission were not enabled.
 
 ## Commit 16f1903 — wire and scope checks
 
-Full hash: `16f190354ca2ec74fd42849312000871e7e97939`  
-Committed: 2026-10-02 21:11:12 +05:30  
+Full hash: `16f190354ca2ec74fd42849312000871e7e97939`
+
+Committed: 2026-10-02 21:11:12 +05:30
+
 Message: `fix(pricefeed): verify wire types and protected component scope`
 
 **What happened.** Fixed TypeScript byte/signature types and added scripts that
@@ -126,8 +130,10 @@ next. All economic/source approval questions remained open.
 
 ## Commit 12f012b — CLI, worker recovery and health
 
-Full hash: `12f012bd3dd7717455a917c5564a113c82b54626`  
-Committed: 2026-10-02 21:19:51 +05:30  
+Full hash: `12f012bd3dd7717455a917c5564a113c82b54626`
+
+Committed: 2026-10-02 21:19:51 +05:30
+
 Message: `feat(pricefeed): add read-only CLI, worker recovery and health checks`
 
 **What happened.** Added shared-provider independent workers, namespace/key
@@ -152,11 +158,13 @@ per-commit test logs are unavailable.
 **Remaining.** Pin and verify the local engine toolchain; enforce adapter deadlines
 independently of transport cancellation; verify event membership explicitly.
 
-## Pending commit — uncommitted work after 12f012b
+## Commit 1e72467 — event identity, deadlines and progress record
 
-Base commit: `12f012bd3dd7717455a917c5564a113c82b54626`. No new commit hash is
-claimed. Suggested message:
-`fix(pricefeed): verify event identity, bound requests and record progress (PF009-PF012, PF020)`.
+Full hash: `1e7246730d4da3425d8d3bfe0f736e4e01cbee53`
+
+Committed: 2026-10-02 21:36:30 +05:30
+
+Message: `fix(pricefeed): verify event identity, bound requests and record progress`
 
 **What changed and why.** Fixed isolated harness imports and actual TWAP return
 type. The harness submits TypeScript raw-signed fixtures through real
@@ -186,7 +194,7 @@ exit 0, 164 TypeScript tests, 144 independent Fraction vectors (seed 20261002),
 4 actual-ingress/store local tests, exact wire check, and all 1,156 protected file
 hashes unchanged. Machine evidence: `artifacts/verification/checks.json` and
 `engine.json`, including source/fixture hashes and real-versus-test component
-status. These are current working-tree results, not PF acceptance.
+status. Results describe the tree checked before this commit, not PF acceptance.
 
 A further 30-second three-category capture first encountered sandbox network
 failures. It was repeated with network permission using a separate archive;
@@ -205,3 +213,30 @@ operational signer/relay and lifecycle work blocked by Q02-Q10. No named approva
 release, human gate, production address or production parameters were invented.
 Continue only isolated preparatory/read-only work until dependent decisions are
 actually supplied.
+
+## Pending commit — freshness fixes and completed commit accounting
+
+Base commit: `1e7246730d4da3425d8d3bfe0f736e4e01cbee53`. This entry describes
+uncommitted work only. Suggested message:
+`fix(pricefeed): check event metadata age and future health timestamps (PF011, PF025)`.
+
+**What changed.** Check metadata freshness against the older of the event and
+market captures so a new market response cannot disguise an expired event
+association. Health now compares the original source milliseconds against query
+time, rejecting future skew hidden by flooring to seconds. Added regression
+checks for both cases. Recorded the actual `1e72467` commit above rather than
+leaving already committed work in a pending entry. Updated verification evidence.
+
+**Decisions.** Source and metadata age stay conservative. No timestamp is
+refreshed, no policy is approved, and no operational output is enabled by these
+diagnostic checks. The health work is preparation for PF025, not completion of
+its production monitoring/runbook dependencies.
+
+**Verification.** `npm run verify:all` with the pinned local Forge/Solidity paths
+exited 0: 165 TypeScript tests, zero skipped/cancelled/todo tests, 144 independent
+Fraction vectors (seed 20261002), 4 actual-ingress/store local tests, wire match
+and 1,156 protected hashes unchanged. `git diff --check` exited 0. Full evidence
+is in `artifacts/verification/checks.json`; no live source run was repeated after
+these final two fixes. The preceding source capture remains limited evidence of
+the earlier read-only code, not a claim of a continuously operating production
+service. Q02-Q10, I-3 confirmation and all human gates remain open.

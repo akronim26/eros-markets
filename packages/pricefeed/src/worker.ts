@@ -68,7 +68,9 @@ export class Worker {
             rulesDigest:createHash('sha256').update(`${event.rulesDigest}:${market.rulesDigest}`).digest('hex')};
         }
         book=await this.provider.book(this.config.mapping.outcomeTokenId);
-        inspection=inspectSnapshot(this.config,book.data,book.receivedAtMs,this.lastSourceMs,this.metadata!,this.metadataCapture!.receivedAtMs,this.rulesDigest??undefined);
+        const metadataAt=this.eventCapture!.receivedAtMs<this.metadataCapture!.receivedAtMs
+          ?this.eventCapture!.receivedAtMs:this.metadataCapture!.receivedAtMs;
+        inspection=inspectSnapshot(this.config,book.data,book.receivedAtMs,this.lastSourceMs,this.metadata!,metadataAt,this.rulesDigest??undefined);
         if(this.rulesDigest===null)this.rulesDigest=this.metadata!.rulesDigest;
         if(inspection.time?.monotone)this.lastSourceMs=inspection.time.sourceMs;
         if(inspection.status==='QUARANTINED')this.quarantined=inspection.reason;
