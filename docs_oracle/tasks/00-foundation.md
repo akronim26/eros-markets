@@ -94,7 +94,7 @@ Plan §13: owner OA · 1 PD · depends O00 · acceptance: compiles; ABI snapshot
 - Depends: O00.1, O00.2, O00.3, O00.4
 - Plan: §5.1, §5.2, §6.2, C.1, C.2, C.3, C.4, C.5, C.6, B.7
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/types/OracleTypes.sol, oracle/src/interfaces/{IResolutionOracle,IMarketRegistry,IBondTreasury,IReceiver,IMarketFactory,IEngineMonitorView,IKeeperRouter,IAssertionVenue,IOptimisticOracleV3}.sol
 - Build: Copy C.2–C.6 and B.7 byte for byte (C.6 is four files). No edits: enum values are ABI.
 - Done when: `forge build` succeeds and `forge fmt --check` is clean.
