@@ -13,97 +13,116 @@ contract BondMathTest is Test {
 
     // ------------------------------------------------------------------ vectors
 
-    function test_voidBound_productionAndTestnet() public view {
-        string memory j = vm.readFile("vectors/voidbound.json");
-        assertEq(VoidBound.minVoidSecs(_inputs(j, ".production")), j.readUint(".production.expectedSecs"));
-        assertEq(VoidBound.minVoidSecs(_inputs(j, ".testnet")), j.readUint(".testnet.expectedSecs"));
-        assertEq(j.readUint(".production.expectedSecs"), 3_837_600);
-        assertEq(j.readUint(".testnet.expectedSecs"), 6_000);
+    /// Void bound: plan values, no-feed rule, no overflow at the maximum inputs.
+    function test_voidBound() public view {
+        {
+            // test_voidBound_productionAndTestnet
+            string memory j = vm.readFile("vectors/voidbound.json");
+            assertEq(VoidBound.minVoidSecs(_inputs(j, ".production")), j.readUint(".production.expectedSecs"));
+            assertEq(VoidBound.minVoidSecs(_inputs(j, ".testnet")), j.readUint(".testnet.expectedSecs"));
+            assertEq(j.readUint(".production.expectedSecs"), 3_837_600);
+            assertEq(j.readUint(".testnet.expectedSecs"), 6_000);
+        }
+        {
+            // test_voidBound_noFeedIgnoresL1Timeout
+            VoidBound.Inputs memory i = _testnet();
+            i.hasFeed = false;
+            assertEq(VoidBound.minVoidSecs(i), 6_000 - 300);
+            i.l1TimeoutSecs = type(uint32).max;
+            assertEq(VoidBound.minVoidSecs(i), 6_000 - 300, "T_L1 unused without a feed");
+        }
+        {
+            // test_voidBound_maxInputsDoNotOverflow
+            VoidBound.Inputs memory i = VoidBound.Inputs(
+                true,
+                type(uint32).max,
+                type(uint32).max,
+                type(uint64).max,
+                type(uint8).max,
+                type(uint32).max,
+                type(uint32).max,
+                type(uint32).max,
+                type(uint32).max
+            );
+            assertGt(VoidBound.minVoidSecs(i), 0);
+        }
     }
 
-    function test_bond_c7Vector() public view {
-        string memory j = vm.readFile("vectors/bond.json");
-        uint256 b = BondMath.bond(
-            j.readUint(".vectors[0].oiHaltLots"),
-            j.readUint(".vectors[0].minBond"),
-            uint16(j.readUint(".vectors[0].bondBps")),
-            j.readUint(".vectors[0].venueMinimumBond")
-        );
-        assertEq(b, j.readUint(".vectors[0].expectedAtoms"));
-        assertEq(b, 222_400_000);
+    /// Bond: C.7 vector, floors, ceil rounding, UMA-config overload, overflow.
+    function test_bond() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_bond_c7Vector
+            string memory j = vm.readFile("vectors/bond.json");
+            uint256 b = BondMath.bond(
+                j.readUint(".vectors[0].oiHaltLots"),
+                j.readUint(".vectors[0].minBond"),
+                uint16(j.readUint(".vectors[0].bondBps")),
+                j.readUint(".vectors[0].venueMinimumBond")
+            );
+            assertEq(b, j.readUint(".vectors[0].expectedAtoms"));
+            assertEq(b, 222_400_000);
+        }
+        vm.revertToState(snap);
+        {
+            // test_bond_floorsApply
+            assertEq(BondMath.bond(0, 2e6, 1112, 0), 2e6, "minBond");
+            assertEq(BondMath.bond(0, 0, 1112, 2e6), 2e6, "venue minimum");
+            assertEq(BondMath.bond(100_000, 2e6, 1112, 2e6), 11_120_000, "testnet demo cap: 100 claims -> 11.12 USDC");
+        }
+        vm.revertToState(snap);
+        {
+            // test_bond_roundsUp
+            // 1 lot = 1,000 atoms; 1 bps of that is 0.1 atom, rounded up to 1.
+            assertEq(BondMath.bond(1, 0, 1, 0), 1);
+            // 7 lots at 1,112 bps: 7,000 × 1,112 / 10,000 = 778.4 -> 779.
+            assertEq(BondMath.bond(7, 0, 1112, 0), 779);
+        }
+        vm.revertToState(snap);
+        {
+            // test_bond_fromUmaConfig
+            UMAConfig memory u;
+            u.minBond = 2e6;
+            u.bondBps = 1112;
+            assertEq(BondMath.bond(2_000_000, u, 2e6), 222_400_000);
+        }
+        vm.revertToState(snap);
+        {
+            // test_bond_overflowReverts
+            vm.expectRevert();
+            this.bondExternal(type(uint256).max / 100, 0, 1112, 0);
+        }
     }
 
     // ------------------------------------------------------------------ VoidBound units
 
-    function test_voidBound_noFeedIgnoresL1Timeout() public pure {
-        VoidBound.Inputs memory i = _testnet();
-        i.hasFeed = false;
-        assertEq(VoidBound.minVoidSecs(i), 6_000 - 300);
-        i.l1TimeoutSecs = type(uint32).max;
-        assertEq(VoidBound.minVoidSecs(i), 6_000 - 300, "T_L1 unused without a feed");
-    }
-
-    function test_voidBound_maxInputsDoNotOverflow() public pure {
-        VoidBound.Inputs memory i = VoidBound.Inputs(
-            true,
-            type(uint32).max,
-            type(uint32).max,
-            type(uint64).max,
-            type(uint8).max,
-            type(uint32).max,
-            type(uint32).max,
-            type(uint32).max,
-            type(uint32).max
-        );
-        assertGt(VoidBound.minVoidSecs(i), 0);
-    }
-
     // ------------------------------------------------------------------ BondMath units
-
-    function test_bond_floorsApply() public pure {
-        assertEq(BondMath.bond(0, 2e6, 1112, 0), 2e6, "minBond");
-        assertEq(BondMath.bond(0, 0, 1112, 2e6), 2e6, "venue minimum");
-        assertEq(BondMath.bond(100_000, 2e6, 1112, 2e6), 11_120_000, "testnet demo cap: 100 claims -> 11.12 USDC");
-    }
-
-    function test_bond_roundsUp() public pure {
-        // 1 lot = 1,000 atoms; 1 bps of that is 0.1 atom, rounded up to 1.
-        assertEq(BondMath.bond(1, 0, 1, 0), 1);
-        // 7 lots at 1,112 bps: 7,000 × 1,112 / 10,000 = 778.4 -> 779.
-        assertEq(BondMath.bond(7, 0, 1112, 0), 779);
-    }
-
-    function test_bond_fromUmaConfig() public pure {
-        UMAConfig memory u;
-        u.minBond = 2e6;
-        u.bondBps = 1112;
-        assertEq(BondMath.bond(2_000_000, u, 2e6), 222_400_000);
-    }
-
-    function test_bond_overflowReverts() public {
-        vm.expectRevert();
-        this.bondExternal(type(uint256).max / 100, 0, 1112, 0);
-    }
 
     // ------------------------------------------------------------------ liveness
 
-    function test_liveness_table() public pure {
-        UMAConfig memory u;
-        u.livenessL1 = 7200;
-        u.livenessAuto = 7300;
-        u.livenessReviewed = 86400;
-        assertEq(BondMath.liveness(Path.L1, u, true), 7200);
-        assertEq(BondMath.liveness(Path.L2_AUTO, u, true), 7300);
-        assertEq(BondMath.liveness(Path.L1, u, false), 86400, "stale watchdog -> reviewed");
-        assertEq(BondMath.liveness(Path.L2_AUTO, u, false), 86400, "stale watchdog -> reviewed");
-        assertEq(BondMath.liveness(Path.REVIEWED, u, true), 86400);
-        assertEq(BondMath.liveness(Path.PERMISSIONLESS, u, true), 86400);
-    }
-
-    function test_liveness_noPathReverts() public {
-        UMAConfig memory u;
-        vm.expectRevert(BondMath.NoPath.selector);
-        this.livenessExternal(Path.NONE, u, true);
+    /// Liveness per path, with the watchdog fallback; NONE reverts.
+    function test_liveness() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_liveness_table
+            UMAConfig memory u;
+            u.livenessL1 = 7200;
+            u.livenessAuto = 7300;
+            u.livenessReviewed = 86400;
+            assertEq(BondMath.liveness(Path.L1, u, true), 7200);
+            assertEq(BondMath.liveness(Path.L2_AUTO, u, true), 7300);
+            assertEq(BondMath.liveness(Path.L1, u, false), 86400, "stale watchdog -> reviewed");
+            assertEq(BondMath.liveness(Path.L2_AUTO, u, false), 86400, "stale watchdog -> reviewed");
+            assertEq(BondMath.liveness(Path.REVIEWED, u, true), 86400);
+            assertEq(BondMath.liveness(Path.PERMISSIONLESS, u, true), 86400);
+        }
+        vm.revertToState(snap);
+        {
+            // test_liveness_noPathReverts
+            UMAConfig memory u;
+            vm.expectRevert(BondMath.NoPath.selector);
+            this.livenessExternal(Path.NONE, u, true);
+        }
     }
 
     function test_watchdogFreshness() public pure {
