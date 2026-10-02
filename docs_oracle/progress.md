@@ -21,3 +21,5 @@ new row. `check_tasks.py` fails when a `done` task has no row here.
 | 2026-10-02 | O10.5 | (this commit) | 0 | SigLib: 23 tests; P1/R1 digests = C.7; panel 65-byte/v/low-s rules; 11 m-of-k cases incl. ERC-1271 accept/refuse; three mutations caught |
 | 2026-10-02 | O00.2 | (this commit) | 0 | cleanup: removed Toolchain.t.sol and 7 duplicate vector assertions (Constants x5, SigLib x1, FeedSpecLib x1); 85 tests remain, each C.7 value asserted once through its library |
 | 2026-10-02 | O10.2 | (this commit) | 0 | specHash vectors moved from feedspec.json to spechash.json (one home per vector, plan §6.1 layout); test now requires all 5 |
+| 2026-10-02 | O19.1 | (this commit) | 0 | ResolutionEngineStub + StubMarketFactory: 24 tests covering every non-accounting case of counterpart-oracle-fixtures.json; error selectors equal the real engine's |
+| 2026-10-02 | O11.1 | (this commit) | 0 | MockResolutionEngine, MockMarketFactory, MockAssertionVenue, MockOracleView, MockBondTreasury: 12 smoke tests, one per knob |

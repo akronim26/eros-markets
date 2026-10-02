@@ -81,11 +81,12 @@ Plan §13: owner OA · 3 PD · depends O10 · acceptance: every §6.3 rejection 
 - Depends: O10.2, O10.3, O10.4, O10.5, O19.1
 - Plan: §3.4, §11.1, ADJ-06, ADJ-07
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/test/mocks/{MockResolutionEngine,MockMarketFactory,MockAssertionVenue,MockOracleView,MockBondTreasury}.sol, oracle/test/unit/Mocks.t.sol
 - Build: `MockResolutionEngine` subclasses the testnet `ResolutionEngineStub` (O19.1) with knobs `revertOnSettle`, `setOiLots`, wrong `listingHash`, pre-halted, misbehaving halts. `MockMarketFactory` deploys it or a misbehaving one. `MockAssertionVenue` is scripted (assert, dispute, settle true/false, never answer, settled directly, `minimumBond`, `bondCurrency`). `MockOracleView` (active trust set, venue, `initResolution` recorder, `getResolution`, `watchdogOf`) and `MockBondTreasury` (`commitListing` ledger) stand in for the oracle and treasury in registry tests. Doubles script answers; they never re-implement the real contract's rules.
 - Done when: each double has a smoke test of its knobs.
 - Check: cd oracle && forge test --match-path test/unit/Mocks.t.sol
+- Notes: `MockAssertionVenue` never settles on its own: each result is scripted (`setResult`, `markDisputed`, `settleDirectly`); unanswered is the default. With a token set, bonds move like the real venue (pulled at assert and dispute, returned to the asserter when true).
 
 ### O11.2 · Storage, globals and governance setters
 - Owner: OA
@@ -405,11 +406,12 @@ Plan §13: owner OA · 2 PD · depends O17 · acceptance: dry-run on anvil and a
 - Depends: O02.2
 - Plan: §3.4, §6.10, ADJ-07
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/testnet/ResolutionEngineStub.sol, oracle/src/testnet/StubMarketFactory.sol, oracle/test/unit/StubEngine.t.sol
 - Build: Exactly §6.10: TESTNET ONLY names and NatSpec; `initialize` once (factory only, void gate, `engineInit = abi.encode(oiLots)`); `halt`, `materializeScheduledHalt`, `settle`, `settleInvalid` with B034 semantics (`BadOutcome`, same outcome → false, `ConflictingFinalOutcome`); `getSettlementStatus`; `marketRiskView` with `setMonitorRestricted` by the monitor; `StubMarketFactory` `onlyRegistry`, reverts on a reused marketId. Pulled ahead of O17 because O11 and O14 tests need it (ADJ-07).
 - Done when: the stub's behaviour matches B's `ResolutionIngress` on every case of `docs/counterpart-oracle-fixtures.json` that does not need accounting.
 - Check: cd oracle && forge test --match-path test/unit/StubEngine.t.sol
+- Notes: Errors reuse the engine's names; a test proves their selectors equal the real engine's (`LifecycleMath`, `RiskContextPort`, `ResolutionIngress`). For INVALID the stub reports the listing's fallback price (0.5) as ready from T, since it has no index to capture. Done together with O11.1 in one commit (team decision).
 
 ### O19.2 · KeeperRouter
 - Owner: OA
