@@ -190,7 +190,10 @@ an amount that passes the current release preview. It is checked again at execut
 
 - Gate acceptance and exact run status: `docs/spec/gate_status.json` and `artifacts/gates/`.
   G0-G7 technical checks pass in order on Forge 1.8.3. A043 is complete in
-  `artifacts/reviews/A-on-B.md`; G7 final acceptance still requires B's delta review.
+  `artifacts/reviews/A-on-B.md`. B's delta review of `71576ed..3b11044` is complete
+  (`artifacts/reviews/B-on-A.md`, addendum 2026-10-02, commit `32d30ac`). G7 acceptance and an
+  accepted merge SHA are still pending and can be recorded only by a human. Current state and
+  open items: `docs/merge/STATUS.md`.
 - Invariant campaign INV-01..INV-10: `artifacts/risk/invariant-campaign.json`.
 - Gas (Ethereum/Prague schedule in forge, not Monad): `artifacts/risk/gas-engine.json`.
 - Release defaults and missing production inputs: `artifacts/risk/release-manifest.json`.
