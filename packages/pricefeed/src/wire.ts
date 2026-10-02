@@ -36,5 +36,6 @@ export function observationDigest(obs:Observation,chainId:bigint,engine:string):
 export function submitCalldata(obs:Observation,signature:Hex):Hex {
   const o=validated(obs);
   if(!/^0x[0-9a-fA-F]{130}$/.test(signature))throw new Error('EXPECTED_65_BYTE_SIGNATURE');
-  return encodeFunctionData({abi:INGRESS_ABI,functionName:'submitObservation',args:[o,signature]});
+  const tuple={...o,marketId:o.marketId as Hex,sourceId:o.sourceId as Hex,sourceRulesHash:o.sourceRulesHash as Hex};
+  return encodeFunctionData({abi:INGRESS_ABI,functionName:'submitObservation',args:[tuple,signature]});
 }

@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { privateKeyToAccount } from 'viem/accounts';
-import { recoverAddress, hashMessage } from 'viem';
+import { recoverAddress, hashMessage, type Hex } from 'viem';
 import { observationDigest, parseObservation, type Observation, submitCalldata } from '../src/wire.js';
 import { Journal } from '../src/journal.js';
 
@@ -12,7 +12,7 @@ export const fixtureObservation:Observation={marketId:'0x'+'01'.repeat(32),sourc
 const engine='0x1111111111111111111111111111111111111111';
 test('wire digest binds every field and chain/engine domain; raw recovery differs from personal signing', async()=>{
   const digest=observationDigest(fixtureObservation,31337n,engine);
-  const account=privateKeyToAccount('0x'+'11'.repeat(32)); // Explicit deterministic test key only.
+  const account=privateKeyToAccount(('0x'+'11'.repeat(32)) as Hex); // Explicit deterministic test key only.
   const signature=await account.sign({hash:digest});
   assert.equal(signature.length,132);
   assert.equal((await recoverAddress({hash:digest,signature})).toLowerCase(),account.address.toLowerCase());
