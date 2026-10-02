@@ -35,11 +35,12 @@ Plan §13: owner OA+OB · 1 PD · depends — · acceptance: CI green on an empt
 - Depends: O00.1
 - Plan: §9, §12.2, ADJ-10
 - Cut: yes
-- Status: todo
-- Files: oracle/package.json, oracle/bun.lock, oracle/tsconfig.base.json
+- Status: done
+- Files: oracle/package.json, oracle/tsconfig.base.json
 - Build: Create the bun workspace root `oracle/package.json` with workspaces `packages/*` and `services/*` only (the CRE workflows stay standalone packages with their own `bun.lock`, ADJ-10). Pin bun 1.3.13 (`packageManager`), Node 22, and a shared `tsconfig.base.json` (strict, ES2022, bundler resolution).
-- Done when: `bun install` at `oracle/` exits 0 with no members yet, and the lockfile is committed.
+- Done when: `bun install` and `bun install --frozen-lockfile` at `oracle/` exit 0 with no members yet. Bun deletes an empty lockfile, so `oracle/bun.lock` is first created and committed with the first member that has dependencies (O20.1).
 - Check: cd oracle && bun install --frozen-lockfile
+- Notes: ADJ-10 checked with bun 1.3.13 in a scratch copy: a package under `workflows/` installs standalone with its own `bun.lock` and `node_modules`, and the workspace lockfile does not list it.
 
 ### O00.4 · Oracle CI (Foundry job)
 - Owner: OB
