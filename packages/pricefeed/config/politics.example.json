@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1",
+  "configVersion": "diagnostic-1",
+  "key": "politics-example",
+  "category": "politics",
+  "enabled": false,
+  "destination": null,
+  "mapping": {
+    "eventId": "45915",
+    "externalMarketId": "601826",
+    "conditionId": "0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d",
+    "outcomeTokenId": "109876868437950584369987384406356259939519193117253465815665152916226511121427",
+    "outcomeLabel": "Yes"
+  },
+  "pricing": {
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "impactMethod": "vwap"
+  },
+  "policies": {
+    "timestampPolicyId": "vendor-ms-floor-diagnostic-only",
+    "quantityPolicyId": "claims-to-lots-floor-total-diagnostic-only",
+    "quotePolicyId": "vendor-quote-unapproved",
+    "mappingApprovalId": null,
+    "pricingApprovalId": null,
+    "timeApprovalId": null,
+    "rulesApprovalId": null,
+    "unitsApprovalId": null,
+    "invalidApprovalId": null,
+    "operatingApprovalId": null
+  },
+  "requiredFeedUntil": null,
+  "poll": {
+    "intervalMs": 10000,
+    "timeoutMs": 4000,
+    "maxRetries": 1,
+    "retryDelayMs": 200,
+    "metadataMaxAgeMs": 90000,
+    "minimumHeadroomMs": 5000,
+    "bodyLimitBytes": 1000000
+  }
+}

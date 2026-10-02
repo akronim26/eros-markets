@@ -1,0 +1,7586 @@
+[
+  {
+    "name": "method-discriminator-vwap",
+    "bids": [
+      {
+        "price": "0.60",
+        "size": "6"
+      },
+      {
+        "price": "0.58",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.62",
+        "size": "6"
+      },
+      {
+        "price": "0.64",
+        "size": "4"
+      }
+    ],
+    "nLots": "10000",
+    "spreadWad": "50000000000000000",
+    "method": "vwap",
+    "bidWad": "592000000000000000",
+    "askWad": "628000000000000000",
+    "midWad": "610000000000000000",
+    "valid": true,
+    "bidDepthLots": "10000",
+    "askDepthLots": "10000"
+  },
+  {
+    "name": "spread-equality-vwap",
+    "bids": [
+      {
+        "price": "0.59",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.64",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "vwap",
+    "bidWad": "590000000000000000",
+    "askWad": "640000000000000000",
+    "midWad": "615000000000000000",
+    "valid": true,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "spread-one-atom-vwap",
+    "bids": [
+      {
+        "price": "0.59",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.640000000000000001",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "vwap",
+    "bidWad": "590000000000000000",
+    "askWad": "640000000000000001",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "odd-midpoint-vwap",
+    "bids": [
+      {
+        "price": "0.590000000000000001",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.590000000000000002",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "vwap",
+    "bidWad": "590000000000000001",
+    "askWad": "590000000000000002",
+    "midWad": "590000000000000001",
+    "valid": true,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "thin-vwap",
+    "bids": [
+      {
+        "price": "0.60",
+        "size": "4.999"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.61",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": "610000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "4999",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "endpoint-vwap",
+    "bids": [
+      {
+        "price": "0",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "1",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "0",
+    "askWad": "1000000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "crossed-vwap",
+    "bids": [
+      {
+        "price": "0.62",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.61",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "vwap",
+    "bidWad": "620000000000000000",
+    "askWad": "610000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "partial-final-vwap",
+    "bids": [
+      {
+        "price": "0.6",
+        "size": "6"
+      },
+      {
+        "price": "0.58",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.62",
+        "size": "6"
+      },
+      {
+        "price": "0.64",
+        "size": "7"
+      }
+    ],
+    "nLots": "8000",
+    "spreadWad": "50000000000000000",
+    "method": "vwap",
+    "bidWad": "595000000000000000",
+    "askWad": "625000000000000000",
+    "midWad": "610000000000000000",
+    "valid": true,
+    "bidDepthLots": "13000",
+    "askDepthLots": "13000"
+  },
+  {
+    "name": "method-discriminator-marginal",
+    "bids": [
+      {
+        "price": "0.60",
+        "size": "6"
+      },
+      {
+        "price": "0.58",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.62",
+        "size": "6"
+      },
+      {
+        "price": "0.64",
+        "size": "4"
+      }
+    ],
+    "nLots": "10000",
+    "spreadWad": "50000000000000000",
+    "method": "marginal",
+    "bidWad": "580000000000000000",
+    "askWad": "640000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "10000",
+    "askDepthLots": "10000"
+  },
+  {
+    "name": "spread-equality-marginal",
+    "bids": [
+      {
+        "price": "0.59",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.64",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "marginal",
+    "bidWad": "590000000000000000",
+    "askWad": "640000000000000000",
+    "midWad": "615000000000000000",
+    "valid": true,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "spread-one-atom-marginal",
+    "bids": [
+      {
+        "price": "0.59",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.640000000000000001",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "marginal",
+    "bidWad": "590000000000000000",
+    "askWad": "640000000000000001",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "odd-midpoint-marginal",
+    "bids": [
+      {
+        "price": "0.590000000000000001",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.590000000000000002",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "marginal",
+    "bidWad": "590000000000000001",
+    "askWad": "590000000000000002",
+    "midWad": "590000000000000001",
+    "valid": true,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "thin-marginal",
+    "bids": [
+      {
+        "price": "0.60",
+        "size": "4.999"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.61",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "610000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "4999",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "endpoint-marginal",
+    "bids": [
+      {
+        "price": "0",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "1",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "0",
+    "askWad": "1000000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "crossed-marginal",
+    "bids": [
+      {
+        "price": "0.62",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.61",
+        "size": "5"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "50000000000000000",
+    "method": "marginal",
+    "bidWad": "620000000000000000",
+    "askWad": "610000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "5000",
+    "askDepthLots": "5000"
+  },
+  {
+    "name": "partial-final-marginal",
+    "bids": [
+      {
+        "price": "0.6",
+        "size": "6"
+      },
+      {
+        "price": "0.58",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.62",
+        "size": "6"
+      },
+      {
+        "price": "0.64",
+        "size": "7"
+      }
+    ],
+    "nLots": "8000",
+    "spreadWad": "50000000000000000",
+    "method": "marginal",
+    "bidWad": "580000000000000000",
+    "askWad": "640000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "13000",
+    "askDepthLots": "13000"
+  },
+  {
+    "name": "random-0-vwap",
+    "bids": [
+      {
+        "price": "0.182",
+        "size": "11"
+      },
+      {
+        "price": "0.172",
+        "size": "14"
+      },
+      {
+        "price": "0.377",
+        "size": "6"
+      },
+      {
+        "price": "0.307",
+        "size": "12"
+      },
+      {
+        "price": "0.280",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.557",
+        "size": "11"
+      },
+      {
+        "price": "0.765",
+        "size": "6"
+      },
+      {
+        "price": "0.649",
+        "size": "8"
+      },
+      {
+        "price": "0.821",
+        "size": "12"
+      },
+      {
+        "price": "0.823",
+        "size": "15"
+      }
+    ],
+    "nLots": "53000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "258415094339622641",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "58000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-0-marginal",
+    "bids": [
+      {
+        "price": "0.182",
+        "size": "11"
+      },
+      {
+        "price": "0.172",
+        "size": "14"
+      },
+      {
+        "price": "0.377",
+        "size": "6"
+      },
+      {
+        "price": "0.307",
+        "size": "12"
+      },
+      {
+        "price": "0.280",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.557",
+        "size": "11"
+      },
+      {
+        "price": "0.765",
+        "size": "6"
+      },
+      {
+        "price": "0.649",
+        "size": "8"
+      },
+      {
+        "price": "0.821",
+        "size": "12"
+      },
+      {
+        "price": "0.823",
+        "size": "15"
+      }
+    ],
+    "nLots": "49000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "172000000000000000",
+    "askWad": "823000000000000000",
+    "midWad": "497500000000000000",
+    "valid": true,
+    "bidDepthLots": "58000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-1-vwap",
+    "bids": [
+      {
+        "price": "0.236",
+        "size": "1"
+      },
+      {
+        "price": "0.448",
+        "size": "8"
+      },
+      {
+        "price": "0.468",
+        "size": "4"
+      },
+      {
+        "price": "0.246",
+        "size": "7"
+      },
+      {
+        "price": "0.364",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.772",
+        "size": "11"
+      },
+      {
+        "price": "0.568",
+        "size": "1"
+      },
+      {
+        "price": "0.899",
+        "size": "4"
+      },
+      {
+        "price": "0.838",
+        "size": "2"
+      },
+      {
+        "price": "0.575",
+        "size": "6"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "464000000000000000",
+    "askWad": "573600000000000000",
+    "midWad": "518800000000000000",
+    "valid": true,
+    "bidDepthLots": "22000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-1-marginal",
+    "bids": [
+      {
+        "price": "0.236",
+        "size": "1"
+      },
+      {
+        "price": "0.448",
+        "size": "8"
+      },
+      {
+        "price": "0.468",
+        "size": "4"
+      },
+      {
+        "price": "0.246",
+        "size": "7"
+      },
+      {
+        "price": "0.364",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.772",
+        "size": "11"
+      },
+      {
+        "price": "0.568",
+        "size": "1"
+      },
+      {
+        "price": "0.899",
+        "size": "4"
+      },
+      {
+        "price": "0.838",
+        "size": "2"
+      },
+      {
+        "price": "0.575",
+        "size": "6"
+      }
+    ],
+    "nLots": "45000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "22000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-2-vwap",
+    "bids": [
+      {
+        "price": "0.126",
+        "size": "15"
+      },
+      {
+        "price": "0.489",
+        "size": "3"
+      },
+      {
+        "price": "0.419",
+        "size": "8"
+      },
+      {
+        "price": "0.317",
+        "size": "5"
+      },
+      {
+        "price": "0.266",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.813",
+        "size": "13"
+      },
+      {
+        "price": "0.632",
+        "size": "8"
+      },
+      {
+        "price": "0.862",
+        "size": "7"
+      },
+      {
+        "price": "0.713",
+        "size": "3"
+      },
+      {
+        "price": "0.706",
+        "size": "14"
+      }
+    ],
+    "nLots": "44000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": "745909090909090910",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "39000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-2-marginal",
+    "bids": [
+      {
+        "price": "0.126",
+        "size": "15"
+      },
+      {
+        "price": "0.489",
+        "size": "3"
+      },
+      {
+        "price": "0.419",
+        "size": "8"
+      },
+      {
+        "price": "0.317",
+        "size": "5"
+      },
+      {
+        "price": "0.266",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.813",
+        "size": "13"
+      },
+      {
+        "price": "0.632",
+        "size": "8"
+      },
+      {
+        "price": "0.862",
+        "size": "7"
+      },
+      {
+        "price": "0.713",
+        "size": "3"
+      },
+      {
+        "price": "0.706",
+        "size": "14"
+      }
+    ],
+    "nLots": "13000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "317000000000000000",
+    "askWad": "706000000000000000",
+    "midWad": "511500000000000000",
+    "valid": true,
+    "bidDepthLots": "39000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-3-vwap",
+    "bids": [
+      {
+        "price": "0.126",
+        "size": "13"
+      },
+      {
+        "price": "0.400",
+        "size": "13"
+      },
+      {
+        "price": "0.216",
+        "size": "8"
+      },
+      {
+        "price": "0.278",
+        "size": "1"
+      },
+      {
+        "price": "0.439",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.585",
+        "size": "12"
+      },
+      {
+        "price": "0.715",
+        "size": "1"
+      },
+      {
+        "price": "0.687",
+        "size": "10"
+      },
+      {
+        "price": "0.787",
+        "size": "4"
+      },
+      {
+        "price": "0.527",
+        "size": "4"
+      }
+    ],
+    "nLots": "18000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "410833333333333333",
+    "askWad": "583444444444444445",
+    "midWad": "497138888888888889",
+    "valid": true,
+    "bidDepthLots": "40000",
+    "askDepthLots": "31000"
+  },
+  {
+    "name": "random-3-marginal",
+    "bids": [
+      {
+        "price": "0.126",
+        "size": "13"
+      },
+      {
+        "price": "0.400",
+        "size": "13"
+      },
+      {
+        "price": "0.216",
+        "size": "8"
+      },
+      {
+        "price": "0.278",
+        "size": "1"
+      },
+      {
+        "price": "0.439",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.585",
+        "size": "12"
+      },
+      {
+        "price": "0.715",
+        "size": "1"
+      },
+      {
+        "price": "0.687",
+        "size": "10"
+      },
+      {
+        "price": "0.787",
+        "size": "4"
+      },
+      {
+        "price": "0.527",
+        "size": "4"
+      }
+    ],
+    "nLots": "22000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "216000000000000000",
+    "askWad": "687000000000000000",
+    "midWad": "451500000000000000",
+    "valid": true,
+    "bidDepthLots": "40000",
+    "askDepthLots": "31000"
+  },
+  {
+    "name": "random-4-vwap",
+    "bids": [
+      {
+        "price": "0.385",
+        "size": "11"
+      },
+      {
+        "price": "0.250",
+        "size": "14"
+      },
+      {
+        "price": "0.309",
+        "size": "8"
+      },
+      {
+        "price": "0.463",
+        "size": "3"
+      },
+      {
+        "price": "0.429",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.752",
+        "size": "2"
+      },
+      {
+        "price": "0.578",
+        "size": "11"
+      },
+      {
+        "price": "0.549",
+        "size": "2"
+      },
+      {
+        "price": "0.579",
+        "size": "1"
+      },
+      {
+        "price": "0.867",
+        "size": "9"
+      }
+    ],
+    "nLots": "46000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "43000",
+    "askDepthLots": "25000"
+  },
+  {
+    "name": "random-4-marginal",
+    "bids": [
+      {
+        "price": "0.385",
+        "size": "11"
+      },
+      {
+        "price": "0.250",
+        "size": "14"
+      },
+      {
+        "price": "0.309",
+        "size": "8"
+      },
+      {
+        "price": "0.463",
+        "size": "3"
+      },
+      {
+        "price": "0.429",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.752",
+        "size": "2"
+      },
+      {
+        "price": "0.578",
+        "size": "11"
+      },
+      {
+        "price": "0.549",
+        "size": "2"
+      },
+      {
+        "price": "0.579",
+        "size": "1"
+      },
+      {
+        "price": "0.867",
+        "size": "9"
+      }
+    ],
+    "nLots": "4000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "429000000000000000",
+    "askWad": "578000000000000000",
+    "midWad": "503500000000000000",
+    "valid": true,
+    "bidDepthLots": "43000",
+    "askDepthLots": "25000"
+  },
+  {
+    "name": "random-5-vwap",
+    "bids": [
+      {
+        "price": "0.165",
+        "size": "4"
+      },
+      {
+        "price": "0.129",
+        "size": "9"
+      },
+      {
+        "price": "0.142",
+        "size": "12"
+      },
+      {
+        "price": "0.354",
+        "size": "3"
+      },
+      {
+        "price": "0.307",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.677",
+        "size": "7"
+      },
+      {
+        "price": "0.749",
+        "size": "15"
+      },
+      {
+        "price": "0.661",
+        "size": "1"
+      },
+      {
+        "price": "0.709",
+        "size": "8"
+      },
+      {
+        "price": "0.596",
+        "size": "10"
+      }
+    ],
+    "nLots": "40000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": "687950000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "30000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-5-marginal",
+    "bids": [
+      {
+        "price": "0.165",
+        "size": "4"
+      },
+      {
+        "price": "0.129",
+        "size": "9"
+      },
+      {
+        "price": "0.142",
+        "size": "12"
+      },
+      {
+        "price": "0.354",
+        "size": "3"
+      },
+      {
+        "price": "0.307",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.677",
+        "size": "7"
+      },
+      {
+        "price": "0.749",
+        "size": "15"
+      },
+      {
+        "price": "0.661",
+        "size": "1"
+      },
+      {
+        "price": "0.709",
+        "size": "8"
+      },
+      {
+        "price": "0.596",
+        "size": "10"
+      }
+    ],
+    "nLots": "36000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "749000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "30000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-6-vwap",
+    "bids": [
+      {
+        "price": "0.189",
+        "size": "13"
+      },
+      {
+        "price": "0.299",
+        "size": "7"
+      },
+      {
+        "price": "0.232",
+        "size": "7"
+      },
+      {
+        "price": "0.232",
+        "size": "7"
+      },
+      {
+        "price": "0.475",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.718",
+        "size": "9"
+      },
+      {
+        "price": "0.686",
+        "size": "14"
+      },
+      {
+        "price": "0.708",
+        "size": "11"
+      },
+      {
+        "price": "0.520",
+        "size": "9"
+      },
+      {
+        "price": "0.875",
+        "size": "3"
+      }
+    ],
+    "nLots": "57000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "42000",
+    "askDepthLots": "46000"
+  },
+  {
+    "name": "random-6-marginal",
+    "bids": [
+      {
+        "price": "0.189",
+        "size": "13"
+      },
+      {
+        "price": "0.299",
+        "size": "7"
+      },
+      {
+        "price": "0.232",
+        "size": "7"
+      },
+      {
+        "price": "0.232",
+        "size": "7"
+      },
+      {
+        "price": "0.475",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.718",
+        "size": "9"
+      },
+      {
+        "price": "0.686",
+        "size": "14"
+      },
+      {
+        "price": "0.708",
+        "size": "11"
+      },
+      {
+        "price": "0.520",
+        "size": "9"
+      },
+      {
+        "price": "0.875",
+        "size": "3"
+      }
+    ],
+    "nLots": "33000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "189000000000000000",
+    "askWad": "708000000000000000",
+    "midWad": "448500000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "46000"
+  },
+  {
+    "name": "random-7-vwap",
+    "bids": [
+      {
+        "price": "0.350",
+        "size": "8"
+      },
+      {
+        "price": "0.114",
+        "size": "15"
+      },
+      {
+        "price": "0.238",
+        "size": "4"
+      },
+      {
+        "price": "0.308",
+        "size": "10"
+      },
+      {
+        "price": "0.210",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.566",
+        "size": "12"
+      },
+      {
+        "price": "0.582",
+        "size": "7"
+      },
+      {
+        "price": "0.801",
+        "size": "13"
+      },
+      {
+        "price": "0.847",
+        "size": "2"
+      },
+      {
+        "price": "0.730",
+        "size": "1"
+      }
+    ],
+    "nLots": "40000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "248500000000000000",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "48000",
+    "askDepthLots": "35000"
+  },
+  {
+    "name": "random-7-marginal",
+    "bids": [
+      {
+        "price": "0.350",
+        "size": "8"
+      },
+      {
+        "price": "0.114",
+        "size": "15"
+      },
+      {
+        "price": "0.238",
+        "size": "4"
+      },
+      {
+        "price": "0.308",
+        "size": "10"
+      },
+      {
+        "price": "0.210",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.566",
+        "size": "12"
+      },
+      {
+        "price": "0.582",
+        "size": "7"
+      },
+      {
+        "price": "0.801",
+        "size": "13"
+      },
+      {
+        "price": "0.847",
+        "size": "2"
+      },
+      {
+        "price": "0.730",
+        "size": "1"
+      }
+    ],
+    "nLots": "28000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "210000000000000000",
+    "askWad": "801000000000000000",
+    "midWad": "505500000000000000",
+    "valid": true,
+    "bidDepthLots": "48000",
+    "askDepthLots": "35000"
+  },
+  {
+    "name": "random-8-vwap",
+    "bids": [
+      {
+        "price": "0.176",
+        "size": "15"
+      },
+      {
+        "price": "0.386",
+        "size": "12"
+      },
+      {
+        "price": "0.105",
+        "size": "13"
+      },
+      {
+        "price": "0.332",
+        "size": "8"
+      },
+      {
+        "price": "0.156",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.897",
+        "size": "6"
+      },
+      {
+        "price": "0.710",
+        "size": "15"
+      },
+      {
+        "price": "0.653",
+        "size": "14"
+      },
+      {
+        "price": "0.855",
+        "size": "14"
+      },
+      {
+        "price": "0.589",
+        "size": "7"
+      }
+    ],
+    "nLots": "52000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "230153846153846153",
+    "askWad": "724596153846153847",
+    "midWad": "477375000000000000",
+    "valid": true,
+    "bidDepthLots": "53000",
+    "askDepthLots": "56000"
+  },
+  {
+    "name": "random-8-marginal",
+    "bids": [
+      {
+        "price": "0.176",
+        "size": "15"
+      },
+      {
+        "price": "0.386",
+        "size": "12"
+      },
+      {
+        "price": "0.105",
+        "size": "13"
+      },
+      {
+        "price": "0.332",
+        "size": "8"
+      },
+      {
+        "price": "0.156",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.897",
+        "size": "6"
+      },
+      {
+        "price": "0.710",
+        "size": "15"
+      },
+      {
+        "price": "0.653",
+        "size": "14"
+      },
+      {
+        "price": "0.855",
+        "size": "14"
+      },
+      {
+        "price": "0.589",
+        "size": "7"
+      }
+    ],
+    "nLots": "21000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "176000000000000000",
+    "askWad": "653000000000000000",
+    "midWad": "414500000000000000",
+    "valid": true,
+    "bidDepthLots": "53000",
+    "askDepthLots": "56000"
+  },
+  {
+    "name": "random-9-vwap",
+    "bids": [
+      {
+        "price": "0.207",
+        "size": "12"
+      },
+      {
+        "price": "0.253",
+        "size": "11"
+      },
+      {
+        "price": "0.310",
+        "size": "15"
+      },
+      {
+        "price": "0.420",
+        "size": "10"
+      },
+      {
+        "price": "0.287",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.719",
+        "size": "7"
+      },
+      {
+        "price": "0.734",
+        "size": "11"
+      },
+      {
+        "price": "0.541",
+        "size": "2"
+      },
+      {
+        "price": "0.595",
+        "size": "13"
+      },
+      {
+        "price": "0.688",
+        "size": "6"
+      }
+    ],
+    "nLots": "53000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "307018867924528301",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "62000",
+    "askDepthLots": "39000"
+  },
+  {
+    "name": "random-9-marginal",
+    "bids": [
+      {
+        "price": "0.207",
+        "size": "12"
+      },
+      {
+        "price": "0.253",
+        "size": "11"
+      },
+      {
+        "price": "0.310",
+        "size": "15"
+      },
+      {
+        "price": "0.420",
+        "size": "10"
+      },
+      {
+        "price": "0.287",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.719",
+        "size": "7"
+      },
+      {
+        "price": "0.734",
+        "size": "11"
+      },
+      {
+        "price": "0.541",
+        "size": "2"
+      },
+      {
+        "price": "0.595",
+        "size": "13"
+      },
+      {
+        "price": "0.688",
+        "size": "6"
+      }
+    ],
+    "nLots": "43000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "253000000000000000",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "62000",
+    "askDepthLots": "39000"
+  },
+  {
+    "name": "random-10-vwap",
+    "bids": [
+      {
+        "price": "0.168",
+        "size": "6"
+      },
+      {
+        "price": "0.281",
+        "size": "10"
+      },
+      {
+        "price": "0.240",
+        "size": "7"
+      },
+      {
+        "price": "0.349",
+        "size": "10"
+      },
+      {
+        "price": "0.193",
+        "size": "6"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.576",
+        "size": "7"
+      },
+      {
+        "price": "0.834",
+        "size": "4"
+      },
+      {
+        "price": "0.863",
+        "size": "13"
+      },
+      {
+        "price": "0.836",
+        "size": "5"
+      },
+      {
+        "price": "0.664",
+        "size": "7"
+      }
+    ],
+    "nLots": "26000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "297692307692307692",
+    "askWad": "722500000000000000",
+    "midWad": "510096153846153846",
+    "valid": true,
+    "bidDepthLots": "39000",
+    "askDepthLots": "36000"
+  },
+  {
+    "name": "random-10-marginal",
+    "bids": [
+      {
+        "price": "0.168",
+        "size": "6"
+      },
+      {
+        "price": "0.281",
+        "size": "10"
+      },
+      {
+        "price": "0.240",
+        "size": "7"
+      },
+      {
+        "price": "0.349",
+        "size": "10"
+      },
+      {
+        "price": "0.193",
+        "size": "6"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.576",
+        "size": "7"
+      },
+      {
+        "price": "0.834",
+        "size": "4"
+      },
+      {
+        "price": "0.863",
+        "size": "13"
+      },
+      {
+        "price": "0.836",
+        "size": "5"
+      },
+      {
+        "price": "0.664",
+        "size": "7"
+      }
+    ],
+    "nLots": "59000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "39000",
+    "askDepthLots": "36000"
+  },
+  {
+    "name": "random-11-vwap",
+    "bids": [
+      {
+        "price": "0.174",
+        "size": "9"
+      },
+      {
+        "price": "0.259",
+        "size": "10"
+      },
+      {
+        "price": "0.143",
+        "size": "13"
+      },
+      {
+        "price": "0.252",
+        "size": "1"
+      },
+      {
+        "price": "0.127",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.558",
+        "size": "7"
+      },
+      {
+        "price": "0.603",
+        "size": "4"
+      },
+      {
+        "price": "0.673",
+        "size": "8"
+      },
+      {
+        "price": "0.670",
+        "size": "12"
+      },
+      {
+        "price": "0.878",
+        "size": "15"
+      }
+    ],
+    "nLots": "41000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "177634146341463414",
+    "askWad": "695658536585365854",
+    "midWad": "436646341463414634",
+    "valid": true,
+    "bidDepthLots": "48000",
+    "askDepthLots": "46000"
+  },
+  {
+    "name": "random-11-marginal",
+    "bids": [
+      {
+        "price": "0.174",
+        "size": "9"
+      },
+      {
+        "price": "0.259",
+        "size": "10"
+      },
+      {
+        "price": "0.143",
+        "size": "13"
+      },
+      {
+        "price": "0.252",
+        "size": "1"
+      },
+      {
+        "price": "0.127",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.558",
+        "size": "7"
+      },
+      {
+        "price": "0.603",
+        "size": "4"
+      },
+      {
+        "price": "0.673",
+        "size": "8"
+      },
+      {
+        "price": "0.670",
+        "size": "12"
+      },
+      {
+        "price": "0.878",
+        "size": "15"
+      }
+    ],
+    "nLots": "40000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "127000000000000000",
+    "askWad": "878000000000000000",
+    "midWad": "502500000000000000",
+    "valid": true,
+    "bidDepthLots": "48000",
+    "askDepthLots": "46000"
+  },
+  {
+    "name": "random-12-vwap",
+    "bids": [
+      {
+        "price": "0.212",
+        "size": "9"
+      },
+      {
+        "price": "0.476",
+        "size": "9"
+      },
+      {
+        "price": "0.388",
+        "size": "7"
+      },
+      {
+        "price": "0.413",
+        "size": "6"
+      },
+      {
+        "price": "0.248",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.743",
+        "size": "5"
+      },
+      {
+        "price": "0.780",
+        "size": "1"
+      },
+      {
+        "price": "0.763",
+        "size": "14"
+      },
+      {
+        "price": "0.639",
+        "size": "8"
+      },
+      {
+        "price": "0.666",
+        "size": "9"
+      }
+    ],
+    "nLots": "19000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "437578947368421052",
+    "askWad": "662736842105263158",
+    "midWad": "550157894736842105",
+    "valid": true,
+    "bidDepthLots": "36000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-12-marginal",
+    "bids": [
+      {
+        "price": "0.212",
+        "size": "9"
+      },
+      {
+        "price": "0.476",
+        "size": "9"
+      },
+      {
+        "price": "0.388",
+        "size": "7"
+      },
+      {
+        "price": "0.413",
+        "size": "6"
+      },
+      {
+        "price": "0.248",
+        "size": "5"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.743",
+        "size": "5"
+      },
+      {
+        "price": "0.780",
+        "size": "1"
+      },
+      {
+        "price": "0.763",
+        "size": "14"
+      },
+      {
+        "price": "0.639",
+        "size": "8"
+      },
+      {
+        "price": "0.666",
+        "size": "9"
+      }
+    ],
+    "nLots": "51000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "36000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-13-vwap",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "10"
+      },
+      {
+        "price": "0.278",
+        "size": "1"
+      },
+      {
+        "price": "0.283",
+        "size": "15"
+      },
+      {
+        "price": "0.443",
+        "size": "13"
+      },
+      {
+        "price": "0.302",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.704",
+        "size": "12"
+      },
+      {
+        "price": "0.889",
+        "size": "8"
+      },
+      {
+        "price": "0.875",
+        "size": "7"
+      },
+      {
+        "price": "0.761",
+        "size": "12"
+      },
+      {
+        "price": "0.692",
+        "size": "6"
+      }
+    ],
+    "nLots": "11000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "443000000000000000",
+    "askWad": "697454545454545455",
+    "midWad": "570227272727272727",
+    "valid": true,
+    "bidDepthLots": "53000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-13-marginal",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "10"
+      },
+      {
+        "price": "0.278",
+        "size": "1"
+      },
+      {
+        "price": "0.283",
+        "size": "15"
+      },
+      {
+        "price": "0.443",
+        "size": "13"
+      },
+      {
+        "price": "0.302",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.704",
+        "size": "12"
+      },
+      {
+        "price": "0.889",
+        "size": "8"
+      },
+      {
+        "price": "0.875",
+        "size": "7"
+      },
+      {
+        "price": "0.761",
+        "size": "12"
+      },
+      {
+        "price": "0.692",
+        "size": "6"
+      }
+    ],
+    "nLots": "46000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "104000000000000000",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "53000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-14-vwap",
+    "bids": [
+      {
+        "price": "0.108",
+        "size": "10"
+      },
+      {
+        "price": "0.105",
+        "size": "15"
+      },
+      {
+        "price": "0.285",
+        "size": "13"
+      },
+      {
+        "price": "0.351",
+        "size": "14"
+      },
+      {
+        "price": "0.132",
+        "size": "10"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.683",
+        "size": "4"
+      },
+      {
+        "price": "0.724",
+        "size": "14"
+      },
+      {
+        "price": "0.845",
+        "size": "1"
+      },
+      {
+        "price": "0.703",
+        "size": "9"
+      },
+      {
+        "price": "0.844",
+        "size": "13"
+      }
+    ],
+    "nLots": "54000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "217666666666666666",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "62000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-14-marginal",
+    "bids": [
+      {
+        "price": "0.108",
+        "size": "10"
+      },
+      {
+        "price": "0.105",
+        "size": "15"
+      },
+      {
+        "price": "0.285",
+        "size": "13"
+      },
+      {
+        "price": "0.351",
+        "size": "14"
+      },
+      {
+        "price": "0.132",
+        "size": "10"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.683",
+        "size": "4"
+      },
+      {
+        "price": "0.724",
+        "size": "14"
+      },
+      {
+        "price": "0.845",
+        "size": "1"
+      },
+      {
+        "price": "0.703",
+        "size": "9"
+      },
+      {
+        "price": "0.844",
+        "size": "13"
+      }
+    ],
+    "nLots": "56000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "105000000000000000",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "62000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-15-vwap",
+    "bids": [
+      {
+        "price": "0.278",
+        "size": "6"
+      },
+      {
+        "price": "0.154",
+        "size": "1"
+      },
+      {
+        "price": "0.390",
+        "size": "9"
+      },
+      {
+        "price": "0.152",
+        "size": "11"
+      },
+      {
+        "price": "0.375",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.735",
+        "size": "14"
+      },
+      {
+        "price": "0.890",
+        "size": "1"
+      },
+      {
+        "price": "0.639",
+        "size": "11"
+      },
+      {
+        "price": "0.823",
+        "size": "10"
+      },
+      {
+        "price": "0.646",
+        "size": "8"
+      }
+    ],
+    "nLots": "54000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "34000",
+    "askDepthLots": "44000"
+  },
+  {
+    "name": "random-15-marginal",
+    "bids": [
+      {
+        "price": "0.278",
+        "size": "6"
+      },
+      {
+        "price": "0.154",
+        "size": "1"
+      },
+      {
+        "price": "0.390",
+        "size": "9"
+      },
+      {
+        "price": "0.152",
+        "size": "11"
+      },
+      {
+        "price": "0.375",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.735",
+        "size": "14"
+      },
+      {
+        "price": "0.890",
+        "size": "1"
+      },
+      {
+        "price": "0.639",
+        "size": "11"
+      },
+      {
+        "price": "0.823",
+        "size": "10"
+      },
+      {
+        "price": "0.646",
+        "size": "8"
+      }
+    ],
+    "nLots": "47000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "34000",
+    "askDepthLots": "44000"
+  },
+  {
+    "name": "random-16-vwap",
+    "bids": [
+      {
+        "price": "0.268",
+        "size": "2"
+      },
+      {
+        "price": "0.286",
+        "size": "3"
+      },
+      {
+        "price": "0.269",
+        "size": "8"
+      },
+      {
+        "price": "0.481",
+        "size": "13"
+      },
+      {
+        "price": "0.386",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.685",
+        "size": "6"
+      },
+      {
+        "price": "0.751",
+        "size": "3"
+      },
+      {
+        "price": "0.586",
+        "size": "3"
+      },
+      {
+        "price": "0.749",
+        "size": "1"
+      },
+      {
+        "price": "0.777",
+        "size": "5"
+      }
+    ],
+    "nLots": "4000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "481000000000000000",
+    "askWad": "610750000000000000",
+    "midWad": "545875000000000000",
+    "valid": true,
+    "bidDepthLots": "27000",
+    "askDepthLots": "18000"
+  },
+  {
+    "name": "random-16-marginal",
+    "bids": [
+      {
+        "price": "0.268",
+        "size": "2"
+      },
+      {
+        "price": "0.286",
+        "size": "3"
+      },
+      {
+        "price": "0.269",
+        "size": "8"
+      },
+      {
+        "price": "0.481",
+        "size": "13"
+      },
+      {
+        "price": "0.386",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.685",
+        "size": "6"
+      },
+      {
+        "price": "0.751",
+        "size": "3"
+      },
+      {
+        "price": "0.586",
+        "size": "3"
+      },
+      {
+        "price": "0.749",
+        "size": "1"
+      },
+      {
+        "price": "0.777",
+        "size": "5"
+      }
+    ],
+    "nLots": "14000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "386000000000000000",
+    "askWad": "777000000000000000",
+    "midWad": "581500000000000000",
+    "valid": true,
+    "bidDepthLots": "27000",
+    "askDepthLots": "18000"
+  },
+  {
+    "name": "random-17-vwap",
+    "bids": [
+      {
+        "price": "0.102",
+        "size": "14"
+      },
+      {
+        "price": "0.318",
+        "size": "2"
+      },
+      {
+        "price": "0.490",
+        "size": "14"
+      },
+      {
+        "price": "0.339",
+        "size": "1"
+      },
+      {
+        "price": "0.480",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.671",
+        "size": "10"
+      },
+      {
+        "price": "0.800",
+        "size": "14"
+      },
+      {
+        "price": "0.645",
+        "size": "8"
+      },
+      {
+        "price": "0.698",
+        "size": "12"
+      },
+      {
+        "price": "0.679",
+        "size": "1"
+      }
+    ],
+    "nLots": "52000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "38000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-17-marginal",
+    "bids": [
+      {
+        "price": "0.102",
+        "size": "14"
+      },
+      {
+        "price": "0.318",
+        "size": "2"
+      },
+      {
+        "price": "0.490",
+        "size": "14"
+      },
+      {
+        "price": "0.339",
+        "size": "1"
+      },
+      {
+        "price": "0.480",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.671",
+        "size": "10"
+      },
+      {
+        "price": "0.800",
+        "size": "14"
+      },
+      {
+        "price": "0.645",
+        "size": "8"
+      },
+      {
+        "price": "0.698",
+        "size": "12"
+      },
+      {
+        "price": "0.679",
+        "size": "1"
+      }
+    ],
+    "nLots": "47000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "38000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-18-vwap",
+    "bids": [
+      {
+        "price": "0.197",
+        "size": "8"
+      },
+      {
+        "price": "0.378",
+        "size": "14"
+      },
+      {
+        "price": "0.281",
+        "size": "7"
+      },
+      {
+        "price": "0.414",
+        "size": "1"
+      },
+      {
+        "price": "0.247",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.758",
+        "size": "14"
+      },
+      {
+        "price": "0.613",
+        "size": "15"
+      },
+      {
+        "price": "0.567",
+        "size": "1"
+      },
+      {
+        "price": "0.804",
+        "size": "9"
+      },
+      {
+        "price": "0.757",
+        "size": "13"
+      }
+    ],
+    "nLots": "32000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "307593750000000000",
+    "askWad": "683656250000000000",
+    "midWad": "495625000000000000",
+    "valid": true,
+    "bidDepthLots": "34000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-18-marginal",
+    "bids": [
+      {
+        "price": "0.197",
+        "size": "8"
+      },
+      {
+        "price": "0.378",
+        "size": "14"
+      },
+      {
+        "price": "0.281",
+        "size": "7"
+      },
+      {
+        "price": "0.414",
+        "size": "1"
+      },
+      {
+        "price": "0.247",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.758",
+        "size": "14"
+      },
+      {
+        "price": "0.613",
+        "size": "15"
+      },
+      {
+        "price": "0.567",
+        "size": "1"
+      },
+      {
+        "price": "0.804",
+        "size": "9"
+      },
+      {
+        "price": "0.757",
+        "size": "13"
+      }
+    ],
+    "nLots": "40000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "758000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "34000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-19-vwap",
+    "bids": [
+      {
+        "price": "0.296",
+        "size": "1"
+      },
+      {
+        "price": "0.319",
+        "size": "12"
+      },
+      {
+        "price": "0.277",
+        "size": "14"
+      },
+      {
+        "price": "0.325",
+        "size": "2"
+      },
+      {
+        "price": "0.179",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.640",
+        "size": "14"
+      },
+      {
+        "price": "0.515",
+        "size": "9"
+      },
+      {
+        "price": "0.706",
+        "size": "8"
+      },
+      {
+        "price": "0.865",
+        "size": "6"
+      },
+      {
+        "price": "0.611",
+        "size": "15"
+      }
+    ],
+    "nLots": "29000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "298344827586206896",
+    "askWad": "586206896551724138",
+    "midWad": "442275862068965517",
+    "valid": true,
+    "bidDepthLots": "36000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-19-marginal",
+    "bids": [
+      {
+        "price": "0.296",
+        "size": "1"
+      },
+      {
+        "price": "0.319",
+        "size": "12"
+      },
+      {
+        "price": "0.277",
+        "size": "14"
+      },
+      {
+        "price": "0.325",
+        "size": "2"
+      },
+      {
+        "price": "0.179",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.640",
+        "size": "14"
+      },
+      {
+        "price": "0.515",
+        "size": "9"
+      },
+      {
+        "price": "0.706",
+        "size": "8"
+      },
+      {
+        "price": "0.865",
+        "size": "6"
+      },
+      {
+        "price": "0.611",
+        "size": "15"
+      }
+    ],
+    "nLots": "46000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "706000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "36000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-20-vwap",
+    "bids": [
+      {
+        "price": "0.390",
+        "size": "8"
+      },
+      {
+        "price": "0.444",
+        "size": "13"
+      },
+      {
+        "price": "0.118",
+        "size": "9"
+      },
+      {
+        "price": "0.426",
+        "size": "13"
+      },
+      {
+        "price": "0.363",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.542",
+        "size": "15"
+      },
+      {
+        "price": "0.651",
+        "size": "9"
+      },
+      {
+        "price": "0.681",
+        "size": "10"
+      },
+      {
+        "price": "0.523",
+        "size": "12"
+      },
+      {
+        "price": "0.550",
+        "size": "7"
+      }
+    ],
+    "nLots": "2000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "444000000000000000",
+    "askWad": "523000000000000000",
+    "midWad": "483500000000000000",
+    "valid": true,
+    "bidDepthLots": "45000",
+    "askDepthLots": "53000"
+  },
+  {
+    "name": "random-20-marginal",
+    "bids": [
+      {
+        "price": "0.390",
+        "size": "8"
+      },
+      {
+        "price": "0.444",
+        "size": "13"
+      },
+      {
+        "price": "0.118",
+        "size": "9"
+      },
+      {
+        "price": "0.426",
+        "size": "13"
+      },
+      {
+        "price": "0.363",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.542",
+        "size": "15"
+      },
+      {
+        "price": "0.651",
+        "size": "9"
+      },
+      {
+        "price": "0.681",
+        "size": "10"
+      },
+      {
+        "price": "0.523",
+        "size": "12"
+      },
+      {
+        "price": "0.550",
+        "size": "7"
+      }
+    ],
+    "nLots": "26000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "426000000000000000",
+    "askWad": "542000000000000000",
+    "midWad": "484000000000000000",
+    "valid": true,
+    "bidDepthLots": "45000",
+    "askDepthLots": "53000"
+  },
+  {
+    "name": "random-21-vwap",
+    "bids": [
+      {
+        "price": "0.463",
+        "size": "14"
+      },
+      {
+        "price": "0.211",
+        "size": "1"
+      },
+      {
+        "price": "0.339",
+        "size": "4"
+      },
+      {
+        "price": "0.366",
+        "size": "8"
+      },
+      {
+        "price": "0.108",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.576",
+        "size": "15"
+      },
+      {
+        "price": "0.669",
+        "size": "4"
+      },
+      {
+        "price": "0.733",
+        "size": "6"
+      },
+      {
+        "price": "0.812",
+        "size": "9"
+      },
+      {
+        "price": "0.693",
+        "size": "5"
+      }
+    ],
+    "nLots": "7000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "463000000000000000",
+    "askWad": "576000000000000000",
+    "midWad": "519500000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "39000"
+  },
+  {
+    "name": "random-21-marginal",
+    "bids": [
+      {
+        "price": "0.463",
+        "size": "14"
+      },
+      {
+        "price": "0.211",
+        "size": "1"
+      },
+      {
+        "price": "0.339",
+        "size": "4"
+      },
+      {
+        "price": "0.366",
+        "size": "8"
+      },
+      {
+        "price": "0.108",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.576",
+        "size": "15"
+      },
+      {
+        "price": "0.669",
+        "size": "4"
+      },
+      {
+        "price": "0.733",
+        "size": "6"
+      },
+      {
+        "price": "0.812",
+        "size": "9"
+      },
+      {
+        "price": "0.693",
+        "size": "5"
+      }
+    ],
+    "nLots": "31000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "108000000000000000",
+    "askWad": "812000000000000000",
+    "midWad": "460000000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "39000"
+  },
+  {
+    "name": "random-22-vwap",
+    "bids": [
+      {
+        "price": "0.364",
+        "size": "1"
+      },
+      {
+        "price": "0.481",
+        "size": "14"
+      },
+      {
+        "price": "0.255",
+        "size": "12"
+      },
+      {
+        "price": "0.409",
+        "size": "2"
+      },
+      {
+        "price": "0.299",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.651",
+        "size": "7"
+      },
+      {
+        "price": "0.880",
+        "size": "7"
+      },
+      {
+        "price": "0.779",
+        "size": "3"
+      },
+      {
+        "price": "0.512",
+        "size": "10"
+      },
+      {
+        "price": "0.869",
+        "size": "14"
+      }
+    ],
+    "nLots": "47000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "40000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-22-marginal",
+    "bids": [
+      {
+        "price": "0.364",
+        "size": "1"
+      },
+      {
+        "price": "0.481",
+        "size": "14"
+      },
+      {
+        "price": "0.255",
+        "size": "12"
+      },
+      {
+        "price": "0.409",
+        "size": "2"
+      },
+      {
+        "price": "0.299",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.651",
+        "size": "7"
+      },
+      {
+        "price": "0.880",
+        "size": "7"
+      },
+      {
+        "price": "0.779",
+        "size": "3"
+      },
+      {
+        "price": "0.512",
+        "size": "10"
+      },
+      {
+        "price": "0.869",
+        "size": "14"
+      }
+    ],
+    "nLots": "7000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "481000000000000000",
+    "askWad": "512000000000000000",
+    "midWad": "496500000000000000",
+    "valid": true,
+    "bidDepthLots": "40000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-23-vwap",
+    "bids": [
+      {
+        "price": "0.218",
+        "size": "2"
+      },
+      {
+        "price": "0.352",
+        "size": "3"
+      },
+      {
+        "price": "0.279",
+        "size": "13"
+      },
+      {
+        "price": "0.389",
+        "size": "3"
+      },
+      {
+        "price": "0.251",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.816",
+        "size": "4"
+      },
+      {
+        "price": "0.565",
+        "size": "14"
+      },
+      {
+        "price": "0.527",
+        "size": "10"
+      },
+      {
+        "price": "0.557",
+        "size": "11"
+      },
+      {
+        "price": "0.568",
+        "size": "5"
+      }
+    ],
+    "nLots": "29000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "288275862068965517",
+    "askWad": "548862068965517242",
+    "midWad": "418568965517241379",
+    "valid": true,
+    "bidDepthLots": "33000",
+    "askDepthLots": "44000"
+  },
+  {
+    "name": "random-23-marginal",
+    "bids": [
+      {
+        "price": "0.218",
+        "size": "2"
+      },
+      {
+        "price": "0.352",
+        "size": "3"
+      },
+      {
+        "price": "0.279",
+        "size": "13"
+      },
+      {
+        "price": "0.389",
+        "size": "3"
+      },
+      {
+        "price": "0.251",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.816",
+        "size": "4"
+      },
+      {
+        "price": "0.565",
+        "size": "14"
+      },
+      {
+        "price": "0.527",
+        "size": "10"
+      },
+      {
+        "price": "0.557",
+        "size": "11"
+      },
+      {
+        "price": "0.568",
+        "size": "5"
+      }
+    ],
+    "nLots": "21000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "251000000000000000",
+    "askWad": "557000000000000000",
+    "midWad": "404000000000000000",
+    "valid": true,
+    "bidDepthLots": "33000",
+    "askDepthLots": "44000"
+  },
+  {
+    "name": "random-24-vwap",
+    "bids": [
+      {
+        "price": "0.398",
+        "size": "14"
+      },
+      {
+        "price": "0.125",
+        "size": "9"
+      },
+      {
+        "price": "0.327",
+        "size": "9"
+      },
+      {
+        "price": "0.229",
+        "size": "13"
+      },
+      {
+        "price": "0.347",
+        "size": "3"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.847",
+        "size": "5"
+      },
+      {
+        "price": "0.867",
+        "size": "1"
+      },
+      {
+        "price": "0.859",
+        "size": "8"
+      },
+      {
+        "price": "0.830",
+        "size": "15"
+      },
+      {
+        "price": "0.587",
+        "size": "5"
+      }
+    ],
+    "nLots": "11000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "398000000000000000",
+    "askWad": "719545454545454546",
+    "midWad": "558772727272727273",
+    "valid": true,
+    "bidDepthLots": "48000",
+    "askDepthLots": "34000"
+  },
+  {
+    "name": "random-24-marginal",
+    "bids": [
+      {
+        "price": "0.398",
+        "size": "14"
+      },
+      {
+        "price": "0.125",
+        "size": "9"
+      },
+      {
+        "price": "0.327",
+        "size": "9"
+      },
+      {
+        "price": "0.229",
+        "size": "13"
+      },
+      {
+        "price": "0.347",
+        "size": "3"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.847",
+        "size": "5"
+      },
+      {
+        "price": "0.867",
+        "size": "1"
+      },
+      {
+        "price": "0.859",
+        "size": "8"
+      },
+      {
+        "price": "0.830",
+        "size": "15"
+      },
+      {
+        "price": "0.587",
+        "size": "5"
+      }
+    ],
+    "nLots": "23000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "327000000000000000",
+    "askWad": "847000000000000000",
+    "midWad": "587000000000000000",
+    "valid": true,
+    "bidDepthLots": "48000",
+    "askDepthLots": "34000"
+  },
+  {
+    "name": "random-25-vwap",
+    "bids": [
+      {
+        "price": "0.200",
+        "size": "2"
+      },
+      {
+        "price": "0.291",
+        "size": "10"
+      },
+      {
+        "price": "0.413",
+        "size": "10"
+      },
+      {
+        "price": "0.405",
+        "size": "10"
+      },
+      {
+        "price": "0.340",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.864",
+        "size": "10"
+      },
+      {
+        "price": "0.891",
+        "size": "7"
+      },
+      {
+        "price": "0.532",
+        "size": "7"
+      },
+      {
+        "price": "0.769",
+        "size": "6"
+      },
+      {
+        "price": "0.788",
+        "size": "4"
+      }
+    ],
+    "nLots": "14000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "410714285714285714",
+    "askWad": "651857142857142858",
+    "midWad": "531285714285714286",
+    "valid": true,
+    "bidDepthLots": "43000",
+    "askDepthLots": "34000"
+  },
+  {
+    "name": "random-25-marginal",
+    "bids": [
+      {
+        "price": "0.200",
+        "size": "2"
+      },
+      {
+        "price": "0.291",
+        "size": "10"
+      },
+      {
+        "price": "0.413",
+        "size": "10"
+      },
+      {
+        "price": "0.405",
+        "size": "10"
+      },
+      {
+        "price": "0.340",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.864",
+        "size": "10"
+      },
+      {
+        "price": "0.891",
+        "size": "7"
+      },
+      {
+        "price": "0.532",
+        "size": "7"
+      },
+      {
+        "price": "0.769",
+        "size": "6"
+      },
+      {
+        "price": "0.788",
+        "size": "4"
+      }
+    ],
+    "nLots": "4000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "413000000000000000",
+    "askWad": "532000000000000000",
+    "midWad": "472500000000000000",
+    "valid": true,
+    "bidDepthLots": "43000",
+    "askDepthLots": "34000"
+  },
+  {
+    "name": "random-26-vwap",
+    "bids": [
+      {
+        "price": "0.371",
+        "size": "12"
+      },
+      {
+        "price": "0.455",
+        "size": "3"
+      },
+      {
+        "price": "0.464",
+        "size": "10"
+      },
+      {
+        "price": "0.289",
+        "size": "3"
+      },
+      {
+        "price": "0.201",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.670",
+        "size": "15"
+      },
+      {
+        "price": "0.832",
+        "size": "3"
+      },
+      {
+        "price": "0.838",
+        "size": "2"
+      },
+      {
+        "price": "0.747",
+        "size": "15"
+      },
+      {
+        "price": "0.738",
+        "size": "13"
+      }
+    ],
+    "nLots": "16000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "444875000000000000",
+    "askWad": "674250000000000000",
+    "midWad": "559562500000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "48000"
+  },
+  {
+    "name": "random-26-marginal",
+    "bids": [
+      {
+        "price": "0.371",
+        "size": "12"
+      },
+      {
+        "price": "0.455",
+        "size": "3"
+      },
+      {
+        "price": "0.464",
+        "size": "10"
+      },
+      {
+        "price": "0.289",
+        "size": "3"
+      },
+      {
+        "price": "0.201",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.670",
+        "size": "15"
+      },
+      {
+        "price": "0.832",
+        "size": "3"
+      },
+      {
+        "price": "0.838",
+        "size": "2"
+      },
+      {
+        "price": "0.747",
+        "size": "15"
+      },
+      {
+        "price": "0.738",
+        "size": "13"
+      }
+    ],
+    "nLots": "22000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "371000000000000000",
+    "askWad": "738000000000000000",
+    "midWad": "554500000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "48000"
+  },
+  {
+    "name": "random-27-vwap",
+    "bids": [
+      {
+        "price": "0.253",
+        "size": "7"
+      },
+      {
+        "price": "0.438",
+        "size": "9"
+      },
+      {
+        "price": "0.424",
+        "size": "11"
+      },
+      {
+        "price": "0.438",
+        "size": "15"
+      },
+      {
+        "price": "0.457",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.877",
+        "size": "9"
+      },
+      {
+        "price": "0.573",
+        "size": "3"
+      },
+      {
+        "price": "0.828",
+        "size": "4"
+      },
+      {
+        "price": "0.713",
+        "size": "15"
+      },
+      {
+        "price": "0.854",
+        "size": "14"
+      }
+    ],
+    "nLots": "57000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "56000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-27-marginal",
+    "bids": [
+      {
+        "price": "0.253",
+        "size": "7"
+      },
+      {
+        "price": "0.438",
+        "size": "9"
+      },
+      {
+        "price": "0.424",
+        "size": "11"
+      },
+      {
+        "price": "0.438",
+        "size": "15"
+      },
+      {
+        "price": "0.457",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.877",
+        "size": "9"
+      },
+      {
+        "price": "0.573",
+        "size": "3"
+      },
+      {
+        "price": "0.828",
+        "size": "4"
+      },
+      {
+        "price": "0.713",
+        "size": "15"
+      },
+      {
+        "price": "0.854",
+        "size": "14"
+      }
+    ],
+    "nLots": "13000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "457000000000000000",
+    "askWad": "713000000000000000",
+    "midWad": "585000000000000000",
+    "valid": true,
+    "bidDepthLots": "56000",
+    "askDepthLots": "45000"
+  },
+  {
+    "name": "random-28-vwap",
+    "bids": [
+      {
+        "price": "0.291",
+        "size": "6"
+      },
+      {
+        "price": "0.436",
+        "size": "13"
+      },
+      {
+        "price": "0.334",
+        "size": "5"
+      },
+      {
+        "price": "0.165",
+        "size": "7"
+      },
+      {
+        "price": "0.248",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.745",
+        "size": "1"
+      },
+      {
+        "price": "0.743",
+        "size": "9"
+      },
+      {
+        "price": "0.801",
+        "size": "2"
+      },
+      {
+        "price": "0.836",
+        "size": "15"
+      },
+      {
+        "price": "0.723",
+        "size": "11"
+      }
+    ],
+    "nLots": "24000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "378500000000000000",
+    "askWad": "742625000000000000",
+    "midWad": "560562500000000000",
+    "valid": true,
+    "bidDepthLots": "33000",
+    "askDepthLots": "38000"
+  },
+  {
+    "name": "random-28-marginal",
+    "bids": [
+      {
+        "price": "0.291",
+        "size": "6"
+      },
+      {
+        "price": "0.436",
+        "size": "13"
+      },
+      {
+        "price": "0.334",
+        "size": "5"
+      },
+      {
+        "price": "0.165",
+        "size": "7"
+      },
+      {
+        "price": "0.248",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.745",
+        "size": "1"
+      },
+      {
+        "price": "0.743",
+        "size": "9"
+      },
+      {
+        "price": "0.801",
+        "size": "2"
+      },
+      {
+        "price": "0.836",
+        "size": "15"
+      },
+      {
+        "price": "0.723",
+        "size": "11"
+      }
+    ],
+    "nLots": "31000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "165000000000000000",
+    "askWad": "836000000000000000",
+    "midWad": "500500000000000000",
+    "valid": true,
+    "bidDepthLots": "33000",
+    "askDepthLots": "38000"
+  },
+  {
+    "name": "random-29-vwap",
+    "bids": [
+      {
+        "price": "0.369",
+        "size": "10"
+      },
+      {
+        "price": "0.485",
+        "size": "10"
+      },
+      {
+        "price": "0.249",
+        "size": "10"
+      },
+      {
+        "price": "0.229",
+        "size": "14"
+      },
+      {
+        "price": "0.156",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.808",
+        "size": "7"
+      },
+      {
+        "price": "0.828",
+        "size": "7"
+      },
+      {
+        "price": "0.691",
+        "size": "13"
+      },
+      {
+        "price": "0.657",
+        "size": "14"
+      },
+      {
+        "price": "0.846",
+        "size": "10"
+      }
+    ],
+    "nLots": "26000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "385923076923076923",
+    "askWad": "672692307692307693",
+    "midWad": "529307692307692308",
+    "valid": true,
+    "bidDepthLots": "46000",
+    "askDepthLots": "51000"
+  },
+  {
+    "name": "random-29-marginal",
+    "bids": [
+      {
+        "price": "0.369",
+        "size": "10"
+      },
+      {
+        "price": "0.485",
+        "size": "10"
+      },
+      {
+        "price": "0.249",
+        "size": "10"
+      },
+      {
+        "price": "0.229",
+        "size": "14"
+      },
+      {
+        "price": "0.156",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.808",
+        "size": "7"
+      },
+      {
+        "price": "0.828",
+        "size": "7"
+      },
+      {
+        "price": "0.691",
+        "size": "13"
+      },
+      {
+        "price": "0.657",
+        "size": "14"
+      },
+      {
+        "price": "0.846",
+        "size": "10"
+      }
+    ],
+    "nLots": "34000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "229000000000000000",
+    "askWad": "808000000000000000",
+    "midWad": "518500000000000000",
+    "valid": true,
+    "bidDepthLots": "46000",
+    "askDepthLots": "51000"
+  },
+  {
+    "name": "random-30-vwap",
+    "bids": [
+      {
+        "price": "0.189",
+        "size": "12"
+      },
+      {
+        "price": "0.217",
+        "size": "12"
+      },
+      {
+        "price": "0.361",
+        "size": "13"
+      },
+      {
+        "price": "0.356",
+        "size": "8"
+      },
+      {
+        "price": "0.161",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.766",
+        "size": "4"
+      },
+      {
+        "price": "0.650",
+        "size": "4"
+      },
+      {
+        "price": "0.575",
+        "size": "2"
+      },
+      {
+        "price": "0.530",
+        "size": "4"
+      },
+      {
+        "price": "0.674",
+        "size": "6"
+      }
+    ],
+    "nLots": "3000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "361000000000000000",
+    "askWad": "530000000000000000",
+    "midWad": "445500000000000000",
+    "valid": true,
+    "bidDepthLots": "60000",
+    "askDepthLots": "20000"
+  },
+  {
+    "name": "random-30-marginal",
+    "bids": [
+      {
+        "price": "0.189",
+        "size": "12"
+      },
+      {
+        "price": "0.217",
+        "size": "12"
+      },
+      {
+        "price": "0.361",
+        "size": "13"
+      },
+      {
+        "price": "0.356",
+        "size": "8"
+      },
+      {
+        "price": "0.161",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.766",
+        "size": "4"
+      },
+      {
+        "price": "0.650",
+        "size": "4"
+      },
+      {
+        "price": "0.575",
+        "size": "2"
+      },
+      {
+        "price": "0.530",
+        "size": "4"
+      },
+      {
+        "price": "0.674",
+        "size": "6"
+      }
+    ],
+    "nLots": "17000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "356000000000000000",
+    "askWad": "766000000000000000",
+    "midWad": "561000000000000000",
+    "valid": true,
+    "bidDepthLots": "60000",
+    "askDepthLots": "20000"
+  },
+  {
+    "name": "random-31-vwap",
+    "bids": [
+      {
+        "price": "0.254",
+        "size": "10"
+      },
+      {
+        "price": "0.423",
+        "size": "13"
+      },
+      {
+        "price": "0.251",
+        "size": "2"
+      },
+      {
+        "price": "0.432",
+        "size": "10"
+      },
+      {
+        "price": "0.275",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.767",
+        "size": "14"
+      },
+      {
+        "price": "0.604",
+        "size": "5"
+      },
+      {
+        "price": "0.718",
+        "size": "6"
+      },
+      {
+        "price": "0.819",
+        "size": "15"
+      },
+      {
+        "price": "0.868",
+        "size": "14"
+      }
+    ],
+    "nLots": "16000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "428625000000000000",
+    "askWad": "697687500000000000",
+    "midWad": "563156250000000000",
+    "valid": true,
+    "bidDepthLots": "49000",
+    "askDepthLots": "54000"
+  },
+  {
+    "name": "random-31-marginal",
+    "bids": [
+      {
+        "price": "0.254",
+        "size": "10"
+      },
+      {
+        "price": "0.423",
+        "size": "13"
+      },
+      {
+        "price": "0.251",
+        "size": "2"
+      },
+      {
+        "price": "0.432",
+        "size": "10"
+      },
+      {
+        "price": "0.275",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.767",
+        "size": "14"
+      },
+      {
+        "price": "0.604",
+        "size": "5"
+      },
+      {
+        "price": "0.718",
+        "size": "6"
+      },
+      {
+        "price": "0.819",
+        "size": "15"
+      },
+      {
+        "price": "0.868",
+        "size": "14"
+      }
+    ],
+    "nLots": "55000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "49000",
+    "askDepthLots": "54000"
+  },
+  {
+    "name": "random-32-vwap",
+    "bids": [
+      {
+        "price": "0.484",
+        "size": "12"
+      },
+      {
+        "price": "0.400",
+        "size": "15"
+      },
+      {
+        "price": "0.134",
+        "size": "7"
+      },
+      {
+        "price": "0.164",
+        "size": "14"
+      },
+      {
+        "price": "0.224",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.629",
+        "size": "7"
+      },
+      {
+        "price": "0.734",
+        "size": "9"
+      },
+      {
+        "price": "0.728",
+        "size": "6"
+      },
+      {
+        "price": "0.530",
+        "size": "3"
+      },
+      {
+        "price": "0.533",
+        "size": "1"
+      }
+    ],
+    "nLots": "42000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "341142857142857142",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "49000",
+    "askDepthLots": "26000"
+  },
+  {
+    "name": "random-32-marginal",
+    "bids": [
+      {
+        "price": "0.484",
+        "size": "12"
+      },
+      {
+        "price": "0.400",
+        "size": "15"
+      },
+      {
+        "price": "0.134",
+        "size": "7"
+      },
+      {
+        "price": "0.164",
+        "size": "14"
+      },
+      {
+        "price": "0.224",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.629",
+        "size": "7"
+      },
+      {
+        "price": "0.734",
+        "size": "9"
+      },
+      {
+        "price": "0.728",
+        "size": "6"
+      },
+      {
+        "price": "0.530",
+        "size": "3"
+      },
+      {
+        "price": "0.533",
+        "size": "1"
+      }
+    ],
+    "nLots": "15000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "400000000000000000",
+    "askWad": "728000000000000000",
+    "midWad": "564000000000000000",
+    "valid": true,
+    "bidDepthLots": "49000",
+    "askDepthLots": "26000"
+  },
+  {
+    "name": "random-33-vwap",
+    "bids": [
+      {
+        "price": "0.334",
+        "size": "3"
+      },
+      {
+        "price": "0.375",
+        "size": "1"
+      },
+      {
+        "price": "0.155",
+        "size": "15"
+      },
+      {
+        "price": "0.469",
+        "size": "1"
+      },
+      {
+        "price": "0.129",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.569",
+        "size": "5"
+      },
+      {
+        "price": "0.685",
+        "size": "8"
+      },
+      {
+        "price": "0.888",
+        "size": "2"
+      },
+      {
+        "price": "0.574",
+        "size": "11"
+      },
+      {
+        "price": "0.836",
+        "size": "11"
+      }
+    ],
+    "nLots": "21000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "204761904761904761",
+    "askWad": "599238095238095239",
+    "midWad": "402000000000000000",
+    "valid": true,
+    "bidDepthLots": "21000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-33-marginal",
+    "bids": [
+      {
+        "price": "0.334",
+        "size": "3"
+      },
+      {
+        "price": "0.375",
+        "size": "1"
+      },
+      {
+        "price": "0.155",
+        "size": "15"
+      },
+      {
+        "price": "0.469",
+        "size": "1"
+      },
+      {
+        "price": "0.129",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.569",
+        "size": "5"
+      },
+      {
+        "price": "0.685",
+        "size": "8"
+      },
+      {
+        "price": "0.888",
+        "size": "2"
+      },
+      {
+        "price": "0.574",
+        "size": "11"
+      },
+      {
+        "price": "0.836",
+        "size": "11"
+      }
+    ],
+    "nLots": "6000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "155000000000000000",
+    "askWad": "574000000000000000",
+    "midWad": "364500000000000000",
+    "valid": true,
+    "bidDepthLots": "21000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-34-vwap",
+    "bids": [
+      {
+        "price": "0.395",
+        "size": "13"
+      },
+      {
+        "price": "0.184",
+        "size": "5"
+      },
+      {
+        "price": "0.477",
+        "size": "11"
+      },
+      {
+        "price": "0.458",
+        "size": "7"
+      },
+      {
+        "price": "0.164",
+        "size": "6"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.715",
+        "size": "8"
+      },
+      {
+        "price": "0.786",
+        "size": "1"
+      },
+      {
+        "price": "0.830",
+        "size": "4"
+      },
+      {
+        "price": "0.585",
+        "size": "3"
+      },
+      {
+        "price": "0.872",
+        "size": "6"
+      }
+    ],
+    "nLots": "10000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "477000000000000000",
+    "askWad": "676000000000000000",
+    "midWad": "576500000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "22000"
+  },
+  {
+    "name": "random-34-marginal",
+    "bids": [
+      {
+        "price": "0.395",
+        "size": "13"
+      },
+      {
+        "price": "0.184",
+        "size": "5"
+      },
+      {
+        "price": "0.477",
+        "size": "11"
+      },
+      {
+        "price": "0.458",
+        "size": "7"
+      },
+      {
+        "price": "0.164",
+        "size": "6"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.715",
+        "size": "8"
+      },
+      {
+        "price": "0.786",
+        "size": "1"
+      },
+      {
+        "price": "0.830",
+        "size": "4"
+      },
+      {
+        "price": "0.585",
+        "size": "3"
+      },
+      {
+        "price": "0.872",
+        "size": "6"
+      }
+    ],
+    "nLots": "20000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "395000000000000000",
+    "askWad": "872000000000000000",
+    "midWad": "633500000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "22000"
+  },
+  {
+    "name": "random-35-vwap",
+    "bids": [
+      {
+        "price": "0.293",
+        "size": "8"
+      },
+      {
+        "price": "0.353",
+        "size": "11"
+      },
+      {
+        "price": "0.489",
+        "size": "1"
+      },
+      {
+        "price": "0.108",
+        "size": "15"
+      },
+      {
+        "price": "0.336",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.781",
+        "size": "9"
+      },
+      {
+        "price": "0.786",
+        "size": "11"
+      },
+      {
+        "price": "0.635",
+        "size": "5"
+      },
+      {
+        "price": "0.668",
+        "size": "7"
+      },
+      {
+        "price": "0.564",
+        "size": "12"
+      }
+    ],
+    "nLots": "58000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "46000",
+    "askDepthLots": "44000"
+  },
+  {
+    "name": "random-35-marginal",
+    "bids": [
+      {
+        "price": "0.293",
+        "size": "8"
+      },
+      {
+        "price": "0.353",
+        "size": "11"
+      },
+      {
+        "price": "0.489",
+        "size": "1"
+      },
+      {
+        "price": "0.108",
+        "size": "15"
+      },
+      {
+        "price": "0.336",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.781",
+        "size": "9"
+      },
+      {
+        "price": "0.786",
+        "size": "11"
+      },
+      {
+        "price": "0.635",
+        "size": "5"
+      },
+      {
+        "price": "0.668",
+        "size": "7"
+      },
+      {
+        "price": "0.564",
+        "size": "12"
+      }
+    ],
+    "nLots": "33000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "108000000000000000",
+    "askWad": "781000000000000000",
+    "midWad": "444500000000000000",
+    "valid": true,
+    "bidDepthLots": "46000",
+    "askDepthLots": "44000"
+  },
+  {
+    "name": "random-36-vwap",
+    "bids": [
+      {
+        "price": "0.486",
+        "size": "3"
+      },
+      {
+        "price": "0.313",
+        "size": "12"
+      },
+      {
+        "price": "0.424",
+        "size": "7"
+      },
+      {
+        "price": "0.342",
+        "size": "5"
+      },
+      {
+        "price": "0.418",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.632",
+        "size": "15"
+      },
+      {
+        "price": "0.696",
+        "size": "7"
+      },
+      {
+        "price": "0.692",
+        "size": "1"
+      },
+      {
+        "price": "0.525",
+        "size": "9"
+      },
+      {
+        "price": "0.900",
+        "size": "4"
+      }
+    ],
+    "nLots": "8000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "447250000000000000",
+    "askWad": "525000000000000000",
+    "midWad": "486125000000000000",
+    "valid": true,
+    "bidDepthLots": "35000",
+    "askDepthLots": "36000"
+  },
+  {
+    "name": "random-36-marginal",
+    "bids": [
+      {
+        "price": "0.486",
+        "size": "3"
+      },
+      {
+        "price": "0.313",
+        "size": "12"
+      },
+      {
+        "price": "0.424",
+        "size": "7"
+      },
+      {
+        "price": "0.342",
+        "size": "5"
+      },
+      {
+        "price": "0.418",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.632",
+        "size": "15"
+      },
+      {
+        "price": "0.696",
+        "size": "7"
+      },
+      {
+        "price": "0.692",
+        "size": "1"
+      },
+      {
+        "price": "0.525",
+        "size": "9"
+      },
+      {
+        "price": "0.900",
+        "size": "4"
+      }
+    ],
+    "nLots": "48000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "35000",
+    "askDepthLots": "36000"
+  },
+  {
+    "name": "random-37-vwap",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "7"
+      },
+      {
+        "price": "0.229",
+        "size": "2"
+      },
+      {
+        "price": "0.302",
+        "size": "1"
+      },
+      {
+        "price": "0.317",
+        "size": "5"
+      },
+      {
+        "price": "0.262",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.566",
+        "size": "9"
+      },
+      {
+        "price": "0.759",
+        "size": "14"
+      },
+      {
+        "price": "0.797",
+        "size": "11"
+      },
+      {
+        "price": "0.559",
+        "size": "12"
+      },
+      {
+        "price": "0.618",
+        "size": "13"
+      }
+    ],
+    "nLots": "7000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "307000000000000000",
+    "askWad": "559000000000000000",
+    "midWad": "433000000000000000",
+    "valid": true,
+    "bidDepthLots": "16000",
+    "askDepthLots": "59000"
+  },
+  {
+    "name": "random-37-marginal",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "7"
+      },
+      {
+        "price": "0.229",
+        "size": "2"
+      },
+      {
+        "price": "0.302",
+        "size": "1"
+      },
+      {
+        "price": "0.317",
+        "size": "5"
+      },
+      {
+        "price": "0.262",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.566",
+        "size": "9"
+      },
+      {
+        "price": "0.759",
+        "size": "14"
+      },
+      {
+        "price": "0.797",
+        "size": "11"
+      },
+      {
+        "price": "0.559",
+        "size": "12"
+      },
+      {
+        "price": "0.618",
+        "size": "13"
+      }
+    ],
+    "nLots": "30000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "618000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "16000",
+    "askDepthLots": "59000"
+  },
+  {
+    "name": "random-38-vwap",
+    "bids": [
+      {
+        "price": "0.215",
+        "size": "14"
+      },
+      {
+        "price": "0.162",
+        "size": "6"
+      },
+      {
+        "price": "0.282",
+        "size": "15"
+      },
+      {
+        "price": "0.405",
+        "size": "6"
+      },
+      {
+        "price": "0.442",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.777",
+        "size": "1"
+      },
+      {
+        "price": "0.620",
+        "size": "9"
+      },
+      {
+        "price": "0.632",
+        "size": "4"
+      },
+      {
+        "price": "0.785",
+        "size": "2"
+      },
+      {
+        "price": "0.530",
+        "size": "11"
+      }
+    ],
+    "nLots": "47000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "318595744680851063",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "53000",
+    "askDepthLots": "27000"
+  },
+  {
+    "name": "random-38-marginal",
+    "bids": [
+      {
+        "price": "0.215",
+        "size": "14"
+      },
+      {
+        "price": "0.162",
+        "size": "6"
+      },
+      {
+        "price": "0.282",
+        "size": "15"
+      },
+      {
+        "price": "0.405",
+        "size": "6"
+      },
+      {
+        "price": "0.442",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.777",
+        "size": "1"
+      },
+      {
+        "price": "0.620",
+        "size": "9"
+      },
+      {
+        "price": "0.632",
+        "size": "4"
+      },
+      {
+        "price": "0.785",
+        "size": "2"
+      },
+      {
+        "price": "0.530",
+        "size": "11"
+      }
+    ],
+    "nLots": "27000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "282000000000000000",
+    "askWad": "785000000000000000",
+    "midWad": "533500000000000000",
+    "valid": true,
+    "bidDepthLots": "53000",
+    "askDepthLots": "27000"
+  },
+  {
+    "name": "random-39-vwap",
+    "bids": [
+      {
+        "price": "0.437",
+        "size": "6"
+      },
+      {
+        "price": "0.458",
+        "size": "14"
+      },
+      {
+        "price": "0.237",
+        "size": "4"
+      },
+      {
+        "price": "0.233",
+        "size": "9"
+      },
+      {
+        "price": "0.236",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.807",
+        "size": "5"
+      },
+      {
+        "price": "0.749",
+        "size": "10"
+      },
+      {
+        "price": "0.878",
+        "size": "5"
+      },
+      {
+        "price": "0.690",
+        "size": "3"
+      },
+      {
+        "price": "0.675",
+        "size": "5"
+      }
+    ],
+    "nLots": "45000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "331555555555555555",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "48000",
+    "askDepthLots": "28000"
+  },
+  {
+    "name": "random-39-marginal",
+    "bids": [
+      {
+        "price": "0.437",
+        "size": "6"
+      },
+      {
+        "price": "0.458",
+        "size": "14"
+      },
+      {
+        "price": "0.237",
+        "size": "4"
+      },
+      {
+        "price": "0.233",
+        "size": "9"
+      },
+      {
+        "price": "0.236",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.807",
+        "size": "5"
+      },
+      {
+        "price": "0.749",
+        "size": "10"
+      },
+      {
+        "price": "0.878",
+        "size": "5"
+      },
+      {
+        "price": "0.690",
+        "size": "3"
+      },
+      {
+        "price": "0.675",
+        "size": "5"
+      }
+    ],
+    "nLots": "50000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "48000",
+    "askDepthLots": "28000"
+  },
+  {
+    "name": "random-40-vwap",
+    "bids": [
+      {
+        "price": "0.463",
+        "size": "4"
+      },
+      {
+        "price": "0.126",
+        "size": "13"
+      },
+      {
+        "price": "0.111",
+        "size": "3"
+      },
+      {
+        "price": "0.425",
+        "size": "12"
+      },
+      {
+        "price": "0.239",
+        "size": "6"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.525",
+        "size": "1"
+      },
+      {
+        "price": "0.631",
+        "size": "3"
+      },
+      {
+        "price": "0.753",
+        "size": "4"
+      },
+      {
+        "price": "0.587",
+        "size": "5"
+      },
+      {
+        "price": "0.629",
+        "size": "1"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "455400000000000000",
+    "askWad": "574600000000000000",
+    "midWad": "515000000000000000",
+    "valid": true,
+    "bidDepthLots": "38000",
+    "askDepthLots": "14000"
+  },
+  {
+    "name": "random-40-marginal",
+    "bids": [
+      {
+        "price": "0.463",
+        "size": "4"
+      },
+      {
+        "price": "0.126",
+        "size": "13"
+      },
+      {
+        "price": "0.111",
+        "size": "3"
+      },
+      {
+        "price": "0.425",
+        "size": "12"
+      },
+      {
+        "price": "0.239",
+        "size": "6"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.525",
+        "size": "1"
+      },
+      {
+        "price": "0.631",
+        "size": "3"
+      },
+      {
+        "price": "0.753",
+        "size": "4"
+      },
+      {
+        "price": "0.587",
+        "size": "5"
+      },
+      {
+        "price": "0.629",
+        "size": "1"
+      }
+    ],
+    "nLots": "19000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "239000000000000000",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "38000",
+    "askDepthLots": "14000"
+  },
+  {
+    "name": "random-41-vwap",
+    "bids": [
+      {
+        "price": "0.229",
+        "size": "4"
+      },
+      {
+        "price": "0.201",
+        "size": "1"
+      },
+      {
+        "price": "0.333",
+        "size": "14"
+      },
+      {
+        "price": "0.252",
+        "size": "3"
+      },
+      {
+        "price": "0.421",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.522",
+        "size": "7"
+      },
+      {
+        "price": "0.703",
+        "size": "14"
+      },
+      {
+        "price": "0.543",
+        "size": "3"
+      },
+      {
+        "price": "0.836",
+        "size": "1"
+      },
+      {
+        "price": "0.686",
+        "size": "3"
+      }
+    ],
+    "nLots": "49000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "34000",
+    "askDepthLots": "28000"
+  },
+  {
+    "name": "random-41-marginal",
+    "bids": [
+      {
+        "price": "0.229",
+        "size": "4"
+      },
+      {
+        "price": "0.201",
+        "size": "1"
+      },
+      {
+        "price": "0.333",
+        "size": "14"
+      },
+      {
+        "price": "0.252",
+        "size": "3"
+      },
+      {
+        "price": "0.421",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.522",
+        "size": "7"
+      },
+      {
+        "price": "0.703",
+        "size": "14"
+      },
+      {
+        "price": "0.543",
+        "size": "3"
+      },
+      {
+        "price": "0.836",
+        "size": "1"
+      },
+      {
+        "price": "0.686",
+        "size": "3"
+      }
+    ],
+    "nLots": "2000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "421000000000000000",
+    "askWad": "522000000000000000",
+    "midWad": "471500000000000000",
+    "valid": true,
+    "bidDepthLots": "34000",
+    "askDepthLots": "28000"
+  },
+  {
+    "name": "random-42-vwap",
+    "bids": [
+      {
+        "price": "0.393",
+        "size": "3"
+      },
+      {
+        "price": "0.428",
+        "size": "2"
+      },
+      {
+        "price": "0.233",
+        "size": "12"
+      },
+      {
+        "price": "0.151",
+        "size": "4"
+      },
+      {
+        "price": "0.302",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.777",
+        "size": "1"
+      },
+      {
+        "price": "0.714",
+        "size": "5"
+      },
+      {
+        "price": "0.703",
+        "size": "8"
+      },
+      {
+        "price": "0.839",
+        "size": "3"
+      },
+      {
+        "price": "0.889",
+        "size": "9"
+      }
+    ],
+    "nLots": "22000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "267636363636363636",
+    "askWad": "769681818181818182",
+    "midWad": "518659090909090909",
+    "valid": true,
+    "bidDepthLots": "23000",
+    "askDepthLots": "26000"
+  },
+  {
+    "name": "random-42-marginal",
+    "bids": [
+      {
+        "price": "0.393",
+        "size": "3"
+      },
+      {
+        "price": "0.428",
+        "size": "2"
+      },
+      {
+        "price": "0.233",
+        "size": "12"
+      },
+      {
+        "price": "0.151",
+        "size": "4"
+      },
+      {
+        "price": "0.302",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.777",
+        "size": "1"
+      },
+      {
+        "price": "0.714",
+        "size": "5"
+      },
+      {
+        "price": "0.703",
+        "size": "8"
+      },
+      {
+        "price": "0.839",
+        "size": "3"
+      },
+      {
+        "price": "0.889",
+        "size": "9"
+      }
+    ],
+    "nLots": "20000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "151000000000000000",
+    "askWad": "889000000000000000",
+    "midWad": "520000000000000000",
+    "valid": true,
+    "bidDepthLots": "23000",
+    "askDepthLots": "26000"
+  },
+  {
+    "name": "random-43-vwap",
+    "bids": [
+      {
+        "price": "0.287",
+        "size": "1"
+      },
+      {
+        "price": "0.400",
+        "size": "15"
+      },
+      {
+        "price": "0.161",
+        "size": "7"
+      },
+      {
+        "price": "0.289",
+        "size": "12"
+      },
+      {
+        "price": "0.377",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.829",
+        "size": "10"
+      },
+      {
+        "price": "0.556",
+        "size": "2"
+      },
+      {
+        "price": "0.745",
+        "size": "7"
+      },
+      {
+        "price": "0.600",
+        "size": "3"
+      },
+      {
+        "price": "0.698",
+        "size": "4"
+      }
+    ],
+    "nLots": "29000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "388896551724137931",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "49000",
+    "askDepthLots": "26000"
+  },
+  {
+    "name": "random-43-marginal",
+    "bids": [
+      {
+        "price": "0.287",
+        "size": "1"
+      },
+      {
+        "price": "0.400",
+        "size": "15"
+      },
+      {
+        "price": "0.161",
+        "size": "7"
+      },
+      {
+        "price": "0.289",
+        "size": "12"
+      },
+      {
+        "price": "0.377",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.829",
+        "size": "10"
+      },
+      {
+        "price": "0.556",
+        "size": "2"
+      },
+      {
+        "price": "0.745",
+        "size": "7"
+      },
+      {
+        "price": "0.600",
+        "size": "3"
+      },
+      {
+        "price": "0.698",
+        "size": "4"
+      }
+    ],
+    "nLots": "1000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "400000000000000000",
+    "askWad": "556000000000000000",
+    "midWad": "478000000000000000",
+    "valid": true,
+    "bidDepthLots": "49000",
+    "askDepthLots": "26000"
+  },
+  {
+    "name": "random-44-vwap",
+    "bids": [
+      {
+        "price": "0.231",
+        "size": "14"
+      },
+      {
+        "price": "0.442",
+        "size": "12"
+      },
+      {
+        "price": "0.137",
+        "size": "15"
+      },
+      {
+        "price": "0.266",
+        "size": "14"
+      },
+      {
+        "price": "0.295",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.513",
+        "size": "9"
+      },
+      {
+        "price": "0.860",
+        "size": "12"
+      },
+      {
+        "price": "0.892",
+        "size": "12"
+      },
+      {
+        "price": "0.545",
+        "size": "5"
+      },
+      {
+        "price": "0.578",
+        "size": "2"
+      }
+    ],
+    "nLots": "45000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "309533333333333333",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "63000",
+    "askDepthLots": "40000"
+  },
+  {
+    "name": "random-44-marginal",
+    "bids": [
+      {
+        "price": "0.231",
+        "size": "14"
+      },
+      {
+        "price": "0.442",
+        "size": "12"
+      },
+      {
+        "price": "0.137",
+        "size": "15"
+      },
+      {
+        "price": "0.266",
+        "size": "14"
+      },
+      {
+        "price": "0.295",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.513",
+        "size": "9"
+      },
+      {
+        "price": "0.860",
+        "size": "12"
+      },
+      {
+        "price": "0.892",
+        "size": "12"
+      },
+      {
+        "price": "0.545",
+        "size": "5"
+      },
+      {
+        "price": "0.578",
+        "size": "2"
+      }
+    ],
+    "nLots": "15000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "295000000000000000",
+    "askWad": "578000000000000000",
+    "midWad": "436500000000000000",
+    "valid": true,
+    "bidDepthLots": "63000",
+    "askDepthLots": "40000"
+  },
+  {
+    "name": "random-45-vwap",
+    "bids": [
+      {
+        "price": "0.417",
+        "size": "5"
+      },
+      {
+        "price": "0.177",
+        "size": "12"
+      },
+      {
+        "price": "0.385",
+        "size": "8"
+      },
+      {
+        "price": "0.377",
+        "size": "8"
+      },
+      {
+        "price": "0.272",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.755",
+        "size": "15"
+      },
+      {
+        "price": "0.762",
+        "size": "9"
+      },
+      {
+        "price": "0.577",
+        "size": "8"
+      },
+      {
+        "price": "0.799",
+        "size": "9"
+      },
+      {
+        "price": "0.896",
+        "size": "12"
+      }
+    ],
+    "nLots": "25000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "363160000000000000",
+    "askWad": "698600000000000000",
+    "midWad": "530880000000000000",
+    "valid": true,
+    "bidDepthLots": "35000",
+    "askDepthLots": "53000"
+  },
+  {
+    "name": "random-45-marginal",
+    "bids": [
+      {
+        "price": "0.417",
+        "size": "5"
+      },
+      {
+        "price": "0.177",
+        "size": "12"
+      },
+      {
+        "price": "0.385",
+        "size": "8"
+      },
+      {
+        "price": "0.377",
+        "size": "8"
+      },
+      {
+        "price": "0.272",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.755",
+        "size": "15"
+      },
+      {
+        "price": "0.762",
+        "size": "9"
+      },
+      {
+        "price": "0.577",
+        "size": "8"
+      },
+      {
+        "price": "0.799",
+        "size": "9"
+      },
+      {
+        "price": "0.896",
+        "size": "12"
+      }
+    ],
+    "nLots": "36000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "799000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "35000",
+    "askDepthLots": "53000"
+  },
+  {
+    "name": "random-46-vwap",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "7"
+      },
+      {
+        "price": "0.373",
+        "size": "11"
+      },
+      {
+        "price": "0.431",
+        "size": "9"
+      },
+      {
+        "price": "0.294",
+        "size": "1"
+      },
+      {
+        "price": "0.406",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.662",
+        "size": "3"
+      },
+      {
+        "price": "0.527",
+        "size": "5"
+      },
+      {
+        "price": "0.573",
+        "size": "6"
+      },
+      {
+        "price": "0.645",
+        "size": "8"
+      },
+      {
+        "price": "0.730",
+        "size": "13"
+      }
+    ],
+    "nLots": "47000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "36000",
+    "askDepthLots": "35000"
+  },
+  {
+    "name": "random-46-marginal",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "7"
+      },
+      {
+        "price": "0.373",
+        "size": "11"
+      },
+      {
+        "price": "0.431",
+        "size": "9"
+      },
+      {
+        "price": "0.294",
+        "size": "1"
+      },
+      {
+        "price": "0.406",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.662",
+        "size": "3"
+      },
+      {
+        "price": "0.527",
+        "size": "5"
+      },
+      {
+        "price": "0.573",
+        "size": "6"
+      },
+      {
+        "price": "0.645",
+        "size": "8"
+      },
+      {
+        "price": "0.730",
+        "size": "13"
+      }
+    ],
+    "nLots": "23000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "373000000000000000",
+    "askWad": "730000000000000000",
+    "midWad": "551500000000000000",
+    "valid": true,
+    "bidDepthLots": "36000",
+    "askDepthLots": "35000"
+  },
+  {
+    "name": "random-47-vwap",
+    "bids": [
+      {
+        "price": "0.165",
+        "size": "2"
+      },
+      {
+        "price": "0.216",
+        "size": "13"
+      },
+      {
+        "price": "0.199",
+        "size": "1"
+      },
+      {
+        "price": "0.397",
+        "size": "4"
+      },
+      {
+        "price": "0.174",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.784",
+        "size": "9"
+      },
+      {
+        "price": "0.829",
+        "size": "4"
+      },
+      {
+        "price": "0.892",
+        "size": "5"
+      },
+      {
+        "price": "0.705",
+        "size": "2"
+      },
+      {
+        "price": "0.545",
+        "size": "4"
+      }
+    ],
+    "nLots": "36000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "31000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-47-marginal",
+    "bids": [
+      {
+        "price": "0.165",
+        "size": "2"
+      },
+      {
+        "price": "0.216",
+        "size": "13"
+      },
+      {
+        "price": "0.199",
+        "size": "1"
+      },
+      {
+        "price": "0.397",
+        "size": "4"
+      },
+      {
+        "price": "0.174",
+        "size": "11"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.784",
+        "size": "9"
+      },
+      {
+        "price": "0.829",
+        "size": "4"
+      },
+      {
+        "price": "0.892",
+        "size": "5"
+      },
+      {
+        "price": "0.705",
+        "size": "2"
+      },
+      {
+        "price": "0.545",
+        "size": "4"
+      }
+    ],
+    "nLots": "21000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "174000000000000000",
+    "askWad": "892000000000000000",
+    "midWad": "533000000000000000",
+    "valid": true,
+    "bidDepthLots": "31000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-48-vwap",
+    "bids": [
+      {
+        "price": "0.238",
+        "size": "3"
+      },
+      {
+        "price": "0.138",
+        "size": "8"
+      },
+      {
+        "price": "0.312",
+        "size": "9"
+      },
+      {
+        "price": "0.365",
+        "size": "7"
+      },
+      {
+        "price": "0.184",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.692",
+        "size": "7"
+      },
+      {
+        "price": "0.536",
+        "size": "8"
+      },
+      {
+        "price": "0.629",
+        "size": "10"
+      },
+      {
+        "price": "0.764",
+        "size": "9"
+      },
+      {
+        "price": "0.885",
+        "size": "3"
+      }
+    ],
+    "nLots": "11000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "345727272727272727",
+    "askWad": "561363636363636364",
+    "midWad": "453545454545454545",
+    "valid": true,
+    "bidDepthLots": "31000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-48-marginal",
+    "bids": [
+      {
+        "price": "0.238",
+        "size": "3"
+      },
+      {
+        "price": "0.138",
+        "size": "8"
+      },
+      {
+        "price": "0.312",
+        "size": "9"
+      },
+      {
+        "price": "0.365",
+        "size": "7"
+      },
+      {
+        "price": "0.184",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.692",
+        "size": "7"
+      },
+      {
+        "price": "0.536",
+        "size": "8"
+      },
+      {
+        "price": "0.629",
+        "size": "10"
+      },
+      {
+        "price": "0.764",
+        "size": "9"
+      },
+      {
+        "price": "0.885",
+        "size": "3"
+      }
+    ],
+    "nLots": "36000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "885000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "31000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-49-vwap",
+    "bids": [
+      {
+        "price": "0.126",
+        "size": "12"
+      },
+      {
+        "price": "0.271",
+        "size": "9"
+      },
+      {
+        "price": "0.159",
+        "size": "11"
+      },
+      {
+        "price": "0.446",
+        "size": "2"
+      },
+      {
+        "price": "0.426",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.558",
+        "size": "2"
+      },
+      {
+        "price": "0.843",
+        "size": "8"
+      },
+      {
+        "price": "0.561",
+        "size": "8"
+      },
+      {
+        "price": "0.851",
+        "size": "3"
+      },
+      {
+        "price": "0.667",
+        "size": "11"
+      }
+    ],
+    "nLots": "11000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "415545454545454545",
+    "askWad": "570090909090909091",
+    "midWad": "492818181818181818",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "32000"
+  },
+  {
+    "name": "random-49-marginal",
+    "bids": [
+      {
+        "price": "0.126",
+        "size": "12"
+      },
+      {
+        "price": "0.271",
+        "size": "9"
+      },
+      {
+        "price": "0.159",
+        "size": "11"
+      },
+      {
+        "price": "0.446",
+        "size": "2"
+      },
+      {
+        "price": "0.426",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.558",
+        "size": "2"
+      },
+      {
+        "price": "0.843",
+        "size": "8"
+      },
+      {
+        "price": "0.561",
+        "size": "8"
+      },
+      {
+        "price": "0.851",
+        "size": "3"
+      },
+      {
+        "price": "0.667",
+        "size": "11"
+      }
+    ],
+    "nLots": "51000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "42000",
+    "askDepthLots": "32000"
+  },
+  {
+    "name": "random-50-vwap",
+    "bids": [
+      {
+        "price": "0.353",
+        "size": "14"
+      },
+      {
+        "price": "0.114",
+        "size": "13"
+      },
+      {
+        "price": "0.258",
+        "size": "2"
+      },
+      {
+        "price": "0.485",
+        "size": "3"
+      },
+      {
+        "price": "0.334",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.557",
+        "size": "11"
+      },
+      {
+        "price": "0.777",
+        "size": "15"
+      },
+      {
+        "price": "0.734",
+        "size": "7"
+      },
+      {
+        "price": "0.769",
+        "size": "4"
+      },
+      {
+        "price": "0.772",
+        "size": "14"
+      }
+    ],
+    "nLots": "27000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "360629629629629629",
+    "askWad": "674111111111111112",
+    "midWad": "517370370370370370",
+    "valid": true,
+    "bidDepthLots": "44000",
+    "askDepthLots": "51000"
+  },
+  {
+    "name": "random-50-marginal",
+    "bids": [
+      {
+        "price": "0.353",
+        "size": "14"
+      },
+      {
+        "price": "0.114",
+        "size": "13"
+      },
+      {
+        "price": "0.258",
+        "size": "2"
+      },
+      {
+        "price": "0.485",
+        "size": "3"
+      },
+      {
+        "price": "0.334",
+        "size": "12"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.557",
+        "size": "11"
+      },
+      {
+        "price": "0.777",
+        "size": "15"
+      },
+      {
+        "price": "0.734",
+        "size": "7"
+      },
+      {
+        "price": "0.769",
+        "size": "4"
+      },
+      {
+        "price": "0.772",
+        "size": "14"
+      }
+    ],
+    "nLots": "21000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "334000000000000000",
+    "askWad": "769000000000000000",
+    "midWad": "551500000000000000",
+    "valid": true,
+    "bidDepthLots": "44000",
+    "askDepthLots": "51000"
+  },
+  {
+    "name": "random-51-vwap",
+    "bids": [
+      {
+        "price": "0.148",
+        "size": "13"
+      },
+      {
+        "price": "0.323",
+        "size": "12"
+      },
+      {
+        "price": "0.275",
+        "size": "15"
+      },
+      {
+        "price": "0.457",
+        "size": "14"
+      },
+      {
+        "price": "0.313",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.518",
+        "size": "5"
+      },
+      {
+        "price": "0.536",
+        "size": "4"
+      },
+      {
+        "price": "0.792",
+        "size": "10"
+      },
+      {
+        "price": "0.799",
+        "size": "6"
+      },
+      {
+        "price": "0.525",
+        "size": "10"
+      }
+    ],
+    "nLots": "15000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "448066666666666666",
+    "askWad": "522666666666666667",
+    "midWad": "485366666666666666",
+    "valid": true,
+    "bidDepthLots": "58000",
+    "askDepthLots": "35000"
+  },
+  {
+    "name": "random-51-marginal",
+    "bids": [
+      {
+        "price": "0.148",
+        "size": "13"
+      },
+      {
+        "price": "0.323",
+        "size": "12"
+      },
+      {
+        "price": "0.275",
+        "size": "15"
+      },
+      {
+        "price": "0.457",
+        "size": "14"
+      },
+      {
+        "price": "0.313",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.518",
+        "size": "5"
+      },
+      {
+        "price": "0.536",
+        "size": "4"
+      },
+      {
+        "price": "0.792",
+        "size": "10"
+      },
+      {
+        "price": "0.799",
+        "size": "6"
+      },
+      {
+        "price": "0.525",
+        "size": "10"
+      }
+    ],
+    "nLots": "2000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "457000000000000000",
+    "askWad": "518000000000000000",
+    "midWad": "487500000000000000",
+    "valid": true,
+    "bidDepthLots": "58000",
+    "askDepthLots": "35000"
+  },
+  {
+    "name": "random-52-vwap",
+    "bids": [
+      {
+        "price": "0.261",
+        "size": "2"
+      },
+      {
+        "price": "0.167",
+        "size": "5"
+      },
+      {
+        "price": "0.283",
+        "size": "12"
+      },
+      {
+        "price": "0.350",
+        "size": "7"
+      },
+      {
+        "price": "0.362",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.613",
+        "size": "15"
+      },
+      {
+        "price": "0.723",
+        "size": "11"
+      },
+      {
+        "price": "0.724",
+        "size": "12"
+      },
+      {
+        "price": "0.825",
+        "size": "13"
+      },
+      {
+        "price": "0.896",
+        "size": "5"
+      }
+    ],
+    "nLots": "9000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "355333333333333333",
+    "askWad": "613000000000000000",
+    "midWad": "484166666666666666",
+    "valid": true,
+    "bidDepthLots": "30000",
+    "askDepthLots": "56000"
+  },
+  {
+    "name": "random-52-marginal",
+    "bids": [
+      {
+        "price": "0.261",
+        "size": "2"
+      },
+      {
+        "price": "0.167",
+        "size": "5"
+      },
+      {
+        "price": "0.283",
+        "size": "12"
+      },
+      {
+        "price": "0.350",
+        "size": "7"
+      },
+      {
+        "price": "0.362",
+        "size": "4"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.613",
+        "size": "15"
+      },
+      {
+        "price": "0.723",
+        "size": "11"
+      },
+      {
+        "price": "0.724",
+        "size": "12"
+      },
+      {
+        "price": "0.825",
+        "size": "13"
+      },
+      {
+        "price": "0.896",
+        "size": "5"
+      }
+    ],
+    "nLots": "31000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "724000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "30000",
+    "askDepthLots": "56000"
+  },
+  {
+    "name": "random-53-vwap",
+    "bids": [
+      {
+        "price": "0.437",
+        "size": "10"
+      },
+      {
+        "price": "0.248",
+        "size": "15"
+      },
+      {
+        "price": "0.434",
+        "size": "15"
+      },
+      {
+        "price": "0.250",
+        "size": "14"
+      },
+      {
+        "price": "0.464",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.604",
+        "size": "1"
+      },
+      {
+        "price": "0.695",
+        "size": "15"
+      },
+      {
+        "price": "0.851",
+        "size": "7"
+      },
+      {
+        "price": "0.618",
+        "size": "12"
+      },
+      {
+        "price": "0.594",
+        "size": "3"
+      }
+    ],
+    "nLots": "51000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "348784313725490196",
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "56000",
+    "askDepthLots": "38000"
+  },
+  {
+    "name": "random-53-marginal",
+    "bids": [
+      {
+        "price": "0.437",
+        "size": "10"
+      },
+      {
+        "price": "0.248",
+        "size": "15"
+      },
+      {
+        "price": "0.434",
+        "size": "15"
+      },
+      {
+        "price": "0.250",
+        "size": "14"
+      },
+      {
+        "price": "0.464",
+        "size": "2"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.604",
+        "size": "1"
+      },
+      {
+        "price": "0.695",
+        "size": "15"
+      },
+      {
+        "price": "0.851",
+        "size": "7"
+      },
+      {
+        "price": "0.618",
+        "size": "12"
+      },
+      {
+        "price": "0.594",
+        "size": "3"
+      }
+    ],
+    "nLots": "28000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "250000000000000000",
+    "askWad": "695000000000000000",
+    "midWad": "472500000000000000",
+    "valid": true,
+    "bidDepthLots": "56000",
+    "askDepthLots": "38000"
+  },
+  {
+    "name": "random-54-vwap",
+    "bids": [
+      {
+        "price": "0.314",
+        "size": "12"
+      },
+      {
+        "price": "0.164",
+        "size": "14"
+      },
+      {
+        "price": "0.237",
+        "size": "3"
+      },
+      {
+        "price": "0.178",
+        "size": "3"
+      },
+      {
+        "price": "0.255",
+        "size": "10"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.741",
+        "size": "14"
+      },
+      {
+        "price": "0.654",
+        "size": "4"
+      },
+      {
+        "price": "0.746",
+        "size": "14"
+      },
+      {
+        "price": "0.860",
+        "size": "5"
+      },
+      {
+        "price": "0.548",
+        "size": "6"
+      }
+    ],
+    "nLots": "18000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "294333333333333333",
+    "askWad": "657333333333333334",
+    "midWad": "475833333333333333",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "43000"
+  },
+  {
+    "name": "random-54-marginal",
+    "bids": [
+      {
+        "price": "0.314",
+        "size": "12"
+      },
+      {
+        "price": "0.164",
+        "size": "14"
+      },
+      {
+        "price": "0.237",
+        "size": "3"
+      },
+      {
+        "price": "0.178",
+        "size": "3"
+      },
+      {
+        "price": "0.255",
+        "size": "10"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.741",
+        "size": "14"
+      },
+      {
+        "price": "0.654",
+        "size": "4"
+      },
+      {
+        "price": "0.746",
+        "size": "14"
+      },
+      {
+        "price": "0.860",
+        "size": "5"
+      },
+      {
+        "price": "0.548",
+        "size": "6"
+      }
+    ],
+    "nLots": "43000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": "860000000000000000",
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "42000",
+    "askDepthLots": "43000"
+  },
+  {
+    "name": "random-55-vwap",
+    "bids": [
+      {
+        "price": "0.158",
+        "size": "14"
+      },
+      {
+        "price": "0.214",
+        "size": "7"
+      },
+      {
+        "price": "0.343",
+        "size": "11"
+      },
+      {
+        "price": "0.254",
+        "size": "5"
+      },
+      {
+        "price": "0.411",
+        "size": "10"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.512",
+        "size": "8"
+      },
+      {
+        "price": "0.788",
+        "size": "2"
+      },
+      {
+        "price": "0.867",
+        "size": "5"
+      },
+      {
+        "price": "0.846",
+        "size": "3"
+      },
+      {
+        "price": "0.676",
+        "size": "6"
+      }
+    ],
+    "nLots": "23000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "364826086956521739",
+    "askWad": "684086956521739131",
+    "midWad": "524456521739130435",
+    "valid": true,
+    "bidDepthLots": "47000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-55-marginal",
+    "bids": [
+      {
+        "price": "0.158",
+        "size": "14"
+      },
+      {
+        "price": "0.214",
+        "size": "7"
+      },
+      {
+        "price": "0.343",
+        "size": "11"
+      },
+      {
+        "price": "0.254",
+        "size": "5"
+      },
+      {
+        "price": "0.411",
+        "size": "10"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.512",
+        "size": "8"
+      },
+      {
+        "price": "0.788",
+        "size": "2"
+      },
+      {
+        "price": "0.867",
+        "size": "5"
+      },
+      {
+        "price": "0.846",
+        "size": "3"
+      },
+      {
+        "price": "0.676",
+        "size": "6"
+      }
+    ],
+    "nLots": "24000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "254000000000000000",
+    "askWad": "867000000000000000",
+    "midWad": "560500000000000000",
+    "valid": true,
+    "bidDepthLots": "47000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-56-vwap",
+    "bids": [
+      {
+        "price": "0.483",
+        "size": "9"
+      },
+      {
+        "price": "0.363",
+        "size": "7"
+      },
+      {
+        "price": "0.272",
+        "size": "12"
+      },
+      {
+        "price": "0.431",
+        "size": "5"
+      },
+      {
+        "price": "0.128",
+        "size": "9"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.599",
+        "size": "9"
+      },
+      {
+        "price": "0.701",
+        "size": "3"
+      },
+      {
+        "price": "0.868",
+        "size": "13"
+      },
+      {
+        "price": "0.534",
+        "size": "9"
+      },
+      {
+        "price": "0.868",
+        "size": "13"
+      }
+    ],
+    "nLots": "13000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "467000000000000000",
+    "askWad": "554000000000000000",
+    "midWad": "510500000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "47000"
+  },
+  {
+    "name": "random-56-marginal",
+    "bids": [
+      {
+        "price": "0.483",
+        "size": "9"
+      },
+      {
+        "price": "0.363",
+        "size": "7"
+      },
+      {
+        "price": "0.272",
+        "size": "12"
+      },
+      {
+        "price": "0.431",
+        "size": "5"
+      },
+      {
+        "price": "0.128",
+        "size": "9"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.599",
+        "size": "9"
+      },
+      {
+        "price": "0.701",
+        "size": "3"
+      },
+      {
+        "price": "0.868",
+        "size": "13"
+      },
+      {
+        "price": "0.534",
+        "size": "9"
+      },
+      {
+        "price": "0.868",
+        "size": "13"
+      }
+    ],
+    "nLots": "11000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "431000000000000000",
+    "askWad": "599000000000000000",
+    "midWad": "515000000000000000",
+    "valid": true,
+    "bidDepthLots": "42000",
+    "askDepthLots": "47000"
+  },
+  {
+    "name": "random-57-vwap",
+    "bids": [
+      {
+        "price": "0.193",
+        "size": "6"
+      },
+      {
+        "price": "0.319",
+        "size": "1"
+      },
+      {
+        "price": "0.164",
+        "size": "9"
+      },
+      {
+        "price": "0.112",
+        "size": "8"
+      },
+      {
+        "price": "0.363",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.680",
+        "size": "13"
+      },
+      {
+        "price": "0.763",
+        "size": "15"
+      },
+      {
+        "price": "0.668",
+        "size": "2"
+      },
+      {
+        "price": "0.607",
+        "size": "3"
+      },
+      {
+        "price": "0.723",
+        "size": "8"
+      }
+    ],
+    "nLots": "11000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "328090909090909090",
+    "askWad": "657909090909090910",
+    "midWad": "493000000000000000",
+    "valid": true,
+    "bidDepthLots": "32000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-57-marginal",
+    "bids": [
+      {
+        "price": "0.193",
+        "size": "6"
+      },
+      {
+        "price": "0.319",
+        "size": "1"
+      },
+      {
+        "price": "0.164",
+        "size": "9"
+      },
+      {
+        "price": "0.112",
+        "size": "8"
+      },
+      {
+        "price": "0.363",
+        "size": "8"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.680",
+        "size": "13"
+      },
+      {
+        "price": "0.763",
+        "size": "15"
+      },
+      {
+        "price": "0.668",
+        "size": "2"
+      },
+      {
+        "price": "0.607",
+        "size": "3"
+      },
+      {
+        "price": "0.723",
+        "size": "8"
+      }
+    ],
+    "nLots": "49000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "32000",
+    "askDepthLots": "41000"
+  },
+  {
+    "name": "random-58-vwap",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "10"
+      },
+      {
+        "price": "0.142",
+        "size": "12"
+      },
+      {
+        "price": "0.479",
+        "size": "2"
+      },
+      {
+        "price": "0.230",
+        "size": "1"
+      },
+      {
+        "price": "0.254",
+        "size": "13"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.889",
+        "size": "15"
+      },
+      {
+        "price": "0.758",
+        "size": "6"
+      },
+      {
+        "price": "0.538",
+        "size": "2"
+      },
+      {
+        "price": "0.613",
+        "size": "10"
+      },
+      {
+        "price": "0.519",
+        "size": "1"
+      }
+    ],
+    "nLots": "56000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "38000",
+    "askDepthLots": "34000"
+  },
+  {
+    "name": "random-58-marginal",
+    "bids": [
+      {
+        "price": "0.104",
+        "size": "10"
+      },
+      {
+        "price": "0.142",
+        "size": "12"
+      },
+      {
+        "price": "0.479",
+        "size": "2"
+      },
+      {
+        "price": "0.230",
+        "size": "1"
+      },
+      {
+        "price": "0.254",
+        "size": "13"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.889",
+        "size": "15"
+      },
+      {
+        "price": "0.758",
+        "size": "6"
+      },
+      {
+        "price": "0.538",
+        "size": "2"
+      },
+      {
+        "price": "0.613",
+        "size": "10"
+      },
+      {
+        "price": "0.519",
+        "size": "1"
+      }
+    ],
+    "nLots": "5000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "254000000000000000",
+    "askWad": "613000000000000000",
+    "midWad": "433500000000000000",
+    "valid": true,
+    "bidDepthLots": "38000",
+    "askDepthLots": "34000"
+  },
+  {
+    "name": "random-59-vwap",
+    "bids": [
+      {
+        "price": "0.289",
+        "size": "13"
+      },
+      {
+        "price": "0.457",
+        "size": "7"
+      },
+      {
+        "price": "0.240",
+        "size": "8"
+      },
+      {
+        "price": "0.430",
+        "size": "4"
+      },
+      {
+        "price": "0.169",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.876",
+        "size": "5"
+      },
+      {
+        "price": "0.722",
+        "size": "10"
+      },
+      {
+        "price": "0.890",
+        "size": "2"
+      },
+      {
+        "price": "0.736",
+        "size": "9"
+      },
+      {
+        "price": "0.665",
+        "size": "10"
+      }
+    ],
+    "nLots": "41000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "33000",
+    "askDepthLots": "36000"
+  },
+  {
+    "name": "random-59-marginal",
+    "bids": [
+      {
+        "price": "0.289",
+        "size": "13"
+      },
+      {
+        "price": "0.457",
+        "size": "7"
+      },
+      {
+        "price": "0.240",
+        "size": "8"
+      },
+      {
+        "price": "0.430",
+        "size": "4"
+      },
+      {
+        "price": "0.169",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.876",
+        "size": "5"
+      },
+      {
+        "price": "0.722",
+        "size": "10"
+      },
+      {
+        "price": "0.890",
+        "size": "2"
+      },
+      {
+        "price": "0.736",
+        "size": "9"
+      },
+      {
+        "price": "0.665",
+        "size": "10"
+      }
+    ],
+    "nLots": "11000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "430000000000000000",
+    "askWad": "722000000000000000",
+    "midWad": "576000000000000000",
+    "valid": true,
+    "bidDepthLots": "33000",
+    "askDepthLots": "36000"
+  },
+  {
+    "name": "random-60-vwap",
+    "bids": [
+      {
+        "price": "0.391",
+        "size": "3"
+      },
+      {
+        "price": "0.303",
+        "size": "5"
+      },
+      {
+        "price": "0.208",
+        "size": "15"
+      },
+      {
+        "price": "0.385",
+        "size": "5"
+      },
+      {
+        "price": "0.473",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.545",
+        "size": "6"
+      },
+      {
+        "price": "0.732",
+        "size": "6"
+      },
+      {
+        "price": "0.633",
+        "size": "1"
+      },
+      {
+        "price": "0.575",
+        "size": "10"
+      },
+      {
+        "price": "0.609",
+        "size": "1"
+      }
+    ],
+    "nLots": "39000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "29000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-60-marginal",
+    "bids": [
+      {
+        "price": "0.391",
+        "size": "3"
+      },
+      {
+        "price": "0.303",
+        "size": "5"
+      },
+      {
+        "price": "0.208",
+        "size": "15"
+      },
+      {
+        "price": "0.385",
+        "size": "5"
+      },
+      {
+        "price": "0.473",
+        "size": "1"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.545",
+        "size": "6"
+      },
+      {
+        "price": "0.732",
+        "size": "6"
+      },
+      {
+        "price": "0.633",
+        "size": "1"
+      },
+      {
+        "price": "0.575",
+        "size": "10"
+      },
+      {
+        "price": "0.609",
+        "size": "1"
+      }
+    ],
+    "nLots": "37000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": null,
+    "askWad": null,
+    "midWad": null,
+    "valid": false,
+    "bidDepthLots": "29000",
+    "askDepthLots": "24000"
+  },
+  {
+    "name": "random-61-vwap",
+    "bids": [
+      {
+        "price": "0.252",
+        "size": "11"
+      },
+      {
+        "price": "0.221",
+        "size": "15"
+      },
+      {
+        "price": "0.325",
+        "size": "6"
+      },
+      {
+        "price": "0.315",
+        "size": "6"
+      },
+      {
+        "price": "0.189",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.899",
+        "size": "13"
+      },
+      {
+        "price": "0.700",
+        "size": "15"
+      },
+      {
+        "price": "0.753",
+        "size": "14"
+      },
+      {
+        "price": "0.807",
+        "size": "3"
+      },
+      {
+        "price": "0.833",
+        "size": "7"
+      }
+    ],
+    "nLots": "10000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "321000000000000000",
+    "askWad": "700000000000000000",
+    "midWad": "510500000000000000",
+    "valid": true,
+    "bidDepthLots": "45000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-61-marginal",
+    "bids": [
+      {
+        "price": "0.252",
+        "size": "11"
+      },
+      {
+        "price": "0.221",
+        "size": "15"
+      },
+      {
+        "price": "0.325",
+        "size": "6"
+      },
+      {
+        "price": "0.315",
+        "size": "6"
+      },
+      {
+        "price": "0.189",
+        "size": "7"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.899",
+        "size": "13"
+      },
+      {
+        "price": "0.700",
+        "size": "15"
+      },
+      {
+        "price": "0.753",
+        "size": "14"
+      },
+      {
+        "price": "0.807",
+        "size": "3"
+      },
+      {
+        "price": "0.833",
+        "size": "7"
+      }
+    ],
+    "nLots": "43000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "189000000000000000",
+    "askWad": "899000000000000000",
+    "midWad": "544000000000000000",
+    "valid": true,
+    "bidDepthLots": "45000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-62-vwap",
+    "bids": [
+      {
+        "price": "0.460",
+        "size": "7"
+      },
+      {
+        "price": "0.132",
+        "size": "12"
+      },
+      {
+        "price": "0.331",
+        "size": "8"
+      },
+      {
+        "price": "0.164",
+        "size": "8"
+      },
+      {
+        "price": "0.300",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.704",
+        "size": "3"
+      },
+      {
+        "price": "0.771",
+        "size": "9"
+      },
+      {
+        "price": "0.541",
+        "size": "5"
+      },
+      {
+        "price": "0.585",
+        "size": "15"
+      },
+      {
+        "price": "0.881",
+        "size": "5"
+      }
+    ],
+    "nLots": "18000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "376000000000000000",
+    "askWad": "572777777777777778",
+    "midWad": "474388888888888889",
+    "valid": true,
+    "bidDepthLots": "50000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-62-marginal",
+    "bids": [
+      {
+        "price": "0.460",
+        "size": "7"
+      },
+      {
+        "price": "0.132",
+        "size": "12"
+      },
+      {
+        "price": "0.331",
+        "size": "8"
+      },
+      {
+        "price": "0.164",
+        "size": "8"
+      },
+      {
+        "price": "0.300",
+        "size": "15"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.704",
+        "size": "3"
+      },
+      {
+        "price": "0.771",
+        "size": "9"
+      },
+      {
+        "price": "0.541",
+        "size": "5"
+      },
+      {
+        "price": "0.585",
+        "size": "15"
+      },
+      {
+        "price": "0.881",
+        "size": "5"
+      }
+    ],
+    "nLots": "13000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "331000000000000000",
+    "askWad": "585000000000000000",
+    "midWad": "458000000000000000",
+    "valid": true,
+    "bidDepthLots": "50000",
+    "askDepthLots": "37000"
+  },
+  {
+    "name": "random-63-vwap",
+    "bids": [
+      {
+        "price": "0.252",
+        "size": "11"
+      },
+      {
+        "price": "0.419",
+        "size": "8"
+      },
+      {
+        "price": "0.416",
+        "size": "13"
+      },
+      {
+        "price": "0.308",
+        "size": "12"
+      },
+      {
+        "price": "0.146",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.594",
+        "size": "10"
+      },
+      {
+        "price": "0.632",
+        "size": "15"
+      },
+      {
+        "price": "0.666",
+        "size": "14"
+      },
+      {
+        "price": "0.605",
+        "size": "12"
+      },
+      {
+        "price": "0.631",
+        "size": "1"
+      }
+    ],
+    "nLots": "31000",
+    "spreadWad": "1000000000000000000",
+    "method": "vwap",
+    "bidWad": "381935483870967741",
+    "askWad": "609258064516129033",
+    "midWad": "495596774193548387",
+    "valid": true,
+    "bidDepthLots": "58000",
+    "askDepthLots": "52000"
+  },
+  {
+    "name": "random-63-marginal",
+    "bids": [
+      {
+        "price": "0.252",
+        "size": "11"
+      },
+      {
+        "price": "0.419",
+        "size": "8"
+      },
+      {
+        "price": "0.416",
+        "size": "13"
+      },
+      {
+        "price": "0.308",
+        "size": "12"
+      },
+      {
+        "price": "0.146",
+        "size": "14"
+      }
+    ],
+    "asks": [
+      {
+        "price": "0.594",
+        "size": "10"
+      },
+      {
+        "price": "0.632",
+        "size": "15"
+      },
+      {
+        "price": "0.666",
+        "size": "14"
+      },
+      {
+        "price": "0.605",
+        "size": "12"
+      },
+      {
+        "price": "0.631",
+        "size": "1"
+      }
+    ],
+    "nLots": "7000",
+    "spreadWad": "1000000000000000000",
+    "method": "marginal",
+    "bidWad": "419000000000000000",
+    "askWad": "594000000000000000",
+    "midWad": "506500000000000000",
+    "valid": true,
+    "bidDepthLots": "58000",
+    "askDepthLots": "52000"
+  }
+]

@@ -1,0 +1,6 @@
+node_modules/
+dist/
+var/
+artifacts/source-soak/raw/
+test/integration/out/
+test/integration/cache/
