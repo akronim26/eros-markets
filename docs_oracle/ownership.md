@@ -23,7 +23,7 @@ The oracle team edits nothing else in the repository. In particular:
   UMA code (AGPL-3.0) is compiled only for tests and the sandbox deploy script.
 - `.github/workflows/contracts.yml`, `.gitmodules` entries under `contracts/lib/` and every
   `docs/` file belong to other teams. A change needed there is written up as a request in
-  `docs_oracle/requests/` and sent to its owner.
+  `docs_oracle/requests/` (created when the first request is written) and sent to its owner.
 
 Submodules (pinned in `.gitmodules`, plan §12.2a):
 
