@@ -54,29 +54,35 @@ contract TreasuryLedgersTest is Test {
         return address(new BondTreasury(u, o, r, g));
     }
 
-    function test_constructor_rejectsZeroAddresses() public {
-        address z = address(0);
-        bytes4 err = BondTreasury.ZeroAddress.selector;
-        vm.expectRevert(err);
-        this.deployTreasury(z, oracle, registry, gov);
-        vm.expectRevert(err);
-        this.deployTreasury(address(usdc), z, registry, gov);
-        vm.expectRevert(err);
-        this.deployTreasury(address(usdc), oracle, z, gov);
-        vm.expectRevert(err);
-        this.deployTreasury(address(usdc), oracle, registry, z);
-        assertTrue(this.deployTreasury(address(usdc), oracle, registry, gov) != address(0));
-    }
-
-    function test_constructorAndInitialState() public view {
-        assertEq(t.usdc(), address(usdc));
-        assertEq(t.oracle(), oracle);
-        assertEq(t.registry(), registry);
-        assertEq(t.governance(), gov);
-        assertEq(t.maxPerMarket(), 0, "limits start at 0");
-        assertEq(t.maxOpenDisputes(), 0);
-        assertEq(t.totalCommitted(), 0);
-        assertEq(_sum(), 0);
+    /// Constructor: initial state, and every address must be set.
+    function test_constructor() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_constructor_rejectsZeroAddresses
+            address z = address(0);
+            bytes4 err = BondTreasury.ZeroAddress.selector;
+            vm.expectRevert(err);
+            this.deployTreasury(z, oracle, registry, gov);
+            vm.expectRevert(err);
+            this.deployTreasury(address(usdc), z, registry, gov);
+            vm.expectRevert(err);
+            this.deployTreasury(address(usdc), oracle, z, gov);
+            vm.expectRevert(err);
+            this.deployTreasury(address(usdc), oracle, registry, z);
+            assertTrue(this.deployTreasury(address(usdc), oracle, registry, gov) != address(0));
+        }
+        vm.revertToState(snap);
+        {
+            // test_constructorAndInitialState
+            assertEq(t.usdc(), address(usdc));
+            assertEq(t.oracle(), oracle);
+            assertEq(t.registry(), registry);
+            assertEq(t.governance(), gov);
+            assertEq(t.maxPerMarket(), 0, "limits start at 0");
+            assertEq(t.maxOpenDisputes(), 0);
+            assertEq(t.totalCommitted(), 0);
+            assertEq(_sum(), 0);
+        }
     }
 
     function test_setLimits() public {
@@ -90,182 +96,213 @@ contract TreasuryLedgersTest is Test {
 
     // ------------------------------------------------------------------ deposits
 
-    function test_deposit_creditsOnlyItsLedger() public {
-        vm.expectEmit(address(t));
-        emit IBondTreasury.Deposited(Ledger.ASSERTION, feeRouter, 1_000e6);
-        _deposit(Ledger.ASSERTION, 1_000e6);
-        _deposit(Ledger.WATCHDOG_FLOAT, 300e6);
-        _deposit(Ledger.PROPOSER_REWARD, 5e6);
-        assertEq(t.balanceOf(Ledger.ASSERTION), 1_000e6);
-        assertEq(t.balanceOf(Ledger.WATCHDOG_FLOAT), 300e6);
-        assertEq(t.balanceOf(Ledger.PROPOSER_REWARD), 5e6);
-        assertEq(usdc.balanceOf(address(t)), 1_305e6);
-        assertEq(usdc.balanceOf(feeRouter), 1_000_000e6 - 1_305e6);
-    }
-
-    function test_deposit_byAnyone() public {
-        usdc.mint(stranger, 7e6);
-        vm.startPrank(stranger);
-        usdc.approve(address(t), 7e6);
-        t.deposit(Ledger.WATCHDOG_FLOAT, 7e6);
-        vm.stopPrank();
-        assertEq(t.balanceOf(Ledger.WATCHDOG_FLOAT), 7e6);
-    }
-
-    function test_deposit_withoutAllowanceReverts() public {
-        usdc.mint(stranger, 7e6);
-        vm.prank(stranger);
-        vm.expectRevert(SafeTransferLib.TransferFromFailed.selector);
-        t.deposit(Ledger.ASSERTION, 7e6);
-    }
-
-    /// MockUSDC's taxed mode delivers one atom less: the ledger is credited with what arrived.
-    function test_deposit_creditsWhatArrived() public {
-        usdc.configure(address(0), true);
-        vm.expectEmit(address(t));
-        emit IBondTreasury.Deposited(Ledger.ASSERTION, feeRouter, 10e6 - 1);
-        _deposit(Ledger.ASSERTION, 10e6);
-        assertEq(t.balanceOf(Ledger.ASSERTION), 10e6 - 1);
-        assertEq(usdc.balanceOf(address(t)), _sum(), "ORC-14 with equality");
+    /// Deposits: credit only their ledger, by anyone, need an allowance, credit what arrived.
+    function test_deposit() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_deposit_creditsOnlyItsLedger
+            vm.expectEmit(address(t));
+            emit IBondTreasury.Deposited(Ledger.ASSERTION, feeRouter, 1_000e6);
+            _deposit(Ledger.ASSERTION, 1_000e6);
+            _deposit(Ledger.WATCHDOG_FLOAT, 300e6);
+            _deposit(Ledger.PROPOSER_REWARD, 5e6);
+            assertEq(t.balanceOf(Ledger.ASSERTION), 1_000e6);
+            assertEq(t.balanceOf(Ledger.WATCHDOG_FLOAT), 300e6);
+            assertEq(t.balanceOf(Ledger.PROPOSER_REWARD), 5e6);
+            assertEq(usdc.balanceOf(address(t)), 1_305e6);
+            assertEq(usdc.balanceOf(feeRouter), 1_000_000e6 - 1_305e6);
+        }
+        vm.revertToState(snap);
+        {
+            // test_deposit_byAnyone
+            usdc.mint(stranger, 7e6);
+            vm.startPrank(stranger);
+            usdc.approve(address(t), 7e6);
+            t.deposit(Ledger.WATCHDOG_FLOAT, 7e6);
+            vm.stopPrank();
+            assertEq(t.balanceOf(Ledger.WATCHDOG_FLOAT), 7e6);
+        }
+        vm.revertToState(snap);
+        {
+            // test_deposit_withoutAllowanceReverts
+            usdc.mint(stranger, 7e6);
+            vm.prank(stranger);
+            vm.expectRevert(SafeTransferLib.TransferFromFailed.selector);
+            t.deposit(Ledger.ASSERTION, 7e6);
+        }
+        vm.revertToState(snap);
+        {
+            // test_deposit_creditsWhatArrived (MockUSDC's taxed mode delivers one atom less: the ledger is credited with what arrived.)
+            usdc.configure(address(0), true);
+            vm.expectEmit(address(t));
+            emit IBondTreasury.Deposited(Ledger.ASSERTION, feeRouter, 10e6 - 1);
+            _deposit(Ledger.ASSERTION, 10e6);
+            assertEq(t.balanceOf(Ledger.ASSERTION), 10e6 - 1);
+            assertEq(usdc.balanceOf(address(t)), _sum(), "ORC-14 with equality");
+        }
     }
 
     // ------------------------------------------------------------------ listing commitments
 
-    function test_commit_recordsAndEmits() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        vm.expectEmit(address(t));
-        emit IBondTreasury.ListingCommitted(keccak256("a"), 60e6);
-        _commit(keccak256("a"), 60e6);
-        assertEq(t.committedListing(keccak256("a")), 60e6);
-        assertEq(t.totalCommitted(), 60e6);
-        assertEq(t.balanceOf(Ledger.ASSERTION), 100e6, "a commitment moves no money");
-    }
-
-    function test_commit_mustCoverEveryOpenCommitment() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 60e6);
-        vm.prank(registry);
-        vm.expectRevert(abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, 101e6, 100e6));
-        t.commitListing(keccak256("b"), 41e6);
-        _commit(keccak256("b"), 40e6); // exactly at the balance
-        assertEq(t.totalCommitted(), 100e6);
-    }
-
-    function test_commit_onlyAssertionLedgerCounts() public {
-        _deposit(Ledger.WATCHDOG_FLOAT, 500e6);
-        _deposit(Ledger.PROPOSER_REWARD, 500e6);
-        vm.prank(registry);
-        vm.expectRevert(abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, 1, 0));
-        t.commitListing(keccak256("a"), 1);
-    }
-
-    function test_commit_oncePerMarket() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 0); // a zero commitment still counts as made
-        vm.prank(registry);
-        vm.expectRevert(IBondTreasury.AlreadyCommitted.selector);
-        t.commitListing(keccak256("a"), 1);
-    }
-
-    function test_commit_registryOnly() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        address[4] memory callers = [oracle, gov, stranger, feeRouter];
-        for (uint256 i; i < callers.length; ++i) {
-            vm.prank(callers[i]);
-            vm.expectRevert(IBondTreasury.Unauthorized.selector);
+    /// Listing commitments: recorded, covered by ASSERTION alone, once per market, registry only.
+    function test_commit() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_commit_recordsAndEmits
+            _deposit(Ledger.ASSERTION, 100e6);
+            vm.expectEmit(address(t));
+            emit IBondTreasury.ListingCommitted(keccak256("a"), 60e6);
+            _commit(keccak256("a"), 60e6);
+            assertEq(t.committedListing(keccak256("a")), 60e6);
+            assertEq(t.totalCommitted(), 60e6);
+            assertEq(t.balanceOf(Ledger.ASSERTION), 100e6, "a commitment moves no money");
+        }
+        vm.revertToState(snap);
+        {
+            // test_commit_mustCoverEveryOpenCommitment
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 60e6);
+            vm.prank(registry);
+            vm.expectRevert(abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, 101e6, 100e6));
+            t.commitListing(keccak256("b"), 41e6);
+            _commit(keccak256("b"), 40e6); // exactly at the balance
+            assertEq(t.totalCommitted(), 100e6);
+        }
+        vm.revertToState(snap);
+        {
+            // test_commit_onlyAssertionLedgerCounts
+            _deposit(Ledger.WATCHDOG_FLOAT, 500e6);
+            _deposit(Ledger.PROPOSER_REWARD, 500e6);
+            vm.prank(registry);
+            vm.expectRevert(abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, 1, 0));
             t.commitListing(keccak256("a"), 1);
+        }
+        vm.revertToState(snap);
+        {
+            // test_commit_oncePerMarket
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 0); // a zero commitment still counts as made
+            vm.prank(registry);
+            vm.expectRevert(IBondTreasury.AlreadyCommitted.selector);
+            t.commitListing(keccak256("a"), 1);
+        }
+        vm.revertToState(snap);
+        {
+            // test_commit_registryOnly
+            _deposit(Ledger.ASSERTION, 100e6);
+            address[4] memory callers = [oracle, gov, stranger, feeRouter];
+            for (uint256 i; i < callers.length; ++i) {
+                vm.prank(callers[i]);
+                vm.expectRevert(IBondTreasury.Unauthorized.selector);
+                t.commitListing(keccak256("a"), 1);
+            }
         }
     }
 
     // ------------------------------------------------------------------ releaseListing
 
-    function test_release_freesTheCommitment() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 60e6);
-        _commit(keccak256("b"), 40e6);
-        vm.expectEmit(address(t));
-        emit IBondTreasury.ListingReleased(keccak256("a"), 60e6);
-        vm.prank(oracle);
-        t.releaseListing(keccak256("a"));
-        assertEq(t.committedListing(keccak256("a")), 0);
-        assertEq(t.totalCommitted(), 40e6);
-        _commit(keccak256("c"), 60e6); // the freed room is usable again
-    }
-
-    function test_release_isANoOpWithoutAnOpenCommitment() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 60e6);
-        vm.startPrank(oracle);
-        t.releaseListing(keccak256("a"));
-        vm.recordLogs();
-        t.releaseListing(keccak256("a")); // second release
-        t.releaseListing(keccak256("never committed"));
-        vm.stopPrank();
-        assertEq(vm.getRecordedLogs().length, 0, "no event, no revert");
-        assertEq(t.totalCommitted(), 0);
-    }
-
-    function test_release_releasedMarketCannotCommitAgain() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 60e6);
-        vm.prank(oracle);
-        t.releaseListing(keccak256("a"));
-        vm.prank(registry);
-        vm.expectRevert(IBondTreasury.AlreadyCommitted.selector);
-        t.commitListing(keccak256("a"), 1);
-    }
-
-    function test_release_oracleOnly() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 60e6);
-        address[3] memory callers = [registry, gov, stranger];
-        for (uint256 i; i < callers.length; ++i) {
-            vm.prank(callers[i]);
-            vm.expectRevert(IBondTreasury.Unauthorized.selector);
+    /// Release: frees the commitment, no-op without one, never re-committed, oracle only.
+    function test_release() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_release_freesTheCommitment
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 60e6);
+            _commit(keccak256("b"), 40e6);
+            vm.expectEmit(address(t));
+            emit IBondTreasury.ListingReleased(keccak256("a"), 60e6);
+            vm.prank(oracle);
             t.releaseListing(keccak256("a"));
+            assertEq(t.committedListing(keccak256("a")), 0);
+            assertEq(t.totalCommitted(), 40e6);
+            _commit(keccak256("c"), 60e6); // the freed room is usable again
+        }
+        vm.revertToState(snap);
+        {
+            // test_release_isANoOpWithoutAnOpenCommitment
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 60e6);
+            vm.startPrank(oracle);
+            t.releaseListing(keccak256("a"));
+            vm.recordLogs();
+            t.releaseListing(keccak256("a")); // second release
+            t.releaseListing(keccak256("never committed"));
+            vm.stopPrank();
+            assertEq(vm.getRecordedLogs().length, 0, "no event, no revert");
+            assertEq(t.totalCommitted(), 0);
+        }
+        vm.revertToState(snap);
+        {
+            // test_release_releasedMarketCannotCommitAgain
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 60e6);
+            vm.prank(oracle);
+            t.releaseListing(keccak256("a"));
+            vm.prank(registry);
+            vm.expectRevert(IBondTreasury.AlreadyCommitted.selector);
+            t.commitListing(keccak256("a"), 1);
+        }
+        vm.revertToState(snap);
+        {
+            // test_release_oracleOnly
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 60e6);
+            address[3] memory callers = [registry, gov, stranger];
+            for (uint256 i; i < callers.length; ++i) {
+                vm.prank(callers[i]);
+                vm.expectRevert(IBondTreasury.Unauthorized.selector);
+                t.releaseListing(keccak256("a"));
+            }
         }
     }
 
     // ------------------------------------------------------------------ withdraw (ORC-10)
 
-    function test_withdraw_assertionDownToCommitments() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 60e6);
-        vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, 60e6 + 40e6 + 1, 100e6));
-        t.withdraw(Ledger.ASSERTION, gov, 40e6 + 1);
-        vm.expectEmit(address(t));
-        emit IBondTreasury.Withdrawn(Ledger.ASSERTION, gov, 40e6);
-        vm.prank(gov);
-        t.withdraw(Ledger.ASSERTION, gov, 40e6);
-        assertEq(t.balanceOf(Ledger.ASSERTION), 60e6);
-        assertEq(usdc.balanceOf(gov), 40e6);
-        _assertSolvent();
-    }
-
-    function test_withdraw_otherLedgersDownToZero() public {
-        _deposit(Ledger.ASSERTION, 100e6);
-        _commit(keccak256("a"), 100e6); // commitments never bind the other ledgers
-        _deposit(Ledger.WATCHDOG_FLOAT, 30e6);
-        _deposit(Ledger.PROPOSER_REWARD, 5e6);
-        vm.startPrank(gov);
-        t.withdraw(Ledger.WATCHDOG_FLOAT, gov, 30e6);
-        t.withdraw(Ledger.PROPOSER_REWARD, gov, 5e6);
-        vm.stopPrank();
-        assertEq(t.balanceOf(Ledger.WATCHDOG_FLOAT), 0);
-        assertEq(t.balanceOf(Ledger.PROPOSER_REWARD), 0);
-        assertEq(t.balanceOf(Ledger.ASSERTION), 100e6, "isolation");
-        assertEq(usdc.balanceOf(gov), 35e6);
-    }
-
-    function test_withdraw_aboveLedgerReverts() public {
-        _deposit(Ledger.WATCHDOG_FLOAT, 30e6);
-        _deposit(Ledger.ASSERTION, 500e6); // other ledgers never fund a withdrawal
-        vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(IBondTreasury.InsufficientLedger.selector, Ledger.WATCHDOG_FLOAT, 30e6 + 1, 30e6)
-        );
-        t.withdraw(Ledger.WATCHDOG_FLOAT, gov, 30e6 + 1);
+    /// Withdraw: ASSERTION down to the commitments, other ledgers down to 0, never above the ledger.
+    function test_withdraw() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_withdraw_assertionDownToCommitments
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 60e6);
+            vm.prank(gov);
+            vm.expectRevert(abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, 60e6 + 40e6 + 1, 100e6));
+            t.withdraw(Ledger.ASSERTION, gov, 40e6 + 1);
+            vm.expectEmit(address(t));
+            emit IBondTreasury.Withdrawn(Ledger.ASSERTION, gov, 40e6);
+            vm.prank(gov);
+            t.withdraw(Ledger.ASSERTION, gov, 40e6);
+            assertEq(t.balanceOf(Ledger.ASSERTION), 60e6);
+            assertEq(usdc.balanceOf(gov), 40e6);
+            _assertSolvent();
+        }
+        vm.revertToState(snap);
+        {
+            // test_withdraw_otherLedgersDownToZero
+            _deposit(Ledger.ASSERTION, 100e6);
+            _commit(keccak256("a"), 100e6); // commitments never bind the other ledgers
+            _deposit(Ledger.WATCHDOG_FLOAT, 30e6);
+            _deposit(Ledger.PROPOSER_REWARD, 5e6);
+            vm.startPrank(gov);
+            t.withdraw(Ledger.WATCHDOG_FLOAT, gov, 30e6);
+            t.withdraw(Ledger.PROPOSER_REWARD, gov, 5e6);
+            vm.stopPrank();
+            assertEq(t.balanceOf(Ledger.WATCHDOG_FLOAT), 0);
+            assertEq(t.balanceOf(Ledger.PROPOSER_REWARD), 0);
+            assertEq(t.balanceOf(Ledger.ASSERTION), 100e6, "isolation");
+            assertEq(usdc.balanceOf(gov), 35e6);
+        }
+        vm.revertToState(snap);
+        {
+            // test_withdraw_aboveLedgerReverts
+            _deposit(Ledger.WATCHDOG_FLOAT, 30e6);
+            _deposit(Ledger.ASSERTION, 500e6); // other ledgers never fund a withdrawal
+            vm.prank(gov);
+            vm.expectRevert(
+                abi.encodeWithSelector(IBondTreasury.InsufficientLedger.selector, Ledger.WATCHDOG_FLOAT, 30e6 + 1, 30e6)
+            );
+            t.withdraw(Ledger.WATCHDOG_FLOAT, gov, 30e6 + 1);
+        }
     }
 
     function test_governanceOnly() public {

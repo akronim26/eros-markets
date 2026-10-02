@@ -115,110 +115,119 @@ contract RegistryCreateMarketTest is RegistryFixture {
 
     // ------------------------------------------------------------------ full round trip
 
-    function test_roundTrip_listingSeamFields() public {
-        (MarketInput memory m, bytes32 specHash) = _b3Market();
-        address engine = _list(m);
-        assertEq(engine, factory.lastEngine());
-        assertEq(factory.lastEngineInit(), abi.encode(uint256(42)), "engineInit passed through");
-
-        IMarketConfig.Listing memory l = MockResolutionEngine(engine).listing();
-        assertEq(l.marketId, m.marketId);
-        assertEq(l.registry, address(reg));
-        assertEq(l.resolutionAuthority, address(oracle));
-        assertEq(l.monitor, m.monitor);
-        assertEq(l.scheduledT, m.tau);
-        assertEq(l.listedAt, NOW);
-        assertEq(l.rulesHash, keccak256(bytes(m.rules)));
-        assertEq(l.sourceHash, keccak256(abi.encode(specHash, keccak256(abi.encode(m.allowList)))));
-        assertTrue(l.invalidRule.fallbackListed);
-        assertEq(l.invalidRule.captureGraceSecs, 3_600);
-        assertEq(l.invalidRule.fallbackPriceWad, 5e17);
-        assertEq(l.invalidRule.voidSecs, m.voidSecs);
-        // Every other field comes from the pack unchanged.
-        IMarketConfig.Listing memory p = _pack();
-        assertEq(l.token, p.token);
-        assertEq(l.governance, p.governance);
-        assertEq(l.indexSigner, p.indexSigner);
-        assertEq(l.indexSourceId, p.indexSourceId);
-        assertEq(l.maxTraders, p.maxTraders);
-        assertEq(l.maxOrderLots, p.maxOrderLots);
-        assertEq(MockResolutionEngine(engine).listingHash(), keccak256(abi.encode(l)));
-    }
-
-    function test_roundTrip_commitmentAndInit() public {
-        bytes32 id = _market().marketId;
-        _list(_market());
-        assertEq(treasury.committedListing(id), BOND_AT_CAP);
-        assertEq(treasury.totalCommitted(), BOND_AT_CAP);
-        assertTrue(oracle.initialized(id));
-        assertEq(oracle.initCount(), 1);
-        assertTrue(reg.isListed(id));
-    }
-
-    function test_roundTrip_marketCore() public {
-        (MarketInput memory m, bytes32 specHash) = _b3Market();
-        address engine = _list(m);
-        MarketCore memory c = reg.getMarketCore(m.marketId);
-        assertEq(c.engine, engine);
-        assertTrue(c.questionPtr != address(0) && c.rulesPtr != address(0));
-        assertEq(c.listedAt, NOW);
-        assertEq(c.windowStart, m.windowStart);
-        assertEq(c.windowEnd, m.windowEnd);
-        assertEq(c.tau, m.tau);
-        assertEq(c.groupId, 0);
-        assertFalse(c.groupExclusive);
-        assertTrue(c.hasFeed);
-        assertEq(c.l2DeadlineSecs, m.l2DeadlineSecs);
-        assertEq(c.voidSecs, m.voidSecs);
-        assertEq(c.retryWindowSecs, 300, "copied from globals");
-        assertEq(c.earlyTtlSecs, 600, "copied from globals");
-        assertEq(c.monitor, m.monitor);
-        assertEq(c.oiCapLots, m.oiCapLots);
-        assertEq(c.rulesHash, keccak256(bytes(m.rules)));
-        assertEq(c.specHash, specHash, "C.7 vector");
-        assertEq(reg.getSpecHash(m.marketId), specHash);
-        assertEq(
-            c.gateHash,
-            keccak256(abi.encode(m.ai.modelIdHashes, m.ai.promptHash, m.ai.calibratorHash, m.ai.highConfBps))
-        );
-    }
-
-    function test_roundTrip_textAndStructViews() public {
-        MarketInput memory m = _market();
-        m.ai.allowListPtr = address(0xDEAD); // ignored on input
-        m.uma.claimTemplatePtr = address(0xBEEF); // ignored on input
-        _list(m);
-        bytes32 id = m.marketId;
-        assertEq(reg.getQuestion(id), m.question);
-        assertEq(reg.getRules(id), m.rules);
-        assertEq(reg.getClaimTemplate(id), m.claimTemplate);
-        assertEq(keccak256(abi.encode(reg.getAllowList(id))), keccak256(abi.encode(m.allowList)));
-        assertEq(keccak256(abi.encode(reg.getFeedSpec(id))), keccak256(abi.encode(m.feed)));
-
-        AIConfig memory ai = reg.getAIConfig(id);
-        assertTrue(ai.allowListPtr != address(0) && ai.allowListPtr != address(0xDEAD));
-        ai.allowListPtr = m.ai.allowListPtr;
-        assertEq(keccak256(abi.encode(ai)), keccak256(abi.encode(m.ai)), "every other AI field as given");
-
-        UMAConfig memory u = reg.getUMAConfig(id);
-        assertTrue(u.claimTemplatePtr != address(0) && u.claimTemplatePtr != address(0xBEEF));
-        u.claimTemplatePtr = m.uma.claimTemplatePtr;
-        assertEq(keccak256(abi.encode(u)), keccak256(abi.encode(m.uma)), "every other UMA field as given");
-    }
-
-    function test_roundTrip_event() public {
-        MarketInput memory m = _market();
-        m.dryRunHash = keccak256("reference.json");
-        m.ambiguityLogHash = keccak256("ambiguity.log");
-        bytes32 id = m.marketId;
-        // List once to learn the stored values, roll back, then expect the event on the same listing.
+    /// A full listing round trip: seam fields, commitment and init, core, text and struct views, event.
+    function test_roundTrip() public {
         uint256 snap = vm.snapshotState();
-        address engine = _list(m);
-        MarketCore memory c = reg.getMarketCore(id);
-        bytes32 umaConfigHash = keccak256(abi.encode(reg.getUMAConfig(id)));
+        {
+            // test_roundTrip_listingSeamFields
+            (MarketInput memory m, bytes32 specHash) = _b3Market();
+            address engine = _list(m);
+            assertEq(engine, factory.lastEngine());
+            assertEq(factory.lastEngineInit(), abi.encode(uint256(42)), "engineInit passed through");
+
+            IMarketConfig.Listing memory l = MockResolutionEngine(engine).listing();
+            assertEq(l.marketId, m.marketId);
+            assertEq(l.registry, address(reg));
+            assertEq(l.resolutionAuthority, address(oracle));
+            assertEq(l.monitor, m.monitor);
+            assertEq(l.scheduledT, m.tau);
+            assertEq(l.listedAt, NOW);
+            assertEq(l.rulesHash, keccak256(bytes(m.rules)));
+            assertEq(l.sourceHash, keccak256(abi.encode(specHash, keccak256(abi.encode(m.allowList)))));
+            assertTrue(l.invalidRule.fallbackListed);
+            assertEq(l.invalidRule.captureGraceSecs, 3_600);
+            assertEq(l.invalidRule.fallbackPriceWad, 5e17);
+            assertEq(l.invalidRule.voidSecs, m.voidSecs);
+            // Every other field comes from the pack unchanged.
+            IMarketConfig.Listing memory p = _pack();
+            assertEq(l.token, p.token);
+            assertEq(l.governance, p.governance);
+            assertEq(l.indexSigner, p.indexSigner);
+            assertEq(l.indexSourceId, p.indexSourceId);
+            assertEq(l.maxTraders, p.maxTraders);
+            assertEq(l.maxOrderLots, p.maxOrderLots);
+            assertEq(MockResolutionEngine(engine).listingHash(), keccak256(abi.encode(l)));
+        }
         vm.revertToState(snap);
-        _expectListed(m, engine, c, umaConfigHash);
-        assertEq(_list(m), engine, "the same deterministic deployment");
+        {
+            // test_roundTrip_commitmentAndInit
+            bytes32 id = _market().marketId;
+            _list(_market());
+            assertEq(treasury.committedListing(id), BOND_AT_CAP);
+            assertEq(treasury.totalCommitted(), BOND_AT_CAP);
+            assertTrue(oracle.initialized(id));
+            assertEq(oracle.initCount(), 1);
+            assertTrue(reg.isListed(id));
+        }
+        vm.revertToState(snap);
+        {
+            // test_roundTrip_marketCore
+            (MarketInput memory m, bytes32 specHash) = _b3Market();
+            address engine = _list(m);
+            MarketCore memory c = reg.getMarketCore(m.marketId);
+            assertEq(c.engine, engine);
+            assertTrue(c.questionPtr != address(0) && c.rulesPtr != address(0));
+            assertEq(c.listedAt, NOW);
+            assertEq(c.windowStart, m.windowStart);
+            assertEq(c.windowEnd, m.windowEnd);
+            assertEq(c.tau, m.tau);
+            assertEq(c.groupId, 0);
+            assertFalse(c.groupExclusive);
+            assertTrue(c.hasFeed);
+            assertEq(c.l2DeadlineSecs, m.l2DeadlineSecs);
+            assertEq(c.voidSecs, m.voidSecs);
+            assertEq(c.retryWindowSecs, 300, "copied from globals");
+            assertEq(c.earlyTtlSecs, 600, "copied from globals");
+            assertEq(c.monitor, m.monitor);
+            assertEq(c.oiCapLots, m.oiCapLots);
+            assertEq(c.rulesHash, keccak256(bytes(m.rules)));
+            assertEq(c.specHash, specHash, "C.7 vector");
+            assertEq(reg.getSpecHash(m.marketId), specHash);
+            assertEq(
+                c.gateHash,
+                keccak256(abi.encode(m.ai.modelIdHashes, m.ai.promptHash, m.ai.calibratorHash, m.ai.highConfBps))
+            );
+        }
+        vm.revertToState(snap);
+        {
+            // test_roundTrip_textAndStructViews
+            MarketInput memory m = _market();
+            m.ai.allowListPtr = address(0xDEAD); // ignored on input
+            m.uma.claimTemplatePtr = address(0xBEEF); // ignored on input
+            _list(m);
+            bytes32 id = m.marketId;
+            assertEq(reg.getQuestion(id), m.question);
+            assertEq(reg.getRules(id), m.rules);
+            assertEq(reg.getClaimTemplate(id), m.claimTemplate);
+            assertEq(keccak256(abi.encode(reg.getAllowList(id))), keccak256(abi.encode(m.allowList)));
+            assertEq(keccak256(abi.encode(reg.getFeedSpec(id))), keccak256(abi.encode(m.feed)));
+
+            AIConfig memory ai = reg.getAIConfig(id);
+            assertTrue(ai.allowListPtr != address(0) && ai.allowListPtr != address(0xDEAD));
+            ai.allowListPtr = m.ai.allowListPtr;
+            assertEq(keccak256(abi.encode(ai)), keccak256(abi.encode(m.ai)), "every other AI field as given");
+
+            UMAConfig memory u = reg.getUMAConfig(id);
+            assertTrue(u.claimTemplatePtr != address(0) && u.claimTemplatePtr != address(0xBEEF));
+            u.claimTemplatePtr = m.uma.claimTemplatePtr;
+            assertEq(keccak256(abi.encode(u)), keccak256(abi.encode(m.uma)), "every other UMA field as given");
+        }
+        vm.revertToState(snap);
+        {
+            // test_roundTrip_event
+            MarketInput memory m = _market();
+            m.dryRunHash = keccak256("reference.json");
+            m.ambiguityLogHash = keccak256("ambiguity.log");
+            bytes32 id = m.marketId;
+            // List once to learn the stored values, roll back, then expect the event on the same listing.
+            uint256 snap = vm.snapshotState();
+            address engine = _list(m);
+            MarketCore memory c = reg.getMarketCore(id);
+            bytes32 umaConfigHash = keccak256(abi.encode(reg.getUMAConfig(id)));
+            vm.revertToState(snap);
+            _expectListed(m, engine, c, umaConfigHash);
+            assertEq(_list(m), engine, "the same deterministic deployment");
+        }
     }
 
     function test_noFeedMarketStoresHashOfZeroSpec() public {
@@ -247,40 +256,49 @@ contract RegistryCreateMarketTest is RegistryFixture {
 
     // ------------------------------------------------------------------ steps 7 and 8 failures
 
-    function test_nonListerRefused() public {
-        address[3] memory callers = [gov, address(oracle), makeAddr("stranger")];
-        for (uint256 i; i < callers.length; ++i) {
-            IMarketConfig.Listing memory l = _pack();
-            MarketInput memory m = _market();
-            vm.prank(callers[i]);
-            vm.expectRevert(IMarketRegistry.Unauthorized.selector);
-            reg.createMarket(m, l, "");
+    /// Steps 7-9 refusals: non-lister, no factory, treasury below the cap, listing-hash mismatch, pre-halted engine.
+    function test_listingRefusals() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_nonListerRefused
+            address[3] memory callers = [gov, address(oracle), makeAddr("stranger")];
+            for (uint256 i; i < callers.length; ++i) {
+                IMarketConfig.Listing memory l = _pack();
+                MarketInput memory m = _market();
+                vm.prank(callers[i]);
+                vm.expectRevert(IMarketRegistry.Unauthorized.selector);
+                reg.createMarket(m, l, "");
+            }
         }
-    }
-
-    function test_noFactory() public {
-        vm.prank(gov);
-        reg.setFactory(address(0));
-        _expectListRevert(_market(), abi.encodeWithSelector(IMarketRegistry.NoFactory.selector));
-    }
-
-    function test_treasuryBelowCap() public {
-        treasury.setAvailable(BOND_AT_CAP - 1);
-        _expectListRevert(
-            _market(), abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, BOND_AT_CAP, BOND_AT_CAP - 1)
-        );
-        treasury.setAvailable(BOND_AT_CAP);
-        _list(_market());
-    }
-
-    function test_listingHashMismatch() public {
-        factory.setMode(MockMarketFactory.Mode.WRONG_HASH);
-        _expectListRevert(_market(), abi.encodeWithSelector(IMarketRegistry.ListingHashMismatch.selector));
-    }
-
-    function test_engineAlreadyHalted() public {
-        factory.setMode(MockMarketFactory.Mode.PRE_HALTED);
-        _expectListRevert(_market(), abi.encodeWithSelector(IMarketRegistry.EngineAlreadyHalted.selector));
+        vm.revertToState(snap);
+        {
+            // test_noFactory
+            vm.prank(gov);
+            reg.setFactory(address(0));
+            _expectListRevert(_market(), abi.encodeWithSelector(IMarketRegistry.NoFactory.selector));
+        }
+        vm.revertToState(snap);
+        {
+            // test_treasuryBelowCap
+            treasury.setAvailable(BOND_AT_CAP - 1);
+            _expectListRevert(
+                _market(), abi.encodeWithSelector(IBondTreasury.BelowCommitments.selector, BOND_AT_CAP, BOND_AT_CAP - 1)
+            );
+            treasury.setAvailable(BOND_AT_CAP);
+            _list(_market());
+        }
+        vm.revertToState(snap);
+        {
+            // test_listingHashMismatch
+            factory.setMode(MockMarketFactory.Mode.WRONG_HASH);
+            _expectListRevert(_market(), abi.encodeWithSelector(IMarketRegistry.ListingHashMismatch.selector));
+        }
+        vm.revertToState(snap);
+        {
+            // test_engineAlreadyHalted
+            factory.setMode(MockMarketFactory.Mode.PRE_HALTED);
+            _expectListRevert(_market(), abi.encodeWithSelector(IMarketRegistry.EngineAlreadyHalted.selector));
+        }
     }
 
     function test_failedListingLeavesNothingBehind() public {
