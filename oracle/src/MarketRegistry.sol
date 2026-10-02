@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {SSTORE2} from "solady/utils/SSTORE2.sol";
 import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";

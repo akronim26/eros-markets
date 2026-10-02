@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 // Normative types for the Eros Markets oracle. Enum values are ABI: never reorder or insert.
 // The CRE workflow hard-codes RState.L1Pending == 3.

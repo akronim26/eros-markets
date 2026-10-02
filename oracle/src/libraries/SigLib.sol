@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {SignatureCheckerLib} from "solady/utils/SignatureCheckerLib.sol";
 import {PanelResult, ReviewedProposal, Sig} from "../types/OracleTypes.sol";

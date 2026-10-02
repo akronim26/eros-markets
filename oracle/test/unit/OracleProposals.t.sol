@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {Globals, Outcome, Path, Resolution, RState, ReviewedProposal, Sig} from "../../src/types/OracleTypes.sol";
 import {IResolutionOracle} from "../../src/interfaces/IResolutionOracle.sol";

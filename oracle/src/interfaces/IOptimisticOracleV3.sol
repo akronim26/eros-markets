@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 /// @notice Minimal MIT re-declaration of the UMA OOv3 functions Eros calls (signatures match
 ///         UMAprotocol/protocol packages/core/contracts/optimistic-oracle-v3). No UMA code is copied.

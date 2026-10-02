@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
-import {Resolution, RState, TrustSet, TrustSetInput} from "../../src/types/OracleTypes.sol";
+import {MarketCore, Resolution, RState, TrustSet, TrustSetInput} from "../../src/types/OracleTypes.sol";
 import {IResolutionOracle} from "../../src/interfaces/IResolutionOracle.sol";
+import {IMarketRegistry} from "../../src/interfaces/IMarketRegistry.sol";
 import {ResolutionOracle} from "../../src/ResolutionOracle.sol";
 import {ResolutionOracleHarness} from "../mocks/ResolutionOracleHarness.sol";
 import {MockAssertionVenue} from "../mocks/MockAssertionVenue.sol";
@@ -358,8 +359,10 @@ contract OracleTrustSetsTest is Test {
     function test_initResolution() public {
         uint256 snap = vm.snapshotState();
         {
-            // test_initResolution
+            // test_initResolution (the registry stand-in reports a market without a feed)
             bytes32 id = keccak256("market-1");
+            MarketCore memory noFeed;
+            vm.mockCall(registry, abi.encodeWithSelector(IMarketRegistry.getMarketCore.selector), abi.encode(noFeed));
             vm.expectEmit(address(o));
             emit IResolutionOracle.ResolutionInitialized(id);
             vm.prank(registry);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {EIP712} from "solady/utils/EIP712.sol";
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
@@ -29,6 +29,7 @@ import {
     OracleConst
 } from "./types/OracleTypes.sol";
 import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
+import {IERC165, IReceiver} from "./interfaces/IReceiver.sol";
 import {IMarketRegistry} from "./interfaces/IMarketRegistry.sol";
 import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
 import {IBondTreasury} from "./interfaces/IBondTreasury.sol";
@@ -46,9 +47,9 @@ import {SigLib} from "./libraries/SigLib.sol";
 ///         revokes, and every progress step is permissionless.
 /// @dev Tasks O14.1-O14.6: trust sets and the guardian, the halt and request lifecycle, committee,
 ///      panel and permissionless proposals, assertions, finalize, reject and void, the early check and
-///      exclusive groups. The CRE receiver comes in O15 and the EIP-712 views in O16, which also declares
-///      `is IResolutionOracle`; until then errors and events are the C.3 declarations, used by qualified
-///      name.
+///      exclusive groups. O15.1: the CRE receiver's production path (`onReport`, ERC-165). The sim-mode
+///      bridge comes in O15.2 and the EIP-712 views in O16, which also declares `is IResolutionOracle`;
+///      until then errors and events are the C.3 declarations, used by qualified name.
 ///
 ///      Keeper functions (`haltScheduled`, `requestResolution`, `escalateToL2`, `openAfterDeadline`,
 ///      `expireEarly`, `assertProposal`, `syncAssertion`, `finalizeMarket`, `voidMarket`) never
@@ -65,9 +66,25 @@ import {SigLib} from "./libraries/SigLib.sol";
 ///      Governance creates and activates them; a market pins the active set at its halt and keeps it.
 ///      The guardian can only revoke, with immediate effect on pinned sets too. `BadTrustSet` codes are
 ///      C.3's 1-9 plus 0 = no such trust set (ADJ-31).
-contract ResolutionOracle is EIP712, ReentrancyGuard {
+contract ResolutionOracle is EIP712, ReentrancyGuard, IReceiver {
     /// @notice A constructor address that must be set is zero (deploy-script mistake).
     error ZeroAddress();
+
+    /// @dev Report v1 (§6.4, Appendix B.1 step 5): eight ABI words. Each is read as a full uint256 so an
+    ///      out-of-range value fails its own `BadReport` code instead of a raw decoding revert.
+    struct ReportV1 {
+        uint256 version;
+        uint256 chainSelector;
+        uint256 oracle;
+        bytes32 marketId;
+        uint256 outcome;
+        uint256 observedAt;
+        bytes32 valueHash;
+        bytes32 specHash;
+    }
+
+    uint256 internal constant REPORT_V1_BYTES = 256; // 8 words
+    uint256 internal constant METADATA_MIN_BYTES = 62; // workflowId 32, workflowName 10, workflowOwner 20
 
     // ------------------------------------------------------------------ immutables (C.1)
     address public immutable registry; // MarketRegistry
@@ -95,6 +112,10 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
     mapping(bytes32 id => Resolution) internal _res;
     mapping(bytes32 id => string) internal _evidenceURI;
     mapping(bytes32 groupId => GroupState) internal _groups;
+    /// @dev Feed markets: the earliest valid Layer 1 `observedAt`, `T + bufferSecs`, copied from the
+    ///      registry at listing (both are immutable, ORC-1), so `onReport` costs the same for any FeedSpec
+    ///      size instead of reading the whole spec for one field. 0 for a market without a feed.
+    mapping(bytes32 id => uint64) internal _l1ObservableFrom;
 
     modifier onlyGovernance() {
         if (msg.sender != governance) revert IResolutionOracle.Unauthorized();
@@ -135,11 +156,14 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     // ------------------------------------------------------------------ registry hook
 
-    /// @notice MarketRegistry only, inside `createMarket`: creates the market's record in state None.
+    /// @notice MarketRegistry only, inside `createMarket` (after the market's config is stored): creates
+    ///         the market's record in state None and, for a feed market, copies `T + bufferSecs`.
     function initResolution(bytes32 id) external nonReentrant {
         if (msg.sender != registry) revert IResolutionOracle.Unauthorized();
         if (_initialized[id]) revert IResolutionOracle.AlreadyInitialized();
         _initialized[id] = true;
+        MarketCore memory c = _core(id);
+        if (c.hasFeed) _l1ObservableFrom[id] = c.tau + _feed(id).bufferSecs;
         emit IResolutionOracle.ResolutionInitialized(id);
     }
 
@@ -234,6 +258,48 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         if (block.timestamp < opensAt) return false;
         _setState(id, r, RState.Open);
         return true;
+    }
+
+    // ------------------------------------------------------------------ CRE receiver (Layer 1, §6.4)
+
+    /// @notice KeystoneForwarder entry point: a Layer 1 YES/NO report for a market in L1Pending →
+    ///         Proposed (L1), `evidenceHash = keccak256(report)`. No engine call; the proposal is asserted
+    ///         later by `assertProposal`. A reverted report stays retryable on the forwarder, and the state
+    ///         check makes every replay revert (ORC-4).
+    /// @dev Order: the 256-byte report v1 layout (`BadReport(1)`), the market (`UnknownMarket`) and its
+    ///      state (`WrongState`, so the trust set it pinned at its halt exists), the sender against that
+    ///      set (`Unauthorized`, `ProductionSetRequired`, `BadMetadata`, `WrongWorkflow`), then the report
+    ///      content (`BadReport` 1 version, 2 chain selector, 3 oracle, 4 outcome, 5 specHash,
+    ///      6 observedAt outside `[T + bufferSecs, now]`).
+    function onReport(bytes calldata metadata, bytes calldata report) external nonReentrant {
+        if (report.length != REPORT_V1_BYTES) revert IResolutionOracle.BadReport(1);
+        ReportV1 memory p = abi.decode(report, (ReportV1));
+        bytes32 id = p.marketId;
+        Resolution storage r = _known(id);
+        if (r.state != RState.L1Pending) revert IResolutionOracle.WrongState(r.state);
+        _authenticateReport(r.trustSetId, metadata);
+        if (p.version != OracleConst.REPORT_VERSION) revert IResolutionOracle.BadReport(1);
+        if (p.chainSelector != monadChainSelector) revert IResolutionOracle.BadReport(2);
+        if (p.oracle != uint256(uint160(address(this)))) revert IResolutionOracle.BadReport(3);
+        if (p.outcome != uint8(Outcome.YES) && p.outcome != uint8(Outcome.NO)) revert IResolutionOracle.BadReport(4);
+        if (p.specHash != IMarketRegistry(registry).getSpecHash(id)) revert IResolutionOracle.BadReport(5);
+        if (p.observedAt < _l1ObservableFrom[id] || p.observedAt > block.timestamp) {
+            revert IResolutionOracle.BadReport(6);
+        }
+        Outcome o = Outcome(p.outcome);
+        bytes32 evidenceHash = keccak256(report);
+        r.proposed = o;
+        r.path = Path.L1;
+        r.evidenceHash = evidenceHash;
+        r.valueHash = p.valueHash;
+        _setState(id, r, RState.Proposed);
+        emit IResolutionOracle.ProposedL1(id, o, uint64(p.observedAt), p.valueHash, evidenceHash);
+    }
+
+    /// @notice ERC-165: IReceiver (`0x805f2132`) and ERC-165 itself (`0x01ffc9a7`); the forwarder checks it
+    ///         before routing a report.
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
+        return interfaceId == type(IReceiver).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 
     // ------------------------------------------------------------------ panel (single attestor, relayed by anyone)
@@ -573,6 +639,33 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     function _word(address a) internal pure returns (bytes32) {
         return bytes32(uint256(uint160(a)));
+    }
+
+    // ------------------------------------------------------------------ CRE receiver internals
+
+    /// @dev Production path (§6.4 step 1): the sender is the pinned set's forwarder and the set is a
+    ///      production set; the metadata (`workflowId` [0:32], `workflowName` [32:42], `workflowOwner`
+    ///      [42:62], at least 62 bytes) names one of the set's non-revoked workflow IDs, its owner and, when
+    ///      the set records one, its name.
+    function _authenticateReport(uint32 setId, bytes calldata metadata) internal view {
+        TrustSet storage s = _trustSets[setId];
+        if (msg.sender != s.cfg.forwarder) revert IResolutionOracle.Unauthorized();
+        if (!s.cfg.production) revert IResolutionOracle.ProductionSetRequired();
+        if (metadata.length < METADATA_MIN_BYTES) revert IResolutionOracle.BadMetadata();
+        bytes10 name = bytes10(metadata[32:42]);
+        if (
+            !_acceptsWorkflow(s, bytes32(metadata[0:32])) || address(bytes20(metadata[42:62])) != s.cfg.workflowOwner
+                || (s.cfg.workflowName != 0 && name != s.cfg.workflowName)
+        ) revert IResolutionOracle.WrongWorkflow();
+    }
+
+    /// @dev One of the set's two workflow ID slots, not revoked. 0 never matches an empty slot.
+    function _acceptsWorkflow(TrustSet storage s, bytes32 workflowId) internal view returns (bool) {
+        if (workflowId == 0) return false;
+        for (uint256 i; i < 2; ++i) {
+            if (s.cfg.workflowIds[i] == workflowId && !s.workflowIdRevoked[i]) return true;
+        }
+        return false;
     }
 
     // ------------------------------------------------------------------ panel internals

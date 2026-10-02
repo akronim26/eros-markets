@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {LibString} from "solady/utils/LibString.sol";
 import {DateTimeLib} from "solady/utils/DateTimeLib.sol";
