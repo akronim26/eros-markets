@@ -98,6 +98,7 @@ FOUNDRY_PROFILE=ci forge test   # 10k fuzz runs, 256×128 invariant (~6–8 min)
 | `BookDifferential` | the same random operations in Book and in a naive linear-scan reference give identical fills, sizes, best prices and positions |
 | `BookSeam` | the risk seam: one snapshot reaches every hook, fills report lots at maker prices, risk's record round-trips with the order, rejections and stops are codes, unrests only for unfilled lots, cancels while halted, `touch` |
 | `BookComposition` | a core built like EventPerp from three separate modules (Markets, Clearing posting each pair behind the risk hooks, Pricing depth filter) compiles and trades correctly; use it as the template |
+| `BookRiskEngine` | the real risk engine (every risk module up to `RiskView`) on the real book, Person A's accounting still scripted: the worked 5x entry, exact-tick release, cancel-all with lazy pruning, expected stop, both audit findings, and a liquidation book close as a forced IOC |
 | `BookGas` | gas per operation for Book alone (no-op risk hooks), written to `snapshots/BookGas.json`; CI fails if it changes |
 
 Every suite was checked with injected bugs (bit left set, crossed remainder rested, no
