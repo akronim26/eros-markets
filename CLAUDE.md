@@ -19,8 +19,11 @@ The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01
 ## What you may edit
 - Only the `write_files` listed on the task you are currently doing, plus Person-B-owned modules for bug fixes that name the task/gate.
 - Never edit Person A files (`reference/a/`, `reference/common/`, `MathTypes.sol`, QMath, Ledger/Funding/Premium/Coverage/Fee/Settlement math, vaults, storage, AccountingPort, ClearingCore, snapshot/payout/claims, `scripts/check-*.sh`, `contracts/foundry.toml`). If you need a change there, write it up in `docs/requests/B-to-A-<topic>.md` and stop that thread.
-- Never implement the CLOB, Kuru/CRE fetching, AI panel, committee or UMA logic. Build their interfaces and deterministic mocks only.
+- Never implement the CLOB (except owner-directed book work, below), Kuru/CRE fetching, AI panel, committee or UMA logic. Build their interfaces and deterministic mocks only.
 - Mocks are scripted doubles of an agreed interface. They must not re-implement peer economic logic.
+
+## Book lane (repository owner)
+The repository owner also owns the order book: `contracts/src/Book.sol`, `contracts/src/RiskSnapshot.sol`, `contracts/test/Book*.sol`, `contracts/snapshots/BookGas.json` and `contracts/README.md`. Book work the owner directs in a session may edit those paths. The book must meet `src/interfaces/IBookRiskHooks.sol` and `docs/spec/book_interface.md`; every other rule here still applies.
 
 ## How to do one task
 1. Pick the lowest-numbered `not_started` task in `tasks_B.json` whose `depends_on` are all accepted (tasks accepted, gates recorded with a merge SHA in `gate_status.json`). If none, stop and report.
