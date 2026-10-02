@@ -68,163 +68,195 @@ contract OracleAssertionsTest is OracleFixture {
 
     // ------------------------------------------------------------------ assertProposal
 
-    function test_assert_teamBond() public {
-        (bytes32 id,) = _listNoFeed();
-        _toReview(id);
-        _propose(id, uint8(Outcome.YES));
-        vm.expectEmit(true, false, false, false, address(ro));
-        emit IResolutionOracle.Asserted(id, 0, address(0), Outcome.NONE, Path.NONE, 0, 0, 0, address(0));
-        vm.prank(keeper);
-        assertTrue(ro.assertProposal(id));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.state), uint8(RState.Proposed));
-        assertEq(r.attempts, 1);
-        assertEq(r.bond, BOND);
-        assertEq(r.assertionVenue, address(mvenue));
-        assertEq(mvenue.statusOf(r.assertionId).asserter, address(treasury), "the treasury is the asserter");
-        assertEq(mvenue.statusOf(r.assertionId).expiresAt, T + 300, "reviewed liveness");
-        assertEq(treasury.outstanding(id, 0), BOND, "attempt key 0 (ADJ-27)");
-        assertEq(_ledger(), LEDGER - BOND);
-        assertEq(token.balanceOf(address(mvenue)), BOND, "the venue pulled the bond from the treasury");
-        assertEq(ro.renderClaim(id), mvenue.claimOf(r.assertionId), "renderClaim is the asserted claim");
-    }
-
-    function test_assert_noOpReturns() public {
-        (bytes32 id,) = _listNoFeed();
-        _toReview(id);
-        assertFalse(ro.assertProposal(id), "Review: nothing recorded");
-        _propose(id, uint8(Outcome.YES));
-        assertTrue(ro.assertProposal(id));
-        assertFalse(ro.assertProposal(id), "already live");
-        assertEq(_res(id).attempts, 1);
-        vm.expectRevert(IResolutionOracle.UnknownMarket.selector);
-        ro.assertProposal(keccak256("nope"));
-    }
-
-    function test_assert_guards() public {
-        (bytes32 id,) = _listNoFeed();
-        _toReview(id);
-        _propose(id, uint8(Outcome.YES));
-        Resolution memory r = _res(id);
-        r.attempts = 3;
-        ro.setResolution(id, r);
-        vm.expectRevert(IResolutionOracle.MaxAttempts.selector);
-        ro.assertProposal(id);
-        r.attempts = 2;
-        r.rejectedMask = 2; // YES rejected (a state the entry points never produce)
-        ro.setResolution(id, r);
-        vm.expectRevert(IResolutionOracle.OutcomeNotAllowed.selector);
-        ro.assertProposal(id);
-    }
-
-    function test_assert_expiryGuard() public {
-        (bytes32 id,) = _listNoFeed();
-        _toReview(id);
-        vm.warp(T + 7_200 - 300 + 1);
-        _propose(id, uint8(Outcome.YES));
-        vm.expectRevert(IResolutionOracle.ExpiryAfterVoidDeadline.selector);
-        ro.assertProposal(id);
-        vm.warp(T + 7_200 - 300); // finishes exactly at voidDeadline
-        assertTrue(ro.assertProposal(id));
-    }
-
-    function test_assert_treasuryShort() public {
-        (bytes32 id,) = _listNoFeed();
-        _toReview(id);
-        _propose(id, uint8(Outcome.YES));
-        mvenue.setMinimumBond(LEDGER + 1);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.TreasuryShort.selector, LEDGER + 1, LEDGER));
-        ro.assertProposal(id);
-        mvenue.setMinimumBond(100e6 + 1); // funded, but above the per-market cap
-        vm.expectRevert(IBondTreasury.PerMarketCapExceeded.selector);
-        ro.assertProposal(id);
-        mvenue.setMinimumBond(100e6);
-        assertTrue(ro.assertProposal(id));
-        assertEq(_res(id).bond, 100e6);
-    }
-
-    function test_assert_ledgerExactlyTheBond() public {
-        (bytes32 id,) = _listNoFeed();
-        _toReview(id);
-        _propose(id, uint8(Outcome.YES));
-        vm.prank(gov);
-        treasury.withdraw(Ledger.ASSERTION, gov, LEDGER - BOND); // down to the listing commitment
-        assertEq(_ledger(), BOND);
-        assertTrue(ro.assertProposal(id));
-        assertEq(_ledger(), 0);
+    /// assertProposal: treasury bond, no-op returns, guards, expiry, TreasuryShort and the per-market cap, ledger exactly the bond.
+    function test_assert() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_assert_teamBond
+            (bytes32 id,) = _listNoFeed();
+            _toReview(id);
+            _propose(id, uint8(Outcome.YES));
+            vm.expectEmit(true, false, false, false, address(ro));
+            emit IResolutionOracle.Asserted(id, 0, address(0), Outcome.NONE, Path.NONE, 0, 0, 0, address(0));
+            vm.prank(keeper);
+            assertTrue(ro.assertProposal(id));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.state), uint8(RState.Proposed));
+            assertEq(r.attempts, 1);
+            assertEq(r.bond, BOND);
+            assertEq(r.assertionVenue, address(mvenue));
+            assertEq(mvenue.statusOf(r.assertionId).asserter, address(treasury), "the treasury is the asserter");
+            assertEq(mvenue.statusOf(r.assertionId).expiresAt, T + 300, "reviewed liveness");
+            assertEq(treasury.outstanding(id, 0), BOND, "attempt key 0 (ADJ-27)");
+            assertEq(_ledger(), LEDGER - BOND);
+            assertEq(token.balanceOf(address(mvenue)), BOND, "the venue pulled the bond from the treasury");
+            assertEq(ro.renderClaim(id), mvenue.claimOf(r.assertionId), "renderClaim is the asserted claim");
+        }
+        vm.revertToState(snap);
+        {
+            // test_assert_noOpReturns
+            (bytes32 id,) = _listNoFeed();
+            _toReview(id);
+            assertFalse(ro.assertProposal(id), "Review: nothing recorded");
+            _propose(id, uint8(Outcome.YES));
+            assertTrue(ro.assertProposal(id));
+            assertFalse(ro.assertProposal(id), "already live");
+            assertEq(_res(id).attempts, 1);
+            vm.expectRevert(IResolutionOracle.UnknownMarket.selector);
+            ro.assertProposal(keccak256("nope"));
+        }
+        vm.revertToState(snap);
+        {
+            // test_assert_guards
+            (bytes32 id,) = _listNoFeed();
+            _toReview(id);
+            _propose(id, uint8(Outcome.YES));
+            Resolution memory r = _res(id);
+            r.attempts = 3;
+            ro.setResolution(id, r);
+            vm.expectRevert(IResolutionOracle.MaxAttempts.selector);
+            ro.assertProposal(id);
+            r.attempts = 2;
+            r.rejectedMask = 2; // YES rejected (a state the entry points never produce)
+            ro.setResolution(id, r);
+            vm.expectRevert(IResolutionOracle.OutcomeNotAllowed.selector);
+            ro.assertProposal(id);
+        }
+        vm.revertToState(snap);
+        {
+            // test_assert_expiryGuard
+            (bytes32 id,) = _listNoFeed();
+            _toReview(id);
+            vm.warp(T + 7_200 - 300 + 1);
+            _propose(id, uint8(Outcome.YES));
+            vm.expectRevert(IResolutionOracle.ExpiryAfterVoidDeadline.selector);
+            ro.assertProposal(id);
+            vm.warp(T + 7_200 - 300); // finishes exactly at voidDeadline
+            assertTrue(ro.assertProposal(id));
+        }
+        vm.revertToState(snap);
+        {
+            // test_assert_treasuryShort
+            (bytes32 id,) = _listNoFeed();
+            _toReview(id);
+            _propose(id, uint8(Outcome.YES));
+            mvenue.setMinimumBond(LEDGER + 1);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.TreasuryShort.selector, LEDGER + 1, LEDGER));
+            ro.assertProposal(id);
+            mvenue.setMinimumBond(100e6 + 1); // funded, but above the per-market cap
+            vm.expectRevert(IBondTreasury.PerMarketCapExceeded.selector);
+            ro.assertProposal(id);
+            mvenue.setMinimumBond(100e6);
+            assertTrue(ro.assertProposal(id));
+            assertEq(_res(id).bond, 100e6);
+        }
+        vm.revertToState(snap);
+        {
+            // test_assert_ledgerExactlyTheBond
+            (bytes32 id,) = _listNoFeed();
+            _toReview(id);
+            _propose(id, uint8(Outcome.YES));
+            vm.prank(gov);
+            treasury.withdraw(Ledger.ASSERTION, gov, LEDGER - BOND); // down to the listing commitment
+            assertEq(_ledger(), BOND);
+            assertTrue(ro.assertProposal(id));
+            assertEq(_ledger(), 0);
+        }
     }
 
     // ------------------------------------------------------------------ finalize: true
 
-    function test_finalize_trueYes() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
-        assertEq(treasury.committedListing(id), BOND);
-        mvenue.setResult(aid, true);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.Finalized(id, Outcome.YES, FinalReason.ASSERTED_TRUE);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.state), uint8(RState.Final));
-        assertEq(uint8(r.outcome), uint8(Outcome.YES));
-        assertEq(uint8(r.finalReason), uint8(FinalReason.ASSERTED_TRUE));
-        assertFalse(r.voided);
-        assertEq(e.settleCalls(), 1);
-        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.YES), "settle(1)");
-        assertEq(_ledger(), LEDGER, "onBondReturned credits the returned bond");
-        assertEq(treasury.outstanding(id, 0), 0);
-        assertEq(token.balanceOf(address(treasury)), LEDGER + 100e6, "ASSERTION + WATCHDOG_FLOAT");
-        assertEq(treasury.committedListing(id), 0, "releaseListing");
-        assertEq(treasury.totalCommitted(), 0);
-    }
+    /// finalizeMarket: true YES/NO/INVALID settle the engine once, NOT_READY, settled directly on the venue, engine revert rolls back, disputed then true.
+    function test_finalize() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_finalize_trueYes
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
+            assertEq(treasury.committedListing(id), BOND);
+            mvenue.setResult(aid, true);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.Finalized(id, Outcome.YES, FinalReason.ASSERTED_TRUE);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.state), uint8(RState.Final));
+            assertEq(uint8(r.outcome), uint8(Outcome.YES));
+            assertEq(uint8(r.finalReason), uint8(FinalReason.ASSERTED_TRUE));
+            assertFalse(r.voided);
+            assertEq(e.settleCalls(), 1);
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.YES), "settle(1)");
+            assertEq(_ledger(), LEDGER, "onBondReturned credits the returned bond");
+            assertEq(treasury.outstanding(id, 0), 0);
+            assertEq(token.balanceOf(address(treasury)), LEDGER + 100e6, "ASSERTION + WATCHDOG_FLOAT");
+            assertEq(treasury.committedListing(id), 0, "releaseListing");
+            assertEq(treasury.totalCommitted(), 0);
+        }
+        vm.revertToState(snap);
+        {
+            // test_finalize_trueNoAndInvalid
+            (bytes32 id2, MockResolutionEngine e2) = _listFeed(); // listed before T
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.NO);
+            mvenue.setResult(aid, true);
+            ro.finalizeMarket(id);
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.NO), "settle(0)");
+            assertEq(e.settleCalls(), 1);
 
-    function test_finalize_trueNoAndInvalid() public {
-        (bytes32 id2, MockResolutionEngine e2) = _listFeed(); // listed before T
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.NO);
-        mvenue.setResult(aid, true);
-        ro.finalizeMarket(id);
-        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.NO), "settle(0)");
-        assertEq(e.settleCalls(), 1);
-
-        _toReview(id2);
-        _propose(id2, uint8(Outcome.INVALID));
-        ro.assertProposal(id2);
-        mvenue.setResult(_res(id2).assertionId, true);
-        ro.finalizeMarket(id2);
-        assertEq(uint8(_res(id2).outcome), uint8(Outcome.INVALID));
-        assertEq(uint8(e2.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID), "settleInvalid()");
-        assertEq(e2.settleCalls(), 1);
-    }
-
-    function test_finalize_notReady() public {
-        (bytes32 nf,) = _listFeed(); // listed before T
-        (bytes32 id, MockResolutionEngine e,) = _live(Outcome.YES);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.NOT_READY), "venue cannot settle yet");
-        assertEq(uint8(_state(id)), uint8(RState.Proposed));
-        assertEq(e.settleCalls(), 0);
-        _toReview(nf);
-        assertEq(uint8(ro.finalizeMarket(nf)), uint8(FinalizeStatus.NOT_READY), "no live assertion");
-        _propose(nf, uint8(Outcome.YES));
-        assertEq(uint8(ro.finalizeMarket(nf)), uint8(FinalizeStatus.NOT_READY), "recorded, not asserted");
-    }
-
-    function test_finalize_settledDirectlyOnTheVenue() public {
-        (bytes32 id,, bytes32 aid) = _live(Outcome.YES);
-        mvenue.settleDirectly(aid, true); // trySettle then finds nothing to do
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
-        assertEq(uint8(_state(id)), uint8(RState.Final));
-    }
-
-    function test_finalize_engineRevertRollsBack() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
-        mvenue.setResult(aid, true);
-        e.setRevertOnSettle(true);
-        vm.expectRevert(MockResolutionEngine.MockSettleReverted.selector);
-        ro.finalizeMarket(id);
-        assertEq(uint8(_state(id)), uint8(RState.Proposed));
-        assertEq(treasury.outstanding(id, 0), BOND, "no treasury booking either");
-        assertEq(treasury.committedListing(id), BOND);
-        e.setRevertOnSettle(false);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL), "the keeper retries");
+            _toReview(id2);
+            _propose(id2, uint8(Outcome.INVALID));
+            ro.assertProposal(id2);
+            mvenue.setResult(_res(id2).assertionId, true);
+            ro.finalizeMarket(id2);
+            assertEq(uint8(_res(id2).outcome), uint8(Outcome.INVALID));
+            assertEq(uint8(e2.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID), "settleInvalid()");
+            assertEq(e2.settleCalls(), 1);
+        }
+        vm.revertToState(snap);
+        {
+            // test_finalize_notReady
+            (bytes32 nf,) = _listFeed(); // listed before T
+            (bytes32 id, MockResolutionEngine e,) = _live(Outcome.YES);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.NOT_READY), "venue cannot settle yet");
+            assertEq(uint8(_state(id)), uint8(RState.Proposed));
+            assertEq(e.settleCalls(), 0);
+            _toReview(nf);
+            assertEq(uint8(ro.finalizeMarket(nf)), uint8(FinalizeStatus.NOT_READY), "no live assertion");
+            _propose(nf, uint8(Outcome.YES));
+            assertEq(uint8(ro.finalizeMarket(nf)), uint8(FinalizeStatus.NOT_READY), "recorded, not asserted");
+        }
+        vm.revertToState(snap);
+        {
+            // test_finalize_settledDirectlyOnTheVenue
+            (bytes32 id,, bytes32 aid) = _live(Outcome.YES);
+            mvenue.settleDirectly(aid, true); // trySettle then finds nothing to do
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
+            assertEq(uint8(_state(id)), uint8(RState.Final));
+        }
+        vm.revertToState(snap);
+        {
+            // test_finalize_engineRevertRollsBack
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
+            mvenue.setResult(aid, true);
+            e.setRevertOnSettle(true);
+            vm.expectRevert(MockResolutionEngine.MockSettleReverted.selector);
+            ro.finalizeMarket(id);
+            assertEq(uint8(_state(id)), uint8(RState.Proposed));
+            assertEq(treasury.outstanding(id, 0), BOND, "no treasury booking either");
+            assertEq(treasury.committedListing(id), BOND);
+            e.setRevertOnSettle(false);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL), "the keeper retries");
+        }
+        vm.revertToState(snap);
+        {
+            // test_finalize_disputedThenTrue
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.NO);
+            mvenue.markDisputed(aid, address(0xD1));
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.DISPUTED));
+            assertEq(uint8(_state(id)), uint8(RState.Disputed));
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.DISPUTED), "DVM still voting");
+            mvenue.setResult(aid, true);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
+            assertEq(uint8(_res(id).outcome), uint8(Outcome.NO));
+            assertEq(e.settleCalls(), 1);
+        }
     }
 
     // ------------------------------------------------------------------ disputes
@@ -246,97 +278,93 @@ contract OracleAssertionsTest is OracleFixture {
         assertFalse(ro.syncAssertion(nf), "no live assertion");
     }
 
-    function test_finalize_disputedThenTrue() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.NO);
-        mvenue.markDisputed(aid, address(0xD1));
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.DISPUTED));
-        assertEq(uint8(_state(id)), uint8(RState.Disputed));
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.DISPUTED), "DVM still voting");
-        mvenue.setResult(aid, true);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
-        assertEq(uint8(_res(id).outcome), uint8(Outcome.NO));
-        assertEq(e.settleCalls(), 1);
-    }
-
     // ------------------------------------------------------------------ rejections
 
-    function test_reject_toReview() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
-        mvenue.markDisputed(aid, address(0xD1));
-        ro.syncAssertion(id);
-        mvenue.setResult(aid, false);
-        vm.warp(T + 400);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.AssertionRejected(id, aid, Outcome.YES, 2, T + 400 + 300);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.StateChanged(id, RState.Disputed, RState.Review);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.REJECTED));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.state), uint8(RState.Review));
-        assertEq(r.rejectedMask, 2);
-        assertEq(r.retryOpensAt, T + 700, "now + retry window");
-        assertEq(uint8(r.proposed), uint8(Outcome.NONE));
-        assertEq(r.assertionId, 0);
-        assertEq(r.attempts, 1);
-        assertEq(treasury.outstanding(id, 0), 0, "onBondLost clears the record");
-        assertEq(_ledger(), LEDGER - BOND, "no credit for a lost bond");
-        assertEq(e.settleCalls(), 0);
-        assertEq(treasury.committedListing(id), BOND, "still listed");
-        assertFalse(ro.openAfterDeadline(id), "committee-only until retryOpensAt");
-        vm.warp(T + 700);
-        assertTrue(ro.openAfterDeadline(id));
-    }
-
-    function test_reject_yesAndNo_voids() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
-        _rejectLive(id, aid);
-        bytes32 aid2 = _retry(id, Outcome.NO);
-        assertEq(treasury.outstanding(id, 1), BOND, "attempt key 1");
-        mvenue.setResult(aid2, false);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.AssertionRejected(id, aid2, Outcome.NO, 6, 0);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.Voided(id, FinalReason.REJECTED_YES_AND_NO);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.Finalized(id, Outcome.INVALID, FinalReason.REJECTED_YES_AND_NO);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.REJECTED));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.state), uint8(RState.Final));
-        assertEq(uint8(r.outcome), uint8(Outcome.INVALID));
-        assertEq(uint8(r.finalReason), uint8(FinalReason.REJECTED_YES_AND_NO));
-        assertTrue(r.voided);
-        assertEq(r.rejectedMask, 6);
-        assertEq(e.settleCalls(), 1);
-        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID));
-        assertEq(_ledger(), LEDGER - 2 * BOND, "each lost bond booked once, no second booking at Final");
-        assertEq(treasury.totalOutstanding(), 0);
-        assertEq(treasury.committedListing(id), 0, "releaseListing");
-    }
-
-    function test_reject_noOnly_staysInReview() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.NO);
-        _rejectLive(id, aid);
-        assertEq(uint8(_state(id)), uint8(RState.Review), "YES and INVALID remain");
-        assertEq(_res(id).rejectedMask, 4);
-        assertEq(e.settleCalls(), 0);
-    }
-
-    function test_reject_invalidThenYes_staysInReview_thenThirdVoids() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.INVALID);
-        _rejectLive(id, aid);
-        _rejectLive(id, _retry(id, Outcome.YES));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.state), uint8(RState.Review), "NO remains");
-        assertEq(r.rejectedMask, 10);
-        assertEq(e.settleCalls(), 0);
-        _rejectLive(id, _retry(id, Outcome.NO));
-        r = _res(id);
-        assertEq(r.attempts, 3);
-        assertEq(uint8(r.state), uint8(RState.Final), "three rejections");
-        assertEq(uint8(r.outcome), uint8(Outcome.INVALID));
-        assertEq(uint8(r.finalReason), uint8(FinalReason.REJECTED_YES_AND_NO));
-        assertEq(e.settleCalls(), 1);
-        assertEq(_ledger(), LEDGER - 3 * BOND);
+    /// Rejections: Review with retryOpensAt; YES and NO both rejected voids; NO only and INVALID then YES stay in Review; the third rejection voids.
+    function test_reject() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_reject_toReview
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
+            mvenue.markDisputed(aid, address(0xD1));
+            ro.syncAssertion(id);
+            mvenue.setResult(aid, false);
+            vm.warp(T + 400);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.AssertionRejected(id, aid, Outcome.YES, 2, T + 400 + 300);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.StateChanged(id, RState.Disputed, RState.Review);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.REJECTED));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.state), uint8(RState.Review));
+            assertEq(r.rejectedMask, 2);
+            assertEq(r.retryOpensAt, T + 700, "now + retry window");
+            assertEq(uint8(r.proposed), uint8(Outcome.NONE));
+            assertEq(r.assertionId, 0);
+            assertEq(r.attempts, 1);
+            assertEq(treasury.outstanding(id, 0), 0, "onBondLost clears the record");
+            assertEq(_ledger(), LEDGER - BOND, "no credit for a lost bond");
+            assertEq(e.settleCalls(), 0);
+            assertEq(treasury.committedListing(id), BOND, "still listed");
+            assertFalse(ro.openAfterDeadline(id), "committee-only until retryOpensAt");
+            vm.warp(T + 700);
+            assertTrue(ro.openAfterDeadline(id));
+        }
+        vm.revertToState(snap);
+        {
+            // test_reject_yesAndNo_voids
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
+            _rejectLive(id, aid);
+            bytes32 aid2 = _retry(id, Outcome.NO);
+            assertEq(treasury.outstanding(id, 1), BOND, "attempt key 1");
+            mvenue.setResult(aid2, false);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.AssertionRejected(id, aid2, Outcome.NO, 6, 0);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.Voided(id, FinalReason.REJECTED_YES_AND_NO);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.Finalized(id, Outcome.INVALID, FinalReason.REJECTED_YES_AND_NO);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.REJECTED));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.state), uint8(RState.Final));
+            assertEq(uint8(r.outcome), uint8(Outcome.INVALID));
+            assertEq(uint8(r.finalReason), uint8(FinalReason.REJECTED_YES_AND_NO));
+            assertTrue(r.voided);
+            assertEq(r.rejectedMask, 6);
+            assertEq(e.settleCalls(), 1);
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID));
+            assertEq(_ledger(), LEDGER - 2 * BOND, "each lost bond booked once, no second booking at Final");
+            assertEq(treasury.totalOutstanding(), 0);
+            assertEq(treasury.committedListing(id), 0, "releaseListing");
+        }
+        vm.revertToState(snap);
+        {
+            // test_reject_noOnly_staysInReview
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.NO);
+            _rejectLive(id, aid);
+            assertEq(uint8(_state(id)), uint8(RState.Review), "YES and INVALID remain");
+            assertEq(_res(id).rejectedMask, 4);
+            assertEq(e.settleCalls(), 0);
+        }
+        vm.revertToState(snap);
+        {
+            // test_reject_invalidThenYes_staysInReview_thenThirdVoids
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.INVALID);
+            _rejectLive(id, aid);
+            _rejectLive(id, _retry(id, Outcome.YES));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.state), uint8(RState.Review), "NO remains");
+            assertEq(r.rejectedMask, 10);
+            assertEq(e.settleCalls(), 0);
+            _rejectLive(id, _retry(id, Outcome.NO));
+            r = _res(id);
+            assertEq(r.attempts, 3);
+            assertEq(uint8(r.state), uint8(RState.Final), "three rejections");
+            assertEq(uint8(r.outcome), uint8(Outcome.INVALID));
+            assertEq(uint8(r.finalReason), uint8(FinalReason.REJECTED_YES_AND_NO));
+            assertEq(e.settleCalls(), 1);
+            assertEq(_ledger(), LEDGER - 3 * BOND);
+        }
     }
 
     // ------------------------------------------------------------------ permissionless booking
@@ -355,110 +383,125 @@ contract OracleAssertionsTest is OracleFixture {
         vm.stopPrank();
     }
 
-    function test_permissionless_finalPaysTheReward() public {
-        treasury.deposit(Ledger.PROPOSER_REWARD, 10e6);
-        (bytes32 id, bytes32 aid) = _permissionlessLive(5e6);
-        mvenue.setResult(aid, true);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
-        assertEq(token.balanceOf(proposer), BOND + 5e6, "own bond back from the venue, reward from the treasury");
-        assertEq(treasury.balanceOf(Ledger.PROPOSER_REWARD), 5e6);
-        assertEq(_ledger(), LEDGER, "the team ledger is untouched");
-        assertEq(treasury.committedListing(id), 0);
-    }
-
-    function test_permissionless_rewardIouNeverBlocksFinal() public {
-        (bytes32 id, bytes32 aid) = _permissionlessLive(5e6); // PROPOSER_REWARD is empty
-        mvenue.setResult(aid, true);
-        assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
-        assertEq(treasury.owed(proposer), 5e6);
-        assertEq(token.balanceOf(proposer), BOND);
-    }
-
-    function test_permissionless_rejectBooksNothing() public {
-        (bytes32 id, bytes32 aid) = _permissionlessLive(5e6);
-        vm.expectCall(address(treasury), abi.encodeWithSelector(IBondTreasury.onBondLost.selector), 0);
-        _rejectLive(id, aid);
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.state), uint8(RState.Review));
-        assertEq(r.proposer, address(0), "proposer cleared");
-        assertEq(r.rewardAtoms, 0);
-        assertEq(_ledger(), LEDGER);
-        assertEq(treasury.totalOutstanding(), 0);
+    /// Permissionless booking: the reward is paid, an IOU never blocks Final, a rejection books nothing.
+    function test_permissionless() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_permissionless_finalPaysTheReward
+            treasury.deposit(Ledger.PROPOSER_REWARD, 10e6);
+            (bytes32 id, bytes32 aid) = _permissionlessLive(5e6);
+            mvenue.setResult(aid, true);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
+            assertEq(token.balanceOf(proposer), BOND + 5e6, "own bond back from the venue, reward from the treasury");
+            assertEq(treasury.balanceOf(Ledger.PROPOSER_REWARD), 5e6);
+            assertEq(_ledger(), LEDGER, "the team ledger is untouched");
+            assertEq(treasury.committedListing(id), 0);
+        }
+        vm.revertToState(snap);
+        {
+            // test_permissionless_rewardIouNeverBlocksFinal
+            (bytes32 id, bytes32 aid) = _permissionlessLive(5e6); // PROPOSER_REWARD is empty
+            mvenue.setResult(aid, true);
+            assertEq(uint8(ro.finalizeMarket(id)), uint8(FinalizeStatus.FINAL));
+            assertEq(treasury.owed(proposer), 5e6);
+            assertEq(token.balanceOf(proposer), BOND);
+        }
+        vm.revertToState(snap);
+        {
+            // test_permissionless_rejectBooksNothing
+            (bytes32 id, bytes32 aid) = _permissionlessLive(5e6);
+            vm.expectCall(address(treasury), abi.encodeWithSelector(IBondTreasury.onBondLost.selector), 0);
+            _rejectLive(id, aid);
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.state), uint8(RState.Review));
+            assertEq(r.proposer, address(0), "proposer cleared");
+            assertEq(r.rewardAtoms, 0);
+            assertEq(_ledger(), LEDGER);
+            assertEq(treasury.totalOutstanding(), 0);
+        }
     }
 
     // ------------------------------------------------------------------ void
 
-    function test_void_onlyFromTheDeadline() public {
-        (bytes32 pre,) = _listFeed();
-        (bytes32 id, MockResolutionEngine e) = _listNoFeed();
-        vm.warp(T + 100_000);
-        assertFalse(ro.voidMarket(pre), "never halted: no voidDeadline");
-        _halt(id);
-        vm.warp(T + 7_200 - 1);
-        assertFalse(ro.voidMarket(id));
-        vm.warp(T + 7_200);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.StateChanged(id, RState.L2Pending, RState.Voided);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.Voided(id, FinalReason.VOID_DEADLINE);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.StateChanged(id, RState.Voided, RState.Final);
-        assertTrue(ro.voidMarket(id));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.state), uint8(RState.Final));
-        assertEq(uint8(r.outcome), uint8(Outcome.INVALID));
-        assertEq(uint8(r.finalReason), uint8(FinalReason.VOID_DEADLINE));
-        assertTrue(r.voided);
-        assertEq(e.settleCalls(), 1);
-        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID));
-        assertEq(treasury.committedListing(id), 0);
-        assertFalse(ro.voidMarket(id), "Final");
-        assertEq(e.settleCalls(), 1);
-    }
-
-    function test_void_neverAnsweredDispute_marksStuck() public {
-        (bytes32 id,, bytes32 aid) = _live(Outcome.YES);
-        vm.prank(watchdog);
-        treasury.disputeViaVenue(id);
-        assertFalse(treasury.closeDispute(aid), "dispute open");
-        vm.warp(T + 7_200);
-        assertTrue(ro.voidMarket(id));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.finalReason), uint8(FinalReason.VOID_DEADLINE));
-        assertEq(treasury.outstanding(id, 0), 0, "markStuck");
-        assertEq(treasury.totalOutstanding(), 0);
-        assertEq(_ledger(), LEDGER - BOND, "written off, no credit");
-        assertTrue(treasury.closeDispute(aid), "the treasury can close the written-off dispute");
-    }
-
-    function test_void_appliesASettleableTrueAssertion() public {
-        (bytes32 id,, bytes32 aid) = _live(Outcome.YES);
-        mvenue.setResult(aid, true);
-        vm.warp(T + 7_200);
-        assertTrue(ro.voidMarket(id));
-        Resolution memory r = _res(id);
-        assertEq(uint8(r.outcome), uint8(Outcome.YES));
-        assertEq(uint8(r.finalReason), uint8(FinalReason.ASSERTED_TRUE));
-        assertFalse(r.voided);
-        assertEq(_ledger(), LEDGER, "bond returned, not stuck");
-    }
-
-    function test_void_lateRejectionIsBookedThenVoided() public {
-        (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
-        mvenue.setResult(aid, false);
-        vm.warp(T + 7_200);
-        vm.expectCall(address(treasury), abi.encodeWithSelector(IBondTreasury.markStuck.selector), 0);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.AssertionRejected(id, aid, Outcome.YES, 2, T + 7_200 + 300);
-        vm.expectEmit(address(ro));
-        emit IResolutionOracle.Voided(id, FinalReason.VOID_DEADLINE);
-        assertTrue(ro.voidMarket(id));
-        Resolution memory r = _res(id);
-        assertEq(r.rejectedMask, 2, "the rejection is recorded");
-        assertEq(uint8(r.state), uint8(RState.Final));
-        assertEq(uint8(r.finalReason), uint8(FinalReason.VOID_DEADLINE));
-        assertEq(_ledger(), LEDGER - BOND, "booked as lost (onBondLost), not stuck");
-        assertEq(e.settleCalls(), 1);
+    /// voidMarket: only from the deadline, a never-answered dispute is marked stuck, a settleable assertion applies first, a late rejection is booked then voided.
+    function test_void() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_void_onlyFromTheDeadline
+            (bytes32 pre,) = _listFeed();
+            (bytes32 id, MockResolutionEngine e) = _listNoFeed();
+            vm.warp(T + 100_000);
+            assertFalse(ro.voidMarket(pre), "never halted: no voidDeadline");
+            _halt(id);
+            vm.warp(T + 7_200 - 1);
+            assertFalse(ro.voidMarket(id));
+            vm.warp(T + 7_200);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.StateChanged(id, RState.L2Pending, RState.Voided);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.Voided(id, FinalReason.VOID_DEADLINE);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.StateChanged(id, RState.Voided, RState.Final);
+            assertTrue(ro.voidMarket(id));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.state), uint8(RState.Final));
+            assertEq(uint8(r.outcome), uint8(Outcome.INVALID));
+            assertEq(uint8(r.finalReason), uint8(FinalReason.VOID_DEADLINE));
+            assertTrue(r.voided);
+            assertEq(e.settleCalls(), 1);
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID));
+            assertEq(treasury.committedListing(id), 0);
+            assertFalse(ro.voidMarket(id), "Final");
+            assertEq(e.settleCalls(), 1);
+        }
+        vm.revertToState(snap);
+        {
+            // test_void_neverAnsweredDispute_marksStuck
+            (bytes32 id,, bytes32 aid) = _live(Outcome.YES);
+            vm.prank(watchdog);
+            treasury.disputeViaVenue(id);
+            assertFalse(treasury.closeDispute(aid), "dispute open");
+            vm.warp(T + 7_200);
+            assertTrue(ro.voidMarket(id));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.finalReason), uint8(FinalReason.VOID_DEADLINE));
+            assertEq(treasury.outstanding(id, 0), 0, "markStuck");
+            assertEq(treasury.totalOutstanding(), 0);
+            assertEq(_ledger(), LEDGER - BOND, "written off, no credit");
+            assertTrue(treasury.closeDispute(aid), "the treasury can close the written-off dispute");
+        }
+        vm.revertToState(snap);
+        {
+            // test_void_appliesASettleableTrueAssertion
+            (bytes32 id,, bytes32 aid) = _live(Outcome.YES);
+            mvenue.setResult(aid, true);
+            vm.warp(T + 7_200);
+            assertTrue(ro.voidMarket(id));
+            Resolution memory r = _res(id);
+            assertEq(uint8(r.outcome), uint8(Outcome.YES));
+            assertEq(uint8(r.finalReason), uint8(FinalReason.ASSERTED_TRUE));
+            assertFalse(r.voided);
+            assertEq(_ledger(), LEDGER, "bond returned, not stuck");
+        }
+        vm.revertToState(snap);
+        {
+            // test_void_lateRejectionIsBookedThenVoided
+            (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.YES);
+            mvenue.setResult(aid, false);
+            vm.warp(T + 7_200);
+            vm.expectCall(address(treasury), abi.encodeWithSelector(IBondTreasury.markStuck.selector), 0);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.AssertionRejected(id, aid, Outcome.YES, 2, T + 7_200 + 300);
+            vm.expectEmit(address(ro));
+            emit IResolutionOracle.Voided(id, FinalReason.VOID_DEADLINE);
+            assertTrue(ro.voidMarket(id));
+            Resolution memory r = _res(id);
+            assertEq(r.rejectedMask, 2, "the rejection is recorded");
+            assertEq(uint8(r.state), uint8(RState.Final));
+            assertEq(uint8(r.finalReason), uint8(FinalReason.VOID_DEADLINE));
+            assertEq(_ledger(), LEDGER - BOND, "booked as lost (onBondLost), not stuck");
+            assertEq(e.settleCalls(), 1);
+        }
     }
 
     function test_void_livePermissionlessBooksNothing() public {
@@ -491,31 +534,37 @@ contract OracleAssertionsTest is OracleFixture {
 
     // ------------------------------------------------------------------ liveness fallback and views
 
-    function test_liveness_watchdogFallback() public {
-        bytes32 id = _l1Proposed();
-        assertEq(ro.livenessFor(id), 300, "never beat: stale");
-        vm.prank(watchdog);
-        ro.watchdogHeartbeat();
-        assertEq(ro.livenessFor(id), 120, "fresh: L1 liveness");
-        vm.warp(block.timestamp + 900);
-        assertEq(ro.livenessFor(id), 120, "exactly the max age is fresh");
-        vm.warp(block.timestamp + 1);
-        assertEq(ro.livenessFor(id), 300, "stale: reviewed liveness");
-        vm.prank(watchdog);
-        ro.watchdogHeartbeat();
-        assertTrue(ro.assertProposal(id));
-        assertEq(mvenue.statusOf(_res(id).assertionId).expiresAt, block.timestamp + 120);
-    }
-
-    function test_liveness_revokedWatchdogFallsBack() public {
-        bytes32 id = _l1Proposed();
-        vm.prank(watchdog);
-        ro.watchdogHeartbeat();
-        vm.prank(guardian);
-        ro.revokeWatchdog(1);
-        assertEq(ro.livenessFor(id), 300);
-        assertTrue(ro.assertProposal(id));
-        assertEq(mvenue.statusOf(_res(id).assertionId).expiresAt, block.timestamp + 300);
+    /// Liveness fallback: stale or revoked watchdog gives the reviewed liveness.
+    function test_liveness() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_liveness_watchdogFallback
+            bytes32 id = _l1Proposed();
+            assertEq(ro.livenessFor(id), 300, "never beat: stale");
+            vm.prank(watchdog);
+            ro.watchdogHeartbeat();
+            assertEq(ro.livenessFor(id), 120, "fresh: L1 liveness");
+            vm.warp(block.timestamp + 900);
+            assertEq(ro.livenessFor(id), 120, "exactly the max age is fresh");
+            vm.warp(block.timestamp + 1);
+            assertEq(ro.livenessFor(id), 300, "stale: reviewed liveness");
+            vm.prank(watchdog);
+            ro.watchdogHeartbeat();
+            assertTrue(ro.assertProposal(id));
+            assertEq(mvenue.statusOf(_res(id).assertionId).expiresAt, block.timestamp + 120);
+        }
+        vm.revertToState(snap);
+        {
+            // test_liveness_revokedWatchdogFallsBack
+            bytes32 id = _l1Proposed();
+            vm.prank(watchdog);
+            ro.watchdogHeartbeat();
+            vm.prank(guardian);
+            ro.revokeWatchdog(1);
+            assertEq(ro.livenessFor(id), 300);
+            assertTrue(ro.assertProposal(id));
+            assertEq(mvenue.statusOf(_res(id).assertionId).expiresAt, block.timestamp + 300);
+        }
     }
 
     function test_views() public {

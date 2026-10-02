@@ -69,44 +69,51 @@ contract OracleTrustSetsTest is Test {
 
     // ------------------------------------------------------------------ constructor
 
-    function test_constructor() public view {
-        assertEq(o.registry(), registry);
-        assertEq(o.treasury(), treasury);
-        assertEq(o.usdc(), usdc);
-        assertEq(o.monadChainSelector(), SELECTOR);
-        assertEq(o.governance(), gov);
-        assertEq(o.guardian(), guardian);
-        assertTrue(o.simModeAllowed() && o.simMode(), "sim mode starts on off mainnet");
-        assertEq(o.trustSetCount(), 0);
-        assertEq(o.activeTrustSetId(), 0);
-    }
-
-    function test_constructor_noSimModeOnMainnet() public {
-        vm.chainId(143);
-        ResolutionOracle m = new ResolutionOracle(registry, treasury, usdc, 8481857512324358265, gov, guardian);
-        assertFalse(m.simModeAllowed());
-        assertFalse(m.simMode());
+    /// Constructor: immutables, sim mode off on chainId 143, every address must be set.
+    function test_constructor() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_constructor
+            assertEq(o.registry(), registry);
+            assertEq(o.treasury(), treasury);
+            assertEq(o.usdc(), usdc);
+            assertEq(o.monadChainSelector(), SELECTOR);
+            assertEq(o.governance(), gov);
+            assertEq(o.guardian(), guardian);
+            assertTrue(o.simModeAllowed() && o.simMode(), "sim mode starts on off mainnet");
+            assertEq(o.trustSetCount(), 0);
+            assertEq(o.activeTrustSetId(), 0);
+        }
+        vm.revertToState(snap);
+        {
+            // test_constructor_noSimModeOnMainnet
+            vm.chainId(143);
+            ResolutionOracle m = new ResolutionOracle(registry, treasury, usdc, 8481857512324358265, gov, guardian);
+            assertFalse(m.simModeAllowed());
+            assertFalse(m.simMode());
+        }
+        vm.revertToState(snap);
+        {
+            // test_constructor_rejectsZeroAddresses
+            address z = address(0);
+            bytes4 err = ResolutionOracle.ZeroAddress.selector;
+            vm.expectRevert(err);
+            this.deployOracle(z, treasury, usdc, gov, guardian);
+            vm.expectRevert(err);
+            this.deployOracle(registry, z, usdc, gov, guardian);
+            vm.expectRevert(err);
+            this.deployOracle(registry, treasury, z, gov, guardian);
+            vm.expectRevert(err);
+            this.deployOracle(registry, treasury, usdc, z, guardian);
+            vm.expectRevert(err);
+            this.deployOracle(registry, treasury, usdc, gov, z);
+            assertTrue(this.deployOracle(registry, treasury, usdc, gov, guardian) != address(0));
+        }
     }
 
     /// External, so `expectRevert` checks each deployment instead of ending the test at the first one.
     function deployOracle(address r, address t, address u, address g, address gd) external returns (address) {
         return address(new ResolutionOracle(r, t, u, 1, g, gd));
-    }
-
-    function test_constructor_rejectsZeroAddresses() public {
-        address z = address(0);
-        bytes4 err = ResolutionOracle.ZeroAddress.selector;
-        vm.expectRevert(err);
-        this.deployOracle(z, treasury, usdc, gov, guardian);
-        vm.expectRevert(err);
-        this.deployOracle(registry, z, usdc, gov, guardian);
-        vm.expectRevert(err);
-        this.deployOracle(registry, treasury, z, gov, guardian);
-        vm.expectRevert(err);
-        this.deployOracle(registry, treasury, usdc, z, guardian);
-        vm.expectRevert(err);
-        this.deployOracle(registry, treasury, usdc, gov, z);
-        assertTrue(this.deployOracle(registry, treasury, usdc, gov, guardian) != address(0));
     }
 
     // ------------------------------------------------------------------ createTrustSet
@@ -207,61 +214,74 @@ contract OracleTrustSetsTest is Test {
 
     // ------------------------------------------------------------------ activateTrustSet
 
+    /// activateTrustSet: switches the active set, unknown set refused, governance only.
     function test_activate() public {
-        _create(_set());
-        _create(_production());
-        vm.expectEmit(address(o));
-        emit IResolutionOracle.TrustSetActivated(2);
-        vm.prank(gov);
-        o.activateTrustSet(2);
-        assertEq(o.activeTrustSetId(), 2);
-        vm.prank(gov);
-        o.activateTrustSet(1);
-        assertEq(o.activeTrustSetId(), 1);
-    }
-
-    function test_activate_unknownSet() public {
-        _create(_set());
-        vm.startPrank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
-        o.activateTrustSet(0);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
-        o.activateTrustSet(2);
-        vm.stopPrank();
-    }
-
-    function test_activate_governanceOnly() public {
-        _create(_set());
-        vm.prank(guardian);
-        vm.expectRevert(IResolutionOracle.Unauthorized.selector);
-        o.activateTrustSet(1);
+        uint256 snap = vm.snapshotState();
+        {
+            // test_activate
+            _create(_set());
+            _create(_production());
+            vm.expectEmit(address(o));
+            emit IResolutionOracle.TrustSetActivated(2);
+            vm.prank(gov);
+            o.activateTrustSet(2);
+            assertEq(o.activeTrustSetId(), 2);
+            vm.prank(gov);
+            o.activateTrustSet(1);
+            assertEq(o.activeTrustSetId(), 1);
+        }
+        vm.revertToState(snap);
+        {
+            // test_activate_unknownSet
+            _create(_set());
+            vm.startPrank(gov);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
+            o.activateTrustSet(0);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
+            o.activateTrustSet(2);
+            vm.stopPrank();
+        }
+        vm.revertToState(snap);
+        {
+            // test_activate_governanceOnly
+            _create(_set());
+            vm.prank(guardian);
+            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+            o.activateTrustSet(1);
+        }
     }
 
     // ------------------------------------------------------------------ guardian revocations
 
+    /// revokeWorkflowId: revokes one of the set's two IDs; any other ID reverts.
     function test_revokeWorkflowId() public {
-        _create(_production());
-        vm.expectEmit(address(o));
-        emit IResolutionOracle.TrustSetRevoked(1, 0, keccak256("workflow-new"));
-        vm.prank(guardian);
-        o.revokeWorkflowId(1, keccak256("workflow-new"));
-        TrustSet memory s = o.trustSet(1);
-        assertFalse(s.workflowIdRevoked[0]);
-        assertTrue(s.workflowIdRevoked[1]);
-    }
-
-    function test_revokeWorkflowId_notInSet() public {
-        _create(_production());
-        vm.startPrank(guardian);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(2)));
-        o.revokeWorkflowId(1, keccak256("other workflow"));
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(2)));
-        o.revokeWorkflowId(1, 0);
-        vm.stopPrank();
-        _create(_set()); // a sim set: both slots are 0, and 0 is never a workflow ID
-        vm.prank(guardian);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(2)));
-        o.revokeWorkflowId(2, 0);
+        uint256 snap = vm.snapshotState();
+        {
+            // test_revokeWorkflowId
+            _create(_production());
+            vm.expectEmit(address(o));
+            emit IResolutionOracle.TrustSetRevoked(1, 0, keccak256("workflow-new"));
+            vm.prank(guardian);
+            o.revokeWorkflowId(1, keccak256("workflow-new"));
+            TrustSet memory s = o.trustSet(1);
+            assertFalse(s.workflowIdRevoked[0]);
+            assertTrue(s.workflowIdRevoked[1]);
+        }
+        vm.revertToState(snap);
+        {
+            // test_revokeWorkflowId_notInSet
+            _create(_production());
+            vm.startPrank(guardian);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(2)));
+            o.revokeWorkflowId(1, keccak256("other workflow"));
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(2)));
+            o.revokeWorkflowId(1, 0);
+            vm.stopPrank();
+            _create(_set()); // a sim set: both slots are 0, and 0 is never a workflow ID
+            vm.prank(guardian);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(2)));
+            o.revokeWorkflowId(2, 0);
+        }
     }
 
     function test_revokeAttestor() public {
@@ -296,91 +316,109 @@ contract OracleTrustSetsTest is Test {
         assertTrue(o.trustSet(1).watchdogRevoked);
     }
 
-    function test_revoke_unknownSet() public {
-        vm.startPrank(guardian);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
-        o.revokeAttestor(1);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
-        o.revokeWatchdog(1);
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
-        o.revokeCommitteeMember(1, address(0x1001));
-        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
-        o.revokeWorkflowId(1, keccak256("x"));
-        vm.stopPrank();
-    }
-
-    function test_revoke_guardianOnly() public {
-        _create(_production());
-        address[2] memory callers = [gov, stranger];
-        for (uint256 i; i < callers.length; ++i) {
-            vm.startPrank(callers[i]);
-            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
-            o.revokeWorkflowId(1, keccak256("workflow-old"));
-            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+    /// Every revoke: unknown set refused, guardian only.
+    function test_revoke_access() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_revoke_unknownSet
+            vm.startPrank(guardian);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
             o.revokeAttestor(1);
-            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
-            o.revokeCommitteeMember(1, address(0x1001));
-            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
             o.revokeWatchdog(1);
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
+            o.revokeCommitteeMember(1, address(0x1001));
+            vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.BadTrustSet.selector, uint8(0)));
+            o.revokeWorkflowId(1, keccak256("x"));
             vm.stopPrank();
+        }
+        vm.revertToState(snap);
+        {
+            // test_revoke_guardianOnly
+            _create(_production());
+            address[2] memory callers = [gov, stranger];
+            for (uint256 i; i < callers.length; ++i) {
+                vm.startPrank(callers[i]);
+                vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+                o.revokeWorkflowId(1, keccak256("workflow-old"));
+                vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+                o.revokeAttestor(1);
+                vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+                o.revokeCommitteeMember(1, address(0x1001));
+                vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+                o.revokeWatchdog(1);
+                vm.stopPrank();
+            }
         }
     }
 
     // ------------------------------------------------------------------ initResolution
 
+    /// initResolution: creates the record once, registry only.
     function test_initResolution() public {
-        bytes32 id = keccak256("market-1");
-        vm.expectEmit(address(o));
-        emit IResolutionOracle.ResolutionInitialized(id);
-        vm.prank(registry);
-        o.initResolution(id);
-        assertEq(uint8(o.getResolution(id).state), uint8(RState.None));
-        vm.prank(registry);
-        vm.expectRevert(IResolutionOracle.AlreadyInitialized.selector);
-        o.initResolution(id);
-    }
-
-    function test_initResolution_registryOnly() public {
-        address[3] memory callers = [gov, guardian, stranger];
-        for (uint256 i; i < callers.length; ++i) {
-            vm.prank(callers[i]);
-            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
-            o.initResolution(keccak256("market-1"));
+        uint256 snap = vm.snapshotState();
+        {
+            // test_initResolution
+            bytes32 id = keccak256("market-1");
+            vm.expectEmit(address(o));
+            emit IResolutionOracle.ResolutionInitialized(id);
+            vm.prank(registry);
+            o.initResolution(id);
+            assertEq(uint8(o.getResolution(id).state), uint8(RState.None));
+            vm.prank(registry);
+            vm.expectRevert(IResolutionOracle.AlreadyInitialized.selector);
+            o.initResolution(id);
+        }
+        vm.revertToState(snap);
+        {
+            // test_initResolution_registryOnly
+            address[3] memory callers = [gov, guardian, stranger];
+            for (uint256 i; i < callers.length; ++i) {
+                vm.prank(callers[i]);
+                vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+                o.initResolution(keccak256("market-1"));
+            }
         }
     }
 
     // ------------------------------------------------------------------ heartbeat and watchdogOf
 
-    function test_heartbeat_anySetsWatchdog() public {
-        _create(_set()); // never activated: its watchdog may still beat (markets may pin older sets)
-        vm.warp(1_800_000_000);
-        vm.expectEmit(address(o));
-        emit IResolutionOracle.WatchdogHeartbeat(watchdog, 1_800_000_000);
-        vm.prank(watchdog);
-        o.watchdogHeartbeat();
-        assertEq(o.lastHeartbeat(watchdog), 1_800_000_000);
-    }
-
-    function test_heartbeat_refusedForStrangersAndRevoked() public {
-        vm.prank(watchdog);
-        vm.expectRevert(IResolutionOracle.Unauthorized.selector);
-        o.watchdogHeartbeat(); // no trust set yet
-        _create(_set());
-        _create(_set()); // the same watchdog in two sets
-        vm.startPrank(guardian);
-        o.revokeWatchdog(1);
-        o.revokeWatchdog(1); // idempotent: counted once
-        vm.stopPrank();
-        vm.prank(watchdog);
-        o.watchdogHeartbeat(); // still the watchdog of set 2
-        vm.prank(guardian);
-        o.revokeWatchdog(2);
-        vm.prank(watchdog);
-        vm.expectRevert(IResolutionOracle.Unauthorized.selector);
-        o.watchdogHeartbeat();
-        vm.prank(stranger);
-        vm.expectRevert(IResolutionOracle.Unauthorized.selector);
-        o.watchdogHeartbeat();
+    /// watchdogHeartbeat: any non-revoked watchdog of any set; strangers and revoked watchdogs refused.
+    function test_heartbeat() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_heartbeat_anySetsWatchdog
+            _create(_set()); // never activated: its watchdog may still beat (markets may pin older sets)
+            vm.warp(1_800_000_000);
+            vm.expectEmit(address(o));
+            emit IResolutionOracle.WatchdogHeartbeat(watchdog, 1_800_000_000);
+            vm.prank(watchdog);
+            o.watchdogHeartbeat();
+            assertEq(o.lastHeartbeat(watchdog), 1_800_000_000);
+        }
+        vm.revertToState(snap);
+        {
+            // test_heartbeat_refusedForStrangersAndRevoked
+            vm.prank(watchdog);
+            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+            o.watchdogHeartbeat(); // no trust set yet
+            _create(_set());
+            _create(_set()); // the same watchdog in two sets
+            vm.startPrank(guardian);
+            o.revokeWatchdog(1);
+            o.revokeWatchdog(1); // idempotent: counted once
+            vm.stopPrank();
+            vm.prank(watchdog);
+            o.watchdogHeartbeat(); // still the watchdog of set 2
+            vm.prank(guardian);
+            o.revokeWatchdog(2);
+            vm.prank(watchdog);
+            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+            o.watchdogHeartbeat();
+            vm.prank(stranger);
+            vm.expectRevert(IResolutionOracle.Unauthorized.selector);
+            o.watchdogHeartbeat();
+        }
     }
 
     function test_watchdogOf_pinnedSetOnly() public {
