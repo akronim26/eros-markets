@@ -159,3 +159,9 @@ Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY
 - Open questions: teammate's acceptance of B-D01…B-D05 (UNVERIFIED in repo); who takes A-I01; human
   acceptance of G7.
 - Next turn: open.
+
+### 2026-10-02 — 0xr10t (with Claude agent) — IN PROGRESS
+
+- Started from `d1f0268` (clean, equal to origin). Planned: outdated-doc fixes, B-D03, B-D02, A-I01,
+  invariant and gas reruns, local merge prep. Teammate: please do not start a turn until this entry
+  says "turn complete".
