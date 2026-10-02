@@ -4,5 +4,5 @@
   "peer_decisions": "scripted_mock",
   "token": "deterministic MockUSDC with failure/tax/reentry tests",
   "real_counterpart_integration": "pending_merge",
-  "source_commit": "74b9f162d053b412e7d865ec064c48b27364999e"
+  "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9"
 }

@@ -6,15 +6,15 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-02T00:47:44.173037+00:00",
-  "source_commit": "ec141753b7fbb347267f3272f5e372d1449adbf0",
+  "recorded_at": "2026-10-02T05:17:20.510251+00:00",
+  "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
   "worktree_dirty": true,
   "toolchain": {
-    "python": "3.12.10",
-    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",
+    "python": "3.13.13",
+    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:34:23.361078000Z (1789468463)\nBuild Profile: dist",
     "solc_declared": "0.8.30",
     "foundry_profile": "risk",
-    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69)"
   },
   "seed": "0x45524f53",
   "python_hash_seed": "0",
@@ -23,12 +23,12 @@
     "reference/common/result_schema.json": "5c0fd4ad7d0c415ac08bd01d7dcbf4bf2eb7b5d8ad5090964d8bf5a982d87106",
     "contracts/src/math/MathTypes.sol": "f34d68b5e0331ea13f521c80c520ce1c58e9db91a74b26c2d1eb853b69ef0575",
     "docs/math/units.md": "3526acb48f00f31936c2fb6f5335a945ce04870a60d653d27c3708844a50b338",
-    "docs/math/risk-function-contracts.json": "e992f92a1ca9057196b83d74cae71f2c68b3bffe9c019a71bea23c8aeaa621dd",
-    "docs/ownership.json": "f2236eccd36babaaf1f8281188af4933beeb9a2bee80b987389588fba69d7e78",
-    "docs/counterpart-contracts.md": "2065d0df36702fc0a72c811dbfa77512508f900edbe121f90f167c7fc6d59f52",
-    "reference/fixtures/golden_cases.json": "68ce2f302fa7f2cac181185ed9fbb18ae454e4c28c4020d56b4df28860ee988d",
-    "docs/math/golden-case-rationale.md": "ca6a5f65666f964f28d9a1d18155d26132480ac4c7c5261f5db1ddf6b6bc4736",
-    "docs/contracts/G6.json": "e7ad9c99c42a658b0c816909b1b5bf8d7982a5527689631340e1b2f3d494d09d",
+    "docs/math/risk-function-contracts.json": "5656cee2c6f1147e7f19eb09dea338afd2945a8ef407ac11c28476decbcda494",
+    "docs/ownership.json": "258dae5d3f096fcdb75f49b5edf05d4efa1f4e5fbefc20b3d9debf5ebd0fba49",
+    "docs/counterpart-contracts.md": "0a5eaca153a4684e6c5cce069e78f3fc8c6bd9796a4682f52b743931d76af8b6",
+    "reference/fixtures/golden_cases.json": "077ef4666238f5d8bfc3270b902cf0e381a418ff0475515ad4d83a16f7445fca",
+    "docs/math/golden-case-rationale.md": "5ddba240f9137e283d91621ff3d8185122a4c70d22cf351f9f87de9bfb88fd91",
+    "docs/contracts/G6.json": "41f5c230b626348b27f2d12d940b92812ba728476d01b03727a6739caaf29e0f",
     "contracts/test/gates/G6.t.sol": "c642fc5c79b52033cca4255cf2e299e6cf37861a73fe72c436b2a3c05913d692",
     "contracts/test/risk/A/A034.t.sol": "0a89521b586d2577db45746de078ba692148f33835948dc7609106cf1bce87f6",
     "contracts/test/risk/A/A035.t.sol": "1b134996d40370edbb9fe8fd63035b523d73b088fbe64b1134db956075e36a7d",
@@ -36,12 +36,12 @@
     "contracts/test/risk/A/A037.t.sol": "f8219ba3dd8c75708f540a0e95ba868c6a89cc39deaca8e7860a90159a151bc6",
     "contracts/test/risk/A/A038.t.sol": "674ac307b2208b3d40e30fcb1d6e8a12e043f22a105843c8d5440c72906983cb",
     "contracts/test/risk/A/A039.t.sol": "c6d778719e61cd524ab48c930bfee0211e69e792120a287724a6cfb6f4d53278",
-    "contracts/test/risk/B/B034.t.sol": "02b3804210261e3e32c21f527e51212bd516ce995f30ad4efaf1cb29665a7f93",
-    "contracts/test/risk/B/B035.t.sol": "87e20d80d7355ba0590045e0f3f938631aafb0d089eb6a316f0c554923f39781",
-    "contracts/test/risk/B/B036.t.sol": "6e05fa6f3a737c7ba857f8900240b71550c619d551b57fac78a70defed21934b",
-    "contracts/test/risk/B/B037.t.sol": "66795ca0b26d59c25c1bc14ba6a14c02dd2968c3fce2a2288f2e163a76a7c8e4",
-    "contracts/test/risk/B/B038.t.sol": "17ed75b4ad3417f976202ff75fc1624dadc389dd0fa9c7ab6739016b4e0ed771",
-    "contracts/test/risk/B/B039.t.sol": "aca61dbca7b3388ebcf57c3de1e2bfbbbcfe4a8703ecf65c177e275b8cc240a0"
+    "contracts/test/risk/B/B034.t.sol": "b6fed5b85a23bdebc7e9e97a188dee2123508bc6b3c7ddf7c3de0ff8587269d5",
+    "contracts/test/risk/B/B035.t.sol": "c6c59ce00f3dcead6fc59045a69d2a1dddb34597df10e2df56412b35366e24fa",
+    "contracts/test/risk/B/B036.t.sol": "57f844c9d3bae246c3c1f801eac32f7d13d42f34cea14ec022da8464c9f5d5fe",
+    "contracts/test/risk/B/B037.t.sol": "5a93b855eb497178250cf292a0bfd659182bd820e608a4a82e372264b809ef01",
+    "contracts/test/risk/B/B038.t.sol": "b0a0bf03be7cf399c5a4c47c415e059d64187723471d50ff7fa91e4b994c2e56",
+    "contracts/test/risk/B/B039.t.sol": "5c2be06f1759975b4b467fcf937c71c1a4bc74ca4f094924c0c93b21cba3c46f"
   },
   "components": {
     "lane_a": "real",
@@ -65,135 +65,135 @@
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "A034"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A034.t.sol:A034Test\": {\"duration\": \"31ms 561\\u00c2\\u00b5s 800ns\", \"test_results\": {\"testSnapshotIncludesFlatCashAndRetriesOnce()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1649843}}, \"duration\": \"4ms 782\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA034: passed; 1 tests; artifacts/tasks/A034.json\n"
+      "output": "{\"test/risk/A/A034.t.sol:A034Test\": {\"duration\": \"1ms 219\\u00b5s 375ns\", \"test_results\": {\"testSnapshotIncludesFlatCashAndRetriesOnce()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1649843}}, \"duration\": \"365\\u00b5s 334ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA034: passed; 1 tests; artifacts/tasks/A034.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "A035"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A035.t.sol:A035Test\": {\"duration\": \"16ms 287\\u00c2\\u00b5s 200ns\", \"test_results\": {\"testAllOutcomeClaimsPreparedBeforeEnabled()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 4770912}}, \"duration\": \"10ms 529\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}, \"testFinalPriceAndPartialEscrowDoNotEnableClaims()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1479765}}, \"duration\": \"4ms 390\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA035: passed; 2 tests; artifacts/tasks/A035.json\n"
+      "output": "{\"test/risk/A/A035.t.sol:A035Test\": {\"duration\": \"1ms 611\\u00b5s 833ns\", \"test_results\": {\"testAllOutcomeClaimsPreparedBeforeEnabled()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 4770912}}, \"duration\": \"735\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"testFinalPriceAndPartialEscrowDoNotEnableClaims()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1479765}}, \"duration\": \"345\\u00b5s 959ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA035: passed; 2 tests; artifacts/tasks/A035.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "A036"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A036.t.sol:A036Test\": {\"duration\": \"8ms 903\\u00c2\\u00b5s 100ns\", \"test_results\": {\"testBaselineCannotEnableRecoveryAndRatioFloors()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1656467}}, \"duration\": \"2ms 16\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"testCappedBackstopBecomesRealCustodyBeforeListedRecovery()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 11079210}}, \"duration\": \"3ms 98\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA036: passed; 2 tests; artifacts/tasks/A036.json\n"
+      "output": "{\"test/risk/A/A036.t.sol:A036Test\": {\"duration\": \"1ms 650\\u00b5s 83ns\", \"test_results\": {\"testBaselineCannotEnableRecoveryAndRatioFloors()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1656467}}, \"duration\": \"346\\u00b5s 584ns\", \"gas_snapshots\": {}}, \"testCappedBackstopBecomesRealCustodyBeforeListedRecovery()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 11079210}}, \"duration\": \"601\\u00b5s 792ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA036: passed; 2 tests; artifacts/tasks/A036.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "A037"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A037.t.sol:A037Test\": {\"duration\": \"7ms 373\\u00c2\\u00b5s 700ns\", \"test_results\": {\"testBlockedRecipientDoesNotBlockOthersOrLoseClaim()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2525971}}, \"duration\": \"2ms 584\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA037: passed; 1 tests; artifacts/tasks/A037.json\n"
+      "output": "{\"test/risk/A/A037.t.sol:A037Test\": {\"duration\": \"1ms 339\\u00b5s 333ns\", \"test_results\": {\"testBlockedRecipientDoesNotBlockOthersOrLoseClaim()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2525971}}, \"duration\": \"469\\u00b5s 916ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA037: passed; 1 tests; artifacts/tasks/A037.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "A038"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A038.t.sol:A038Test\": {\"duration\": \"9ms 505\\u00c2\\u00b5s 200ns\", \"test_results\": {\"testLpExitPreservesUserAndFractionalKeeperLiabilities()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2996993}}, \"duration\": \"4ms 599\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA038: passed; 1 tests; artifacts/tasks/A038.json\n"
+      "output": "{\"test/risk/A/A038.t.sol:A038Test\": {\"duration\": \"1ms 505\\u00b5s 459ns\", \"test_results\": {\"testLpExitPreservesUserAndFractionalKeeperLiabilities()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2996993}}, \"duration\": \"656\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA038: passed; 1 tests; artifacts/tasks/A038.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "A039"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/A/A039.t.sol:A039Test\": {\"duration\": \"365ms 223\\u00c2\\u00b5s 600ns\", \"test_results\": {\"testFuzzPageSizesAndClaimOrder(uint8,bool,uint64)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"gas\": 1879604, \"stipend\": 21484}, \"runs\": 1000, \"mean_gas\": 1886241, \"median_gas\": 1860088, \"failed_corpus_replays\": 0}}, \"duration\": \"361ms 829\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA039: passed; 1 tests; artifacts/tasks/A039.json\n"
+      "output": "{\"test/risk/A/A039.t.sol:A039Test\": {\"duration\": \"86ms 249\\u00b5s 834ns\", \"test_results\": {\"testFuzzPageSizesAndClaimOrder(uint8,bool,uint64)\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Fuzz\": {\"first_case\": {\"gas\": 1881596, \"stipend\": 21496}, \"runs\": 1000, \"mean_gas\": 1886422, \"median_gas\": 1860088, \"failed_corpus_replays\": 0}}, \"duration\": \"85ms 388\\u00b5s 500ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA039: passed; 1 tests; artifacts/tasks/A039.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "B034"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B034.t.sol:B034Test\": {\"duration\": \"15ms 303\\u00c2\\u00b5s 200ns\", \"test_results\": {\"test_accrualCutoffUsesEpochAndRollover()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 450455}}, \"duration\": \"1ms 891\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_constantWorkFinality()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 16880765}}, \"duration\": \"11ms 865\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_earlyHaltOnceAndIdempotent()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 519140}}, \"duration\": \"1ms 887\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_failedDeliveryNotDropped()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 557734}}, \"duration\": \"1ms 607\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_haltDuringRolloverUsesFrozenCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 450359}}, \"duration\": \"1ms 544\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}, \"test_onlyZeroOrOneY()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 68150}}, \"duration\": \"1ms 493\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_scheduledHaltPermissionlessAtT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 416247}}, \"duration\": \"1ms 591\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_settleLatchesOnceSameIdempotentConflictReverts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 614836}}, \"duration\": \"1ms 773\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}, \"test_unauthorizedActorsFail()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 252510}}, \"duration\": \"947\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB034: passed; 9 tests; artifacts/tasks/B034.json\n"
+      "output": "{\"test/risk/B/B034.t.sol:B034Test\": {\"duration\": \"3ms 193\\u00b5s 542ns\", \"test_results\": {\"test_accrualCutoffUsesEpochAndRollover()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 450455}}, \"duration\": \"77\\u00b5s 750ns\", \"gas_snapshots\": {}}, \"test_constantWorkFinality()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 16880765}}, \"duration\": \"2ms 105\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"test_earlyHaltOnceAndIdempotent()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 519140}}, \"duration\": \"130\\u00b5s 167ns\", \"gas_snapshots\": {}}, \"test_failedDeliveryNotDropped()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 557734}}, \"duration\": \"101\\u00b5s 667ns\", \"gas_snapshots\": {}}, \"test_haltDuringRolloverUsesFrozenCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 450359}}, \"duration\": \"87\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_onlyZeroOrOneY()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 68150}}, \"duration\": \"32\\u00b5s 167ns\", \"gas_snapshots\": {}}, \"test_scheduledHaltPermissionlessAtT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 416247}}, \"duration\": \"167\\u00b5s 583ns\", \"gas_snapshots\": {}}, \"test_settleLatchesOnceSameIdempotentConflictReverts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 614836}}, \"duration\": \"196\\u00b5s 208ns\", \"gas_snapshots\": {}}, \"test_unauthorizedActorsFail()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 252510}}, \"duration\": \"163\\u00b5s 542ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB034: passed; 9 tests; artifacts/tasks/B034.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "B035"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B035.t.sol:B035Test\": {\"duration\": \"7s 653ms 964\\u00c2\\u00b5s 200ns\", \"test_results\": {\"test_completeWindowCapturedOnceAtT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 727192884}}, \"duration\": \"7s 652ms 299\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidWaitsForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 19436871}}, \"duration\": \"3ms 641\\u00c2\\u00b5s 700ns\", \"gas_snapshots\": {}}, \"test_incompleteNewListingFallbackAfterGrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 726408684}}, \"duration\": \"7s 585ms 431\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_legacyListingBlockedNeverFallback()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 726147650}}, \"duration\": \"7s 493ms 443\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}, \"test_listingHorizonBoundary()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 18269692}}, \"duration\": \"4ms 544\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_postHaltSamplesDoNotResumeRisk()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 43138931}}, \"duration\": \"29ms 935\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB035: passed; 6 tests; artifacts/tasks/B035.json\n"
+      "output": "{\"test/risk/B/B035.t.sol:B035Test\": {\"duration\": \"509ms 127\\u00b5s 708ns\", \"test_results\": {\"test_completeWindowCapturedOnceAtT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 727192884}}, \"duration\": \"502ms 845\\u00b5s 333ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidWaitsForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 19436871}}, \"duration\": \"804\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_incompleteNewListingFallbackAfterGrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 726408684}}, \"duration\": \"508ms 578\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"test_legacyListingBlockedNeverFallback()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 726147650}}, \"duration\": \"501ms 921\\u00b5s 42ns\", \"gas_snapshots\": {}}, \"test_listingHorizonBoundary()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 18269692}}, \"duration\": \"632\\u00b5s 708ns\", \"gas_snapshots\": {}}, \"test_postHaltSamplesDoNotResumeRisk()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 43138931}}, \"duration\": \"5ms 177\\u00b5s 667ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB035: passed; 6 tests; artifacts/tasks/B035.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "B036"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B036.t.sol:B036Test\": {\"duration\": \"16s 811ms 867\\u00c2\\u00b5s 100ns\", \"test_results\": {\"test_callbacksDoNoAccountWork()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 500235}}, \"duration\": \"895\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_claimsNeedReconciledLiabilities()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 894605}}, \"duration\": \"1ms 271\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"test_invalidPricePendingBlocksPayouts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 706050681}}, \"duration\": \"16s 808ms 147\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_jobsNeedHaltAndBounds()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 443037}}, \"duration\": \"1ms 37\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_jobsRetryAfterInterruption()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1041621}}, \"duration\": \"2ms 198\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"test_phasesDistinct()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1240955}}, \"duration\": \"1ms 555\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB036: passed; 6 tests; artifacts/tasks/B036.json\n"
+      "output": "{\"test/risk/B/B036.t.sol:B036Test\": {\"duration\": \"483ms 86\\u00b5s 292ns\", \"test_results\": {\"test_callbacksDoNoAccountWork()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 500235}}, \"duration\": \"90\\u00b5s 84ns\", \"gas_snapshots\": {}}, \"test_claimsNeedReconciledLiabilities()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 894605}}, \"duration\": \"148\\u00b5s 417ns\", \"gas_snapshots\": {}}, \"test_invalidPricePendingBlocksPayouts()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 706050681}}, \"duration\": \"481ms 994\\u00b5s 417ns\", \"gas_snapshots\": {}}, \"test_jobsNeedHaltAndBounds()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 443037}}, \"duration\": \"99\\u00b5s 167ns\", \"gas_snapshots\": {}}, \"test_jobsRetryAfterInterruption()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1041621}}, \"duration\": \"216\\u00b5s 41ns\", \"gas_snapshots\": {}}, \"test_phasesDistinct()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1240955}}, \"duration\": \"280\\u00b5s 459ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB036: passed; 6 tests; artifacts/tasks/B036.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "B037"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B037.t.sol:B037Test\": {\"duration\": \"11ms 762\\u00c2\\u00b5s 900ns\", \"test_results\": {\"test_deliveryRetriesAndDuplicates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 592767}}, \"duration\": \"1ms 481\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_earlyBinaryDoesNotWaitForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 903750}}, \"duration\": \"1ms 773\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidStaysPending()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 516477}}, \"duration\": \"1ms 272\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}, \"test_enumMappingRows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 485183}}, \"duration\": \"1ms 275\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}, \"test_oiIncludesReserveAndConvertsExplicitly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 456037}}, \"duration\": \"1ms 244\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_onlyPinnedOracle()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 60315}}, \"duration\": \"1ms 111\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"test_scheduledLateKeeperClock()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 416386}}, \"duration\": \"358\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB037: passed; 7 tests; artifacts/tasks/B037.json\n"
+      "output": "{\"test/risk/B/B037.t.sol:B037Test\": {\"duration\": \"1ms 314\\u00b5s 875ns\", \"test_results\": {\"test_deliveryRetriesAndDuplicates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 592767}}, \"duration\": \"125\\u00b5s 459ns\", \"gas_snapshots\": {}}, \"test_earlyBinaryDoesNotWaitForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 903750}}, \"duration\": \"140\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidStaysPending()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 516477}}, \"duration\": \"89\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_enumMappingRows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 485183}}, \"duration\": \"120\\u00b5s 417ns\", \"gas_snapshots\": {}}, \"test_oiIncludesReserveAndConvertsExplicitly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 456037}}, \"duration\": \"147\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_onlyPinnedOracle()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 60315}}, \"duration\": \"113\\u00b5s 292ns\", \"gas_snapshots\": {}}, \"test_scheduledLateKeeperClock()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 416386}}, \"duration\": \"156\\u00b5s 250ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB037: passed; 7 tests; artifacts/tasks/B037.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "B038"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B038.t.sol:B038Test\": {\"duration\": \"14ms 15\\u00c2\\u00b5s 200ns\", \"test_results\": {\"test_baselineDisabled()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 72434}}, \"duration\": \"764\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_cashFirstLocksOutConversion()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 123027}}, \"duration\": \"752\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_modesMutuallyExclusive()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 145984}}, \"duration\": \"774\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_noTokenPathAfterCashClaim()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 112990}}, \"duration\": \"789\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_noTokenPathWithUnderbacking()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 110436}}, \"duration\": \"837\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}, \"test_oracleFinalNotClaimableWithoutReadiness()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 325975}}, \"duration\": \"327\\u00c2\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB038: passed; 6 tests; artifacts/tasks/B038.json\n"
+      "output": "{\"test/risk/B/B038.t.sol:B038Test\": {\"duration\": \"1ms 252\\u00b5s 792ns\", \"test_results\": {\"test_baselineDisabled()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 72434}}, \"duration\": \"62\\u00b5s 625ns\", \"gas_snapshots\": {}}, \"test_cashFirstLocksOutConversion()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 123027}}, \"duration\": \"104\\u00b5s 375ns\", \"gas_snapshots\": {}}, \"test_modesMutuallyExclusive()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 145984}}, \"duration\": \"56\\u00b5s 541ns\", \"gas_snapshots\": {}}, \"test_noTokenPathAfterCashClaim()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 112990}}, \"duration\": \"67\\u00b5s 84ns\", \"gas_snapshots\": {}}, \"test_noTokenPathWithUnderbacking()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 110436}}, \"duration\": \"58\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_oracleFinalNotClaimableWithoutReadiness()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 325975}}, \"duration\": \"139\\u00b5s 750ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB038: passed; 6 tests; artifacts/tasks/B038.json\n"
     },
     {
       "argv": [
-        "C:/Program Files/Git/usr/bin/bash",
+        "/bin/bash",
         "scripts/check-task.sh",
         "B039"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B039.t.sol:B039Test\": {\"duration\": \"19s 415ms 895\\u00c2\\u00b5s 800ns\", \"test_results\": {\"test_duplicateDeliveryAndReplayNoSecondEffect()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1122107}}, \"duration\": \"4ms 302\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_earlyInvalidDelayedWindowThenCapture()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 706544693}}, \"duration\": \"19s 411ms 338\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_haltBeforeOrAfterRollSameCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 21043838}}, \"duration\": \"7ms 793\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_haltDuringRolloverKeepsFrozenCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 537153}}, \"duration\": \"3ms 238\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_scheduledPathStatuses()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 917956}}, \"duration\": \"2ms 874\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}, \"test_staleHistoryUsesDisclosedFallbackOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 707189672}}, \"duration\": \"16s 791ms 535\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}, \"test_transientPreparationIssueKeepsOutcome()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 965286}}, \"duration\": \"2ms 900\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB039: passed; 7 tests; artifacts/tasks/B039.json\n"
+      "output": "{\"test/risk/B/B039.t.sol:B039Test\": {\"duration\": \"491ms 176\\u00b5s 666ns\", \"test_results\": {\"test_duplicateDeliveryAndReplayNoSecondEffect()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 1122107}}, \"duration\": \"200\\u00b5s 791ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidDelayedWindowThenCapture()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 706544693}}, \"duration\": \"488ms 778\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_haltBeforeOrAfterRollSameCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 21043838}}, \"duration\": \"756\\u00b5s 833ns\", \"gas_snapshots\": {}}, \"test_haltDuringRolloverKeepsFrozenCutoff()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 537153}}, \"duration\": \"126\\u00b5s 709ns\", \"gas_snapshots\": {}}, \"test_scheduledPathStatuses()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 917956}}, \"duration\": \"137\\u00b5s 83ns\", \"gas_snapshots\": {}}, \"test_staleHistoryUsesDisclosedFallbackOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 707189672}}, \"duration\": \"490ms 59\\u00b5s 875ns\", \"gas_snapshots\": {}}, \"test_transientPreparationIssueKeepsOutcome()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 965286}}, \"duration\": \"224\\u00b5s 292ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nB039: passed; 7 tests; artifacts/tasks/B039.json\n"
     },
     {
       "argv": [
@@ -206,7 +206,7 @@
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/gates/G6.t.sol:G6Test\":{\"duration\":\"2s 396ms 271\u00c2\u00b5s 200ns\",\"test_results\":{\"test_NO_pages1_aliceFirst_lpRedeemsBeforeClaims()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":70585171}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"105ms 887\u00c2\u00b5s 300ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_YES_pages32_bobFirst()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":70106318}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"91ms 427\u00c2\u00b5s 400ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_earlyINVALID_missingDataFallback()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":346329387}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"2s 359ms 114\u00c2\u00b5s 300ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_earlyINVALID_waitsThenCapturesTwap()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":346869295}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"2s 388ms 641\u00c2\u00b5s 400ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_feeFractionStaysClassified()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":72845098}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"139ms 780\u00c2\u00b5s 400ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_finalityIsConstantWork()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":157360832}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"328ms 686\u00c2\u00b5s\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]}}\n"
+      "output": "{\"test/gates/G6.t.sol:G6Test\":{\"duration\":\"214ms 613\u00b5s 458ns\",\"test_results\":{\"test_NO_pages1_aliceFirst_lpRedeemsBeforeClaims()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":70585171}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"16ms 40\u00b5s 459ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_YES_pages32_bobFirst()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":70106318}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"12ms 886\u00b5s 83ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_earlyINVALID_missingDataFallback()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":346329387}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"208ms 737\u00b5s 709ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_earlyINVALID_waitsThenCapturesTwap()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":346869295}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"212ms 798\u00b5s 833ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_feeFractionStaysClassified()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":72845098}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"20ms 587\u00b5s 42ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_finalityIsConstantWork()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":157360832}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"43ms 496\u00b5s 41ns\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]}}\n"
     }
   ],
   "test_count": 55,

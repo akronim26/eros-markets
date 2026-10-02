@@ -14,12 +14,12 @@
   "harness_runtime_bytes": 34895,
   "harness_code_size_limit": 1000000,
   "production_composition_size": "real counterpart composition and chain deployment measurement pending",
-  "source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+  "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
   "toolchain": {
-    "python": "3.12.10",
-    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",
+    "python": "3.13.13",
+    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:34:23.361078000Z (1789468463)\nBuild Profile: dist",
     "solc_declared": "0.8.30",
     "foundry_profile": "risk",
-    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69)"
   }
 }
