@@ -12,11 +12,25 @@
         "viem": "2.57.2",
       },
     },
+    "packages/oracle-cli": {
+      "name": "@eros-oracle/oracle-cli",
+      "version": "0.1.0",
+      "bin": {
+        "oracle-cli": "src/cli.ts",
+      },
+      "dependencies": {
+        "@eros-oracle/feedspec": "workspace:*",
+        "viem": "2.57.2",
+        "zod": "4.6.5",
+      },
+    },
   },
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
 
     "@eros-oracle/feedspec": ["@eros-oracle/feedspec@workspace:packages/feedspec"],
+
+    "@eros-oracle/oracle-cli": ["@eros-oracle/oracle-cli@workspace:packages/oracle-cli"],
 
     "@noble/ciphers": ["@noble/ciphers@1.3.0", "", {}, "sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw=="],
 
@@ -41,5 +55,7 @@
     "viem": ["viem@2.57.2", "", { "dependencies": { "@noble/curves": "1.9.1", "@noble/hashes": "1.8.0", "@scure/bip32": "1.7.0", "@scure/bip39": "1.6.0", "abitype": "1.2.3", "isows": "1.0.7", "ox": "0.14.45", "ws": "8.21.0" }, "peerDependencies": { "typescript": ">=5.0.4" }, "optionalPeers": ["typescript"] }, "sha512-ZbPvu+5fvRsbFh+OymDz0GyEySsSco8GWrEAiHM4ckhEY1vJTPy0tcLVkn0cs70dPiUOjLxkQBnfVyt9YkJ7cA=="],
 
     "ws": ["ws@8.21.0", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g=="],
+
+    "zod": ["zod@4.6.5", "", {}, "sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q=="],
   }
 }
