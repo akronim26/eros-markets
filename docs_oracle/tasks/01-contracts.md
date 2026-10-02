@@ -178,11 +178,12 @@ Plan §13: owner OA · 1.5 PD · depends O02 · acceptance: A2 suite + extended 
 - Depends: O02.2
 - Plan: §6.7, D1, D14, B.4, B.5, C.1, ADJ-23
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/venues/UmaAdapter.sol, oracle/src/venues/ErosSandboxOracle.sol, oracle/test/unit/ErosSandboxOracle.t.sol
 - Build: Add B.4 and B.5 (forge-fmt clean as given), with the `arbitrary-send-erc20` lint comment and reason from C.1. ErosSandboxOracle says TESTNET ONLY in its NatSpec.
 - Done when: sandbox unit tests pass (owner-only answer, one answer per request, non-requester ignored, `setRequester` one-shot).
 - Check: cd oracle && forge test --match-path test/unit/ErosSandboxOracle.t.sol
+- Notes: Both files are the plan's B.4/B.5 code byte for byte (extracted from the plan and checked), `forge fmt` clean as given; the only addition is the C.1 `arbitrary-send-erc20` suppression with its reason above the two `safeTransferFrom` calls in UmaAdapter (`forge lint` reports none afterwards). B.5 already says TESTNET ONLY in its title. `setRequester` keeps the `AlreadyAnswered` error (ADJ-23). The request id is recomputed in the test from its B.5 definition. UmaAdapter is tested against real UMA in O13.2/O13.3. 12 sandbox mutations caught.
 
 ### O13.2 · Real-UMA integration suite (A2)
 - Owner: OA
