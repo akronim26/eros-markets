@@ -9,6 +9,7 @@
     "backing floor: page-by-page A floor sweep; endpoint-deficit account taken over, fully backed kept; no trade or release during the sweep; reconciled; clearing and cushion zero",
     "halt before rollover begins, after begin, mid pages, after all pages: economicHaltAt = actual halt time, accrual cutoff = epoch end, no live mutation, snapshot completes with zero clearing"
   ],
+  "review_regressions": ["test/reviews/A043IntegrationReview.t.sol: authoritative halt epoch at early, scheduled and mid-rollover freeze", "test/reviews/PreActivationExit.t.sol: never-activated terminal path and clocks", "test/reviews/A043BReview.t.sol: actual waived liquidation fee reporting"],
   "frozen_for_W6": "snapshot/payout job ports: IAccountingPort._acctPrepareSnapshotChunk/_acctPreparePayoutChunk/_acctFinishPreparation on A SnapshotLedger/PayoutLedger/ReserveClaims",
   "mocks": ["book: MockBookAdapter (forced IOC through the same B hooks)", "price source: test-fed observations", "oracle: MockResolutionAuthority", "token: MockUSDC"]
 }

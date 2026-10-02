@@ -97,7 +97,9 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         _touch(req.trader);
         TakerDecision memory d = _takerDecision(
             _actionCtx,
-            TakerInput(req.trader, req.side == MathTypes.Side.BUY, req.limitTick, req.requestedLots, req.reduceOnly)
+            TakerInput(
+                req.trader, req.side == MathTypes.Side.BUY, req.limitTick, req.requestedLots, req.reduceOnly
+            )
         );
         p.localPermitId = ++_permitSeq;
         p.trader = req.trader;
@@ -131,8 +133,9 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
     }
 
     /// @dev Posting route: ordinary fills via `_acctPostFill`; liquidation overrides for forced fills.
-    function _postFillDelta(FillDelta memory d, bool) internal virtual {
+    function _postFillDelta(FillDelta memory d, bool) internal virtual returns (uint256) {
         _acctPostFill(d);
+        return d.takerFeeQ;
     }
 
     /// @notice Reduce-only permit for a liquidation IOC: clipped to |x|, opposite side, no IM test
@@ -200,7 +203,19 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             if (!ok) return _stop(RejectCode.TAKER_CAPACITY);
             f.takerFeeQ = fee;
         }
-        (bool takerCapOk, bool makerCapOk, bool marketOk) = _preflight(f);
+        if (
+            maker.reduceOnly
+                && !_voluntaryReductionAllowed(
+                    f.maker, !f.takerBuys, f.lots, f.makerTick, f.makerFeeQ, _actionCtx
+                )
+        ) return _prune(maker, false, RejectCode.MAKER_BELOW_MM);
+        if (
+            permit.mode == AdmissionMode.VOLUNTARY_REDUCTION
+                && !_voluntaryReductionAllowed(
+                    f.taker, f.takerBuys, f.lots, f.makerTick, f.takerFeeQ, _actionCtx
+                )
+        ) return _stop(RejectCode.TAKER_CAPACITY);
+        (bool takerCapOk, bool makerCapOk, bool marketOk) = _preflight(f, permit.reduceOnly, maker.reduceOnly);
         if (!makerCapOk) return _prune(maker, true, RejectCode.ACCOUNT_DEFICIT_CAP);
         if (!takerCapOk) return _stop(RejectCode.TAKER_CAPACITY);
         if (!marketOk) return _stop(RejectCode.MARKET_COVERAGE); // conservative stop, maker kept
@@ -228,10 +243,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         f.takerFeeQ = _tradeFeeQ(lots, maker.tick, false);
         f.makerFeeQ = _tradeFeeQ(lots, maker.tick, true);
         // Fee caps are consumed pro rata to the filled share (assumption M-11).
-        f.takerPermitFeeUsedQ = permit.remainingFeeCapQ
-            - permit.remainingFeeCapQ * (permit.remainingLots - lots) / permit.remainingLots;
-        f.makerFeeCapUsedQ = maker.remainingFeeCapQ
-            - maker.remainingFeeCapQ * (maker.remainingLots - lots) / maker.remainingLots;
+        f.takerPermitFeeUsedQ = permit.remainingFeeCapQ - permit.remainingFeeCapQ
+            * (permit.remainingLots - lots) / permit.remainingLots;
+        f.makerFeeCapUsedQ = maker.remainingFeeCapQ - maker.remainingFeeCapQ * (maker.remainingLots - lots)
+            / maker.remainingLots;
     }
 
     /// @dev Reservations are consumed first, so Person A's paired posting (A026 `_pairedFill`)
@@ -241,7 +256,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         _resConsumeFill(f.maker, maker.side == MathTypes.Side.BUY, maker.tick, f.lots, f.makerFeeCapUsedQ);
         _permitConsume(f.taker, f.takerBuys, permit.limitTick, f.lots, f.takerPermitFeeUsedQ);
         _acctReplaceContribution(f.taker, _combined(f.taker));
-        _postFillDelta(
+        f.takerFeeQ = _postFillDelta(
             FillDelta(f.maker, f.taker, f.takerBuys, f.lots, f.makerTick, f.makerFeeQ, f.takerFeeQ),
             permit.mode == AdmissionMode.FORCED_REDUCTION
         );

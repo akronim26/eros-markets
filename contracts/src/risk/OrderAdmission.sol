@@ -5,6 +5,7 @@ import {Stage, AccountingState, AdmissionMode, RejectCode} from "../math/RiskTyp
 import {MathTypes} from "../math/MathTypes.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
 import {MarginMath} from "../math/MarginMath.sol";
+import {LiquidationMath} from "../math/LiquidationMath.sol";
 import {LifecycleMath} from "../math/LifecycleMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
 import {MonitorPolicy} from "./MonitorPolicy.sol";
@@ -59,8 +60,8 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
         return OA.Pricing(c.markWad, c.secsToT, c.economicTime);
     }
 
-    function _account(uint32 trader) internal view returns (OA.Account memory) {
-        AccountView memory a = _acctAccount(trader);
+    function _account(uint32 trader, uint64 atTime) internal view returns (OA.Account memory) {
+        AccountView memory a = _acctPreviewAccount(trader, atTime);
         return OA.Account(a.cashQ, a.lots);
     }
 
@@ -117,7 +118,7 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
     {
         d.reason = _gate(c, t);
         if (d.reason != RejectCode.NONE) return d;
-        AccountView memory acct = _acctAccount(t.trader);
+        AccountView memory acct = _acctPreviewAccount(t.trader, c.economicTime);
         uint64 want = t.requestedLots;
         if (t.reduceOnly) {
             want = uint64(OA.reduceOnlyCap(acct.lots, t.isBid, want));
@@ -173,22 +174,25 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
     {
         OA.OrderSums memory trial =
             _withExtra(t.trader, t.isBid, t.limitTick, lots, _feeCapQ(lots, t.limitTick));
-        OA.CoverageInput memory cov = _acctCoverage(t.trader, trial, 0, 0);
+        OA.CoverageInput memory cov = _acctPreviewCoverage(t.trader, trial, 0, 0, c.economicTime);
         if (!cov.marketOk) return (false, RejectCode.MARKET_COVERAGE);
-        if (cov.d0Q > cov.deficitCapQ || cov.d1Q > cov.deficitCapQ) {
-            return (false, RejectCode.ACCOUNT_DEFICIT_CAP);
-        }
         if (t.reduceOnly) {
             // Reduction: never raise either endpoint deficit versus the current commitment set.
-            OA.CoverageInput memory base = _acctCoverage(t.trader, _combined(t.trader), 0, 0);
+            OA.CoverageInput memory base =
+                _acctPreviewCoverage(t.trader, _combined(t.trader), 0, 0, c.economicTime);
             if (cov.d0Q <= base.d0Q && cov.d1Q <= base.d1Q) return (true, RejectCode.NONE);
             return (false, RejectCode.TAKER_CAPACITY);
+        }
+        if (cov.d0Q > cov.deficitCapQ || cov.d1Q > cov.deficitCapQ) {
+            return (false, RejectCode.ACCOUNT_DEFICIT_CAP);
         }
         if (_backedOnly(c)) {
             if (cov.d0Q == 0 && cov.d1Q == 0) return (true, RejectCode.NONE);
             return (false, RejectCode.TAKER_CAPACITY);
         }
-        return OA.admit(_account(t.trader), trial, _pricing(c), _effectiveParams(c.economicTime), cov);
+        return OA.admit(
+            _account(t.trader, c.economicTime), trial, _pricing(c), _effectiveParams(c.economicTime), cov
+        );
     }
 
     // ------------------------------------------------------------------ permit bookkeeping
@@ -230,11 +234,11 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
             d.reason = RejectCode.STALE_ORDER;
             return d;
         }
-        AccountView memory acct = _acctAccount(mi.owner);
+        AccountView memory acct = _acctPreviewAccount(mi.owner, c.economicTime);
         if (mi.reduceOnly) return _reduceOnlyMaker(acct, mi);
         d.allowedLots = mi.proposed;
         OA.OrderSums memory rest = _resSums(mi.owner);
-        OA.CoverageInput memory cov = _acctCoverage(mi.owner, rest, 0, 0);
+        OA.CoverageInput memory cov = _acctPreviewCoverage(mi.owner, rest, 0, 0, c.economicTime);
         if (_backedOnly(c)) {
             if (cov.d0Q != 0 || cov.d1Q != 0) {
                 (d.prune, d.cancelAll, d.reason) = (true, true, RejectCode.MAKER_BELOW_IM);
@@ -296,6 +300,53 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
         return x >= 0 ? uint256(x) : uint256(-x);
     }
 
+    function _voluntaryReductionAllowed(
+        uint32 trader,
+        bool buys,
+        uint64 lots,
+        uint16 tick,
+        uint256 feeQ,
+        RiskContext memory context
+    ) internal view returns (bool) {
+        AccountView memory accountBefore = _acctAccount(trader);
+        int256 lotChange = buys ? int256(uint256(lots)) : -int256(uint256(lots));
+        int256 cashChange = int256(uint256(lots) * tick * 1e18);
+        int256 cashAfter = accountBefore.cashQ + (buys ? -cashChange : cashChange) - int256(feeQ);
+        int256 lotsAfter = accountBefore.lots + lotChange;
+        if (_absLots(lotsAfter) >= _absLots(accountBefore.lots)) return false;
+        if (lotsAfter != 0 && (lotsAfter > 0) != (accountBefore.lots > 0)) return false;
+        if (!context.markOk) {
+            (int256 endpointNo, int256 endpointYes) = MarginMath.endpoints(cashAfter, lotsAfter);
+            return endpointNo >= 0 && endpointYes >= 0;
+        }
+        return LiquidationMath.allowedReduction(
+            _reductionSnapshot(accountBefore.cashQ, accountBefore.lots, context),
+            _reductionSnapshot(cashAfter, lotsAfter, context)
+        );
+    }
+
+    function _reductionSnapshot(int256 cashQ, int256 lots, RiskContext memory context)
+        private
+        view
+        returns (LiquidationMath.Snap memory snapshot)
+    {
+        snapshot.xLots = lots;
+        (snapshot.e0Q, snapshot.e1Q) = MarginMath.endpoints(cashQ, lots);
+        snapshot.emQ = MarginMath.markEquityQ(cashQ, lots, context.markWad);
+        if (lots != 0) {
+            snapshot.mmQ =
+            MarginMath.sideMargin(
+                _absLots(lots),
+                lots > 0,
+                context.markWad,
+                context.secsToT,
+                context.economicTime,
+                _effectiveParams(context.economicTime)
+            )
+            .mmQ;
+        }
+    }
+
     // ------------------------------------------------------------------ fill preflight
 
     struct FillPlan {
@@ -320,6 +371,14 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
         view
         returns (bool takerCapOk, bool makerCapOk, bool marketOk)
     {
+        return _preflight(f, false, false);
+    }
+
+    function _preflight(FillPlan memory f, bool takerReduces, bool makerReduces)
+        internal
+        view
+        returns (bool takerCapOk, bool makerCapOk, bool marketOk)
+    {
         int256 notional = int256(uint256(f.lots) * f.makerTick * 1e18);
         int256 dx = f.takerBuys ? int256(uint256(f.lots)) : -int256(uint256(f.lots));
         OA.OrderSums memory ts = _combined(f.taker);
@@ -330,8 +389,22 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
             OA.removeOrder(_resSums(f.maker), !f.takerBuys, f.lots, f.makerTick, f.makerFeeCapUsedQ);
         OA.CoverageInput memory mc =
             _acctCoverage(f.maker, ms, (f.takerBuys ? notional : -notional) - int256(f.makerFeeQ), -dx);
-        takerCapOk = tc.d0Q <= tc.deficitCapQ && tc.d1Q <= tc.deficitCapQ;
-        makerCapOk = mc.d0Q <= mc.deficitCapQ && mc.d1Q <= mc.deficitCapQ;
+        takerCapOk = _withinCapOrReducing(f.taker, _combined(f.taker), tc, takerReduces);
+        makerCapOk = _withinCapOrReducing(f.maker, _resSums(f.maker), mc, makerReduces);
         marketOk = tc.marketOk && mc.marketOk;
+    }
+
+    function _withinCapOrReducing(
+        uint32 trader,
+        OA.OrderSums memory sums,
+        OA.CoverageInput memory afterCoverage,
+        bool reduces
+    ) private view returns (bool) {
+        if (!reduces) {
+            return afterCoverage.d0Q <= afterCoverage.deficitCapQ
+                && afterCoverage.d1Q <= afterCoverage.deficitCapQ;
+        }
+        OA.CoverageInput memory beforeCoverage = _acctCoverage(trader, sums, 0, 0);
+        return afterCoverage.d0Q <= beforeCoverage.d0Q && afterCoverage.d1Q <= beforeCoverage.d1Q;
     }
 }
