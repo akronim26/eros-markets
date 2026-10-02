@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-02T05:17:25.253110+00:00",
-  "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+  "recorded_at": "2026-10-02T07:48:11.664181+00:00",
+  "source_commit": "ba633ed9066fe8d3a0d870bd2bd92c1d5ddbf80e",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.13.13",
@@ -32,9 +32,9 @@
     "contracts/test/gates/G7.t.sol": "a28adc6679727ffb53b78a242be27052f2955991c24f7cf341c5204a1dd03585"
   },
   "components": {
-    "lane_a": "real",
-    "lane_b": "real",
-    "combined": "real",
+    "lane_a": "not_exercised",
+    "lane_b": "not_exercised",
+    "combined": "not_exercised",
     "external_counterparts": "not_exercised"
   },
   "commands": [
@@ -60,7 +60,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/invariant/A/AccountingInvariants.t.sol:AccountingInvariantsTest\": {\"duration\": \"835ms 607\\u00b5s\", \"test_results\": {\"invariantConservationCoverageAndCustody()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Invariant\": {\"runs\": 48, \"calls\": 3072, \"reverts\": 0, \"workers\": 1, \"metrics\": {\"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.liquidation\": {\"calls\": 633, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.sync\": {\"calls\": 607, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.allocation\": {\"calls\": 580, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.rollover\": {\"calls\": 641, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.paired\": {\"calls\": 611, \"reverts\": 0, \"discards\": 0}}, \"failed_corpus_replays\": 0, \"optimization_best_value\": null}}, \"duration\": \"833ms 424\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}, \"test/invariant/A/AccountingInvariants.t.sol:IndependentAccountingTraceTest\": {\"duration\": \"13ms 320\\u00b5s 125ns\", \"test_results\": {\"testIndependentIntegratedTrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35051646}}, \"duration\": \"12ms 397\\u00b5s 375ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA040: passed; 2 tests; artifacts/tasks/A040.json\n"
+      "output": "{\"test/invariant/A/AccountingInvariants.t.sol:AccountingInvariantsTest\": {\"duration\": \"862ms 717\\u00b5s 792ns\", \"test_results\": {\"invariantConservationCoverageAndCustody()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Invariant\": {\"runs\": 48, \"calls\": 3072, \"reverts\": 0, \"workers\": 1, \"metrics\": {\"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.rollover\": {\"calls\": 641, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.allocation\": {\"calls\": 580, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.paired\": {\"calls\": 611, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.liquidation\": {\"calls\": 633, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.sync\": {\"calls\": 607, \"reverts\": 0, \"discards\": 0}}, \"failed_corpus_replays\": 0, \"optimization_best_value\": null}}, \"duration\": \"860ms 338\\u00b5s 417ns\", \"gas_snapshots\": {}}}, \"warnings\": []}, \"test/invariant/A/AccountingInvariants.t.sol:IndependentAccountingTraceTest\": {\"duration\": \"14ms 484\\u00b5s 209ns\", \"test_results\": {\"testIndependentIntegratedTrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35681827}}, \"duration\": \"13ms 507\\u00b5s 458ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA040: passed; 2 tests; artifacts/tasks/A040.json\n"
     },
     {
       "argv": [
@@ -71,7 +71,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/gas/A/AccountingGas.t.sol:AccountingGasTest\": {\"duration\": \"1s 418ms 261\\u00b5s 416ns\", \"test_results\": {\"testGasBounded1024AccountJobs()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"roll_begin_gas: 192410\", \"roll_32_account_max_gas: 4664998\", \"halt_1024_gas: 124277\", \"snapshot_32_account_max_gas: 3597999\", \"trader_claim_gas: 183435\", \"participant_count: 1024\"], \"kind\": {\"Unit\": {\"gas\": 345855821}}, \"duration\": \"150ms 253\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"testGasMathAndActivePremiumTouch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"premium_math_gas: 15057\", \"funding_premium_touch_gas: 310804\"], \"kind\": {\"Unit\": {\"gas\": 69067973}}, \"duration\": \"47ms 390\\u00b5s 208ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA041: passed; 2 tests; artifacts/tasks/A041.json\n"
+      "output": "{\"test/gas/A/AccountingGas.t.sol:AccountingGasTest\": {\"duration\": \"1s 427ms 359\\u00b5s 42ns\", \"test_results\": {\"testGasBounded1024AccountJobs()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"roll_begin_gas: 192708\", \"roll_32_account_max_gas: 4669926\", \"halt_1024_gas: 124277\", \"snapshot_32_account_max_gas: 3599473\", \"trader_claim_gas: 183369\", \"participant_count: 1024\"], \"kind\": {\"Unit\": {\"gas\": 346629248}}, \"duration\": \"155ms 290\\u00b5s 83ns\", \"gas_snapshots\": {}}, \"testGasMathAndActivePremiumTouch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"premium_math_gas: 15057\", \"funding_premium_touch_gas: 311225\"], \"kind\": {\"Unit\": {\"gas\": 69234131}}, \"duration\": \"46ms 636\\u00b5s 750ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA041: passed; 2 tests; artifacts/tasks/A041.json\n"
     },
     {
       "argv": [
@@ -82,7 +82,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/integration/A/CustodyExit.t.sol:CustodyExitTest\": {\"duration\": \"1ms 885\\u00b5s 333ns\", \"test_results\": {\"testAllEntitlementsExitWithoutBorrowingOtherMarket()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 11846304}}, \"duration\": \"978\\u00b5s 42ns\", \"gas_snapshots\": {}}, \"testKeeperWithdrawalKeepsFractionAndOtherMarketLiability()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2747914}}, \"duration\": \"719\\u00b5s 708ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA042: passed; 2 tests; artifacts/tasks/A042.json\n"
+      "output": "{\"test/integration/A/CustodyExit.t.sol:CustodyExitTest\": {\"duration\": \"2ms 57\\u00b5s 291ns\", \"test_results\": {\"testAllEntitlementsExitWithoutBorrowingOtherMarket()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 12168833}}, \"duration\": \"1ms 73\\u00b5s 417ns\", \"gas_snapshots\": {}}, \"testKeeperWithdrawalKeepsFractionAndOtherMarketLiability()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3065725}}, \"duration\": \"783\\u00b5s 458ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA042: passed; 2 tests; artifacts/tasks/A042.json\n"
     },
     {
       "argv": [
@@ -91,95 +91,16 @@
         "A043"
       ],
       "cwd": ".",
-      "exit_code": 0,
+      "exit_code": 2,
       "execution": "subprocess",
-      "output": "{\"status\": \"passed\", \"checks_run\": 37, \"reason\": \"Source-bound A review and regression checks\", \"reviewed_files\": 79, \"command\": [\"forge\", \"test\", \"--match-path\", \"test/reviews/*.t.sol\", \"--json\"], \"exit_code\": 0, \"failure_output\": \"\"}\nA043: passed; 37 tests; artifacts/tasks/A043.json\n"
-    },
-    {
-      "argv": [
-        "/bin/bash",
-        "scripts/check-task.sh",
-        "A044"
-      ],
-      "cwd": ".",
-      "exit_code": 0,
-      "execution": "subprocess",
-      "output": "{\"status\": \"passed\", \"checks_run\": 44, \"reason\": \"Local A evidence assembled; review, gate and counterpart status retained.\"}\nA044: passed; 44 tests; artifacts/tasks/A044.json\n"
-    },
-    {
-      "argv": [
-        "/bin/bash",
-        "scripts/check-task.sh",
-        "B040"
-      ],
-      "cwd": ".",
-      "exit_code": 0,
-      "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 4 tests for test/integration/B/FullLifecycle.t.sol:FullLifecycleTest\n[PASS] test_campaignBootstrapToClaims() (gas: 94331756)\n[PASS] test_conversionStaysDisabled() (gas: 447745)\n[PASS] test_earlyHaltNoPath() (gas: 34272368)\n[PASS] test_earlyInvalidPendingThenCapture() (gas: 709632657)\nSuite result: ok. 4 passed; 0 failed; 0 skipped; finished in 515.69ms (552.41ms CPU time)\n\nRan 1 test suite in 516.19ms (515.69ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)\nNo files changed, compilation skipped\n\nRan 5 tests for test/integration/EndToEnd.t.sol:EndToEndTest\n[PASS] test_e2e_NO_haltMidRollover_pages1_reverseClaims() (gas: 142229525)\n[PASS] test_e2e_YES_haltAtT_pages32() (gas: 144457666)\n[PASS] test_e2e_earlyINVALID_fallback_pages3_reverseClaims() (gas: 405900516)\n[PASS] test_e2e_earlyINVALID_twap_pages7() (gas: 405909849)\n[PASS] test_e2e_step6_shortfallFixtures() (gas: 338376309)\nSuite result: ok. 5 passed; 0 failed; 0 skipped; finished in 333.63ms (926.47ms CPU time)\n\nRan 1 test suite in 333.95ms (333.63ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)\nB040: passed; 2 tests; artifacts/tasks/B040.json\n"
-    },
-    {
-      "argv": [
-        "/bin/bash",
-        "scripts/check-task.sh",
-        "B041"
-      ],
-      "cwd": ".",
-      "exit_code": 0,
-      "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 5 tests for test/gas/B/AdapterGas.t.sol:AdapterGasTest\n[PASS] test_dirtyBook64Examined() (gas: 126590800)\n[PASS] test_liquidationContinuation() (gas: 5476659)\n[PASS] test_observationUpdateConstantWithFullRing() (gas: 505191715)\n[PASS] test_oracleCallbackIndependentOfParticipants() (gas: 103533017)\n[PASS] test_settlementControllerChunk() (gas: 6050626)\nSuite result: ok. 5 passed; 0 failed; 0 skipped; finished in 237.74ms (329.16ms CPU time)\n\nRan 1 test suite in 238.07ms (237.74ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)\nNo files changed, compilation skipped\n\nRan 6 tests for test/gas/integration/EngineGas.t.sol:EngineGasTest\n[PASS] test_gasFloorSweep() (gas: 234708183)\n[PASS] test_gasHaltPreparationClaims() (gas: 203161195)\n[PASS] test_gasInvalidCapture() (gas: 466118578)\n[PASS] test_gasLiquidation() (gas: 382258223)\n[PASS] test_gasRolloverPages() (gas: 222612496)\n[PASS] test_gasTradingAndCustody() (gas: 202090327)\nSuite result: ok. 6 passed; 0 failed; 0 skipped; finished in 418.41ms (1.40s CPU time)\n\nRan 1 test suite in 418.77ms (418.41ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)\nB041: passed; 2 tests; artifacts/tasks/B041.json\n"
-    },
-    {
-      "argv": [
-        "/bin/bash",
-        "scripts/check-task.sh",
-        "B042"
-      ],
-      "cwd": ".",
-      "exit_code": 0,
-      "execution": "subprocess",
-      "output": "TAP version 13\n# Subtest: accounts decode with units, identity and labelled projections\nok 1 - accounts decode with units, identity and labelled projections\n  ---\n  duration_ms: 1.114667\n  ...\n# Subtest: projection does not change the withdrawable amount\nok 2 - projection does not change the withdrawable amount\n  ---\n  duration_ms: 0.113333\n  ...\n# Subtest: markets decode stage, pricing and pending work\nok 3 - markets decode stage, pricing and pending work\n  ---\n  duration_ms: 0.620583\n  ...\n# Subtest: every settlement state is distinct and claimable only with claimsEnabled\nok 4 - every settlement state is distinct and claimable only with claimsEnabled\n  ---\n  duration_ms: 0.108125\n  ...\n# Subtest: oracle finality alone is never claimable\nok 5 - oracle finality alone is never claimable\n  ---\n  duration_ms: 0.040167\n  ...\n# Subtest: unit helpers floor Q to atoms toward negative infinity\nok 6 - unit helpers floor Q to atoms toward negative infinity\n  ---\n  duration_ms: 0.04225\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 40.880541\nB042: passed; 3 tests; artifacts/tasks/B042.json\n"
-    },
-    {
-      "argv": [
-        "/bin/bash",
-        "scripts/check-task.sh",
-        "B043"
-      ],
-      "cwd": ".",
-      "exit_code": 0,
-      "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 3 tests for test/reviews/B043Review.t.sol:B043ReviewTest\n[PASS] test_route13_oiAtHaltIncludesReserve() (gas: 222925708)\n[PASS] test_route2_missingMarkReleaseOnlyIfExactlyBacked() (gas: 46116997)\n[PASS] test_route6_freshnessGapStopsFundingNoRestart() (gas: 93360583)\nSuite result: ok. 3 passed; 0 failed; 0 skipped; finished in 55.75ms (79.67ms CPU time)\n\nRan 1 test suite in 56.04ms (55.75ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)\nB043: passed; 1 tests; artifacts/tasks/B043.json\n"
-    },
-    {
-      "argv": [
-        "/bin/bash",
-        "scripts/check-task.sh",
-        "B044"
-      ],
-      "cwd": ".",
-      "exit_code": 0,
-      "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 1 test for test/integration/ReleaseDefaults.t.sol:ReleaseDefaultsTest\n[PASS] test_initialDeploymentDefaults() (gas: 71539998)\nSuite result: ok. 1 passed; 0 failed; 0 skipped; finished in 13.38ms (12.67ms CPU time)\n\nRan 1 test suite in 13.64ms (13.38ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)\nB044: passed; 1 tests; artifacts/tasks/B044.json\n"
-    },
-    {
-      "argv": [
-        "forge",
-        "test",
-        "--match-path",
-        "test/gates/G7.t.sol",
-        "--json"
-      ],
-      "cwd": "contracts",
-      "exit_code": 0,
-      "execution": "subprocess",
-      "output": "{\"test/gates/G7.t.sol:G7EndToEndTest\":{\"duration\":\"330ms 361\u00b5s 41ns\",\"test_results\":{\"test_e2e_NO_haltMidRollover_pages1_reverseClaims()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":142229525}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"74ms 838\u00b5s 333ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_YES_haltAtT_pages32()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":144457666}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"71ms 627\u00b5s 917ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_earlyINVALID_fallback_pages3_reverseClaims()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":405900516}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"326ms 1\u00b5s 375ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_earlyINVALID_twap_pages7()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":405909849}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"318ms 453\u00b5s 542ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_step6_shortfallFixtures()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":338376309}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"160ms 90\u00b5s 250ns\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]},\"test/gates/G7.t.sol:G7ReleaseDefaultsTest\":{\"duration\":\"22ms 587\u00b5s 833ns\",\"test_results\":{\"test_initialDeploymentDefaults()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":71539998}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"21ms 599\u00b5s 333ns\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]}}\n"
+      "output": "{\"status\": \"pending_peer_review\", \"checks_run\": 0, \"reason\": \"reviewed source changed: contracts/src/engine/RiskAccountingBridge.sol\"}\nA043: blocked; 0 tests; artifacts/tasks/A043.json\n"
     }
   ],
-  "test_count": 102,
+  "test_count": 6,
   "skipped_count": 0,
-  "status": "checks_passed",
-  "exit_code": 0,
-  "reason": "Technical checks passed; coordinator review and accepted merge are still required.",
+  "status": "failed",
+  "exit_code": 2,
+  "reason": "A043 acceptance failed (exit 2)",
   "checks": [],
   "artifacts": [
     "artifacts/gates/G7.json"
