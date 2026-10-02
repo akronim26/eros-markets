@@ -136,11 +136,12 @@ Plan §13: owner OA · 2 PD · depends O02 · acceptance: ledger isolation, ORC-
 - Depends: O02.2
 - Plan: §6.6, C.5, ORC-10, ORC-14
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/BondTreasury.sol, oracle/test/unit/TreasuryLedgers.t.sol
 - Build: Constructor `(usdc, oracle, registry, governance)`; three ledgers; `deposit`; `commitListing` (ASSERTION ≥ totalCommitted + bondAtCap, `AlreadyCommitted`); `releaseListing`; `withdraw` (ASSERTION never below `totalCommitted`, others down to 0); `setLimits` (both start at 0); views; events.
 - Done when: isolation tests (moving one ledger never changes another) and every access rule pass with the repo `MockUSDC`.
 - Check: cd oracle && forge test --match-path test/unit/TreasuryLedgers.t.sol
+- Notes: Team decisions: `deposit` credits the balance increase actually received (ORC-14 holds even for a short-delivering token; tested with MockUSDC taxed mode); `releaseListing` is a no-op (no event, no revert) for an id without an open commitment, so the treasury can never block `_final` (ORC-9). A commitment is tracked as NONE/OPEN/RELEASED, so a zero-sized commitment still blocks a second one and a released id cannot commit again. `withdraw` reverts `InsufficientLedger` above the ledger, then `BelowCommitments(totalCommitted + amount, balance)` when ASSERTION would drop below `totalCommitted`. The contract declares `is IBondTreasury` in O12.3, when every C.5 function exists; until then it uses the C.5 errors and events by qualified name. 20 mutations caught; the isolation fuzz reaches its assertions on every run (no assume).
 
 ### O12.2 · Bond flows and proposer rewards
 - Owner: OA
