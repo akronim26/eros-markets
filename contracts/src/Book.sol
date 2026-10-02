@@ -5,7 +5,9 @@ import {LibBit} from "solady/utils/LibBit.sol";
 import {RiskSnapshot} from "./RiskSnapshot.sol";
 
 /// @title Book
-/// @notice Fully on-chain price-time CLOB over the 999 ticks 0.001 .. 0.999 (design spec §9).
+/// @notice Fully on-chain price-time CLOB over the 999 ticks 0.001 .. 0.999 (design spec §9) for
+///         one market. Risk & Clearing keeps one ledger per market (risk spec §1), so every
+///         per-market engine composes exactly one Book.
 /// @dev Storage is laid out for Monad's page-priced storage (MIP-8): bitmaps, levels and orders
 ///      never return to zero once used. Clearing plugs in through the internal hooks; the book
 ///      never touches accounts and Clearing never touches the book.
@@ -69,7 +71,6 @@ abstract contract Book {
 
     /// @dev Per-order taker context handed to every Clearing hook of that order.
     struct Ctx {
-        uint256 market;
         uint32 taker;
         bool takerBuys;
         uint8 flags;
@@ -102,12 +103,12 @@ abstract contract Book {
     struct BookState {
         uint256[WORDS][2] bits; // [ASK|BID][word]; tick k -> word (k-1)/250, bit (k-1)%250
         uint32 freeHead; // top of the free-slot stack
-        uint8 maxFills; // per-market bound on orders a taker may examine; shares freeHead's slot
+        uint8 maxFills; // bound on orders a taker may examine; shares freeHead's slot
         Level[2][LEVELS] levels; // [tick][ASK|BID]: a tick's two sides share a page
         Order[] orders; // index = slot; slot 0 = null
     }
 
-    mapping(uint256 market => BookState) internal _books;
+    BookState internal _book;
 
     /// @notice Trader ids start at 1; 0 means unregistered.
     mapping(address account => uint32) public traderId;
@@ -116,24 +117,10 @@ abstract contract Book {
     // ------------------------------------------------------------------ events
 
     event TraderRegistered(address indexed account, uint32 indexed trader);
-    event MaxFillsSet(uint256 indexed market, uint8 maxFills);
-    event OrderPlaced(
-        uint256 indexed market,
-        uint32 indexed id,
-        uint32 indexed trader,
-        uint16 tick,
-        uint96 size,
-        uint8 flags
-    );
-    event OrderCancelled(uint256 indexed market, uint32 indexed id, uint96 size, CancelReason reason);
-    event Fill(
-        uint256 indexed market,
-        uint32 indexed makerOrder,
-        uint32 maker,
-        uint32 taker,
-        uint16 tick,
-        uint96 size
-    );
+    event MaxFillsSet(uint8 maxFills);
+    event OrderPlaced(uint32 indexed id, uint32 indexed trader, uint16 tick, uint96 size, uint8 flags);
+    event OrderCancelled(uint32 indexed id, uint96 size, CancelReason reason);
+    event Fill(uint32 indexed makerOrder, uint32 maker, uint32 taker, uint16 tick, uint96 size);
 
     // ------------------------------------------------------------------ errors
 
@@ -170,77 +157,73 @@ abstract contract Book {
     /// @dev Admission gate for every new order, before anything else happens: market stage
     ///      (Halted accepts nothing, ReduceOnly only reduce-only orders), price band, minimum size.
     ///      Reverts to reject; in a batch that reverts the whole batch. Cancels are never gated.
-    function _admit(uint256 market, uint32 trader, Place calldata p) internal virtual;
+    function _admit(uint32 trader, Place calldata p) internal virtual;
 
     /// @dev Resting-order margin (R_buy, R_sell): `size` units started resting. `flags` carry the
     ///      side (FLAG_BUY) and FLAG_REDUCE_ONLY. May revert to refuse the rest.
-    function _onRest(uint256 market, uint32 trader, uint16 tick, uint96 size, uint8 flags) internal virtual;
+    function _onRest(uint32 trader, uint16 tick, uint96 size, uint8 flags) internal virtual;
 
     /// @dev `size` units of an order with `flags` stopped resting (filled or cancelled).
-    function _onUnrest(uint256 market, uint32 trader, uint96 size, uint8 flags) internal virtual;
+    function _onUnrest(uint32 trader, uint96 size, uint8 flags) internal virtual;
 
     // ------------------------------------------------------------------ external
 
     /// @notice Place one order. Returns the resting order's id, or 0 if nothing rests.
-    function placeOrder(uint256 market, Place calldata p) external returns (uint32 id) {
-        return _place(_openBook(market), market, _traderOf(msg.sender), p, false);
+    function placeOrder(Place calldata p) external returns (uint32 id) {
+        return _place(_openBook(), _traderOf(msg.sender), p, false);
     }
 
     /// @notice Requote in one call: every cancel first, then the places in order. Cancelling an
     ///         order that already filled or was cancelled does nothing, and a crossing post-only
     ///         order is skipped with id 0, so a fill landing between a bot's read and its requote
     ///         never reverts the batch.
-    function batch(uint256 market, uint32[] calldata cancels, Place[] calldata places)
+    function batch(uint32[] calldata cancels, Place[] calldata places)
         external
         returns (uint32[] memory ids)
     {
-        BookState storage b = _openBook(market);
+        BookState storage b = _openBook();
         uint32 trader = _traderOf(msg.sender);
         for (uint256 i; i < cancels.length; ++i) {
-            _cancelOwn(b, market, trader, cancels[i]);
+            _cancelOwn(b, trader, cancels[i]);
         }
         ids = new uint32[](places.length);
         for (uint256 i; i < places.length; ++i) {
-            ids[i] = _place(b, market, trader, places[i], true);
+            ids[i] = _place(b, trader, places[i], true);
         }
     }
 
     /// @notice Cancel a live order owned by the caller. Reverts if it is no longer live.
-    function cancel(uint256 market, uint32 id) external {
-        if (!_cancelOwn(_openBook(market), market, traderId[msg.sender], id)) revert NotLive();
+    function cancel(uint32 id) external {
+        if (!_cancelOwn(_openBook(), traderId[msg.sender], id)) revert NotLive();
     }
 
     // ------------------------------------------------------------------ views
 
     /// @notice Best bid and best ask ticks; NONE (0) for an empty side.
-    function bestBidAsk(uint256 market) external view returns (uint16 bid, uint16 ask) {
-        BookState storage b = _openBook(market);
+    function bestBidAsk() external view returns (uint16 bid, uint16 ask) {
+        BookState storage b = _openBook();
         return (_bestBid(b), _bestAsk(b));
     }
 
     /// @notice Best prices and the size resting at each (0 when a side is empty).
-    function touch(uint256 market)
-        external
-        view
-        returns (uint16 bid, uint96 bidSize, uint16 ask, uint96 askSize)
-    {
-        return _touch(market);
+    function touch() external view returns (uint16 bid, uint96 bidSize, uint16 ask, uint96 askSize) {
+        return _touch();
     }
 
     /// @notice The level at `tick` on one side; one read, used by the mark's depth filter.
-    function getLevel(uint256 market, bool isBuy, uint16 tick) external view returns (Level memory) {
+    function getLevel(bool isBuy, uint16 tick) external view returns (Level memory) {
         if (tick < MIN_TICK || tick > MAX_TICK) revert BadTick();
-        return _openBook(market).levels[tick][isBuy ? BID : ASK];
+        return _openBook().levels[tick][isBuy ? BID : ASK];
     }
 
-    /// @notice The most orders one taker order may examine in this market.
-    function maxFillsOf(uint256 market) external view returns (uint8) {
-        return _openBook(market).maxFills;
+    /// @notice The most orders one taker order may examine.
+    function maxFills() external view returns (uint8) {
+        return _openBook().maxFills;
     }
 
     /// @notice The order behind `id`, or an all-zero order if `id` is not live.
-    function getOrder(uint256 market, uint32 id) external view returns (Order memory o) {
-        BookState storage b = _openBook(market);
+    function getOrder(uint32 id) external view returns (Order memory o) {
+        BookState storage b = _openBook();
         (uint32 s, bool live) = _liveSlot(b, id);
         if (live) o = b.orders[s];
     }
@@ -249,12 +232,8 @@ abstract contract Book {
 
     /// @dev Best prices with the size resting there: the mark's inputs, where a best level below
     ///      D_min counts as missing (spec §5.3).
-    function _touch(uint256 market)
-        internal
-        view
-        returns (uint16 bid, uint96 bidSize, uint16 ask, uint96 askSize)
-    {
-        BookState storage b = _openBook(market);
+    function _touch() internal view returns (uint16 bid, uint96 bidSize, uint16 ask, uint96 askSize) {
+        BookState storage b = _openBook();
         bid = _bestBid(b);
         ask = _bestAsk(b);
         if (bid != NONE) bidSize = b.levels[bid][BID].size;
@@ -265,25 +244,25 @@ abstract contract Book {
     ///      unhealthy makers). No owner check: the calling module authorises it. Order ids come
     ///      from the caller (e.g. the indexer); the book keeps no per-trader order list. Returns
     ///      false if `id` is not live, so stale ids are harmless.
-    function _forceCancel(uint256 market, uint32 id, CancelReason reason) internal returns (bool) {
-        BookState storage b = _openBook(market);
+    function _forceCancel(uint32 id, CancelReason reason) internal returns (bool) {
+        BookState storage b = _openBook();
         (uint32 s, bool live) = _liveSlot(b, id);
         if (!live) return false;
-        _cancel(b, market, s, reason);
+        _cancel(b, s, reason);
         return true;
     }
 
     // ------------------------------------------------------------------ place
 
     /// @dev In a batch a crossing post-only order returns 0 instead of reverting.
-    function _place(BookState storage b, uint256 market, uint32 trader, Place calldata p, bool inBatch)
+    function _place(BookState storage b, uint32 trader, Place calldata p, bool inBatch)
         internal
         returns (uint32 id)
     {
         if (p.tick < MIN_TICK || p.tick > MAX_TICK) revert BadTick();
         if (p.size == 0) revert BadSize();
         if (p.maxFills > b.maxFills) revert BadMaxFills();
-        _admit(market, trader, p);
+        _admit(trader, p);
         uint8 flags = (p.isBuy ? FLAG_BUY : 0) | (p.reduceOnly ? FLAG_REDUCE_ONLY : 0);
 
         if (p.kind == OrderType.POST_ONLY) {
@@ -291,11 +270,11 @@ abstract contract Book {
                 if (inBatch) return 0;
                 revert PostOnlyCrosses();
             }
-            return _rest(b, market, trader, p.tick, p.size, flags);
+            return _rest(b, trader, p.tick, p.size, flags);
         }
 
         Ctx memory c;
-        (c.market, c.taker, c.takerBuys, c.flags) = (market, trader, p.isBuy, flags);
+        (c.taker, c.takerBuys, c.flags) = (trader, p.isBuy, flags);
         uint96 want = _takerStart(c, p.size);
         if (want > p.size) want = p.size;
         want = _match(b, c, p.tick, want, p.maxFills);
@@ -303,7 +282,7 @@ abstract contract Book {
         // If maxFills ran out while the book still crosses the limit, the remainder is dropped:
         // resting it would leave best bid >= best ask (INV-8).
         if (p.kind == OrderType.LIMIT && want != 0 && !_crosses(b, p.isBuy, p.tick)) {
-            id = _rest(b, market, trader, p.tick, want, flags);
+            id = _rest(b, trader, p.tick, want, flags);
         }
     }
 
@@ -321,19 +300,19 @@ abstract contract Book {
     /// @dev Walks the opposite side best price first, oldest first, examining at most `maxFills`
     ///      orders. Self-trades and failed makers are cancelled and still count as a step, so
     ///      gas stays bounded whatever sits at the touch. Returns the unfilled size.
-    function _match(BookState storage b, Ctx memory c, uint16 limit, uint96 want, uint256 maxFills)
+    function _match(BookState storage b, Ctx memory c, uint16 limit, uint96 want, uint256 maxFills_)
         internal
         returns (uint96)
     {
         uint256 steps;
-        while (want != 0 && steps < maxFills) {
+        while (want != 0 && steps < maxFills_) {
             uint16 k = c.takerBuys ? _bestAsk(b) : _bestBid(b);
             if (k == NONE || (c.takerBuys ? k > limit : k < limit)) break;
             // A partly filled maker stays at the head only when `want` hit zero, which ends both
             // loops, so walking on to `next` after every step is safe.
             for (
                 uint32 s = b.levels[k][c.takerBuys ? ASK : BID].head;
-                s != 0 && want != 0 && steps < maxFills;
+                s != 0 && want != 0 && steps < maxFills_;
 
             ) {
                 uint32 next = b.orders[s].next;
@@ -353,35 +332,35 @@ abstract contract Book {
         Order storage o = b.orders[s];
         (uint32 maker, uint8 flags) = (o.owner, o.flags & ~FLAG_LIVE);
         if (maker == c.taker) {
-            _cancel(b, c.market, s, CancelReason.SELF_TRADE);
+            _cancel(b, s, CancelReason.SELF_TRADE);
             return 0;
         }
         uint96 size = o.size;
         uint96 req = want < size ? want : size;
         filled = _makerFill(c, maker, !c.takerBuys, k, req, flags);
         if (filled == 0) {
-            _cancel(b, c.market, s, CancelReason.FAILED_CHECK);
+            _cancel(b, s, CancelReason.FAILED_CHECK);
             return 0;
         }
         c.filled += filled;
         c.cost += uint256(filled) * k;
         _takerFill(c, c.takerBuys, k, filled);
-        emit Fill(c.market, _id(s, o.gen), maker, c.taker, k, filled);
+        emit Fill(_id(s, o.gen), maker, c.taker, k, filled);
         if (filled == size) {
             _unlink(b, s);
         } else {
             o.size = size - filled;
             b.levels[k][c.takerBuys ? ASK : BID].size -= filled;
         }
-        _onUnrest(c.market, maker, filled, flags);
+        _onUnrest(maker, filled, flags);
         // Reduce-only maker clipped: nothing more of it can fill.
-        if (filled < req) _cancel(b, c.market, s, CancelReason.CLIPPED);
+        if (filled < req) _cancel(b, s, CancelReason.CLIPPED);
     }
 
     // ------------------------------------------------------------------ rest / cancel
 
     /// @dev Appends at the tail of the level, reusing a free slot when one exists.
-    function _rest(BookState storage b, uint256 market, uint32 trader, uint16 tick, uint96 size, uint8 flags)
+    function _rest(BookState storage b, uint32 trader, uint16 tick, uint96 size, uint8 flags)
         internal
         returns (uint32 id)
     {
@@ -411,28 +390,25 @@ abstract contract Book {
         lv.size += size;
         lv.used = true;
         id = _id(s, gen);
-        emit OrderPlaced(market, id, trader, tick, size, flags);
-        _onRest(market, trader, tick, size, flags);
+        emit OrderPlaced(id, trader, tick, size, flags);
+        _onRest(trader, tick, size, flags);
     }
 
     /// @dev Returns false if `id` is not live; reverts if it is live but not the trader's.
-    function _cancelOwn(BookState storage b, uint256 market, uint32 trader, uint32 id)
-        internal
-        returns (bool)
-    {
+    function _cancelOwn(BookState storage b, uint32 trader, uint32 id) internal returns (bool) {
         (uint32 s, bool live) = _liveSlot(b, id);
         if (!live) return false;
         if (b.orders[s].owner != trader) revert NotOwner();
-        _cancel(b, market, s, CancelReason.USER);
+        _cancel(b, s, CancelReason.USER);
         return true;
     }
 
-    function _cancel(BookState storage b, uint256 market, uint32 s, CancelReason reason) internal {
+    function _cancel(BookState storage b, uint32 s, CancelReason reason) internal {
         Order storage o = b.orders[s];
         (uint32 owner, uint96 size, uint8 flags) = (o.owner, o.size, o.flags & ~FLAG_LIVE);
-        emit OrderCancelled(market, _id(s, o.gen), size, reason);
+        emit OrderCancelled(_id(s, o.gen), size, reason);
         _unlink(b, s);
-        _onUnrest(market, owner, size, flags);
+        _onUnrest(owner, size, flags);
     }
 
     /// @dev Unlinks a live order in O(1), clears the tick bit if the level empties, and turns the
@@ -483,34 +459,34 @@ abstract contract Book {
         }
     }
 
-    // ------------------------------------------------------------------ market setup
+    // ------------------------------------------------------------------ setup
 
-    /// @dev Opens a market's book. `maxFills` bounds the orders one taker order may examine
-    ///      (spec: set from measured gas, the UI then requests less); must be at least 1.
-    function _initBook(uint256 market, uint8 maxFills) internal {
-        BookState storage b = _books[market];
+    /// @dev Opens the book. `maxFills_` bounds the orders one taker order may examine (spec: set
+    ///      from measured gas, the UI then requests less); must be at least 1.
+    function _initBook(uint8 maxFills_) internal {
+        BookState storage b = _book;
         if (_isOpen(b)) revert MarketExists();
         for (uint256 w; w < WORDS; ++w) {
             b.bits[ASK][w] = SENTINEL;
             b.bits[BID][w] = SENTINEL;
         }
         b.orders.push(); // slot 0 is the null order
-        _setMaxFills(market, maxFills);
+        _setMaxFills(maxFills_);
     }
 
-    /// @dev Retunes the per-market bound; the owning module authorises the caller.
-    function _setMaxFills(uint256 market, uint8 maxFills) internal {
-        if (maxFills == 0) revert BadMaxFills();
-        _openBook(market).maxFills = maxFills;
-        emit MaxFillsSet(market, maxFills);
+    /// @dev Retunes the fill bound; the owning module authorises the caller.
+    function _setMaxFills(uint8 maxFills_) internal {
+        if (maxFills_ == 0) revert BadMaxFills();
+        _openBook().maxFills = maxFills_;
+        emit MaxFillsSet(maxFills_);
     }
 
     function _isOpen(BookState storage b) internal view returns (bool) {
         return b.bits[ASK][0] != 0;
     }
 
-    function _openBook(uint256 market) internal view returns (BookState storage b) {
-        b = _books[market];
+    function _openBook() internal view returns (BookState storage b) {
+        b = _book;
         if (!_isOpen(b)) revert NoMarket();
     }
 

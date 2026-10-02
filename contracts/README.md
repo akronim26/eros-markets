@@ -31,14 +31,14 @@ shows the full pattern.
 
 | Hook | Called | Owner | Use |
 |---|---|---|---|
-| `_admit(market, trader, place)` | first, for every new order | Markets / oracle (R4) | stage gate (Halted: nothing; ReduceOnly: reduce-only only), price band, minimum size. Revert to reject. Cancels are never gated |
+| `_admit(trader, place)` | first, for every new order | Markets / oracle (R4) | stage gate (Halted: nothing; ReduceOnly: reduce-only only), price band, minimum size. Revert to reject. Cancels are never gated |
 | `_takerStart(ctx, size) → allowed` | once per taker order | Clearing (R2) | load the taker, settle funding, fill `ctx.risk`, clip a reduce-only taker |
 | `_makerFill(ctx, maker, makerBuys, tick, size, flags) → filled` | per examined maker | Clearing | stage, reduce-only, IM at q and I, stress; 0 cancels the order, less than `size` clips it |
 | `_takerFill(ctx, takerBuys, tick, size)` | per fill | Clearing | taker side in memory |
 | `_takerDone(ctx)` | once, after matching | Clearing | final IM / OI / stress checks and the single taker write; revert rolls back every fill |
-| `_onRest(market, trader, tick, size, flags)` / `_onUnrest(market, trader, size, flags)` | when units start / stop resting | Clearing | R_buy / R_sell for IM+; `_onRest` may revert |
+| `_onRest(trader, tick, size, flags)` / `_onUnrest(trader, size, flags)` | when units start / stop resting | Clearing | R_buy / R_sell for IM+; `_onRest` may revert |
 
-**Context:** `Ctx` carries `market`, `taker`, `takerBuys` and `flags`, plus two totals Book keeps
+**Context:** `Ctx` carries `taker`, `takerBuys` and `flags`, plus two totals Book keeps
 for `_takerDone`: `filled` and `cost` (Σ size × tick, in 0.001 USDC). It also holds
 `risk`, a `RiskSnapshot` (`src/RiskSnapshot.sol`). Clearing owns that struct and can change its
 fields without touching Book.
@@ -47,16 +47,16 @@ fields without touching Book.
 
 | Function | For |
 |---|---|
-| `_initBook(market, maxFills)` | Markets: create a market's book with its fill bound (no default) |
-| `_setMaxFills(market, maxFills)` | retune the bound after gas measurements; emits `MaxFillsSet` |
+| `_initBook(maxFills)` | Markets: open the book with its fill bound (no default) |
+| `_setMaxFills(maxFills)` | retune the bound after gas measurements; emits `MaxFillsSet` |
 | `_traderOf(address) → id` | Clearing: the trader id accounts are keyed by |
-| `_touch(market) → (bid, bidSize, ask, askSize)` | Pricing: mark inputs with the D_min depth filter |
-| `_forceCancel(market, id, RISK \| STAGE) → bool` | liquidation, stage changes, keepers; no owner check, stale ids return false |
+| `_touch() → (bid, bidSize, ask, askSize)` | Pricing: mark inputs with the D_min depth filter |
+| `_forceCancel(id, RISK \| STAGE) → bool` | liquidation, stage changes, keepers; no owner check, stale ids return false |
 
 ## Where this differs from the spec
 
-1. **`_onRest` / `_onUnrest` take `market`.** The spec's signatures omit it, but reservations
-   (R_buy, R_sell) belong to a (trader, market) account.
+1. **One book per market engine.** Risk & Clearing keeps one isolated ledger per market (risk
+   spec §1), so each per-market engine composes exactly one Book and no hook takes a market id.
 2. **New hooks `_takerStart` and `_admit`, and `Ctx` carries `filled`, `cost` and `risk`.** The
    spec's `Ctx` holds a snapshot but doesn't define it, and Solidity can't extend a struct from a
    derived contract, so the snapshot has its own file. `_takerStart` is the spec's "load the taker
@@ -68,8 +68,8 @@ fields without touching Book.
 4. **`_onRest` / `_onUnrest` receive the order's flags** (side and reduce-only), and
    `_forceCancel` plus two cancel reasons (`RISK`, `STAGE`) let other modules remove orders.
 5. **The fill bound is per-market config, not a constant.** The master spec's 64 is a placeholder
-   to be set from measured gas, so each market gets its bound at creation (`_initBook`), can be
-   retuned (`_setMaxFills`) and is readable (`maxFillsOf`). Orders asking for more revert with
+   to be set from measured gas, so each book gets its bound at creation (`_initBook`), can be
+   retuned (`_setMaxFills`) and is readable (`maxFills`). Orders asking for more revert with
    `BadMaxFills`. It shares `freeHead`'s storage slot, which also keeps that slot non-zero.
    Nothing else is hardcoded: the tick grid (0.001, ticks 1–999) is a locked design decision the
    storage layout is sized from, and the bitmap word count and level array length derive from it.

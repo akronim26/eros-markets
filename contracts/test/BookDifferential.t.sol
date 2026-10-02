@@ -11,7 +11,6 @@ import {BookHarness} from "./BookHarness.sol";
 contract BookDifferentialTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 1;
     uint32 constant FAILING = 3; // this trader's maker fills always fail the Clearing check
     address[4] actors;
 
@@ -38,11 +37,11 @@ contract BookDifferentialTest is Test {
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
         for (uint256 i; i < 4; ++i) {
             actors[i] = makeAddr(string.concat("t", vm.toString(i)));
             vm.prank(actors[i]);
-            book.batch(M, new uint32[](0), new Book.Place[](0)); // ids 1..4
+            book.batch(new uint32[](0), new Book.Place[](0)); // ids 1..4
         }
         book.setFailMaker(FAILING, true);
     }
@@ -155,7 +154,7 @@ contract BookDifferentialTest is Test {
             if (logs[i].topics[0] != Book.Fill.selector) continue;
             (uint32 maker, uint32 taker, uint16 tick, uint96 size) =
                 abi.decode(logs[i].data, (uint32, uint32, uint16, uint96));
-            out[n++] = Fill(uint32(uint256(logs[i].topics[2])), maker, taker, tick, size);
+            out[n++] = Fill(uint32(uint256(logs[i].topics[1])), maker, taker, tick, size);
         }
     }
 
@@ -171,7 +170,7 @@ contract BookDifferentialTest is Test {
             uint32[] memory c = new uint32[](1);
             c[0] = o.id;
             vm.prank(actors[o.owner - 1]);
-            book.batch(M, c, new Book.Place[](0));
+            book.batch(c, new Book.Place[](0));
             _refCancel(o.id);
         } else {
             Book.Place memory p = _decode(seed >> 8);
@@ -185,13 +184,13 @@ contract BookDifferentialTest is Test {
             if (inBatch) {
                 Book.Place[] memory ps = new Book.Place[](1);
                 ps[0] = p;
-                id = book.batch(M, new uint32[](0), ps)[0];
+                id = book.batch(new uint32[](0), ps)[0];
             } else {
-                id = book.placeOrder(M, p);
+                id = book.placeOrder(p);
             }
             assertEq(id != 0, rests, "rests");
             if (rests) {
-                assertEq(book.getOrder(M, id).size, restSize, "rest size");
+                assertEq(book.getOrder(id).size, restSize, "rest size");
                 ref.push(RefOrder(id, trader, p.isBuy, p.reduceOnly, p.tick, restSize));
             }
         }
@@ -213,16 +212,16 @@ contract BookDifferentialTest is Test {
         uint16 bestAsk;
         for (uint256 i; i < ref.length; ++i) {
             RefOrder storage o = ref[i];
-            assertEq(book.getOrder(M, o.id).size, o.size, "order size");
+            assertEq(book.getOrder(o.id).size, o.size, "order size");
             if (o.size == 0) continue;
             if (o.isBuy && o.tick > bestBid) bestBid = o.tick;
             if (!o.isBuy && (bestAsk == 0 || o.tick < bestAsk)) bestAsk = o.tick;
         }
-        (uint16 bid, uint16 ask) = book.bestBidAsk(M);
+        (uint16 bid, uint16 ask) = book.bestBidAsk();
         assertEq(bid, bestBid, "best bid");
         assertEq(ask, bestAsk, "best ask");
         for (uint32 t = 1; t <= 4; ++t) {
-            assertEq(book.position(M, t), refPos[t], "position");
+            assertEq(book.position(t), refPos[t], "position");
         }
     }
 

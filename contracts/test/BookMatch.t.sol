@@ -8,7 +8,6 @@ import {BookHarness} from "./BookHarness.sol";
 contract BookMatchTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 1;
     address alice = makeAddr("alice"); // trader 1
     address bob = makeAddr("bob"); // trader 2
     address carol = makeAddr("carol"); // trader 3
@@ -28,13 +27,13 @@ contract BookMatchTest is Test {
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
         // Register traders in a fixed order so their ids are 1..4.
         address[4] memory who = [alice, bob, carol, taker];
         for (uint256 i; i < 4; ++i) {
             uint32 id = _post(who[i], true, 1, 1);
             vm.prank(who[i]);
-            book.cancel(M, id);
+            book.cancel(id);
         }
     }
 
@@ -50,7 +49,7 @@ contract BookMatchTest is Test {
 
     function _place(address who, Book.Place memory p) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(M, p);
+        return book.placeOrder(p);
     }
 
     function _post(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
@@ -73,16 +72,16 @@ contract BookMatchTest is Test {
             if (logs[i].topics[0] != Book.Fill.selector) continue;
             (uint32 maker, uint32 tk, uint16 tick, uint96 size) =
                 abi.decode(logs[i].data, (uint32, uint32, uint16, uint96));
-            out[n++] = F(uint32(uint256(logs[i].topics[2])), maker, tk, tick, size);
+            out[n++] = F(uint32(uint256(logs[i].topics[1])), maker, tk, tick, size);
         }
     }
 
     function _best() internal view returns (uint16 bid, uint16 ask) {
-        return book.bestBidAsk(M);
+        return book.bestBidAsk();
     }
 
     function _size(uint32 id) internal view returns (uint96) {
-        return book.getOrder(M, id).size;
+        return book.getOrder(id).size;
     }
 
     // ------------------------------------------------------------------ basic fills
@@ -90,7 +89,7 @@ contract BookMatchTest is Test {
     function test_TakerFillsSingleMakerExactly() public {
         uint32 a = _post(alice, false, 502, 300);
         vm.expectEmit(address(book));
-        emit Book.Fill(M, a, 1, 4, 502, 300);
+        emit Book.Fill(a, 1, 4, 502, 300);
         uint32 id = _place(taker, _p(LIMIT, true, 502, 300, false, 8));
 
         assertEq(id, 0, "nothing rests");
@@ -98,10 +97,10 @@ contract BookMatchTest is Test {
         (uint16 bid, uint16 ask) = _best();
         assertEq(bid, 0);
         assertEq(ask, 0);
-        assertEq(book.position(M, 1), -300);
-        assertEq(book.position(M, 4), 300);
-        assertEq(book.reserved(M, 1, false), 0);
-        assertEq(book.getLevel(M, false, 502).size, 0);
+        assertEq(book.position(1), -300);
+        assertEq(book.position(4), 300);
+        assertEq(book.reserved(1, false), 0);
+        assertEq(book.getLevel(false, 502).size, 0);
     }
 
     function test_PartialMakerFillStaysAtHead() public {
@@ -110,10 +109,10 @@ contract BookMatchTest is Test {
         _take(true, 502, 120, 8);
 
         assertEq(_size(a), 180);
-        assertEq(book.getLevel(M, false, 502).head, a & 0xFFFFFF);
-        assertEq(book.getLevel(M, false, 502).size, 280);
+        assertEq(book.getLevel(false, 502).head, a & 0xFFFFFF);
+        assertEq(book.getLevel(false, 502).size, 280);
         assertEq(_size(b), 100);
-        assertEq(book.reserved(M, 1, false), 180);
+        assertEq(book.reserved(1, false), 180);
     }
 
     function test_SameTickFillsOldestFirst() public {
@@ -131,7 +130,7 @@ contract BookMatchTest is Test {
         assertEq(f[1].size, 50);
         assertEq(_size(b), 50);
         assertEq(_size(c), 500);
-        assertEq(book.getLevel(M, false, 502).head, b & 0xFFFFFF);
+        assertEq(book.getLevel(false, 502).head, b & 0xFFFFFF);
     }
 
     function test_BetterPriceFillsFirstAtMakerPrice() public {
@@ -162,18 +161,18 @@ contract BookMatchTest is Test {
         assertEq(f[1].tick, 499);
         (uint16 bid,) = _best();
         assertEq(bid, 300);
-        assertEq(book.position(M, 4), -20);
+        assertEq(book.position(4), -20);
     }
 
     function test_ExtremeTicksTrade() public {
         uint32 a = _post(alice, false, 1, 5);
         vm.expectEmit(address(book));
-        emit Book.Fill(M, a, 1, 4, 1, 5);
+        emit Book.Fill(a, 1, 4, 1, 5);
         _take(true, 999, 5, 8);
         _post(bob, true, 999, 5);
         _take(false, 1, 5, 8);
-        assertEq(book.position(M, 4), 0);
-        assertEq(book.position(M, 2), 5);
+        assertEq(book.position(4), 0);
+        assertEq(book.position(2), 5);
     }
 
     function test_LimitStopsAtPrice() public {
@@ -185,7 +184,7 @@ contract BookMatchTest is Test {
         (uint16 bid, uint16 ask) = _best();
         assertEq(bid, 501);
         assertEq(ask, 502);
-        assertEq(book.reserved(M, 4, true), 15);
+        assertEq(book.reserved(4, true), 15);
     }
 
     function test_NonCrossingLimitRestsWithoutFill() public {
@@ -212,14 +211,14 @@ contract BookMatchTest is Test {
         assertEq(id, 0);
         (uint16 bid,) = _best();
         assertEq(bid, 0);
-        assertEq(book.position(M, 4), 10);
-        assertEq(book.reserved(M, 4, true), 0);
+        assertEq(book.position(4), 10);
+        assertEq(book.reserved(4, true), 0);
     }
 
     function test_IocWithNoLiquidityDoesNothing() public {
         uint32 id = _take(true, 502, 50, 8);
         assertEq(id, 0);
-        assertEq(book.position(M, 4), 0);
+        assertEq(book.position(4), 0);
     }
 
     function test_PostOnlyRestsWhenNotCrossing() public {
@@ -253,17 +252,18 @@ contract BookMatchTest is Test {
     function test_RevertWhen_BadInputs() public {
         vm.startPrank(taker);
         vm.expectRevert(Book.BadTick.selector);
-        book.placeOrder(M, _p(LIMIT, true, 0, 1, false, 8));
+        book.placeOrder(_p(LIMIT, true, 0, 1, false, 8));
         vm.expectRevert(Book.BadTick.selector);
-        book.placeOrder(M, _p(LIMIT, true, 1000, 1, false, 8));
+        book.placeOrder(_p(LIMIT, true, 1000, 1, false, 8));
         vm.expectRevert(Book.BadSize.selector);
-        book.placeOrder(M, _p(LIMIT, true, 500, 0, false, 8));
+        book.placeOrder(_p(LIMIT, true, 500, 0, false, 8));
         vm.expectRevert(Book.BadMaxFills.selector);
-        book.placeOrder(M, _p(LIMIT, true, 500, 1, false, 65));
+        book.placeOrder(_p(LIMIT, true, 500, 1, false, 65));
         vm.expectRevert(Book.BadTick.selector);
-        book.placeOrder(M, _p(POST, true, 1000, 1, false, 0));
+        book.placeOrder(_p(POST, true, 1000, 1, false, 0));
+        BookHarness fresh = new BookHarness();
         vm.expectRevert(Book.NoMarket.selector);
-        book.placeOrder(9, _p(LIMIT, true, 500, 1, false, 8));
+        fresh.placeOrder(_p(LIMIT, true, 500, 1, false, 8));
         vm.stopPrank();
     }
 
@@ -272,7 +272,7 @@ contract BookMatchTest is Test {
             _post(alice, false, 500, 1);
         }
         _take(true, 500, 64, 64);
-        assertEq(book.position(M, 4), 64);
+        assertEq(book.position(4), 64);
         (, uint16 ask) = _best();
         assertEq(ask, 0);
     }
@@ -283,14 +283,14 @@ contract BookMatchTest is Test {
         uint32 own = _post(taker, false, 502, 10);
         uint32 a = _post(alice, false, 502, 10);
         vm.expectEmit(address(book));
-        emit Book.OrderCancelled(M, own, 10, Book.CancelReason.SELF_TRADE);
+        emit Book.OrderCancelled(own, 10, Book.CancelReason.SELF_TRADE);
         vm.expectEmit(address(book));
-        emit Book.Fill(M, a, 1, 4, 502, 10);
+        emit Book.Fill(a, 1, 4, 502, 10);
         _take(true, 502, 10, 8);
 
         assertEq(_size(own), 0);
-        assertEq(book.position(M, 4), 10);
-        assertEq(book.reserved(M, 4, false), 0);
+        assertEq(book.position(4), 10);
+        assertEq(book.reserved(4, false), 0);
     }
 
     function test_FailedMakerIsCancelledAndSkipped() public {
@@ -298,14 +298,14 @@ contract BookMatchTest is Test {
         uint32 b = _post(bob, false, 502, 10);
         book.setFailMaker(1, true);
         vm.expectEmit(address(book));
-        emit Book.OrderCancelled(M, a, 10, Book.CancelReason.FAILED_CHECK);
+        emit Book.OrderCancelled(a, 10, Book.CancelReason.FAILED_CHECK);
         _take(true, 502, 10, 8);
 
         assertEq(_size(a), 0);
         assertEq(_size(b), 0);
-        assertEq(book.position(M, 1), 0);
-        assertEq(book.position(M, 2), -10);
-        assertEq(book.reserved(M, 1, false), 0);
+        assertEq(book.position(1), 0);
+        assertEq(book.position(2), -10);
+        assertEq(book.reserved(1, false), 0);
     }
 
     function test_MaxFillsCountsFills() public {
@@ -313,7 +313,7 @@ contract BookMatchTest is Test {
         _post(bob, false, 500, 1);
         _post(carol, false, 501, 1);
         _take(true, 999, 3, 2);
-        assertEq(book.position(M, 4), 2);
+        assertEq(book.position(4), 2);
         (, uint16 ask) = _best();
         assertEq(ask, 501);
     }
@@ -326,16 +326,16 @@ contract BookMatchTest is Test {
         uint32 good = _post(bob, false, 500, 1);
         _take(true, 500, 1, 3);
 
-        assertEq(book.position(M, 4), 0, "budget spent on 3 bad orders");
+        assertEq(book.position(4), 0, "budget spent on 3 bad orders");
         assertEq(_size(good), 1);
-        assertEq(book.getLevel(M, false, 500).head, good & 0xFFFFFF);
+        assertEq(book.getLevel(false, 500).head, good & 0xFFFFFF);
     }
 
     function test_ZeroMaxFillsNeverMatches() public {
         _post(alice, false, 500, 1);
         uint32 id = _place(taker, _p(LIMIT, true, 500, 1, false, 0));
         assertEq(id, 0, "crossing remainder dropped");
-        assertEq(book.position(M, 4), 0);
+        assertEq(book.position(4), 0);
         id = _place(taker, _p(LIMIT, true, 499, 1, false, 0));
         assertEq(_size(id), 1, "non-crossing order still rests");
     }
@@ -348,7 +348,7 @@ contract BookMatchTest is Test {
         uint32 id = _place(taker, _p(LIMIT, true, 502, 10, false, 1));
 
         assertEq(id, 0);
-        assertEq(book.position(M, 4), 1);
+        assertEq(book.position(4), 1);
         (uint16 bid, uint16 ask) = _best();
         assertEq(bid, 0);
         assertEq(ask, 501);
@@ -377,7 +377,7 @@ contract BookMatchTest is Test {
     // ------------------------------------------------------------------ reduce-only
 
     function test_ReduceOnlyMakerIsClippedAndRestCancelled() public {
-        book.setPosition(M, 1, 40); // alice long 40
+        book.setPosition(1, 40); // alice long 40
         uint32 a = _place(alice, _p(POST, false, 502, 100, true, 0));
         uint32 b = _post(bob, false, 502, 100);
         vm.recordLogs();
@@ -390,16 +390,16 @@ contract BookMatchTest is Test {
         assertEq(f[1].makerOrder, b);
         assertEq(f[1].size, 30);
         assertEq(_size(a), 0, "clipped remainder cancelled");
-        assertEq(book.position(M, 1), 0);
-        assertEq(book.reserved(M, 1, false), 0);
-        assertEq(book.getLevel(M, false, 502).size, 70);
+        assertEq(book.position(1), 0);
+        assertEq(book.reserved(1, false), 0);
+        assertEq(book.getLevel(false, 502).size, 70);
     }
 
     function test_ReduceOnlyMakerClipEmitsClipped() public {
-        book.setPosition(M, 1, 40);
+        book.setPosition(1, 40);
         uint32 a = _place(alice, _p(POST, false, 502, 100, true, 0));
         vm.expectEmit(address(book));
-        emit Book.OrderCancelled(M, a, 60, Book.CancelReason.CLIPPED);
+        emit Book.OrderCancelled(a, 60, Book.CancelReason.CLIPPED);
         _take(true, 502, 70, 8);
     }
 
@@ -407,31 +407,31 @@ contract BookMatchTest is Test {
         uint32 a = _place(alice, _p(POST, false, 502, 100, true, 0));
         _take(true, 502, 10, 8);
         assertEq(_size(a), 0);
-        assertEq(book.position(M, 1), 0);
-        assertEq(book.position(M, 4), 0);
+        assertEq(book.position(1), 0);
+        assertEq(book.position(4), 0);
     }
 
     function test_ReduceOnlyMakerExactReductionStaysLive() public {
-        book.setPosition(M, 1, 100);
+        book.setPosition(1, 100);
         uint32 a = _place(alice, _p(POST, false, 502, 100, true, 0));
         _take(true, 502, 60, 8);
         assertEq(_size(a), 40, "fill < size but == request: not clipped");
     }
 
     function test_ReduceOnlyTakerIsClippedToPosition() public {
-        book.setPosition(M, 4, -30); // taker short 30
+        book.setPosition(4, -30); // taker short 30
         _post(alice, false, 502, 100);
         uint32 id = _place(taker, _p(LIMIT, true, 502, 100, true, 8));
         assertEq(id, 0, "clipped size fully filled, nothing rests");
-        assertEq(book.position(M, 4), 0);
-        assertEq(book.position(M, 1), -30);
+        assertEq(book.position(4), 0);
+        assertEq(book.position(1), -30);
     }
 
     function test_ReduceOnlyTakerRemainderRestsReduceOnly() public {
-        book.setPosition(M, 4, -30);
+        book.setPosition(4, -30);
         _post(alice, false, 502, 10);
         uint32 id = _place(taker, _p(LIMIT, true, 502, 100, true, 8));
-        Book.Order memory o = book.getOrder(M, id);
+        Book.Order memory o = book.getOrder(id);
         assertEq(o.size, 20);
         assertEq(o.flags, book.FLAG_BUY() | book.FLAG_REDUCE_ONLY() | book.FLAG_LIVE());
     }
@@ -440,8 +440,8 @@ contract BookMatchTest is Test {
         _post(alice, false, 502, 100);
         uint32 id = _place(taker, _p(LIMIT, true, 502, 100, true, 8));
         assertEq(id, 0);
-        assertEq(book.position(M, 4), 0);
-        assertEq(book.getLevel(M, false, 502).size, 100);
+        assertEq(book.position(4), 0);
+        assertEq(book.getLevel(false, 502).size, 100);
     }
 
     // ------------------------------------------------------------------ atomicity
@@ -456,7 +456,7 @@ contract BookMatchTest is Test {
 
         assertEq(_size(a), 10);
         assertEq(_size(b), 10, "failed-maker cancel rolled back too");
-        assertEq(book.position(M, 1), 0);
+        assertEq(book.position(1), 0);
     }
 
     // ------------------------------------------------------------------ ids in fills
@@ -464,12 +464,12 @@ contract BookMatchTest is Test {
     function test_FillCarriesRecycledOrderId() public {
         uint32 a = _post(alice, false, 502, 1);
         vm.prank(alice);
-        book.cancel(M, a);
+        book.cancel(a);
         uint32 a2 = _post(alice, false, 502, 1);
         assertEq(a2 & 0xFFFFFF, a & 0xFFFFFF);
         assertEq(a2 >> 24, (a >> 24) + 1);
         vm.expectEmit(address(book));
-        emit Book.Fill(M, a2, 1, 4, 502, 1);
+        emit Book.Fill(a2, 1, 4, 502, 1);
         _take(true, 502, 1, 8);
     }
 
@@ -504,7 +504,7 @@ contract BookMatchTest is Test {
         }
         assertLe(f.length, maxFills);
         assertLe(total, want);
-        assertEq(int256(total), book.position(M, 4));
+        assertEq(int256(total), book.position(4));
         (uint16 bid, uint16 ask) = _best();
         assertTrue(bid == 0 || ask == 0 || bid < ask);
     }
