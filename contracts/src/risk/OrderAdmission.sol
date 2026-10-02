@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Side, Stage, AccountingState, AdmissionMode, RejectCode} from "../../provisional/MathTypes.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
+import {LiquidationMath as LM} from "../math/LiquidationMath.sol";
 import {MarginMath} from "../math/MarginMath.sol";
 import {LifecycleMath} from "../math/LifecycleMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
@@ -293,6 +294,29 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
 
     function _absLots(int256 x) internal pure returns (uint256) {
         return x >= 0 ? uint256(x) : uint256(-x);
+    }
+
+    /// @notice Endpoints, mark equity and size-dependent MM of (cashQ, lots) at the frozen mark.
+    function _snapAt(int256 cashQ, int256 lots, RiskContext memory c)
+        internal
+        view
+        returns (LM.Snap memory s)
+    {
+        (s.e0Q, s.e1Q) = MarginMath.endpoints(cashQ, lots);
+        s.emQ = MarginMath.markEquityQ(cashQ, lots, c.markWad);
+        s.xLots = lots;
+        if (lots != 0) {
+            s.mmQ =
+            MarginMath.sideMargin(
+                _absLots(lots),
+                lots > 0,
+                c.markWad,
+                c.secsToT,
+                c.economicTime,
+                _effectiveParams(c.economicTime)
+            )
+            .mmQ;
+        }
     }
 
     // ------------------------------------------------------------------ fill preflight
