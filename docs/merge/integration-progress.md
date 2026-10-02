@@ -147,3 +147,35 @@ Remaining work needs other people: Person A's reviews (G0–G6 `review_pending`,
 team's seam (docs/requests/B-to-book-hooks.md), the oracle/price/factory implementations, the
 production inputs in `artifacts/risk/release-manifest.json`, and toolchain agreement. Open audit
 findings A-F01 (Medium), A-F02/A-F03 (Low) are A-owned.
+
+## Phase 4 — Person A review and repairs (2026-10-02)
+
+The earlier resume point and counts are historical. The user requested a full
+history report first; that report is `docs/merge/history-review-2026-10-02.md`.
+The working branch remains `integration/risk`, based on `71576ed`.
+
+| Task | Commit | Outcome |
+|---|---|---|
+| Source-bound review tooling and CI-compatible fixtures | `2790663` | Real A043 checks replace the permanent pending stub; G1 runs the combined reference; Windows SDK runner repaired |
+| A-F02 exact premium ceiling | `0820afa` | Exact rational accumulation and regression/fuzz coverage |
+| Immutable listing profile constraints, A-B08 | `034ebab` | Reject incompatible cap/template configuration; five regression tests |
+| Accounting ports, lifecycle and settlement | `c543434` | Five requested A ports; A-F01/A-F03; freshness and frozen epoch repairs; actual claim callbacks/counters |
+| Admission, projections and actual fee reporting | `ec14175` | A-B03 through A-B07 repaired with maker/taker, preview and fee regressions |
+| Production ABI exports and portable source fingerprints | `74b9f16` | No mock constructor/book methods; canonical-LF dependency/review hashes |
+| A043, gate evidence and handoff | This evidence commit | Completed review, fresh validation and retained limitations |
+
+Official G0-G7 commands pass in order on Forge 1.8.3. A043 passes 37 review tests.
+The complete risk-profile Forge suite passes 641 tests with no failures, including
+all BookGas and audit-finding tests. Python A/B/audit/integration pass 46/156/8/7.
+See `artifacts/risk/review-validation.json` for per-suite counts, execution
+provenance and the exact toolchain. Earlier gas and CI invariant measurements
+remain historical; they are not relabeled as fresh measurements.
+
+### Current resume point
+
+Person B must review the new delta before G7 receives coordinator acceptance and
+an accepted merge SHA. A-F01/A-F02/A-F03 and A043 are no longer open. A-I01's global
+vault fractional-fee classification remains deferred and explicitly disclosed.
+The real book seam, oracle/price/factory implementations, production calibration,
+target-chain size/gas and main-branch conflict reconciliation remain separate.
+No book code was changed, no deployment occurred, and no review commits were pushed.

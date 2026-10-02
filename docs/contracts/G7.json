@@ -4,7 +4,7 @@
   "spec_version": "1.1",
   "gate_test": "contracts/test/gates/G7.t.sol (section 11 end-to-end on real A+B; initial deployment defaults)",
   "campaigns": {"A": "A040 accounting invariants, A041 gas, A042 custody", "B": "B040 lifecycle + end-to-end, B041 gas, B042 SDK", "combined": "artifacts/risk/invariant-campaign.json"},
-  "reviews": {"B043 (B on A)": "artifacts/reviews/B-on-A.md, COMPLETE", "A043 (A on B)": "Person A only; pending"},
+  "reviews": {"B043 (B on A)": "artifacts/reviews/B-on-A.md, historical COMPLETE; new A fixes require B delta review", "A043 (A on B)": "artifacts/reviews/A-on-B.md and source-bound A-on-B.json; acceptance reruns review regressions"},
   "release": "artifacts/risk/release-manifest.json (local fixture; no deployment)",
   "counterparts": "artifacts/risk/counterpart-status.json: book, oracle, price source, factory BLOCKED_BY_COUNTERPART (mock-only passes are not live passes)",
   "handoff": "docs/risk/HANDOFF.md"

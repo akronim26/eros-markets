@@ -1,20 +1,37 @@
 # Requests from Person B to Person A (integration/risk)
 
-Raised during the A+B merge. None blocks a gate today; each has a documented interim
-resolution in docs/merge/interface-reconciliation.md. Person A owns the changes.
+Raised during the A+B merge. Updated by Person A on 2026-10-02: the five requested ports are
+implemented and committed. G0-G7 technical checks pass in order; final B delta review and
+coordinator acceptance remain pending. Current choices are recorded in
+[interface-reconciliation.md](../merge/interface-reconciliation.md).
 
-1. **One lifecycle enum (spec §4.6).** `RiskStorage.Work` duplicates spec `AccountingState`
-   (same ordinals). Please rename it to `AccountingState` in `MathTypes` so both lanes use one
-   type. Interim: B converts by ordinal (R-02).
-2. **Market order epoch bump.** Please add an A-owned `_bumpMarketOrderEpoch()` (B invalidates
-   all resting orders at the backing floor and at halt). Interim: the bridge increments
-   `marketOrderEpoch` directly (R-06).
-3. **Claims complete.** A037 has no "all entitlements claimed" indicator, so `ClearingPhase.COMPLETE`
-   is never reported. Please add a counter of unpaid trader entitlements (R-10).
-4. **Cash-claim hook.** `claimTrader` should call a `_beforeCashClaim()` virtual hook so a future
-   conversion extension can fence cash claims (R-11). Conversion stays disabled in v1.
-5. **Reservation replace without its own decision.** `_setReservations` asks B for a RESERVATION
-   decision that B already made; a port variant that only replaces the contribution (keeping the
-   live gate and coverage assertion) would remove one authorization round trip (R-16).
-6. **Audit findings** A-F01 (Medium), A-F02 and A-F03 (Low): see docs/merge/A-audit.md. Left open
-   per the integration rule (only Critical/High are fixed during the merge).
+1. **One lifecycle enum (spec §4.6): implemented.** File-level `AccountingState` in
+   `contracts/src/math/MathTypes.sol` is used by A storage and re-exported through B's
+   `RiskTypes.sol`. The bridge no longer converts duplicate types by ordinal (R-02).
+2. **Market order epoch bump: implemented.** A owns `_bumpMarketOrderEpoch()` in `RiskStorage`;
+   the bridge delegates to it. Halt metadata reads the authoritative epoch after A freeze (R-06).
+3. **Claims complete: implemented.** Payout allocation increments `unpaidTraderClaims` only
+   for nonzero atom entitlements. Successful payout marks `traderClaimed` once and decrements
+   the counter; `allTraderClaimsPaid()` drives `ClearingPhase.COMPLETE` (R-10). LP, treasury and
+   keeper withdrawals are independent of this trader-completion flag.
+4. **Cash-claim hook: implemented.** The vault's authenticated `onCashClaim` callback invokes
+   A's `_beforeCashClaim()`, which the bridge connects to B's `_riskBeforeCashClaim()`. This
+   also covers direct `CollateralVault.claim` calls. `anyCashClaim` reflects successful cash
+   payment; callback/transfer failure rolls it back. Conversion remains disabled (R-11).
+5. **Reservation replace without its own decision: implemented.** A's `_replaceReservations`
+   retains live/context/touch/epoch/coverage checks, and the bridge calls it after B's decision,
+   without an extra RESERVATION authorization (R-16).
+6. **Audit findings: fixes implemented and regressions pass.** A-F01 permits frozen
+   settlement of preactivation allocations. A-F02 accumulates rational premium pieces before
+   one segment ceiling. A-F03 separates `protocolFeeEscrowQ` from reserve `treasuryQ`, with the
+   same immutable treasury beneficiary. The separate A-I01 global-vault fee-reclassification
+   observation remains deferred; this is not a claim of exact conformance to that custody
+   classification. See the dated addendum in [A-audit.md](../merge/A-audit.md).
+
+Regression entry points:
+
+- [A043IntegrationReview.t.sol](../../contracts/test/reviews/A043IntegrationReview.t.sol)
+- [AClaimIntegrationReview.t.sol](../../contracts/test/reviews/AClaimIntegrationReview.t.sol)
+- [AF01PreActivationLock.t.sol](../../contracts/test/audit/findings/AF01PreActivationLock.t.sol)
+- [AF02PremiumRounding.t.sol](../../contracts/test/audit/findings/AF02PremiumRounding.t.sol)
+- [AF03ProtocolFeeEscrow.t.sol](../../contracts/test/audit/findings/AF03ProtocolFeeEscrow.t.sol)

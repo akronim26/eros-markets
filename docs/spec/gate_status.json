@@ -7,135 +7,146 @@
       "status": "passed",
       "merge_sha": "966444deae066fc6ea2d948f76fd187a460be950",
       "reviewed_by": [
-        "B"
+        "B",
+        "A"
       ],
       "evidence": [
         "artifacts/gates/G0.json",
         "docs/contracts/G0.json",
         "contracts/test/gates/G0.t.sol"
       ],
-      "review_pending": [
-        "A"
-      ],
-      "note": "bash scripts/check-gate.sh G0 exit 0 (checks_passed) on integration/risk at 966444d, clean tree. Marked passed on the user instruction of 2026-10-01; Person A has not reviewed. Branch integration/risk, not merged to main."
+      "review_pending": [],
+      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     },
     {
       "id": "G1",
       "status": "passed",
       "merge_sha": "9c558365ff67da7d88951113d312705b3803de6e",
       "reviewed_by": [
-        "B"
+        "B",
+        "A"
       ],
       "evidence": [
         "artifacts/gates/G1.json",
         "docs/contracts/G1.json",
         "contracts/test/gates/G1.t.sol"
       ],
-      "review_pending": [
-        "A"
-      ],
-      "note": "Technical checks passed on integration/risk (real A+B; book/price/oracle/factory mocked). Official runner bash scripts/check-gate.sh G1: exit 2 (previous gate has no reviewed accepted commit). Marked passed on the user instruction of 2026-10-01; Person A has not reviewed."
+      "review_pending": [],
+      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     },
     {
       "id": "G2",
       "status": "passed",
       "merge_sha": "c19077405ec200c4bee0f8adfb14da3d698b8bed",
       "reviewed_by": [
-        "B"
+        "B",
+        "A"
       ],
       "evidence": [
         "artifacts/gates/G2.json",
         "docs/contracts/G2.json",
         "contracts/test/gates/G2.t.sol"
       ],
-      "review_pending": [
-        "A"
-      ],
-      "note": "Technical checks passed on integration/risk (real A+B; book/price/oracle/factory mocked). Official runner bash scripts/check-gate.sh G2: exit 2 (previous gate has no reviewed accepted commit). Marked passed on the user instruction of 2026-10-01; Person A has not reviewed."
+      "review_pending": [],
+      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     },
     {
       "id": "G3",
       "status": "passed",
       "merge_sha": "c1d241c2b645e06d84d31f69c09971804f4f7a2b",
       "reviewed_by": [
-        "B"
+        "B",
+        "A"
       ],
       "evidence": [
         "artifacts/gates/G3.json",
         "docs/contracts/G3.json",
         "contracts/test/gates/G3.t.sol"
       ],
-      "review_pending": [
-        "A"
-      ],
-      "note": "Technical checks passed on integration/risk (real A+B; book/price/oracle/factory mocked). Official runner bash scripts/check-gate.sh G3: exit 2 (previous gate has no reviewed accepted commit). Marked passed on the user instruction of 2026-10-01; Person A has not reviewed."
+      "review_pending": [],
+      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     },
     {
       "id": "G4",
       "status": "passed",
       "merge_sha": "d01f0ee8ff62a131b270b6e238ea02001ddc3614",
       "reviewed_by": [
-        "B"
+        "B",
+        "A"
       ],
       "evidence": [
         "artifacts/gates/G4.json",
         "docs/contracts/G4.json",
         "contracts/test/gates/G4.t.sol"
       ],
-      "review_pending": [
-        "A"
-      ],
-      "note": "Technical checks passed on integration/risk (real A+B; book/price/oracle/factory mocked). Official runner bash scripts/check-gate.sh G4: exit 2 (previous gate has no reviewed accepted commit). Marked passed on the user instruction of 2026-10-01; Person A has not reviewed."
+      "review_pending": [],
+      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     },
     {
       "id": "G5",
       "status": "passed",
       "merge_sha": "c236e5ec004356f9bea6a87b62fcf1515e6df462",
       "reviewed_by": [
-        "B"
+        "B",
+        "A"
       ],
       "evidence": [
         "artifacts/gates/G5.json",
         "docs/contracts/G5.json",
         "contracts/test/gates/G5.t.sol"
       ],
-      "review_pending": [
-        "A"
-      ],
-      "note": "Technical checks passed on integration/risk (real A+B; book/price/oracle/factory mocked). Official runner bash scripts/check-gate.sh G5: exit 2 (previous gate has no reviewed accepted commit). Marked passed on the user instruction of 2026-10-01; Person A has not reviewed."
+      "review_pending": [],
+      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     },
     {
       "id": "G6",
       "status": "passed",
       "merge_sha": "ec5a22b419a9e1903833748ec2b5e1d95d294573",
       "reviewed_by": [
-        "B"
+        "B",
+        "A"
       ],
       "evidence": [
         "artifacts/gates/G6.json",
         "docs/contracts/G6.json",
         "contracts/test/gates/G6.t.sol"
       ],
-      "review_pending": [
-        "A"
-      ],
-      "note": "Technical checks passed on integration/risk (real A+B; book/price/oracle/factory mocked). Official runner bash scripts/check-gate.sh G6: exit 2 (previous gate has no reviewed accepted commit). Marked passed on the user instruction of 2026-10-01; Person A has not reviewed."
+      "review_pending": [],
+      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     },
     {
       "id": "G7",
       "status": "blocked",
       "merge_sha": null,
-      "reviewed_by": [],
+      "reviewed_by": [
+        "A"
+      ],
       "evidence": [
         "artifacts/gates/G7.json",
         "docs/contracts/G7.json",
         "contracts/test/gates/G7.t.sol"
       ],
       "review_pending": [
-        "A",
         "B"
       ],
-      "note": "Tested at bdc9cd5dcfde12602150b40416639aa9d6f0db91: G7.t.sol, A040-A042, A044 and B040-B044 pass; A043 (Person A's peer review of B) exits 2 (pending; only Person A can do it). Gate not passed. Live counterparts BLOCKED_BY_COUNTERPART."
+      "note": "A043 is complete; G0-G7 technical checks pass in order on Forge 1.8.3. B delta review of the new implementation and a coordinator-accepted merge remain required, so G7 is not marked accepted. Live counterparts remain BLOCKED_BY_COUNTERPART.",
+      "technical_status": "checks_passed",
+      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_worktree_dirty": true
     }
   ]
 }

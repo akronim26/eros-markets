@@ -1,15 +1,18 @@
 {
  "kind": "local_fixture_release_manifest",
  "production_approved": false,
- "deployment": "none \u2014 no deployment of any kind is authorized",
+ "deployment": "none — no deployment of any kind is authorized",
  "branch": "integration/risk",
  "spec_version": "1.1",
  "economic_baseline": "1.0",
  "engine": {
   "composition": "contracts/src/engine/RiskAccountingBridge.sol (Person B controllers on Person A accounting/custody/settlement)",
   "test_composition": "contracts/test/integration/CombinedEngine.sol (+ MockBookAdapter)",
-  "runtime_bytes_with_mock_book": 108270,
-  "eip170": 24576
+  "runtime_bytes_with_mock_book": 112865,
+  "eip170": 24576,
+  "creation_bytes_with_mock_book": 121632,
+  "measurement_note": "Solc 0.8.30, optimizer 200, Prague; local mock-book composition only. Test fixture size allowance is not production approval.",
+  "source_sha256_lf": "88d8bf0ebf38a0aaf78f98d0525bd77f4f9adf47f233d2961d696e70771d9ec8"
  },
  "initial_defaults": {
   "leverage_caps": "1x (listing.deploymentCapX = 1; uncalibrated profile forces full backing)",
@@ -52,16 +55,33 @@
   "OI and liquidation pacing caps",
   "hazard evidence/validity",
   "governance implementation/delay",
-  "compiler/dependency hashes",
+  "production compiler/dependency/code hashes (local ABI source hashes are recorded)",
   "gas benchmark",
   "real counterpart ABI status",
   "review/calibration release evidence",
   "premium load as a manifest field (engine immutable today, fixture 1e18)",
   "Monad gas measurements (only local Ethereum/Prague schedule measured)",
   "contract size / split decision for the composed engine",
-  "toolchain agreement (local forge 1.3.5, CI 1.8.3, Person A 1.5.1; TypeScript not pinned)"
+  "team confirmation of Forge 1.8.3 reproduction target and a pinned TypeScript dependency"
  ],
  "counterparts": "artifacts/risk/counterpart-status.json (all live joins BLOCKED_BY_COUNTERPART)",
- "gates": "docs/spec/gate_status.json (G0-G6 technical pass, A review pending; G7 open)",
- "source_commit": "4a848c4ebf73019fd4fa6c1fdf6c8e7486c7820d"
+ "gates": "docs/spec/gate_status.json (G0-G7 ordered technical checks pass; A review complete; G7 final acceptance awaits B delta review)",
+ "fresh_validation": "artifacts/risk/review-validation.json (641 Forge and 217 Python tests pass)",
+ "source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+ "toolchain": {
+  "forge": "1.8.3",
+  "solc": "0.8.30",
+  "python": "3.12.10",
+  "typescript": "5.9.2",
+  "numpy_audit_only": "2.2.6",
+  "team_confirmation": "B confirmation of the existing CI Forge pin remains pending"
+ },
+ "worktree_dirty": true,
+ "historical_manifest_source_commit": "4a848c4ebf73019fd4fa6c1fdf6c8e7486c7820d",
+ "historical_measurements": "gas-engine.json and invariant-campaign.json preserve earlier source/toolchain results; do not treat their numbers or CI campaign as measurements of the new implementation.",
+ "retained_limitations": [
+  "A-I01: fractional protocol/keeper Q remains inside market allocation, not global vault fee escrows.",
+  "B's historical review does not approve the new implementation commits.",
+  "Real book/oracle/price/factory joins and main reconciliation are not part of this review."
+ ]
 }

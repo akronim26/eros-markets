@@ -272,3 +272,49 @@ python -m unittest discover -s reference/tests/audit -t .
 cd contracts && forge test --match-path "test/audit/Audit*"            # 41 pass
 cd contracts && forge test --match-path "test/audit/findings/*"       # 3 reproducers, all fail by design
 ```
+
+## 8. Person A resolution addendum — 2026-10-02
+
+The preceding audit is preserved as Person B's historical report on the named 2026-10-01
+tree. Its file positions, toolchain, counts and failing-reproducer descriptions are historical.
+The implementation now includes the following fixes; all three finding regressions and the
+ordered G0-G7 technical checks pass. `artifacts/risk/review-validation.json` records 641 Forge
+passes and 217 Python passes. This addendum does not assign a new accepted merge or overwrite
+the original audit observations.
+
+| Finding | Implementation in the review working tree | Regression |
+|---|---|---|
+| A-F01, Medium | `FreezeAccounting._freeze` supports an unactivated funded market by creating a terminal stopped, zero-rate epoch at the authenticated halt. The bridge supplies a scheduled bound before activation and reports the halted accounting state. Scheduled/early halt can proceed through ordinary snapshot, finality, payout and noticed reserve redemption; activation after halt and allocations at/after T are rejected. | [AF01PreActivationLock.t.sol](../../contracts/test/audit/findings/AF01PreActivationLock.t.sol) exercises the real combined A+B engine, including trader and reserve exits after T. |
+| A-F02, Low | `PremiumMath.cumulative` accumulates rational sub-interval/outcome charges and applies one ceiling at the cumulative segment boundary. Funding-affine principal, surcharge boundaries and neutral-touch subtraction remain unchanged. | [AF02PremiumRounding.t.sol](../../contracts/test/audit/findings/AF02PremiumRounding.t.sol) requires equality with the cumulative rational vectors; A012/A015 and the affected reference/differential suites must also rerun. |
+| A-F03, Low | `ReserveClaims` assigns protocol fees to separate engine `protocolFeeEscrowQ`; reserve rounding stays in `treasuryQ`. `withdrawProtocolFees()` floors whole atoms and retains fractional Q, independently of reserve dust. Both use the existing immutable treasury beneficiary; no new beneficiary-setting authority was introduced. | [AF03ProtocolFeeEscrow.t.sol](../../contracts/test/audit/findings/AF03ProtocolFeeEscrow.t.sol) checks classification/withdrawal; [G6.t.sol](../../contracts/test/gates/G6.t.sol) checks fractional fees through combined settlement. |
+
+**A-I01 remains deferred.** Protocol/keeper fee Q remains recognized within market allocation
+until its existing withdrawal/escrow path executes. The A-F03 change separates engine ledger
+categories; it does not implement the spec's separate vault-level fee reclassification, nor
+claim complete conformance on that point. The shared immutable treasury beneficiary also
+remains an explicit deployment choice.
+
+The five A-owned interface requests are implemented: one shared `AccountingState`, A-owned
+market-epoch increment, unpaid trader-entitlement counter, a cash-claim fence covering direct
+vault payouts, and a reservation replacement port without a repeated B decision. See
+[B-to-A-integration.md](../requests/B-to-A-integration.md) and
+[interface-reconciliation.md](interface-reconciliation.md).
+
+Additional combined regressions are
+[A043IntegrationReview.t.sol](../../contracts/test/reviews/A043IntegrationReview.t.sol) for
+freshness gaps, halt epochs and projected accrual/release, and
+[AClaimIntegrationReview.t.sol](../../contracts/test/reviews/AClaimIntegrationReview.t.sol) for
+successful/failed claims, direct vault calls, cash-mode selection and trader completion.
+Counterpart components remain mocks; these changes do not approve a live deployment.
+
+Current local reproduction uses Forge **1.8.3**, matching `.github/workflows/contracts.yml`,
+with solc **0.8.30** and the **Prague** EVM selected in `contracts/foundry.toml`:
+
+```bash
+cd contracts
+FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/audit/findings/*"
+FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/reviews/A*Review.t.sol"
+```
+
+The `risk`/`ci` code-size allowance is for oversized local fixtures, including test contracts
+that embed multiple engine deployments. It is not evidence of target-chain deployability.
