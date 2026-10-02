@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 import {OracleConst, Path, UMAConfig} from "../types/OracleTypes.sol";

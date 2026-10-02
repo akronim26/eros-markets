@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 /// @title IAssertionVenue
 /// @notice The only surface ResolutionOracle uses to post and read bonded assertions (Oracle spec §7.1).

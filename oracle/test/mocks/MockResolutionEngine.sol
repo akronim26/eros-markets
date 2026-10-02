@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {HaltView, FinalOutcome} from "@eros/interfaces/IResolutionIngress.sol";
 import {ResolutionEngineStub} from "../../src/testnet/ResolutionEngineStub.sol";

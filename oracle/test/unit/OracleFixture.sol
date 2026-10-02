@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {MockUSDC} from "@eros-test/mocks/A/MockUSDC.sol";
 import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";

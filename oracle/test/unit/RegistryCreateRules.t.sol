@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {Globals, MarketInput, GroupInfo} from "../../src/types/OracleTypes.sol";
 import {IMarketRegistry} from "../../src/interfaces/IMarketRegistry.sol";

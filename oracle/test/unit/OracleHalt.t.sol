@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity ^0.8.30;
 
 import {HaltView, IResolutionEngine} from "@eros/interfaces/IResolutionIngress.sol";
 import {FeedSpec, Globals, Resolution, RState} from "../../src/types/OracleTypes.sol";
