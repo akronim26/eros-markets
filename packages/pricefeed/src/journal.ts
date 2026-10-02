@@ -35,6 +35,11 @@ export class Journal {
     return this.db.prepare('SELECT at_ms,payload FROM captures WHERE worker=? ORDER BY id').all(worker)
       .map(row=>({atMs:BigInt(String(row.at_ms)),payload:JSON.parse(String(row.payload)) as Record<string,unknown>}));
   }
+  latest(worker:string):{atMs:bigint;payload:Record<string,unknown>}|null {
+    const row=this.db.prepare('SELECT at_ms,payload FROM captures WHERE worker=? ORDER BY id DESC LIMIT 1').get(worker);
+    return row?{atMs:BigInt(String(row.at_ms)),payload:JSON.parse(String(row.payload)) as Record<string,unknown>}:null;
+  }
+  workers():string[] {return this.db.prepare('SELECT DISTINCT worker FROM captures ORDER BY worker').all().map(row=>String(row.worker));}
   verify():boolean {
     return this.db.prepare('SELECT payload,sha256 FROM captures').all().every(row=>createHash('sha256').update(String(row.payload)).digest('hex')===row.sha256);
   }
