@@ -2,16 +2,19 @@
 pragma solidity ^0.8.30;
 
 import {LibBit} from "solady/utils/LibBit.sol";
-import {RiskSnapshot} from "./RiskSnapshot.sol";
+import {Side, AdmissionMode, StepStatus, RejectCode} from "../provisional/MathTypes.sol";
+import {IBookRiskHooks} from "./interfaces/IBookRiskHooks.sol";
 
 /// @title Book
 /// @notice Fully on-chain price-time CLOB over the 999 ticks 0.001 .. 0.999 (design spec §9) for
 ///         one market. Risk & Clearing keeps one ledger per market (risk spec §1), so every
 ///         per-market engine composes exactly one Book.
 /// @dev Storage is laid out for Monad's page-priced storage (MIP-8): bitmaps, levels and orders
-///      never return to zero once used. Clearing plugs in through the internal hooks; the book
-///      never touches accounts and Clearing never touches the book.
-abstract contract Book {
+///      never return to zero once used. The book drives Risk & Clearing through the internal hook
+///      seam of `IBookRiskHooks` (risk spec §7.5, §7.7): one action and one taker permit per
+///      order, one `_riskTryMatchedFill` per examined maker, and an unrest only for lots that stop
+///      resting unfilled. The book never touches accounts and risk never touches the book.
+abstract contract Book is IBookRiskHooks {
     // ------------------------------------------------------------------ constants
 
     // The tick grid is a locked design decision (ticks of 0.001, prices 0.001 .. 0.999) and the
@@ -45,36 +48,20 @@ abstract contract Book {
     ///      never reissued and a stale cancel can never hit a newer order.
     uint8 internal constant MAX_GEN = type(uint8).max;
 
-    enum OrderType {
-        LIMIT, // match, then rest the remainder
-        IOC, // match, then drop the remainder
-        POST_ONLY // never match; rest or reject
-    }
-
     enum CancelReason {
         USER,
         SELF_TRADE, // resting order hit by its own owner
-        FAILED_CHECK, // Clearing refused the maker fill
+        FAILED_CHECK, // risk pruned the maker: stale epoch or failed readmission
         CLIPPED // reduce-only maker exhausted its reducible size
     }
 
     struct Place {
-        OrderType kind;
+        OrderKind kind; // LIMIT: match, rest the remainder; IOC: drop it; POST_ONLY: never match
         bool isBuy;
         bool reduceOnly;
         uint16 tick;
         uint64 size; // lots (0.001 claim)
-        uint8 maxFills; // orders the match may examine, counting self-trades and failed makers
-    }
-
-    /// @dev Per-order taker context handed to every Clearing hook of that order.
-    struct Ctx {
-        uint32 taker;
-        bool takerBuys;
-        uint8 flags;
-        uint64 filled; // Book-maintained: taker lots filled so far
-        uint256 cost; // Book-maintained: sum of fill lots x tick, in USDC atoms
-        RiskSnapshot risk; // Clearing-owned; Book never reads it
+        uint8 maxFills; // makers the match may examine, counting self-trades and failed makers
     }
 
     // ------------------------------------------------------------------ storage
@@ -87,7 +74,10 @@ abstract contract Book {
         bool used;
     }
 
-    /// @dev One slot (192 bits). A dead order keeps owner/tick/gen as a non-zero tombstone.
+    /// @dev Three slots. The first is the topology and stays a non-zero tombstone once the order
+    ///      is dead (owner/tick/gen are kept); the rest is the record risk returned when the order
+    ///      started resting (risk spec §7.2 sidecar). Reuse overwrites all of it, and the
+    ///      generation in the public id guards every read.
     struct Order {
         uint32 owner; // trader id
         uint64 size; // remaining lots; 0 = dead
@@ -96,6 +86,10 @@ abstract contract Book {
         uint16 tick; // 1..999
         uint8 flags; // FLAG_BUY | FLAG_REDUCE_ONLY | FLAG_LIVE
         uint8 gen; // bumped on every reuse; part of the public id
+        uint64 reduceVersion; // position version a reduce-only order was admitted against
+        uint64 marketEpoch; // full order epochs the reservation was admitted under
+        uint64 accountEpoch;
+        uint256 feeCapQ; // fee reservation still attributable to the remaining lots
     }
 
     struct BookState {
@@ -113,7 +107,17 @@ abstract contract Book {
     event MaxFillsSet(uint8 maxFills);
     event OrderPlaced(uint32 indexed id, uint32 indexed trader, uint16 tick, uint64 size, uint8 flags);
     event OrderCancelled(uint32 indexed id, uint64 size, CancelReason reason);
-    event Fill(uint32 indexed makerOrder, uint32 maker, uint32 taker, uint16 tick, uint64 size);
+    /// @notice Risk admitted nothing for an order; `reason` is its rejection code.
+    event OrderRejected(uint32 indexed trader, RejectCode reason);
+    event Fill(
+        uint32 indexed makerOrder,
+        uint32 maker,
+        uint32 taker,
+        uint16 tick,
+        uint64 size,
+        uint256 makerFeeQ,
+        uint256 takerFeeQ
+    );
 
     // ------------------------------------------------------------------ errors
 
@@ -127,45 +131,17 @@ abstract contract Book {
     error BadMaxFills();
     error PostOnlyCrosses();
 
-    // ------------------------------------------------------------------ Clearing hooks
+    // ------------------------------------------------------------------ engine hook
 
-    /// @dev The engine's trader id for `account`, the key Clearing keeps accounts under (risk
-    ///      spec: the accounting registry's index + 1). Never 0; the book keeps no registry.
+    /// @dev The engine's trader id for `account`, the key Risk & Clearing keeps accounts under
+    ///      (risk spec: the accounting registry's index + 1). Never 0; the book keeps no registry.
+    ///      Every other hook is one of `IBookRiskHooks`.
     function _traderOf(address account) internal virtual returns (uint32);
-
-    /// @dev Load the taker and settle its funding once; returns the size it may trade
-    ///      (a reduce-only taker is clipped to its position here).
-    function _takerStart(Ctx memory c, uint64 size) internal virtual returns (uint64 allowed);
-
-    /// @dev Check and update the maker. 0 = failed check (the order is cancelled);
-    ///      less than `size` = reduce-only clip (the rest of the order is cancelled).
-    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16 tick, uint64 size, uint8 flags)
-        internal
-        virtual
-        returns (uint64 filled);
-
-    /// @dev Taker side of one fill; memory only. `c.filled` and `c.cost` already include it.
-    function _takerFill(Ctx memory c, bool takerBuys, uint16 tick, uint64 size) internal virtual;
-
-    /// @dev Final taker checks and the single account write; reverts on failure. `c.filled` and
-    ///      `c.cost` hold the order's totals.
-    function _takerDone(Ctx memory c) internal virtual;
-
-    /// @dev Admission gate for every new order, before anything else happens: market stage
-    ///      (Halted accepts nothing, ReduceOnly only reduce-only orders), price band, minimum size.
-    ///      Reverts to reject; in a batch that reverts the whole batch. Cancels are never gated.
-    function _admit(uint32 trader, Place calldata p) internal virtual;
-
-    /// @dev Resting-order margin (R_buy, R_sell): `size` lots started resting. `flags` carry the
-    ///      side (FLAG_BUY) and FLAG_REDUCE_ONLY. May revert to refuse the rest.
-    function _onRest(uint32 trader, uint16 tick, uint64 size, uint8 flags) internal virtual;
-
-    /// @dev `size` lots of an order with `flags` stopped resting (filled or cancelled).
-    function _onUnrest(uint32 trader, uint64 size, uint8 flags) internal virtual;
 
     // ------------------------------------------------------------------ external
 
-    /// @notice Place one order. Returns the resting order's id, or 0 if nothing rests.
+    /// @notice Place one order. Returns the resting order's id, or 0 if nothing rests; when risk
+    ///         admits nothing, `OrderRejected` carries its reason.
     function placeOrder(Place calldata p) external returns (uint32 id) {
         return _place(_openBook(), _traderOf(msg.sender), p, false);
     }
@@ -180,8 +156,11 @@ abstract contract Book {
     {
         BookState storage b = _openBook();
         uint32 trader = _traderOf(msg.sender);
-        for (uint256 i; i < cancels.length; ++i) {
-            _cancelOwn(b, trader, cancels[i]);
+        if (cancels.length != 0) {
+            RiskSnapshot memory snap = _riskBeginAction();
+            for (uint256 i; i < cancels.length; ++i) {
+                _cancelOwn(b, snap, trader, cancels[i]);
+            }
         }
         ids = new uint32[](places.length);
         for (uint256 i; i < places.length; ++i) {
@@ -191,7 +170,9 @@ abstract contract Book {
 
     /// @notice Cancel a live order owned by the caller. Reverts if it is no longer live.
     function cancel(uint32 id) external {
-        if (!_cancelOwn(_openBook(), _traderOf(msg.sender), id)) revert NotLive();
+        BookState storage b = _openBook();
+        uint32 trader = _traderOf(msg.sender);
+        if (!_cancelOwn(b, _riskBeginAction(), trader, id)) revert NotLive();
     }
 
     // ------------------------------------------------------------------ views
@@ -242,33 +223,47 @@ abstract contract Book {
     /// @dev In a batch a crossing post-only order returns 0 instead of reverting.
     function _place(BookState storage b, uint32 trader, Place calldata p, bool inBatch)
         internal
-        returns (uint32 id)
+        returns (uint32)
     {
         if (p.tick < MIN_TICK || p.tick > MAX_TICK) revert BadTick();
         if (p.size == 0) revert BadSize();
         if (p.maxFills > b.maxFills) revert BadMaxFills();
-        _admit(trader, p);
-        uint8 flags = (p.isBuy ? FLAG_BUY : 0) | (p.reduceOnly ? FLAG_REDUCE_ONLY : 0);
-
-        if (p.kind == OrderType.POST_ONLY) {
-            if (_crosses(b, p.isBuy, p.tick)) {
-                if (inBatch) return 0;
-                revert PostOnlyCrosses();
-            }
-            return _rest(b, trader, p.tick, p.size, flags);
+        if (p.kind == OrderKind.POST_ONLY && _crosses(b, p.isBuy, p.tick)) {
+            if (inBatch) return 0;
+            revert PostOnlyCrosses();
         }
+        return _execute(
+            b,
+            OrderRequest(
+                trader, p.isBuy ? Side.BUY : Side.SELL, p.kind, p.tick, p.size, 0, p.reduceOnly, p.maxFills
+            ),
+            AdmissionMode.NORMAL
+        );
+    }
 
-        Ctx memory c;
-        (c.taker, c.takerBuys, c.flags) = (trader, p.isBuy, flags);
-        uint64 want = _takerStart(c, p.size);
-        if (want > p.size) want = p.size;
-        want = _match(b, c, p.tick, want, p.maxFills);
-        _takerDone(c);
+    /// @dev Risk spec §7.7: one action and one taker permit, a bounded match, then a LIMIT or
+    ///      POST_ONLY remainder rests by converting the permit (never reserved twice), and the
+    ///      permit is released.
+    function _execute(BookState storage b, OrderRequest memory req, AdmissionMode mode)
+        internal
+        returns (uint32 id)
+    {
+        RiskSnapshot memory snap = _riskBeginAction();
+        (TakerPermit memory permit, RejectCode reason) = _riskPrepareTaker(req, snap, mode);
+        if (permit.remainingLots == 0) {
+            emit OrderRejected(req.trader, reason);
+            return 0;
+        }
+        if (req.kind != OrderKind.POST_ONLY) _match(b, snap, permit, req.limitTick, req.maxSteps);
         // If maxFills ran out while the book still crosses the limit, the remainder is dropped:
         // resting it would leave best bid >= best ask (INV-8).
-        if (p.kind == OrderType.LIMIT && want != 0 && !_crosses(b, p.isBuy, p.tick)) {
-            id = _rest(b, trader, p.tick, want, flags);
+        if (
+            req.kind != OrderKind.IOC && permit.remainingLots != 0
+                && !_crosses(b, req.side == Side.BUY, req.limitTick)
+        ) {
+            id = _rest(b, snap, permit);
         }
+        _riskFinishTaker(snap, permit);
     }
 
     function _crosses(BookState storage b, bool isBuy, uint16 tick) internal view returns (bool) {
@@ -282,118 +277,147 @@ abstract contract Book {
 
     // ------------------------------------------------------------------ match
 
-    /// @dev Walks the opposite side best price first, oldest first, examining at most `maxFills`
-    ///      orders. Self-trades and failed makers are cancelled and still count as a step, so
-    ///      gas stays bounded whatever sits at the touch. Returns the unfilled lots.
-    function _match(BookState storage b, Ctx memory c, uint16 limit, uint64 want, uint256 maxFills_)
-        internal
-        returns (uint64)
-    {
+    /// @dev Walks the opposite side best price first, oldest first, examining at most `maxSteps`
+    ///      makers. Every examined maker uses a step whatever happens to it, so gas stays bounded
+    ///      whatever sits at the touch.
+    function _match(
+        BookState storage b,
+        RiskSnapshot memory snap,
+        TakerPermit memory permit,
+        uint16 limit,
+        uint256 maxSteps
+    ) internal {
+        bool takerBuys = permit.side == Side.BUY;
         uint256 steps;
-        while (want != 0 && steps < maxFills_) {
-            uint16 k = c.takerBuys ? _bestAsk(b) : _bestBid(b);
-            if (k == NONE || (c.takerBuys ? k > limit : k < limit)) break;
-            // A partly filled maker stays at the head only when `want` hit zero, which ends both
-            // loops, so walking on to `next` after every step is safe.
-            for (
-                uint32 s = b.levels[k][c.takerBuys ? ASK : BID].head;
-                s != 0 && want != 0 && steps < maxFills_;
-
-            ) {
-                uint32 next = b.orders[s].next;
-                want -= _step(b, c, s, k, want); // a hook overfill underflows here and reverts
+        while (permit.remainingLots != 0 && steps < maxSteps) {
+            uint16 k = takerBuys ? _bestAsk(b) : _bestBid(b);
+            if (k == NONE || (takerBuys ? k > limit : k < limit)) break;
+            Level storage lv = b.levels[k][takerBuys ? ASK : BID];
+            // Always the level's head: a step removes it, or leaves it partly filled because the
+            // permit ran out or risk clipped the fill, and then the next step sees it again.
+            for (uint32 s = lv.head; s != 0 && permit.remainingLots != 0 && steps < maxSteps; s = lv.head) {
                 ++steps;
-                s = next;
+                if (_step(b, snap, permit, s)) return;
             }
         }
-        return want;
     }
 
-    /// @dev Examines the order in slot `s` at tick `k` and returns the lots filled.
-    function _step(BookState storage b, Ctx memory c, uint32 s, uint16 k, uint64 want)
+    /// @dev Examines the maker in slot `s`: a self-trade is pruned here, everything else is one
+    ///      `_riskTryMatchedFill`. Returns true when risk stops the taker.
+    function _step(BookState storage b, RiskSnapshot memory snap, TakerPermit memory permit, uint32 s)
         internal
-        returns (uint64 filled)
+        returns (bool stop)
     {
         Order storage o = b.orders[s];
-        (uint32 maker, uint8 flags) = (o.owner, o.flags & ~FLAG_LIVE);
-        if (maker == c.taker) {
-            _cancel(b, s, CancelReason.SELF_TRADE);
-            return 0;
+        if (o.owner == permit.trader) {
+            _cancel(b, snap, s, CancelReason.SELF_TRADE);
+            return false;
         }
         uint64 size = o.size;
-        uint64 req = want < size ? want : size;
-        filled = _makerFill(c, maker, !c.takerBuys, k, req, flags);
-        if (filled == 0) {
-            _cancel(b, s, CancelReason.FAILED_CHECK);
-            return 0;
+        StepResult memory r = _riskTryMatchedFill(
+            snap, permit, _view(s, o), size < permit.remainingLots ? size : permit.remainingLots
+        );
+        if (r.status == StepStatus.STOP_TAKER) return true;
+        if (r.status == StepStatus.PRUNE_MAKER) {
+            _cancel(b, snap, s, CancelReason.FAILED_CHECK);
+            return false;
         }
-        c.filled += filled;
-        c.cost += uint256(filled) * k;
-        _takerFill(c, c.takerBuys, k, filled);
-        emit Fill(_id(s, o.gen), maker, c.taker, k, filled);
-        if (filled == size) {
+        // Risk already released the filled lots: shrink the order without an unrest for them.
+        bool whole = r.filledLots == size;
+        if (whole) {
             _unlink(b, s);
         } else {
-            o.size = size - filled;
-            b.levels[k][c.takerBuys ? ASK : BID].size -= filled;
+            uint64 left = size - r.filledLots; // a hook overfill underflows here and reverts
+            o.size = left;
+            o.feeCapQ = o.feeCapQ * left / size; // the pro-rata attribution risk consumed (M-11)
+            b.levels[o.tick][o.flags & FLAG_BUY != 0 ? BID : ASK].size -= r.filledLots;
         }
-        _onUnrest(maker, filled, flags);
-        // Reduce-only maker clipped: nothing more of it can fill.
-        if (filled < req) _cancel(b, s, CancelReason.CLIPPED);
+        emit Fill(_id(s, o.gen), o.owner, permit.trader, o.tick, r.filledLots, r.makerFeeQ, r.takerFeeQ);
+        // A reduce-only maker reached zero: only its unfilled rest is released.
+        if (!whole && r.removeMakerRemainder) _cancel(b, snap, s, CancelReason.CLIPPED);
+    }
+
+    /// @dev The lossless view risk judges a resting order by (risk spec §7.5).
+    function _view(uint32 s, Order storage o) internal view returns (OrderView memory v) {
+        v.key = OrderKey(s, o.gen);
+        v.owner = o.owner;
+        v.side = o.flags & FLAG_BUY != 0 ? Side.BUY : Side.SELL;
+        v.tick = o.tick;
+        v.remainingLots = o.size;
+        v.admittedAt = EpochTag(o.marketEpoch, o.accountEpoch);
+        v.reduceOnly = o.flags & FLAG_REDUCE_ONLY != 0;
+        v.reduceVersion = o.reduceVersion;
+        v.remainingFeeCapQ = o.feeCapQ;
     }
 
     // ------------------------------------------------------------------ rest / cancel
 
-    /// @dev Appends at the tail of the level, reusing a free slot when one exists.
-    function _rest(BookState storage b, uint32 trader, uint16 tick, uint64 size, uint8 flags)
+    /// @dev Rests the permit's remainder. Risk converts the permit, so the lots are never reserved
+    ///      twice, and returns the record the order keeps.
+    function _rest(BookState storage b, RiskSnapshot memory snap, TakerPermit memory permit)
         internal
-        returns (uint32 id)
+        returns (uint32)
     {
+        Order memory o;
+        (o.owner, o.size, o.tick) = (permit.trader, permit.remainingLots, permit.limitTick);
+        o.flags = (permit.side == Side.BUY ? FLAG_BUY : 0) | (permit.reduceOnly ? FLAG_REDUCE_ONLY : 0);
+        EpochTag memory tag;
+        (tag, o.reduceVersion, o.feeCapQ) = _riskConvertPermitToRest(snap, permit, o.size, 0);
+        (o.marketEpoch, o.accountEpoch) = (tag.marketOrderEpoch, tag.accountOrderEpoch);
+        return _insert(b, o);
+    }
+
+    /// @dev Appends `o` at the tail of its level, reusing a free slot when one exists.
+    function _insert(BookState storage b, Order memory o) internal returns (uint32 id) {
         uint32 s = b.freeHead;
-        uint8 gen;
         if (s != 0) {
             Order storage dead = b.orders[s];
             b.freeHead = dead.next;
-            gen = dead.gen + 1;
+            o.gen = dead.gen + 1;
         } else {
             uint256 n = b.orders.length;
             if (n > SLOT_MASK) revert BookFull();
             s = uint32(n);
             b.orders.push();
         }
-        uint8 side = flags & FLAG_BUY != 0 ? BID : ASK;
-        Level storage lv = b.levels[tick][side];
+        uint8 side = o.flags & FLAG_BUY != 0 ? BID : ASK;
+        Level storage lv = b.levels[o.tick][side];
         uint32 tail = lv.tail;
-        b.orders[s] = Order(trader, size, 0, tail, tick, flags | FLAG_LIVE, gen);
+        uint8 flags = o.flags;
+        (o.next, o.prev, o.flags) = (0, tail, flags | FLAG_LIVE);
+        b.orders[s] = o;
         if (tail == 0) {
             lv.head = s;
-            _setBit(b, side, tick);
+            _setBit(b, side, o.tick);
         } else {
             b.orders[tail].next = s;
         }
         lv.tail = s;
-        lv.size += size;
+        lv.size += o.size;
         lv.used = true;
-        id = _id(s, gen);
-        emit OrderPlaced(id, trader, tick, size, flags);
-        _onRest(trader, tick, size, flags);
+        id = _id(s, o.gen);
+        emit OrderPlaced(id, o.owner, o.tick, o.size, flags);
     }
 
     /// @dev Returns false if `id` is not live; reverts if it is live but not the trader's.
-    function _cancelOwn(BookState storage b, uint32 trader, uint32 id) internal returns (bool) {
+    function _cancelOwn(BookState storage b, RiskSnapshot memory snap, uint32 trader, uint32 id)
+        internal
+        returns (bool)
+    {
         (uint32 s, bool live) = _liveSlot(b, id);
         if (!live) return false;
         if (b.orders[s].owner != trader) revert NotOwner();
-        _cancel(b, s, CancelReason.USER);
+        _cancel(b, snap, s, CancelReason.USER);
         return true;
     }
 
-    function _cancel(BookState storage b, uint32 s, CancelReason reason) internal {
+    /// @dev Unlinks a resting order and releases its unfilled lots at their tick and epoch.
+    function _cancel(BookState storage b, RiskSnapshot memory snap, uint32 s, CancelReason reason) internal {
         Order storage o = b.orders[s];
-        (uint32 owner, uint64 size, uint8 flags) = (o.owner, o.size, o.flags & ~FLAG_LIVE);
-        emit OrderCancelled(_id(s, o.gen), size, reason);
+        OrderView memory v = _view(s, o);
+        emit OrderCancelled(_id(s, o.gen), v.remainingLots, reason);
         _unlink(b, s);
-        _onUnrest(owner, size, flags);
+        _riskOnUnrest(snap, v.owner, v.admittedAt, v.side, v.tick, v.remainingLots, v.remainingFeeCapQ);
     }
 
     /// @dev Unlinks a live order in O(1), clears the tick bit if the level empties, and turns the

@@ -3,10 +3,13 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
+import {Side, RejectCode} from "../provisional/MathTypes.sol";
 
-/// @notice The integration surface other modules build on: the risk snapshot and taker totals in
-///         Ctx (R2), admission gates (R4 stages) and touch depth (pricing).
+/// @notice The integration surface other modules build on: one risk snapshot per action reaching
+///         every hook, fills reported per maker at its price, risk's rejections and stops as
+///         codes, a rest and an unrest exactly once per unfilled lot, and touch depth (pricing).
 contract BookSeamTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
@@ -24,12 +27,12 @@ contract BookSeamTest is Test {
 
     function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, isBuy, false, tick, size, 0));
+        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, isBuy, false, tick, size, 0));
     }
 
     function _ioc(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(Book.Place(Book.OrderType.IOC, isBuy, false, tick, size, 8));
+        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, isBuy, false, tick, size, 8));
     }
 
     // ------------------------------------------------------------------ risk snapshot and totals
@@ -39,11 +42,10 @@ contract BookSeamTest is Test {
         book.setSnapshotMark(777);
         _ioc(taker, true, 501, 10);
         assertEq(book.makerSawMark(), 777);
-        assertEq(book.takerFillSawMark(), 777);
         assertEq(book.doneSawMark(), 777);
     }
 
-    function test_TakerDoneSeesFilledAndCost() public {
+    function test_FillsReportLotsAtMakerPrices() public {
         _post(maker, false, 501, 10);
         _post(maker, false, 503, 5);
         _ioc(taker, true, 503, 12);
@@ -51,7 +53,7 @@ contract BookSeamTest is Test {
         assertEq(book.doneCost(), 10 * 501 + 2 * 503);
     }
 
-    function test_TakerDoneSeesZeroTotalsWithoutFills() public {
+    function test_NoFillsReportZeroTotals() public {
         _post(maker, false, 501, 10);
         _ioc(taker, true, 500, 12);
         assertEq(book.doneFilled(), 0);
@@ -74,29 +76,60 @@ contract BookSeamTest is Test {
         assertEq(book.doneCost(), 0);
     }
 
+    /// Risk's record for an order (epochs, reduce version, fee cap) comes back with every later
+    /// hook, and a partial fill keeps the fee cap pro rata; an unrest names the tick and epoch.
+    function test_OrderKeepsRisksRecord() public {
+        book.setRestRecord(7, 9, 3, 1000);
+        uint32 id = _post(maker, false, 500, 10);
+        _ioc(taker, true, 500, 4);
+        IBookRiskHooks.OrderView memory v = book.lastMaker();
+        assertEq(v.key.slot, id & 0xFFFFFF);
+        assertEq(v.owner, 1);
+        assertEq(v.tick, 500);
+        assertEq(v.remainingLots, 10);
+        assertEq(v.admittedAt.marketOrderEpoch, 7);
+        assertEq(v.admittedAt.accountOrderEpoch, 9);
+        assertEq(v.reduceVersion, 3);
+        assertEq(v.remainingFeeCapQ, 1000);
+        assertEq(book.getOrder(id).feeCapQ, 600, "6 of 10 lots left");
+
+        vm.prank(maker);
+        book.cancel(id);
+        BookHarness.Unrest memory u = book.lastUnrest();
+        assertEq(u.owner, 1);
+        assertEq(u.tag.marketOrderEpoch, 7);
+        assertEq(u.tag.accountOrderEpoch, 9);
+        assertEq(uint8(u.side), uint8(Side.SELL));
+        assertEq(u.tick, 500);
+        assertEq(u.lots, 6);
+        assertEq(u.feeCapQ, 600);
+    }
+
     // ------------------------------------------------------------------ admission (stages)
 
     function _all(bool ro) internal pure returns (Book.Place[3] memory ps) {
-        ps[0] = Book.Place(Book.OrderType.LIMIT, true, ro, 500, 5, 8);
-        ps[1] = Book.Place(Book.OrderType.IOC, true, ro, 500, 5, 8);
-        ps[2] = Book.Place(Book.OrderType.POST_ONLY, true, ro, 400, 5, 0);
+        ps[0] = Book.Place(IBookRiskHooks.OrderKind.LIMIT, true, ro, 500, 5, 8);
+        ps[1] = Book.Place(IBookRiskHooks.OrderKind.IOC, true, ro, 500, 5, 8);
+        ps[2] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, ro, 400, 5, 0);
     }
 
+    /// Risk rejects with a code, not a revert, so a batch keeps its other actions.
     function test_HaltedMarketRejectsEveryOrderType() public {
         _post(maker, false, 500, 10);
         book.setStage(BookHarness.Stage.Halted);
         Book.Place[3] memory ps = _all(true);
         for (uint256 i; i < 3; ++i) {
+            vm.expectEmit(address(book));
+            emit Book.OrderRejected(2, RejectCode.HALTED);
             vm.prank(taker);
-            vm.expectRevert(BookHarness.MarketHalted.selector);
-            book.placeOrder(ps[i]);
+            assertEq(book.placeOrder(ps[i]), 0);
         }
         Book.Place[] memory one = new Book.Place[](1);
         one[0] = ps[2];
         vm.prank(taker);
-        vm.expectRevert(BookHarness.MarketHalted.selector);
-        book.batch(new uint32[](0), one);
+        assertEq(book.batch(new uint32[](0), one)[0], 0);
         assertEq(book.position(2), 0);
+        assertEq(book.getLevel(false, 500).size, 10, "maker untouched");
     }
 
     function test_CancelsStillWorkWhenHalted() public {
@@ -118,9 +151,10 @@ contract BookSeamTest is Test {
         book.setStage(BookHarness.Stage.ReduceOnly);
         Book.Place[3] memory plain = _all(false);
         for (uint256 i; i < 3; ++i) {
+            vm.expectEmit(address(book));
+            emit Book.OrderRejected(2, RejectCode.BAD_STAGE);
             vm.prank(taker);
-            vm.expectRevert(BookHarness.ReduceOnlyStage.selector);
-            book.placeOrder(plain[i]);
+            assertEq(book.placeOrder(plain[i]), 0);
         }
         book.setPosition(2, -5); // taker short 5
         vm.prank(taker);
@@ -131,22 +165,40 @@ contract BookSeamTest is Test {
 
     function test_MinSizeGate() public {
         book.setMinSize(250);
+        vm.expectEmit(address(book));
+        emit Book.OrderRejected(2, RejectCode.BELOW_MIN_SIZE);
         vm.prank(taker);
-        vm.expectRevert(BookHarness.BelowMinSize.selector);
-        book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, true, false, 400, 249, 0));
+        assertEq(book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 400, 249, 0)), 0);
         vm.prank(taker);
-        book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, true, false, 400, 250, 0));
+        assertTrue(
+            book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 400, 250, 0)) != 0
+        );
     }
 
-    function test_RestAndUnrestHooksGetFlagsWithoutLiveBit() public {
+    /// A stopped taker keeps the maker; the crossing LIMIT remainder is dropped, never rested.
+    function test_StopTakerKeepsTheMaker() public {
+        uint32 a = _post(maker, false, 500, 10);
+        book.setStopTaker(true);
+        vm.prank(taker);
+        uint32 id = book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, true, false, 500, 10, 8));
+        assertEq(id, 0);
+        assertEq(book.getOrder(a).size, 10);
+        assertEq(book.position(2), 0);
+        assertEq(book.reserved(2, true), 0);
+    }
+
+    /// Filled lots are released inside the fill; only lots that stop resting unfilled are unrested.
+    function test_UnrestOnlyForUnfilledLots() public {
         uint32 id = _post(maker, false, 500, 10);
         assertEq(book.lastRestFlags(), 0);
         vm.prank(maker);
         book.cancel(id);
+        assertEq(book.unrestCalls(), 1);
         assertEq(book.lastUnrestFlags(), 0);
         _post(maker, true, 400, 10);
         _ioc(taker, false, 400, 4);
-        assertEq(book.lastUnrestFlags(), book.FLAG_BUY(), "maker fill passes the maker's flags");
+        assertEq(book.unrestCalls(), 1, "a fill never unrests");
+        assertEq(book.reserved(1, true), 6);
     }
 
     // ------------------------------------------------------------------ maxFills
@@ -164,9 +216,9 @@ contract BookSeamTest is Test {
         BookHarness fresh = new BookHarness();
         fresh.createMarket(3);
         vm.startPrank(taker);
-        fresh.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 500, 1, 3));
+        fresh.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 3));
         vm.expectRevert(Book.BadMaxFills.selector);
-        fresh.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 500, 1, 4));
+        fresh.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 4));
         vm.stopPrank();
     }
 
@@ -174,13 +226,13 @@ contract BookSeamTest is Test {
         book.setMaxFills(2);
         vm.prank(taker);
         vm.expectRevert(Book.BadMaxFills.selector);
-        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 500, 1, 3));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 3));
 
         vm.expectEmit(address(book));
         emit Book.MaxFillsSet(255);
         book.setMaxFills(255);
         vm.prank(taker);
-        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 500, 1, 255));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 255));
     }
 
     function test_RevertWhen_MaxFillsZero() public {

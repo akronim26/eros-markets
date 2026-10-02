@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
 
 contract BookBatchTest is Test {
@@ -11,16 +12,16 @@ contract BookBatchTest is Test {
     address mm = makeAddr("mm"); // trader 1
     address taker = makeAddr("taker"); // trader 2
 
-    Book.OrderType constant LIMIT = Book.OrderType.LIMIT;
-    Book.OrderType constant IOC = Book.OrderType.IOC;
-    Book.OrderType constant POST = Book.OrderType.POST_ONLY;
+    IBookRiskHooks.OrderKind constant LIMIT = IBookRiskHooks.OrderKind.LIMIT;
+    IBookRiskHooks.OrderKind constant IOC = IBookRiskHooks.OrderKind.IOC;
+    IBookRiskHooks.OrderKind constant POST = IBookRiskHooks.OrderKind.POST_ONLY;
 
     function setUp() public {
         book = new BookHarness();
         book.createMarket(MAX_FILLS);
     }
 
-    function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint64 size)
+    function _p(IBookRiskHooks.OrderKind kind, bool isBuy, uint16 tick, uint64 size)
         internal
         pure
         returns (Book.Place memory)

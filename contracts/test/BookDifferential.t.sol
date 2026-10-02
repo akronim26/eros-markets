@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test, Vm} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
 
 /// @notice Feeds identical random operations to Book and to a naive price-time reference that
@@ -79,12 +80,18 @@ contract BookDifferentialTest is Test {
         internal
         returns (bool rests, uint64 restSize)
     {
-        if (p.kind == Book.OrderType.POST_ONLY) {
+        if (p.kind == IBookRiskHooks.OrderKind.POST_ONLY) {
             if (_crossesRef(p.isBuy, p.tick)) {
                 require(inBatch, "standalone crossing post-only not generated");
                 return (false, 0);
             }
-            return (true, p.size);
+            // Admitted like every order: a reduce-only one is clipped to the position.
+            uint64 size = p.size;
+            if (p.reduceOnly) {
+                uint64 r = _reducible(taker, p.isBuy);
+                if (r < size) size = r;
+            }
+            return (size != 0, size);
         }
         uint64 want = p.size;
         if (p.reduceOnly) {
@@ -119,7 +126,7 @@ contract BookDifferentialTest is Test {
             o.size -= f;
             if (f < req) o.size = 0; // reduce-only clip cancels the rest
         }
-        if (p.kind == Book.OrderType.LIMIT && want != 0 && !_crossesRef(p.isBuy, p.tick)) {
+        if (p.kind == IBookRiskHooks.OrderKind.LIMIT && want != 0 && !_crossesRef(p.isBuy, p.tick)) {
             return (true, want);
         }
         return (false, 0);
@@ -134,7 +141,7 @@ contract BookDifferentialTest is Test {
     // ------------------------------------------------------------------ driver
 
     function _decode(uint256 seed) internal pure returns (Book.Place memory p) {
-        p.kind = Book.OrderType(seed % 3);
+        p.kind = IBookRiskHooks.OrderKind(seed % 3);
         p.isBuy = (seed >> 8) % 2 == 0;
         p.reduceOnly = (seed >> 16) % 6 == 0;
         p.tick = uint16(496 + (seed >> 24) % 9);
@@ -152,8 +159,8 @@ contract BookDifferentialTest is Test {
         n = 0;
         for (uint256 i; i < logs.length; ++i) {
             if (logs[i].topics[0] != Book.Fill.selector) continue;
-            (uint32 maker, uint32 taker, uint16 tick, uint64 size) =
-                abi.decode(logs[i].data, (uint32, uint32, uint16, uint64));
+            (uint32 maker, uint32 taker, uint16 tick, uint64 size,,) =
+                abi.decode(logs[i].data, (uint32, uint32, uint16, uint64, uint256, uint256));
             out[n++] = Fill(uint32(uint256(logs[i].topics[1])), maker, taker, tick, size);
         }
     }
@@ -175,8 +182,8 @@ contract BookDifferentialTest is Test {
         } else {
             Book.Place memory p = _decode(seed >> 8);
             bool inBatch = action != 1;
-            if (!inBatch && p.kind == Book.OrderType.POST_ONLY && _crossesRef(p.isBuy, p.tick)) {
-                p.kind = Book.OrderType.LIMIT;
+            if (!inBatch && p.kind == IBookRiskHooks.OrderKind.POST_ONLY && _crossesRef(p.isBuy, p.tick)) {
+                p.kind = IBookRiskHooks.OrderKind.LIMIT;
             }
             (bool rests, uint64 restSize) = _refPlace(trader, p, inBatch);
             uint32 id;

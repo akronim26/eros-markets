@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
 
 /// @notice Drives random place / take / cancel / requote / churn traffic into one market. Ticks
@@ -35,7 +36,7 @@ contract BookHandler is Test {
     }
 
     function _place(uint256 seed) internal pure returns (Book.Place memory p) {
-        p.kind = Book.OrderType(seed % 3);
+        p.kind = IBookRiskHooks.OrderKind(seed % 3);
         p.isBuy = (seed >> 8) % 2 == 0;
         p.reduceOnly = (seed >> 16) % 8 == 0;
         p.tick = uint16(495 + (seed >> 24) % 11);
@@ -54,7 +55,7 @@ contract BookHandler is Test {
 
     function take(uint256 actorSeed, uint256 seed) external {
         Book.Place memory p = _place(seed);
-        if (p.kind == Book.OrderType.POST_ONLY) p.kind = Book.OrderType.IOC;
+        if (p.kind == IBookRiskHooks.OrderKind.POST_ONLY) p.kind = IBookRiskHooks.OrderKind.IOC;
         vm.prank(actors[actorSeed % 4]);
         _record(book.placeOrder(p));
     }
@@ -98,7 +99,7 @@ contract BookHandler is Test {
         address who = actors[actorSeed % 4];
         for (uint256 i; i < uint256(rounds) % 64; ++i) {
             vm.prank(who);
-            uint32 id = book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, true, false, 10, 1, 0));
+            uint32 id = book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 10, 1, 0));
             _record(id);
             if (id >> 24 == 255) ++retirements;
             vm.prank(who);
