@@ -5,6 +5,15 @@ import { uint } from './math.js';
 export type Capture={url:string;receivedAtMs:bigint;latencyMs:bigint;body:string;headers:Record<string,string>;data:Record<string,unknown>;attempts:number};
 export type Fetcher=(url:string,init:RequestInit)=>Promise<Response>;
 const wait=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
+// Bound each transport await even when a custom transport ignores AbortSignal.
+function bounded<T>(operation:Promise<T>,signal:AbortSignal):Promise<T> {
+  return new Promise<T>((resolve,reject)=>{
+    const abort=()=>{signal.removeEventListener('abort',abort);reject(signal.reason);};
+    signal.addEventListener('abort',abort,{once:true});
+    if(signal.aborted)abort();
+    operation.then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));
+  });
+}
 
 export class RequestLimiter {
   private tail:Promise<void>=Promise.resolve(); private pending=0; private nextStart=0;
@@ -34,22 +43,26 @@ export class PublicPolymarket {
       const controller=new AbortController();
       const timer=setTimeout(()=>controller.abort(new Error('SOURCE_TIMEOUT')),this.options.timeoutMs);
       try {
-        const response=await this.fetcher(target.href,{method:'GET',redirect:'manual',signal:controller.signal});
+        const response=await bounded(this.fetcher(target.href,{method:'GET',redirect:'manual',signal:controller.signal}),controller.signal);
         if(response.status!==200) {
-          await response.body?.cancel();
+          void response.body?.cancel().catch(()=>{});
           const err=new Error(`HTTP_${response.status}`);
           if(response.status!==429&&response.status<500) throw Object.assign(err,{noRetry:true});
           throw err;
         }
         const declared=response.headers.get('content-length');
-        if(declared&&(!/^\d+$/.test(declared)||BigInt(declared)>BigInt(this.options.bodyLimitBytes)))
+        if(declared&&(!/^\d+$/.test(declared)||BigInt(declared)>BigInt(this.options.bodyLimitBytes))) {
+          void response.body?.cancel().catch(()=>{});
           throw Object.assign(new Error('RESPONSE_TOO_LARGE'),{noRetry:true});
+        }
         if(!response.body)throw new Error('EMPTY_RESPONSE');
         const reader=response.body.getReader();let size=0;const chunks:Uint8Array[]=[];
         try {
-          for(;;){const next=await reader.read();if(next.done)break;size+=next.value.byteLength;
-            if(size>this.options.bodyLimitBytes){await reader.cancel();throw Object.assign(new Error('RESPONSE_TOO_LARGE'),{noRetry:true});}
+          for(;;){const next=await bounded(reader.read(),controller.signal);if(next.done)break;size+=next.value.byteLength;
+            if(size>this.options.bodyLimitBytes){throw Object.assign(new Error('RESPONSE_TOO_LARGE'),{noRetry:true});}
             chunks.push(next.value);}
+        } catch(error) {
+          void reader.cancel().catch(()=>{});throw error;
         } finally {reader.releaseLock();}
         const joined=new Uint8Array(size);let offset=0;
         for(const chunk of chunks){joined.set(chunk,offset);offset+=chunk.byteLength;}
@@ -68,4 +81,5 @@ export class PublicPolymarket {
   }
   book(tokenId:string):Promise<Capture>{uint(tokenId,256);return this.request(`https://clob.polymarket.com/book?token_id=${tokenId}`);}
   metadata(marketId:string):Promise<Capture>{uint(marketId,256);return this.request(`https://gamma-api.polymarket.com/markets/${marketId}`);}
+  event(eventId:string):Promise<Capture>{uint(eventId,256);return this.request(`https://gamma-api.polymarket.com/events/${eventId}`);}
 }

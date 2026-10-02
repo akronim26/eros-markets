@@ -7,11 +7,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test --test-isolation=none dist/test/*.test.js",
+    "test": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/*.test.js",
+    "test:engine": "python3 scripts/test-engine.py",
     "test:reference": "python3 reference/vectors.py --check",
     "check:wire": "node dist/scripts/check-wire.js",
     "check:scope": "python3 scripts/check-scope.py",
-    "verify:all": "npm run typecheck && npm run test:reference && npm test && npm run check:wire && npm run check:scope",
+    "verify:all": "python3 scripts/verify.py",
     "cli": "node dist/src/cli.js"
   },
   "dependencies": { "viem": "2.57.2" },

@@ -4,7 +4,7 @@ The user explicitly authorized building the price-feed component on 2 October
 2026, while forbidding edits to the risk engine, CLOB and oracle. Implementation,
 tests, reference fixtures and documentation live only in `packages/pricefeed/`.
 The existing `pricefeed` branch is preserved. The user performs commits; the agent
-supplies reminders every ten minutes during active work and suggested messages.
+supplies reminders every five minutes during active work and suggested messages.
 This overrides the risk-team commit/STATUS workflow for this separate workstream.
 
 This is the permitted implementation location, not a reviewer approval or a

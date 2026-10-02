@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {ObservationStore} from "../../../../../contracts/src/pricing/ObservationStore.sol";
+import {ObservationStore} from "risk/pricing/ObservationStore.sol";
 
 /// Test-only composition; existing ingress/store code is imported read-only.
 contract FeedHarness is ObservationStore {

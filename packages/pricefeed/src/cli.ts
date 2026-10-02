@@ -36,7 +36,7 @@ async function main():Promise<void> {
     const configs=raw.map(parseConfig);ensureUniqueWorkers(configs);
     const limiter=new RequestLimiter(100,200),owner=randomUUID();
     const workers=configs.map(c=>new Worker(c,new PublicPolymarket(c.poll,limiter),journal,owner));
-    if(command==='inspect-book'){const result=await workers[0]!.poll();console.log(json({...result,metadata:result.metadata?{url:result.metadata.url,receivedAtMs:result.metadata.receivedAtMs,attempts:result.metadata.attempts}:null,book:result.book?{url:result.book.url,receivedAtMs:result.book.receivedAtMs,latencyMs:result.book.latencyMs,attempts:result.book.attempts,sha256:createHash('sha256').update(result.book.body).digest('hex')}:null}));if(result.inspection.status!=='COLLECTING')process.exitCode=2;return;}
+    if(command==='inspect-book'){const result=await workers[0]!.poll();console.log(json({...result,event:result.event?{url:result.event.url,receivedAtMs:result.event.receivedAtMs,attempts:result.event.attempts}:null,metadata:result.metadata?{url:result.metadata.url,receivedAtMs:result.metadata.receivedAtMs,attempts:result.metadata.attempts}:null,book:result.book?{url:result.book.url,receivedAtMs:result.book.receivedAtMs,latencyMs:result.book.latencyMs,attempts:result.book.attempts,sha256:createHash('sha256').update(result.book.body).digest('hex')}:null}));if(result.inspection.status!=='COLLECTING')process.exitCode=2;return;}
     const seconds=need('--duration-seconds');if(!/^[1-9]\d*$/.test(seconds)||BigInt(seconds)>86400n)throw new Error('DURATION_REQUIRED_1_TO_86400_SECONDS');
     const durationMs=BigInt(seconds)*1000n,start=process.hrtime.bigint();let stopped=false;
     const stop=()=>{stopped=true;};process.once('SIGINT',stop);process.once('SIGTERM',stop);
