@@ -2,12 +2,15 @@
 pragma solidity 0.8.30;
 
 import {SSTORE2} from "solady/utils/SSTORE2.sol";
+import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";
+import {IResolutionEngine} from "@eros/interfaces/IResolutionIngress.sol";
 import {
     Globals,
     Category,
     GroupInfo,
     MarketCore,
     MarketInput,
+    FeedSpec,
     AIConfig,
     UMAConfig,
     OracleConst
@@ -15,7 +18,10 @@ import {
 import {IMarketRegistry} from "./interfaces/IMarketRegistry.sol";
 import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
 import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
+import {IBondTreasury} from "./interfaces/IBondTreasury.sol";
+import {IMarketFactory} from "./interfaces/IMarketFactory.sol";
 import {HostLib} from "./libraries/HostLib.sol";
+import {BondMath} from "./libraries/BondMath.sol";
 import {FeedSpecLib} from "./libraries/FeedSpecLib.sol";
 import {ClaimRenderer} from "./libraries/ClaimRenderer.sol";
 import {VoidBound} from "./libraries/VoidBound.sol";
@@ -23,10 +29,18 @@ import {VoidBound} from "./libraries/VoidBound.sol";
 /// @title MarketRegistry
 /// @notice Immutable per-market resolution config and the bounded, versioned listing globals
 ///         (plan §6.3, §14.4, Appendix C.1, C.4). Not upgradeable; governance is the Timelock.
-/// @dev Task O11.2 builds storage, globals and the governance setters; O11.3 the `createMarket`
-///      validation rules 1-6 (`_validateMarket`) and `minVoidSecs`; O11.4 adds `createMarket` itself
-///      (steps 7-9), the market views and `is IMarketRegistry`. Until then errors and events are the C.4
-///      declarations, used by qualified name.
+/// @dev Tasks O11.2 (storage, globals, governance setters), O11.3 (`createMarket` rules 1-6) and O11.4
+///      (`createMarket` steps 7-9 and the market views).
+///
+///      `createMarket` is the only way to list a market. Order: lister check, factory set, rules 1-6,
+///      step 7 treasury commitment at the OI cap, step 8 engine handshake through the factory, step 9
+///      SSTORE2 text, structs, `initResolution` and `MarketListed`. Every external call goes to a
+///      governance-set contract (treasury, factory, oracle) and the call is lister-only and atomic: any
+///      revert undoes the whole listing. Nothing a market stores has a setter (ORC-1).
+///
+///      `specHash = keccak256(abi.encode(feed))` for every market, so a market without a feed stores the
+///      hash of the all-zero FeedSpec. Market views return empty values for an id that was never listed;
+///      `isListed` tells the two apart.
 ///
 ///      Globals are append-only: `setGlobals` writes version `globalsVersion + 1` and every earlier
 ///      version stays readable through `globalsAt` (markets pin the version current at their halt).
@@ -37,7 +51,7 @@ import {VoidBound} from "./libraries/VoidBound.sol";
 ///      14 minRequestIntervalSecs, 15 heartbeatMaxAgeSecs, 16 deltaPmaxBps and nMin,
 ///      17 proposerRewardAtoms. `reviewLimitAtoms` has no onchain bound (§14.4: raised only from a
 ///      measured U95, §10 step 7). The extra column of §14.4 applies when `block.chainid == 143`.
-contract MarketRegistry {
+contract MarketRegistry is IMarketRegistry {
     // ------------------------------------------------------------------ §14.4 bounds
     uint32 internal constant MIN_SECS = 60; // floor for every "min ≥ 60" rule
     uint32 internal constant MAX_LISTING_HORIZON = 2_588_400; // A's RiskStorage: 30 days − 1 h
@@ -81,9 +95,12 @@ contract MarketRegistry {
 
     // ------------------------------------------------------------------ listed markets (written in createMarket)
     mapping(bytes32 marketId => MarketCore) internal _cores; // engine != 0 <=> listed
+    mapping(bytes32 marketId => FeedSpec) internal _feeds;
+    mapping(bytes32 marketId => AIConfig) internal _ai;
+    mapping(bytes32 marketId => UMAConfig) internal _uma;
 
     modifier onlyGovernance() {
-        if (msg.sender != governance) revert IMarketRegistry.Unauthorized();
+        if (msg.sender != governance) revert Unauthorized();
         _;
     }
 
@@ -104,18 +121,40 @@ contract MarketRegistry {
         lister = lister_;
     }
 
+    // ------------------------------------------------------------------ listing (§6.3)
+
+    /// @notice Lister only. Validates every field (rules 1-6), commits the treasury bond at the OI cap,
+    ///         deploys the engine through the factory, checks the handshake, stores the config and
+    ///         initializes the Resolution (steps 7-9).
+    function createMarket(
+        MarketInput calldata m,
+        IMarketConfig.Listing calldata engineListing,
+        bytes calldata engineInit
+    ) external returns (address engine) {
+        if (msg.sender != lister) revert Unauthorized();
+        if (factory == address(0)) revert NoFactory();
+        (Globals memory g, uint256 venueMin) = _validateMarket(m);
+        // Step 7: the ASSERTION ledger must cover every listed market's bond at its OI cap (§6.6).
+        IBondTreasury(treasury).commitListing(m.marketId, BondMath.bond(m.oiCapLots, m.uma, venueMin));
+        bytes32 specHash = FeedSpecLib.specHash(m.feed);
+        engine = _deployEngine(m, engineListing, engineInit, specHash); // step 8
+        _store(m, g, engine, specHash); // step 9
+        IResolutionOracle(oracle).initResolution(m.marketId);
+        _emitListed(m);
+    }
+
     // ------------------------------------------------------------------ governance (Timelock)
 
     /// @notice Hosts every market's allow-list must come from (§6.3 rule 4).
     function setProvider(string calldata host, bool allowed) external onlyGovernance {
         _providerAllowed[keccak256(bytes(host))] = allowed;
-        emit IMarketRegistry.ProviderSet(host, allowed);
+        emit ProviderSet(host, allowed);
     }
 
     /// @notice Auth references the workflow config can resolve (§6.3 rule 3, §7.4).
     function setAuthRef(bytes32 authRef, bool known) external onlyGovernance {
         authRefKnown[authRef] = known;
-        emit IMarketRegistry.AuthRefSet(authRef, known);
+        emit AuthRefSet(authRef, known);
     }
 
     /// @notice Every validated call stamps `validatedAt = now` (so changing a validated category restarts
@@ -126,27 +165,27 @@ contract MarketRegistry {
     {
         _categories[categoryId] =
             Category(gateHash, u95Bps, sampleN, validated, validated ? uint64(block.timestamp) : 0);
-        emit IMarketRegistry.CategorySet(categoryId, gateHash, u95Bps, sampleN, validated);
+        emit CategorySet(categoryId, gateHash, u95Bps, sampleN, validated);
     }
 
     /// @notice Appends a new globals version after checking every §14.4 bound.
     function setGlobals(Globals calldata g) external onlyGovernance {
         uint8 code = _globalsCode(g, block.chainid == OracleConst.MONAD_MAINNET_CHAIN_ID);
-        if (code != 0) revert IMarketRegistry.BadGlobals(code);
+        if (code != 0) revert BadGlobals(code);
         uint32 v = ++globalsVersion;
         _globals[v] = g;
-        emit IMarketRegistry.GlobalsSet(v, keccak256(abi.encode(g)));
+        emit GlobalsSet(v, keccak256(abi.encode(g)));
     }
 
     function setLister(address lister_) external onlyGovernance {
         lister = lister_;
-        emit IMarketRegistry.ListerSet(lister_);
+        emit ListerSet(lister_);
     }
 
     /// @notice Future listings only: listed markets store their own engine address.
     function setFactory(address factory_) external onlyGovernance {
         factory = factory_;
-        emit IMarketRegistry.FactorySet(factory_);
+        emit FactorySet(factory_);
     }
 
     // ------------------------------------------------------------------ views
@@ -158,7 +197,7 @@ contract MarketRegistry {
 
     /// @notice Any version ever set; reverts `BadGlobals(0)` for version 0 or one not set yet.
     function globalsAt(uint32 version) public view returns (Globals memory) {
-        if (version == 0 || version > globalsVersion) revert IMarketRegistry.BadGlobals(0);
+        if (version == 0 || version > globalsVersion) revert BadGlobals(0);
         return _globals[version];
     }
 
@@ -172,6 +211,49 @@ contract MarketRegistry {
 
     function groupInfo(bytes32 groupId) external view returns (GroupInfo memory) {
         return _groups[groupId];
+    }
+
+    function isListed(bytes32 id) external view returns (bool) {
+        return _cores[id].engine != address(0);
+    }
+
+    function getMarketCore(bytes32 id) external view returns (MarketCore memory) {
+        return _cores[id];
+    }
+
+    function getFeedSpec(bytes32 id) external view returns (FeedSpec memory) {
+        return _feeds[id];
+    }
+
+    function getSpecHash(bytes32 id) external view returns (bytes32) {
+        return _cores[id].specHash;
+    }
+
+    /// @notice The market's allow-list, Layer 1 host first.
+    function getAllowList(bytes32 id) external view returns (string[] memory hosts) {
+        address p = _ai[id].allowListPtr;
+        if (p == address(0)) return hosts;
+        return abi.decode(SSTORE2.read(p), (string[]));
+    }
+
+    function getAIConfig(bytes32 id) external view returns (AIConfig memory) {
+        return _ai[id];
+    }
+
+    function getUMAConfig(bytes32 id) external view returns (UMAConfig memory) {
+        return _uma[id];
+    }
+
+    function getQuestion(bytes32 id) external view returns (string memory) {
+        return _readText(_cores[id].questionPtr);
+    }
+
+    function getRules(bytes32 id) external view returns (string memory) {
+        return _readText(_cores[id].rulesPtr);
+    }
+
+    function getClaimTemplate(bytes32 id) external view returns (string memory) {
+        return _readText(_uma[id].claimTemplatePtr);
     }
 
     /// @notice §14.2 lower bound on `voidSecs` under the current globals (`createMarket` rule 2).
@@ -191,23 +273,23 @@ contract MarketRegistry {
     ///      active trust set's venue (both used again by steps 7-9).
     function _validateMarket(MarketInput calldata m) internal returns (Globals memory g, uint256 venueMin) {
         // Rule 1: identity.
-        if (m.marketId == 0 || _cores[m.marketId].engine != address(0)) revert IMarketRegistry.DuplicateMarket();
+        if (m.marketId == 0 || _cores[m.marketId].engine != address(0)) revert DuplicateMarket();
         uint32 setId = IResolutionOracle(oracle).activeTrustSetId();
-        if (setId == 0) revert IMarketRegistry.NoActiveTrustSet();
+        if (setId == 0) revert NoActiveTrustSet();
         if (m.groupId != 0) _recordGroup(m.groupId, m.groupExclusive);
         g = globalsAt(globalsVersion);
 
         uint8 code = _timesCode(m, g); // rule 2
-        if (code != 0) revert IMarketRegistry.BadTimes(code);
+        if (code != 0) revert BadTimes(code);
         code = _feedCode(m, g); // rule 3
-        if (code != 0) revert IMarketRegistry.BadFeed(code);
+        if (code != 0) revert BadFeed(code);
         code = _allowListCode(m.allowList); // rule 4
-        if (code != 0) revert IMarketRegistry.BadAllowList(code);
+        if (code != 0) revert BadAllowList(code);
         code = _aiCode(m.ai, g); // rule 5
-        if (code != 0) revert IMarketRegistry.BadAIConfig(code);
+        if (code != 0) revert BadAIConfig(code);
         venueMin = IAssertionVenue(IResolutionOracle(oracle).trustSet(setId).cfg.venue).minimumBond();
         code = _umaCode(m, g, venueMin); // rule 6
-        if (code != 0) revert IMarketRegistry.BadUMAConfig(code);
+        if (code != 0) revert BadUMAConfig(code);
     }
 
     /// @dev Groups ship with the oracle's group code (O14.6). Until then every grouped listing reverts
@@ -218,12 +300,12 @@ contract MarketRegistry {
 
     /// @dev The first market of a group records `{exists, exclusive}`; later ones must match it.
     function _recordGroup(bytes32 groupId, bool exclusive) internal {
-        if (!_groupsEnabled()) revert IMarketRegistry.EarlyCheckOrGroupsDisabled();
+        if (!_groupsEnabled()) revert EarlyCheckOrGroupsDisabled();
         GroupInfo storage gi = _groups[groupId];
         if (!gi.exists) {
             (gi.exists, gi.exclusive) = (true, exclusive);
         } else if (gi.exclusive != exclusive) {
-            revert IMarketRegistry.GroupMismatch();
+            revert GroupMismatch();
         }
     }
 
@@ -295,6 +377,89 @@ contract MarketRegistry {
             ClaimRenderer.worstCaseLength(m.claimTemplate, bytes(m.question).length, bytes(m.rules).length, l1UrlLen);
         if (maxLen > g.maxClaimBytes) return 6;
         return 0;
+    }
+
+    // ------------------------------------------------------------------ createMarket steps 8-9 (§6.3)
+
+    /// @dev Step 8: the registry overwrites the seam fields of the pack's listing (seam decision S-07),
+    ///      deploys through the factory, then requires `listingHash() == keccak256(abi.encode(listing))`
+    ///      (the engine's own formula) and an unhalted engine.
+    function _deployEngine(
+        MarketInput calldata m,
+        IMarketConfig.Listing calldata engineListing,
+        bytes calldata engineInit,
+        bytes32 specHash
+    ) internal returns (address engine) {
+        IMarketConfig.Listing memory l = engineListing;
+        l.marketId = m.marketId;
+        l.registry = address(this);
+        l.resolutionAuthority = oracle;
+        l.monitor = m.monitor;
+        l.scheduledT = m.tau;
+        l.listedAt = uint64(block.timestamp);
+        l.rulesHash = keccak256(bytes(m.rules));
+        l.sourceHash = keccak256(abi.encode(specHash, keccak256(abi.encode(m.allowList))));
+        l.invalidRule = IMarketConfig.InvalidRule({
+            fallbackListed: true,
+            captureGraceSecs: OracleConst.ENGINE_CAPTURE_GRACE_SECS,
+            fallbackPriceWad: OracleConst.ENGINE_FALLBACK_PRICE_WAD,
+            voidSecs: m.voidSecs
+        });
+        engine = IMarketFactory(factory).deployMarket(l, engineInit);
+        if (IMarketConfig(engine).listingHash() != keccak256(abi.encode(l))) revert ListingHashMismatch();
+        if (IResolutionEngine(engine).getHaltSnapshot().halted) revert EngineAlreadyHalted();
+    }
+
+    /// @dev Step 9: long text to SSTORE2 (question, rules, allow-list in `AIConfig.allowListPtr`, claim
+    ///      template in `UMAConfig.claimTemplatePtr`; the input pointers are ignored), then the structs.
+    ///      `retryWindowSecs` and `earlyTtlSecs` are copied from the globals version used for validation.
+    function _store(MarketInput calldata m, Globals memory g, address engine, bytes32 specHash) internal {
+        bytes32 id = m.marketId;
+        MarketCore storage c = _cores[id];
+        c.engine = engine;
+        c.questionPtr = _writeText(m.question);
+        c.rulesPtr = _writeText(m.rules);
+        c.listedAt = uint64(block.timestamp);
+        c.windowStart = m.windowStart;
+        c.windowEnd = m.windowEnd;
+        c.tau = m.tau;
+        c.groupId = m.groupId;
+        c.groupExclusive = m.groupExclusive;
+        c.hasFeed = m.hasFeed;
+        c.l2DeadlineSecs = m.l2DeadlineSecs;
+        c.voidSecs = m.voidSecs;
+        c.retryWindowSecs = g.retryWindowSecs;
+        c.earlyTtlSecs = g.earlyTtlSecs;
+        c.monitor = m.monitor;
+        c.oiCapLots = m.oiCapLots;
+        c.rulesHash = keccak256(bytes(m.rules));
+        c.specHash = specHash;
+        c.gateHash = keccak256(abi.encode(m.ai.modelIdHashes, m.ai.promptHash, m.ai.calibratorHash, m.ai.highConfBps));
+        _feeds[id] = m.feed;
+        AIConfig memory ai = m.ai;
+        ai.allowListPtr = SSTORE2.write(abi.encode(m.allowList));
+        _ai[id] = ai;
+        UMAConfig memory u = m.uma;
+        u.claimTemplatePtr = _writeText(m.claimTemplate);
+        _uma[id] = u;
+    }
+
+    /// @dev `umaConfigHash = keccak256(abi.encode(UMAConfig))` as stored, pointer included (ADJ-14).
+    function _emitListed(MarketInput calldata m) internal {
+        MarketCore storage c = _cores[m.marketId];
+        emit MarketListed(
+            m.marketId,
+            c.engine,
+            c.tau,
+            c.hasFeed,
+            c.groupId,
+            c.rulesHash,
+            c.specHash,
+            c.gateHash,
+            keccak256(abi.encode(_uma[m.marketId])),
+            m.dryRunHash,
+            m.ambiguityLogHash
+        );
     }
 
     function _minVoidSecs(
