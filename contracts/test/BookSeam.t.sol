@@ -6,7 +6,7 @@ import {Book} from "../src/Book.sol";
 import {BookHarness} from "./BookHarness.sol";
 
 /// @notice The integration surface other modules build on: the risk snapshot and taker totals in
-///         Ctx (R2), admission gates (R4 stages), protocol cancels (R3) and touch depth (pricing).
+///         Ctx (R2), admission gates (R4 stages) and touch depth (pricing).
 contract BookSeamTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
@@ -147,49 +147,6 @@ contract BookSeamTest is Test {
         _post(maker, true, 400, 10);
         _ioc(taker, false, 400, 4);
         assertEq(book.lastUnrestFlags(), book.FLAG_BUY(), "maker fill passes the maker's flags");
-    }
-
-    // ------------------------------------------------------------------ protocol cancels
-
-    function test_ForceCancelRemovesAnyOwnersOrder() public {
-        uint32 a = _post(maker, false, 500, 10);
-        uint32 b = _post(taker, false, 500, 7);
-        vm.expectEmit(address(book));
-        emit Book.OrderCancelled(a, 10, Book.CancelReason.RISK);
-        assertTrue(book.forceCancel(a, Book.CancelReason.RISK));
-
-        assertEq(book.getOrder(a).size, 0);
-        assertEq(book.reserved(1, false), 0);
-        assertEq(book.getLevel(false, 500).head, b & 0xFFFFFF);
-        assertEq(book.getLevel(false, 500).size, 7);
-    }
-
-    function test_ForceCancelStageReasonAndSlotRecycled() public {
-        uint32 a = _post(maker, true, 400, 10);
-        vm.expectEmit(address(book));
-        emit Book.OrderCancelled(a, 10, Book.CancelReason.STAGE);
-        book.forceCancel(a, Book.CancelReason.STAGE);
-        uint32 again = _post(maker, true, 400, 1);
-        assertEq(again & 0xFFFFFF, a & 0xFFFFFF);
-        (uint16 bid,,,) = book.touch();
-        assertEq(bid, 400);
-    }
-
-    function test_ForceCancelOfDeadOrStaleIdIsNoOp() public {
-        uint32 a = _post(maker, false, 500, 10);
-        assertTrue(book.forceCancel(a, Book.CancelReason.RISK));
-        assertFalse(book.forceCancel(a, Book.CancelReason.RISK));
-        uint32 fresh = _post(taker, false, 500, 3); // reuses a's slot
-        assertFalse(book.forceCancel(a, Book.CancelReason.RISK));
-        assertEq(book.getOrder(fresh).size, 3);
-        assertFalse(book.forceCancel(0, Book.CancelReason.RISK));
-        assertFalse(book.forceCancel(999, Book.CancelReason.RISK));
-    }
-
-    function test_RevertWhen_ForceCancelBeforeBookOpened() public {
-        BookHarness fresh = new BookHarness();
-        vm.expectRevert(Book.NoMarket.selector);
-        fresh.forceCancel(1, Book.CancelReason.RISK);
     }
 
     // ------------------------------------------------------------------ maxFills

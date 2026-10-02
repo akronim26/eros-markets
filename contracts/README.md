@@ -51,7 +51,6 @@ fields without touching Book.
 | `_initBook(maxFills)` | Markets: open the book with its fill bound (no default) |
 | `_setMaxFills(maxFills)` | retune the bound after gas measurements; emits `MaxFillsSet` |
 | `_touch() → (bid, bidSize, ask, askSize)` | Pricing: mark inputs with the D_min depth filter |
-| `_forceCancel(id, RISK \| STAGE) → bool` | liquidation, stage changes, keepers; no owner check, stale ids return false |
 
 ## Where this differs from the spec
 
@@ -65,8 +64,8 @@ fields without touching Book.
 3. **Generation wrap.** A slot whose generation reaches 255 is retired, not recycled, so an order
    id is never reissued. That settles the master spec's open point that an 8-bit generation wraps
    after 256 reuses. The cost is one fresh slot per 256 reuses.
-4. **`_onRest` / `_onUnrest` receive the order's flags** (side and reduce-only), and
-   `_forceCancel` plus two cancel reasons (`RISK`, `STAGE`) let other modules remove orders.
+4. **`_onRest` / `_onUnrest` receive the order's flags** (side and reduce-only). There is no
+   protocol cancel: liquidation and stage changes invalidate orders by epoch on the risk side.
 5. **The fill bound is per-market config, not a constant.** The master spec's 64 is a placeholder
    to be set from measured gas, so each book gets its bound at creation (`_initBook`), can be
    retuned (`_setMaxFills`) and is readable (`maxFills`). Orders asking for more revert with
@@ -91,8 +90,8 @@ FOUNDRY_PROFILE=ci forge test   # 10k fuzz runs, 256×128 invariant (~6–8 min)
 | `BookBatch` | cancels run before places; stale and duplicate cancels do nothing; crossing post-only returns id 0; bad input reverts the whole batch |
 | `BookInvariant` | INV-8 under random traffic: bit ⇔ non-empty level, level size = sum of its orders, links agree, each live order linked once, free list complete, reservations match, bid < ask; positions net to zero; ids never reissued |
 | `BookDifferential` | the same random operations in Book and in a naive linear-scan reference give identical fills, sizes, best prices and positions |
-| `BookSeam` | the integration surface: the snapshot reaches every hook, `filled`/`cost` totals, stage gates, cancels while halted, protocol cancels, `touch` |
-| `BookComposition` | a core built like EventPerp from four separate modules (Markets gate, Clearing accounts with one taker write, Pricing depth filter, Liquidation pulls) compiles and trades correctly; use it as the template |
+| `BookSeam` | the integration surface: the snapshot reaches every hook, `filled`/`cost` totals, stage gates, cancels while halted, `touch` |
+| `BookComposition` | a core built like EventPerp from three separate modules (Markets gate, Clearing accounts with one taker write, Pricing depth filter) compiles and trades correctly; use it as the template |
 | `BookGas` | gas per operation for Book alone (no-op hooks), written to `snapshots/BookGas.json`; CI fails if it changes |
 
 Every suite was checked with injected bugs (bit left set, crossed remainder rested, no
