@@ -54,6 +54,7 @@ touches accounts inside the hooks above, and every rest converts a permit.
 | `_initBook(maxFills)` | Markets: open the book with its fill bound (no default) |
 | `_setMaxFills(maxFills)` | retune the bound after gas measurements; emits `MaxFillsSet` |
 | `_touch() → (bid, bidSize, ask, askSize)` | Pricing: mark inputs with the D_min depth filter |
+| `_placeForced(req) → (filled, examined)` | Liquidation: its reduce-only IOC through the ordinary traversal under `FORCED_REDUCTION`; the engine's `_liqSubmitIoc` is this call |
 
 ## Where this differs from the spec
 
