@@ -92,13 +92,14 @@ Plan §13: owner OA · 3 PD · depends O10 · acceptance: every §6.3 rejection 
 - Owner: OA
 - PD: 0.75
 - Depends: O11.1
-- Plan: §6.3, §7.4, §14.4, C.1, C.4, ADJ-14
+- Plan: §6.3, §7.4, §14.4, C.1, C.4, ADJ-14, ADJ-30
 - Cut: partial (no categories)
-- Status: todo
+- Status: done
 - Files: oracle/src/MarketRegistry.sol, oracle/test/unit/RegistryGlobals.t.sol
 - Build: Constructor `(oracle, treasury, factory, usdc, governance, lister)` (factory may be 0; `createMarket` then reverts `NoFactory`). Versioned `setGlobals` (append-only, `globalsAt(v)`) enforcing every §14.4 bound, including the extra chainId 143 rules. `setProvider`, `setAuthRef`, `setCategory` (stamp `validatedAt` on every validated call, clear it when not validated), `setLister`, `setFactory`. Events of C.4. SSTORE2 helpers for long text.
 - Done when: one test per §14.4 bound on both sides, under `vm.chainId(143)` and another chain; old globals versions stay readable; setter access control tested.
 - Check: cd oracle && forge test --match-path test/unit/RegistryGlobals.t.sol
+- Notes: `BadGlobals` codes 0–17 per ADJ-30 (team decision). Categories are implemented in full despite the cut note (team decision: about 15 lines, nothing reads them before O14.5). The contract does not declare `is IMarketRegistry` yet, because `createMarket`, the market views and `minVoidSecs` arrive in O11.3/O11.4; until then it uses the C.4 errors and events by qualified name. `setProvider` keys hosts by `keccak256(bytes(host))` and does not validate them (createMarket rule 4 does). `_readText(0)` returns empty, because SSTORE2 cannot read a codeless address. Expected bounds come from the §14.4 table and the base globals from the §12.11 columns; 35 mutations (each bound moved by one, code swap, version, access, stamp) were all caught.
 
 ### O11.3 · `createMarket` validation rules 1–6
 - Owner: OA
