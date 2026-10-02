@@ -1,39 +1,55 @@
-# CLAUDE.md — Eros Markets Risk & Clearing, Person B lane
+# CLAUDE.md — Eros Markets Risk & Clearing (shared ownership)
 
 Put this file at the repository root. Claude Code reads it at the start of every session.
 
 ## Who you are working for
-You are the coding agent for **Person B** of the two-person Risk & Clearing team for Eros Markets / EventPerp (Paper 1 only). Person A is a different developer (possibly with their own agent) working in a separate worktree. The order book (1 person) and the three-layer resolution oracle (2 people) are separate teams.
+You are the coding agent for one of the two developers of the Risk & Clearing team for Eros Markets / EventPerp (Paper 1 only). Both developers own every Risk & Clearing file and work on one shared branch, one turn at a time (see "CURRENT MODE"). The order book (1 person) and the three-layer resolution oracle (2 people) are separate teams; price feed and factory/registry are counterparts too.
+
+## CURRENT MODE: shared, turn-by-turn
+- One shared working branch: `integration/risk`. Both teammates' agents work only there. `main` is updated only by an explicit merge that a human asks for.
+- Start of every turn: `git fetch`; check that the working tree is clean; fast-forward or rebase onto the latest shared branch; read `docs/merge/STATUS.md` (especially the last Turn log entry). If the remote moved during your turn, integrate before pushing. Never force-push or rewrite pushed history.
+- One turn at a time. If the last Turn log entry says the other person is mid-turn, stop and tell the human.
+- Anyone may edit any Risk & Clearing file. Commit messages say what changed and cite the item ID (A-I01, B-D02, G4, etc.).
+- Review rule: work that changes economic behavior (accounting, funding, premium, coverage, liquidation, settlement, custody) is reviewed by the teammate who did NOT make it, on their next turn. The reviewer refreshes review fingerprints. An agent never writes fingerprints or approvals for its own changes.
+- Any source change: rerun the affected gates and tests, and list them in the Turn log.
+- End of every turn: update `docs/merge/STATUS.md` (item statuses plus a new Turn log entry: who, what, commits, tests run with exit codes, open questions, next turn), commit, push.
+- Gate acceptance (G7 and later) is recorded only by a human. Never by an agent.
+- Never edit other teams' internals; write requests in `docs/requests/`.
+
+Current state, open items and the turn log: `docs/merge/STATUS.md`.
 
 ## Source of truth (in this order)
 1. `docs/spec/risk_spec.md` (spec v1.1, economic baseline v1.0). Sections 1–5 and the math-first plan (section 10) are mandatory reading before any edit.
-2. `docs/spec/tasks_B.json` (your 44 tasks), `docs/spec/integration_gates.json`, `docs/spec/gate_status.json`.
+2. `docs/spec/integration_gates.json`, `docs/spec/gate_status.json`; open items in `docs/merge/STATUS.md`.
 3. `docs/spec/book_interface.md`, `docs/spec/oracle_interface.md` (counterpart contracts).
-4. `docs/spec/implementation_plan.md` (ownership map, pull stops).
+4. `docs/spec/implementation_plan.md` (module map; its A/B ownership column is historical, see below).
 
 The selected decisions DEC-01 to DEC-14 are closed. Do not reopen them.
 
 Optional background: `docs/background/full-risk-analysis.pdf` ("Binary event perpetuals: corrected theory, risk mathematics, and contract requirements"). It is the upstream proof document the spec was built from. Use it only to understand *why* a rule exists and to borrow adversarial test cases. It is **not** a requirements list: where it leaves a choice open (product modes, ADL, haircut rules, funding design options), the spec's DEC rules have already chosen. Notation map: its `b` = spec cash `c` (cashQ), its `z` = spec signed position `n`/`x` (positionLots), its `U_y` / `D_y` bound = spec `Dbar_y`, its `R` = reserve outcome value `R_y`. If it seems to contradict the spec, the spec wins; log the difference in `docs/questions/`.
-The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01–C46) is **historical context only**. Never implement an alternative from it (for example D's 6-hour floor, dual-index liquidation, insurance-fund cash bad debt, 0.5 INVALID, whole-unit sizes). **Task IDs collide:** master "B001 Freeze payoff and market semantics" is NOT your B001. Your task IDs always mean `tasks_B.json`.
+The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01–C46) is **historical context only**. Never implement an alternative from it (for example D's 6-hour floor, dual-index liquidation, insurance-fund cash bad debt, 0.5 INVALID, whole-unit sizes). **Task IDs collide:** master "B001 Freeze payoff and market semantics" is NOT the packet's B001; packet task IDs mean `tasks_A.json` / `tasks_B.json`.
+
+## Historical: per-person lanes (kept for traceability, no longer binding)
+- `docs/spec/tasks_A.json` and `docs/spec/tasks_B.json` (A001–A044, B001–B044), their `write_files` limits, the Person A / Person B ownership columns in `docs/spec/implementation_plan.md` and `docs/ownership.json`, and the `fix(A)` / `fix(B)` commit prefixes describe how the two lanes were built and merged. Keep the files; do not delete them. Do not use them to restrict who edits what.
+- Lane records: `docs/merge/B-*.md`, `RISK_PROGRESS.md`, `docs/merge/A-audit.md`, `artifacts/reviews/A-on-B.md`, `artifacts/reviews/B-on-A.md`, `docs/merge/integration-progress.md`.
 
 ## What you may edit
-- Only the `write_files` listed on the task you are currently doing, plus Person-B-owned modules for bug fixes that name the task/gate.
-- Never edit Person A files (`reference/a/`, `reference/common/`, `MathTypes.sol`, QMath, Ledger/Funding/Premium/Coverage/Fee/Settlement math, vaults, storage, AccountingPort, ClearingCore, snapshot/payout/claims, `scripts/check-*.sh`, `contracts/foundry.toml`). If you need a change there, write it up in `docs/requests/B-to-A-<topic>.md` and stop that thread.
+- Any Risk & Clearing file (contracts under `contracts/src/{math,risk,pricing,settlement,vaults,engine,interfaces}`, their tests, `reference/`, `scripts/`, `packages/risk-sdk/`, `docs/`, `artifacts/`), following the CURRENT MODE rules (item IDs in commits, cross-review of economic changes, gates/tests rerun).
+- Never edit the order-book, oracle, price-feed or factory teams' internals (for example `contracts/src/Book.sol`, `contracts/src/RiskSnapshot.sol`, book tests and `contracts/snapshots/BookGas.json`). Write requests in `docs/requests/` instead.
 - Never implement the CLOB, Kuru/CRE fetching, AI panel, committee or UMA logic. Build their interfaces and deterministic mocks only.
-- Mocks are scripted doubles of an agreed interface. They must not re-implement peer economic logic.
+- Mocks are scripted doubles of an agreed interface. They must not re-implement counterpart economic logic.
 
-## How to do one task
-1. Pick the lowest-numbered `not_started` task in `tasks_B.json` whose `depends_on` are all accepted (tasks accepted, gates recorded with a merge SHA in `gate_status.json`). If none, stop and report.
-2. Read the task's `action`, `read_contract`, `source` and `acceptance`, and the spec sections they cite.
-3. Tests first. Reference (W1) expected values must be derived independently (hand arithmetic, spec worked examples, `Fraction`). Never call Solidity from Python to produce an expected value.
-4. Implement. Run the task's exact `acceptance_command`. If the command or tooling does not exist yet, the task stays unverified; say so.
-5. Record evidence in the task's artifact/test path: task ID, commit, spec/interface version, command, exit code, seeds/fixtures, real-vs-mock component status.
-6. Commit on your own branch with the task ID in the message. One task per commit series. Then stop and summarize.
+## How to do one work item
+1. Pick an open item from `docs/merge/STATUS.md` (or the one the human names). If it depends on another team or on human acceptance, stop and report.
+2. Read the item's spec sections and the existing evidence.
+3. Tests first. Reference expected values must be derived independently (hand arithmetic, spec worked examples, `Fraction`). Never call Solidity from Python to produce an expected value.
+4. Implement. Run the affected gates (`bash scripts/check-gate.sh Gn`) and tests. If a command or tool does not exist, the item stays unverified; say so.
+5. Record evidence: item ID, commit, spec/interface version, command, exit code, seeds/fixtures, real-vs-mock component status.
+6. Commit on the shared branch with the item ID in the message; update STATUS.md; push. Then stop and summarize.
 
-## Gates (G0–G7) are hard stops
-- After finishing the last B task before a gate, STOP. Do not start the next block until `gate_status.json` shows that gate `passed` with a recorded `merge_sha`, and you have been told to rebase/branch from that SHA.
-- While waiting, only do the gate's listed `safe_while_waiting` work. Never mark a blocked task done.
-- No stateful vault/feed/clearing/lifecycle code before G2 passes.
+## Gates (G0–G7)
+- Gates are recorded in `docs/spec/gate_status.json`. Technical checks may be run by anyone; acceptance (G7 and later) is recorded only by a human.
+- Never mark a blocked item done. Never manufacture a merge SHA or another person's review.
 - A mock-only pass never counts as a live counterpart pass. Report counterpart status as PASS or BLOCKED_BY_COUNTERPART.
 
 ## Math and units rules (non-negotiable)
@@ -47,8 +63,8 @@ The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01
 ## Honesty rules
 - Never invent calibration inputs, addresses, command output or test results.
 - A failed invariant stays failed until fixed. Do not weaken a test to make it pass.
-- If the spec is ambiguous, write the question to `docs/questions/B-<task>.md`, pick nothing silently, and stop that task.
+- If the spec is ambiguous, write the question to `docs/questions/<item>.md`, pick nothing silently, and stop that item.
 - No deployment of any kind is authorized.
 
 ## End-of-session report (always)
-Tasks attempted; status of each (accepted / unverified / blocked, and why); commands run with exit codes; files changed; open questions; what is needed from Person A or a counterpart; next task.
+Items attempted; status of each (done / unverified / blocked, and why); commands run with exit codes; files changed; open questions; what is needed from the teammate, a counterpart team or a human; next turn.
