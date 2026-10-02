@@ -237,6 +237,15 @@ abstract contract Book is IBookRiskHooks {
         if (ask != NONE) askSize = b.levels[ask][ASK].size;
     }
 
+    /// @dev Liquidation's reduce-only IOC (risk spec §5.2 step 2): the ordinary traversal under
+    ///      FORCED_REDUCTION, which only the liquidation module can grant. `req` is an IOC.
+    ///      Returns the lots filled and the makers examined.
+    function _placeForced(OrderRequest memory req) internal returns (uint64 filled, uint256 examined) {
+        BookState storage b = _openBook();
+        _checkOrder(b, req.limitTick, req.requestedLots, req.maxSteps, req.expiryBlock);
+        (, filled, examined) = _execute(b, req, AdmissionMode.FORCED_REDUCTION);
+    }
+
     // ------------------------------------------------------------------ place
 
     /// @dev In a batch a crossing post-only order returns 0 instead of reverting.
@@ -244,15 +253,12 @@ abstract contract Book is IBookRiskHooks {
         internal
         returns (uint32)
     {
-        if (p.tick < MIN_TICK || p.tick > MAX_TICK) revert BadTick();
-        if (p.size == 0) revert BadSize();
-        if (p.maxFills > b.maxFills) revert BadMaxFills();
-        if (p.expiryBlock != 0 && p.expiryBlock < block.number) revert BadExpiry();
+        _checkOrder(b, p.tick, p.size, p.maxFills, p.expiryBlock);
         if (p.kind == OrderKind.POST_ONLY && _crosses(b, p.isBuy, p.tick)) {
             if (inBatch) return 0;
             revert PostOnlyCrosses();
         }
-        return _execute(
+        (uint32 id,,) = _execute(
             b,
             OrderRequest(
                 trader,
@@ -266,22 +272,35 @@ abstract contract Book is IBookRiskHooks {
             ),
             AdmissionMode.NORMAL
         );
+        return id;
+    }
+
+    function _checkOrder(BookState storage b, uint16 tick, uint64 size, uint256 maxSteps, uint32 expiryBlock)
+        internal
+        view
+    {
+        if (tick < MIN_TICK || tick > MAX_TICK) revert BadTick();
+        if (size == 0) revert BadSize();
+        if (maxSteps > b.maxFills) revert BadMaxFills();
+        if (expiryBlock != 0 && expiryBlock < block.number) revert BadExpiry();
     }
 
     /// @dev Risk spec §7.7: one action and one taker permit, a bounded match, then a LIMIT or
     ///      POST_ONLY remainder rests by converting the permit (never reserved twice), and the
-    ///      permit is released.
+    ///      permit is released. Returns the resting id, the lots filled and the makers examined.
     function _execute(BookState storage b, OrderRequest memory req, AdmissionMode mode)
         internal
-        returns (uint32 id)
+        returns (uint32 id, uint64 filled, uint256 steps)
     {
         RiskSnapshot memory snap = _riskBeginAction();
         (TakerPermit memory permit, RejectCode reason) = _riskPrepareTaker(req, snap, mode);
-        if (permit.remainingLots == 0) {
+        uint64 admitted = permit.remainingLots;
+        if (admitted == 0) {
             emit OrderRejected(req.trader, reason);
-            return 0;
+            return (0, 0, 0);
         }
-        if (req.kind != OrderKind.POST_ONLY) _match(b, snap, permit, req.limitTick, req.maxSteps);
+        if (req.kind != OrderKind.POST_ONLY) steps = _match(b, snap, permit, req.limitTick, req.maxSteps);
+        filled = admitted - permit.remainingLots;
         // If maxFills ran out while the book still crosses the limit, the remainder is dropped:
         // resting it would leave best bid >= best ask (INV-8).
         if (
@@ -313,9 +332,8 @@ abstract contract Book is IBookRiskHooks {
         TakerPermit memory permit,
         uint16 limit,
         uint256 maxSteps
-    ) internal {
+    ) internal returns (uint256 steps) {
         bool takerBuys = permit.side == Side.BUY;
-        uint256 steps;
         while (permit.remainingLots != 0 && steps < maxSteps) {
             uint16 k = takerBuys ? _bestAsk(b) : _bestBid(b);
             if (k == NONE || (takerBuys ? k > limit : k < limit)) break;
@@ -324,7 +342,7 @@ abstract contract Book is IBookRiskHooks {
             // permit ran out or risk clipped the fill, and then the next step sees it again.
             for (uint32 s = lv.head; s != 0 && permit.remainingLots != 0 && steps < maxSteps; s = lv.head) {
                 ++steps;
-                if (_step(b, snap, permit, s)) return;
+                if (_step(b, snap, permit, s)) return steps;
             }
         }
     }

@@ -34,12 +34,17 @@ contract BookHarness is TraderIds {
         _setMaxFills(maxFills_);
     }
 
+    function placeForced(OrderRequest memory req) external returns (uint64 filled, uint256 examined) {
+        return _placeForced(req);
+    }
+
     /// @dev Rests an order without matching (the post-only path, without its crossing check).
     function rest(bool isBuy, uint16 tick, uint64 size) external returns (uint32) {
         OrderRequest memory req = OrderRequest(
             _traderOf(msg.sender), isBuy ? Side.BUY : Side.SELL, OrderKind.POST_ONLY, tick, size, 0, false, 0
         );
-        return _execute(_openBook(), req, AdmissionMode.NORMAL);
+        (uint32 id,,) = _execute(_openBook(), req, AdmissionMode.NORMAL);
+        return id;
     }
 
     // ------------------------------------------------------------------ risk stand-in
@@ -67,6 +72,7 @@ contract BookHarness is TraderIds {
     uint64 public minSize;
     uint256 public takerDoneCalls;
     uint256 public unrestCalls;
+    AdmissionMode public lastMode;
     uint8 public lastRestFlags;
     uint32 public lastRestExpiry;
     uint8 public lastUnrestFlags; // side only: an unrest carries no reduce-only flag
@@ -164,12 +170,12 @@ contract BookHarness is TraderIds {
     function _riskTouchAccount(uint32, RiskSnapshot memory) internal pure override {}
 
     /// @dev Stage and size gates answer with codes; a reduce-only taker is clipped to its position.
-    function _riskPrepareTaker(OrderRequest memory req, RiskSnapshot memory, AdmissionMode)
+    function _riskPrepareTaker(OrderRequest memory req, RiskSnapshot memory, AdmissionMode mode)
         internal
         override
         returns (TakerPermit memory p, RejectCode reason)
     {
-        (doneFilled, doneCost) = (0, 0);
+        (doneFilled, doneCost, lastMode) = (0, 0, mode);
         (p.trader, p.side, p.limitTick, p.reduceOnly) = (req.trader, req.side, req.limitTick, req.reduceOnly);
         if (stage == Stage.Halted) return (p, RejectCode.HALTED);
         if (stage == Stage.ReduceOnly && !req.reduceOnly) return (p, RejectCode.BAD_STAGE);

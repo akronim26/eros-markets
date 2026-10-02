@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
 import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
-import {Side, RejectCode} from "../provisional/MathTypes.sol";
+import {Side, AdmissionMode, RejectCode} from "../provisional/MathTypes.sol";
 
 /// @notice The integration surface other modules build on: one risk snapshot per action reaching
 ///         every hook, fills reported per maker at its price, risk's rejections and stops as
@@ -129,6 +129,33 @@ contract BookSeamTest is Test {
         book.cancel(b);
         assertEq(book.reserved(1, true), 0, "an old order releases nothing");
         book.checkInvariants(2);
+    }
+
+    /// Liquidation's entry: the ordinary traversal under FORCED_REDUCTION, reporting the lots
+    /// filled and the makers examined; an IOC, so nothing rests.
+    function test_ForcedReductionRunsTheOrdinaryTraversal() public {
+        book.setPosition(2, 30); // taker long 30
+        _post(maker, true, 499, 10);
+        _post(maker, true, 498, 10);
+        (uint64 filled, uint256 examined) = book.placeForced(
+            IBookRiskHooks.OrderRequest(2, Side.SELL, IBookRiskHooks.OrderKind.IOC, 498, 30, 0, true, 8)
+        );
+        assertEq(uint8(book.lastMode()), uint8(AdmissionMode.FORCED_REDUCTION));
+        assertEq(filled, 20);
+        assertEq(examined, 2);
+        assertEq(book.position(2), 10);
+        (uint16 bid, uint16 ask) = book.bestBidAsk();
+        assertEq(bid, 0);
+        assertEq(ask, 0, "nothing rests");
+    }
+
+    function test_RevertWhen_ForcedReductionAboveTheStepBound() public {
+        vm.expectRevert(Book.BadMaxFills.selector);
+        book.placeForced(
+            IBookRiskHooks.OrderRequest(
+                2, Side.SELL, IBookRiskHooks.OrderKind.IOC, 498, 30, 0, true, MAX_FILLS + 1
+            )
+        );
     }
 
     // ------------------------------------------------------------------ admission (stages)
