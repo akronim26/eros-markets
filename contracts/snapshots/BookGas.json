@@ -1,10 +1,10 @@
 {
-  "cancelReplace_twoSidedBatch": "113417",
-  "cancel_one": "53989",
-  "placeResting_freshSlot": "80123",
-  "placeResting_recycledSlot": "65443",
-  "taker_64steps_allFailing": "816004",
-  "taker_fourFills_sameMaker": "101895",
-  "taker_fourFills_twoMakers_twoLevels": "108161",
-  "taker_oneFill": "64065"
+  "cancelReplace_twoSidedBatch": "113500",
+  "cancel_one": "53998",
+  "placeResting_freshSlot": "80152",
+  "placeResting_recycledSlot": "65460",
+  "taker_64steps_allFailing": "816579",
+  "taker_fourFills_sameMaker": "101930",
+  "taker_fourFills_twoMakers_twoLevels": "108196",
+  "taker_oneFill": "64073"
 }

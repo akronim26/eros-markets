@@ -22,7 +22,7 @@ contract BookMatchTest is Test {
         uint32 maker;
         uint32 taker;
         uint16 tick;
-        uint96 size;
+        uint64 size;
     }
 
     function setUp() public {
@@ -39,7 +39,7 @@ contract BookMatchTest is Test {
 
     // ------------------------------------------------------------------ helpers
 
-    function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint96 size, bool ro, uint8 maxFills)
+    function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint64 size, bool ro, uint8 maxFills)
         internal
         pure
         returns (Book.Place memory)
@@ -52,11 +52,11 @@ contract BookMatchTest is Test {
         return book.placeOrder(p);
     }
 
-    function _post(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
+    function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         return _place(who, _p(POST, isBuy, tick, size, false, 0));
     }
 
-    function _take(bool isBuy, uint16 limit, uint96 size, uint8 maxFills) internal returns (uint32) {
+    function _take(bool isBuy, uint16 limit, uint64 size, uint8 maxFills) internal returns (uint32) {
         return _place(taker, _p(IOC, isBuy, limit, size, false, maxFills));
     }
 
@@ -70,8 +70,8 @@ contract BookMatchTest is Test {
         n = 0;
         for (uint256 i; i < logs.length; ++i) {
             if (logs[i].topics[0] != Book.Fill.selector) continue;
-            (uint32 maker, uint32 tk, uint16 tick, uint96 size) =
-                abi.decode(logs[i].data, (uint32, uint32, uint16, uint96));
+            (uint32 maker, uint32 tk, uint16 tick, uint64 size) =
+                abi.decode(logs[i].data, (uint32, uint32, uint16, uint64));
             out[n++] = F(uint32(uint256(logs[i].topics[1])), maker, tk, tick, size);
         }
     }
@@ -80,7 +80,7 @@ contract BookMatchTest is Test {
         return book.bestBidAsk();
     }
 
-    function _size(uint32 id) internal view returns (uint96) {
+    function _size(uint32 id) internal view returns (uint64) {
         return book.getOrder(id).size;
     }
 
@@ -479,17 +479,17 @@ contract BookMatchTest is Test {
     /// come in non-decreasing price order, and at most maxFills of them happen.
     function testFuzz_TakerRespectsLimitSizeAndBudget(
         uint16[8] memory ticks,
-        uint96[8] memory sizes,
+        uint64[8] memory sizes,
         uint16 limit,
-        uint96 want,
+        uint64 want,
         uint8 maxFills
     ) public {
         limit = uint16(bound(limit, 1, 999));
-        want = uint96(bound(want, 1, 1e6));
+        want = uint64(bound(want, 1, 1e6));
         maxFills = uint8(bound(maxFills, 0, 64));
         address[3] memory makers = [alice, bob, carol];
         for (uint256 i; i < 8; ++i) {
-            _post(makers[i % 3], false, uint16(bound(ticks[i], 1, 999)), uint96(bound(sizes[i], 1, 1e5)));
+            _post(makers[i % 3], false, uint16(bound(ticks[i], 1, 999)), uint64(bound(sizes[i], 1, 1e5)));
         }
         vm.recordLogs();
         _take(true, limit, want, maxFills);

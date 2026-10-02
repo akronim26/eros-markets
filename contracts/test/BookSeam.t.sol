@@ -22,12 +22,12 @@ contract BookSeamTest is Test {
         book.batch(new uint32[](0), new Book.Place[](0));
     }
 
-    function _post(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
+    function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
         return book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, isBuy, false, tick, size, 0));
     }
 
-    function _ioc(address who, bool isBuy, uint16 tick, uint96 size) internal returns (uint32) {
+    function _ioc(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
         return book.placeOrder(Book.Place(Book.OrderType.IOC, isBuy, false, tick, size, 8));
     }

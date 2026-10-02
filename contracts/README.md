@@ -36,10 +36,10 @@ shows the full pattern.
 | `_makerFill(ctx, maker, makerBuys, tick, size, flags) → filled` | per examined maker | Clearing | stage, reduce-only, IM at q and I, stress; 0 cancels the order, less than `size` clips it |
 | `_takerFill(ctx, takerBuys, tick, size)` | per fill | Clearing | taker side in memory |
 | `_takerDone(ctx)` | once, after matching | Clearing | final IM / OI / stress checks and the single taker write; revert rolls back every fill |
-| `_onRest(trader, tick, size, flags)` / `_onUnrest(trader, size, flags)` | when units start / stop resting | Clearing | R_buy / R_sell for IM+; `_onRest` may revert |
+| `_onRest(trader, tick, size, flags)` / `_onUnrest(trader, size, flags)` | when lots start / stop resting | Clearing | R_buy / R_sell for IM+; `_onRest` may revert |
 
 **Context:** `Ctx` carries `taker`, `takerBuys` and `flags`, plus two totals Book keeps
-for `_takerDone`: `filled` and `cost` (Σ size × tick, in 0.001 USDC). It also holds
+for `_takerDone`: `filled` and `cost` (Σ lots × tick, in USDC atoms; 1 lot = 0.001 claim). It also holds
 `risk`, a `RiskSnapshot` (`src/RiskSnapshot.sol`). Clearing owns that struct and can change its
 fields without touching Book.
 

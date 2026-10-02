@@ -39,7 +39,7 @@ abstract contract MarketsModule is Book {
 /// Clearing (R2): owns accounts. The taker is written once, from Book's totals.
 abstract contract ClearingModule is Book {
     mapping(uint32 => int256) public position;
-    mapping(uint32 => int256) public cash; // -sum(size x tick), 0.001 USDC
+    mapping(uint32 => int256) public cash; // -sum(lots x tick), USDC atoms
     mapping(uint32 => mapping(bool => uint256)) public reserved;
     uint256 public takerWrites;
 
@@ -47,21 +47,21 @@ abstract contract ClearingModule is Book {
         return isBuy ? int256(x) : -int256(x);
     }
 
-    function _takerStart(Ctx memory, uint96 size) internal pure override returns (uint96) {
+    function _takerStart(Ctx memory, uint64 size) internal pure override returns (uint64) {
         return size;
     }
 
-    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16 tick, uint96 size, uint8)
+    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16 tick, uint64 size, uint8)
         internal
         override
-        returns (uint96)
+        returns (uint64)
     {
         position[maker] += _signed(makerBuys, size);
         cash[maker] -= _signed(makerBuys, uint256(size) * tick);
         return size;
     }
 
-    function _takerFill(Ctx memory, bool, uint16, uint96) internal pure override {}
+    function _takerFill(Ctx memory, bool, uint16, uint64) internal pure override {}
 
     function _takerDone(Ctx memory c) internal override {
         if (c.filled == 0) return;
@@ -70,11 +70,11 @@ abstract contract ClearingModule is Book {
         ++takerWrites;
     }
 
-    function _onRest(uint32 trader, uint16, uint96 size, uint8 flags) internal override {
+    function _onRest(uint32 trader, uint16, uint64 size, uint8 flags) internal override {
         reserved[trader][flags & FLAG_BUY != 0] += size;
     }
 
-    function _onUnrest(uint32 trader, uint96 size, uint8 flags) internal override {
+    function _onUnrest(uint32 trader, uint64 size, uint8 flags) internal override {
         reserved[trader][flags & FLAG_BUY != 0] -= size;
     }
 }
@@ -112,7 +112,7 @@ contract BookCompositionTest is Test {
         core.createMarket(MAX_FILLS);
     }
 
-    function _place(address who, Book.OrderType kind, bool isBuy, uint16 tick, uint96 size)
+    function _place(address who, Book.OrderType kind, bool isBuy, uint16 tick, uint64 size)
         internal
         returns (uint32)
     {
