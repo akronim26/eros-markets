@@ -20,3 +20,4 @@ new row. `check_tasks.py` fails when a `done` task has no row here.
 | 2026-10-02 | O10.4 | (this commit) | 0 | VoidBound + BondMath: 14 tests; C.7 vectors (3,837,600 s; 6,000 s; 222,400,000 atoms) from vectors/; fuzz ceil and monotonicity; two mutations caught |
 | 2026-10-02 | O10.5 | (this commit) | 0 | SigLib: 23 tests; P1/R1 digests = C.7; panel 65-byte/v/low-s rules; 11 m-of-k cases incl. ERC-1271 accept/refuse; three mutations caught |
 | 2026-10-02 | O00.2 | (this commit) | 0 | cleanup: removed Toolchain.t.sol and 7 duplicate vector assertions (Constants x5, SigLib x1, FeedSpecLib x1); 85 tests remain, each C.7 value asserted once through its library |
+| 2026-10-02 | O10.2 | (this commit) | 0 | specHash vectors moved from feedspec.json to spechash.json (one home per vector, plan §6.1 layout); test now requires all 5 |
