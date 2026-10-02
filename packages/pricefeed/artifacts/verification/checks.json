@@ -1,0 +1,111 @@
+{
+  "checkedAt": "2026-10-02T16:05:33.991529+00:00",
+  "headCommit": "12f012bd3dd7717455a917c5564a113c82b54626",
+  "workingTreeChanges": [
+    " M packages/pricefeed/docs/decisions.md",
+    " M packages/pricefeed/package.json",
+    " M packages/pricefeed/src/cli.ts",
+    " M packages/pricefeed/src/collector.ts",
+    " M packages/pricefeed/src/polymarket.ts",
+    " M packages/pricefeed/src/worker.ts",
+    " M packages/pricefeed/test/collector.test.ts",
+    " M packages/pricefeed/test/integration/foundry.toml",
+    " M packages/pricefeed/test/integration/src/FeedHarness.sol",
+    " M packages/pricefeed/test/integration/test/PricefeedIngress.t.sol",
+    " M packages/pricefeed/test/worker.test.ts",
+    "?? packages/pricefeed/PROGRESS.md",
+    "?? packages/pricefeed/README.md",
+    "?? packages/pricefeed/artifacts/",
+    "?? packages/pricefeed/scripts/report-source.py",
+    "?? packages/pricefeed/scripts/test-engine.py",
+    "?? packages/pricefeed/scripts/verify.py"
+  ],
+  "checks": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:reference"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test"
+      ],
+      "exitCode": 0,
+      "tests": 164
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check:wire"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check:scope"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:engine"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "sourceSha256": {
+    "src/collector.ts": "907dd6f8a38aca8cdbd0b1e1135c74cbe752496e3fe0c7ea6373548a400d9e62",
+    "src/book.ts": "5f69dd17e73d6e750fb94a40c911fba275a0c0cd688a6e7c6bda0041cdd3fef6",
+    "src/polymarket.ts": "28903ea1610d8d5b28610abdf80fd873a069470e756cd435c69622ebbe61b13d",
+    "src/journal.ts": "e6f8104456476730cea8fd87b6283dff4c6af8e9f1125c147c2e4323d9fdd458",
+    "src/wire.ts": "579823904d140ef678265200b2123e4f2aa9407a948c016750089dd425c80acb",
+    "src/config.ts": "1d53559fd0cec942ccf0aff247b533be4c01526b1af872f90cb585f12635dc6b",
+    "src/health.ts": "d223130f2882029b69a34667e9b6380c9c56b07a65ce3cd831569cb406075423",
+    "src/cli.ts": "26a63319cfd0ccd6e324c72906e9903afbb3f0a9ae7df7e8211fea84e7777ac9",
+    "src/math.ts": "c93f6046c64c1686ee5bf1b6f4338ce241c5bf11f4acc622bc43f572c0a491a2",
+    "src/time.ts": "8f61edbe2551609043ee200cbac3c3387362224bd6cdcd5d617b8425cd5bd4c8",
+    "src/worker.ts": "d5ab97d422597d763b5af445b1010b36dc158d1cca665ae6b28296a86a1fdff2",
+    "test/collector.test.ts": "58bf7b78ef8e8211f595e7fb9d354b9b4c959fbbafcc07030a61daeb2bd5786a",
+    "test/config-time.test.ts": "ac982a515073c71f2652043e9aef941116d0dafaf97acae58835b8a3f722aea9",
+    "test/worker.test.ts": "ce0b15975fd227d092b5311f94644ce5eec526d38a4013bd097b8f5d7a45607f",
+    "test/wire-journal.test.ts": "6df42f2bf8842fe327fdb2d786aecb62f6ab968b750644453f68ba29b1ad850a",
+    "test/math.test.ts": "059bcf1431d6aca5e3c7178cf08209b413569633500907b2f4072a66cf073075",
+    "test/integration/foundry.toml": "2428afb06c28598b253752eb0a204171dbec47bed80db817f4e89e6496d37e08",
+    "test/integration/test/PricefeedIngress.t.sol": "2c160c3d6dbdff3a6fb8c194e5f4bd1effc543b9bab4ce41d33e23506ebab1b6",
+    "test/integration/src/FeedHarness.sol": "209c968ca3ca8cf0f35f7acfcf266ac77c4d8f74a11cc97dc21f0c8916402e4c",
+    "scripts/verify.py": "79016586b443e65546f9cf4092642f60c1f9b4a61a35eee072d29d80a547e155",
+    "scripts/check-wire.ts": "468f1fcbf24b507260147031f004e201ece38039301bb82a516c0fd83ebb0e9b",
+    "scripts/report-source.py": "da4bedb041d3c519f1f84b0368c2fa72e18e01a532de65dbc1e0141451291c60",
+    "scripts/test-engine.py": "3ea531025009bb871a5ec78047650d56351a6cf00a5a90152da38e7df54e397a",
+    "scripts/fixture-wire.ts": "7d86c40ea55c4e9361404dfb13e9d9bacecbbc58eb7066ea332ebc9f4307aee0",
+    "scripts/check-scope.py": "268f1fa06ad51f2b7ffc7be5a54578429c0d48b560c11eea46705e0678bd6215",
+    "config/sports.example.json": "2d0ce12e9f79beecb10babbacd0d6bf500d42e7741037c641e93530672345671",
+    "config/collection.example.json": "c779e19ac920701b378ef5a38aa3bee3fd334f9f9bccd0e0dfb82678f4880f81",
+    "config/crypto.example.json": "0c9a413c0e7fada6a3cfec5e0c17129c8b6c4ac307a3b8a6d133fe767b20e407",
+    "config/politics.example.json": "2ebe736c3bf4be60a92fdd6558ceccc38fee126fe1a44e3e066a1d6782490640",
+    "fixtures/wire.json": "5b2cccfbafbccbabe1c13395ca355295727d92d9b3fea1c6971b6500ea83a489",
+    "fixtures/impact.json": "a6a00ecd3f4b70c670670434afc7b677e1d180f1c889db72b60ddeabf724fa75",
+    "reference/vectors.py": "21b3c18bd5ca985295d48df90bad026c6cb0a294b4d592bfe65adff92e5a9a9d"
+  },
+  "humanGatesAccepted": false,
+  "productionReady": false,
+  "liveTransactions": 0
+}

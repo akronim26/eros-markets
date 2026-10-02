@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/tmp/pricefeed-foundry-v1.8.3/forge",
+    "test",
+    "--root",
+    "test/integration",
+    "--use",
+    "/tmp/pricefeed-solc-0.8.30",
+    "--json"
+  ],
+  "exitCode": 0,
+  "tests": 4,
+  "toolVersions": {
+    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:46:16.519267388Z (1789469176)\nBuild Profile: dist",
+    "solc": "solc, the solidity compiler commandline interface\nVersion: 0.8.30+commit.73712a01.Linux.g++"
+  },
+  "environment": "local test VM only",
+  "riskImplementation": "real PriceIngress and ObservationStore imports; test-only initialization harness",
+  "wireFixtureSha256": "5b2cccfbafbccbabe1c13395ca355295727d92d9b3fea1c6971b6500ea83a489",
+  "liveTransactions": 0,
+  "humanGatesAccepted": false
+}

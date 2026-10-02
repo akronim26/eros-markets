@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
-import { metadataIdentity, inspectSnapshot, type Inspection, type MetadataIdentity } from './collector.js';
+import { metadataIdentity, verifyEventMembership, inspectSnapshot, type Inspection, type MetadataIdentity } from './collector.js';
 import type { MarketConfig } from './config.js';
 import type { Capture } from './polymarket.js';
 import { Journal } from './journal.js';
 import { json } from './math.js';
 
-export type Provider={metadata(id:string):Promise<Capture>;book(id:string):Promise<Capture>};
+export type Provider={event(id:string):Promise<Capture>;metadata(id:string):Promise<Capture>;book(id:string):Promise<Capture>};
 export type PollResult={worker:string;category:string;atMs:bigint;configDigest:string;inspection:Inspection;
-  metadata:Capture|null;book:Capture|null;baselineRulesDigest:string|null;lastSourceMs:bigint|null};
+  event:Capture|null;metadata:Capture|null;book:Capture|null;baselineRulesDigest:string|null;lastSourceMs:bigint|null};
 
 export function workerNamespace(cfg:MarketConfig):string {
   const d=cfg.destination;
@@ -22,6 +22,7 @@ export function ensureUniqueWorkers(configs:MarketConfig[]):void {
 export class Worker {
   readonly namespace:string;
   private metadataCapture:Capture|null=null;
+  private eventCapture:Capture|null=null;
   private metadata:MetadataIdentity|null=null;
   private lastSourceMs:bigint|null=null;
   private rulesDigest:string|null=null;
@@ -50,7 +51,7 @@ export class Worker {
   }
   private async collect():Promise<PollResult> {
     const ttl=BigInt((this.config.poll.timeoutMs+this.config.poll.retryDelayMs*8)*
-      (this.config.poll.maxRetries+1)*2+this.config.poll.intervalMs+10000);
+      (this.config.poll.maxRetries+1)*3+this.config.poll.intervalMs+10000);
     const fence=this.journal.acquire(this.namespace,this.owner,this.now(),ttl);
     let book:Capture|null=null;
     let inspection:Inspection={status:'DEGRADED',reason:null,time:null,summary:null,engineObservation:null};
@@ -58,8 +59,13 @@ export class Worker {
       if(this.quarantined){inspection.status='QUARANTINED';inspection.reason=this.quarantined;}
       else {
         if(!this.metadataCapture||this.now()-this.metadataCapture.receivedAtMs>BigInt(this.config.poll.metadataMaxAgeMs)/2n){
+          this.eventCapture=await this.provider.event(this.config.mapping.eventId);
+          const event=verifyEventMembership(this.config,this.eventCapture.data);
           const fresh=await this.provider.metadata(this.config.mapping.externalMarketId);
-          this.metadata=metadataIdentity(this.config,fresh.data);this.metadataCapture=fresh;
+          // Preserve rejected metadata as evidence before identity validation.
+          this.metadataCapture=fresh;const market=metadataIdentity(this.config,fresh.data);
+          this.metadata={tradeable:market.tradeable&&event.tradeable,
+            rulesDigest:createHash('sha256').update(`${event.rulesDigest}:${market.rulesDigest}`).digest('hex')};
         }
         book=await this.provider.book(this.config.mapping.outcomeTokenId);
         inspection=inspectSnapshot(this.config,book.data,book.receivedAtMs,this.lastSourceMs,this.metadata!,this.metadataCapture!.receivedAtMs,this.rulesDigest??undefined);
@@ -72,7 +78,7 @@ export class Worker {
       if(/IDENTITY|OUTCOME_MAPPING|SOURCE_RULES/.test(inspection.reason)){inspection.status='QUARANTINED';this.quarantined=inspection.reason;}
     }
     const result:PollResult={worker:this.config.key,category:this.config.category,atMs:this.now(),configDigest:this.configDigest,
-      inspection,metadata:this.metadataCapture,book,baselineRulesDigest:this.rulesDigest,lastSourceMs:this.lastSourceMs};
+      inspection,event:this.eventCapture,metadata:this.metadataCapture,book,baselineRulesDigest:this.rulesDigest,lastSourceMs:this.lastSourceMs};
     // A fenced/expired journal failure propagates, preventing a false healthy status.
     this.journal.append(this.namespace,this.owner,fence,this.now(),result);
     return result;

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { normalizeBook, record, summarizeBook } from './book.js';
 import type { MarketConfig } from './config.js';
 import { sourceTime } from './time.js';
+import { uint } from './math.js';
 
 export type MetadataIdentity={rulesDigest:string;tradeable:boolean};
 export function metadataIdentity(cfg:MarketConfig,value:unknown):MetadataIdentity {
@@ -9,15 +10,27 @@ export function metadataIdentity(cfg:MarketConfig,value:unknown):MetadataIdentit
   const labels=typeof m.outcomes==='string'?JSON.parse(m.outcomes):m.outcomes;
   const tokens=typeof m.clobTokenIds==='string'?JSON.parse(m.clobTokenIds):m.clobTokenIds;
   if(!Array.isArray(labels)||!Array.isArray(tokens)||labels.length!==2||labels.length!==tokens.length
-    ||labels.some(x=>typeof x!=='string')||tokens.some(x=>typeof x!=='string')||new Set(labels).size!==labels.length) throw new Error('BAD_OUTCOME_MAPPING');
+    ||labels.some(x=>typeof x!=='string'||x.length===0)||tokens.some(x=>typeof x!=='string')
+    ||new Set(labels).size!==labels.length||new Set(tokens).size!==tokens.length) throw new Error('BAD_OUTCOME_MAPPING');
+  for(const token of tokens)uint(token,256);
   const index=labels.indexOf(cfg.mapping.outcomeLabel);
   if(String(m.id)!==cfg.mapping.externalMarketId||m.conditionId!==cfg.mapping.conditionId||index<0
       ||tokens[index]!==cfg.mapping.outcomeTokenId)throw new Error('METADATA_IDENTITY_MISMATCH');
   if(typeof m.question!=='string'||typeof m.description!=='string')throw new Error('MISSING_SOURCE_RULES');
   const rulesDigest=createHash('sha256').update(JSON.stringify({question:m.question,description:m.description,
-    resolutionSource:m.resolutionSource??null,conditionId:m.conditionId,outcomes:labels,tokens})).digest('hex');
+    resolutionSource:m.resolutionSource??null,conditionId:m.conditionId,outcomes:labels,tokens,
+    eventId:cfg.mapping.eventId,endDate:m.endDate??null,negRisk:m.negRisk??null,negRiskMarketID:m.negRiskMarketID??null})).digest('hex');
   // Evidence digest only. It is not the Eros indexRulesHash or a mapping approval.
   return {rulesDigest,tradeable:m.active===true&&m.closed===false&&m.enableOrderBook===true&&m.acceptingOrders===true};
+}
+
+export function verifyEventMembership(cfg:MarketConfig,value:unknown):MetadataIdentity {
+  const event=record(value);
+  if(event.id!==cfg.mapping.eventId||!Array.isArray(event.markets)
+    ||!event.markets.some(m=>record(m).id===cfg.mapping.externalMarketId))throw new Error('EVENT_IDENTITY_MISMATCH');
+  return {tradeable:event.active===true&&event.closed===false,rulesDigest:createHash('sha256').update(JSON.stringify({
+    id:event.id,title:event.title??null,description:event.description??null,resolutionSource:event.resolutionSource??null,
+    endDate:event.endDate??null,negRisk:event.negRisk??null,negRiskMarketID:event.negRiskMarketID??null})).digest('hex')};
 }
 
 export type Inspection={status:'COLLECTING'|'INVALID_DEPTH'|'DEGRADED'|'QUARANTINED';reason:string|null;

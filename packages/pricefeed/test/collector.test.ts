@@ -3,11 +3,11 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { PublicPolymarket, RequestLimiter } from '../src/polymarket.js';
 import { parseConfig } from '../src/config.js';
-import { inspectSnapshot, metadataIdentity } from '../src/collector.js';
+import { inspectSnapshot, metadataIdentity, verifyEventMembership } from '../src/collector.js';
 
 const cfg=parseConfig(JSON.parse(readFileSync(new URL('../../config/crypto.example.json',import.meta.url),'utf8')));
 const raw={market:cfg.mapping.conditionId,asset_id:cfg.mapping.outcomeTokenId,timestamp:'1000000',hash:'vendor-hash',tick_size:'0.01',min_order_size:'5',bids:[{price:'0.6',size:'1000'}],asks:[{price:'0.61',size:'1000'}]};
-const metadata={id:cfg.mapping.externalMarketId,conditionId:cfg.mapping.conditionId,outcomes:'["Yes","No"]',clobTokenIds:JSON.stringify([cfg.mapping.outcomeTokenId,'2']),question:'BTC threshold',description:'Exact test rules',resolutionSource:'Test venue',active:true,closed:false,enableOrderBook:true,acceptingOrders:true};
+const metadata={id:cfg.mapping.externalMarketId,events:[{id:cfg.mapping.eventId}],conditionId:cfg.mapping.conditionId,outcomes:'["Yes","No"]',clobTokenIds:JSON.stringify([cfg.mapping.outcomeTokenId,'2']),question:'BTC threshold',description:'Exact test rules',resolutionSource:'Test venue',active:true,closed:false,enableOrderBook:true,acceptingOrders:true};
 test('collection validates explicit outcome identity and archives raw source time', () => {
   const m=metadataIdentity(cfg,metadata);
   const r=inspectSnapshot(cfg,raw,1000100n,null,m,1000000n);
@@ -16,6 +16,10 @@ test('collection validates explicit outcome identity and archives raw source tim
   assert.equal(r.summary!.priceWad,605000000000000000n);
   assert.equal(r.engineObservation,null);
   assert.throws(() => metadataIdentity(cfg,{...metadata,outcomes:'["No","Yes"]'}));
+  assert.throws(() => verifyEventMembership(cfg,{id:'1',markets:[{id:cfg.mapping.externalMarketId}]}),/EVENT_IDENTITY/);
+  assert.throws(() => verifyEventMembership(cfg,{id:cfg.mapping.eventId,markets:[{id:'1'}]}),/EVENT_IDENTITY/);
+  verifyEventMembership(cfg,{id:cfg.mapping.eventId,markets:[{id:cfg.mapping.externalMarketId}]});
+  assert.throws(() => metadataIdentity(cfg,{...metadata,clobTokenIds:JSON.stringify([cfg.mapping.outcomeTokenId,cfg.mapping.outcomeTokenId])}),/OUTCOME_MAPPING/);
   assert.equal(inspectSnapshot(cfg,{...raw,asset_id:'2'},1000100n,null,m,1000000n).status,'QUARANTINED');
 });
 test('stale, thin, closed, changed rules and missing source time remain explicit unavailability', () => {
@@ -43,4 +47,19 @@ test('429 and transport failures retry boundedly; failure is never a fabricated 
   assert.equal(attempts,2);
   const broken=new PublicPolymarket({...cfg.poll,maxRetries:0},new RequestLimiter(0,10),async()=>{throw new Error('connection reset');});
   await assert.rejects(()=>broken.book(cfg.mapping.outcomeTokenId),/connection reset/);
+});
+test('deadline bounds both a stuck fetch and a stalled response body', async () => {
+  const options={...cfg.poll,timeoutMs:20,maxRetries:0};
+  const stuck=new PublicPolymarket(options,new RequestLimiter(0,10),()=>new Promise<Response>(()=>{}));
+  await assert.rejects(()=>stuck.book(cfg.mapping.outcomeTokenId),/SOURCE_TIMEOUT/);
+  let cancelled=false;
+  const stalled=new PublicPolymarket(options,new RequestLimiter(0,10),async()=>new Response(new ReadableStream<Uint8Array>({cancel(){cancelled=true;}})));
+  await assert.rejects(()=>stalled.book(cfg.mapping.outcomeTokenId),/SOURCE_TIMEOUT/);
+  assert.equal(cancelled,true);
+});
+test('declared oversized response is cancelled without consuming its body', async () => {
+  let cancelled=false;
+  const a=new PublicPolymarket({...cfg.poll,maxRetries:0},new RequestLimiter(0,10),async()=>new Response(new ReadableStream<Uint8Array>({cancel(){cancelled=true;}}),{headers:{'content-length':String(cfg.poll.bodyLimitBytes+1)}}));
+  await assert.rejects(()=>a.book(cfg.mapping.outcomeTokenId),/RESPONSE_TOO_LARGE/);
+  assert.equal(cancelled,true);
 });

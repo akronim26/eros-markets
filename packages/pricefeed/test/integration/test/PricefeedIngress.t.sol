@@ -3,8 +3,9 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {FeedHarness} from "../src/FeedHarness.sol";
-import {IPriceSource} from "../../../../../contracts/src/interfaces/IPriceSource.sol";
-import {PriceIngress} from "../../../../../contracts/src/pricing/PriceIngress.sol";
+import {IPriceSource} from "risk/interfaces/IPriceSource.sol";
+import {PriceIngress} from "risk/pricing/PriceIngress.sol";
+import {PricingMath} from "risk/math/PricingMath.sol";
 
 contract PricefeedIngressTest is Test {
     address constant ENGINE = 0x1111111111111111111111111111111111111111;
@@ -50,9 +51,9 @@ contract PricefeedIngressTest is Test {
         emit IPriceSource.ObservationAccepted(o.sourceId, o.sequence, o.observedAt, o.publishedAt, 10_000, 6e17, true, digest);
         engine.submitObservation(o, signature);
         assertEq(engine.sourceState(o.sourceId).lastSequence, 1);
-        (bool available,, uint256 covered,) = engine.indexTwap300(10_000);
-        assertFalse(available);
-        assertEq(covered, 10);
+        PricingMath.Twap memory twap = engine.indexTwap300(10_000);
+        assertFalse(twap.available);
+        assertEq(twap.coveredSecs, 10);
     }
 
     function test_wrongDomainAndMutatedFieldRejectedByActualIngress() public {
@@ -79,16 +80,16 @@ contract PricefeedIngressTest is Test {
             assertEq(engine.observationDigest(o), digest);
             engine.submitObservation(o, signature);
         }
-        (bool available, uint256 price, uint256 covered,) = engine.indexTwap300(10_000);
-        assertTrue(available);
-        assertEq(price, 6e17);
-        assertEq(covered, 300);
-        (IPriceSource.Observation memory invalid, bytes memory signature, bytes32 digest) = packet(".invalid");
+        PricingMath.Twap memory twap = engine.indexTwap300(10_000);
+        assertTrue(twap.available);
+        assertEq(twap.twapWad, 6e17);
+        assertEq(twap.coveredSecs, 300);
+        (IPriceSource.Observation memory invalid, bytes memory invalidSignature, bytes32 invalidDigest) = packet(".invalid");
         vm.expectEmit(true, false, false, true, ENGINE);
-        emit IPriceSource.ObservationAccepted(invalid.sourceId, invalid.sequence, invalid.observedAt, invalid.publishedAt, 10_000, 0, false, digest);
-        engine.submitObservation(invalid, signature);
-        (available,, covered,) = engine.indexTwap300(10_010);
-        assertFalse(available);
-        assertEq(covered, 290);
+        emit IPriceSource.ObservationAccepted(invalid.sourceId, invalid.sequence, invalid.observedAt, invalid.publishedAt, 10_000, 0, false, invalidDigest);
+        engine.submitObservation(invalid, invalidSignature);
+        twap = engine.indexTwap300(10_010);
+        assertFalse(twap.available);
+        assertEq(twap.coveredSecs, 290);
     }
 }
