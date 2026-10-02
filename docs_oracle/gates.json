@@ -10,7 +10,7 @@
       "entry": ["O01", "O02"],
       "exit_criteria": "Seam decisions recorded in docs_oracle/seam-decisions.md (O01, ADJ-29); Appendix C types and interfaces compiled in oracle/src unchanged; interface hash recorded here.",
       "interface_hash_command": "cd oracle && cat $(ls src/types/*.sol src/interfaces/*.sol | LC_ALL=C sort) | sha256sum",
-      "interface_hash": "67356f50954a4064882f92717c171e346644f4dcc4f99fc1152b9dbc939b7b6a",
+      "interface_hash": "4dfc5dc1c0b01326a15802935f1c815f5735696001fe25bdba7b5846d9c65be8",
       "evidence_dir": null,
       "status": "passed",
       "merge_sha": "761550afbd12d6734f2104aa645f307035ab1edd",
@@ -18,7 +18,8 @@
         "O01: docs_oracle/seam-decisions.md S-01..S-15 (commit 94a9569)",
         "O02.1: Appendix C.2-C.6 and B.7 byte-identical to the plan; forge fmt --check and forge build pass (commit 394f2c4, CI https://github.com/xipharis/eros-markets/actions/runs/36949937527)",
         "O02.2: Constants.t.sol 10/10, ABI SHA256SUMS verified, C.7 values also matched in viem 2.57.2 (commit 761550a, CI https://github.com/xipharis/eros-markets/actions/runs/36950137629)",
-        "Interface hash computed with interface_hash_command at 761550a; oracle/src unchanged since"
+        "Interface hash computed with interface_hash_command at 761550a; oracle/src unchanged since",
+        "ADJ-33 (commit acbc41f): pragma relaxed to ^0.8.30 in every types/interfaces file, no other change (ABI SHA256SUMS verify); interface hash recomputed with interface_hash_command: 4dfc5dc1c0b01326a15802935f1c815f5735696001fe25bdba7b5846d9c65be8 (was 67356f50954a4064882f92717c171e346644f4dcc4f99fc1152b9dbc939b7b6a at 761550a)"
       ]
     },
     {
