@@ -52,6 +52,9 @@ import {VoidBound} from "./libraries/VoidBound.sol";
 ///      17 proposerRewardAtoms. `reviewLimitAtoms` has no onchain bound (§14.4: raised only from a
 ///      measured U95, §10 step 7). The extra column of §14.4 applies when `block.chainid == 143`.
 contract MarketRegistry is IMarketRegistry {
+    /// @notice A constructor address that must be set is zero (deploy-script mistake).
+    error ZeroAddress();
+
     // ------------------------------------------------------------------ §14.4 bounds
     uint32 internal constant MIN_SECS = 60; // floor for every "min ≥ 60" rule
     uint32 internal constant MAX_LISTING_HORIZON = 2_588_400; // A's RiskStorage: 30 days − 1 h
@@ -113,6 +116,10 @@ contract MarketRegistry is IMarketRegistry {
         address governance_,
         address lister_
     ) {
+        // `factory_` may be 0 (mainnet until DEP-1, §12.5) and `lister_` is set by governance later.
+        if (oracle_ == address(0) || treasury_ == address(0) || usdc_ == address(0) || governance_ == address(0)) {
+            revert ZeroAddress();
+        }
         oracle = oracle_;
         treasury = treasury_;
         factory = factory_;

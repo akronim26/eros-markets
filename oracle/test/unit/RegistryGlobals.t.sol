@@ -125,9 +125,29 @@ contract RegistryGlobalsTest is Test {
         assertEq(reg.globalsVersion(), 0);
     }
 
-    function test_constructor_factoryMayBeZero() public {
-        MarketRegistry r = new MarketRegistry(oracle, treasury, address(0), usdc, gov, lister);
+    function test_constructor_factoryAndListerMayBeZero() public {
+        MarketRegistry r = new MarketRegistry(oracle, treasury, address(0), usdc, gov, address(0));
         assertEq(r.factory(), address(0));
+        assertEq(r.lister(), address(0));
+    }
+
+    /// External, so `expectRevert` checks each deployment instead of ending the test at the first one.
+    function deployRegistry(address o, address t, address u, address g) external returns (address) {
+        return address(new MarketRegistry(o, t, factory, u, g, lister));
+    }
+
+    function test_constructor_rejectsZeroAddresses() public {
+        address z = address(0);
+        bytes4 err = MarketRegistry.ZeroAddress.selector;
+        vm.expectRevert(err);
+        this.deployRegistry(z, treasury, usdc, gov);
+        vm.expectRevert(err);
+        this.deployRegistry(oracle, z, usdc, gov);
+        vm.expectRevert(err);
+        this.deployRegistry(oracle, treasury, z, gov);
+        vm.expectRevert(err);
+        this.deployRegistry(oracle, treasury, usdc, z);
+        assertTrue(this.deployRegistry(oracle, treasury, usdc, gov) != address(0));
     }
 
     // ------------------------------------------------------------------ both base columns pass
