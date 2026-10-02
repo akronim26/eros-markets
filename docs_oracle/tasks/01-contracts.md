@@ -149,11 +149,12 @@ Plan §13: owner OA · 2 PD · depends O02 · acceptance: ledger isolation, ORC-
 - Depends: O12.1
 - Plan: §5.4, §6.6, C.5, ADJ-27
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/BondTreasury.sol, oracle/test/unit/TreasuryBonds.t.sol
 - Build: `fundAssertion` (debit ASSERTION or `InsufficientLedger`, `outstanding[id][attempt]`, `fundedTotal ≤ maxPerMarket` or `PerMarketCapExceeded`, approve exactly `bond` to the venue passed by the oracle); `onBondReturned`, `onBondLost`, `markStuck` with `totalOutstanding`; `payProposerReward` (never reverts; IOU `owed` when short); `claimOwed`. Attempt indexing per ADJ-27.
 - Done when: tests cover each flow, the per-market cap, the IOU path (no revert) and oracle-only access.
 - Check: cd oracle && forge test --match-path test/unit/TreasuryBonds.t.sol
+- Notes: Team decisions: funding the same `(id, attempt)` again adds to `outstanding` (books stay exact, no new error); `onBondReturned`/`onBondLost`/`markStuck` are no-ops with nothing outstanding (ORC-9); rewards are pushed and fall back to an IOU when the ledger is short or the transfer fails (e.g. a USDC-blacklisted proposer), so `payProposerReward` never reverts; `claimOwed` pays the whole IOU or reverts `InsufficientLedger`, and is a no-op with nothing owed. Solady 2afba69 has no non-reverting ERC-20 `transfer`, so the push uses a private `_tryTransfer` (low-level call; revert, `false` or malformed return data count as failure). A zero reward returns true with no event. `fundedTotal` never decreases, so returned bonds still count toward `maxPerMarket`. `totalOutstanding` is public for skim (O12.3) and alerts. Tests move bonds through `MockAssertionVenue` with real token transfers and check ORC-14 against the actual balance; 24 mutations caught.
 
 ### O12.3 · Watchdog disputes, closeDispute and skim
 - Owner: OA
