@@ -44,15 +44,14 @@ import {SigLib} from "./libraries/SigLib.sol";
 ///         not upgradeable and keeps one stable address. There is no pause and no admin path that moves a
 ///         market (D20): governance only manages trust sets and the sim-mode bridge, the guardian only
 ///         revokes, and every progress step is permissionless.
-/// @dev Tasks O14.1 (constructor, trust sets, guardian revocations, `initResolution`, watchdog
-///      heartbeat), O14.2 (halt, request, escalate, open) and O14.3 (committee and permissionless
-///      proposals, with the shared assertion internals). Assertions, finalize and void, the panel and
-///      groups follow in O14.4-O14.6, the CRE receiver in O15 and the EIP-712 views in O16, which also declares
-///      `is IResolutionOracle`. Until then errors and events are the C.3 declarations, used by qualified
+/// @dev Tasks O14.1-O14.6: trust sets and the guardian, the halt and request lifecycle, committee,
+///      panel and permissionless proposals, assertions, finalize, reject and void, the early check and
+///      exclusive groups. The CRE receiver comes in O15 and the EIP-712 views in O16, which also declares
+///      `is IResolutionOracle`; until then errors and events are the C.3 declarations, used by qualified
 ///      name.
 ///
-///      Keeper functions (`haltScheduled`, `requestResolution`, `escalateToL2`, `openAfterDeadline`, and
-///      later `expireEarly`, `assertProposal`, `syncAssertion`, `finalizeMarket`, `voidMarket`) never
+///      Keeper functions (`haltScheduled`, `requestResolution`, `escalateToL2`, `openAfterDeadline`,
+///      `expireEarly`, `assertProposal`, `syncAssertion`, `finalizeMarket`, `voidMarket`) never
 ///      revert on a state or time they do not act in: they return false (or NOT_READY), because Monad
 ///      charges the full gas limit on a revert (§5.4). They revert only for an unknown market, invalid
 ///      input, or a guard error §5.4 names (`TooEarly`, `NoFeed`, ...).
@@ -842,6 +841,8 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
     /// @dev Applies what the venue shows for the live assertion after a `trySettle` attempt.
     function _applyVenue(bytes32 id, Resolution storage r) internal returns (FinalizeStatus) {
         IAssertionVenue venue = IAssertionVenue(r.assertionVenue);
+        // The result is read back from `statusOf`: anyone may also have settled on the venue directly.
+        // forge-lint: disable-next-line(unused-return)
         venue.trySettle(r.assertionId);
         IAssertionVenue.AssertionStatus memory st = venue.statusOf(r.assertionId);
         if (st.settled) {
@@ -903,11 +904,17 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         _setState(id, r, RState.Final);
         emit IResolutionOracle.Finalized(id, o, reason);
         IResolutionEngine engine = IResolutionEngine(_core(id).engine);
+        // `newlyAccepted` is ignored: a repeat of the same outcome is harmless and a conflict reverts (S-02).
+        // forge-lint: disable-next-line(unused-return)
         if (o == Outcome.YES) engine.settle(1);
+        // forge-lint: disable-next-line(unused-return)
         else if (o == Outcome.NO) engine.settle(0);
+        // forge-lint: disable-next-line(unused-return)
         else engine.settleInvalid();
         IBondTreasury t = IBondTreasury(treasury);
         if (reason == FinalReason.ASSERTED_TRUE) {
+            // A shortage becomes an IOU in the treasury and never blocks Final, so `paid` is not needed.
+            // forge-lint: disable-next-line(unused-return)
             if (r.path == Path.PERMISSIONLESS) t.payProposerReward(id, r.proposer, r.rewardAtoms);
             else t.onBondReturned(id, r.attempts - 1);
         }
