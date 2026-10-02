@@ -4,22 +4,21 @@ pragma solidity ^0.8.30;
 import {LibString} from "solady/utils/LibString.sol";
 import {DateTimeLib} from "solady/utils/DateTimeLib.sol";
 import {DynamicBufferLib} from "solady/utils/DynamicBufferLib.sol";
-import {Outcome} from "../types/OracleTypes.sol";
+import {Outcome} from "../../src/types/OracleTypes.sol";
 
-/// @title ClaimRenderer
-/// @notice Renders the standalone UMA claim from a market's template (plan §6.3 rule 6, §6.4; task O10.3).
-/// @dev Tokens: MARKET_ID (0x + 64 hex), CHAIN_ID (decimal), ORACLE (checksummed), QUESTION, RULES,
+/// @title ClaimRendererV1 (frozen reference, test only)
+/// @notice Byte-for-byte copy of `ClaimRenderer` before the O18.1 gas rewrite, kept so the parity test
+///         can check that the rewritten renderer produces the same claims and the same reverts.
+/// @dev Original notes: renders the standalone UMA claim from a market's template (plan §6.3 rule 6, §6.4; task O10.3).
+///      Tokens: MARKET_ID (0x + 64 hex), CHAIN_ID (decimal), ORACLE (checksummed), QUESTION, RULES,
 ///      TAU_UTC (YYYY-MM-DDTHH:MM:SSZ), TAU_UNIX (decimal), OUTCOME (YES/NO/INVALID), EVIDENCE (the
 ///      evidence URI, or the L1 text from `l1Evidence`), EVIDENCE_HASH (0x + 64 hex). Each token is the
 ///      name wrapped in double braces. A valid template contains each token except TAU_UNIX exactly
 ///      once, TAU_UNIX at most once, and every double opening brace starts one of these ten tokens.
-///      `render` is one pass over the template that checks it as it renders and reverts if it is invalid.
-///      The scan jumps from one double opening brace to the next (`LibString.indexOf`) and matches a token
-///      by comparing one memory word with its bytes (every token is under 32 bytes), not by building
-///      candidate strings (O18.1: the claim is rendered in every assertion).
+///      `render` is one pass over the template; it re-checks the template and reverts if it is invalid.
 ///      `worstCaseLength` assumes a chain id below 2^64 (20 digits) and tau before the year 10000; the
 ///      registry's listing horizon keeps tau far below that.
-library ClaimRenderer {
+library ClaimRendererV1 {
     using DynamicBufferLib for DynamicBufferLib.DynamicBuffer;
 
     error InvalidTemplate();
@@ -56,7 +55,11 @@ library ClaimRenderer {
     /// @notice True when the template satisfies the token rules.
     function isValidTemplate(string memory template) internal pure returns (bool) {
         (bool ok, uint256[TOKEN_COUNT] memory counts,) = _scan(bytes(template));
-        return ok && _countsValid(counts);
+        if (!ok) return false;
+        for (uint256 k; k < TOKEN_COUNT; ++k) {
+            if (k == TAU_UNIX ? counts[k] > 1 : counts[k] != 1) return false;
+        }
+        return true;
     }
 
     /// @notice Upper bound on the rendered claim length (plan §6.3 rule 6). `l1UrlLen` is the length of
@@ -77,26 +80,26 @@ library ClaimRenderer {
             string.concat("Layer 1 CRE report, value ", LibString.toHexString(uint256(valueHash), 32), ", source ", url);
     }
 
-    /// @notice One-pass render. Reverts `InvalidTemplate` on a template that breaks the token rules (checked
-    ///         first, as before: an invalid template wins over a missing outcome), then `NoOutcome`.
+    /// @notice One-pass render. Reverts `InvalidTemplate` on a template that breaks the token rules.
     function render(string memory template, Fields memory f) internal pure returns (bytes memory) {
+        if (!isValidTemplate(template)) revert InvalidTemplate();
+        if (f.outcome == Outcome.NONE) revert NoOutcome();
         bytes memory t = bytes(template);
         DynamicBufferLib.DynamicBuffer memory out;
-        uint256[TOKEN_COUNT] memory counts;
-        uint256 i; // also the start of the pending literal
-        while (true) {
-            uint256 at = LibString.indexOf(template, "{{", i);
-            if (at == LibString.NOT_FOUND) break;
-            (uint256 k, uint256 len) = _tokenAt(t, at);
-            if (len == 0) revert InvalidTemplate();
-            ++counts[k];
-            out.p(_slice(t, i, at));
-            out.p(bytes(_value(k, f)));
-            i = at + len;
+        uint256 litStart;
+        uint256 i;
+        while (i + 1 < t.length) {
+            if (t[i] == "{" && t[i + 1] == "{") {
+                (uint256 k, uint256 len) = _tokenAt(t, i);
+                out.p(_slice(t, litStart, i));
+                out.p(bytes(_value(k, f)));
+                i += len;
+                litStart = i;
+            } else {
+                ++i;
+            }
         }
-        if (!_countsValid(counts)) revert InvalidTemplate();
-        if (f.outcome == Outcome.NONE) revert NoOutcome();
-        out.p(_slice(t, i, t.length));
+        out.p(_slice(t, litStart, t.length));
         return out.data;
     }
 
@@ -116,55 +119,48 @@ library ClaimRenderer {
         returns (bool ok, uint256[TOKEN_COUNT] memory counts, uint256 tokenBytes)
     {
         uint256 i;
-        while (true) {
-            uint256 at = LibString.indexOf(string(t), "{{", i);
-            if (at == LibString.NOT_FOUND) break;
-            (uint256 k, uint256 len) = _tokenAt(t, at);
-            if (len == 0) return (false, counts, 0);
-            ++counts[k];
-            tokenBytes += len;
-            i = at + len;
+        while (i + 1 < t.length) {
+            if (t[i] == "{" && t[i + 1] == "{") {
+                (uint256 k, uint256 len) = _tokenAt(t, i);
+                if (len == 0) return (false, counts, 0);
+                ++counts[k];
+                tokenBytes += len;
+                i += len;
+            } else {
+                ++i;
+            }
         }
         return (true, counts, tokenBytes);
     }
 
-    /// @dev Each required token exactly once, TAU_UNIX at most once.
-    function _countsValid(uint256[TOKEN_COUNT] memory counts) private pure returns (bool) {
-        for (uint256 k; k < TOKEN_COUNT; ++k) {
-            if (k == TAU_UNIX ? counts[k] > 1 : counts[k] != 1) return false;
-        }
-        return true;
-    }
-
-    /// @dev Matches a full token (braces included) at `i`. `len == 0` when none matches. The word read at
-    ///      `i` may run past the end of `t`; only its first `len` bytes are compared, and only when
-    ///      `i + len <= t.length`.
+    /// @dev Matches a full token (braces included) at `i`. `len == 0` when none matches.
     function _tokenAt(bytes memory t, uint256 i) private pure returns (uint256 k, uint256 len) {
-        bytes32 w;
-        assembly ("memory-safe") {
-            w := mload(add(add(t, 0x20), i))
-        }
-        uint256 n = t.length;
         for (k = 0; k < TOKEN_COUNT; ++k) {
-            (bytes32 tok, uint256 l) = _token(k);
-            if (i + l > n) continue;
-            if (w & ~bytes32(type(uint256).max >> (l * 8)) == tok) return (k, l);
+            bytes memory tok = bytes(string.concat("{{", _name(k), "}}"));
+            if (i + tok.length > t.length) continue;
+            bool eq = true;
+            for (uint256 j; j < tok.length; ++j) {
+                if (t[i + j] != tok[j]) {
+                    eq = false;
+                    break;
+                }
+            }
+            if (eq) return (k, tok.length);
         }
         return (0, 0);
     }
 
-    /// @dev Token `k` (braces included), left-aligned and zero-padded, and its length.
-    function _token(uint256 k) private pure returns (bytes32, uint256) {
-        if (k == 0) return ("{{MARKET_ID}}", 13);
-        if (k == 1) return ("{{CHAIN_ID}}", 12);
-        if (k == 2) return ("{{ORACLE}}", 10);
-        if (k == 3) return ("{{QUESTION}}", 12);
-        if (k == 4) return ("{{RULES}}", 9);
-        if (k == 5) return ("{{TAU_UTC}}", 11);
-        if (k == 6) return ("{{TAU_UNIX}}", 12);
-        if (k == 7) return ("{{OUTCOME}}", 11);
-        if (k == 8) return ("{{EVIDENCE}}", 12);
-        return ("{{EVIDENCE_HASH}}", 17);
+    function _name(uint256 k) private pure returns (string memory) {
+        if (k == 0) return "MARKET_ID";
+        if (k == 1) return "CHAIN_ID";
+        if (k == 2) return "ORACLE";
+        if (k == 3) return "QUESTION";
+        if (k == 4) return "RULES";
+        if (k == 5) return "TAU_UTC";
+        if (k == 6) return "TAU_UNIX";
+        if (k == 7) return "OUTCOME";
+        if (k == 8) return "EVIDENCE";
+        return "EVIDENCE_HASH";
     }
 
     function _value(uint256 k, Fields memory f) private pure returns (string memory) {
