@@ -1,0 +1,113 @@
+{
+  "source": "oracle/test/gas/OracleGas.t.sol (task O18.1)",
+  "toolchain": "Foundry 1.8.3 (CI pin, isolate = true), solc 0.8.33, optimizer 200 runs, evm prague",
+  "method": "Each call is measured as its own cold transaction: `transaction` includes the 21,000 intrinsic gas and calldata (what a limit must cover); `execution` subtracts the same call to an empty contract and is compared with the plan 6.9 budget. `limit` is what every service sends (plan 9): about 1.2 x transaction, rounded up. `excessAllowed` bounds a justified excess (status justified); the tests read this file and fail if a call exceeds its limit or its budget plus excess.",
+  "calls": {
+    "onReport": {
+      "transaction": 113254,
+      "execution": 79676,
+      "budget": 150000,
+      "limit": 140000,
+      "status": "met",
+      "note": "onReport alone from the production KeystoneForwarder, cold."
+    },
+    "onReportViaForwarder": {
+      "transaction": 147934,
+      "execution": 112466,
+      "budget": 240000,
+      "limit": 400000,
+      "status": "met",
+      "note": "The CRE writeReport gasLimit (writeGasLimit). Measured through MockKeystoneForwarderLite; the real KeystoneForwarder adds f + 1 ecrecovers (plan: <= 90k), so about 240k with margin would do. Kept at the plan's starting 400,000 until `cre workflow simulate --limits default` measures the real forwarder (plan 6.9)."
+    },
+    "haltScheduled": {
+      "transaction": 252304,
+      "execution": 227002,
+      "budget": 285551,
+      "limit": 310000,
+      "status": "met",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Budget 200,000 + the engine's halt() (85,551 measured alone). The oracle's own part is about 142k on either engine."
+    },
+    "haltScheduledRealEngine": {
+      "transaction": 506983,
+      "execution": 481681,
+      "budget": 540230,
+      "limit": 610000,
+      "status": "met",
+      "engine": "B's SettlementController (seam harness)",
+      "note": "Provisional mainnet figure: the engine's halt() (340,230 alone) runs B's MockAccountingPort, which logs every call to storage; A measured the real halt at 72k with 1,024 accounts. Re-measure with A's accounting before mainnet; the oracle's own part is about 142k."
+    },
+    "assertProposal": {
+      "transaction": 686242,
+      "execution": 660939,
+      "budget": 610224,
+      "excessAllowed": 56000,
+      "limit": 1140000,
+      "status": "justified",
+      "claimBytes": 639,
+      "note": "Default texts, real UMA OOv3 behind UmaAdapter, team bond from the treasury. The limit is the 16 KiB one (services do not know the claim length in advance). Excess over 600,000 + 16 x claim bytes: about 51k (8%). The claim renderer was rewritten in O18.1 (byte-identical output, parity-tested), which removed about 430k of rendering per assertion (953k before); what remains is spread over a fully cold transaction touching eight contracts (OOv3 reads UMA's Finder and Store, token approvals and transfers, the treasury's bond bookkeeping) that the plan's prototype estimate did not include."
+    },
+    "assertProposalMaxClaim": {
+      "transaction": 946703,
+      "execution": 921397,
+      "budget": 858624,
+      "excessAllowed": 70000,
+      "limit": 1140000,
+      "status": "justified",
+      "claimBytes": 16164,
+      "note": "Claim at the 16 KiB maximum (16,164 bytes rendered; the bound assumes maximum-width fields). Excess about 63k (7%): the fixed part as for the default texts plus about 16.8 gas per claim byte against the budget's 16 (OOv3's claim event and hashing, memory). Was 1,227k before the renderer rewrite."
+    },
+    "finalizeMarket": {
+      "transaction": 254795,
+      "execution": 229493,
+      "budget": 300000,
+      "limit": 310000,
+      "status": "met",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Settles on the real OOv3 (bond returned to the treasury) and delivers settle to the engine."
+    },
+    "finalizeMarketRealEngine": {
+      "transaction": 261004,
+      "execution": 235732,
+      "budget": 300000,
+      "limit": 320000,
+      "status": "met",
+      "engine": "B's SettlementController (seam harness)",
+      "note": "As finalizeMarket, on B's real engine."
+    },
+    "createMarket": {
+      "transaction": 6863399,
+      "execution": 6148251,
+      "budget": 30000000,
+      "limit": 8300000,
+      "status": "met",
+      "engine": "StubMarketFactory (testnet)",
+      "note": "Largest texts (worst-case claim at 16 KiB). Several SSTORE2 deploys and the engine deploy; Foundry does not price storage as Monad's MIP-8 does, so measure on testnet (plan 6.9)."
+    },
+    "createMarketRealEngine": {
+      "transaction": 21984385,
+      "execution": 21269710,
+      "budget": 30000000,
+      "limit": 26400000,
+      "status": "met",
+      "engine": "B's SettlementController (seam harness)",
+      "note": "Deploying B's 78 KiB engine dominates; 73% of the 30M per-transaction ceiling. Watch it when the shared MarketFactory replaces the stub."
+    }
+  },
+  "contractSizes": {
+    "limitBytes": 131072,
+    "runtimeBytes": {
+      "ResolutionOracle": 41199,
+      "MarketRegistry": 28474,
+      "BondTreasury": 9646,
+      "UmaAdapter": 4445,
+      "ErosSandboxOracle": 2684,
+      "StubMarketFactory": 8331,
+      "ResolutionEngineStub": 6762
+    },
+    "testOnlyRuntimeBytes": {
+      "EngineHarness": 78244,
+      "SeamFactory": 80690
+    }
+  }
+}
