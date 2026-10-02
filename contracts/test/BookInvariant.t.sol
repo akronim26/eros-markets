@@ -35,13 +35,19 @@ contract BookHandler is Test {
         ids.push(id);
     }
 
-    function _place(uint256 seed) internal pure returns (Book.Place memory p) {
+    function _place(uint256 seed) internal view returns (Book.Place memory p) {
         p.kind = IBookRiskHooks.OrderKind(seed % 3);
         p.isBuy = (seed >> 8) % 2 == 0;
         p.reduceOnly = (seed >> 16) % 8 == 0;
         p.tick = uint16(495 + (seed >> 24) % 11);
         p.size = uint64(1 + (seed >> 40) % 50);
         p.maxFills = uint8((seed >> 56) % 9);
+        if ((seed >> 64) % 4 == 0) p.expiryBlock = uint32(block.number + (seed >> 72) % 3);
+    }
+
+    /// Let blocks pass so expiring orders go stale and are pruned when reached.
+    function roll(uint8 blocks) external {
+        vm.roll(block.number + blocks % 4);
     }
 
     function place(uint256 actorSeed, uint256 seed) external {
@@ -99,7 +105,8 @@ contract BookHandler is Test {
         address who = actors[actorSeed % 4];
         for (uint256 i; i < uint256(rounds) % 64; ++i) {
             vm.prank(who);
-            uint32 id = book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 10, 1, 0));
+            uint32 id =
+                book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 10, 1, 0, 0));
             _record(id);
             if (id >> 24 == 255) ++retirements;
             vm.prank(who);

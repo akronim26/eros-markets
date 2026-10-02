@@ -112,7 +112,7 @@ contract BookGasTest is Test {
 
     function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, isBuy, false, tick, size, 0));
+        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, isBuy, false, tick, size, 0, 0));
     }
 
     function test_Gas_PlaceRestingRecycledSlot() public {
@@ -136,8 +136,8 @@ contract BookGasTest is Test {
         uint32[] memory cancels = new uint32[](2);
         (cancels[0], cancels[1]) = (bid, ask);
         Book.Place[] memory ps = new Book.Place[](2);
-        ps[0] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 500, 100, 0);
-        ps[1] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, false, false, 502, 100, 0);
+        ps[0] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 500, 100, 0, 0);
+        ps[1] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, false, false, 502, 100, 0, 0);
         vm.cool(address(book));
         vm.prank(mm);
         book.batch(cancels, ps);
@@ -148,7 +148,7 @@ contract BookGasTest is Test {
         _post(mm, false, 501, 100);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 100, 8));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 100, 8, 0));
         vm.snapshotGasLastFrame("BookGas", "taker_oneFill");
     }
 
@@ -158,7 +158,7 @@ contract BookGasTest is Test {
         }
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 100, 8));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 100, 8, 0));
         vm.snapshotGasLastFrame("BookGas", "taker_fourFills_sameMaker");
     }
 
@@ -169,7 +169,7 @@ contract BookGasTest is Test {
         _post(mm2, false, 502, 25);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 502, 100, 8));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 502, 100, 8, 0));
         vm.snapshotGasLastFrame("BookGas", "taker_fourFills_twoMakers_twoLevels");
     }
 
@@ -189,7 +189,7 @@ contract BookGasTest is Test {
         book.setFailAll(true);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 64, 64));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 64, 64, 0));
         vm.snapshotGasLastFrame("BookGas", "taker_64steps_allFailing");
     }
 }

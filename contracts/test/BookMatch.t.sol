@@ -45,7 +45,7 @@ contract BookMatchTest is Test {
         pure
         returns (Book.Place memory)
     {
-        return Book.Place(kind, isBuy, ro, tick, size, maxFills);
+        return Book.Place(kind, isBuy, ro, tick, size, maxFills, 0);
     }
 
     function _place(address who, Book.Place memory p) internal returns (uint32) {
@@ -55,6 +55,15 @@ contract BookMatchTest is Test {
 
     function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         return _place(who, _p(POST, isBuy, tick, size, false, 0));
+    }
+
+    function _expiring(address who, bool isBuy, uint16 tick, uint64 size, uint32 expiryBlock)
+        internal
+        returns (uint32)
+    {
+        Book.Place memory p = _p(POST, isBuy, tick, size, false, 0);
+        p.expiryBlock = expiryBlock;
+        return _place(who, p);
     }
 
     function _take(bool isBuy, uint16 limit, uint64 size, uint8 maxFills) internal returns (uint32) {
@@ -451,6 +460,47 @@ contract BookMatchTest is Test {
         assertEq(id, 0);
         assertEq(book.position(4), 0);
         assertEq(book.getLevel(false, 502).size, 100);
+    }
+
+    // ------------------------------------------------------------------ expiry
+
+    /// Inclusive good-til-block: a maker trades at its expiry block, and risk sees the expiry.
+    function test_MakerTradesThroughItsExpiryBlock() public {
+        vm.roll(100);
+        uint32 a = _expiring(alice, false, 502, 10, 100);
+        assertEq(book.getOrder(a).expiryBlock, 100);
+        assertEq(book.lastRestExpiry(), 100);
+        _take(true, 502, 10, 8);
+        assertEq(book.position(4), 10);
+        assertEq(book.lastMaker().expiryBlock, 100);
+    }
+
+    /// Past its expiry block a maker is pruned when reached; it uses a step and its lots are released.
+    function test_ExpiredMakerIsPrunedAndUsesAStep() public {
+        vm.roll(100);
+        uint32 a = _expiring(alice, false, 502, 10, 100);
+        uint32 b = _post(bob, false, 502, 10);
+        vm.roll(101);
+        vm.expectEmit(address(book));
+        emit Book.OrderCancelled(a, 10, Book.CancelReason.EXPIRED);
+        _take(true, 502, 10, 1);
+        assertEq(book.position(4), 0, "the only step went to the expired order");
+        assertEq(book.reserved(1, false), 0);
+        assertEq(_size(b), 10);
+        _take(true, 502, 10, 1);
+        assertEq(book.position(4), 10);
+    }
+
+    function test_RevertWhen_OrderAlreadyExpired() public {
+        vm.roll(100);
+        Book.Place memory p = _p(LIMIT, true, 500, 1, false, 8);
+        p.expiryBlock = 99;
+        vm.prank(taker);
+        vm.expectRevert(Book.BadExpiry.selector);
+        book.placeOrder(p);
+        p.expiryBlock = 100;
+        vm.prank(taker);
+        assertTrue(book.placeOrder(p) != 0, "an order expiring this block still rests");
     }
 
     // ------------------------------------------------------------------ atomicity

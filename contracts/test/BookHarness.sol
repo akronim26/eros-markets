@@ -68,6 +68,7 @@ contract BookHarness is TraderIds {
     uint256 public takerDoneCalls;
     uint256 public unrestCalls;
     uint8 public lastRestFlags;
+    uint32 public lastRestExpiry;
     uint8 public lastUnrestFlags; // side only: an unrest carries no reduce-only flag
 
     /// @dev Snapshot echo: every action loads `snapshotMark`; later hooks record what they saw.
@@ -226,11 +227,13 @@ contract BookHarness is TraderIds {
         revert NotCalledByBook(); // every rest converts a taker permit
     }
 
-    function _riskConvertPermitToRest(RiskSnapshot memory, TakerPermit memory permit, uint64 lots, uint32)
-        internal
-        override
-        returns (EpochTag memory, uint64, uint256)
-    {
+    function _riskConvertPermitToRest(
+        RiskSnapshot memory,
+        TakerPermit memory permit,
+        uint64 lots,
+        uint32 expiry
+    ) internal override returns (EpochTag memory, uint64, uint256) {
+        lastRestExpiry = expiry;
         permit.remainingLots -= lots;
         reserved[permit.trader][permit.side == Side.BUY] += lots;
         lastRestFlags = _flags(permit.side, permit.reduceOnly);

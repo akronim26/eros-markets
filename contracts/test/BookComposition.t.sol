@@ -137,7 +137,7 @@ contract BookCompositionTest is Test {
         returns (uint32)
     {
         vm.prank(who);
-        return core.placeOrder(Book.Place(kind, isBuy, false, tick, size, 8));
+        return core.placeOrder(Book.Place(kind, isBuy, false, tick, size, 8, 0));
     }
 
     function test_EachFillPostsBothLegsAtTheMakerPrice() public {
