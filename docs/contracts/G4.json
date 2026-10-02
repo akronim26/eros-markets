@@ -12,6 +12,7 @@
     "cancel-all then full withdrawal through the guarded release",
     "an unexpected accounting failure on the second fill reverts the first fill (cash, OI, reservations unchanged)"
   ],
+  "review_regressions": ["test/reviews/A043IntegrationReview.t.sol: no funding across historical freshness gaps; projected accrual agrees with touch", "test/reviews/A043BReview.t.sol: voluntary reduction health, concentration-cap reduction liveness, exact release previews"],
   "frozen_for_W5": "liquidation/freeze ports: IAccountingPort._acctTakeover/_acctPostLiquidationFill/_acctPostPairLiquidation/_acctFloorBegin/_acctFloorPage/_acctFreeze/_acctEpochBounds on RiskAccountingBridge",
   "mocks": ["book: MockBookAdapter", "price source: test-fed observations", "oracle: MockResolutionAuthority", "token: MockUSDC"]
 }

@@ -92,14 +92,14 @@ abstract contract TradePreview is OrderLifecycle {
         TakerInput memory t = TakerInput(trader, side == MathTypes.Side.BUY, limitTick, lots, reduceOnly);
         TakerDecision memory d = _takerDecision(c, t);
         (p.rejection, p.acceptedCapLots, p.feeCapQ, p.mode, p.halvingSteps) =
-            (d.reason, d.capLots, d.feeCapQ, d.mode, d.steps);
+        (d.reason, d.capLots, d.feeCapQ, d.mode, d.steps);
         if (d.capLots == 0) return p;
         OA.OrderSums memory s = _withExtra(trader, t.isBid, limitTick, d.capLots, d.feeCapQ);
-        OA.CoverageInput memory cov = _acctCoverage(trader, s, 0, 0);
+        OA.CoverageInput memory cov = _acctPreviewCoverage(trader, s, 0, 0, c.economicTime);
         (p.d0AfterQ, p.d1AfterQ, p.marketCoverageAfter) = (cov.d0Q, cov.d1Q, cov.marketOk);
-        p.fullBackingRequired = _backedOnly(c) || reduceOnly;
+        p.fullBackingRequired = _backedOnly(c);
         if (c.markOk) {
-            OA.Account memory a = _account(trader);
+            OA.Account memory a = _account(trader, c.economicTime);
             p.eMinQ = OA.eMinQ(a.cashQ, a.lots, c.markWad, s);
             (uint256 im, bool full) = OA.imUpperQ(a.lots, s, _pricing(c), _effectiveParams(c.economicTime));
             p.requiredImQ = im;
@@ -110,7 +110,7 @@ abstract contract TradePreview is OrderLifecycle {
     function previewAccount(uint32 trader) external view returns (AccountPreview memory p) {
         RiskContext memory c = _pricingContext();
         p.id = _identity(c);
-        AccountView memory a = _acctAccount(trader);
+        AccountView memory a = _acctPreviewAccount(trader, c.economicTime);
         (p.cashQ, p.positionLots) = (a.cashQ, a.lots);
         (p.projectedFundingQ, p.projectedPremiumQ) = _acctProjectedAccrual(trader, c.economicTime);
         p.projectionsAreEstimates = true;
@@ -127,7 +127,7 @@ abstract contract TradePreview is OrderLifecycle {
             );
             MarginMath.Health memory h = MarginMath.health(a.cashQ, a.lots, c.markWad, m);
             (p.markEquityQ, p.mmQ, p.imQ, p.fullBackingRequired, p.status) =
-                (h.markEquityQ, h.mmQ, h.imQ, h.fullBacking, h.status);
+            (h.markEquityQ, h.mmQ, h.imQ, h.fullBacking, h.status);
         } else if (c.markOk) {
             p.markEquityQ = a.cashQ;
             p.status = a.cashQ >= 0 ? MarginMath.Status.FLAT : MarginMath.Status.NONPOSITIVE;
@@ -136,12 +136,8 @@ abstract contract TradePreview is OrderLifecycle {
     }
 
     /// @notice Same decision as the guarded release (A017 -> `_riskReleaseDecision`).
-    function previewRelease(uint32 trader, uint256 atoms)
-        external
-        view
-        returns (bool ok, RejectCode reason)
-    {
-        return _releaseDecision(trader, _acctAccount(trader), atoms);
+    function previewRelease(uint32 trader, uint256 atoms) external view returns (bool ok, RejectCode reason) {
+        return _releaseDecision(trader, _acctPreviewAccount(trader, _pricingContext().economicTime), atoms);
     }
 
     function _releaseDecision(uint32 trader, AccountView memory a, uint256 atoms)
@@ -152,16 +148,24 @@ abstract contract TradePreview is OrderLifecycle {
         if (_acctAccountingState() != AccountingState.READY) return (false, RejectCode.BAD_STAGE);
         int256 dCash = -int256(atoms * 1e18);
         OA.OrderSums memory s = _resSums(trader);
-        return
-            _riskReleaseDecision(ReleaseInput(a.cashQ + dCash, a.lots, s, _acctCoverage(trader, s, dCash, 0)));
+        return _riskReleaseDecision(
+            ReleaseInput(
+                a.cashQ + dCash,
+                a.lots,
+                s,
+                _acctPreviewCoverage(trader, s, dCash, 0, _pricingContext().economicTime)
+            )
+        );
     }
 
     /// @dev Largest whole-atom release that passes the same decision (bounded binary search).
     function _usableReleaseAtoms(uint32 trader, AccountView memory a) internal view returns (uint256 best) {
-        if (a.cashQ <= 0) return 0;
-        uint256 hi = uint256(a.cashQ) / 1e18; // atoms floor: fractional Q is never released
+        (int256 endpointNo, int256 endpointYes) = MarginMath.endpoints(a.cashQ, a.lots);
+        int256 upperQ = endpointNo > endpointYes ? endpointNo : endpointYes;
+        if (upperQ <= 0) return 0;
+        uint256 hi = uint256(upperQ) / 1e18;
         uint256 lo;
-        for (uint256 i; i < 96 && lo < hi; ++i) {
+        for (uint256 i; i < 128 && lo < hi; ++i) {
             uint256 mid = (lo + hi + 1) / 2;
             (bool ok,) = _releaseDecision(trader, a, mid);
             if (ok) lo = mid;
