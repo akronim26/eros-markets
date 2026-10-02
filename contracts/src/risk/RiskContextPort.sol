@@ -20,6 +20,7 @@ abstract contract RiskContextPort is RiskPricing, IMarketConfig {
     error BadListing(uint8 reason);
     error RiskUnauthorized();
     error ProfileHashMismatch();
+    error ProfileListingMismatch();
 
     uint8 internal constant L_HORIZON_MIN = 1;
     uint8 internal constant L_HORIZON_VOID = 2;
@@ -75,6 +76,7 @@ abstract contract RiskContextPort is RiskPricing, IMarketConfig {
         if (_initialized) revert AlreadyInitialized();
         (bool ok, uint8 reason) = validateListing(l);
         if (!ok) revert BadListing(reason);
+        _validateRiskProfile(l, p);
         _initialized = true;
         _listing = l;
         _listingHash = keccak256(abi.encode(l));
@@ -120,8 +122,19 @@ abstract contract RiskContextPort is RiskPricing, IMarketConfig {
     ///         (never mid-epoch, never retroactively).
     function stageRiskParams(MarginMath.RiskParams calldata p) external {
         _onlyGovernance();
+        _validateRiskProfile(_listing, p);
         _stagedParams = p;
         _stageRiskProfile(profileHashOf(p));
+    }
+
+    function _validateRiskProfile(Listing memory marketListing, MarginMath.RiskParams memory params)
+        private
+        pure
+    {
+        if (
+            params.deploymentCapX == 0 || params.deploymentCapX > marketListing.deploymentCapX
+                || params.template != marketListing.template
+        ) revert ProfileListingMismatch();
     }
 
     /// @notice Hook for Person A's rollover commit (S-4): activate staged params, then pricing mode.
