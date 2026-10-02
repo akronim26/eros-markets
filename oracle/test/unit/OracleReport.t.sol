@@ -22,6 +22,7 @@ contract OracleReportTest is OracleFixture {
     bytes10 internal constant NAME = bytes10("eros-res");
     uint64 internal constant OBSERVED = T + 60; // T + bufferSecs
     bytes32 internal constant VALUE_HASH = keccak256("3");
+    uint256 internal constant COLD_ACCOUNT_SURCHARGE = 2_500; // EIP-2929: 2,600 cold vs 100 warm
     string internal constant L1_URL = "https://api.example-sports.com/v1/events/evt_1";
 
     MockKeystoneForwarderLite internal fwd;
@@ -521,11 +522,12 @@ contract OracleReportTest is OracleFixture {
 
     // ------------------------------------------------------------------ gas (§6.9)
 
-    /// `onReport` alone stays under the 150k budget with every account and slot cold (plan §6.9, V-C13).
+    /// `onReport` alone stays under the 150k budget with every slot cold (plan §6.9, V-C13). The helper
+    /// warms the oracle account, so its cold-access surcharge is added back.
     function test_gas_underBudget() public {
         uint256 used = _coldReportGas(id, _report(id));
-        emit log_named_uint("onReport gas (cold)", used);
-        assertLt(used, 150_000);
+        emit log_named_uint("onReport gas (cold)", used + COLD_ACCOUNT_SURCHARGE);
+        assertLt(used + COLD_ACCOUNT_SURCHARGE, 150_000);
     }
 
     /// The cost does not grow with the FeedSpec (a 400-byte URL path, 256-byte paths): `T + bufferSecs` is
@@ -558,11 +560,15 @@ contract OracleReportTest is OracleFixture {
     }
 
     /// Gas of the forwarder's call with the oracle's and registry's slots cold. The calldata is encoded
-    /// before measuring, so the caller's memory expansion is not counted.
+    /// before measuring, so the caller's memory expansion is not counted. The oracle account is touched
+    /// after `vm.cool`, so the call pays the warm account price every time: whether `vm.cool` leaves the
+    /// account cold differs between Foundry versions and between calls of one test (under Foundry 1.8.3,
+    /// which isolates each call, the first of two measured calls found it warm and the second cold).
     function _coldReportGas(bytes32 market, bytes memory report) internal returns (uint256 used) {
         bytes memory data = abi.encodeCall(IReceiver.onReport, (_meta(), report));
         vm.cool(address(ro));
         vm.cool(address(reg));
+        require(address(ro).code.length != 0); // warms the account only; no storage slot is read
         vm.prank(address(fwd));
         uint256 before = gasleft();
         (bool ok,) = address(ro).call(data);
