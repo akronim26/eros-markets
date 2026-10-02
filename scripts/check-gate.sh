@@ -36,7 +36,7 @@ def probe(command):
 record = {
     "schema_version": "1.0", "kind": "gate", "id": gate,
     "scope": "combined_technical_checks_only", "spec_version": "1.1", "economic_baseline": "1.0",
-    "interface_version": "risk-math-g0-draft-1", "recorded_at": datetime.now(timezone.utc).isoformat(),
+    "interface_version": "risk-integration-1", "recorded_at": datetime.now(timezone.utc).isoformat(),
     "source_commit": probe(["git", "rev-parse", "HEAD"]), "worktree_dirty": None,
     "toolchain": {"python": sys.version.split()[0], "forge": probe(["forge", "--version"]),
                   "solc_declared": "0.8.30", "foundry_profile": "risk",
@@ -68,6 +68,8 @@ try:
                 "docs/counterpart-contracts.md", "reference/fixtures/golden_cases.json",
                 "docs/math/golden-case-rationale.md", f"docs/contracts/{gate}.json",
                 f"contracts/test/gates/{gate}.t.sol"]
+    if gate == "G1":
+        required.extend(["reference/integration/combined_trace.py", "reference/tests/integration/test_g1.py"])
     for task in tasks:
         n, lane = int(task[1:]), task[0]
         if n <= 9:
@@ -107,6 +109,15 @@ try:
         task_record = json.loads((root / f"artifacts/tasks/{task}.json").read_text(encoding="utf-8"))
         record["test_count"] += task_record["test_count"]
     record["components"].update(lane_a="real", lane_b="real")
+    if gate == "G1":
+        reference_run = execute([sys.executable, "-m", "unittest", "discover", "-s",
+                                 "reference/tests/integration", "-t", "."], root)
+        if reference_run.returncode:
+            raise ValueError("combined reference trace failed")
+        reference_count = re.search(r"Ran (\d+) tests?", reference_run.stderr)
+        if not reference_count or int(reference_count[1]) == 0:
+            raise ValueError("combined reference trace suite is empty")
+        record["test_count"] += int(reference_count[1])
     run = execute(["forge", "test", "--match-path", f"test/gates/{gate}.t.sol", "--json"],
                   root / "contracts", {**os.environ, "FOUNDRY_PROFILE": "risk"})
     if run.returncode:

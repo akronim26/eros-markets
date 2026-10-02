@@ -20,6 +20,9 @@ fail_on_revert = true
 [profile.ci.fuzz]
 runs = 10000
 
+[profile.ci]
+code_size_limit = 1000000
+
 [profile.ci.invariant]
 runs = 256
 depth = 128
@@ -27,9 +30,9 @@ depth = 128
 # A002: isolate reproducible risk checks from the existing Book test profiles.
 # solc and dependencies stay pinned above / by the repository's Git submodules.
 [profile.risk]
-# The test-only A harness exposes every internal port in one deployment. Final
-# A+B composition and chain code-size limits are separate merge/release checks.
-code_size_limit = 65536
+# CombinedBase embeds three engine fixtures; this limit applies to test harnesses.
+# Production bytecode and target-chain limits remain separate release checks.
+code_size_limit = 1000000
 
 [profile.risk.fuzz]
 runs = 1000
