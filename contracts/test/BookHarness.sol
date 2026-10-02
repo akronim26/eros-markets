@@ -2,6 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {Book} from "../src/Book.sol";
+import {Side, AdmissionMode, StepStatus, RejectCode} from "../provisional/MathTypes.sol";
 
 /// @notice Stand-in for the engine's trader registry: ids from 1 in first-use order.
 abstract contract TraderIds is Book {
@@ -20,11 +21,11 @@ abstract contract TraderIds is Book {
     }
 }
 
-/// @notice Book with trivial Clearing hooks and read access to internals, for tests only.
+/// @notice Book over a scripted stand-in for Risk & Clearing's hooks, plus read access to
+///         internals, for tests only. It keeps positions and resting reservations so tests can
+///         check the book drives every hook exactly once per lot, and lets tests script stages,
+///         a minimum size, failing makers, a stopping taker and a rejecting finish. No economics.
 contract BookHarness is TraderIds {
-    /// @dev Resting units per (trader, isBuy), maintained by the rest/unrest hooks.
-    mapping(uint32 => mapping(bool => uint256)) public reserved;
-
     function createMarket(uint8 maxFills_) external {
         _initBook(maxFills_);
     }
@@ -33,28 +34,78 @@ contract BookHarness is TraderIds {
         _setMaxFills(maxFills_);
     }
 
-    /// @dev Rests an order without matching (placement lands with the match loop).
+    /// @dev Rests an order without matching (the post-only path, without its crossing check).
     function rest(bool isBuy, uint16 tick, uint64 size) external returns (uint32) {
-        return _rest(_openBook(), _traderOf(msg.sender), tick, size, isBuy ? FLAG_BUY : 0);
+        OrderRequest memory req = OrderRequest(
+            _traderOf(msg.sender), isBuy ? Side.BUY : Side.SELL, OrderKind.POST_ONLY, tick, size, 0, false, 0
+        );
+        return _execute(_openBook(), req, AdmissionMode.NORMAL);
     }
 
-    // ------------------------------------------------------------------ Clearing stand-in
+    // ------------------------------------------------------------------ risk stand-in
 
     error TakerRejected();
+    error NotCalledByBook();
+
+    /// @dev Stand-in for the market stage the risk lifecycle derives.
+    enum Stage {
+        Open,
+        ReduceOnly,
+        Halted
+    }
 
     /// @dev Signed position per trader; + is long.
     mapping(uint32 => int256) public position;
+    /// @dev Resting lots per (trader, isBuy): rests add them, fills and unrests take them off.
+    mapping(uint32 => mapping(bool => uint256)) public reserved;
     mapping(uint32 => bool) public failMaker;
+    bool public stopTaker;
     bool public rejectTaker;
+    Stage public stage;
+    uint64 public minSize;
     uint256 public takerDoneCalls;
+    uint256 public unrestCalls;
+    uint8 public lastRestFlags;
+    uint8 public lastUnrestFlags; // side only: an unrest carries no reduce-only flag
 
-    /// @dev Stand-in for Clearing's snapshot: loaded in _takerStart, echoed by later hooks.
+    /// @dev Snapshot echo: every action loads `snapshotMark`; later hooks record what they saw.
     uint256 public snapshotMark = 555;
     uint256 public makerSawMark;
-    uint256 public takerFillSawMark;
+    uint256 public doneSawMark;
+    /// @dev The last order's totals as its fills reported them: lots, and lots x maker tick.
     uint64 public doneFilled;
     uint256 public doneCost;
-    uint256 public doneSawMark;
+
+    /// @dev The record a rest gets back, and what the hooks later receive for an order.
+    struct Unrest {
+        uint32 owner;
+        EpochTag tag;
+        Side side;
+        uint16 tick;
+        uint64 lots;
+        uint256 feeCapQ;
+    }
+
+    EpochTag internal _restTag;
+    uint64 internal _restReduceVersion;
+    uint256 internal _restFeeCapQ;
+    OrderView internal _lastMaker;
+    Unrest internal _lastUnrest;
+
+    function setRestRecord(uint64 marketEpoch, uint64 accountEpoch, uint64 reduceVersion, uint256 feeCapQ)
+        external
+    {
+        (_restTag, _restReduceVersion, _restFeeCapQ) =
+        (EpochTag(marketEpoch, accountEpoch), reduceVersion, feeCapQ);
+    }
+
+    function lastMaker() external view returns (OrderView memory) {
+        return _lastMaker;
+    }
+
+    function lastUnrest() external view returns (Unrest memory) {
+        return _lastUnrest;
+    }
 
     function setPosition(uint32 trader, int256 pos) external {
         position[trader] = pos;
@@ -62,6 +113,10 @@ contract BookHarness is TraderIds {
 
     function setFailMaker(uint32 trader, bool fail) external {
         failMaker[trader] = fail;
+    }
+
+    function setStopTaker(bool stop) external {
+        stopTaker = stop;
     }
 
     function setSnapshotMark(uint256 mark) external {
@@ -72,67 +127,6 @@ contract BookHarness is TraderIds {
         rejectTaker = reject;
     }
 
-    function _reducible(uint32 trader, bool isBuy) internal view returns (uint256) {
-        int256 p = position[trader];
-        if (isBuy) return p < 0 ? uint256(-p) : 0;
-        return p > 0 ? uint256(p) : 0;
-    }
-
-    function _apply(uint32 trader, bool isBuy, uint64 size) internal {
-        position[trader] += isBuy ? int256(uint256(size)) : -int256(uint256(size));
-    }
-
-    function _takerStart(Ctx memory c, uint64 size) internal view override returns (uint64) {
-        c.risk.mark = snapshotMark;
-        if (c.flags & FLAG_REDUCE_ONLY == 0) return size;
-        uint256 r = _reducible(c.taker, c.takerBuys);
-        return r < size ? uint64(r) : size;
-    }
-
-    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16, uint64 size, uint8 flags)
-        internal
-        override
-        returns (uint64 filled)
-    {
-        makerSawMark = c.risk.mark;
-        if (failMaker[maker]) return 0;
-        filled = size;
-        if (flags & FLAG_REDUCE_ONLY != 0) {
-            uint256 r = _reducible(maker, makerBuys);
-            if (r < filled) filled = uint64(r);
-        }
-        _apply(maker, makerBuys, filled);
-    }
-
-    function _takerFill(Ctx memory c, bool takerBuys, uint16, uint64 size) internal override {
-        takerFillSawMark = c.risk.mark;
-        _apply(c.taker, takerBuys, size);
-    }
-
-    function _takerDone(Ctx memory c) internal override {
-        if (rejectTaker) revert TakerRejected();
-        ++takerDoneCalls;
-        (doneFilled, doneCost, doneSawMark) = (c.filled, c.cost, c.risk.mark);
-    }
-
-    // ------------------------------------------------------------------ hooks
-
-    /// @dev Stand-in for the market stage the oracle/resolution module (R4) drives.
-    enum Stage {
-        Open,
-        ReduceOnly,
-        Halted
-    }
-
-    error MarketHalted();
-    error ReduceOnlyStage();
-    error BelowMinSize();
-
-    Stage public stage;
-    uint8 public lastRestFlags;
-    uint8 public lastUnrestFlags;
-    uint64 public minSize;
-
     function setStage(Stage s) external {
         stage = s;
     }
@@ -141,21 +135,122 @@ contract BookHarness is TraderIds {
         minSize = size;
     }
 
-    function _admit(uint32, Place calldata p) internal view override {
-        Stage s = stage;
-        if (s == Stage.Halted) revert MarketHalted();
-        if (s == Stage.ReduceOnly && !p.reduceOnly) revert ReduceOnlyStage();
-        if (p.size < minSize) revert BelowMinSize();
+    function _reducible(uint32 trader, bool isBuy) internal view returns (uint256) {
+        int256 p = position[trader];
+        if (isBuy) return p < 0 ? uint256(-p) : 0;
+        return p > 0 ? uint256(p) : 0;
     }
 
-    function _onRest(uint32 trader, uint16, uint64 size, uint8 flags) internal override {
-        reserved[trader][flags & FLAG_BUY != 0] += size;
-        lastRestFlags = flags;
+    function _apply(uint32 trader, bool isBuy, uint64 lots) internal {
+        position[trader] += isBuy ? int256(uint256(lots)) : -int256(uint256(lots));
     }
 
-    function _onUnrest(uint32 trader, uint64 size, uint8 flags) internal override {
-        reserved[trader][flags & FLAG_BUY != 0] -= size;
-        lastUnrestFlags = flags;
+    function _flags(Side side, bool reduceOnly) internal pure returns (uint8) {
+        return (side == Side.BUY ? FLAG_BUY : 0) | (reduceOnly ? FLAG_REDUCE_ONLY : 0);
+    }
+
+    function _riskBeginAction() internal view override returns (RiskSnapshot memory s) {
+        s.markWad = snapshotMark;
+    }
+
+    function _riskTouchAccount(uint32, RiskSnapshot memory) internal pure override {}
+
+    /// @dev Stage and size gates answer with codes; a reduce-only taker is clipped to its position.
+    function _riskPrepareTaker(OrderRequest memory req, RiskSnapshot memory, AdmissionMode)
+        internal
+        override
+        returns (TakerPermit memory p, RejectCode reason)
+    {
+        (doneFilled, doneCost) = (0, 0);
+        (p.trader, p.side, p.limitTick, p.reduceOnly) = (req.trader, req.side, req.limitTick, req.reduceOnly);
+        if (stage == Stage.Halted) return (p, RejectCode.HALTED);
+        if (stage == Stage.ReduceOnly && !req.reduceOnly) return (p, RejectCode.BAD_STAGE);
+        if (req.requestedLots < minSize) return (p, RejectCode.BELOW_MIN_SIZE);
+        uint256 lots = req.requestedLots;
+        if (req.reduceOnly) {
+            uint256 r = _reducible(req.trader, req.side == Side.BUY);
+            if (r == 0) return (p, RejectCode.NO_REDUCIBLE_POSITION);
+            if (r < lots) lots = r;
+        }
+        p.remainingLots = uint64(lots);
+    }
+
+    /// @dev A failing maker is pruned; a reduce-only maker is clipped to its position and a clip
+    ///      removes its remainder. Both legs post at the maker's tick.
+    function _riskTryMatchedFill(
+        RiskSnapshot memory snap,
+        TakerPermit memory permit,
+        OrderView memory maker,
+        uint64 proposedLots
+    ) internal override returns (StepResult memory r) {
+        makerSawMark = snap.markWad;
+        _lastMaker = maker;
+        if (stopTaker) {
+            r.status = StepStatus.STOP_TAKER;
+            return r;
+        }
+        bool makerBuys = maker.side == Side.BUY;
+        uint64 lots = proposedLots;
+        if (maker.reduceOnly) {
+            uint256 m = _reducible(maker.owner, makerBuys);
+            if (m < lots) lots = uint64(m);
+        }
+        if (failMaker[maker.owner] || lots == 0) {
+            r.status = StepStatus.PRUNE_MAKER;
+            return r;
+        }
+        _apply(maker.owner, makerBuys, lots);
+        _apply(permit.trader, !makerBuys, lots);
+        reserved[maker.owner][makerBuys] -= lots;
+        permit.remainingLots -= lots;
+        doneFilled += lots;
+        doneCost += uint256(lots) * maker.tick;
+        r.filledLots = lots;
+        r.makerRemainingLots = maker.remainingLots - lots;
+        r.removeMakerRemainder = lots < proposedLots;
+    }
+
+    function _riskAdmitRest(RiskSnapshot memory, uint32, Side, uint16, uint64, uint32, bool)
+        internal
+        pure
+        override
+        returns (EpochTag memory, uint64, uint256)
+    {
+        revert NotCalledByBook(); // every rest converts a taker permit
+    }
+
+    function _riskConvertPermitToRest(RiskSnapshot memory, TakerPermit memory permit, uint64 lots, uint32)
+        internal
+        override
+        returns (EpochTag memory, uint64, uint256)
+    {
+        permit.remainingLots -= lots;
+        reserved[permit.trader][permit.side == Side.BUY] += lots;
+        lastRestFlags = _flags(permit.side, permit.reduceOnly);
+        return (_restTag, _restReduceVersion, _restFeeCapQ);
+    }
+
+    function _riskOnUnrest(
+        RiskSnapshot memory,
+        uint32 owner,
+        EpochTag memory tag,
+        Side side,
+        uint16 tick,
+        uint64 lots,
+        uint256 feeCapQ
+    ) internal override {
+        _lastUnrest = Unrest(owner, tag, side, tick, lots, feeCapQ);
+        reserved[owner][side == Side.BUY] -= lots;
+        lastUnrestFlags = _flags(side, false);
+        ++unrestCalls;
+    }
+
+    function _riskCancelAll(uint32) internal pure override returns (EpochTag memory t) {}
+
+    function _riskFinishTaker(RiskSnapshot memory snap, TakerPermit memory) internal override {
+        if (rejectTaker) revert TakerRejected();
+        ++takerDoneCalls;
+        doneSawMark = snap.markWad;
     }
 
     // ------------------------------------------------------------------ internals

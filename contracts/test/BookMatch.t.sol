@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test, Vm} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
 
 contract BookMatchTest is Test {
@@ -13,9 +14,9 @@ contract BookMatchTest is Test {
     address carol = makeAddr("carol"); // trader 3
     address taker = makeAddr("taker"); // trader 4
 
-    Book.OrderType constant LIMIT = Book.OrderType.LIMIT;
-    Book.OrderType constant IOC = Book.OrderType.IOC;
-    Book.OrderType constant POST = Book.OrderType.POST_ONLY;
+    IBookRiskHooks.OrderKind constant LIMIT = IBookRiskHooks.OrderKind.LIMIT;
+    IBookRiskHooks.OrderKind constant IOC = IBookRiskHooks.OrderKind.IOC;
+    IBookRiskHooks.OrderKind constant POST = IBookRiskHooks.OrderKind.POST_ONLY;
 
     struct F {
         uint32 makerOrder;
@@ -39,7 +40,7 @@ contract BookMatchTest is Test {
 
     // ------------------------------------------------------------------ helpers
 
-    function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint64 size, bool ro, uint8 maxFills)
+    function _p(IBookRiskHooks.OrderKind kind, bool isBuy, uint16 tick, uint64 size, bool ro, uint8 maxFills)
         internal
         pure
         returns (Book.Place memory)
@@ -70,8 +71,8 @@ contract BookMatchTest is Test {
         n = 0;
         for (uint256 i; i < logs.length; ++i) {
             if (logs[i].topics[0] != Book.Fill.selector) continue;
-            (uint32 maker, uint32 tk, uint16 tick, uint64 size) =
-                abi.decode(logs[i].data, (uint32, uint32, uint16, uint64));
+            (uint32 maker, uint32 tk, uint16 tick, uint64 size,,) =
+                abi.decode(logs[i].data, (uint32, uint32, uint16, uint64, uint256, uint256));
             out[n++] = F(uint32(uint256(logs[i].topics[1])), maker, tk, tick, size);
         }
     }
@@ -89,7 +90,7 @@ contract BookMatchTest is Test {
     function test_TakerFillsSingleMakerExactly() public {
         uint32 a = _post(alice, false, 502, 300);
         vm.expectEmit(address(book));
-        emit Book.Fill(a, 1, 4, 502, 300);
+        emit Book.Fill(a, 1, 4, 502, 300, 0, 0);
         uint32 id = _place(taker, _p(LIMIT, true, 502, 300, false, 8));
 
         assertEq(id, 0, "nothing rests");
@@ -167,7 +168,7 @@ contract BookMatchTest is Test {
     function test_ExtremeTicksTrade() public {
         uint32 a = _post(alice, false, 1, 5);
         vm.expectEmit(address(book));
-        emit Book.Fill(a, 1, 4, 1, 5);
+        emit Book.Fill(a, 1, 4, 1, 5, 0, 0);
         _take(true, 999, 5, 8);
         _post(bob, true, 999, 5);
         _take(false, 1, 5, 8);
@@ -189,18 +190,21 @@ contract BookMatchTest is Test {
 
     function test_NonCrossingLimitRestsWithoutFill() public {
         _post(alice, false, 510, 10);
+        uint256 finished = book.takerDoneCalls();
         vm.recordLogs();
         uint32 id = _place(taker, _p(LIMIT, true, 509, 5, false, 8));
         assertEq(_fills().length, 0);
         assertEq(_size(id), 5);
-        assertEq(book.takerDoneCalls(), 1);
+        assertEq(book.takerDoneCalls(), finished + 1);
     }
 
-    function test_TakerDoneCalledOncePerTakerNotForPostOnly() public {
+    /// Every admitted order, post-only included, holds one taker permit that is finished once.
+    function test_FinishCalledOncePerOrder() public {
+        uint256 finished = book.takerDoneCalls();
         _post(alice, false, 510, 10);
-        assertEq(book.takerDoneCalls(), 0);
+        assertEq(book.takerDoneCalls(), finished + 1);
         _take(true, 510, 3, 8);
-        assertEq(book.takerDoneCalls(), 1);
+        assertEq(book.takerDoneCalls(), finished + 2);
     }
 
     // ------------------------------------------------------------------ order types
@@ -285,7 +289,7 @@ contract BookMatchTest is Test {
         vm.expectEmit(address(book));
         emit Book.OrderCancelled(own, 10, Book.CancelReason.SELF_TRADE);
         vm.expectEmit(address(book));
-        emit Book.Fill(a, 1, 4, 502, 10);
+        emit Book.Fill(a, 1, 4, 502, 10, 0, 0);
         _take(true, 502, 10, 8);
 
         assertEq(_size(own), 0);
@@ -377,8 +381,9 @@ contract BookMatchTest is Test {
     // ------------------------------------------------------------------ reduce-only
 
     function test_ReduceOnlyMakerIsClippedAndRestCancelled() public {
-        book.setPosition(1, 40); // alice long 40
+        book.setPosition(1, 100);
         uint32 a = _place(alice, _p(POST, false, 502, 100, true, 0));
+        book.setPosition(1, 40); // alice's position shrinks to 40 after the order rests
         uint32 b = _post(bob, false, 502, 100);
         vm.recordLogs();
         _take(true, 502, 70, 8);
@@ -396,19 +401,23 @@ contract BookMatchTest is Test {
     }
 
     function test_ReduceOnlyMakerClipEmitsClipped() public {
-        book.setPosition(1, 40);
+        book.setPosition(1, 100);
         uint32 a = _place(alice, _p(POST, false, 502, 100, true, 0));
+        book.setPosition(1, 40);
         vm.expectEmit(address(book));
         emit Book.OrderCancelled(a, 60, Book.CancelReason.CLIPPED);
         _take(true, 502, 70, 8);
     }
 
     function test_ReduceOnlyMakerWithNothingToReduceIsCancelled() public {
+        book.setPosition(1, 100);
         uint32 a = _place(alice, _p(POST, false, 502, 100, true, 0));
+        book.setPosition(1, 0); // flat by the time a taker reaches the order
         _take(true, 502, 10, 8);
         assertEq(_size(a), 0);
         assertEq(book.position(1), 0);
         assertEq(book.position(4), 0);
+        assertEq(book.reserved(1, false), 0, "pruned maker released once");
     }
 
     function test_ReduceOnlyMakerExactReductionStaysLive() public {
@@ -469,7 +478,7 @@ contract BookMatchTest is Test {
         assertEq(a2 & 0xFFFFFF, a & 0xFFFFFF);
         assertEq(a2 >> 24, (a >> 24) + 1);
         vm.expectEmit(address(book));
-        emit Book.Fill(a2, 1, 4, 502, 1);
+        emit Book.Fill(a2, 1, 4, 502, 1, 0, 0);
         _take(true, 502, 1, 8);
     }
 

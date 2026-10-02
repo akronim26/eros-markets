@@ -3,9 +3,11 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {TraderIds} from "./BookHarness.sol";
+import {Side, AdmissionMode, StepStatus, RejectCode} from "../provisional/MathTypes.sol";
 
-/// @notice Book with no-op Clearing hooks, so benchmarks measure the book alone.
+/// @notice Book with no-op risk hooks, so benchmarks measure the book alone.
 contract LeanBook is TraderIds {
     bool public failAll;
 
@@ -21,32 +23,65 @@ contract LeanBook is TraderIds {
         return _book.freeHead;
     }
 
-    function _takerStart(Ctx memory, uint64 size) internal pure override returns (uint64) {
-        return size;
-    }
+    function _riskBeginAction() internal pure override returns (RiskSnapshot memory s) {}
 
-    function _makerFill(Ctx memory, uint32, bool, uint16, uint64 size, uint8)
+    function _riskTouchAccount(uint32, RiskSnapshot memory) internal pure override {}
+
+    function _riskPrepareTaker(OrderRequest memory req, RiskSnapshot memory, AdmissionMode)
         internal
-        view
+        pure
         override
-        returns (uint64)
+        returns (TakerPermit memory p, RejectCode reason)
     {
-        return failAll ? 0 : size;
+        (p.trader, p.side, p.limitTick, p.remainingLots) =
+        (req.trader, req.side, req.limitTick, req.requestedLots);
+        return (p, reason);
     }
 
-    function _takerFill(Ctx memory, bool, uint16, uint64) internal pure override {}
+    function _riskTryMatchedFill(
+        RiskSnapshot memory,
+        TakerPermit memory permit,
+        OrderView memory,
+        uint64 lots
+    ) internal view override returns (StepResult memory r) {
+        if (failAll) {
+            r.status = StepStatus.PRUNE_MAKER;
+            return r;
+        }
+        permit.remainingLots -= lots;
+        r.filledLots = lots;
+    }
 
-    function _takerDone(Ctx memory) internal pure override {}
+    function _riskAdmitRest(RiskSnapshot memory, uint32, Side, uint16, uint64, uint32, bool)
+        internal
+        pure
+        override
+        returns (EpochTag memory, uint64, uint256)
+    {}
 
-    function _admit(uint32, Place calldata) internal pure override {}
+    function _riskConvertPermitToRest(RiskSnapshot memory, TakerPermit memory permit, uint64 lots, uint32)
+        internal
+        pure
+        override
+        returns (EpochTag memory, uint64, uint256)
+    {
+        permit.remainingLots -= lots;
+        return (EpochTag(0, 0), 0, 0);
+    }
 
-    function _onRest(uint32, uint16, uint64, uint8) internal pure override {}
+    function _riskOnUnrest(RiskSnapshot memory, uint32, EpochTag memory, Side, uint16, uint64, uint256)
+        internal
+        pure
+        override
+    {}
 
-    function _onUnrest(uint32, uint64, uint8) internal pure override {}
+    function _riskCancelAll(uint32) internal pure override returns (EpochTag memory) {}
+
+    function _riskFinishTaker(RiskSnapshot memory, TakerPermit memory) internal pure override {}
 }
 
 /// @notice Gas for the operations in spec §9.9, written to snapshots/BookGas.json.
-/// @dev Excludes the 21k base cost and Clearing's account writes (LeanBook's hooks do nothing),
+/// @dev Excludes the 21k base cost and risk's account writes (LeanBook's hooks do nothing),
 ///      and Foundry 1.8.3's `monad` network does not model MIP-8 page pricing, so these numbers
 ///      are regression guards, not Monad costs; measure on testnet for real figures. Storage is
 ///      cooled before each measured call.
@@ -77,7 +112,7 @@ contract BookGasTest is Test {
 
     function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(Book.Place(Book.OrderType.POST_ONLY, isBuy, false, tick, size, 0));
+        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, isBuy, false, tick, size, 0));
     }
 
     function test_Gas_PlaceRestingRecycledSlot() public {
@@ -101,8 +136,8 @@ contract BookGasTest is Test {
         uint32[] memory cancels = new uint32[](2);
         (cancels[0], cancels[1]) = (bid, ask);
         Book.Place[] memory ps = new Book.Place[](2);
-        ps[0] = Book.Place(Book.OrderType.POST_ONLY, true, false, 500, 100, 0);
-        ps[1] = Book.Place(Book.OrderType.POST_ONLY, false, false, 502, 100, 0);
+        ps[0] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 500, 100, 0);
+        ps[1] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, false, false, 502, 100, 0);
         vm.cool(address(book));
         vm.prank(mm);
         book.batch(cancels, ps);
@@ -113,7 +148,7 @@ contract BookGasTest is Test {
         _post(mm, false, 501, 100);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 100, 8));
         vm.snapshotGasLastFrame("BookGas", "taker_oneFill");
     }
 
@@ -123,7 +158,7 @@ contract BookGasTest is Test {
         }
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 501, 100, 8));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 100, 8));
         vm.snapshotGasLastFrame("BookGas", "taker_fourFills_sameMaker");
     }
 
@@ -134,7 +169,7 @@ contract BookGasTest is Test {
         _post(mm2, false, 502, 25);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 502, 100, 8));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 502, 100, 8));
         vm.snapshotGasLastFrame("BookGas", "taker_fourFills_twoMakers_twoLevels");
     }
 
@@ -154,7 +189,7 @@ contract BookGasTest is Test {
         book.setFailAll(true);
         vm.cool(address(book));
         vm.prank(taker);
-        book.placeOrder(Book.Place(Book.OrderType.IOC, true, false, 501, 64, 64));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 501, 64, 64));
         vm.snapshotGasLastFrame("BookGas", "taker_64steps_allFailing");
     }
 }
