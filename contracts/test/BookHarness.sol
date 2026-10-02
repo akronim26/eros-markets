@@ -3,8 +3,25 @@ pragma solidity ^0.8.30;
 
 import {Book} from "../src/Book.sol";
 
+/// @notice Stand-in for the engine's trader registry: ids from 1 in first-use order.
+abstract contract TraderIds is Book {
+    mapping(address account => uint32) public traderId;
+    uint32 public traderCount;
+
+    event TraderRegistered(address indexed account, uint32 indexed trader);
+
+    function _traderOf(address account) internal override returns (uint32 id) {
+        id = traderId[account];
+        if (id == 0) {
+            id = ++traderCount;
+            traderId[account] = id;
+            emit TraderRegistered(account, id);
+        }
+    }
+}
+
 /// @notice Book with trivial Clearing hooks and read access to internals, for tests only.
-contract BookHarness is Book {
+contract BookHarness is TraderIds {
     /// @dev Resting units per (trader, isBuy), maintained by the rest/unrest hooks.
     mapping(uint32 => mapping(bool => uint256)) public reserved;
 
