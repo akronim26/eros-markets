@@ -16,6 +16,7 @@ import re
 import subprocess
 import sys
 import unittest
+import tomllib
 from datetime import datetime, timezone
 
 root = Path(sys.argv[1]).resolve()
@@ -42,7 +43,7 @@ record = {
     "scope": "task_checks_only",
     "spec_version": "1.1",
     "economic_baseline": "1.0",
-    "interface_version": "risk-math-g0-draft-1",
+    "interface_version": "risk-integration-1",
     "recorded_at": datetime.now(timezone.utc).isoformat(),
     "source_commit": probe(["git", "rev-parse", "HEAD"]),
     "worktree_dirty": None,
@@ -108,6 +109,12 @@ try:
         # Integration fix: A002's runner had no B W7 configuration. Each B W7 task runs its own
         # suites plus the combined (real A + real B) suites that carry its evidence.
         def step(argv, cwd=".", env_extra=None):
+            if os.name == "nt" and argv[0] == "tsc":
+                import shutil
+                shim = shutil.which("tsc")
+                if not shim:
+                    raise ValueError("TypeScript compiler not installed")
+                argv = ["node", str(Path(shim).parent / "node_modules/typescript/bin/tsc"), *argv[1:]]
             env = {**os.environ, **(env_extra or {})}
             run = subprocess.run(argv, cwd=root / cwd, env=env, capture_output=True, text=True)
             print(run.stdout[-2000:], end=""); print(run.stderr[-2000:], end="", file=sys.stderr)
@@ -159,7 +166,7 @@ try:
         record["exit_code"] = run.returncode
         report = json.loads(run.stdout)
         record["test_count"] = report["checks_run"]
-        if report["status"] == "pending_peer_merge":
+        if report["status"] in ("pending_peer_merge", "pending_peer_review"):
             record["status"] = "blocked"
             record["reason"] = report["reason"]
     else:
@@ -238,7 +245,7 @@ try:
             gas = {"status":"measured_locally", "measurements":measurements,
                    "gas_model":"Foundry local Prague EVM; test-call gas, excludes transaction base; not a Monad/testnet gas certificate",
                    "harness_runtime_bytes":(len(bytecode.removeprefix("0x"))//2),
-                   "harness_code_size_limit":65536, "production_composition_size":"pending A+B merge",
+                   "harness_code_size_limit":tomllib.loads((root / "contracts/foundry.toml").read_text(encoding="utf-8"))["profile"]["risk"]["code_size_limit"], "production_composition_size":"real counterpart composition and chain deployment measurement pending",
                    "source_commit":record["source_commit"], "toolchain":record["toolchain"]}
             path=root / "artifacts/risk/gas-accounting.json"; path.parent.mkdir(parents=True,exist_ok=True)
             path.write_text(json.dumps(gas,indent=2)+"\n")

@@ -1,6 +1,7 @@
 """Exercise the runners in disposable repositories, never a counterfeit B lane."""
 
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -11,6 +12,9 @@ import tempfile
 import textwrap
 import tomllib
 import unittest
+from unittest.mock import patch
+
+from scripts.check_a_review import validate_review
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -251,6 +255,54 @@ contract GateRunnerSmoke { function testRunnerSmoke() public pure { assert(true)
         self.assertIsNone(re.fullmatch(denominator["pattern"], "0"))
         self.assertIsNone(re.fullmatch(denominator["pattern"], "-1"))
         self.assertEqual(schema["properties"]["accepted"], {"const": False})
+
+    def prepare_review(self):
+        paths = {
+            "artifacts/reviews/A-on-B.md": "Review status: COMPLETE\n",
+            "contracts/src/ReviewFixture.sol": "pragma solidity ^0.8.30;\n",
+            "contracts/test/reviews/ReviewFixture.t.sol": "pragma solidity ^0.8.30;\n",
+        }
+        hashes = {}
+        for relative, content in paths.items():
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+            hashes[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+        review = {"reviewer": "A", "status": "complete", "source_commit": "a" * 40,
+                  "reviewed_files": hashes, "findings": []}
+        path = self.root / "artifacts/reviews/A-on-B.json"
+        path.write_text(json.dumps(review), encoding="utf-8")
+        return review, path
+
+    def test_peer_review_requires_report_and_evidence(self):
+        with self.assertRaisesRegex(ValueError, "source-bound evidence"):
+            validate_review(self.root)
+
+    def test_peer_review_rejects_changed_or_unreviewed_source(self):
+        self.prepare_review()
+        with patch("scripts.check_a_review.subprocess.run") as git:
+            git.return_value.returncode = 0
+            self.assertEqual(validate_review(self.root)["reviewer"], "A")
+            source = self.root / "contracts/src/ReviewFixture.sol"
+            source.write_text("pragma solidity ^0.8.29;\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "reviewed source changed"):
+                validate_review(self.root)
+            self.prepare_review()
+            (self.root / "contracts/src/New.sol").write_text("pragma solidity ^0.8.30;\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "does not cover"):
+                validate_review(self.root)
+
+    def test_peer_review_rejects_unresolved_high_and_unrelated_commit(self):
+        review, path = self.prepare_review()
+        review["findings"] = [{"id": "fixture", "severity": "High", "status": "open"}]
+        path.write_text(json.dumps(review), encoding="utf-8")
+        with patch("scripts.check_a_review.subprocess.run") as git:
+            git.return_value.returncode = 0
+            with self.assertRaisesRegex(ValueError, "unresolved critical/high"):
+                validate_review(self.root)
+            git.return_value.returncode = 1
+            with self.assertRaisesRegex(ValueError, "not an ancestor"):
+                validate_review(self.root)
 
 
 if __name__ == "__main__":
