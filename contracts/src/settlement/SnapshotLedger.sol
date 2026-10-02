@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 import {FloorAccounting} from "../risk/FloorAccounting.sol";
 import {LedgerMath as L} from "../math/LedgerMath.sol";
 import {QMath as Q} from "../math/QMath.sol";
+import {AccountingState} from "../math/MathTypes.sol";
 
 abstract contract SnapshotLedger is FloorAccounting {
     mapping(address => L.Value) public frozen;
@@ -14,7 +15,7 @@ abstract contract SnapshotLedger is FloorAccounting {
     uint256 public frozenFeeQ;
 
     function _snapshotPage(uint8 maximum) internal returns (bool complete) {
-        if (work != Work.HALT_SWEEP || maximum == 0 || maximum > 32) revert BadState();
+        if (work != AccountingState.HALT_SWEEP || maximum == 0 || maximum > 32) revert BadState();
         if (snapshotComplete) return true;
         uint256 end = Q.min(cursor + maximum, sweepCount);
         while (cursor < end) {
@@ -42,6 +43,6 @@ abstract contract SnapshotLedger is FloorAccounting {
             frozenFeeQ = protocolFeeQ + keeperPayableQ;
             snapshotComplete = true;
         }
-        emit SweepProgress(uint8(Work.HALT_SWEEP), generation, cursor, sweepCount);
+        emit SweepProgress(uint8(AccountingState.HALT_SWEEP), generation, cursor, sweepCount);
     }
 }

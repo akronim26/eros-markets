@@ -13,6 +13,7 @@ interface IAllocationReceiver {
     function onAllocate(address owner, uint256 atoms) external;
     function onReserveAllocate(address owner, uint256 atoms) external;
     function claimsEnabled() external view returns (bool);
+    function onCashClaim(address owner, uint256 atoms) external;
 }
 
 /// @notice Custody in six-decimal atoms, isolated allocations by registered engine.
@@ -97,11 +98,12 @@ contract CollateralVault {
 
     /// @notice Anyone may deliver, but the recipient is always the entitlement owner.
     function claim(address engine, address owner) external lock returns (uint256 atoms) {
-        if (!IAllocationReceiver(engine).claimsEnabled()) revert Unauthorized();
+        if (!engines[engine] || !IAllocationReceiver(engine).claimsEnabled()) revert Unauthorized();
         atoms = claimAtoms[engine][owner];
         if (atoms == 0) revert BadUnits();
         claimAtoms[engine][owner] = 0;
         recognizedAtoms -= atoms;
+        IAllocationReceiver(engine).onCashClaim(owner, atoms);
         _send(owner, atoms);
         emit Paid(engine, owner, atoms);
     }

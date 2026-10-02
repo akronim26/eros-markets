@@ -8,18 +8,15 @@ import {MockUSDC} from "../../mocks/A/MockUSDC.sol";
 import {CollateralVault} from "../../../src/vaults/CollateralVault.sol";
 import {PremiumMath as P} from "../../../src/math/PremiumMath.sol";
 
-/// @notice Reproducer for audit finding A-F03 (docs/merge/A-audit.md). Expected to FAIL until fixed.
-/// Spec section 5.5: protocolFeeQ moves to a separately recognized fee escrow before the reserve
-/// residual is assigned. A folds it into treasuryQ, the reserve-treasury dust escrow, so the
-/// protocol fee liability is no longer separately classified.
 contract FindingAF03ProtocolFeeEscrowTest is Test {
     function testProtocolFeeStaysSeparatelyClassified() public {
         vm.warp(86_400);
         MockUSDC token = new MockUSDC();
         CollateralVault vault = new CollateralVault(address(token), address(this));
         MockRiskDecision decision = new MockRiskDecision();
-        AccountingHarness h =
-            new AccountingHarness(vault, decision, address(0x777), uint64(block.timestamp + 10 days), false, false);
+        AccountingHarness h = new AccountingHarness(
+            vault, decision, address(0x777), uint64(block.timestamp + 10 days), false, false
+        );
         vault.registerEngine(address(h));
         address alice = address(0xA11CE);
         address bob = address(0xB0B);
@@ -41,6 +38,12 @@ contract FindingAF03ProtocolFeeEscrowTest is Test {
         // Reserve-treasury escrow should hold only reserve-owned dust; the protocol fee is a
         // separate beneficiary-owned liability.
         assertEq(h.treasuryQ(), reserveDustQ, "protocol fee folded into reserve treasury escrow");
+        assertEq(h.protocolFeeEscrowQ(), 2e18);
+        assertEq(h.protocolFeeQ(), 0);
+        assertEq(h.withdrawProtocolFees(), 2);
+        assertEq(h.protocolFeeEscrowQ(), 0);
+        assertEq(h.treasuryQ(), reserveDustQ);
+        assertEq(vault.claimAtoms(address(h), address(0x777)), 2);
     }
 
     function _fund(MockUSDC token, CollateralVault vault, AccountingHarness h, address u, uint256 a, bool r)

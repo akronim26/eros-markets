@@ -6,15 +6,9 @@ import {PremiumMath as P} from "../math/PremiumMath.sol";
 import {CollateralVault} from "../vaults/CollateralVault.sol";
 import {ReserveVault} from "../vaults/ReserveVault.sol";
 import {AccountingEvents} from "./AccountingEvents.sol";
+import {AccountingState} from "../math/MathTypes.sol";
 
 abstract contract RiskStorage is AccountingEvents {
-    enum Work {
-        READY,
-        ROLLOVER_SWEEP,
-        FLOOR_SWEEP,
-        HALT_SWEEP
-    }
-
     struct Account {
         L.Value value;
         C.Orders orders;
@@ -105,7 +99,7 @@ abstract contract RiskStorage is AccountingEvents {
     int256 public fundingClearingQ;
     Epoch public epoch;
     P.Tariff public tariff;
-    Work public work;
+    AccountingState public work;
     uint64 public generation;
     uint64 public marketOrderEpoch;
     uint256 public cursor;
@@ -153,6 +147,10 @@ abstract contract RiskStorage is AccountingEvents {
 
     function participantCount() public view returns (uint256) {
         return participants.length;
+    }
+
+    function _bumpMarketOrderEpoch() internal returns (uint64) {
+        return ++marketOrderEpoch;
     }
 
     function _clock() internal view returns (uint64) {

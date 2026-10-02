@@ -113,7 +113,9 @@ contract EndToEndTest is CombinedBase {
 
     // ---------------------------------------------------------------- steps 7-10
 
-    function _settle(uint8 haltMode, uint8 oracleOutcome, uint8 page, bool reverse, uint256 expectPrice) internal {
+    function _settle(uint8 haltMode, uint8 oracleOutcome, uint8 page, bool reverse, uint256 expectPrice)
+        internal
+    {
         vm.recordLogs();
         if (haltMode == HALT_EARLY_MID_ROLLOVER) {
             // 7a. Halt before T while the rollover is interrupted (one page done).
@@ -208,13 +210,17 @@ contract EndToEndTest is CombinedBase {
         for (uint256 k = logs.length; k > 0; --k) {
             if (logs[k - 1].emitter == address(e) && logs[k - 1].topics[0] == mktTopic) {
                 (,,,, uint256 keeper,,,,) = abi.decode(
-                    logs[k - 1].data, (uint256, int128, int256, uint256, uint256, int256, uint256, uint256, uint256)
+                    logs[k - 1].data,
+                    (uint256, int128, int256, uint256, uint256, int256, uint256, uint256, uint256)
                 );
                 assertEq(keeper, e.keeperPayableQ(), "keeper ledger from events");
                 break;
             }
         }
-        assertEq(e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.keeperPayableQ(), e.allocationQ());
+        assertEq(
+            e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.protocolFeeEscrowQ() + e.keeperPayableQ(),
+            e.allocationQ()
+        );
     }
 
     function _feed(uint64 to, uint256 idx, uint256 perpMid) internal {

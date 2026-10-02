@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 import {RiskStorage} from "./RiskStorage.sol";
+import {AccountingState} from "../math/MathTypes.sol";
 
 abstract contract AccountRegistry is RiskStorage {
     function _register(address owner) internal {
         if (registered[owner]) return;
-        if (owner == address(0) || work != Work.READY || halted || participants.length == 1024) {
+        if (owner == address(0) || work != AccountingState.READY || halted || participants.length == 1024) {
             revert BadState();
         }
         registered[owner] = true;

@@ -1,47 +1,49 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {Test} from "forge-std/Test.sol";
-import {AccountingHarness} from "../../harness/A/AccountingHarness.sol";
-import {MockRiskDecision} from "../../mocks/A/MockRiskDecision.sol";
-import {MockUSDC} from "../../mocks/A/MockUSDC.sol";
-import {CollateralVault} from "../../../src/vaults/CollateralVault.sol";
-import {PremiumMath as P} from "../../../src/math/PremiumMath.sol";
+import {CombinedBase} from "../../integration/CombinedBase.sol";
+import {HaltView} from "../../../src/interfaces/IResolutionIngress.sol";
+import {ClearingPhase} from "../../../src/math/RiskTypes.sol";
+import {ReserveVault} from "../../../src/vaults/ReserveVault.sol";
 
-/// @notice Reproducer for audit finding A-F01 (docs/merge/A-audit.md). Expected to FAIL until fixed.
-/// Trader and reserve-seed allocations made before activation have no exit path once T passes
-/// without activation: release needs an active market, activation needs now < T, and the
-/// halt/claims path needs an active market.
-contract FindingAF01PreActivationLockTest is Test {
+/// @notice Regression for audit finding A-F01 (docs/merge/A-audit.md).
+contract FindingAF01PreActivationLockTest is CombinedBase {
     function testPreActivationAllocationsCanExitAfterT() public {
-        vm.warp(86_400);
-        MockUSDC token = new MockUSDC();
-        CollateralVault vault = new CollateralVault(address(token), address(this));
-        MockRiskDecision decision = new MockRiskDecision();
-        uint64 t = uint64(block.timestamp + 10 days);
-        AccountingHarness h = new AccountingHarness(vault, decision, address(0x777), t, false, false);
-        vault.registerEngine(address(h));
-        address alice = address(0xA11CE);
-        decision.set(alice, true);
-        token.mint(alice, 100e6);
-        vm.startPrank(alice);
-        token.approve(address(vault), 100e6);
-        vault.deposit(100e6);
-        vault.allocate(address(h), 100e6, false);
-        vm.stopPrank();
+        _deploy(1, 1000);
+        address trader = _who(1);
+        _fund(trader, 100e6, false);
+        ReserveVault reserveVault = e.reserveVault();
+        vm.prank(LP);
+        reserveVault.notice();
+        assertFalse(e.active());
+        _assertInvariants();
 
-        vm.warp(t + 1);
-        bool exit;
-        vm.prank(alice);
-        try h.release(100e6) {
-            exit = true;
-        } catch {}
-        try h.activate(0, P.Tariff(0, 0, 0)) {
-            exit = true;
-        } catch {}
-        try h.freeze(t) {
-            exit = true;
-        } catch {}
-        assertTrue(exit, "no exit path for pre-activation allocation after T");
+        vm.warp(T + 3 days);
+        HaltView memory halt = e.materializeScheduledHalt();
+        assertTrue(halt.halted);
+        assertEq(halt.economicHaltAt, T);
+        assertEq(halt.accrualCutoff, T);
+        assertEq(e.accrualCutoff(), halt.accrualCutoff);
+        assertEq(halt.oiHaltLots, 0);
+        assertEq(halt.frozenAccountCount, 1);
+        assertTrue(oracle.finalize(2));
+        assertFalse(e.claimsEnabled());
+        assertTrue(e.prepareSnapshotChunk(1).done);
+        assertFalse(e.preparePayoutChunk(1).done);
+        assertTrue(e.preparePayoutChunk(1).done);
+        assertTrue(e.finishPreparation());
+        assertEq(e.traderAtoms(trader), 100e6);
+        assertEq(e.reserveResidualQ(), 1000 * USDC);
+        assertEq(e.claimTrader(trader), 100e6);
+        assertEq(token.balanceOf(trader), 100e6);
+        assertEq(e.redeemReserve(LP), 1000e6);
+        assertEq(vault.claim(address(e), LP), 1000e6);
+        assertEq(token.balanceOf(LP), 1000e6);
+        assertEq(vault.marketAtoms(address(e)), 0);
+        assertEq(vault.recognizedAtoms(), 0);
+        assertEq(token.balanceOf(address(vault)), 0);
+        assertEq(e.allocationQ(), 0);
+        assertEq(uint8(e.getSettlementStatus().phase), uint8(ClearingPhase.COMPLETE));
+        assertFalse(e.active());
     }
 }

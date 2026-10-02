@@ -2,7 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
-import {MathTypes} from "../../src/math/MathTypes.sol";
+import {MathTypes, AccountingState} from "../../src/math/MathTypes.sol";
 import {QMath} from "../../src/math/QMath.sol";
 import {LedgerMath as L} from "../../src/math/LedgerMath.sol";
 import {CoverageMath as C} from "../../src/math/CoverageMath.sol";
@@ -30,11 +30,14 @@ contract G0Test is Test {
     }
 
     function test_enumOrdinalsIdentical() public pure {
-        // Spec §4.6 AccountingState (B) == A's RiskStorage.Work.
-        assertEq(uint8(RT.AccountingState.READY), uint8(RiskStorage.Work.READY));
-        assertEq(uint8(RT.AccountingState.ROLLOVER_SWEEP), uint8(RiskStorage.Work.ROLLOVER_SWEEP));
-        assertEq(uint8(RT.AccountingState.FLOOR_SWEEP), uint8(RiskStorage.Work.FLOOR_SWEEP));
-        assertEq(uint8(RT.AccountingState.HALT_SWEEP), uint8(RiskStorage.Work.HALT_SWEEP));
+        AccountingState shared = RT.AccountingState.READY;
+        assertEq(uint8(shared), 0);
+        shared = RT.AccountingState.ROLLOVER_SWEEP;
+        assertEq(uint8(shared), 1);
+        shared = RT.AccountingState.FLOOR_SWEEP;
+        assertEq(uint8(shared), 2);
+        shared = RT.AccountingState.HALT_SWEEP;
+        assertEq(uint8(shared), 3);
         assertEq(uint8(MathTypes.FinalOutcome.UNSET), 0);
         assertEq(uint8(MathTypes.FinalOutcome.NO), 1);
         assertEq(uint8(MathTypes.FinalOutcome.YES), 2);
@@ -51,8 +54,12 @@ contract G0Test is Test {
         assertEq(uint8(cy), uint8(OracleOutcomeMap.EngineCall.SETTLE_BINARY));
         assertEq(uint8(cn), uint8(OracleOutcomeMap.EngineCall.SETTLE_BINARY));
         assertEq(uint8(ci), uint8(OracleOutcomeMap.EngineCall.SETTLE_INVALID));
-        assertEq(uint8(MathTypes.fromBinaryY(y1)), uint8(MathTypes.fromOracleOutcome(MathTypes.OracleOutcome.YES)));
-        assertEq(uint8(MathTypes.fromBinaryY(y0)), uint8(MathTypes.fromOracleOutcome(MathTypes.OracleOutcome.NO)));
+        assertEq(
+            uint8(MathTypes.fromBinaryY(y1)), uint8(MathTypes.fromOracleOutcome(MathTypes.OracleOutcome.YES))
+        );
+        assertEq(
+            uint8(MathTypes.fromBinaryY(y0)), uint8(MathTypes.fromOracleOutcome(MathTypes.OracleOutcome.NO))
+        );
     }
 
     /// Directed rounding conventions of the shared primitives (spec §2.1).
@@ -82,7 +89,10 @@ contract G0Test is Test {
             (int256 b0, int256 b1) = MarginMath.endpoints(cash[i], lots[i]);
             assertEq(a0, b0);
             assertEq(a1, b1);
-            assertEq(L.equity(L.Value(int128(lots[i]), cash[i]), 6e17), MarginMath.markEquityQ(cash[i], lots[i], 6e17));
+            assertEq(
+                L.equity(L.Value(int128(lots[i]), cash[i]), 6e17),
+                MarginMath.markEquityQ(cash[i], lots[i], 6e17)
+            );
         }
         C.Orders memory none;
         (uint256 d0,) = C.deficits(L.Value(1_000_000, -480_000_000e18), none);

@@ -9,7 +9,7 @@ import {RiskStorage} from "../../../src/risk/RiskStorage.sol";
 import {IBookRiskHooks} from "../../../src/interfaces/IBookRiskHooks.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
 import {CoverageMath as C} from "../../../src/math/CoverageMath.sol";
-import {MathTypes} from "../../../src/math/MathTypes.sol";
+import {MathTypes, AccountingState} from "../../../src/math/MathTypes.sol";
 import {LifecycleMath} from "../../../src/math/LifecycleMath.sol";
 import {RiskLiquidation} from "../../../src/risk/RiskLiquidation.sol";
 import {MockUSDC} from "../../mocks/A/MockUSDC.sol";
@@ -42,7 +42,14 @@ contract CombinedHandler is Test {
     mapping(bytes32 => uint256) public calls;
     mapping(bytes32 => uint256) public done; // effective outcomes (not just attempts)
 
-    constructor(CombinedEngine e_, CollateralVault v, MockUSDC t, MockResolutionAuthority o, uint64 T_, uint64 lf) {
+    constructor(
+        CombinedEngine e_,
+        CollateralVault v,
+        MockUSDC t,
+        MockResolutionAuthority o,
+        uint64 T_,
+        uint64 lf
+    ) {
         (e, vault, token, oracle, T, lastFeed) = (e_, v, t, o, T_, lf);
     }
 
@@ -57,16 +64,20 @@ contract CombinedHandler is Test {
     function _lots() internal view returns (int256[N + 1] memory x) {
         (int128 r,) = e.reserve();
         x[0] = r;
-        for (uint32 i = 1; i <= N; ++i) x[i] = e.account(who(i)).value.lots;
+        for (uint32 i = 1; i <= N; ++i) {
+            x[i] = e.account(who(i)).value.lots;
+        }
     }
 
     function _positionsUnchanged(int256[N + 1] memory before) internal {
         int256[N + 1] memory after_ = _lots();
-        for (uint256 i; i <= N; ++i) if (after_[i] != before[i]) inv08Violations += 1;
+        for (uint256 i; i <= N; ++i) {
+            if (after_[i] != before[i]) inv08Violations += 1;
+        }
     }
 
     function _fundingCheck(bool stoppedBefore, uint64 idBefore, int256 fBefore) internal {
-        (uint64 id,,,,,, ) = e.epoch();
+        (uint64 id,,,,,,) = e.epoch();
         if (stoppedBefore && id == idBefore && e.fundingFQ() != fBefore) inv07Violations += 1;
     }
 
@@ -96,7 +107,9 @@ contract CombinedHandler is Test {
         calls["rest"]++;
         step++;
         uint16 t = uint16(bound(tick, price / 1e15 - 30, price / 1e15 + 30));
-        try e.rest(_id(seed), buy ? MathTypes.Side.BUY : MathTypes.Side.SELL, t, uint64(bound(lots, 1, 300_000))) {
+        try e.rest(
+            _id(seed), buy ? MathTypes.Side.BUY : MathTypes.Side.SELL, t, uint64(bound(lots, 1, 300_000))
+        ) {
             done["rest"]++;
         } catch {}
     }
@@ -107,8 +120,14 @@ contract CombinedHandler is Test {
         (bool s, uint64 id, int256 f) = _epochState();
         uint16 t = uint16(bound(tick, price / 1e15 - 30, price / 1e15 + 30));
         IBookRiskHooks.OrderRequest memory r = IBookRiskHooks.OrderRequest(
-            _id(seed), buy ? MathTypes.Side.BUY : MathTypes.Side.SELL, IBookRiskHooks.OrderKind.IOC, t,
-            uint64(bound(lots, 1, 300_000)), 0, false, 8
+            _id(seed),
+            buy ? MathTypes.Side.BUY : MathTypes.Side.SELL,
+            IBookRiskHooks.OrderKind.IOC,
+            t,
+            uint64(bound(lots, 1, 300_000)),
+            0,
+            false,
+            8
         );
         try e.place(r) returns (CombinedEngine.PlaceResult memory res) {
             if (res.filledLots != 0) {
@@ -139,7 +158,9 @@ contract CombinedHandler is Test {
     function shock(bool up) external {
         calls["shock"]++;
         step++;
-        for (uint256 i; i < 3; ++i) this.advance(20 minutes, 4e16, up);
+        for (uint256 i; i < 3; ++i) {
+            this.advance(20 minutes, 4e16, up);
+        }
         this.liquidate(up ? 1 : 0, up ? 1000 : 1_000_000, 7); // keeper reacts to the move
     }
 
@@ -187,10 +208,10 @@ contract CombinedHandler is Test {
         lastFeed = to - ((to - from) % 25);
         (uint64 id,, uint64 end,,,,) = e.epoch();
         id;
-        if (block.timestamp >= end && e.work() == RiskStorage.Work.READY) {
+        if (block.timestamp >= end && e.work() == AccountingState.READY) {
             try e.beginRollover() {} catch {}
         }
-        if (e.work() == RiskStorage.Work.ROLLOVER_SWEEP) {
+        if (e.work() == AccountingState.ROLLOVER_SWEEP) {
             for (uint256 i; i < 4; ++i) {
                 try e.rollPage(4) returns (bool done) {
                     if (done) break;
@@ -211,8 +232,11 @@ contract CombinedHandler is Test {
         vm.prank(KEEPER);
         (int128 rl,) = e.reserve();
         uint32 target = seed % 3 == 2 ? _id(seed >> 2) : (seed % 2 == 0 ? uint32(1) : uint32(3)); // mostly the 5x accounts
-        try e.liquidate(target, uint64(bound(lots, 1, 1_000_000)), 8, partner % 3 == 0 ? _id(partner >> 8) : 0)
-        returns (RiskLiquidation.LiquidationResult memory r) {
+        try e.liquidate(
+            target, uint64(bound(lots, 1, 1_000_000)), 8, partner % 3 == 0 ? _id(partner >> 8) : 0
+        ) returns (
+            RiskLiquidation.LiquidationResult memory r
+        ) {
             if (r.pairedLots + r.bookLots != 0) done["liqReduce"]++;
             (int128 rl2,) = e.reserve();
             if (rl2 != rl) done["takeover"]++;
@@ -229,7 +253,7 @@ contract CombinedHandler is Test {
         vm.warp(to);
         e.feedStep(from, to, 25, price, price - 1e16, price + 1e16);
         lastFeed = to - ((to - from) % 25);
-        if (e.work() == RiskStorage.Work.READY && block.timestamp >= _end()) {
+        if (e.work() == AccountingState.READY && block.timestamp >= _end()) {
             try e.beginRollover() {} catch {}
             for (uint256 i; i < 8; ++i) {
                 try e.rollPage(32) returns (bool done) {
@@ -241,7 +265,8 @@ contract CombinedHandler is Test {
             try e.finishRollover() {} catch {}
         }
         for (uint256 i; i < 8; ++i) {
-            try e.floorSweep(bound(page, 1, 32)) {} catch {
+            try e.floorSweep(bound(page, 1, 32)) {}
+            catch {
                 break;
             }
         }
@@ -334,7 +359,9 @@ contract CombinedInvariantsTest is Test {
         oracle.bind(e);
         _fund(address(0xCAFE), 100_000e6, true);
         uint256[6] memory cash = [uint256(120e6), 400e6, 120e6, 400e6, 400e6, 400e6];
-        for (uint32 i = 1; i <= 6; ++i) _fund(address(uint160(0x1000 + i)), cash[i - 1], false);
+        for (uint32 i = 1; i <= 6; ++i) {
+            _fund(address(uint160(0x1000 + i)), cash[i - 1], false);
+        }
         vm.prank(address(0x60));
         e.activateMarket();
         uint64 to = L0 + 12 hours;
@@ -360,7 +387,9 @@ contract CombinedInvariantsTest is Test {
     function invariant_INV01_netPositionZero() public view {
         (int128 rn,) = e.reserve();
         int256 n = rn;
-        for (uint256 i; i < e.participantCount(); i++) n += e.account(e.participants(i)).value.lots;
+        for (uint256 i; i < e.participantCount(); i++) {
+            n += e.account(e.participants(i)).value.lots;
+        }
         assertEq(n, 0);
     }
 
@@ -370,14 +399,23 @@ contract CombinedInvariantsTest is Test {
             // Payout escrow pages move allocation out page by page (spec: preparation
             // accumulators are incomplete until their cursor finishes); check the final identity.
             if (e.claimsEnabled()) {
-                assertEq(e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.keeperPayableQ(), e.allocationQ());
+                assertEq(
+                    e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.protocolFeeEscrowQ()
+                        + e.keeperPayableQ(),
+                    e.allocationQ()
+                );
             }
             return;
         }
         (, int256 rc) = e.reserve();
         int256 cash = rc;
-        for (uint256 i; i < e.participantCount(); i++) cash += e.account(e.participants(i)).value.cashQ;
-        assertEq(cash + int256(e.protocolFeeQ() + e.keeperPayableQ()) + e.fundingClearingQ(), int256(e.allocationQ()));
+        for (uint256 i; i < e.participantCount(); i++) {
+            cash += e.account(e.participants(i)).value.cashQ;
+        }
+        assertEq(
+            cash + int256(e.protocolFeeQ() + e.keeperPayableQ()) + e.fundingClearingQ(),
+            int256(e.allocationQ())
+        );
     }
 
     /// INV-03 recognized custody <= actual token custody; market allocation in atoms.
@@ -439,8 +477,21 @@ contract CombinedInvariantsTest is Test {
 
     /// Campaign coverage: effective outcomes per run (forge -vv prints them).
     function afterInvariant() external {
-        bytes32[13] memory k = [bytes32("rest"), "fill", "filledLots", "release", "rollover", "liqReduce", "takeover",
-            "floorReconciled", "halt", "finality", "invalidCaptured", "claimsEnabled", "claimPaid"];
+        bytes32[13] memory k = [
+            bytes32("rest"),
+            "fill",
+            "filledLots",
+            "release",
+            "rollover",
+            "liqReduce",
+            "takeover",
+            "floorReconciled",
+            "halt",
+            "finality",
+            "invalidCaptured",
+            "claimsEnabled",
+            "claimPaid"
+        ];
         string memory line = "COVERAGE";
         for (uint256 i; i < k.length; ++i) {
             line = string.concat(line, " ", string(abi.encodePacked(k[i])), "=", vm.toString(h.done(k[i])));
@@ -521,7 +572,9 @@ contract CombinedCampaignTest is CombinedInvariantsTest {
         for (uint256 seed = first; seed < last; ++seed) {
             uint256 snap = vm.snapshotState();
             uint256[13] memory c = this.runSeed(seed); // external: memory resets per seed
-            for (uint256 n; n < 13; ++n) total[n] += c[n];
+            for (uint256 n; n < 13; ++n) {
+                total[n] += c[n];
+            }
             vm.revertToState(snap);
         }
         bytes32[13] memory k = _keys();
@@ -535,8 +588,21 @@ contract CombinedCampaignTest is CombinedInvariantsTest {
     }
 
     function _keys() internal pure returns (bytes32[13] memory) {
-        return [bytes32("leverage"), "fill", "filledLots", "release", "rollover", "liqReduce", "takeover",
-            "floorReconciled", "halt", "finality", "invalidCaptured", "claimsEnabled", "claimPaid"];
+        return [
+            bytes32("leverage"),
+            "fill",
+            "filledLots",
+            "release",
+            "rollover",
+            "liqReduce",
+            "takeover",
+            "floorReconciled",
+            "halt",
+            "finality",
+            "invalidCaptured",
+            "claimsEnabled",
+            "claimPaid"
+        ];
     }
 
     function stepOnce(uint256 r) external {
@@ -547,7 +613,9 @@ contract CombinedCampaignTest is CombinedInvariantsTest {
     function settleOnce(uint256 seed, uint256 j) external {
         if (j == 0) {
             h.halt();
-            for (uint256 x; x < 3; ++x) h.finalize(seed + x);
+            for (uint256 x; x < 3; ++x) {
+                h.finalize(seed + x);
+            }
             h.captureInvalid();
         } else if (j <= 40) {
             h.prepare(seed % 32 + 1);
@@ -558,9 +626,15 @@ contract CombinedCampaignTest is CombinedInvariantsTest {
     }
 
     function runSeed(uint256 seed) external returns (uint256[13] memory c) {
-        for (uint256 i; i < 64; ++i) this.stepOnce(uint256(keccak256(abi.encode(seed, i))));
-        for (uint256 j; j < 53; ++j) this.settleOnce(seed, j);
+        for (uint256 i; i < 64; ++i) {
+            this.stepOnce(uint256(keccak256(abi.encode(seed, i))));
+        }
+        for (uint256 j; j < 53; ++j) {
+            this.settleOnce(seed, j);
+        }
         bytes32[13] memory k = _keys();
-        for (uint256 n; n < 13; ++n) c[n] = h.done(k[n]);
+        for (uint256 n; n < 13; ++n) {
+            c[n] = h.done(k[n]);
+        }
     }
 }

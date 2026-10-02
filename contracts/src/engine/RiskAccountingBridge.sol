@@ -42,7 +42,6 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     uint8 private constant AUTH_TRADE = 1;
     uint8 private constant AUTH_TAKEOVER = 2;
     uint8 private constant AUTH_LIQUIDATION = 3;
-    uint8 private constant AUTH_RESERVATION = 4;
 
     /// @dev Premium load (spec §4.1 local profile: 1). Engine configuration, manifest-supplied.
     uint256 internal immutable _premiumLoadWad;
@@ -88,13 +87,13 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
 
     /// @dev The legal economic cutoff for touches in the current accounting state.
     function _bridgeCutoff() internal view returns (uint64) {
-        if (work != Work.READY) return sweepCutoff;
+        if (work != AccountingState.READY) return sweepCutoff;
         uint64 nowTs = _clock();
         return nowTs < epoch.end ? nowTs : epoch.end;
     }
 
     function _liveForAccounting() internal view returns (bool) {
-        return active && !halted && work == Work.READY;
+        return active && !halted && work == AccountingState.READY;
     }
 
     function _authorize(uint8 kind, address a, address b, uint256 feeA, uint256 feeB) private {
@@ -111,10 +110,9 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     function _riskContext() internal view virtual override returns (Context memory c) {
         RiskContext memory r = _pricingContext();
         c.at = _clock();
-        // A uses one field for funding stop and mark freshness. Funding gaps are applied first by
-        // `_acctBeginAction` / `_onFreshnessAdvance` (which stop the epoch permanently), so a
-        // valid normal mark is reported fresh through `now` (R-04).
-        c.freshThrough = r.markOk ? c.at : r.fundingFreshThrough;
+        // Mark recovery cannot extend an unstopped epoch's historical funding permission.
+        c.freshThrough =
+            r.markOk && (epoch.stopped || r.fundingFreshThrough >= c.at) ? c.at : r.fundingFreshThrough;
         c.version = r.riskVersion;
         c.markAvailable = r.markOk;
         c.markWad = r.markOk ? r.markWad : 0;
@@ -124,7 +122,8 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         if (d.kind == ActionKind.RELEASE) return _acceptRelease(d);
         if (d.kind == ActionKind.TRADE) {
             return _authKind == AUTH_TRADE
-                && ((d.owner == _authA && d.counterparty == _authB) || (d.owner == _authB && d.counterparty == _authA));
+                && ((d.owner == _authA && d.counterparty == _authB)
+                    || (d.owner == _authB && d.counterparty == _authA));
         }
         if (d.kind == ActionKind.TAKEOVER) return _authKind == AUTH_TAKEOVER && d.owner == _authA;
         if (d.kind == ActionKind.LIQUIDATION) {
@@ -133,7 +132,6 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
             if (d.owner == _authB) return d.feesQ <= _authFeeB;
             return false;
         }
-        if (d.kind == ActionKind.RESERVATION) return _authKind == AUTH_RESERVATION && d.owner == _authA;
         return false; // RESERVE_UNWIND: no B path in v1
     }
 
@@ -151,7 +149,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     function _conservativeSums(C.Orders memory o) internal pure returns (OA.OrderSums memory s) {
         s = OA.emptySums();
         (s.bidLots, s.bidValueQ, s.askLots, s.askValueQ, s.feeCapQ) =
-            (o.bidLots, o.bidValueQ, o.askLots, o.askValueQ, o.feeCapQ);
+        (o.bidLots, o.bidValueQ, o.askLots, o.askValueQ, o.feeCapQ);
         if (o.bidLots != 0) s.maxBidTick = 999;
         if (o.askLots != 0) s.minAskTick = 1;
     }
@@ -159,7 +157,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     /// @dev B021 hook: accrue/stop old-epoch funding against the previous continuous-freshness
     ///      endpoint before a new observation moves it (spec §3.1).
     function _onFreshnessAdvance(uint64 oldFreshThrough) internal virtual override {
-        if (_liveForAccounting() && !epoch.stopped && _clock() < epoch.end) {
+        if (_liveForAccounting() && !epoch.stopped) {
             _advanceFunding(_clock(), oldFreshThrough);
         }
     }
@@ -167,7 +165,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     // ================================================================ B -> A: trading
 
     function _acctBeginAction() internal virtual override returns (AccrualView memory v) {
-        if (_liveForAccounting() && _clock() < epoch.end) {
+        if (_liveForAccounting()) {
             _advanceFunding(_clock(), _pricingContext().fundingFreshThrough);
         }
         v.cutoff = _bridgeCutoff();
@@ -214,7 +212,8 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         returns (OA.CoverageInput memory cov)
     {
         Account storage a = accounts[who];
-        L.Value memory v = L.Value(QMath.position(int256(a.value.lots) + dLots), QMath.cash(a.value.cashQ + dCashQ));
+        L.Value memory v =
+            L.Value(QMath.position(int256(a.value.lots) + dLots), QMath.cash(a.value.cashQ + dCashQ));
         (cov.d0Q, cov.d1Q) = C.deficits(v, _orders(sums));
         cov.deficitCapQ = reserveCapBaseQ / 50;
         (int256 s0, int256 s1) = coverageSlacks();
@@ -224,7 +223,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     }
 
     /// @dev Replace the account's stored order contribution through A's reservation port
-    ///      (A026 `_setReservations`: touch, decision, replace, coverage assertion). Unchanged
+    ///      (touch, replace, coverage assertion). Unchanged
     ///      aggregates are a no-op, so stale-epoch syncs after A already cleared orders cost nothing.
     function _acctReplaceContribution(uint32 trader, OA.OrderSums memory sums) internal virtual override {
         address who = _addr(trader);
@@ -232,16 +231,16 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         C.Orders memory next = _orders(sums);
         Account storage a = accounts[who];
         if (_sameOrders(a.orders, next) && a.reservationMarketEpoch == marketOrderEpoch) return;
-        _authorize(AUTH_RESERVATION, who, address(0), 0, 0);
-        _setReservations(who, next, a.orderEpoch, _checkedContext());
-        _clearAuth();
+        _replaceReservations(who, next, a.orderEpoch, _checkedContext());
     }
 
     function _acctPostFill(FillDelta memory d) internal virtual override {
         (address buyer, address seller, uint256 bFee, uint256 sFee) = _sides(d);
         _authorize(AUTH_TRADE, buyer, seller, 0, 0);
         _pairedFill(
-            PairInput(buyer, seller, d.lots, d.tick, bFee, sFee, accounts[buyer].orders, accounts[seller].orders),
+            PairInput(
+                buyer, seller, d.lots, d.tick, bFee, sFee, accounts[buyer].orders, accounts[seller].orders
+            ),
             _checkedContext()
         );
         _clearAuth();
@@ -258,14 +257,17 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         (bFee, sFee) = d.takerBuys ? (d.takerFeeQ, d.makerFeeQ) : (d.makerFeeQ, d.takerFeeQ);
     }
 
-    /// @dev Spec §4.6 AccountingState. A's `Work` has the same ordinals; an ended epoch whose
+    /// @dev Spec §4.6 shared AccountingState; an ended epoch whose
     ///      rollover has not begun is reported as ROLLOVER_SWEEP (spec §5.7: "any call derives
     ///      AccountingRollover"). Before activation no accounting epoch exists, also reported as
     ///      ROLLOVER_SWEEP so B rejects trading (R-03).
     function _acctAccountingState() internal view virtual override returns (AccountingState) {
+        if (halted) return work;
         if (!active) return AccountingState.ROLLOVER_SWEEP;
-        if (work == Work.READY && !halted && _clock() >= epoch.end) return AccountingState.ROLLOVER_SWEEP;
-        return AccountingState(uint8(work));
+        if (work == AccountingState.READY && !halted && _clock() >= epoch.end) {
+            return AccountingState.ROLLOVER_SWEEP;
+        }
+        return work;
     }
 
     function _acctBumpAccountOrderEpoch(uint32 trader) internal virtual override returns (uint64) {
@@ -274,14 +276,113 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         return accounts[who].orderEpoch;
     }
 
-    /// @dev A exposes no standalone market-epoch bump (it bumps inside rollover/floor/freeze);
-    ///      A's touch clears stale reservations lazily by comparing this counter (R-06).
+    /// @dev A owns the checked increment and lazily clears stale reservations on touch (R-06).
     function _acctBumpMarketOrderEpoch() internal virtual override returns (uint64) {
-        return ++marketOrderEpoch;
+        return _bumpMarketOrderEpoch();
     }
 
     function _acctMarketOrderEpoch() internal view virtual override returns (uint64) {
         return marketOrderEpoch;
+    }
+
+    struct PreviewAccrual {
+        int256 fundingIndex;
+        uint64 fundingStop;
+        uint64 cutoff;
+        int256 reserveCashQ;
+        uint256 cushionQ;
+        uint256 budgetQ;
+    }
+
+    function _previewAccrual(uint64 atTime) internal view returns (PreviewAccrual memory projected) {
+        projected = PreviewAccrual(
+            fundingFQ,
+            epoch.stop,
+            work == AccountingState.READY ? (atTime < epoch.end ? atTime : epoch.end) : sweepCutoff,
+            reserve.cashQ,
+            fundingCushionQ,
+            fundingBudgetQ
+        );
+        if (!_liveForAccounting() || epoch.stopped) return projected;
+        uint64 cutoff = projected.cutoff;
+        uint64 fresh = _fundingFreshThrough();
+        if (cutoff > fresh) cutoff = fresh;
+        uint64 floorTime = scheduledT - 12 hours;
+        if (cutoff > floorTime) cutoff = floorTime;
+        if (cutoff < epoch.last) cutoff = epoch.last;
+        F.Delta memory delta =
+            F.advance(cutoff - epoch.last, epoch.rate, oiAllLots, reserve.lots, fundingBudgetQ);
+        projected.fundingIndex += delta.indexQ;
+        projected.reserveCashQ = QMath.cash(projected.reserveCashQ - delta.reservePaymentQ);
+        projected.cushionQ += delta.traderPayerQ;
+        projected.budgetQ -= delta.flowQ;
+        if (delta.stopped || cutoff < atTime || cutoff == epoch.end || cutoff == floorTime) {
+            projected.fundingStop = epoch.last + delta.secondsAccrued;
+        }
+    }
+
+    function _previewCharges(Account storage account_, PreviewAccrual memory projected)
+        internal
+        view
+        returns (int256 fundingQ, uint256 premiumQ)
+    {
+        fundingQ = int256(account_.value.lots) * (projected.fundingIndex - account_.fundingCheckpoint);
+        uint64 start = account_.segmentStart < epoch.start ? epoch.start : account_.segmentStart;
+        if (projected.cutoff <= account_.lastTouchedAt || projected.cutoff <= start) return (fundingQ, 0);
+        P.Segment memory segment = P.Segment(
+            account_.segmentCash,
+            account_.value.lots,
+            epoch.rate,
+            start,
+            projected.fundingStop,
+            account_.surchargeUntil
+        );
+        premiumQ = P.cumulative(segment, tariff, projected.cutoff) - account_.segmentPosted;
+    }
+
+    function _acctPreviewAccount(uint32 trader, uint64 atTime)
+        internal
+        view
+        virtual
+        override
+        returns (AccountView memory projected)
+    {
+        projected = _acctAccount(trader);
+        if (!active || !projected.registered) return projected;
+        Account storage account_ = accounts[_addr(trader)];
+        (int256 fundingQ, uint256 premiumQ) = _previewCharges(account_, _previewAccrual(atTime));
+        projected.cashQ = QMath.cash(projected.cashQ - fundingQ - QMath.signed(premiumQ));
+        if (account_.reservationMarketEpoch != marketOrderEpoch) ++projected.orderEpoch;
+    }
+
+    function _acctPreviewCoverage(
+        uint32 trader,
+        OA.OrderSums memory sums,
+        int256 dCashQ,
+        int256 dLots,
+        uint64 atTime
+    ) internal view virtual override returns (OA.CoverageInput memory cov) {
+        address owner = _addr(trader);
+        if (!active) return _coverageFor(owner, sums, dCashQ, dLots);
+        Account storage account_ = accounts[owner];
+        PreviewAccrual memory projected = _previewAccrual(atTime);
+        (int256 fundingQ, uint256 premiumQ) = _previewCharges(account_, projected);
+        L.Value memory value = L.Value(
+            QMath.position(int256(account_.value.lots) + dLots),
+            QMath.cash(account_.value.cashQ - fundingQ - QMath.signed(premiumQ) + dCashQ)
+        );
+        (cov.d0Q, cov.d1Q) = C.deficits(value, _orders(sums));
+        cov.deficitCapQ = reserveCapBaseQ / 50;
+        L.Value memory projectedReserve =
+            L.Value(reserve.lots, QMath.cash(projected.reserveCashQ + QMath.signed(premiumQ)));
+        (int256 slack0, int256 slack1) = C.slacks(
+            projectedReserve,
+            deficitSum0 - account_.deficit0 + cov.d0Q,
+            deficitSum1 - account_.deficit1 + cov.d1Q,
+            projected.cushionQ - QMath.positive(fundingQ),
+            projected.budgetQ
+        );
+        cov.marketOk = slack0 >= 0 && slack1 >= 0;
     }
 
     /// @dev View-only projection for previews: funding at the epoch's fixed rate limited by the
@@ -294,25 +395,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         returns (int256 fundingQ, uint256 premiumQ)
     {
         if (!active || trader == 0 || trader > participants.length) return (0, 0);
-        Account storage a = accounts[participants[trader - 1]];
-        uint64 until = atTime < epoch.end ? atTime : epoch.end;
-        int256 fIndex = fundingFQ;
-        if (!epoch.stopped && until > epoch.last && !halted) {
-            uint64 cut = until;
-            uint64 fresh = _pricingContext().fundingFreshThrough;
-            if (cut > fresh) cut = fresh;
-            uint64 floorTime = scheduledT - 12 hours;
-            if (cut > floorTime) cut = floorTime;
-            if (cut > epoch.last) {
-                F.Delta memory fd = F.advance(cut - epoch.last, epoch.rate, oiAllLots, reserve.lots, fundingBudgetQ);
-                fIndex += fd.indexQ;
-            }
-        }
-        fundingQ = int256(a.value.lots) * (fIndex - a.fundingCheckpoint);
-        if (work == Work.READY && !halted && until > a.lastTouchedAt) {
-            uint256 total = _premiumTotal(a, until);
-            premiumQ = total > a.segmentPosted ? total - a.segmentPosted : 0;
-        }
+        return _previewCharges(accounts[participants[trader - 1]], _previewAccrual(atTime));
     }
 
     // ================================================================ B -> A: liquidation
@@ -349,8 +432,9 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         (address buyer, address seller, uint256 bFee, uint256 sFee) = _sides(d);
         C.Orders memory none;
         _authorize(AUTH_LIQUIDATION, buyer, seller, bFee, sFee);
-        charged =
-            _liquidationPair(PairInput(buyer, seller, d.lots, d.tick, 0, 0, none, none), keeper, _checkedContext());
+        charged = _liquidationPair(
+            PairInput(buyer, seller, d.lots, d.tick, 0, 0, none, none), keeper, _checkedContext()
+        );
         _clearAuth();
     }
 
@@ -392,7 +476,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         override
         returns (FreezeResult memory f)
     {
-        Work before = work;
+        AccountingState before = work;
         _freeze(economicHaltAt_, _pricingContext().fundingFreshThrough);
         f.frozenAccountCount = uint64(sweepCount);
         f.frozenBookEpoch = marketOrderEpoch;
@@ -405,11 +489,16 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     }
 
     function _acctEpochBounds() internal view virtual override returns (uint64 end, uint64 frozenRollover) {
-        end = epoch.end;
-        frozenRollover = work == Work.ROLLOVER_SWEEP ? sweepCutoff : 0;
+        end = active ? epoch.end : scheduledT;
+        frozenRollover = work == AccountingState.ROLLOVER_SWEEP ? sweepCutoff : 0;
     }
 
-    function _acctPrepareSnapshotChunk(uint256 maxAccounts) internal virtual override returns (JobProgress memory p) {
+    function _acctPrepareSnapshotChunk(uint256 maxAccounts)
+        internal
+        virtual
+        override
+        returns (JobProgress memory p)
+    {
         bool done = _snapshotPage(uint8(maxAccounts));
         p = JobProgress(uint64(cursor), uint64(sweepCount), done);
     }
@@ -442,16 +531,18 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         r.reserveContributionAtoms = 0;
     }
 
-    /// @dev A037 exposes no aggregate "all claimed" counter; COMPLETE is not reported (R-10).
+    /// @dev COMPLETE follows A's counter of allocated trader entitlements still unpaid (R-10).
     function _acctClaimsComplete() internal view virtual override returns (bool) {
-        return false;
+        return allTraderClaimsPaid();
     }
 
-    /// @dev Conservative: once claims are enabled a cash claim may have been paid (A037 has no
-    ///      flag and its claim path has no B hook), so conversion can never start (DEC-10 keeps
-    ///      conversion disabled anyway; R-11).
+    /// @dev A tracks actual vault payouts, including direct vault claims (R-11).
     function _acctAnyCashClaim() internal view virtual override returns (bool) {
-        return claimsEnabled;
+        return anyCashClaim;
+    }
+
+    function _beforeCashClaim() internal virtual override {
+        _riskBeforeCashClaim();
     }
 
     /// @dev Conservative false: proving every frozen account fully backed needs an unbounded scan;
@@ -472,7 +563,9 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     function _openingRate() internal view returns (int256) {
         if (!fundingFeatureEnabled) return 0;
         RiskContext memory c = _pricingContext();
-        if (c.pricingMode != PricingMode.NORMAL_PRICING || !c.markOk || !c.indexOk || c.fundingFrozen) return 0;
+        if (c.pricingMode != PricingMode.NORMAL_PRICING || !c.markOk || !c.indexOk || c.fundingFrozen) {
+            return 0;
+        }
         return F.rate(c.markWad, c.indexWad);
     }
 

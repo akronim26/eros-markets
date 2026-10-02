@@ -5,18 +5,22 @@ import {LedgerMath as L} from "../math/LedgerMath.sol";
 import {CoverageMath as C} from "../math/CoverageMath.sol";
 import {PremiumMath as P} from "../math/PremiumMath.sol";
 import {QMath as Q} from "../math/QMath.sol";
+import {AccountingState} from "../math/MathTypes.sol";
 
 /// @notice A's canonical posting layer. Concrete composition must implement B ports.
 abstract contract ClearingCore is EpochRollover {
     function _live() internal view {
-        if (!active || halted || work != Work.READY || _clock() >= epoch.end || _clock() >= scheduledT) {
+        if (
+            !active || halted || work != AccountingState.READY || _clock() >= epoch.end
+                || _clock() >= scheduledT
+        ) {
             revert BadState();
         }
         if (_clock() >= scheduledT - 12 hours && !fullBackingReconciled) revert BadState();
     }
 
     function _activate(int256 rate, P.Tariff memory nextTariff) internal {
-        if (active) revert BadState();
+        if (active || halted) revert BadState();
         active = true;
         reserveCapBaseQ = uint256(reserve.cashQ);
         reserveVault.activate();
@@ -24,7 +28,10 @@ abstract contract ClearingCore is EpochRollover {
     }
 
     function onReserveAllocate(address owner, uint256 atoms) external nonReentrant {
-        if (msg.sender != address(collateralVault) || halted || work != Work.READY) revert Unauthorized();
+        if (
+            msg.sender != address(collateralVault) || halted || work != AccountingState.READY
+                || _clock() >= scheduledT
+        ) revert Unauthorized();
         if (active) {
             _live();
             Context memory c = _checkedContext();
@@ -38,7 +45,10 @@ abstract contract ClearingCore is EpochRollover {
     }
 
     function onAllocate(address owner, uint256 atoms) external nonReentrant {
-        if (msg.sender != address(collateralVault) || halted || work != Work.READY) revert Unauthorized();
+        if (
+            msg.sender != address(collateralVault) || halted || work != AccountingState.READY
+                || _clock() >= scheduledT
+        ) revert Unauthorized();
         uint64 now_ = _clock();
         if (active) {
             _live();
@@ -117,15 +127,45 @@ abstract contract ClearingCore is EpochRollover {
     function _setReservations(address owner, C.Orders memory next, uint64 expectedEpoch, Context memory c)
         internal
     {
+        _prepareReservationReplace(owner, expectedEpoch, c);
+        Account storage accountState = accounts[owner];
+        _requireDecision(
+            Decision(
+                ActionKind.RESERVATION,
+                owner,
+                address(0),
+                accountState.value,
+                accountState.value,
+                next,
+                c.at,
+                c.version,
+                0
+            )
+        );
+        _postReservations(owner, next);
+    }
+
+    function _replaceReservations(
+        address owner,
+        C.Orders memory next,
+        uint64 expectedEpoch,
+        Context memory context
+    ) internal {
+        _prepareReservationReplace(owner, expectedEpoch, context);
+        _postReservations(owner, next);
+    }
+
+    function _prepareReservationReplace(address owner, uint64 expectedEpoch, Context memory c) private {
         _live();
         _validateContext(c);
         _advanceFunding(c.at, c.freshThrough);
         _touch(owner, c.at);
         Account storage a = accounts[owner];
         if (a.orderEpoch != expectedEpoch) revert Stale();
-        _requireDecision(
-            Decision(ActionKind.RESERVATION, owner, address(0), a.value, a.value, next, c.at, c.version, 0)
-        );
+    }
+
+    function _postReservations(address owner, C.Orders memory next) private {
+        Account storage a = accounts[owner];
         a.orders = next;
         _replaceDeficits(a);
         _assertCoverage();

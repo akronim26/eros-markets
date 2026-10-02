@@ -21,6 +21,7 @@ abstract contract PayoutLedger is SnapshotLedger {
     mapping(address => uint256) public rawClaimQ;
     mapping(address => uint256) public traderAtoms;
     bool public payoutsAllocated;
+    uint256 public unpaidTraderClaims;
 
     /// @notice B supplies an authenticated immutable price after its INVALID policy completes.
     function _acceptSettlementPrice(uint256 price, bytes32 id) internal returns (bool newlyAccepted) {
@@ -70,6 +71,7 @@ abstract contract PayoutLedger is SnapshotLedger {
                 ? S.recoveryAtoms(rawClaimQ[owner], totalRawClaimQ, availableTraderQ)
                 : rawClaimQ[owner] / 1e18;
             traderAtoms[owner] = atoms;
+            if (atoms != 0) ++unpaidTraderClaims;
             totalTraderAtoms += atoms;
             allocationQ -= atoms * 1e18;
             if (atoms != 0) collateralVault.escrow(owner, atoms);
