@@ -5,6 +5,8 @@ import {EIP712} from "solady/utils/EIP712.sol";
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
 import {IResolutionEngine, HaltView} from "@eros/interfaces/IResolutionIngress.sol";
 import {
+    Outcome,
+    Path,
     RState,
     Resolution,
     TrustSet,
@@ -13,11 +15,18 @@ import {
     MarketCore,
     FeedSpec,
     Globals,
+    UMAConfig,
+    ReviewedProposal,
+    Sig,
     OracleConst
 } from "./types/OracleTypes.sol";
 import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
 import {IMarketRegistry} from "./interfaces/IMarketRegistry.sol";
 import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
+import {BondMath} from "./libraries/BondMath.sol";
+import {ClaimRenderer} from "./libraries/ClaimRenderer.sol";
+import {HostLib} from "./libraries/HostLib.sol";
+import {SigLib} from "./libraries/SigLib.sol";
 
 /// @title ResolutionOracle
 /// @notice The per-market resolution state machine (plan §5, §6.4, Appendix C.1, C.3). It is the engine's
@@ -26,8 +35,9 @@ import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
 ///         market (D20): governance only manages trust sets and the sim-mode bridge, the guardian only
 ///         revokes, and every progress step is permissionless.
 /// @dev Tasks O14.1 (constructor, trust sets, guardian revocations, `initResolution`, watchdog
-///      heartbeat) and O14.2 (halt, request, escalate, open). Proposals, assertions, the panel and groups
-///      follow in O14.3-O14.6, the CRE receiver in O15 and the EIP-712 views in O16, which also declares
+///      heartbeat), O14.2 (halt, request, escalate, open) and O14.3 (committee and permissionless
+///      proposals, with the shared assertion internals). Assertions, finalize and void, the panel and
+///      groups follow in O14.4-O14.6, the CRE receiver in O15 and the EIP-712 views in O16, which also declares
 ///      `is IResolutionOracle`. Until then errors and events are the C.3 declarations, used by qualified
 ///      name.
 ///
@@ -183,6 +193,54 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         return true;
     }
 
+    // ------------------------------------------------------------------ proposals
+
+    /// @notice m-of-k committee proposal (EIP-712 `ReviewedProposal`, D7), relayed by anyone.
+    ///         From Review or Open it uses the market's pinned trust set. From EarlyReview (before T and
+    ///         within the early TTL) it uses the active set and halts the engine at once: the early
+    ///         proposal's halt time is this block (§8.5). The outcome is then asserted by `assertProposal`.
+    function submitReviewedProposal(
+        bytes32 id,
+        ReviewedProposal calldata p,
+        string calldata evidenceURI,
+        Sig[] calldata sigs
+    ) external nonReentrant {
+        Resolution storage r = _known(id);
+        RState st = r.state;
+        bool early = st == RState.EarlyReview;
+        if (!early && st != RState.Review && st != RState.Open) revert IResolutionOracle.WrongState(st);
+        MarketCore memory c = _core(id);
+        if (early && (block.timestamp >= c.tau || block.timestamp >= uint256(r.earlyStartedAt) + c.earlyTtlSecs)) {
+            revert IResolutionOracle.WrongState(st);
+        }
+        uint32 setId = early ? activeTrustSetId : r.trustSetId;
+        _checkReviewedPayload(id, r, p, evidenceURI, early, setId);
+        _verifyCommittee(setId, _hashTypedData(SigLib.hashReviewedProposal(p)), sigs);
+        if (early) _recordHalt(id, r, c);
+        _record(id, r, Outcome(p.outcome), Path.REVIEWED, p.evidenceHash, evidenceURI);
+    }
+
+    /// @notice Anyone, in Open, with their own bond: records the proposal and posts it on the pinned venue
+    ///         in the same call (asserter = payer = caller, reviewed liveness). The caller must have
+    ///         approved the venue for `bondFor(id)`. A Final permissionless proposal earns the reward of the
+    ///         pinned globals version (R_p).
+    function proposePermissionless(bytes32 id, Outcome outcome, string calldata evidenceURI, bytes32 evidenceHash)
+        external
+        nonReentrant
+        returns (bytes32 assertionId)
+    {
+        Resolution storage r = _known(id);
+        if (r.state != RState.Open) revert IResolutionOracle.WrongState(r.state);
+        _checkOutcome(r, outcome);
+        if (r.attempts >= OracleConst.A_MAX) revert IResolutionOracle.MaxAttempts();
+        if (evidenceHash == 0) revert IResolutionOracle.BadPayload(5);
+        _checkURI(evidenceURI, keccak256(bytes(evidenceURI)));
+        _record(id, r, outcome, Path.PERMISSIONLESS, evidenceHash, evidenceURI);
+        r.proposer = msg.sender;
+        r.rewardAtoms = _globals(r).proposerRewardAtoms;
+        assertionId = _assert(id, r, msg.sender);
+    }
+
     // ------------------------------------------------------------------ governance (Timelock)
 
     /// @notice Creates a trust set (not active until `activateTrustSet`). `BadTrustSet` codes:
@@ -318,6 +376,145 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     function _word(address a) internal pure returns (bytes32) {
         return bytes32(uint256(uint160(a)));
+    }
+
+    // ------------------------------------------------------------------ proposal internals
+
+    /// @dev `ReviewedProposal` payload checks (§6.4): BadPayload 7 marketId, 2 attempt, 6 mask,
+    ///      1 `early` must equal (state == EarlyReview), 4 trust set, 5 evidence URI; `SignatureExpired`;
+    ///      `OutcomeNotAllowed` for NONE, an unknown value or a rejected outcome.
+    function _checkReviewedPayload(
+        bytes32 id,
+        Resolution storage r,
+        ReviewedProposal calldata p,
+        string calldata evidenceURI,
+        bool early,
+        uint32 setId
+    ) internal view {
+        if (p.marketId != id) revert IResolutionOracle.BadPayload(7);
+        if (block.timestamp > p.deadline) revert IResolutionOracle.SignatureExpired();
+        if (p.attempt != r.attempts) revert IResolutionOracle.BadPayload(2);
+        if (p.rejectedMask != r.rejectedMask) revert IResolutionOracle.BadPayload(6);
+        if (p.early != early) revert IResolutionOracle.BadPayload(1);
+        if (p.trustSetId != setId) revert IResolutionOracle.BadPayload(4);
+        _checkURI(evidenceURI, p.evidenceURIHash);
+        // A raw value above INVALID cannot be cast to Outcome; NONE is refused by `_checkOutcome`.
+        if (p.outcome > uint8(Outcome.INVALID)) revert IResolutionOracle.OutcomeNotAllowed();
+        _checkOutcome(r, Outcome(p.outcome));
+    }
+
+    /// @dev YES, NO or INVALID, and not an outcome the venue already rejected (ORC-6).
+    function _checkOutcome(Resolution storage r, Outcome o) internal view {
+        if (o == Outcome.NONE || (r.rejectedMask & (uint8(1) << uint8(o))) != 0) {
+            revert IResolutionOracle.OutcomeNotAllowed();
+        }
+    }
+
+    /// @dev `1 ≤ bytes(uri).length ≤ 256` and `keccak256(bytes(uri)) == uriHash`, else BadPayload(5).
+    function _checkURI(string calldata uri, bytes32 uriHash) internal pure {
+        uint256 len = bytes(uri).length;
+        if (len == 0 || len > OracleConst.MAX_EVIDENCE_URI_BYTES || keccak256(bytes(uri)) != uriHash) {
+            revert IResolutionOracle.BadPayload(5);
+        }
+    }
+
+    /// @dev Strictly ascending, unique, non-revoked members of `setId`, at least its threshold (SigLib).
+    function _verifyCommittee(uint32 setId, bytes32 digest, Sig[] calldata sigs) internal view {
+        TrustSet storage s = _trustSets[setId];
+        address[] memory committee = s.cfg.committee;
+        bool[] memory revoked = new bool[](committee.length);
+        for (uint256 i; i < committee.length; ++i) {
+            revoked[i] = _memberRevoked[setId][committee[i]];
+        }
+        SigLib.verifyCommittee(digest, sigs, committee, revoked, s.cfg.threshold);
+    }
+
+    /// @dev Records a proposal and moves to Proposed (no live assertion yet).
+    function _record(
+        bytes32 id,
+        Resolution storage r,
+        Outcome outcome,
+        Path path,
+        bytes32 evidenceHash,
+        string calldata evidenceURI
+    ) internal {
+        r.proposed = outcome;
+        r.path = path;
+        r.evidenceHash = evidenceHash;
+        _evidenceURI[id] = evidenceURI;
+        _setState(id, r, RState.Proposed);
+        emit IResolutionOracle.ProposalRecorded(id, outcome, path, evidenceHash, evidenceURI, r.attempts);
+    }
+
+    // ------------------------------------------------------------------ assertion internals
+
+    /// @dev Posts the recorded proposal on the pinned venue with `asserter` as asserter and payer
+    ///      (the treasury on team paths, the caller on the permissionless path). Guards: the assertion
+    ///      must be able to finish before `voidDeadline` (D10). Uses attempt index `attempts` and then
+    ///      increments it (ADJ-27).
+    function _assert(bytes32 id, Resolution storage r, address asserter) internal returns (bytes32 assertionId) {
+        uint64 liveness = _liveness(id, r);
+        if (block.timestamp + liveness > r.voidDeadline) revert IResolutionOracle.ExpiryAfterVoidDeadline();
+        IAssertionVenue venue = IAssertionVenue(_trustSets[r.trustSetId].cfg.venue);
+        uint256 bond = _bond(id, r, venue);
+        assertionId = venue.assertOutcome(
+            IAssertionVenue.AssertRequest({
+                marketId: id, claim: _claim(id, r), asserter: asserter, payer: asserter, liveness: liveness, bond: bond
+            })
+        );
+        r.attempts += 1;
+        r.assertionId = assertionId;
+        r.assertionVenue = address(venue);
+        r.bond = bond;
+        emit IResolutionOracle.Asserted(
+            id,
+            assertionId,
+            address(venue),
+            r.proposed,
+            r.path,
+            bond,
+            liveness,
+            uint64(block.timestamp) + liveness,
+            asserter
+        );
+    }
+
+    /// @dev §6.5: max(minBond, venue minimum, ceil(oiHaltLots × 1000 × bondBps / 10 000)) USDC atoms.
+    function _bond(bytes32 id, Resolution storage r, IAssertionVenue venue) internal view returns (uint256) {
+        return BondMath.bond(r.oiHaltLots, IMarketRegistry(registry).getUMAConfig(id), venue.minimumBond());
+    }
+
+    /// @dev §6.4 `livenessFor`: L1 and L2_AUTO fall back to the reviewed liveness when the pinned watchdog
+    ///      is revoked or its heartbeat is older than the pinned `heartbeatMaxAgeSecs` (D11).
+    function _liveness(bytes32 id, Resolution storage r) internal view returns (uint64) {
+        UMAConfig memory u = IMarketRegistry(registry).getUMAConfig(id);
+        TrustSet storage s = _trustSets[r.trustSetId];
+        bool fresh = BondMath.isWatchdogFresh(
+            uint64(block.timestamp), lastHeartbeat[s.cfg.watchdog], _globals(r).heartbeatMaxAgeSecs, s.watchdogRevoked
+        );
+        return BondMath.liveness(r.path, u, fresh);
+    }
+
+    /// @dev The standalone claim (§6.4): the market's template with its question, rules, T, the proposed
+    ///      outcome and the evidence (the URI, or for Layer 1 the value hash and the substituted source URL).
+    function _claim(bytes32 id, Resolution storage r) internal view returns (bytes memory) {
+        IMarketRegistry reg = IMarketRegistry(registry);
+        ClaimRenderer.Fields memory f;
+        f.marketId = id;
+        f.chainId = block.chainid;
+        f.oracle = address(this);
+        f.question = reg.getQuestion(id);
+        f.rules = reg.getRules(id);
+        f.tau = reg.getMarketCore(id).tau;
+        f.outcome = r.proposed;
+        f.evidenceHash = r.evidenceHash;
+        if (r.path == Path.L1) {
+            FeedSpec memory spec = reg.getFeedSpec(id);
+            f.evidence = ClaimRenderer.l1Evidence(r.valueHash, HostLib.substitute(spec.urlTemplate, spec.urlParam));
+        } else {
+            f.evidence = _evidenceURI[id];
+        }
+        return ClaimRenderer.render(reg.getClaimTemplate(id), f);
     }
 
     // ------------------------------------------------------------------ halt internals

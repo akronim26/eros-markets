@@ -246,11 +246,12 @@ Plan §13: owner OA · 5 PD · depends O10–O13 · acceptance: §11.1 unit test
 - Depends: O14.2
 - Plan: §5.4, §6.4, D7, D17, ORC-6
 - Cut: yes
-- Status: todo
-- Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleProposals.t.sol
+- Status: done
+- Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleProposals.t.sol, oracle/test/unit/OracleFixture.sol
 - Build: `submitReviewedProposal` in Review/Open (pinned set, outcome ∉ `rejectedMask`, attempt and mask match, evidenceURI hash and length) and from EarlyReview (before T, within the TTL, `early == true`, calls `engine.halt()`, pins the active set, records the halt) using SigLib; `proposePermissionless` in Open (own bond via the venue, `rewardAtoms` from the pinned globals, `proposer`, attempts++). `ProposalRecorded`.
 - Done when: each guard has an accepting and a rejecting test; an early committee proposal halts the engine with `haltedAt = block.timestamp`.
 - Check: cd oracle && forge test --match-path test/unit/OracleProposals.t.sol
+- Notes: An EarlyReview proposal at or after T, or once the early TTL has run out, reverts `WrongState(EarlyReview)` (the market then halts on schedule or `expireEarly` returns it to None). Early proposals pin the active set and must carry `early == true` and that set id; the halt is recorded only after the signatures verify. Payload checks run in the order marketId (7), deadline (`SignatureExpired`; `now == deadline` is still valid), attempt (2), mask (6), early flag (1), trust set (4), evidence URI (5), outcome. The permissionless evidence URI follows the committee rule (1–256 bytes) and its hash must be non-zero (`BadPayload(5)`). The shared assertion internals (`_assert`, `_bond`, `_liveness`, `_claim`) land here because the permissionless path asserts in the same call; O14.4 reuses them. The redundant `outcome == 0` range check was removed after a surviving mutant (NONE is refused by `_checkOutcome`). OracleFixture gains the lifecycle and committee-signing helpers. 20 tests; 35/36 mutations caught, the survivor fixed by that removal.
 
 ### O14.4 · Assertions, finalize, reject and void
 - Owner: OA
