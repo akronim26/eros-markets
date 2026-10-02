@@ -231,13 +231,14 @@ Plan §13: owner OA · 5 PD · depends O10–O13 · acceptance: §11.1 unit test
 - Owner: OA
 - PD: 0.75
 - Depends: O14.1
-- Plan: §5.3, §5.4, §6.4, §7.3, D3, D4, D16, ORC-11, ORC-12
+- Plan: §5.3, §5.4, §6.4, §7.3, D3, D4, D16, ORC-11, ORC-12, ADJ-32
 - Cut: yes
-- Status: todo
-- Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleHalt.t.sol
+- Status: done
+- Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleHalt.t.sol, oracle/test/unit/OracleFixture.sol
 - Build: `haltScheduled` (from None, EarlyCheck, EarlyReview at ≥ T; copy `haltedAt = economicHaltAt` and `oiHaltLots` from the engine; `voidDeadline = max(haltedAt, T) + voidSecs` set once; pin trust set and globals version; L1Pending or L2Pending with `l2StartedAt = haltedAt`; `HaltRecorded`); `requestResolution` (`NoFeed`, `TooEarly`, halts first, per-market `minRequestInterval`, `ResolutionRequested`); `escalateToL2`; `openAfterDeadline` (early-halted markets stay committee-only until T; `retryOpensAt`); `getL1Job`. No-op returns instead of reverts per §5.4.
 - Done when: a late scheduled halt copies `economicHaltAt = T`; `voidDeadline` and pinning are correct; rate-limit and every no-op return are tested.
 - Check: cd oracle && forge test --match-path test/unit/OracleHalt.t.sol
+- Notes: Keeper no-op policy per ADJ-32 (team decision): `haltScheduled` before T and every wrong state return false. Engine errors bubble unchanged; a halt snapshot with `halted == false` reverts `EngineCallFailed` (team decision). The halt copies the engine snapshot as is (ORC-11, even a skewed `economicHaltAt`) and computes `voidDeadline` from `max(haltedAt, T)`. `requestResolution` reverts `NoFeed`, then `TooEarly` before `T + bufferSecs` (no halt then), halts a pre-halt market, and rate-limits with the pinned globals version. New shared `test/unit/OracleFixture.sol`: real registry, treasury and oracle harness wired through precomputed addresses, `MockMarketFactory` engines, a token-moving venue, one active trust set with real committee and attestor keys. The harness can clear `activeTrustSetId` to test the halt's defensive `NoActiveTrustSet` guard. 31 mutations caught (one needed a test moved past the rate limit).
 
 ### O14.3 · Committee and permissionless proposals
 - Owner: OA

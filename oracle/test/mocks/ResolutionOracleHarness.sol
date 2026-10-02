@@ -28,6 +28,11 @@ contract ResolutionOracleHarness is ResolutionOracle {
         _groups[groupId] = g;
     }
 
+    /// @notice Clears or overrides the active trust set (unreachable through governance once set).
+    function setActiveTrustSetId(uint32 setId) external {
+        activeTrustSetId = setId;
+    }
+
     function setEvidenceURI(bytes32 id, string memory uri) external {
         _evidenceURI[id] = uri;
     }

@@ -3,8 +3,20 @@ pragma solidity 0.8.30;
 
 import {EIP712} from "solady/utils/EIP712.sol";
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
-import {RState, Resolution, TrustSet, TrustSetInput, GroupState, OracleConst} from "./types/OracleTypes.sol";
+import {IResolutionEngine, HaltView} from "@eros/interfaces/IResolutionIngress.sol";
+import {
+    RState,
+    Resolution,
+    TrustSet,
+    TrustSetInput,
+    GroupState,
+    MarketCore,
+    FeedSpec,
+    Globals,
+    OracleConst
+} from "./types/OracleTypes.sol";
 import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
+import {IMarketRegistry} from "./interfaces/IMarketRegistry.sol";
 import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
 
 /// @title ResolutionOracle
@@ -13,10 +25,22 @@ import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
 ///         not upgradeable and keeps one stable address. There is no pause and no admin path that moves a
 ///         market (D20): governance only manages trust sets and the sim-mode bridge, the guardian only
 ///         revokes, and every progress step is permissionless.
-/// @dev Task O14.1: constructor, trust sets, guardian revocations, `initResolution` and the watchdog
-///      heartbeat. The lifecycle, proposals, assertions, panel and groups follow in O14.2-O14.6, the CRE
-///      receiver in O15 and the EIP-712 views in O16, which also declares `is IResolutionOracle`. Until
-///      then errors and events are the C.3 declarations, used by qualified name.
+/// @dev Tasks O14.1 (constructor, trust sets, guardian revocations, `initResolution`, watchdog
+///      heartbeat) and O14.2 (halt, request, escalate, open). Proposals, assertions, the panel and groups
+///      follow in O14.3-O14.6, the CRE receiver in O15 and the EIP-712 views in O16, which also declares
+///      `is IResolutionOracle`. Until then errors and events are the C.3 declarations, used by qualified
+///      name.
+///
+///      Keeper functions (`haltScheduled`, `requestResolution`, `escalateToL2`, `openAfterDeadline`, and
+///      later `expireEarly`, `assertProposal`, `syncAssertion`, `finalizeMarket`, `voidMarket`) never
+///      revert on a state or time they do not act in: they return false (or NOT_READY), because Monad
+///      charges the full gas limit on a revert (§5.4). They revert only for an unknown market, invalid
+///      input, or a guard error §5.4 names (`TooEarly`, `NoFeed`, ...).
+///
+///      Clocks (D3, ORC-11, ORC-12): at the halt the market copies the engine's `economicHaltAt` (T for
+///      a scheduled halt, even when the keeper is late) and `oiHaltLots`, sets
+///      `voidDeadline = max(haltedAt, T) + voidSecs` once, and pins the active trust set and the
+///      registry's current globals version; every later read of a global uses that version.
 ///
 ///      Trust sets (D8): versioned bundles of every party a market trusts. IDs start at 1 (0 = none).
 ///      Governance creates and activates them; a market pins the active set at its halt and keeps it.
@@ -104,6 +128,61 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         emit IResolutionOracle.WatchdogHeartbeat(msg.sender, nowTs);
     }
 
+    // ------------------------------------------------------------------ lifecycle (permissionless)
+
+    /// @notice At or after T, halts the engine (scheduled: `economicHaltAt = T`) from None, EarlyCheck or
+    ///         EarlyReview, and moves a feed market to L1Pending, a market without a feed to L2Pending.
+    /// @return changed false before T or once halted.
+    function haltScheduled(bytes32 id) external nonReentrant returns (bool changed) {
+        Resolution storage r = _known(id);
+        MarketCore memory c = _core(id);
+        if (block.timestamp < c.tau || !_isPreHalt(r.state)) return false;
+        _haltToPending(id, r, c);
+        return true;
+    }
+
+    /// @notice Emits the CRE log trigger for a feed market in L1Pending, halting it first when it is still
+    ///         pre-halt. Reverts `NoFeed` without a feed and `TooEarly` before `T + bufferSecs`; returns
+    ///         false (no event) in any other state or within `minRequestIntervalSecs` of the last request.
+    function requestResolution(bytes32 id) external nonReentrant returns (bool emitted) {
+        Resolution storage r = _known(id);
+        MarketCore memory c = _core(id);
+        if (!c.hasFeed) revert IResolutionOracle.NoFeed();
+        if (block.timestamp < uint256(c.tau) + _feed(id).bufferSecs) revert IResolutionOracle.TooEarly();
+        if (_isPreHalt(r.state)) _haltToPending(id, r, c);
+        if (r.state != RState.L1Pending) return false;
+        uint64 nowTs = uint64(block.timestamp);
+        if (r.lastRequestAt != 0 && nowTs < r.lastRequestAt + _globals(r).minRequestIntervalSecs) return false;
+        r.lastRequestAt = nowTs;
+        uint32 count = ++r.requestCount;
+        emit IResolutionOracle.ResolutionRequested(id, nowTs, count);
+        return true;
+    }
+
+    /// @notice L1Pending → L2Pending once `T + l1TimeoutSecs` has passed (`l2StartedAt = now`).
+    function escalateToL2(bytes32 id) external nonReentrant returns (bool changed) {
+        Resolution storage r = _known(id);
+        if (r.state != RState.L1Pending) return false;
+        if (block.timestamp < uint256(_core(id).tau) + _feed(id).l1TimeoutSecs) return false;
+        r.l2StartedAt = uint64(block.timestamp);
+        _setState(id, r, RState.L2Pending);
+        return true;
+    }
+
+    /// @notice L2Pending or Review → Open: at `retryOpensAt` when set (after a rejection or a group
+    ///         conflict), otherwise at `l2StartedAt + l2DeadlineSecs`. An early-halted market stays
+    ///         committee-only until T (ORC-15).
+    function openAfterDeadline(bytes32 id) external nonReentrant returns (bool changed) {
+        Resolution storage r = _known(id);
+        if (r.state != RState.L2Pending && r.state != RState.Review) return false;
+        MarketCore memory c = _core(id);
+        if (block.timestamp < c.tau) return false;
+        uint256 opensAt = r.retryOpensAt != 0 ? r.retryOpensAt : uint256(r.l2StartedAt) + c.l2DeadlineSecs;
+        if (block.timestamp < opensAt) return false;
+        _setState(id, r, RState.Open);
+        return true;
+    }
+
     // ------------------------------------------------------------------ governance (Timelock)
 
     /// @notice Creates a trust set (not active until `activateTrustSet`). `BadTrustSet` codes:
@@ -163,6 +242,19 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
     }
 
     // ------------------------------------------------------------------ views
+
+    /// @notice The single EVM read the CRE workflow makes (§7.3 step 2). An unknown market reads state 0.
+    function getL1Job(bytes32 id)
+        external
+        view
+        returns (uint8 state, FeedSpec memory spec, string[] memory allowList, bytes32 specHash)
+    {
+        state = uint8(_res[id].state);
+        IMarketRegistry reg = IMarketRegistry(registry);
+        spec = reg.getFeedSpec(id);
+        allowList = reg.getAllowList(id);
+        specHash = reg.getSpecHash(id);
+    }
 
     function getResolution(bytes32 id) external view returns (Resolution memory) {
         return _res[id];
@@ -226,6 +318,63 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     function _word(address a) internal pure returns (bytes32) {
         return bytes32(uint256(uint160(a)));
+    }
+
+    // ------------------------------------------------------------------ halt internals
+
+    /// @dev Halts the engine and records the halt (ORC-11, ORC-12); a scheduled halt then goes to
+    ///      L1Pending (feed) or L2Pending (no feed, `l2StartedAt = haltedAt`).
+    function _haltToPending(bytes32 id, Resolution storage r, MarketCore memory c) internal {
+        _recordHalt(id, r, c);
+        if (c.hasFeed) {
+            _setState(id, r, RState.L1Pending);
+        } else {
+            r.l2StartedAt = r.haltedAt;
+            _setState(id, r, RState.L2Pending);
+        }
+    }
+
+    /// @dev Calls `engine.halt()` (its revert bubbles up) and copies the snapshot; pins the active trust
+    ///      set and the current globals version. A snapshot that is not halted reverts `EngineCallFailed`.
+    function _recordHalt(bytes32 id, Resolution storage r, MarketCore memory c) internal {
+        uint32 setId = activeTrustSetId;
+        if (setId == 0) revert IResolutionOracle.NoActiveTrustSet();
+        HaltView memory h = IResolutionEngine(c.engine).halt();
+        if (!h.halted) revert IResolutionOracle.EngineCallFailed();
+        uint64 base = h.economicHaltAt > c.tau ? h.economicHaltAt : c.tau;
+        r.haltedAt = h.economicHaltAt;
+        r.oiHaltLots = h.oiHaltLots;
+        r.voidDeadline = base + c.voidSecs;
+        r.trustSetId = setId;
+        r.globalsVersion = IMarketRegistry(registry).globalsVersion();
+        emit IResolutionOracle.HaltRecorded(
+            id, h.economicHaltAt, h.oiHaltLots, r.voidDeadline, setId, h.economicHaltAt < c.tau
+        );
+    }
+
+    function _setState(bytes32 id, Resolution storage r, RState to) internal {
+        RState from = r.state;
+        r.state = to;
+        emit IResolutionOracle.StateChanged(id, from, to);
+    }
+
+    function _isPreHalt(RState s) internal pure returns (bool) {
+        return s == RState.None || s == RState.EarlyCheck || s == RState.EarlyReview;
+    }
+
+    function _core(bytes32 id) internal view returns (MarketCore memory) {
+        return IMarketRegistry(registry).getMarketCore(id);
+    }
+
+    function _feed(bytes32 id) internal view returns (FeedSpec memory) {
+        return IMarketRegistry(registry).getFeedSpec(id);
+    }
+
+    /// @dev The globals version the market pinned at its halt; the current version before the halt.
+    function _globals(Resolution storage r) internal view returns (Globals memory) {
+        IMarketRegistry reg = IMarketRegistry(registry);
+        uint32 v = r.globalsVersion;
+        return reg.globalsAt(v != 0 ? v : reg.globalsVersion());
     }
 
     /// @dev Reverts `UnknownMarket` for an id the registry never initialized.
