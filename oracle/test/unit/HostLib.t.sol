@@ -10,136 +10,156 @@ contract HostLibTest is Test {
 
     // ------------------------------------------------------------------ scheme
 
-    function test_scheme_https_accepted() public pure {
-        assertEq(HostLib.checkTemplate("https://api.example-sports.com/v1/{id}"), HostLib.OK);
-    }
-
-    function test_scheme_http_rejected() public pure {
-        assertEq(HostLib.checkTemplate("http://api.example-sports.com/v1/{id}"), HostLib.NOT_HTTPS);
-    }
-
-    function test_scheme_uppercase_rejected() public pure {
-        assertEq(HostLib.checkTemplate("HTTPS://api.example-sports.com/v1/{id}"), HostLib.NOT_HTTPS);
+    /// Scheme: only lowercase `https`.
+    function test_scheme() public pure {
+        {
+            // test_scheme_https_accepted
+            assertEq(HostLib.checkTemplate("https://api.example-sports.com/v1/{id}"), HostLib.OK);
+        }
+        {
+            // test_scheme_http_rejected
+            assertEq(HostLib.checkTemplate("http://api.example-sports.com/v1/{id}"), HostLib.NOT_HTTPS);
+        }
+        {
+            // test_scheme_uppercase_rejected
+            assertEq(HostLib.checkTemplate("HTTPS://api.example-sports.com/v1/{id}"), HostLib.NOT_HTTPS);
+        }
     }
 
     // ------------------------------------------------------------------ host
 
-    function test_host_valid_variants() public pure {
-        assertTrue(HostLib.isValidHost("a.b"));
-        assertTrue(HostLib.isValidHost("api.example-sports.com"));
-        assertTrue(HostLib.isValidHost("x1.y-2.z3"));
-        assertTrue(HostLib.isValidHost(string.concat(_label(63), ".com")));
-    }
-
-    function test_host_uppercase_rejected() public pure {
-        assertFalse(HostLib.isValidHost("API.example.com"));
-    }
-
-    function test_host_single_label_rejected() public pure {
-        assertFalse(HostLib.isValidHost("localhost"));
-    }
-
-    function test_host_edge_hyphen_rejected() public pure {
-        assertFalse(HostLib.isValidHost("-api.example.com"));
-        assertFalse(HostLib.isValidHost("api-.example.com"));
-    }
-
-    function test_host_empty_label_rejected() public pure {
-        assertFalse(HostLib.isValidHost("api..com"));
-        assertFalse(HostLib.isValidHost(".example.com"));
-        assertFalse(HostLib.isValidHost("example.com."));
-        assertFalse(HostLib.isValidHost(""));
-    }
-
-    function test_host_label_length() public pure {
-        assertTrue(HostLib.isValidHost(string.concat(_label(63), ".com")));
-        assertFalse(HostLib.isValidHost(string.concat(_label(64), ".com")));
-    }
-
-    function test_host_port_rejected() public pure {
-        assertEq(HostLib.checkTemplate("https://api.example-sports.com:443/v1/{id}"), HostLib.BAD_HOST);
-    }
-
-    function test_host_userinfo_rejected() public pure {
-        assertEq(HostLib.checkTemplate("https://user@api.example-sports.com/v1/{id}"), HostLib.BAD_HOST);
-    }
-
-    function test_host_ends_at_slash_query_or_fragment() public pure {
-        (uint8 c1, string memory h1) = HostLib.hostOf("https://api.example-sports.com/x");
-        (uint8 c2, string memory h2) = HostLib.hostOf("https://api.example-sports.com?x=1");
-        (uint8 c3, string memory h3) = HostLib.hostOf("https://api.example-sports.com#f");
-        (uint8 c4, string memory h4) = HostLib.hostOf("https://api.example-sports.com");
-        assertEq(c1 + c2 + c3 + c4, 0);
-        assertEq(h1, HOST);
-        assertEq(h2, HOST);
-        assertEq(h3, HOST);
-        assertEq(h4, HOST);
-    }
-
-    function test_host_empty_rejected() public pure {
-        (uint8 code,) = HostLib.hostOf("https:///v1");
-        assertEq(code, HostLib.BAD_HOST);
+    /// Host: lowercase LDH labels, at least two, 1-63 bytes each, no port or userinfo; ends at /, ? or #.
+    function test_host() public pure {
+        {
+            // test_host_valid_variants
+            assertTrue(HostLib.isValidHost("a.b"));
+            assertTrue(HostLib.isValidHost("api.example-sports.com"));
+            assertTrue(HostLib.isValidHost("x1.y-2.z3"));
+            assertTrue(HostLib.isValidHost(string.concat(_label(63), ".com")));
+        }
+        {
+            // test_host_uppercase_rejected
+            assertFalse(HostLib.isValidHost("API.example.com"));
+        }
+        {
+            // test_host_single_label_rejected
+            assertFalse(HostLib.isValidHost("localhost"));
+        }
+        {
+            // test_host_edge_hyphen_rejected
+            assertFalse(HostLib.isValidHost("-api.example.com"));
+            assertFalse(HostLib.isValidHost("api-.example.com"));
+        }
+        {
+            // test_host_empty_label_rejected
+            assertFalse(HostLib.isValidHost("api..com"));
+            assertFalse(HostLib.isValidHost(".example.com"));
+            assertFalse(HostLib.isValidHost("example.com."));
+            assertFalse(HostLib.isValidHost(""));
+        }
+        {
+            // test_host_label_length
+            assertTrue(HostLib.isValidHost(string.concat(_label(63), ".com")));
+            assertFalse(HostLib.isValidHost(string.concat(_label(64), ".com")));
+        }
+        {
+            // test_host_port_rejected
+            assertEq(HostLib.checkTemplate("https://api.example-sports.com:443/v1/{id}"), HostLib.BAD_HOST);
+        }
+        {
+            // test_host_userinfo_rejected
+            assertEq(HostLib.checkTemplate("https://user@api.example-sports.com/v1/{id}"), HostLib.BAD_HOST);
+        }
+        {
+            // test_host_ends_at_slash_query_or_fragment
+            (uint8 c1, string memory h1) = HostLib.hostOf("https://api.example-sports.com/x");
+            (uint8 c2, string memory h2) = HostLib.hostOf("https://api.example-sports.com?x=1");
+            (uint8 c3, string memory h3) = HostLib.hostOf("https://api.example-sports.com#f");
+            (uint8 c4, string memory h4) = HostLib.hostOf("https://api.example-sports.com");
+            assertEq(c1 + c2 + c3 + c4, 0);
+            assertEq(h1, HOST);
+            assertEq(h2, HOST);
+            assertEq(h3, HOST);
+            assertEq(h4, HOST);
+        }
+        {
+            // test_host_empty_rejected
+            (uint8 code,) = HostLib.hostOf("https:///v1");
+            assertEq(code, HostLib.BAD_HOST);
+        }
     }
 
     // ------------------------------------------------------------------ {id}
 
-    function test_id_absent_accepted() public pure {
-        assertEq(HostLib.checkTemplate("https://api.example-sports.com/v1/events/evt_1"), HostLib.OK);
-    }
-
-    function test_id_after_slash_in_query_accepted() public pure {
-        assertEq(HostLib.checkTemplate("https://api.example-sports.com/v1/events?id={id}"), HostLib.OK);
-    }
-
-    function test_id_twice_rejected() public pure {
-        assertEq(HostLib.checkTemplate("https://api.example-sports.com/{id}/{id}"), HostLib.BAD_ID);
-    }
-
-    function test_id_without_slash_after_host_rejected() public pure {
-        assertEq(HostLib.checkTemplate("https://api.example-sports.com?e={id}"), HostLib.BAD_ID);
-    }
-
-    function test_id_inside_host_is_a_host_error() public pure {
-        // Codes are checked in order (1 https, 2 host, 3 {id}); `{` is not a host character.
-        assertEq(HostLib.checkTemplate("https://{id}.example-sports.com/x"), HostLib.BAD_HOST);
+    /// `{id}`: optional, at most once, only after the first slash after the host.
+    function test_id() public pure {
+        {
+            // test_id_absent_accepted
+            assertEq(HostLib.checkTemplate("https://api.example-sports.com/v1/events/evt_1"), HostLib.OK);
+        }
+        {
+            // test_id_after_slash_in_query_accepted
+            assertEq(HostLib.checkTemplate("https://api.example-sports.com/v1/events?id={id}"), HostLib.OK);
+        }
+        {
+            // test_id_twice_rejected
+            assertEq(HostLib.checkTemplate("https://api.example-sports.com/{id}/{id}"), HostLib.BAD_ID);
+        }
+        {
+            // test_id_without_slash_after_host_rejected
+            assertEq(HostLib.checkTemplate("https://api.example-sports.com?e={id}"), HostLib.BAD_ID);
+        }
+        {
+            // test_id_inside_host_is_a_host_error
+            // Codes are checked in order (1 https, 2 host, 3 {id}); `{` is not a host character.
+            assertEq(HostLib.checkTemplate("https://{id}.example-sports.com/x"), HostLib.BAD_HOST);
+        }
     }
 
     // ------------------------------------------------------------------ urlParam
 
-    function test_urlParam_valid() public pure {
-        assertTrue(HostLib.isValidUrlParam("evt_1"));
-        assertTrue(HostLib.isValidUrlParam("AZaz09._~-"));
-        assertTrue(HostLib.isValidUrlParam(_label(128)));
-    }
-
-    function test_urlParam_empty_rejected() public pure {
-        assertFalse(HostLib.isValidUrlParam(""));
-    }
-
-    function test_urlParam_too_long_rejected() public pure {
-        assertFalse(HostLib.isValidUrlParam(_label(129)));
-    }
-
-    function test_urlParam_bad_chars_rejected() public pure {
-        assertFalse(HostLib.isValidUrlParam("a/b"));
-        assertFalse(HostLib.isValidUrlParam("a?b"));
-        assertFalse(HostLib.isValidUrlParam("a b"));
-        assertFalse(HostLib.isValidUrlParam("a%20"));
-        assertFalse(HostLib.isValidUrlParam("{id}"));
+    /// urlParam: 1-64 bytes of the allowed charset.
+    function test_urlParam() public pure {
+        {
+            // test_urlParam_valid
+            assertTrue(HostLib.isValidUrlParam("evt_1"));
+            assertTrue(HostLib.isValidUrlParam("AZaz09._~-"));
+            assertTrue(HostLib.isValidUrlParam(_label(128)));
+        }
+        {
+            // test_urlParam_empty_rejected
+            assertFalse(HostLib.isValidUrlParam(""));
+        }
+        {
+            // test_urlParam_too_long_rejected
+            assertFalse(HostLib.isValidUrlParam(_label(129)));
+        }
+        {
+            // test_urlParam_bad_chars_rejected
+            assertFalse(HostLib.isValidUrlParam("a/b"));
+            assertFalse(HostLib.isValidUrlParam("a?b"));
+            assertFalse(HostLib.isValidUrlParam("a b"));
+            assertFalse(HostLib.isValidUrlParam("a%20"));
+            assertFalse(HostLib.isValidUrlParam("{id}"));
+        }
     }
 
     // ------------------------------------------------------------------ substitution
 
-    function test_substitute_and_host_of_result() public pure {
-        string memory url = HostLib.substitute("https://api.example-sports.com/v1/events/{id}", "evt_1");
-        assertEq(url, "https://api.example-sports.com/v1/events/evt_1");
-        (uint8 code, string memory host) = HostLib.hostOf(url);
-        assertEq(code, HostLib.OK);
-        assertEq(host, HOST);
-    }
-
-    function test_substitute_without_id_is_identity() public pure {
-        assertEq(HostLib.substitute("https://a.b/x", "evt_1"), "https://a.b/x");
+    /// Substitution of `{id}`, and the host of the result.
+    function test_substitute() public pure {
+        {
+            // test_substitute_and_host_of_result
+            string memory url = HostLib.substitute("https://api.example-sports.com/v1/events/{id}", "evt_1");
+            assertEq(url, "https://api.example-sports.com/v1/events/evt_1");
+            (uint8 code, string memory host) = HostLib.hostOf(url);
+            assertEq(code, HostLib.OK);
+            assertEq(host, HOST);
+        }
+        {
+            // test_substitute_without_id_is_identity
+            assertEq(HostLib.substitute("https://a.b/x", "evt_1"), "https://a.b/x");
+        }
     }
 
     // ------------------------------------------------------------------ fuzz

@@ -149,36 +149,44 @@ contract StubEngineTest is Test {
         vm.stopPrank();
     }
 
-    function test_scheduledHaltNotBeforeT() public {
-        vm.warp(T - 1);
-        vm.expectRevert(ResolutionEngineStub.ScheduledHaltNotYet.selector);
-        e.materializeScheduledHalt();
-    }
-
-    function test_oracleHaltAtOrAfterTIsScheduled() public {
-        vm.warp(T + 3600);
-        vm.prank(oracle);
-        assertEq(e.halt().economicHaltAt, T);
-    }
-
-    function test_haltIdempotent() public {
-        vm.warp(T - 1 days);
-        vm.prank(oracle);
-        HaltView memory a = e.halt();
-        vm.warp(T + 1 days);
-        vm.prank(oracle);
-        HaltView memory b = e.halt();
-        e.materializeScheduledHalt();
-        assertEq(b.economicHaltAt, a.economicHaltAt);
-        assertEq(b.haltRecordedAt, a.haltRecordedAt);
-        assertEq(b.snapshotId, a.snapshotId);
-        assertEq(e.getHaltSnapshot().snapshotId, a.snapshotId);
-    }
-
-    function test_liveBeforeHalt() public view {
-        SettlementView memory v = e.getSettlementStatus();
-        assertEq(uint8(v.phase), uint8(ClearingPhase.LIVE));
-        assertFalse(v.claimsEnabled);
+    /// Halt timing: scheduled at T, early by the oracle before T, idempotent; live before the halt.
+    function test_haltTiming() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_scheduledHaltNotBeforeT
+            vm.warp(T - 1);
+            vm.expectRevert(ResolutionEngineStub.ScheduledHaltNotYet.selector);
+            e.materializeScheduledHalt();
+        }
+        vm.revertToState(snap);
+        {
+            // test_oracleHaltAtOrAfterTIsScheduled
+            vm.warp(T + 3600);
+            vm.prank(oracle);
+            assertEq(e.halt().economicHaltAt, T);
+        }
+        vm.revertToState(snap);
+        {
+            // test_haltIdempotent
+            vm.warp(T - 1 days);
+            vm.prank(oracle);
+            HaltView memory a = e.halt();
+            vm.warp(T + 1 days);
+            vm.prank(oracle);
+            HaltView memory b = e.halt();
+            e.materializeScheduledHalt();
+            assertEq(b.economicHaltAt, a.economicHaltAt);
+            assertEq(b.haltRecordedAt, a.haltRecordedAt);
+            assertEq(b.snapshotId, a.snapshotId);
+            assertEq(e.getHaltSnapshot().snapshotId, a.snapshotId);
+        }
+        vm.revertToState(snap);
+        {
+            // test_liveBeforeHalt
+            SettlementView memory v = e.getSettlementStatus();
+            assertEq(uint8(v.phase), uint8(ClearingPhase.LIVE));
+            assertFalse(v.claimsEnabled);
+        }
     }
 
     function test_errorSelectorsMatchTheRealEngine() public pure {
@@ -192,10 +200,48 @@ contract StubEngineTest is Test {
 
     // ------------------------------------------------------------------ config, monitor, initialize
 
-    function test_listingAndHash() public view {
-        assertEq(e.listingHash(), keccak256(abi.encode(l)));
-        assertEq(keccak256(abi.encode(e.listing())), keccak256(abi.encode(l)));
-        assertEq(e.activeProfile().version, 0);
+    /// Listing: hash, one initialize by the factory, void gate, no horizon gate.
+    function test_listing() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_listingAndHash
+            assertEq(e.listingHash(), keccak256(abi.encode(l)));
+            assertEq(keccak256(abi.encode(e.listing())), keccak256(abi.encode(l)));
+            assertEq(e.activeProfile().version, 0);
+        }
+        vm.revertToState(snap);
+        {
+            // test_initializeOnceByFactoryOnly
+            vm.prank(keeper);
+            vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
+            e.initialize(l, abi.encode(uint256(1)));
+            vm.prank(address(factory));
+            vm.expectRevert(ResolutionEngineStub.AlreadyInitialized.selector);
+            e.initialize(l, abi.encode(uint256(1)));
+        }
+        vm.revertToState(snap);
+        {
+            // test_voidGate
+            IMarketConfig.Listing memory bad = _listing();
+            bad.marketId = keccak256("m2");
+            bad.invalidRule.voidSecs = uint64(T - L0 + 3600 - 1); // one second short of T + grace
+            vm.prank(registry);
+            vm.expectRevert(abi.encodeWithSelector(ResolutionEngineStub.BadListing.selector, uint8(2)));
+            factory.deployMarket(bad, abi.encode(uint256(0)));
+            bad.invalidRule.voidSecs += 1; // exactly at the gate
+            vm.prank(registry);
+            factory.deployMarket(bad, abi.encode(uint256(0)));
+        }
+        vm.revertToState(snap);
+        {
+            // test_noHorizonGate
+            IMarketConfig.Listing memory soon = _listing();
+            soon.marketId = keccak256("m3");
+            soon.scheduledT = L0 + 600; // 10 minutes: allowed on the stub (testnet), unlike the real engine
+            soon.invalidRule.voidSecs = 2 hours;
+            vm.prank(registry);
+            factory.deployMarket(soon, abi.encode(uint256(0)));
+        }
     }
 
     function test_monitorFlag() public {
@@ -208,60 +254,38 @@ contract StubEngineTest is Test {
         e.setMonitorRestricted(false);
     }
 
-    function test_initializeOnceByFactoryOnly() public {
-        vm.prank(keeper);
-        vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
-        e.initialize(l, abi.encode(uint256(1)));
-        vm.prank(address(factory));
-        vm.expectRevert(ResolutionEngineStub.AlreadyInitialized.selector);
-        e.initialize(l, abi.encode(uint256(1)));
-    }
-
-    function test_voidGate() public {
-        IMarketConfig.Listing memory bad = _listing();
-        bad.marketId = keccak256("m2");
-        bad.invalidRule.voidSecs = uint64(T - L0 + 3600 - 1); // one second short of T + grace
-        vm.prank(registry);
-        vm.expectRevert(abi.encodeWithSelector(ResolutionEngineStub.BadListing.selector, uint8(2)));
-        factory.deployMarket(bad, abi.encode(uint256(0)));
-        bad.invalidRule.voidSecs += 1; // exactly at the gate
-        vm.prank(registry);
-        factory.deployMarket(bad, abi.encode(uint256(0)));
-    }
-
-    function test_noHorizonGate() public {
-        IMarketConfig.Listing memory soon = _listing();
-        soon.marketId = keccak256("m3");
-        soon.scheduledT = L0 + 600; // 10 minutes: allowed on the stub (testnet), unlike the real engine
-        soon.invalidRule.voidSecs = 2 hours;
-        vm.prank(registry);
-        factory.deployMarket(soon, abi.encode(uint256(0)));
-    }
-
     // ------------------------------------------------------------------ factory
 
-    function test_factory_rejectsZeroRegistry() public {
-        vm.expectRevert(StubMarketFactory.ZeroAddress.selector);
-        new StubMarketFactory(address(0));
-    }
-
-    function test_factory_onlyRegistry() public {
-        IMarketConfig.Listing memory m = _listing();
-        m.marketId = keccak256("m4");
-        vm.prank(keeper);
-        vm.expectRevert(StubMarketFactory.OnlyRegistry.selector);
-        factory.deployMarket(m, abi.encode(uint256(0)));
-    }
-
-    function test_factory_reusedMarketIdReverts() public {
-        vm.prank(registry);
-        vm.expectRevert(StubMarketFactory.MarketExists.selector);
-        factory.deployMarket(l, abi.encode(uint256(0)));
-    }
-
-    function test_factory_recordsEngine() public view {
-        assertEq(factory.engineOf(l.marketId), address(e));
-        assertEq(e.factory(), address(factory));
+    /// StubMarketFactory: non-zero registry, registry only, one engine per market.
+    function test_factory() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_factory_rejectsZeroRegistry
+            vm.expectRevert(StubMarketFactory.ZeroAddress.selector);
+            new StubMarketFactory(address(0));
+        }
+        vm.revertToState(snap);
+        {
+            // test_factory_onlyRegistry
+            IMarketConfig.Listing memory m = _listing();
+            m.marketId = keccak256("m4");
+            vm.prank(keeper);
+            vm.expectRevert(StubMarketFactory.OnlyRegistry.selector);
+            factory.deployMarket(m, abi.encode(uint256(0)));
+        }
+        vm.revertToState(snap);
+        {
+            // test_factory_reusedMarketIdReverts
+            vm.prank(registry);
+            vm.expectRevert(StubMarketFactory.MarketExists.selector);
+            factory.deployMarket(l, abi.encode(uint256(0)));
+        }
+        vm.revertToState(snap);
+        {
+            // test_factory_recordsEngine
+            assertEq(factory.engineOf(l.marketId), address(e));
+            assertEq(e.factory(), address(factory));
+        }
     }
 
     // ------------------------------------------------------------------ helpers

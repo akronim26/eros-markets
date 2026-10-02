@@ -51,124 +51,144 @@ contract ClaimRendererTest is Test {
 
     // ------------------------------------------------------------------ rendering
 
-    function test_defaultTemplateRendersExpectedText() public pure {
-        assertTrue(ClaimRenderer.isValidTemplate(_defaultTemplate()));
-        assertEq(string(ClaimRenderer.render(_defaultTemplate(), _fields())), _expected());
+    /// Rendered text: the default template, outcome words, UTC padding, L1 evidence, literal text.
+    function test_render() public view {
+        {
+            // test_defaultTemplateRendersExpectedText
+            assertTrue(ClaimRenderer.isValidTemplate(_defaultTemplate()));
+            assertEq(string(ClaimRenderer.render(_defaultTemplate(), _fields())), _expected());
+        }
+        {
+            // test_outcomeWords
+            string memory t = _minimal("");
+            ClaimRenderer.Fields memory f = _fields();
+            assertTrue(_contains(string(ClaimRenderer.render(t, f)), "|YES|"));
+            f.outcome = Outcome.NO;
+            assertTrue(_contains(string(ClaimRenderer.render(t, f)), "|NO|"));
+            f.outcome = Outcome.INVALID;
+            assertTrue(_contains(string(ClaimRenderer.render(t, f)), "|INVALID|"));
+        }
+        {
+            // test_utcZeroPadding
+            ClaimRenderer.Fields memory f = _fields();
+            f.tau = 946717445; // 2000-01-01T09:04:05Z
+            assertTrue(
+                _contains(string(ClaimRenderer.render(_defaultTemplate(), f)), "2000-01-01T09:04:05Z (946717445)")
+            );
+        }
+        {
+            // test_l1EvidenceText
+            bytes32 v = keccak256("3");
+            string memory url = "https://api.example-sports.com/v1/events/evt_1";
+            string memory s = ClaimRenderer.l1Evidence(v, url);
+            assertEq(s, string.concat("Layer 1 CRE report, value ", vm.toString(v), ", source ", url));
+            assertEq(bytes(s).length, ClaimRenderer.L1_EVIDENCE_FIXED + bytes(url).length);
+        }
+        {
+            // test_literalTextAroundTokensKept
+            string memory t = string.concat("a { b } c }} d ", _minimal(""), " end");
+            assertTrue(ClaimRenderer.isValidTemplate(t));
+            string memory out = string(ClaimRenderer.render(t, _fields()));
+            assertTrue(_contains(out, "a { b } c }} d |0x7b93"));
+            assertTrue(_contains(out, " end"));
+        }
     }
 
-    function test_outcomeWords() public view {
-        string memory t = _minimal("");
-        ClaimRenderer.Fields memory f = _fields();
-        assertTrue(_contains(string(ClaimRenderer.render(t, f)), "|YES|"));
-        f.outcome = Outcome.NO;
-        assertTrue(_contains(string(ClaimRenderer.render(t, f)), "|NO|"));
-        f.outcome = Outcome.INVALID;
-        assertTrue(_contains(string(ClaimRenderer.render(t, f)), "|INVALID|"));
-    }
-
-    function test_noOutcomeReverts() public {
-        ClaimRenderer.Fields memory f = _fields();
-        f.outcome = Outcome.NONE;
-        vm.expectRevert(ClaimRenderer.NoOutcome.selector);
-        this.renderExternal(_defaultTemplate(), f);
-    }
-
-    function test_invalidTemplateReverts() public {
-        vm.expectRevert(ClaimRenderer.InvalidTemplate.selector);
-        this.renderExternal("no tokens", _fields());
-    }
-
-    function test_utcZeroPadding() public pure {
-        ClaimRenderer.Fields memory f = _fields();
-        f.tau = 946717445; // 2000-01-01T09:04:05Z
-        assertTrue(_contains(string(ClaimRenderer.render(_defaultTemplate(), f)), "2000-01-01T09:04:05Z (946717445)"));
-    }
-
-    function test_l1EvidenceText() public pure {
-        bytes32 v = keccak256("3");
-        string memory url = "https://api.example-sports.com/v1/events/evt_1";
-        string memory s = ClaimRenderer.l1Evidence(v, url);
-        assertEq(s, string.concat("Layer 1 CRE report, value ", vm.toString(v), ", source ", url));
-        assertEq(bytes(s).length, ClaimRenderer.L1_EVIDENCE_FIXED + bytes(url).length);
-    }
-
-    function test_literalTextAroundTokensKept() public view {
-        string memory t = string.concat("a { b } c }} d ", _minimal(""), " end");
-        assertTrue(ClaimRenderer.isValidTemplate(t));
-        string memory out = string(ClaimRenderer.render(t, _fields()));
-        assertTrue(_contains(out, "a { b } c }} d |0x7b93"));
-        assertTrue(_contains(out, " end"));
+    /// render reverts without an outcome or with an invalid template.
+    function test_render_reverts() public {
+        uint256 snap = vm.snapshotState();
+        {
+            // test_noOutcomeReverts
+            ClaimRenderer.Fields memory f = _fields();
+            f.outcome = Outcome.NONE;
+            vm.expectRevert(ClaimRenderer.NoOutcome.selector);
+            this.renderExternal(_defaultTemplate(), f);
+        }
+        vm.revertToState(snap);
+        {
+            // test_invalidTemplateReverts
+            vm.expectRevert(ClaimRenderer.InvalidTemplate.selector);
+            this.renderExternal("no tokens", _fields());
+        }
     }
 
     // ------------------------------------------------------------------ token rules
 
-    function test_tauUnixOptional() public view {
-        assertTrue(ClaimRenderer.isValidTemplate(_minimal("")));
-        assertTrue(ClaimRenderer.isValidTemplate(_minimal("{{TAU_UNIX}}")));
-    }
-
-    function test_tauUnixTwiceRejected() public view {
-        assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{TAU_UNIX}}{{TAU_UNIX}}")));
-    }
-
-    function test_eachRequiredTokenMissingRejected() public view {
-        for (uint256 k; k < 9; ++k) {
-            string memory t;
-            for (uint256 j; j < 9; ++j) {
-                if (j != k) t = string.concat(t, "|{{", REQUIRED[j], "}}");
+    /// Token rules: TAU_UNIX optional and single, every other token exactly once, no unknown tokens.
+    function test_templateRules() public view {
+        {
+            // test_tauUnixOptional
+            assertTrue(ClaimRenderer.isValidTemplate(_minimal("")));
+            assertTrue(ClaimRenderer.isValidTemplate(_minimal("{{TAU_UNIX}}")));
+        }
+        {
+            // test_tauUnixTwiceRejected
+            assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{TAU_UNIX}}{{TAU_UNIX}}")));
+        }
+        {
+            // test_eachRequiredTokenMissingRejected
+            for (uint256 k; k < 9; ++k) {
+                string memory t;
+                for (uint256 j; j < 9; ++j) {
+                    if (j != k) t = string.concat(t, "|{{", REQUIRED[j], "}}");
+                }
+                assertFalse(ClaimRenderer.isValidTemplate(t), REQUIRED[k]);
             }
-            assertFalse(ClaimRenderer.isValidTemplate(t), REQUIRED[k]);
+        }
+        {
+            // test_eachRequiredTokenTwiceRejected
+            for (uint256 k; k < 9; ++k) {
+                assertFalse(
+                    ClaimRenderer.isValidTemplate(_minimal(string.concat("{{", REQUIRED[k], "}}"))), REQUIRED[k]
+                );
+            }
+        }
+        {
+            // test_unknownOrMalformedTokensRejected
+            assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{FOO}}")), "unknown");
+            assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{market_id}}")), "lowercase");
+            assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{MARKET_ID")), "unclosed");
+            assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{ RULES }}")), "spaces");
+            assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{")), "stray double brace");
+            string memory triple = "{{{MARKET_ID}}";
+            for (uint256 k = 1; k < 9; ++k) {
+                triple = string.concat(triple, "|{{", REQUIRED[k], "}}");
+            }
+            assertFalse(ClaimRenderer.isValidTemplate(triple), "triple brace before a token");
         }
     }
 
-    function test_eachRequiredTokenTwiceRejected() public view {
-        for (uint256 k; k < 9; ++k) {
-            assertFalse(ClaimRenderer.isValidTemplate(_minimal(string.concat("{{", REQUIRED[k], "}}"))), REQUIRED[k]);
+    /// Worst-case length bound, exact at the maximum.
+    function test_worstCaseLength() public pure {
+        {
+            // test_worstCaseLengthOfDefault
+            uint256 tokenBytes =
+                bytes(
+                "{{MARKET_ID}}{{CHAIN_ID}}{{ORACLE}}{{QUESTION}}{{RULES}}{{TAU_UTC}}{{TAU_UNIX}}{{OUTCOME}}{{EVIDENCE}}{{EVIDENCE_HASH}}"
+            )
+            .length;
+            uint256 want =
+                bytes(_defaultTemplate()).length - tokenBytes + 10 + 20 + 66 + 20 + 42 + 20 + 20 + 7 + 66 + 256;
+            assertEq(ClaimRenderer.worstCaseLength(_defaultTemplate(), 10, 20, 0), want);
+            // A long L1 URL makes the L1 text exceed 256 bytes: 26 + 66 + 9 + 200 = 301.
+            assertEq(ClaimRenderer.worstCaseLength(_defaultTemplate(), 10, 20, 200), want - 256 + 301);
         }
-    }
-
-    function test_unknownOrMalformedTokensRejected() public view {
-        assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{FOO}}")), "unknown");
-        assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{market_id}}")), "lowercase");
-        assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{MARKET_ID")), "unclosed");
-        assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{ RULES }}")), "spaces");
-        assertFalse(ClaimRenderer.isValidTemplate(_minimal("{{")), "stray double brace");
-        string memory triple = "{{{MARKET_ID}}";
-        for (uint256 k = 1; k < 9; ++k) {
-            triple = string.concat(triple, "|{{", REQUIRED[k], "}}");
+        {
+            // test_worstCaseExactAtMaximum (Every variable field at its maximum: a 20-digit chain id, the last second of the year 9999 and a 256-byte evidence URI. The only slack left is the plan's 20 bytes for the unix time, which is 12 digits here, so the bound is exactly 8 bytes above the rendered length.)
+            ClaimRenderer.Fields memory f = _fields();
+            f.chainId = type(uint64).max; // 18446744073709551615: 20 digits
+            f.tau = 253402300799; // 9999-12-31T23:59:59Z
+            bytes memory uri = new bytes(256);
+            for (uint256 i; i < 256; ++i) {
+                uri[i] = "u";
+            }
+            f.evidence = string(uri);
+            f.outcome = Outcome.INVALID; // 7 bytes, the longest outcome
+            uint256 got = ClaimRenderer.render(_defaultTemplate(), f).length;
+            uint256 maxLen =
+                ClaimRenderer.worstCaseLength(_defaultTemplate(), bytes(f.question).length, bytes(f.rules).length, 0);
+            assertEq(maxLen - got, 20 - 12);
         }
-        assertFalse(ClaimRenderer.isValidTemplate(triple), "triple brace before a token");
-    }
-
-    function test_worstCaseLengthOfDefault() public pure {
-        uint256 tokenBytes =
-            bytes(
-            "{{MARKET_ID}}{{CHAIN_ID}}{{ORACLE}}{{QUESTION}}{{RULES}}{{TAU_UTC}}{{TAU_UNIX}}{{OUTCOME}}{{EVIDENCE}}{{EVIDENCE_HASH}}"
-        )
-        .length;
-        uint256 want = bytes(_defaultTemplate()).length - tokenBytes + 10 + 20 + 66 + 20 + 42 + 20 + 20 + 7 + 66 + 256;
-        assertEq(ClaimRenderer.worstCaseLength(_defaultTemplate(), 10, 20, 0), want);
-        // A long L1 URL makes the L1 text exceed 256 bytes: 26 + 66 + 9 + 200 = 301.
-        assertEq(ClaimRenderer.worstCaseLength(_defaultTemplate(), 10, 20, 200), want - 256 + 301);
-    }
-
-    /// Every variable field at its maximum: a 20-digit chain id, the last second of the year 9999 and a
-    /// 256-byte evidence URI. The only slack left is the plan's 20 bytes for the unix time, which is
-    /// 12 digits here, so the bound is exactly 8 bytes above the rendered length.
-    function test_worstCaseExactAtMaximum() public pure {
-        ClaimRenderer.Fields memory f = _fields();
-        f.chainId = type(uint64).max; // 18446744073709551615: 20 digits
-        f.tau = 253402300799; // 9999-12-31T23:59:59Z
-        bytes memory uri = new bytes(256);
-        for (uint256 i; i < 256; ++i) {
-            uri[i] = "u";
-        }
-        f.evidence = string(uri);
-        f.outcome = Outcome.INVALID; // 7 bytes, the longest outcome
-        uint256 got = ClaimRenderer.render(_defaultTemplate(), f).length;
-        uint256 maxLen =
-            ClaimRenderer.worstCaseLength(_defaultTemplate(), bytes(f.question).length, bytes(f.rules).length, 0);
-        assertEq(maxLen - got, 20 - 12);
     }
 
     // ------------------------------------------------------------------ fuzz
