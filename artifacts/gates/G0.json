@@ -5,35 +5,35 @@
   "scope": "combined_technical_checks_only",
   "spec_version": "1.1",
   "economic_baseline": "1.0",
-  "interface_version": "risk-math-g0-draft-1",
-  "recorded_at": "2026-10-01T10:48:40.984598+00:00",
-  "source_commit": "966444deae066fc6ea2d948f76fd187a460be950",
-  "worktree_dirty": false,
+  "interface_version": "risk-integration-1",
+  "recorded_at": "2026-10-02T00:33:49.544663+00:00",
+  "source_commit": "71576ed4f0befcb5ec8a97154895c4b803d804d6",
+  "worktree_dirty": true,
   "toolchain": {
-    "python": "3.13.13",
-    "forge": "forge Version: 1.3.5-stable\nCommit SHA: 9979a41b5daa5da1572d973d7ac5a3dd2afc0221\nBuild Timestamp: 2025-09-09T04:49:44.505104000Z (1757393384)\nBuild Profile: maxperf",
+    "python": "3.12.10",
+    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",
     "solc_declared": "0.8.30",
     "foundry_profile": "risk",
-    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69)"
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
   },
   "seed": "0x45524f53",
   "python_hash_seed": "0",
   "fixture_hashes": {
     "reference/common/units.py": "3d45a1d6f04ea41d637c62aabd4a495d1fa8c99dd72ca8a4dfe557d82ffd0baf",
     "reference/common/result_schema.json": "5c0fd4ad7d0c415ac08bd01d7dcbf4bf2eb7b5d8ad5090964d8bf5a982d87106",
-    "contracts/src/math/MathTypes.sol": "caf35bd8815a14cb245f17a5df80d1d4906be37b6b6ba4bab187cccea3d3e7c0",
+    "contracts/src/math/MathTypes.sol": "f34d68b5e0331ea13f521c80c520ce1c58e9db91a74b26c2d1eb853b69ef0575",
     "docs/math/units.md": "3526acb48f00f31936c2fb6f5335a945ce04870a60d653d27c3708844a50b338",
-    "docs/math/risk-function-contracts.json": "5656cee2c6f1147e7f19eb09dea338afd2945a8ef407ac11c28476decbcda494",
-    "docs/ownership.json": "258dae5d3f096fcdb75f49b5edf05d4efa1f4e5fbefc20b3d9debf5ebd0fba49",
-    "docs/counterpart-contracts.md": "0a5eaca153a4684e6c5cce069e78f3fc8c6bd9796a4682f52b743931d76af8b6",
-    "reference/fixtures/golden_cases.json": "077ef4666238f5d8bfc3270b902cf0e381a418ff0475515ad4d83a16f7445fca",
-    "docs/math/golden-case-rationale.md": "5ddba240f9137e283d91621ff3d8185122a4c70d22cf351f9f87de9bfb88fd91",
-    "docs/contracts/G0.json": "277126a133507fa2f053bcae2b7eb351d773ed75cce5b4e25972ff7af092e6d5",
-    "contracts/test/gates/G0.t.sol": "bd8c9a5b21bd8414228a0ae35b9726c2b8bd4fa5f6ff6e74dbaa0b5f4b8c62d4",
+    "docs/math/risk-function-contracts.json": "e992f92a1ca9057196b83d74cae71f2c68b3bffe9c019a71bea23c8aeaa621dd",
+    "docs/ownership.json": "f2236eccd36babaaf1f8281188af4933beeb9a2bee80b987389588fba69d7e78",
+    "docs/counterpart-contracts.md": "2065d0df36702fc0a72c811dbfa77512508f900edbe121f90f167c7fc6d59f52",
+    "reference/fixtures/golden_cases.json": "68ce2f302fa7f2cac181185ed9fbb18ae454e4c28c4020d56b4df28860ee988d",
+    "docs/math/golden-case-rationale.md": "ca6a5f65666f964f28d9a1d18155d26132480ac4c7c5261f5db1ddf6b6bc4736",
+    "docs/contracts/G0.json": "15d76c82487a7df0fcd2278ea867dae0d89c1de7d36588a555ed85df71fa722d",
+    "contracts/test/gates/G0.t.sol": "6133f88aec4f31049322b8912eed3b42752a30252f6de0ff891488fe56d0ce4d",
     "reference/tests/a/test_a001.py": "5175621e9adc0b0cc21f1e2511a75453f6ea19274b8ca4952ae0b0b539dfa454",
-    "reference/tests/a/test_a002.py": "8cdf33ea4660015a9b8d444ed33ebc256042a655140ca1767817f0a25a78afa8",
-    "reference/tests/b/test_b001.py": "f4373c8a884bbb79eb670a2aba10d27f035b714eb23191ffebefd82e11901d31",
-    "reference/tests/b/test_b002.py": "f5cd64d6387dcc032803c2fe29cabd4bfca8d268ff243ad1d43b95b3feab2834"
+    "reference/tests/a/test_a002.py": "92bd1e7308a1a4cc98a00b13803661f4c99c819e83e396bbc666f8cfa0a4b1df",
+    "reference/tests/b/test_b001.py": "4c507ecf4726bcbead0568a9b144f3014ac9f704ae53587c5061fa7e419006d7",
+    "reference/tests/b/test_b002.py": "1f6a9ae1ffa16e3b6b4c01331daaf4066089d7af4316a6e749c1ceab29f82e01"
   },
   "components": {
     "lane_a": "real",
@@ -44,47 +44,47 @@
   "commands": [
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "A001"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "test_binary_y_and_oracle_enum_are_distinct (test_a001.UnitsTest.test_binary_y_and_oracle_enum_are_distinct) ... ok\ntest_directed_signed_rounding_against_fraction (test_a001.UnitsTest.test_directed_signed_rounding_against_fraction) ... ok\ntest_exact_claim_conversion_rejects_float_and_sub_lot (test_a001.UnitsTest.test_exact_claim_conversion_rejects_float_and_sub_lot) ... ok\ntest_fractional_q_cannot_round_up_to_atoms (test_a001.UnitsTest.test_fractional_q_cannot_round_up_to_atoms) ... ok\ntest_funding_records_keep_explicit_units_and_cutoffs (test_a001.UnitsTest.test_funding_records_keep_explicit_units_and_cutoffs) ... ok\ntest_mark_scale_has_no_second_wad_division (test_a001.UnitsTest.test_mark_scale_has_no_second_wad_division) ... ok\ntest_one_lot_one_tick_is_one_atom (test_a001.UnitsTest.test_one_lot_one_tick_is_one_atom) ... ok\ntest_order_epochs_and_version_wrap (test_a001.UnitsTest.test_order_epochs_and_version_wrap) ... ok\ntest_payoff_records_require_finality_and_matching_price (test_a001.UnitsTest.test_payoff_records_require_finality_and_matching_price) ... ok\ntest_settlement_endpoints_are_not_trading_ticks (test_a001.UnitsTest.test_settlement_endpoints_are_not_trading_ticks) ... ok\ntest_source_ledger_identity_in_selected_units (test_a001.UnitsTest.test_source_ledger_identity_in_selected_units) ... ok\ntest_strict_cash_and_inclusive_position_bounds (test_a001.UnitsTest.test_strict_cash_and_inclusive_position_bounds) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.003s\n\nOK\nA001: passed; 12 tests; artifacts/tasks/A001.json\n"
+      "output": "test_binary_y_and_oracle_enum_are_distinct (test_a001.UnitsTest.test_binary_y_and_oracle_enum_are_distinct) ... ok\ntest_directed_signed_rounding_against_fraction (test_a001.UnitsTest.test_directed_signed_rounding_against_fraction) ... ok\ntest_exact_claim_conversion_rejects_float_and_sub_lot (test_a001.UnitsTest.test_exact_claim_conversion_rejects_float_and_sub_lot) ... ok\ntest_fractional_q_cannot_round_up_to_atoms (test_a001.UnitsTest.test_fractional_q_cannot_round_up_to_atoms) ... ok\ntest_funding_records_keep_explicit_units_and_cutoffs (test_a001.UnitsTest.test_funding_records_keep_explicit_units_and_cutoffs) ... ok\ntest_mark_scale_has_no_second_wad_division (test_a001.UnitsTest.test_mark_scale_has_no_second_wad_division) ... ok\ntest_one_lot_one_tick_is_one_atom (test_a001.UnitsTest.test_one_lot_one_tick_is_one_atom) ... ok\ntest_order_epochs_and_version_wrap (test_a001.UnitsTest.test_order_epochs_and_version_wrap) ... ok\ntest_payoff_records_require_finality_and_matching_price (test_a001.UnitsTest.test_payoff_records_require_finality_and_matching_price) ... ok\ntest_settlement_endpoints_are_not_trading_ticks (test_a001.UnitsTest.test_settlement_endpoints_are_not_trading_ticks) ... ok\ntest_source_ledger_identity_in_selected_units (test_a001.UnitsTest.test_source_ledger_identity_in_selected_units) ... ok\ntest_strict_cash_and_inclusive_position_bounds (test_a001.UnitsTest.test_strict_cash_and_inclusive_position_bounds) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.009s\n\nOK\nA001: passed; 12 tests; artifacts/tasks/A001.json\n"
     },
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "A002"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "test_a_and_b_are_discovered_independently (test_a002.RunnerTest.test_a_and_b_are_discovered_independently) ... ok\ntest_empty_suite_fails (test_a002.RunnerTest.test_empty_suite_fails) ... ok\ntest_expected_failure_does_not_count_as_acceptance (test_a002.RunnerTest.test_expected_failure_does_not_count_as_acceptance) ... ok\ntest_failure_propagates_and_does_not_run_peer (test_a002.RunnerTest.test_failure_propagates_and_does_not_run_peer) ... ok\ntest_gate_executes_both_lanes_and_combined_suite_without_accepting_merge (test_a002.RunnerTest.test_gate_executes_both_lanes_and_combined_suite_without_accepting_merge) ... ok\ntest_gate_missing_real_inputs_never_passes (test_a002.RunnerTest.test_gate_missing_real_inputs_never_passes) ... ok\ntest_import_error_is_failed_evidence (test_a002.RunnerTest.test_import_error_is_failed_evidence) ... ok\ntest_invalid_gate_fails (test_a002.RunnerTest.test_invalid_gate_fails) ... ok\ntest_missing_solidity_suite_and_unconfigured_campaign_fail (test_a002.RunnerTest.test_missing_solidity_suite_and_unconfigured_campaign_fail) ... ok\ntest_missing_suite_fails (test_a002.RunnerTest.test_missing_suite_fails) ... ok\ntest_risk_seed_does_not_override_book_profiles (test_a002.RunnerTest.test_risk_seed_does_not_override_book_profiles) ... ok\ntest_schema_preserves_exact_values_and_execution_provenance (test_a002.RunnerTest.test_schema_preserves_exact_values_and_execution_provenance) ... ok\ntest_skipped_suite_is_not_accepted (test_a002.RunnerTest.test_skipped_suite_is_not_accepted) ... ok\ntest_solidity_runner_executes_and_rejects_failure_or_empty_suite (test_a002.RunnerTest.test_solidity_runner_executes_and_rejects_failure_or_empty_suite) ... ok\ntest_unknown_identifiers_fail_without_execution (test_a002.RunnerTest.test_unknown_identifiers_fail_without_execution) ... ok\n\n----------------------------------------------------------------------\nRan 15 tests in 1.795s\n\nOK\nA002: passed; 15 tests; artifacts/tasks/A002.json\n"
+      "output": "test_a_and_b_are_discovered_independently (test_a002.RunnerTest.test_a_and_b_are_discovered_independently) ... ok\ntest_empty_suite_fails (test_a002.RunnerTest.test_empty_suite_fails) ... ok\ntest_expected_failure_does_not_count_as_acceptance (test_a002.RunnerTest.test_expected_failure_does_not_count_as_acceptance) ... ok\ntest_failure_propagates_and_does_not_run_peer (test_a002.RunnerTest.test_failure_propagates_and_does_not_run_peer) ... ok\ntest_gate_executes_both_lanes_and_combined_suite_without_accepting_merge (test_a002.RunnerTest.test_gate_executes_both_lanes_and_combined_suite_without_accepting_merge) ... ok\ntest_gate_missing_real_inputs_never_passes (test_a002.RunnerTest.test_gate_missing_real_inputs_never_passes) ... ok\ntest_import_error_is_failed_evidence (test_a002.RunnerTest.test_import_error_is_failed_evidence) ... ok\ntest_invalid_gate_fails (test_a002.RunnerTest.test_invalid_gate_fails) ... ok\ntest_missing_solidity_suite_and_unconfigured_campaign_fail (test_a002.RunnerTest.test_missing_solidity_suite_and_unconfigured_campaign_fail) ... ok\ntest_missing_suite_fails (test_a002.RunnerTest.test_missing_suite_fails) ... ok\ntest_peer_review_rejects_changed_or_unreviewed_source (test_a002.RunnerTest.test_peer_review_rejects_changed_or_unreviewed_source) ... ok\ntest_peer_review_rejects_unresolved_high_and_unrelated_commit (test_a002.RunnerTest.test_peer_review_rejects_unresolved_high_and_unrelated_commit) ... ok\ntest_peer_review_requires_report_and_evidence (test_a002.RunnerTest.test_peer_review_requires_report_and_evidence) ... ok\ntest_risk_seed_does_not_override_book_profiles (test_a002.RunnerTest.test_risk_seed_does_not_override_book_profiles) ... ok\ntest_schema_preserves_exact_values_and_execution_provenance (test_a002.RunnerTest.test_schema_preserves_exact_values_and_execution_provenance) ... ok\ntest_skipped_suite_is_not_accepted (test_a002.RunnerTest.test_skipped_suite_is_not_accepted) ... ok\ntest_solidity_runner_executes_and_rejects_failure_or_empty_suite (test_a002.RunnerTest.test_solidity_runner_executes_and_rejects_failure_or_empty_suite) ... ok\ntest_unknown_identifiers_fail_without_execution (test_a002.RunnerTest.test_unknown_identifiers_fail_without_execution) ... ok\n\n----------------------------------------------------------------------\nRan 18 tests in 60.288s\n\nOK\nA002: passed; 18 tests; artifacts/tasks/A002.json\n"
     },
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "B001"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "test_directions_match_claude_md (test_b001.FunctionContracts.test_directions_match_claude_md) ... ok\ntest_domain_failures_force_full_backing (test_b001.FunctionContracts.test_domain_failures_force_full_backing) ... ok\ntest_every_b_library_has_functions (test_b001.FunctionContracts.test_every_b_library_has_functions) ... ok\ntest_every_function_has_domain_rounding_and_error (test_b001.FunctionContracts.test_every_function_has_domain_rounding_and_error) ... ok\ntest_names_unique (test_b001.FunctionContracts.test_names_unique) ... ok\ntest_no_double_wad_division (test_b001.FunctionContracts.test_no_double_wad_division) ... ok\ntest_counterparts_are_outside_the_team (test_b001.Ownership.test_counterparts_are_outside_the_team) ... ok\ntest_every_task_file_is_mapped_to_its_owner (test_b001.Ownership.test_every_task_file_is_mapped_to_its_owner) ... ok\ntest_no_duplicate_writers (test_b001.Ownership.test_no_duplicate_writers) ... ok\ntest_scope_excludes_clob_and_uma_internals (test_b001.Ownership.test_scope_excludes_clob_and_uma_internals) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.001s\n\nOK\nB001: passed; 10 tests; artifacts/tasks/B001.json\n"
+      "output": "test_directions_match_claude_md (test_b001.FunctionContracts.test_directions_match_claude_md) ... ok\ntest_domain_failures_force_full_backing (test_b001.FunctionContracts.test_domain_failures_force_full_backing) ... ok\ntest_every_b_library_has_functions (test_b001.FunctionContracts.test_every_b_library_has_functions) ... ok\ntest_every_function_has_domain_rounding_and_error (test_b001.FunctionContracts.test_every_function_has_domain_rounding_and_error) ... ok\ntest_names_unique (test_b001.FunctionContracts.test_names_unique) ... ok\ntest_no_double_wad_division (test_b001.FunctionContracts.test_no_double_wad_division) ... ok\ntest_counterparts_are_outside_the_team (test_b001.Ownership.test_counterparts_are_outside_the_team) ... ok\ntest_every_task_file_is_mapped_to_its_owner (test_b001.Ownership.test_every_task_file_is_mapped_to_its_owner) ... ok\ntest_no_duplicate_writers (test_b001.Ownership.test_no_duplicate_writers) ... ok\ntest_scope_excludes_clob_and_uma_internals (test_b001.Ownership.test_scope_excludes_clob_and_uma_internals) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.011s\n\nOK\nB001: passed; 10 tests; artifacts/tasks/B001.json\n"
     },
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "B002"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "test_endpoint_cases (test_b002.ExactLedger.test_endpoint_cases) ... ok\ntest_g01 (test_b002.ExactLedger.test_g01) ... ok\ntest_g05_takeover_slack (test_b002.ExactLedger.test_g05_takeover_slack) ... ok\ntest_g06_settlement (test_b002.ExactLedger.test_g06_settlement) ... ok\ntest_g09_full_backing (test_b002.ExactLedger.test_g09_full_backing) ... ok\ntest_g10_oversized_ask (test_b002.ExactLedger.test_g10_oversized_ask) ... ok\ntest_g11_cancel (test_b002.ExactLedger.test_g11_cancel) ... ok\ntest_g12_emin (test_b002.ExactLedger.test_g12_emin) ... ok\ntest_g14_stages (test_b002.ExactLedger.test_g14_stages) ... ok\ntest_g15_window (test_b002.ExactLedger.test_g15_window) ... ok\ntest_g16_rate (test_b002.ExactLedger.test_g16_rate) ... ok\ntest_g17_pair_tick (test_b002.ExactLedger.test_g17_pair_tick) ... ok\ntest_g18_bankruptcy (test_b002.ExactLedger.test_g18_bankruptcy) ... ok\ntest_g20_mark (test_b002.ExactLedger.test_g20_mark) ... ok\ntest_g07_long (test_b002.RiskIntervals.test_g07_long) ... ok\ntest_g08_short (test_b002.RiskIntervals.test_g08_short) ... ok\ntest_constants (test_b002.Structure.test_constants) ... ok\ntest_every_case_labelled (test_b002.Structure.test_every_case_labelled) ... ok\ntest_interval_cases_have_brackets (test_b002.Structure.test_interval_cases_have_brackets) ... ok\ntest_required_cases_present (test_b002.Structure.test_required_cases_present) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.000s\n\nOK\nB002: passed; 20 tests; artifacts/tasks/B002.json\n"
+      "output": "test_endpoint_cases (test_b002.ExactLedger.test_endpoint_cases) ... ok\ntest_g01 (test_b002.ExactLedger.test_g01) ... ok\ntest_g05_takeover_slack (test_b002.ExactLedger.test_g05_takeover_slack) ... ok\ntest_g06_settlement (test_b002.ExactLedger.test_g06_settlement) ... ok\ntest_g09_full_backing (test_b002.ExactLedger.test_g09_full_backing) ... ok\ntest_g10_oversized_ask (test_b002.ExactLedger.test_g10_oversized_ask) ... ok\ntest_g11_cancel (test_b002.ExactLedger.test_g11_cancel) ... ok\ntest_g12_emin (test_b002.ExactLedger.test_g12_emin) ... ok\ntest_g14_stages (test_b002.ExactLedger.test_g14_stages) ... ok\ntest_g15_window (test_b002.ExactLedger.test_g15_window) ... ok\ntest_g16_rate (test_b002.ExactLedger.test_g16_rate) ... ok\ntest_g17_pair_tick (test_b002.ExactLedger.test_g17_pair_tick) ... ok\ntest_g18_bankruptcy (test_b002.ExactLedger.test_g18_bankruptcy) ... ok\ntest_g20_mark (test_b002.ExactLedger.test_g20_mark) ... ok\ntest_g07_long (test_b002.RiskIntervals.test_g07_long) ... ok\ntest_g08_short (test_b002.RiskIntervals.test_g08_short) ... ok\ntest_constants (test_b002.Structure.test_constants) ... ok\ntest_every_case_labelled (test_b002.Structure.test_every_case_labelled) ... ok\ntest_interval_cases_have_brackets (test_b002.Structure.test_interval_cases_have_brackets) ... ok\ntest_required_cases_present (test_b002.Structure.test_required_cases_present) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.003s\n\nOK\nB002: passed; 20 tests; artifacts/tasks/B002.json\n"
     },
     {
       "argv": [
@@ -97,10 +97,10 @@
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/gates/G0.t.sol:G0Test\":{\"duration\":\"6ms 874\u00b5s 167ns\",\"test_results\":{\"test_endpointFunctionsAgree(int128,int64)\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Fuzz\":{\"first_case\":{\"calldata\":\"0xa9b197d7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc1454fffffffffffffffffffffffffffffffffffffffffffffffffffff98694b5dc84\",\"gas\":25079,\"stipend\":22088},\"runs\":1000,\"mean_gas\":3014,\"median_gas\":2991}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"6ms 760\u00b5s 83ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_enumOrdinalsIdentical()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":897}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"35\u00b5s 208ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_fundingRateFunctionsAgree(uint64,uint64)\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Fuzz\":{\"first_case\":{\"calldata\":\"0x2677eec900000000000000000000000000000000000000000000000000000000000001ac00000000000000000000000000000000000000000000000000000000bf1e2a02\",\"gas\":24174,\"stipend\":21392},\"runs\":1000,\"mean_gas\":2818,\"median_gas\":2782}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"6ms 429\u00b5s 459ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_oracleMappingAgrees()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":1496}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"26\u00b5s 875ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_roundingConventions()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":4703}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"23\u00b5s 500ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_sharedSmokeFixture()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":18811}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"45\u00b5s 792ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_unitsIdentical()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":1125}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"33\u00b5s 334ns\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]}}\n"
+      "output": "{\"test/gates/G0.t.sol:G0Test\":{\"duration\":\"50ms 329\u00c2\u00b5s\",\"test_results\":{\"test_endpointFunctionsAgree(int128,int64)\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Fuzz\":{\"first_case\":{\"gas\":24395,\"stipend\":21332},\"runs\":1000,\"mean_gas\":3033,\"median_gas\":3027,\"failed_corpus_replays\":0}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"47ms 705\u00c2\u00b5s 700ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_enumOrdinalsIdentical()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":930}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"291\u00c2\u00b5s 900ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_fundingRateFunctionsAgree(uint64,uint64)\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Fuzz\":{\"first_case\":{\"gas\":24017,\"stipend\":21368},\"runs\":1000,\"mean_gas\":2821,\"median_gas\":2782,\"failed_corpus_replays\":0}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"47ms 677\u00c2\u00b5s\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_oracleMappingAgrees()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":1496}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"282\u00c2\u00b5s 200ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_roundingConventions()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":4703}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"703\u00c2\u00b5s 400ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_sharedSmokeFixture()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":18811}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"316\u00c2\u00b5s 200ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_unitsIdentical()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":1125}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"279\u00c2\u00b5s 200ns\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]}}\n"
     }
   ],
-  "test_count": 64,
+  "test_count": 67,
   "skipped_count": 0,
   "status": "checks_passed",
   "exit_code": 0,

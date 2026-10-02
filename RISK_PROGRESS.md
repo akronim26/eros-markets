@@ -1,5 +1,16 @@
 # Person A risk implementation progress
 
+## Integration review update — 2026-10-02
+
+Current work is on `integration/risk` based on `71576ed`. The initial history report
+is `docs/merge/history-review-2026-10-02.md`. A's integration review, eight concrete
+B/bridge findings and repairs, five requested accounting ports, and fixes for
+A-F01–A-F03 are recorded in `docs/merge/A-integration-review.md` and
+`artifacts/reviews/A-on-B.md`. Fresh gate/task artifacts supersede the historical
+solo-lane counts below. Foundry validation now targets the existing CI pin 1.8.3.
+External counterpart integration and final B review of these new fixes
+remain separate. The original solo-lane progress record follows for provenance.
+
 Updated 2026-10-01 on feat/risk. Scope follows the user's latest instruction:
 **implement A independently; merge B later; leave the order book untouched.**
 The attached packet supplies requirements, not permission to override that scope.
