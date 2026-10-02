@@ -74,7 +74,8 @@ contract OracleHandler is RegistryFixture {
         GUARDIAN,
         ENGINE,
         INTRUDER,
-        KEEPER_TICK
+        KEEPER_TICK,
+        POKE_FINAL
     }
 
     // RState bits for `_pickWhere`.
@@ -116,7 +117,7 @@ contract OracleHandler is RegistryFixture {
     uint256 internal constant MAX_LIVE = 4; // markets not yet Final at once: calls concentrate on them
     uint256 internal constant OI_CAP = 2_000_000; // lots: above the 1,668,000-lot review limit
     bytes32 internal constant SPORTS = keccak256("sports");
-    bytes32 internal constant GROUP = keccak256("handler-group");
+    bytes32 public constant GROUP = keccak256("handler-group");
     bytes32 public constant WF = keccak256("eros-resolution-workflow");
     address public constant ORG = address(0x0C4E);
     string internal constant URI = "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi";
@@ -211,7 +212,8 @@ contract OracleHandler is RegistryFixture {
 
     // ------------------------------------------------------------------ listing and time
 
-    /// Lists a market (with or without a feed, alone or in the exclusive group) T 10-60 minutes ahead.
+    /// Lists a market (with or without a feed; a third of them in the exclusive group) T 10-60 minutes
+    /// ahead.
     function createMarket(uint256 seed) external act(Action.CREATE) {
         if (marketCount >= MAX_MARKETS || _live() >= MAX_LIVE) return _noop(Action.CREATE);
         MarketInput memory m = seed % 3 == 0 ? _noFeed() : _market();
@@ -308,7 +310,7 @@ contract OracleHandler is RegistryFixture {
     }
 
     function _assertProposal(uint256 m) internal act(Action.ASSERT) {
-        bytes32 id = _pickWhere(m, S_PROPOSED);
+        bytes32 id = _pickRetry(m, S_PROPOSED);
         if (id == 0) return _noop(Action.ASSERT);
         try ro.assertProposal(id) returns (bool asserted) {
             if (!asserted) _noop(Action.ASSERT);
@@ -437,7 +439,7 @@ contract OracleHandler is RegistryFixture {
 
     /// A committee proposal (YES, NO or INVALID) for the market's state, signed by two of the three members.
     function submitReviewedProposal(uint256 m, uint256 seed) external act(Action.COMMITTEE) {
-        bytes32 id = _pickWhere(m, S_REVIEW | S_OPEN | S_EARLY_REVIEW);
+        bytes32 id = _pickRetry(m, S_REVIEW | S_OPEN | S_EARLY_REVIEW);
         if (id == 0) return _noop(Action.COMMITTEE);
         Resolution memory r = ro.getResolution(id);
         bool early = r.state == RState.EarlyReview;
@@ -468,7 +470,7 @@ contract OracleHandler is RegistryFixture {
 
     /// Anyone with their own bond, in Open.
     function proposePermissionless(uint256 m, uint256 seed) external act(Action.PERMISSIONLESS) {
-        bytes32 id = _pickWhere(m, S_OPEN);
+        bytes32 id = _pickRetry(m, S_OPEN);
         if (id == 0) return _noop(Action.PERMISSIONLESS);
         Outcome o = _outcome(ro.getResolution(id).rejectedMask, seed >> 8);
         vm.prank(proposers[seed % proposers.length]);
@@ -481,11 +483,13 @@ contract OracleHandler is RegistryFixture {
     // ------------------------------------------------------------------ venue and disputes
 
     /// What the venue does with an assertion the oracle opened: settles true or false when asked
-    /// (`setResult`), is disputed, is settled directly behind the oracle's back, or never answers.
+    /// (`setResult`), is disputed, is settled directly behind the oracle's back, or never answers; half
+    /// the time a keeper then runs `finalizeMarket` on the market at once.
     function venueOutcome(uint256 a, uint256 mode) external act(Action.VENUE) {
         if (allAssertions.length == 0) return _noop(Action.VENUE);
         bytes32 aid = _liveAssertion(a);
         bool steer = (mode >> 8) % 2 == 0;
+        bool steerKeeper = (mode >> 9) % 2 == 0;
         mode %= 6;
         // After a first rejection, answer false half the time, so YES and NO both end up rejected
         // (the REJECTED_YES_AND_NO void) within a run.
@@ -501,6 +505,10 @@ contract OracleHandler is RegistryFixture {
         } else {
             if (venue.statusOf(aid).settled) return _noop(Action.VENUE);
             venue.settleDirectly(aid, mode == 3);
+        }
+        // Half the time the keeper reacts at once and applies the venue's answer.
+        if (steerKeeper) {
+            try ro.finalizeMarket(venue.marketOf(aid)) {} catch {}
         }
     }
 
@@ -528,10 +536,11 @@ contract OracleHandler is RegistryFixture {
     // ------------------------------------------------------------------ treasury
 
     /// Deposits, a donation (for `skim`), `claimOwed`, `skim`, the Timelock's `withdraw` and `setLimits`.
-    function _treasuryAction(uint256 seed) internal act(Action.TREASURY) {
+    function treasuryAction(uint256 seed) external act(Action.TREASURY) {
         uint256 kind = seed % 6;
         uint256 amount = bound(seed >> 8, 1, 1e9);
-        Ledger ledger = Ledger(uint8((seed >> 4) % 3));
+        // ASSERTION half the time: it is the ledger with a withdrawal floor (ORC-10).
+        Ledger ledger = (seed >> 4) % 2 == 0 ? Ledger.ASSERTION : Ledger(uint8(1 + (seed >> 5) % 2));
         if (kind == 0) {
             try treasury.deposit(ledger, amount) {}
             catch (bytes memory err) {
@@ -551,11 +560,20 @@ contract OracleHandler is RegistryFixture {
                 _reverted(Action.TREASURY, err);
             }
         } else if (kind == 4) {
-            amount = bound(seed >> 8, 0, treasury.balanceOf(ledger));
+            // Random, the whole ledger, exactly down to the listing commitments, or one atom past them.
+            uint256 have = treasury.balanceOf(ledger);
+            uint256 floor_ = ledger == Ledger.ASSERTION ? treasury.totalCommitted() : 0;
+            uint256 pick = (seed >> 16) % 4;
+            if (pick == 0) amount = bound(seed >> 24, 0, have);
+            else if (pick == 1) amount = have;
+            else if (have >= floor_) amount = have - floor_ + (pick == 3 ? 1 : 0);
+            else amount = 1;
             vm.prank(gov);
             try treasury.withdraw(ledger, gov, amount) {
                 // ORC-10: a withdrawal never takes ASSERTION below the listing commitments.
                 if (treasury.balanceOf(Ledger.ASSERTION) < treasury.totalCommitted()) globalFlags |= 1 << 10;
+                // Operations top the ledger back up, so a drained ledger does not stall the run.
+                if (amount != 0) treasury.deposit(ledger, amount);
             } catch (bytes memory err) {
                 _reverted(Action.TREASURY, err);
             }
@@ -797,19 +815,43 @@ contract OracleHandler is RegistryFixture {
         else _voidMarket(m);
     }
 
-    /// One administrative or adversarial action: treasury flows, registry and oracle governance, the
-    /// guardian, engine knobs or an unauthorized caller. One selector for the eight keeps them a small
-    /// share of the calls.
+    /// One administrative or adversarial action: registry and oracle governance, the guardian, engine
+    /// knobs or an unauthorized caller. One selector for them keeps them a small share of the calls
+    /// (treasury flows have their own selector: the withdrawal rule of ORC-10 needs the calls).
     function admin(uint256 which, uint256 m, uint256 seed) external {
         which %= 8;
-        if (which == 0) _treasuryAction(seed);
-        else if (which == 1) _setCategory(seed);
+        if (which == 0) _setCategory(seed);
+        else if (which == 1) _setCategory(seed >> 1);
         else if (which == 2) _setGlobals(seed);
         else if (which == 3) _registryGovernance(seed);
         else if (which == 4) _oracleGovernance(seed);
         else if (which == 5) _guardianAction(seed);
         else if (which == 6) _engineKnob(m, seed);
         else _intruder(m, seed);
+    }
+
+    // ------------------------------------------------------------------ Final markets (ORC-8)
+
+    /// Calls every permissionless entry point on a Final market (half the time after its voidDeadline),
+    /// so "nothing changes after Final" is exercised, not only observed.
+    function pokeFinal(uint256 m, uint256 seed) external act(Action.POKE_FINAL) {
+        bytes32 id = _pickWhere(m, 1 << uint256(RState.Final));
+        if (id == 0 || ro.getResolution(id).state != RState.Final) return _noop(Action.POKE_FINAL);
+        uint64 deadline = ro.getResolution(id).voidDeadline;
+        if (seed % 2 == 0 && block.timestamp < deadline) vm.warp(deadline);
+        address who = proposers[seed % proposers.length];
+        vm.startPrank(who);
+        try ro.haltScheduled(id) {} catch {}
+        try ro.requestResolution(id) {} catch {}
+        try ro.escalateToL2(id) {} catch {}
+        try ro.expireEarly(id) {} catch {}
+        try ro.openAfterDeadline(id) {} catch {}
+        try ro.assertProposal(id) {} catch {}
+        try ro.syncAssertion(id) {} catch {}
+        try ro.finalizeMarket(id) {} catch {}
+        try ro.voidMarket(id) {} catch {}
+        try ro.proposePermissionless(id, Outcome(1 + (seed >> 8) % 3), URI, keccak256("late")) {} catch {}
+        vm.stopPrank();
     }
 
     // ------------------------------------------------------------------ keeper bot
@@ -927,14 +969,16 @@ contract OracleHandler is RegistryFixture {
     /// ORC-10: a ledger only decreases through its own path, or the Timelock's withdraw (TREASURY, which
     /// also holds claimOwed): ASSERTION through assertProposal, WATCHDOG_FLOAT through disputeViaVenue,
     /// PROPOSER_REWARD through a finalize or a void that pays a permissionless proposer. A keeper tick
-    /// runs assertProposal, finalizeMarket and voidMarket, so it may move ASSERTION and PROPOSER_REWARD.
+    /// runs assertProposal, finalizeMarket and voidMarket, so it may move ASSERTION and PROPOSER_REWARD; a
+    /// venue answer may be followed by finalizeMarket, so it may move PROPOSER_REWARD.
     function _checkOutflows(Action a, uint256[3] memory before) internal {
         uint256[3] memory after_ = _ledgers();
         bool treasuryCall = a == Action.TREASURY;
         bool tick = a == Action.KEEPER_TICK;
         if (after_[0] < before[0] && a != Action.ASSERT && !tick && !treasuryCall) globalFlags |= 1 << 10;
         if (after_[1] < before[1] && a != Action.DISPUTE && !treasuryCall) globalFlags |= 1 << 10;
-        if (after_[2] < before[2] && a != Action.FINALIZE && a != Action.VOID && !tick && !treasuryCall) {
+        bool finalizing = a == Action.FINALIZE || a == Action.VOID || a == Action.VENUE || tick;
+        if (after_[2] < before[2] && !finalizing && !treasuryCall) {
             globalFlags |= 1 << 10;
         }
     }
@@ -982,6 +1026,17 @@ contract OracleHandler is RegistryFixture {
         return 0;
     }
 
+    /// A market in `mask` that already had an outcome rejected (its retry is the path to the second
+    /// rejection and REJECTED_YES_AND_NO), else as `_pickWhere`.
+    function _pickRetry(uint256 m, uint256 mask) internal view returns (bytes32) {
+        uint256 n = markets.length;
+        for (uint256 k; k < n && (m >> 128) % 8 != 0; ++k) {
+            Resolution memory r = ro.getResolution(markets[(m % n + k) % n]);
+            if (r.rejectedMask != 0 && mask & (1 << uint256(r.state)) != 0) return markets[(m % n + k) % n];
+        }
+        return _pickWhere(m, mask);
+    }
+
     /// A Proposed market whose assertion is live on the venue (not expired, settled or disputed: what a
     /// dispute or a sync acts on); 0 when there is none. One call in eight takes any market instead.
     function _pickAsserted(uint256 m) internal view returns (bytes32) {
@@ -1011,22 +1066,33 @@ contract OracleHandler is RegistryFixture {
         }
     }
 
-    /// An assertion the venue has not settled, searched from a random start; else any.
+    /// An assertion the oracle is waiting on (its market's live assertion, not settled on the venue),
+    /// searched from a random start; else any assertion the oracle opened (stale ones included).
     function _liveAssertion(uint256 a) internal view returns (bytes32) {
         uint256 n = allAssertions.length;
         for (uint256 k; k < n; ++k) {
             bytes32 aid = allAssertions[(a % n + k) % n];
-            if (!venue.statusOf(aid).settled) return aid;
+            if (!venue.statusOf(aid).settled && ro.getResolution(venue.marketOf(aid)).assertionId == aid) return aid;
         }
         return allAssertions[a % n];
     }
 
-    /// An outcome the venue has not rejected, YES and NO twice as likely as INVALID (so both can end up
-    /// rejected); one call in eight takes any outcome, rejected or not.
+    /// The outcome of a committee or permissionless proposal. After a rejection, one call in four retries
+    /// a rejected outcome (ORC-6 must refuse it) and the others mostly propose the other binary outcome
+    /// (the path to REJECTED_YES_AND_NO). Otherwise an outcome not rejected, YES and NO twice as likely as
+    /// INVALID; one call in eight any outcome.
     function _outcome(uint8 mask, uint256 seed) internal pure returns (Outcome) {
         Outcome[5] memory order = [Outcome.YES, Outcome.NO, Outcome.YES, Outcome.NO, Outcome.INVALID];
         uint256 start = (seed >> 3) % 5;
-        if (seed % 8 == 0) return order[start];
+        if (mask != 0 && seed % 4 == 0) {
+            for (uint8 o = 1; o <= 3; ++o) {
+                if (mask & (uint8(1) << o) != 0) return Outcome(o);
+            }
+        }
+        if (mask == 0 && seed % 8 == 0) return order[start];
+        bool yesOut = mask & 2 != 0;
+        bool noOut = mask & 4 != 0;
+        if (yesOut != noOut && (seed >> 1) % 4 != 0) return yesOut ? Outcome.NO : Outcome.YES;
         for (uint256 k; k < 5; ++k) {
             Outcome o = order[(start + k) % 5];
             if (mask & (uint8(1) << uint8(o)) == 0) return o;
