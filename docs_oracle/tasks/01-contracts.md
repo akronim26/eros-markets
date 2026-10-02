@@ -218,13 +218,14 @@ Plan §13: owner OA · 5 PD · depends O10–O13 · acceptance: §11.1 unit test
 - Owner: OA
 - PD: 1
 - Depends: O11.4, O12.3, O13.3
-- Plan: §4.1, §4.2, §5.2, §6.4, §6.8, C.1, C.3, D8, D20
+- Plan: §4.1, §4.2, §5.2, §6.4, §6.8, C.1, C.3, D8, D20, ADJ-31
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleTrustSets.t.sol, oracle/test/mocks/ResolutionOracleHarness.sol
 - Build: Constructor `(registry, treasury, usdc, monadChainSelector, governance, guardian)`, `simModeAllowed = chainid != 143`; Solady `EIP712` domain ("ErosResolutionOracle", "1"), `ReentrancyGuard` on every state-changing function; `createTrustSet` with `BadTrustSet` codes 1–9, `activateTrustSet`; guardian `revokeWorkflowId`/`revokeAttestor`/`revokeCommitteeMember`/`revokeWatchdog` (immediate, also on pinned sets); `initResolution` (registry only); `watchdogHeartbeat` and `lastHeartbeat`; trust-set views; all C.3 events declared. No pause and no admin path that can move a market (D20). A test-only harness that can place a Resolution in any state.
 - Done when: every trust-set rule, every revoke and every access check has a test.
 - Check: cd oracle && forge test --match-path test/unit/OracleTrustSets.t.sol
+- Notes: Team decisions: one file `src/ResolutionOracle.sol` (plan layout); `BadTrustSet(0)` = no such trust set and guardian mistakes revert (ADJ-31); keeper functions will return false instead of reverting on a wrong state (O14.2-O14.4). Heartbeat authorization counts, per address, the trust sets naming it as non-revoked watchdog, so a watchdog of any set (active or not) beats until every one of its sets revokes it. `watchdogOf` returns 0 before the halt (nothing pinned). Market views return empty values for an unknown id; mutating calls will revert `UnknownMarket`. Solady `EIP712` domain ("ErosResolutionOracle", "1"); the digest views and `is IResolutionOracle` come in O16.1. Sim-mode setters and `lockProduction` are O15.2 (the `simModeAllowed`/`simMode` flags are set here). 31 mutations caught.
 
 ### O14.2 · Halt, request, escalate and open
 - Owner: OA
