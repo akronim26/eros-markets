@@ -36,7 +36,7 @@ contract BookRestTest is Test {
         vm.expectEmit(address(book));
         emit TraderIds.TraderRegistered(alice, 1);
         vm.expectEmit(address(book));
-        emit Book.OrderPlaced(1, 1, 502, 300, 0);
+        emit Book.OrderPlaced(1, 1, 502, 300, 0, 0);
         uint32 id = _rest(alice, false, 502, 300);
 
         assertEq(id, 1);

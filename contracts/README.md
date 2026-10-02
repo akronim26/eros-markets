@@ -13,8 +13,9 @@ design spec §9; it drives Risk & Clearing (R2) through the internal hook seam o
 | Dense `orders` array; dead slots stay non-zero tombstones on a free list | `_insert`, `_unlink` | §9.5 |
 | Each order keeps risk's record: full `uint64` epochs, reduce version, fee cap | `Order`, `_view` | risk §7.2 |
 | Public id `gen << 24 \| slot` | `_id`, `_liveSlot` | §9.5 |
-| Bounded match loop; self-trades and pruned makers use up steps | `_match`, `_step` | §9.6 |
+| Bounded match loop; expired makers, self-trades and pruned makers use up steps | `_match`, `_step` | §9.6 |
 | LIMIT / IOC / POST_ONLY, reduce-only, no crossed remainder | `_place` | §9.7 |
+| Good-til-block expiry: executable while `block.number <= expiryBlock` (0 = none) | `_place`, `_step` | risk §7.6 |
 | `batch`: cancels first and idempotent; a crossing post-only order returns id 0 | `batch` | §9.7 |
 | Risk seam | see "Integrating other modules" below | §9.8, risk §7.7 |
 
@@ -75,7 +76,9 @@ touches accounts inside the hooks above, and every rest converts a permit.
    Nothing else is hardcoded: the tick grid (0.001, ticks 1–999) is a locked design decision the
    storage layout is sized from, and the bitmap word count and level array length derive from it.
 6. A reduce-only maker with nothing left to reduce is pruned with `FAILED_CHECK`; one that
-   reaches zero part-way through a fill has its unfilled rest cancelled with `CLIPPED`.
+   reaches zero part-way through a fill has its unfilled rest cancelled with `CLIPPED`. A maker
+   reached after its expiry block is cancelled with `EXPIRED` and uses a step; an order whose
+   expiry is already past reverts with `BadExpiry`.
 
 ## Tests
 

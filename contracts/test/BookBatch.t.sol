@@ -26,7 +26,7 @@ contract BookBatchTest is Test {
         pure
         returns (Book.Place memory)
     {
-        return Book.Place(kind, isBuy, false, tick, size, 8);
+        return Book.Place(kind, isBuy, false, tick, size, 8, 0);
     }
 
     function _batch(address who, uint32[] memory cancels, Book.Place[] memory places)

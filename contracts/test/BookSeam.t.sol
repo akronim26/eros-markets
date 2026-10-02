@@ -27,12 +27,12 @@ contract BookSeamTest is Test {
 
     function _post(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, isBuy, false, tick, size, 0));
+        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, isBuy, false, tick, size, 0, 0));
     }
 
     function _ioc(address who, bool isBuy, uint16 tick, uint64 size) internal returns (uint32) {
         vm.prank(who);
-        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, isBuy, false, tick, size, 8));
+        return book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, isBuy, false, tick, size, 8, 0));
     }
 
     // ------------------------------------------------------------------ risk snapshot and totals
@@ -134,9 +134,9 @@ contract BookSeamTest is Test {
     // ------------------------------------------------------------------ admission (stages)
 
     function _all(bool ro) internal pure returns (Book.Place[3] memory ps) {
-        ps[0] = Book.Place(IBookRiskHooks.OrderKind.LIMIT, true, ro, 500, 5, 8);
-        ps[1] = Book.Place(IBookRiskHooks.OrderKind.IOC, true, ro, 500, 5, 8);
-        ps[2] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, ro, 400, 5, 0);
+        ps[0] = Book.Place(IBookRiskHooks.OrderKind.LIMIT, true, ro, 500, 5, 8, 0);
+        ps[1] = Book.Place(IBookRiskHooks.OrderKind.IOC, true, ro, 500, 5, 8, 0);
+        ps[2] = Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, ro, 400, 5, 0, 0);
     }
 
     /// Risk rejects with a code, not a revert, so a batch keeps its other actions.
@@ -194,10 +194,12 @@ contract BookSeamTest is Test {
         vm.expectEmit(address(book));
         emit Book.OrderRejected(2, RejectCode.BELOW_MIN_SIZE);
         vm.prank(taker);
-        assertEq(book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 400, 249, 0)), 0);
+        assertEq(
+            book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 400, 249, 0, 0)), 0
+        );
         vm.prank(taker);
         assertTrue(
-            book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 400, 250, 0)) != 0
+            book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.POST_ONLY, true, false, 400, 250, 0, 0)) != 0
         );
     }
 
@@ -206,7 +208,7 @@ contract BookSeamTest is Test {
         uint32 a = _post(maker, false, 500, 10);
         book.setStopTaker(true);
         vm.prank(taker);
-        uint32 id = book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, true, false, 500, 10, 8));
+        uint32 id = book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, true, false, 500, 10, 8, 0));
         assertEq(id, 0);
         assertEq(book.getOrder(a).size, 10);
         assertEq(book.position(2), 0);
@@ -242,9 +244,9 @@ contract BookSeamTest is Test {
         BookHarness fresh = new BookHarness();
         fresh.createMarket(3);
         vm.startPrank(taker);
-        fresh.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 3));
+        fresh.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 3, 0));
         vm.expectRevert(Book.BadMaxFills.selector);
-        fresh.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 4));
+        fresh.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 4, 0));
         vm.stopPrank();
     }
 
@@ -252,13 +254,13 @@ contract BookSeamTest is Test {
         book.setMaxFills(2);
         vm.prank(taker);
         vm.expectRevert(Book.BadMaxFills.selector);
-        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 3));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 3, 0));
 
         vm.expectEmit(address(book));
         emit Book.MaxFillsSet(255);
         book.setMaxFills(255);
         vm.prank(taker);
-        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 255));
+        book.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 1, 255, 0));
     }
 
     function test_RevertWhen_MaxFillsZero() public {

@@ -52,7 +52,8 @@ abstract contract Book is IBookRiskHooks {
         USER,
         SELF_TRADE, // resting order hit by its own owner
         FAILED_CHECK, // risk pruned the maker: stale epoch or failed readmission
-        CLIPPED // reduce-only maker exhausted its reducible size
+        CLIPPED, // reduce-only maker exhausted its reducible size
+        EXPIRED // reached after its expiry block
     }
 
     struct Place {
@@ -62,6 +63,7 @@ abstract contract Book is IBookRiskHooks {
         uint16 tick;
         uint64 size; // lots (0.001 claim)
         uint8 maxFills; // makers the match may examine, counting self-trades and failed makers
+        uint32 expiryBlock; // 0 = none; executable while block.number <= expiryBlock
     }
 
     // ------------------------------------------------------------------ storage
@@ -89,6 +91,7 @@ abstract contract Book is IBookRiskHooks {
         uint64 reduceVersion; // position version a reduce-only order was admitted against
         uint64 marketEpoch; // full order epochs the reservation was admitted under
         uint64 accountEpoch;
+        uint32 expiryBlock; // 0 = none; executable while block.number <= expiryBlock
         uint256 feeCapQ; // fee reservation still attributable to the remaining lots
     }
 
@@ -105,7 +108,9 @@ abstract contract Book is IBookRiskHooks {
     // ------------------------------------------------------------------ events
 
     event MaxFillsSet(uint8 maxFills);
-    event OrderPlaced(uint32 indexed id, uint32 indexed trader, uint16 tick, uint64 size, uint8 flags);
+    event OrderPlaced(
+        uint32 indexed id, uint32 indexed trader, uint16 tick, uint64 size, uint8 flags, uint32 expiryBlock
+    );
     event OrderCancelled(uint32 indexed id, uint64 size, CancelReason reason);
     /// @notice Risk admitted nothing for an order; `reason` is its rejection code.
     event OrderRejected(uint32 indexed trader, RejectCode reason);
@@ -133,6 +138,7 @@ abstract contract Book is IBookRiskHooks {
     error BadSize();
     error BadMaxFills();
     error PostOnlyCrosses();
+    error BadExpiry();
 
     // ------------------------------------------------------------------ engine hook
 
@@ -241,6 +247,7 @@ abstract contract Book is IBookRiskHooks {
         if (p.tick < MIN_TICK || p.tick > MAX_TICK) revert BadTick();
         if (p.size == 0) revert BadSize();
         if (p.maxFills > b.maxFills) revert BadMaxFills();
+        if (p.expiryBlock != 0 && p.expiryBlock < block.number) revert BadExpiry();
         if (p.kind == OrderKind.POST_ONLY && _crosses(b, p.isBuy, p.tick)) {
             if (inBatch) return 0;
             revert PostOnlyCrosses();
@@ -248,7 +255,14 @@ abstract contract Book is IBookRiskHooks {
         return _execute(
             b,
             OrderRequest(
-                trader, p.isBuy ? Side.BUY : Side.SELL, p.kind, p.tick, p.size, 0, p.reduceOnly, p.maxFills
+                trader,
+                p.isBuy ? Side.BUY : Side.SELL,
+                p.kind,
+                p.tick,
+                p.size,
+                p.expiryBlock,
+                p.reduceOnly,
+                p.maxFills
             ),
             AdmissionMode.NORMAL
         );
@@ -274,7 +288,7 @@ abstract contract Book is IBookRiskHooks {
             req.kind != OrderKind.IOC && permit.remainingLots != 0
                 && !_crosses(b, req.side == Side.BUY, req.limitTick)
         ) {
-            id = _rest(b, snap, permit);
+            id = _rest(b, snap, permit, req.expiryBlock);
         }
         _riskFinishTaker(snap, permit);
     }
@@ -315,13 +329,17 @@ abstract contract Book is IBookRiskHooks {
         }
     }
 
-    /// @dev Examines the maker in slot `s`: a self-trade is pruned here, everything else is one
-    ///      `_riskTryMatchedFill`. Returns true when risk stops the taker.
+    /// @dev Examines the maker in slot `s`: an expired maker or a self-trade is pruned here,
+    ///      everything else is one `_riskTryMatchedFill`. Returns true when risk stops the taker.
     function _step(BookState storage b, RiskSnapshot memory snap, TakerPermit memory permit, uint32 s)
         internal
         returns (bool stop)
     {
         Order storage o = b.orders[s];
+        if (o.expiryBlock != 0 && block.number > o.expiryBlock) {
+            _cancel(b, snap, s, CancelReason.EXPIRED);
+            return false;
+        }
         if (o.owner == permit.trader) {
             _cancel(b, snap, s, CancelReason.SELF_TRADE);
             return false;
@@ -357,6 +375,7 @@ abstract contract Book is IBookRiskHooks {
         v.side = o.flags & FLAG_BUY != 0 ? Side.BUY : Side.SELL;
         v.tick = o.tick;
         v.remainingLots = o.size;
+        v.expiryBlock = o.expiryBlock;
         v.admittedAt = EpochTag(o.marketEpoch, o.accountEpoch);
         v.reduceOnly = o.flags & FLAG_REDUCE_ONLY != 0;
         v.reduceVersion = o.reduceVersion;
@@ -367,15 +386,18 @@ abstract contract Book is IBookRiskHooks {
 
     /// @dev Rests the permit's remainder. Risk converts the permit, so the lots are never reserved
     ///      twice, and returns the record the order keeps.
-    function _rest(BookState storage b, RiskSnapshot memory snap, TakerPermit memory permit)
-        internal
-        returns (uint32)
-    {
+    function _rest(
+        BookState storage b,
+        RiskSnapshot memory snap,
+        TakerPermit memory permit,
+        uint32 expiryBlock
+    ) internal returns (uint32) {
         Order memory o;
-        (o.owner, o.size, o.tick) = (permit.trader, permit.remainingLots, permit.limitTick);
+        (o.owner, o.size, o.tick, o.expiryBlock) =
+        (permit.trader, permit.remainingLots, permit.limitTick, expiryBlock);
         o.flags = (permit.side == Side.BUY ? FLAG_BUY : 0) | (permit.reduceOnly ? FLAG_REDUCE_ONLY : 0);
         EpochTag memory tag;
-        (tag, o.reduceVersion, o.feeCapQ) = _riskConvertPermitToRest(snap, permit, o.size, 0);
+        (tag, o.reduceVersion, o.feeCapQ) = _riskConvertPermitToRest(snap, permit, o.size, expiryBlock);
         (o.marketEpoch, o.accountEpoch) = (tag.marketOrderEpoch, tag.accountOrderEpoch);
         return _insert(b, o);
     }
@@ -409,7 +431,7 @@ abstract contract Book is IBookRiskHooks {
         lv.size += o.size;
         lv.used = true;
         id = _id(s, o.gen);
-        emit OrderPlaced(id, o.owner, o.tick, o.size, flags);
+        emit OrderPlaced(id, o.owner, o.tick, o.size, flags, o.expiryBlock);
     }
 
     /// @dev Returns false if `id` is not live; reverts if it is live but not the trader's.
