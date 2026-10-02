@@ -332,6 +332,13 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         if (r.attempts >= OracleConst.A_MAX) revert IResolutionOracle.MaxAttempts();
         if (evidenceHash == 0) revert IResolutionOracle.BadPayload(5);
         _checkURI(evidenceURI, keccak256(bytes(evidenceURI)));
+        bytes32 gid = outcome == Outcome.YES ? _exclusiveGroup(id) : bytes32(0);
+        if (gid != 0) {
+            GroupState storage g = _groups[gid];
+            // A Final YES keeps the lock, so this also refuses a YES after a Final YES.
+            if (g.yesLockHolder != 0) revert IResolutionOracle.GroupYesTaken();
+            _takeYesLock(g, gid, id);
+        }
         _record(id, r, outcome, Path.PERMISSIONLESS, evidenceHash, evidenceURI);
         r.proposer = msg.sender;
         r.rewardAtoms = _globals(r).proposerRewardAtoms;
@@ -341,7 +348,9 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
     // ------------------------------------------------------------------ assertions (anyone)
 
     /// @notice Posts a recorded team proposal (L1, L2_AUTO, REVIEWED) on the pinned venue with a treasury
-    ///         bond. Returns false unless the market is Proposed without a live assertion. Reverts
+    ///         bond. Returns false unless the market is Proposed without a live assertion, and while
+    ///         another member of its exclusive group holds the YES lock; a YES in a group that already has
+    ///         a Final YES goes to Review instead (no attempt used, ORC-7). Reverts
     ///         `MaxAttempts`, `OutcomeNotAllowed`, `ExpiryAfterVoidDeadline` or `TreasuryShort` (the keeper
     ///         alerts and retries once the ledger is funded).
     function assertProposal(bytes32 id) external nonReentrant returns (bool asserted) {
@@ -349,6 +358,16 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         if (r.state != RState.Proposed || r.assertionId != 0) return false;
         if (r.attempts >= OracleConst.A_MAX) revert IResolutionOracle.MaxAttempts();
         _checkOutcome(r, r.proposed);
+        bytes32 gid = r.proposed == Outcome.YES ? _exclusiveGroup(id) : bytes32(0);
+        if (gid != 0) {
+            GroupState storage g = _groups[gid];
+            if (g.finalYes != 0) {
+                _groupConflict(id, r, gid);
+                return false;
+            }
+            if (g.yesLockHolder != 0) return false; // another member's YES is live
+            _takeYesLock(g, gid, id);
+        }
         _assert(id, r, true);
         return true;
     }
@@ -639,6 +658,10 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         // A raw value above INVALID cannot be cast to Outcome; NONE is refused by `_checkOutcome`.
         if (p.outcome > uint8(Outcome.INVALID)) revert IResolutionOracle.OutcomeNotAllowed();
         _checkOutcome(r, Outcome(p.outcome));
+        if (p.outcome == uint8(Outcome.YES)) {
+            bytes32 gid = _exclusiveGroup(id);
+            if (gid != 0 && _groups[gid].finalYes != 0) revert IResolutionOracle.GroupYesTaken();
+        }
     }
 
     /// @dev YES, NO or INVALID, and not an outcome the venue already rejected (ORC-6).
@@ -762,6 +785,38 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         return ClaimRenderer.render(reg.getClaimTemplate(id), f);
     }
 
+    // ------------------------------------------------------------------ exclusive groups (D6, ORC-7)
+
+    /// @dev The market's group id when the group is exclusive, else 0.
+    function _exclusiveGroup(bytes32 id) internal view returns (bytes32) {
+        MarketCore memory c = _core(id);
+        return c.groupExclusive ? c.groupId : bytes32(0);
+    }
+
+    function _takeYesLock(GroupState storage g, bytes32 gid, bytes32 id) internal {
+        g.yesLockHolder = id;
+        emit IResolutionOracle.GroupLock(gid, id, true);
+    }
+
+    /// @dev Frees the group's YES lock if this market holds it (rejection or void).
+    function _releaseYesLock(bytes32 id) internal {
+        bytes32 gid = _exclusiveGroup(id);
+        if (gid == 0) return;
+        GroupState storage g = _groups[gid];
+        if (g.yesLockHolder != id) return;
+        g.yesLockHolder = 0;
+        emit IResolutionOracle.GroupLock(gid, id, false);
+    }
+
+    /// @dev A YES proposal in a group that already has a Final YES: back to Review, committee-only until
+    ///      `retryOpensAt` (also on a feed market, whose `l2StartedAt` is 0); no attempt is used.
+    function _groupConflict(bytes32 id, Resolution storage r, bytes32 gid) internal {
+        r.proposed = Outcome.NONE;
+        r.retryOpensAt = uint64(block.timestamp) + _core(id).retryWindowSecs;
+        _setState(id, r, RState.Review);
+        emit IResolutionOracle.GroupConflict(gid, id);
+    }
+
     // ------------------------------------------------------------------ halt internals
 
     /// @dev Halts the engine and records the halt (ORC-11, ORC-12); a scheduled halt then goes to
@@ -816,12 +871,14 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         uint64 retryOpensAt = both ? 0 : uint64(block.timestamp) + _core(id).retryWindowSecs;
         if (!both) r.retryOpensAt = retryOpensAt;
         emit IResolutionOracle.AssertionRejected(id, assertionId, o, mask, retryOpensAt);
+        _releaseYesLock(id);
         if (team) IBondTreasury(treasury).onBondLost(id, r.attempts - 1);
         if (both) _void(id, r, FinalReason.REJECTED_YES_AND_NO);
         else _setState(id, r, RState.Review);
     }
 
     function _void(bytes32 id, Resolution storage r, FinalReason reason) internal {
+        _releaseYesLock(id);
         r.voided = true;
         _setState(id, r, RState.Voided);
         emit IResolutionOracle.Voided(id, reason);
@@ -833,6 +890,10 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
     function _final(bytes32 id, Resolution storage r, Outcome o, FinalReason reason) internal {
         r.outcome = o;
         r.finalReason = reason;
+        if (o == Outcome.YES) {
+            bytes32 gid = _exclusiveGroup(id);
+            if (gid != 0) _groups[gid].finalYes = id; // the YES lock is kept
+        }
         _setState(id, r, RState.Final);
         emit IResolutionOracle.Finalized(id, o, reason);
         IResolutionEngine engine = IResolutionEngine(_core(id).engine);

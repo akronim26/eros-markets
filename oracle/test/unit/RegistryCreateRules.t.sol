@@ -102,7 +102,8 @@ contract RegistryCreateRulesTest is RegistryFixture {
         fresh.validate(_market());
     }
 
-    function test_rule1_groupsDisabledInThisBuild() public {
+    /// The harness switch (off by default) stands in for a build without the group code.
+    function test_rule1_groupsSwitchedOff() public {
         MarketInput memory m = _market();
         m.groupId = keccak256("group");
         _rejects(m, IMarketRegistry.EarlyCheckOrGroupsDisabled.selector);

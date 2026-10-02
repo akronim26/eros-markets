@@ -285,11 +285,12 @@ Plan §13: owner OA · 5 PD · depends O10–O13 · acceptance: §11.1 unit test
 - Depends: O14.4
 - Plan: §5.4, D6, ORC-7
 - Cut: no
-- Status: todo
-- Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleGroups.t.sol
+- Status: done
+- Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleGroups.t.sol, oracle/src/MarketRegistry.sol, oracle/test/unit/RegistryCreateRules.t.sol
 - Build: YES lock taken at assertion; another holder → `assertProposal` returns false; released on rejection or void; kept on Final YES (`finalYes`); a YES in a group with a Final YES → Review with `proposed = NONE` and `retryOpensAt = now + retryWindow` (no attempt used); `GroupLock`, `GroupConflict`; `groupState` view.
 - Done when: the §11.1 "Groups" cases pass, including the conflict on a feed market where `l2StartedAt == 0`.
 - Check: cd oracle && forge test --match-path test/unit/OracleGroups.t.sol
+- Notes: Only exclusive groups (`MarketCore.groupExclusive`) have a YES lock; non-exclusive groups are just labels. `assertProposal` on a YES: a Final YES in the group → Review (`proposed = NONE`, `retryOpensAt = now + retryWindow`, `GroupConflict`, no attempt, returns false); another member holding the lock → false (waits); else takes the lock (`GroupLock(.., true)`). `proposePermissionless` YES reverts `GroupYesTaken` when the lock is held or a Final YES exists, and takes the lock otherwise; `submitReviewedProposal` YES reverts `GroupYesTaken` only after a Final YES (§5.4), so a YES recorded while another YES is live waits at `assertProposal`. Panel and L1 YES proposals are recorded and meet the conflict at `assertProposal` (tested on a feed market with `l2StartedAt == 0`). The lock is released on rejection (including the YES-and-NO void) and on a VOID_DEADLINE void (`GroupLock(.., false)`), and kept on Final YES, which also sets `finalYes`. Team decision (agreed one-line flip): `MarketRegistry._groupsEnabled()` now returns true, so grouped listings are accepted; the rules harness keeps its own switch so the disabled branch stays tested (test renamed `test_rule1_groupsSwitchedOff`). 17 tests; 21/21 mutations caught (19 first; the redundant Final-YES term in the permissionless check was removed because a Final YES keeps the lock, and a new test covers a non-holder's rejection).
 
 ## O15 · CRE receiver
 Plan §13: owner OA · 1.5 PD · depends O14 · acceptance: §11.1 onReport tests; 64-byte metadata through a header-faithful mock.
