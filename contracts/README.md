@@ -16,8 +16,8 @@ book from design spec §9. Clearing (R2) plugs into its internal hooks.
 | `batch`: cancels first and idempotent; a crossing post-only order returns id 0 | `batch` | §9.7 |
 | Clearing seam | see "Integrating other modules" below | §9.8 |
 
-External API: `placeOrder`, `cancel`, `batch`, `bestBidAsk`, `touch`, `getLevel`, `getOrder`, `traderId`.
-Events: `TraderRegistered`, `OrderPlaced`, `OrderCancelled(reason)`, `Fill`. Indexers rebuild
+External API: `placeOrder`, `cancel`, `batch`, `bestBidAsk`, `touch`, `getLevel`, `getOrder`, `maxFills`.
+Events: `MaxFillsSet`, `OrderPlaced`, `OrderCancelled(reason)`, `Fill`. Indexers rebuild
 depth from these; there is no on-chain depth getter (§9.10).
 
 ## Integrating other modules
@@ -31,6 +31,7 @@ shows the full pattern.
 
 | Hook | Called | Owner | Use |
 |---|---|---|---|
+| `_traderOf(account) → id` | every place, batch and cancel | Clearing (accounts) | the engine's trader id: the accounting registry's index + 1. The book keeps no registry |
 | `_admit(trader, place)` | first, for every new order | Markets / oracle (R4) | stage gate (Halted: nothing; ReduceOnly: reduce-only only), price band, minimum size. Revert to reject. Cancels are never gated |
 | `_takerStart(ctx, size) → allowed` | once per taker order | Clearing (R2) | load the taker, settle funding, fill `ctx.risk`, clip a reduce-only taker |
 | `_makerFill(ctx, maker, makerBuys, tick, size, flags) → filled` | per examined maker | Clearing | stage, reduce-only, IM at q and I, stress; 0 cancels the order, less than `size` clips it |
@@ -49,7 +50,6 @@ fields without touching Book.
 |---|---|
 | `_initBook(maxFills)` | Markets: open the book with its fill bound (no default) |
 | `_setMaxFills(maxFills)` | retune the bound after gas measurements; emits `MaxFillsSet` |
-| `_traderOf(address) → id` | Clearing: the trader id accounts are keyed by |
 | `_touch() → (bid, bidSize, ask, askSize)` | Pricing: mark inputs with the D_min depth filter |
 | `_forceCancel(id, RISK \| STAGE) → bool` | liquidation, stage changes, keepers; no owner check, stale ids return false |
 

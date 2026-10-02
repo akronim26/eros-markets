@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {TraderIds} from "./BookHarness.sol";
 
 // Four independent modules, each touching only its own part of Book, composed the way the
 // EventPerp core will be (spec §11.2: one contract composing Book, Clearing, Pricing, Markets...).
@@ -36,8 +37,8 @@ abstract contract MarketsModule is Book {
     }
 }
 
-/// Clearing (R2): owns accounts. The taker is written once, from Book's totals.
-abstract contract ClearingModule is Book {
+/// Clearing (R2): owns accounts and their trader ids. The taker is written once, from Book's totals.
+abstract contract ClearingModule is TraderIds {
     mapping(uint32 => int256) public position;
     mapping(uint32 => int256) public cash; // -sum(lots x tick), USDC atoms
     mapping(uint32 => mapping(bool => uint256)) public reserved;

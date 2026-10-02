@@ -3,9 +3,10 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {TraderIds} from "./BookHarness.sol";
 
 /// @notice Book with no-op Clearing hooks, so benchmarks measure the book alone.
-contract LeanBook is Book {
+contract LeanBook is TraderIds {
     bool public failAll;
 
     function createMarket(uint8 maxFills_) external {

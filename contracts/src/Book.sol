@@ -110,13 +110,8 @@ abstract contract Book {
 
     BookState internal _book;
 
-    /// @notice Trader ids start at 1; 0 means unregistered.
-    mapping(address account => uint32) public traderId;
-    uint32 public traderCount;
-
     // ------------------------------------------------------------------ events
 
-    event TraderRegistered(address indexed account, uint32 indexed trader);
     event MaxFillsSet(uint8 maxFills);
     event OrderPlaced(uint32 indexed id, uint32 indexed trader, uint16 tick, uint64 size, uint8 flags);
     event OrderCancelled(uint32 indexed id, uint64 size, CancelReason reason);
@@ -135,6 +130,10 @@ abstract contract Book {
     error PostOnlyCrosses();
 
     // ------------------------------------------------------------------ Clearing hooks
+
+    /// @dev The engine's trader id for `account`, the key Clearing keeps accounts under (risk
+    ///      spec: the accounting registry's index + 1). Never 0; the book keeps no registry.
+    function _traderOf(address account) internal virtual returns (uint32);
 
     /// @dev Load the taker and settle its funding once; returns the size it may trade
     ///      (a reduce-only taker is clipped to its position here).
@@ -194,7 +193,7 @@ abstract contract Book {
 
     /// @notice Cancel a live order owned by the caller. Reverts if it is no longer live.
     function cancel(uint32 id) external {
-        if (!_cancelOwn(_openBook(), traderId[msg.sender], id)) revert NotLive();
+        if (!_cancelOwn(_openBook(), _traderOf(msg.sender), id)) revert NotLive();
     }
 
     // ------------------------------------------------------------------ views
@@ -448,15 +447,6 @@ abstract contract Book {
         if (s == 0 || s >= b.orders.length) return (s, false);
         Order storage o = b.orders[s];
         live = o.flags & FLAG_LIVE != 0 && o.gen == uint8(id >> SLOT_BITS);
-    }
-
-    function _traderOf(address account) internal returns (uint32 id) {
-        id = traderId[account];
-        if (id == 0) {
-            id = ++traderCount;
-            traderId[account] = id;
-            emit TraderRegistered(account, id);
-        }
     }
 
     // ------------------------------------------------------------------ setup

@@ -3,7 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
-import {BookHarness} from "./BookHarness.sol";
+import {BookHarness, TraderIds} from "./BookHarness.sol";
 
 contract BookRestTest is Test {
     BookHarness book;
@@ -34,7 +34,7 @@ contract BookRestTest is Test {
 
     function test_FirstOrderRests() public {
         vm.expectEmit(address(book));
-        emit Book.TraderRegistered(alice, 1);
+        emit TraderIds.TraderRegistered(alice, 1);
         vm.expectEmit(address(book));
         emit Book.OrderPlaced(1, 1, 502, 300, 0);
         uint32 id = _rest(alice, false, 502, 300);
