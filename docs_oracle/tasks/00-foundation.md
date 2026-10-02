@@ -48,7 +48,7 @@ Plan §13: owner OA+OB · 1 PD · depends — · acceptance: CI green on an empt
 - Depends: O00.2, O00.3
 - Plan: §12.2a, §11.1, ADJ-02, ADJ-11
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: .github/workflows/oracle.yml
 - Build: Add `.github/workflows/oracle.yml` with the `on.paths` filters, permissions and the `forge` job copied verbatim from plan §12.2a (`FOUNDRY_PROFILE=ci`, Foundry v1.8.3, fmt check, build with sizes, test). The `workflow` job of §12.2a is added in O21.4, when the workflow exists (ADJ-02).
 - Done when: the job is green on the branch; `.github/workflows/contracts.yml` is unchanged.
