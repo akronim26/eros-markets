@@ -204,11 +204,12 @@ Plan §13: owner OA · 1.5 PD · depends O02 · acceptance: A2 suite + extended 
 - Depends: O13.2
 - Plan: §6.7, §11.1, V-U4
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/test/integration-uma/UmaVenueExtended.t.sol
 - Build: Permissionless asserter (asserter = payer = caller); treasury `disputeFor`; settlement done directly on OOv3 followed by `statusOf` (B.4 note); a deleted/never-answered request leaves `settleAssertion` reverting forever while `trySettle` returns false; a second final-fee setting changes `minimumBond`.
 - Done when: all extended cases pass.
 - Check: cd oracle && forge test --match-path test/integration-uma/UmaVenueExtended.t.sol
+- Notes: Facts read from the pinned OOv3 source: `getMinimumBond` uses the final fee cached when the currency was first validated, so a new `Store.setFinalFee` reaches `venue.minimumBond()` (registry rule 6) only after anyone calls `syncUmaParams`; settling a disputed assertion calls the oracle's `getPrice`, which reverts while the sandbox has not answered, so an unanswered (or deleted) vote makes `settleAssertion` revert indefinitely while `trySettle` returns false; OOv3 refuses disputes at or after expiry. Also covered: payer and asserter (and payer and disputer) as separate roles, the treasury winning or losing a dispute (2B minus the 50% burn), `disputeFor` treasury-only, and no allowance left to OOv3 after an assert or a dispute. Adapter mutations over both real-UMA suites: 21 of 23 caught; the 2 survivors are equivalent under OOv3 (dropping the `settled` pre-check in `trySettle`, since OOv3 reverts "already settled" and the catch returns false; dropping `settled &&` from `truthful`, since OOv3 sets the resolution only together with `settled`).
 
 ## O14 · ResolutionOracle state machine
 Plan §13: owner OA · 5 PD · depends O10–O13 · acceptance: §11.1 unit tests.
