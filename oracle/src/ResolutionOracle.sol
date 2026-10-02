@@ -8,6 +8,9 @@ import {
     Outcome,
     Path,
     RState,
+    FinalReason,
+    FinalizeStatus,
+    Ledger,
     Resolution,
     TrustSet,
     TrustSetInput,
@@ -23,6 +26,7 @@ import {
 import {IResolutionOracle} from "./interfaces/IResolutionOracle.sol";
 import {IMarketRegistry} from "./interfaces/IMarketRegistry.sol";
 import {IAssertionVenue} from "./interfaces/IAssertionVenue.sol";
+import {IBondTreasury} from "./interfaces/IBondTreasury.sol";
 import {BondMath} from "./libraries/BondMath.sol";
 import {ClaimRenderer} from "./libraries/ClaimRenderer.sol";
 import {HostLib} from "./libraries/HostLib.sol";
@@ -238,7 +242,60 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         _record(id, r, outcome, Path.PERMISSIONLESS, evidenceHash, evidenceURI);
         r.proposer = msg.sender;
         r.rewardAtoms = _globals(r).proposerRewardAtoms;
-        assertionId = _assert(id, r, msg.sender);
+        assertionId = _assert(id, r, false);
+    }
+
+    // ------------------------------------------------------------------ assertions (anyone)
+
+    /// @notice Posts a recorded team proposal (L1, L2_AUTO, REVIEWED) on the pinned venue with a treasury
+    ///         bond. Returns false unless the market is Proposed without a live assertion. Reverts
+    ///         `MaxAttempts`, `OutcomeNotAllowed`, `ExpiryAfterVoidDeadline` or `TreasuryShort` (the keeper
+    ///         alerts and retries once the ledger is funded).
+    function assertProposal(bytes32 id) external nonReentrant returns (bool asserted) {
+        Resolution storage r = _known(id);
+        if (r.state != RState.Proposed || r.assertionId != 0) return false;
+        if (r.attempts >= OracleConst.A_MAX) revert IResolutionOracle.MaxAttempts();
+        _checkOutcome(r, r.proposed);
+        _assert(id, r, true);
+        return true;
+    }
+
+    /// @notice Proposed → Disputed once the venue shows the live assertion disputed; false otherwise.
+    function syncAssertion(bytes32 id) external nonReentrant returns (bool changed) {
+        Resolution storage r = _known(id);
+        if (r.state != RState.Proposed || r.assertionId == 0) return false;
+        if (!IAssertionVenue(r.assertionVenue).statusOf(r.assertionId).disputed) return false;
+        _markDisputed(id, r);
+        return true;
+    }
+
+    /// @notice Settles the live assertion on the venue if it can (`trySettle` never reverts), then applies
+    ///         what the venue shows, because anyone may have settled on the venue directly: true → Final,
+    ///         false → rejection, disputed and unsettled → Disputed. NOT_READY when there is nothing to apply.
+    function finalizeMarket(bytes32 id) external nonReentrant returns (FinalizeStatus status) {
+        Resolution storage r = _known(id);
+        if ((r.state != RState.Proposed && r.state != RState.Disputed) || r.assertionId == 0) {
+            return FinalizeStatus.NOT_READY;
+        }
+        return _applyVenue(id, r);
+    }
+
+    /// @notice From `voidDeadline` on, any halted market that is not Final reaches Final (ORC-9). A live
+    ///         assertion the venue has settled, or can settle now, is applied first; if that leaves the
+    ///         market non-Final (a rejection with an outcome left), it is voided in the same call. Otherwise
+    ///         → Voided → Final(INVALID, VOID_DEADLINE), a live team bond written off with `markStuck`.
+    function voidMarket(bytes32 id) external nonReentrant returns (bool changed) {
+        Resolution storage r = _known(id);
+        if (r.state == RState.Final || r.voidDeadline == 0 || block.timestamp < r.voidDeadline) return false;
+        if (r.assertionId != 0) {
+            _applyVenue(id, r);
+            if (r.state == RState.Final) return true;
+            if (r.assertionId != 0 && r.path != Path.PERMISSIONLESS) {
+                IBondTreasury(treasury).markStuck(id, r.attempts - 1);
+            }
+        }
+        _void(id, r, FinalReason.VOID_DEADLINE);
+        return true;
     }
 
     // ------------------------------------------------------------------ governance (Timelock)
@@ -312,6 +369,29 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         spec = reg.getFeedSpec(id);
         allowList = reg.getAllowList(id);
         specHash = reg.getSpecHash(id);
+    }
+
+    /// @notice The bond of the market's next assertion (§6.5); 0 before the halt (no OI or venue pinned).
+    function bondFor(bytes32 id) external view returns (uint256) {
+        Resolution storage r = _res[id];
+        if (r.trustSetId == 0) return 0;
+        return _bond(id, r, IAssertionVenue(_trustSets[r.trustSetId].cfg.venue));
+    }
+
+    /// @notice The liveness of the recorded proposal's assertion (heartbeat fallback, D11); with no
+    ///         proposal recorded, the reviewed liveness every later (committee or permissionless) proposal
+    ///         gets. 0 for an unknown market (the registry's empty config).
+    function livenessFor(bytes32 id) external view returns (uint64) {
+        Resolution storage r = _res[id];
+        if (r.proposed == Outcome.NONE) return IMarketRegistry(registry).getUMAConfig(id).livenessReviewed;
+        return _liveness(id, r);
+    }
+
+    /// @notice The claim the recorded proposal is (or will be) asserted with; empty with no proposal.
+    function renderClaim(bytes32 id) external view returns (bytes memory) {
+        Resolution storage r = _res[id];
+        if (r.proposed == Outcome.NONE) return "";
+        return _claim(id, r);
     }
 
     function getResolution(bytes32 id) external view returns (Resolution memory) {
@@ -448,15 +528,22 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     // ------------------------------------------------------------------ assertion internals
 
-    /// @dev Posts the recorded proposal on the pinned venue with `asserter` as asserter and payer
-    ///      (the treasury on team paths, the caller on the permissionless path). Guards: the assertion
-    ///      must be able to finish before `voidDeadline` (D10). Uses attempt index `attempts` and then
-    ///      increments it (ADJ-27).
-    function _assert(bytes32 id, Resolution storage r, address asserter) internal returns (bytes32 assertionId) {
+    /// @dev Posts the recorded proposal on the pinned venue. Team paths: asserter and payer are the
+    ///      treasury, which funds the bond from ASSERTION (`TreasuryShort` first, so the keeper gets the
+    ///      amounts). Permissionless: the caller. Guards: the assertion must be able to finish before
+    ///      `voidDeadline` (D10). Uses attempt index `attempts` and then increments it (ADJ-27).
+    function _assert(bytes32 id, Resolution storage r, bool team) internal returns (bytes32 assertionId) {
         uint64 liveness = _liveness(id, r);
         if (block.timestamp + liveness > r.voidDeadline) revert IResolutionOracle.ExpiryAfterVoidDeadline();
         IAssertionVenue venue = IAssertionVenue(_trustSets[r.trustSetId].cfg.venue);
         uint256 bond = _bond(id, r, venue);
+        address asserter = msg.sender;
+        if (team) {
+            asserter = treasury;
+            uint256 have = IBondTreasury(treasury).balanceOf(Ledger.ASSERTION);
+            if (have < bond) revert IResolutionOracle.TreasuryShort(bond, have);
+            IBondTreasury(treasury).fundAssertion(id, r.attempts, address(venue), bond);
+        }
         assertionId = venue.assertOutcome(
             IAssertionVenue.AssertRequest({
                 marketId: id, claim: _claim(id, r), asserter: asserter, payer: asserter, liveness: liveness, bond: bond
@@ -533,6 +620,75 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
 
     /// @dev Calls `engine.halt()` (its revert bubbles up) and copies the snapshot; pins the active trust
     ///      set and the current globals version. A snapshot that is not halted reverts `EngineCallFailed`.
+    /// @dev Applies what the venue shows for the live assertion after a `trySettle` attempt.
+    function _applyVenue(bytes32 id, Resolution storage r) internal returns (FinalizeStatus) {
+        IAssertionVenue venue = IAssertionVenue(r.assertionVenue);
+        venue.trySettle(r.assertionId);
+        IAssertionVenue.AssertionStatus memory st = venue.statusOf(r.assertionId);
+        if (st.settled) {
+            if (st.truthful) {
+                _final(id, r, r.proposed, FinalReason.ASSERTED_TRUE);
+                return FinalizeStatus.FINAL;
+            }
+            _reject(id, r);
+            return FinalizeStatus.REJECTED;
+        }
+        if (!st.disputed) return FinalizeStatus.NOT_READY;
+        if (r.state == RState.Proposed) _markDisputed(id, r);
+        return FinalizeStatus.DISPUTED;
+    }
+
+    function _markDisputed(bytes32 id, Resolution storage r) internal {
+        _setState(id, r, RState.Disputed);
+        emit IResolutionOracle.Disputed(id, r.assertionId);
+    }
+
+    /// @dev §5.4 `_reject`: books the rejected outcome (ORC-6) and the lost team bond; YES and NO both
+    ///      rejected → Voided → Final INVALID, else Review, committee-only until `retryOpensAt`.
+    function _reject(bytes32 id, Resolution storage r) internal {
+        Outcome o = r.proposed;
+        bytes32 assertionId = r.assertionId;
+        uint8 mask = r.rejectedMask | uint8(1) << uint8(o);
+        r.rejectedMask = mask;
+        r.assertionId = 0;
+        r.proposed = Outcome.NONE;
+        bool team = r.path != Path.PERMISSIONLESS;
+        if (!team) (r.proposer, r.rewardAtoms) = (address(0), 0);
+        bool both = mask & (OracleConst.MASK_YES | OracleConst.MASK_NO) == (OracleConst.MASK_YES | OracleConst.MASK_NO);
+        uint64 retryOpensAt = both ? 0 : uint64(block.timestamp) + _core(id).retryWindowSecs;
+        if (!both) r.retryOpensAt = retryOpensAt;
+        emit IResolutionOracle.AssertionRejected(id, assertionId, o, mask, retryOpensAt);
+        if (team) IBondTreasury(treasury).onBondLost(id, r.attempts - 1);
+        if (both) _void(id, r, FinalReason.REJECTED_YES_AND_NO);
+        else _setState(id, r, RState.Review);
+    }
+
+    function _void(bytes32 id, Resolution storage r, FinalReason reason) internal {
+        r.voided = true;
+        _setState(id, r, RState.Voided);
+        emit IResolutionOracle.Voided(id, reason);
+        _final(id, r, Outcome.INVALID, reason);
+    }
+
+    /// @dev §5.4 `_final`: Final, then the engine in the same transaction (an engine revert rolls the whole
+    ///      call back, S-02), the treasury booking for ASSERTED_TRUE, and the listing commitment released.
+    function _final(bytes32 id, Resolution storage r, Outcome o, FinalReason reason) internal {
+        r.outcome = o;
+        r.finalReason = reason;
+        _setState(id, r, RState.Final);
+        emit IResolutionOracle.Finalized(id, o, reason);
+        IResolutionEngine engine = IResolutionEngine(_core(id).engine);
+        if (o == Outcome.YES) engine.settle(1);
+        else if (o == Outcome.NO) engine.settle(0);
+        else engine.settleInvalid();
+        IBondTreasury t = IBondTreasury(treasury);
+        if (reason == FinalReason.ASSERTED_TRUE) {
+            if (r.path == Path.PERMISSIONLESS) t.payProposerReward(id, r.proposer, r.rewardAtoms);
+            else t.onBondReturned(id, r.attempts - 1);
+        }
+        t.releaseListing(id);
+    }
+
     function _recordHalt(bytes32 id, Resolution storage r, MarketCore memory c) internal {
         uint32 setId = activeTrustSetId;
         if (setId == 0) revert IResolutionOracle.NoActiveTrustSet();
