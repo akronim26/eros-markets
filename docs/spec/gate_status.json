@@ -18,7 +18,14 @@
       "review_pending": [],
       "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; no Critical/High/Medium finding",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     },
     {
       "id": "G1",
@@ -36,7 +43,14 @@
       "review_pending": [],
       "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; no Critical/High/Medium finding",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     },
     {
       "id": "G2",
@@ -54,7 +68,14 @@
       "review_pending": [],
       "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; no Critical/High/Medium finding",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     },
     {
       "id": "G3",
@@ -72,7 +93,14 @@
       "review_pending": [],
       "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; no Critical/High/Medium finding",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     },
     {
       "id": "G4",
@@ -90,7 +118,14 @@
       "review_pending": [],
       "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; no Critical/High/Medium finding",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     },
     {
       "id": "G5",
@@ -108,7 +143,14 @@
       "review_pending": [],
       "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; no Critical/High/Medium finding",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     },
     {
       "id": "G6",
@@ -126,27 +168,40 @@
       "review_pending": [],
       "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; no Critical/High/Medium finding",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     },
     {
       "id": "G7",
       "status": "blocked",
       "merge_sha": null,
       "reviewed_by": [
-        "A"
+        "A",
+        "B"
       ],
       "evidence": [
         "artifacts/gates/G7.json",
         "docs/contracts/G7.json",
         "contracts/test/gates/G7.t.sol"
       ],
-      "review_pending": [
-        "B"
-      ],
-      "note": "A043 is complete; G0-G7 technical checks pass in order on Forge 1.8.3. B delta review of the new implementation and a coordinator-accepted merge remain required, so G7 is not marked accepted. Live counterparts remain BLOCKED_BY_COUNTERPART.",
+      "review_pending": [],
+      "note": "A043 complete (A). B delta review of 71576ed..3b11044 complete on 2026-10-02 under forge 1.8.3: all G0-G7 runner checks exit 0, full forge 641/641, Python 46/156/8/7. Acceptance status stays blocked with null merge_sha until the coordinator records a real accepted commit. Live counterparts remain BLOCKED_BY_COUNTERPART.",
       "technical_status": "checks_passed",
       "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
-      "a_review_worktree_dirty": true
+      "a_review_worktree_dirty": true,
+      "b_delta_review": {
+        "range": "71576ed..3b11044",
+        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+        "date": "2026-10-02",
+        "result": "agreed; recommends coordinator acceptance",
+        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      }
     }
   ]
 }
