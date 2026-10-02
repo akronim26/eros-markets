@@ -107,6 +107,12 @@ contract BookHandler is Test {
         }
     }
 
+    /// Cancel-all: old orders keep resting until a taker or their owner removes them.
+    function cancelAll(uint256 actorSeed) external {
+        vm.prank(actors[actorSeed % 4]);
+        book.cancelAll();
+    }
+
     function setFailing(uint256 actorSeed, bool fail) external {
         book.setFailMaker(uint32(actorSeed % 4) + 1, fail);
     }

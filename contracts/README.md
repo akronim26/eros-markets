@@ -18,8 +18,8 @@ design spec §9; it drives Risk & Clearing (R2) through the internal hook seam o
 | `batch`: cancels first and idempotent; a crossing post-only order returns id 0 | `batch` | §9.7 |
 | Risk seam | see "Integrating other modules" below | §9.8, risk §7.7 |
 
-External API: `placeOrder`, `cancel`, `batch`, `bestBidAsk`, `touch`, `getLevel`, `getOrder`, `maxFills`.
-Events: `MaxFillsSet`, `OrderPlaced`, `OrderCancelled(reason)`, `OrderRejected(reason)`, `Fill`
+External API: `placeOrder`, `cancel`, `cancelAll`, `batch`, `bestBidAsk`, `touch`, `getLevel`, `getOrder`, `maxFills`.
+Events: `MaxFillsSet`, `OrderPlaced`, `OrderCancelled(reason)`, `AllOrdersCancelled`, `OrderRejected(reason)`, `Fill`
 (with both fees). Sizes are lots (0.001 claim). Indexers rebuild
 depth from these; there is no on-chain depth getter (§9.10).
 
@@ -41,6 +41,7 @@ rule 4). `Book is IBookRiskHooks`: it calls the hooks and the risk engine implem
 | `_riskConvertPermitToRest(snap, permit, lots, expiry) → record` | a LIMIT or POST_ONLY remainder | the permit becomes the resting reservation (never reserved twice); the order keeps the returned epochs, reduce version and fee cap |
 | `_riskOnUnrest(snap, owner, epochs, side, tick, lots, feeCap)` | an order removed unfilled: cancel, self-trade, prune, reduce-only clip | release exactly those lots at their tick and epoch; never for filled lots |
 | `_riskFinishTaker(snap, permit)` | once per admitted order | release the permit and run final checks; a revert rolls back every fill |
+| `_riskCancelAll(trader) → epochs` | `cancelAll` | O(1): the account moves to a new order epoch; its old orders stay in the book, never fill, and are pruned when reached |
 
 `_riskTouchAccount` and `_riskAdmitRest` are part of the seam but the book never needs them: risk
 touches accounts inside the hooks above, and every rest converts a permit.

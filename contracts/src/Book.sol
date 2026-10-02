@@ -109,6 +109,9 @@ abstract contract Book is IBookRiskHooks {
     event OrderCancelled(uint32 indexed id, uint64 size, CancelReason reason);
     /// @notice Risk admitted nothing for an order; `reason` is its rejection code.
     event OrderRejected(uint32 indexed trader, RejectCode reason);
+    /// @notice Every order `trader` placed before this is dead: it stays in the book until a taker
+    ///         or its owner reaches it, and it can never fill.
+    event AllOrdersCancelled(uint32 indexed trader, uint64 marketEpoch, uint64 accountEpoch);
     event Fill(
         uint32 indexed makerOrder,
         uint32 maker,
@@ -173,6 +176,16 @@ abstract contract Book is IBookRiskHooks {
         BookState storage b = _openBook();
         uint32 trader = _traderOf(msg.sender);
         if (!_cancelOwn(b, _riskBeginAction(), trader, id)) revert NotLive();
+    }
+
+    /// @notice Cancel every resting order of the caller in O(1): risk moves the account to a new
+    ///         order epoch (risk spec §7.5), and the old orders are pruned when reached.
+    function cancelAll() external {
+        _openBook();
+        uint32 trader = _traderOf(msg.sender);
+        _riskBeginAction();
+        EpochTag memory t = _riskCancelAll(trader);
+        emit AllOrdersCancelled(trader, t.marketOrderEpoch, t.accountOrderEpoch);
     }
 
     // ------------------------------------------------------------------ views
