@@ -3,7 +3,16 @@ pragma solidity 0.8.30;
 
 import {MockUSDC} from "@eros-test/mocks/A/MockUSDC.sol";
 import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";
-import {Ledger, MarketInput, Resolution, RState, TrustSetInput} from "../../src/types/OracleTypes.sol";
+import {
+    Ledger,
+    MarketInput,
+    Resolution,
+    RState,
+    ReviewedProposal,
+    Sig,
+    TrustSetInput
+} from "../../src/types/OracleTypes.sol";
+import {SigLib} from "../../src/libraries/SigLib.sol";
 import {MarketRegistry} from "../../src/MarketRegistry.sol";
 import {BondTreasury} from "../../src/BondTreasury.sol";
 import {RegistryFixture} from "./RegistryFixture.sol";
@@ -25,6 +34,7 @@ abstract contract OracleFixture is RegistryFixture {
     uint64 internal constant T = NOW + 1_800;
     uint256 internal constant OI = 100_000;
     uint256 internal constant BOND = 11_120_000;
+    string internal constant URI = "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi";
 
     MockUSDC internal token;
     MockMarketFactory internal factory;
@@ -153,5 +163,70 @@ abstract contract OracleFixture is RegistryFixture {
         Resolution memory r = ro.getResolution(id);
         r.state = s;
         ro.setResolution(id, r);
+    }
+
+    // ------------------------------------------------------------------ lifecycle helpers
+
+    /// Halts a market at T (L1Pending with a feed, L2Pending without).
+    function _halt(bytes32 id) internal {
+        vm.warp(T);
+        ro.haltScheduled(id);
+    }
+
+    /// A market without a feed, halted at T and opened at its L2 deadline (T + 600 s).
+    function _toOpen(bytes32 id) internal {
+        _halt(id);
+        vm.warp(T + 600);
+        require(ro.openAfterDeadline(id), "not opened");
+    }
+
+    /// A halted market placed in Review (as after a failed panel gate).
+    function _toReview(bytes32 id) internal {
+        _halt(id);
+        _forceState(id, RState.Review);
+    }
+
+    // ------------------------------------------------------------------ committee signing
+
+    /// A ReviewedProposal matching the market's current record, valid for one hour.
+    function _reviewed(bytes32 id, uint8 outcome) internal view returns (ReviewedProposal memory p) {
+        Resolution memory r = ro.getResolution(id);
+        p.marketId = id;
+        p.outcome = outcome;
+        p.evidenceHash = keccak256("snapshot");
+        p.evidenceURIHash = keccak256(bytes(URI));
+        p.noteHash = keccak256("note");
+        p.attempt = r.attempts;
+        p.rejectedMask = r.rejectedMask;
+        p.early = r.state == RState.EarlyReview;
+        p.trustSetId = r.trustSetId != 0 ? r.trustSetId : ro.activeTrustSetId();
+        p.deadline = uint64(block.timestamp + 1 hours);
+    }
+
+    /// The EIP-712 digest under the oracle's domain (SigLib's C.7-checked encoding).
+    function _digest(ReviewedProposal memory p) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                hex"1901", SigLib.domainSeparator(block.chainid, address(ro)), SigLib.hashReviewedProposal(p)
+            )
+        );
+    }
+
+    function _sign(uint256 key, bytes32 digest) internal pure returns (bytes memory) {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(key, digest);
+        return abi.encodePacked(r, s, v);
+    }
+
+    /// Signatures of members `a` < `b` (indexes into the ascending committee).
+    function _sigs(ReviewedProposal memory p, uint256 a, uint256 b) internal view returns (Sig[] memory sigs) {
+        bytes32 d = _digest(p);
+        sigs = new Sig[](2);
+        sigs[0] = Sig(members[a], _sign(memberKeys[a], d));
+        sigs[1] = Sig(members[b], _sign(memberKeys[b], d));
+    }
+
+    function _propose(bytes32 id, uint8 outcome) internal {
+        ReviewedProposal memory p = _reviewed(id, outcome);
+        ro.submitReviewedProposal(id, p, URI, _sigs(p, 0, 1));
     }
 }
