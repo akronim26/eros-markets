@@ -1,0 +1,12 @@
+HTTP/2 200 
+date: Fri, 02 Oct 2026 15:20:48 GMT
+content-type: application/json
+set-cookie: __cf_bm=TpNtNhiIDwd7MT8VwrzMALx5J_ZTA0Q_XXChgfeBRXM-1790954448.3249655-1.0.1.1-gnKpPL1ZotpGqA_kz7zTOlJFUMbRzRxQbQPgHncdhMi_kbf4HVss05QsNBEn6B.M87iLUXDog0vuN6G5RIP6RK281wR8SHCAk8gGrbQ94i4uFd1KeJvxOGAIplciAkMG; HttpOnly; SameSite=None; Secure; Path=/; Domain=polymarket.com; Expires=Fri, 02 Oct 2026 15:50:48 GMT
+vary: Accept-Encoding
+vary: Origin
+speculation-rules: "/cdn-cgi/speculation"
+cf-cache-status: DYNAMIC
+strict-transport-security: max-age=7776000; includeSubDomains
+server: cloudflare
+cf-ray: a444b17608cf5198-MAA
+

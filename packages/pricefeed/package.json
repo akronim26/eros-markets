@@ -1,0 +1,23 @@
+{
+  "name": "@eros/pricefeed",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "24.21.0" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test --test-isolation=none dist/test/*.test.js",
+    "test:reference": "python3 reference/vectors.py --check",
+    "check:wire": "node dist/scripts/check-wire.js",
+    "check:scope": "python3 scripts/check-scope.py",
+    "verify:all": "npm run typecheck && npm run test:reference && npm test && npm run check:wire && npm run check:scope",
+    "cli": "node dist/src/cli.js"
+  },
+  "dependencies": { "viem": "2.57.2" },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "node": "24.21.0",
+    "typescript": "5.9.3"
+  }
+}

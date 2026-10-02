@@ -1,0 +1,41 @@
+[
+  {
+    "category": "crypto",
+    "eventId": "1112205",
+    "eventTitle": "What price will Bitcoin hit in October?",
+    "eventSlug": "what-price-will-bitcoin-hit-in-october-2026",
+    "marketId": "5170735",
+    "question": "Will Bitcoin reach $87,500 in October?",
+    "outcomeLabel": "Yes",
+    "tokenId": "60853708478456543766262549859214991255573301006704578370875039498477095018713",
+    "conditionId": "0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb",
+    "url": "https://polymarket.com/event/what-price-will-bitcoin-hit-in-october-2026",
+    "bookUrl": "https://clob.polymarket.com/book?token_id=60853708478456543766262549859214991255573301006704578370875039498477095018713"
+  },
+  {
+    "category": "sports",
+    "eventId": "1109342",
+    "eventTitle": "China Open: Yunchaokete Bu vs Novak Djokovic",
+    "eventSlug": "atp-bu-djokovi-2026-10-01",
+    "marketId": "5157734",
+    "question": "China Open: Yunchaokete Bu vs Novak Djokovic",
+    "outcomeLabel": "Novak Djokovic",
+    "tokenId": "62599171215799060914733466480643361931303749340817042598476918875325918609653",
+    "conditionId": "0x5c6b053b29d7b88810ef830daea181cabafc3edb833f33b13aa1d2cc6365e7de",
+    "url": "https://polymarket.com/event/atp-bu-djokovi-2026-10-01",
+    "bookUrl": "https://clob.polymarket.com/book?token_id=62599171215799060914733466480643361931303749340817042598476918875325918609653"
+  },
+  {
+    "category": "politics",
+    "eventId": "45915",
+    "eventTitle": "Brazil Presidential Election",
+    "eventSlug": "brazil-presidential-election",
+    "marketId": "601826",
+    "question": "Will Fl\u00e1vio Bolsonaro win the 2026 Brazilian presidential election?",
+    "outcomeLabel": "Yes",
+    "tokenId": "109876868437950584369987384406356259939519193117253465815665152916226511121427",
+    "conditionId": "0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d",
+    "url": "https://polymarket.com/event/brazil-presidential-election",
+    "bookUrl": "https://clob.polymarket.com/book?token_id=109876868437950584369987384406356259939519193117253465815665152916226511121427"
+  }
+]

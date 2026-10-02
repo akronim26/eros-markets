@@ -1,0 +1,13 @@
+{
+  "startedAtMs": 1790954078181,
+  "finishedAtMs": 1790954678790,
+  "targetDurationSeconds": 600,
+  "targetIntervalSeconds": 10,
+  "pollCount": 61,
+  "requests": 216,
+  "illustrativeDepthNClaims": "1000",
+  "illustrativeMaxSpreadWad": "50000000000000000",
+  "productionApproved": false,
+  "transactionsSent": 0,
+  "signaturesProduced": 0
+}

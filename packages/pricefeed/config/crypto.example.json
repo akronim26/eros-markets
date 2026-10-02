@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1",
+  "configVersion": "diagnostic-1",
+  "key": "crypto-example",
+  "category": "crypto",
+  "enabled": false,
+  "destination": null,
+  "mapping": {
+    "eventId": "1112205",
+    "externalMarketId": "5170735",
+    "conditionId": "0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb",
+    "outcomeTokenId": "60853708478456543766262549859214991255573301006704578370875039498477095018713",
+    "outcomeLabel": "Yes"
+  },
+  "pricing": {
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "impactMethod": "vwap"
+  },
+  "policies": {
+    "timestampPolicyId": "vendor-ms-floor-diagnostic-only",
+    "quantityPolicyId": "claims-to-lots-floor-total-diagnostic-only",
+    "quotePolicyId": "vendor-quote-unapproved",
+    "mappingApprovalId": null,
+    "pricingApprovalId": null,
+    "timeApprovalId": null,
+    "rulesApprovalId": null,
+    "unitsApprovalId": null,
+    "invalidApprovalId": null,
+    "operatingApprovalId": null
+  },
+  "requiredFeedUntil": null,
+  "poll": {
+    "intervalMs": 10000,
+    "timeoutMs": 4000,
+    "maxRetries": 1,
+    "retryDelayMs": 200,
+    "metadataMaxAgeMs": 90000,
+    "minimumHeadroomMs": 5000,
+    "bodyLimitBytes": 1000000
+  }
+}
