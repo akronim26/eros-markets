@@ -17,7 +17,7 @@
     "B": "contracts/test/math/B/RiskDifferential.t.sol from reference/b/export_vectors.py (regenerates byte-identical)"
   },
   "declared_bounds": {
-    "premium": "A's Solidity premium >= ceil(exact) and < ceil(exact) + 12 Q per segment (A-F02, Low, open)",
+    "premium": "A's Solidity premium equals ceil(exact Fraction cumulative segment integral); A-F02 fixed without changing the specification",
     "margin": "B tolerance T-1: >= reference upper bracket, <= max(1e3 Q, 1e-12 relative) above"
   },
   "math_layer_purity": "no storage, external call, token, block or msg access in contracts/src/math/*.sol (grep check, comments excluded). OrderAdmissionMath.safeTakerCap is `view` only because it takes a caller-supplied coverage callback; the library itself reads no state.",

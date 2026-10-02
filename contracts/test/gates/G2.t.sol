@@ -21,16 +21,20 @@ contract G2Test is Test {
 
     /// A's coverage answer for B's admission: deficits of the account plus its commitment set,
     /// cap = 2% of the reserve seed, market check against a reserve with other deficits.
-    function _cov(int256 cash, int256 lots, OA.OrderSums memory s, uint256 reserveQ, uint256 otherD0, uint256 otherD1)
-        internal
-        pure
-        returns (OA.CoverageInput memory c)
-    {
+    function _cov(
+        int256 cash,
+        int256 lots,
+        OA.OrderSums memory s,
+        uint256 reserveQ,
+        uint256 otherD0,
+        uint256 otherD1
+    ) internal pure returns (OA.CoverageInput memory c) {
         (c.d0Q, c.d1Q) = C.deficits(
             L.Value(int128(lots), cash), C.Orders(s.bidLots, s.bidValueQ, s.askLots, s.askValueQ, s.feeCapQ)
         );
         c.deficitCapQ = reserveQ / 50;
-        (int256 s0, int256 s1) = C.slacks(L.Value(0, int256(reserveQ)), c.d0Q + otherD0, c.d1Q + otherD1, 0, 0);
+        (int256 s0, int256 s1) =
+            C.slacks(L.Value(0, int256(reserveQ)), c.d0Q + otherD0, c.d1Q + otherD1, 0, 0);
         c.marketOk = s0 >= 0 && s1 >= 0;
     }
 
@@ -40,7 +44,11 @@ contract G2Test is Test {
         returns (bool ok, RejectCode why)
     {
         return OA.admit(
-            OA.Account(cash, lots), s, OA.Pricing(6e17, T29, 0), RiskFixture.profile(5, true), _cov(cash, lots, s, reserveQ, 0, 0)
+            OA.Account(cash, lots),
+            s,
+            OA.Pricing(6e17, T29, 0),
+            RiskFixture.profile(5, true),
+            _cov(cash, lots, s, reserveQ, 0, 0)
         );
     }
 
@@ -90,9 +98,8 @@ contract G2Test is Test {
         uint256 full = P.cumulative(s, t, 600);
         assertEq(half + (full - half), full);
         // Combined reference trace (reference/integration/combined_trace.py) charges ceil(exact) =
-        // 2,667,052,469,135,802,468,334 Q; A's Solidity is an upper bound within A-F02's tolerance.
-        assertGe(full, 2_667_052_469_135_802_468_334);
-        assertLt(full - 2_667_052_469_135_802_468_334, 12);
+        // 2,667,052,469,135,802,468,334 Q.
+        assertEq(full, 2_667_052_469_135_802_468_334);
     }
 
     function test_haltCutoffs() public pure {
