@@ -26,11 +26,12 @@ Plan §13: owner OB · 1 PD · depends OG0 · acceptance: bun tests (A1) + vecto
 - Depends: O20.1, O10.2
 - Plan: §11.2, C.7, V-R5, ADJ-08
 - Cut: yes
-- Status: todo
-- Files: oracle/packages/feedspec/test/vectors.test.ts
+- Status: done
+- Files: oracle/packages/feedspec/test/vectors.test.ts, oracle/packages/feedspec/src/index.ts, oracle/packages/feedspec/package.json, oracle/bun.lock, oracle/vectors/feedspec.json, oracle/test/unit/FeedSpecLib.t.sol
 - Build: Read `oracle/vectors/feedspec.json` and `oracle/vectors/spechash.json` (O02.2, O10.2): every validation vector gives the same accept/reject result in TypeScript; every specHash vector, computed with viem `encodeAbiParameters` on the FeedSpec tuple, equals the Solidity value.
 - Done when: the same file passes in bun and Foundry, including `0x5066…80cd`.
 - Check: cd oracle/packages/feedspec && bun test test/vectors.test.ts
+- Notes: The package had only the evaluator's pieces, so O20.2 adds `validateSpec(spec, l1Host, authRefKnown, bounds)`: `FeedSpecLib.validate` in TypeScript, the first failing BadFeed code in the registry's order 1..12 (https, host, {id}, urlParam, L1 host, path, finalValue, op/type, decimals, target, timing, authRef), built from the evaluator's own rules (`checkTemplate`, the urlParam and path regexes, `parseTyped` for INT and DECIMAL targets, so the listing check and the evaluation cannot disagree; STRING target non-empty); exported with the `BadFeed` codes for the listing CLI (O22). The tests compare exact codes, not only accept or reject: all 72 cases of `vectors/feedspec.json` (every code 0-12 present) and the four `vectors/spechash.json` vectors through viem 2.57.2 `encodeAbiParameters` on the FeedSpec tuple (C.2 order), including B.3's `0x5066…80cd`, plus every field changing the hash. viem is a dev dependency only (the package keeps no runtime dependency; `bun.lock` updated, frozen install passes). 7 planted validator bugs: 6 caught at first; the survivor (path checked before the L1 host) showed no vector exercised that order, so one shared vector was added (`order: L1 host and path both wrong -> L1 host first`, code 5) and the Foundry test's pinned case count raised from 71 to 72; it now catches it. The same files pass in Foundry (`FeedSpecLib.t.sol`, 3/3) and bun (80 vector tests; 101 in the package).
 
 ## O21 · `workflows/resolution`
 Plan §13: owner OB · 2 PD · depends O20, O02 · acceptance: §11.2 tests; no determinism warnings.

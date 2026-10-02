@@ -8,5 +8,8 @@
   "types": "src/index.ts",
   "scripts": {
     "test": "bun test"
+  },
+  "devDependencies": {
+    "viem": "2.57.2"
   }
 }

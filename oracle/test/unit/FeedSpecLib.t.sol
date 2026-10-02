@@ -27,7 +27,7 @@ contract FeedSpecLibTest is Test {
             assertEq(got, want, name);
             ++n;
         }
-        assertEq(n, 71, "every case ran");
+        assertEq(n, 72, "every case ran");
     }
 
     /// One case per external call, so each case gets a fresh memory frame (each JSON read copies the file).
