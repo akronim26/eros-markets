@@ -1,0 +1,62 @@
+{
+  "network": "monad-testnet",
+  "chainId": 10143,
+  "creChainSelector": "2183018362218727504",
+  "_note": "Deploy input for DeployOracle and the O19.4 governance scripts (plan 12.5, 12.11). Zero addresses are filled in X03 (accounts, keys and Safes) before a live deploy; the scripts refuse a zero role. A zero usdc or uma.oov3 means: take it from deployments/monad-testnet.json, written by DeployUmaSandbox.",
+  "usdc": "0x0000000000000000000000000000000000000000",
+  "uma": {
+    "oov3": "0x0000000000000000000000000000000000000000"
+  },
+  "roles": {
+    "teamSafe": "0x0000000000000000000000000000000000000000",
+    "guardianSafe": "0x0000000000000000000000000000000000000000"
+  },
+  "timelockDelaySecs": 300,
+  "cre": {
+    "mockForwarder": "0xB9F79d863261869B234c481D1f9A7af84AeAd192",
+    "keystoneForwarder": "0xF8344CFd5c43616a4366C34E3EEE75af79a74482",
+    "orgOwner": "0x0000000000000000000000000000000000000000",
+    "workflowName": "eros-resolution-stg",
+    "workflowIds": [],
+    "simRelayers": []
+  },
+  "trustSet": {
+    "runnerAttestor": "0x0000000000000000000000000000000000000000",
+    "committee": [],
+    "threshold": 2,
+    "watchdog": "0x0000000000000000000000000000000000000000"
+  },
+  "treasuryLimits": {
+    "maxPerMarketAtoms": 100000000,
+    "maxOpenDisputes": 20
+  },
+  "authRefs": ["SPORTSDATA_V1"],
+  "providers": [],
+  "globals": {
+    "minHorizonSecs": 600,
+    "maxListingHorizon": 2588400,
+    "maxVoidSecs": 604800,
+    "l2MinSecs": 60,
+    "l2MaxSecs": 3600,
+    "bufferMinSecs": 60,
+    "bufferMaxSecs": 600,
+    "l1TimeoutMinSecs": 120,
+    "l1TimeoutMaxSecs": 3600,
+    "tMinSecs": 60,
+    "bondBpsFloor": 1112,
+    "highConfFloorBps": 5000,
+    "maxClaimBytes": 16384,
+    "dvmRoundSecs": 300,
+    "dvmMaxRolls": 0,
+    "reviewTargetSecs": 600,
+    "voidSlackSecs": 600,
+    "retryWindowSecs": 300,
+    "earlyTtlSecs": 600,
+    "minRequestIntervalSecs": 60,
+    "heartbeatMaxAgeSecs": 900,
+    "deltaPmaxBps": 200,
+    "nMin": 150,
+    "reviewLimitAtoms": 1668000000,
+    "proposerRewardAtoms": 0
+  }
+}

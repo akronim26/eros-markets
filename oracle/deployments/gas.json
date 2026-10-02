@@ -104,7 +104,8 @@
       "ErosSandboxOracle": 2684,
       "StubMarketFactory": 8331,
       "ResolutionEngineStub": 6762,
-      "KeeperRouter": 1754
+      "KeeperRouter": 1754,
+      "TestUSDC": 2242
     },
     "testOnlyRuntimeBytes": {
       "EngineHarness": 78244,
