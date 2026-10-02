@@ -34,7 +34,7 @@ def validate_review(root):
         path = (root / relative).resolve()
         if not path.is_relative_to(root.resolve()) or not path.is_file():
             raise ValueError("invalid reviewed path: " + relative)
-        if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        if hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest() != expected:
             raise ValueError("reviewed source changed: " + relative)
     findings = review.get("findings")
     if not isinstance(findings, list):

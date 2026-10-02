@@ -34,3 +34,7 @@ $env:FORGE_SNAPSHOT_EMIT = 'false'
 Run G0 through G7 in order. Task and gate runners retain actual versions, commands,
 source commit, dirty state and hashes; technical success never invents an accepted
 merge SHA or approval by another reviewer. Book gas snapshots are not rewritten.
+
+The source-bound A review uses SHA-256 after normalizing CRLF to LF, so Git's
+Windows checkout conversion does not invalidate an otherwise identical review.
+Content changes, new source files and unrelated source ancestry still invalidate it.

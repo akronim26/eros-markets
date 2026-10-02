@@ -1,297 +1,11 @@
 {
- "note": "External ABI of the composed Risk & Clearing engine (RiskAccountingBridge = Person B controllers + Person A accounting), extracted from the test composition CombinedEngine with mock-book and test-only entries removed. Book hook internals are not in an ABI (internal composition). integration/risk.",
+ "note": "External ABI of the abstract RiskAccountingBridge (Person B controllers + Person A accounting). Exported directly from the production composition, not CombinedEngine or MockBookAdapter. Includes OrderAdmissionMath.ReservationUnderflow, a production library error omitted from the abstract contract's compiler ABI. No deployment constructor or book hook internals are included; a concrete production engine must supply the book adapter and deployment wiring. integration/risk.",
+ "source": {
+  "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
+ },
+ "compiler": "0.8.30+commit.73712a01",
+ "source_sha256": "88d8bf0ebf38a0aaf78f98d0525bd77f4f9adf47f233d2961d696e70771d9ec8",
  "abi": [
-  {
-   "type": "constructor",
-   "inputs": [
-    {
-     "name": "vault",
-     "type": "address",
-     "internalType": "contract CollateralVault"
-    },
-    {
-     "name": "treasury_",
-     "type": "address",
-     "internalType": "address"
-    },
-    {
-     "name": "l",
-     "type": "tuple",
-     "internalType": "struct IMarketConfig.Listing",
-     "components": [
-      {
-       "name": "marketId",
-       "type": "bytes32",
-       "internalType": "bytes32"
-      },
-      {
-       "name": "token",
-       "type": "address",
-       "internalType": "address"
-      },
-      {
-       "name": "registry",
-       "type": "address",
-       "internalType": "address"
-      },
-      {
-       "name": "resolutionAuthority",
-       "type": "address",
-       "internalType": "address"
-      },
-      {
-       "name": "monitor",
-       "type": "address",
-       "internalType": "address"
-      },
-      {
-       "name": "governance",
-       "type": "address",
-       "internalType": "address"
-      },
-      {
-       "name": "scheduledT",
-       "type": "uint64",
-       "internalType": "uint64"
-      },
-      {
-       "name": "listedAt",
-       "type": "uint64",
-       "internalType": "uint64"
-      },
-      {
-       "name": "sourceHash",
-       "type": "bytes32",
-       "internalType": "bytes32"
-      },
-      {
-       "name": "rulesHash",
-       "type": "bytes32",
-       "internalType": "bytes32"
-      },
-      {
-       "name": "invalidRule",
-       "type": "tuple",
-       "internalType": "struct IMarketConfig.InvalidRule",
-       "components": [
-        {
-         "name": "fallbackListed",
-         "type": "bool",
-         "internalType": "bool"
-        },
-        {
-         "name": "captureGraceSecs",
-         "type": "uint64",
-         "internalType": "uint64"
-        },
-        {
-         "name": "fallbackPriceWad",
-         "type": "uint256",
-         "internalType": "uint256"
-        },
-        {
-         "name": "voidSecs",
-         "type": "uint64",
-         "internalType": "uint64"
-        }
-       ]
-      },
-      {
-       "name": "template",
-       "type": "uint8",
-       "internalType": "enum MarginMath.Template"
-      },
-      {
-       "name": "deploymentCapX",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "maxTraders",
-       "type": "uint32",
-       "internalType": "uint32"
-      },
-      {
-       "name": "indexSourceId",
-       "type": "bytes32",
-       "internalType": "bytes32"
-      },
-      {
-       "name": "indexSigner",
-       "type": "address",
-       "internalType": "address"
-      },
-      {
-       "name": "indexRulesHash",
-       "type": "bytes32",
-       "internalType": "bytes32"
-      },
-      {
-       "name": "depthNLots",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "maxSpreadWad",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "bootstrapBandWad",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "minOrderLots",
-       "type": "uint64",
-       "internalType": "uint64"
-      },
-      {
-       "name": "maxOrderLots",
-       "type": "uint64",
-       "internalType": "uint64"
-      },
-      {
-       "name": "maxLiqLotsPerBlock",
-       "type": "uint64",
-       "internalType": "uint64"
-      },
-      {
-       "name": "fundingEnabled",
-       "type": "bool",
-       "internalType": "bool"
-      }
-     ]
-    },
-    {
-     "name": "p",
-     "type": "tuple",
-     "internalType": "struct MarginMath.RiskParams",
-     "components": [
-      {
-       "name": "h0Secs",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "absorptionClaimsPerMin",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "queueSecs",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "hazard0WadPerDay",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "hazard1WadPerDay",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "epsilonWad",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "gammaWad",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "sWad",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "lambdaWadPerClaim",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "template",
-       "type": "uint8",
-       "internalType": "enum MarginMath.Template"
-      },
-      {
-       "name": "calibrated",
-       "type": "bool",
-       "internalType": "bool"
-      },
-      {
-       "name": "deploymentCapX",
-       "type": "uint256",
-       "internalType": "uint256"
-      },
-      {
-       "name": "realized",
-       "type": "tuple",
-       "internalType": "struct HorizonMath.Envelope",
-       "components": [
-        {
-         "name": "hSecs",
-         "type": "uint64[]",
-         "internalType": "uint64[]"
-        },
-        {
-         "name": "sigmaWad",
-         "type": "uint256[]",
-         "internalType": "uint256[]"
-        },
-        {
-         "name": "validFrom",
-         "type": "uint64",
-         "internalType": "uint64"
-        },
-        {
-         "name": "validUntil",
-         "type": "uint64",
-         "internalType": "uint64"
-        }
-       ]
-      },
-      {
-       "name": "templateEnv",
-       "type": "tuple",
-       "internalType": "struct HorizonMath.Envelope",
-       "components": [
-        {
-         "name": "hSecs",
-         "type": "uint64[]",
-         "internalType": "uint64[]"
-        },
-        {
-         "name": "sigmaWad",
-         "type": "uint256[]",
-         "internalType": "uint256[]"
-        },
-        {
-         "name": "validFrom",
-         "type": "uint64",
-         "internalType": "uint64"
-        },
-        {
-         "name": "validUntil",
-         "type": "uint64",
-         "internalType": "uint64"
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "name": "premiumLoadWad",
-     "type": "uint256",
-     "internalType": "uint256"
-    }
-   ],
-   "stateMutability": "nonpayable"
-  },
   {
    "type": "function",
    "name": "ELIGIBLE",
@@ -817,6 +531,19 @@
   },
   {
    "type": "function",
+   "name": "allTraderClaimsPaid",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "allocationCursor",
    "inputs": [],
    "outputs": [
@@ -837,6 +564,19 @@
      "name": "",
      "type": "uint256",
      "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "anyCashClaim",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
     }
    ],
    "stateMutability": "view"
@@ -1891,19 +1631,6 @@
   },
   {
    "type": "function",
-   "name": "lastFilled",
-   "inputs": [],
-   "outputs": [
-    {
-     "name": "",
-     "type": "uint64",
-     "internalType": "uint64"
-    }
-   ],
-   "stateMutability": "view"
-  },
-  {
-   "type": "function",
    "name": "liquidate",
    "inputs": [
     {
@@ -2374,19 +2101,6 @@
   },
   {
    "type": "function",
-   "name": "minRestLots",
-   "inputs": [],
-   "outputs": [
-    {
-     "name": "",
-     "type": "uint256",
-     "internalType": "uint256"
-    }
-   ],
-   "stateMutability": "view"
-  },
-  {
-   "type": "function",
    "name": "observationDigest",
    "inputs": [
     {
@@ -2490,6 +2204,24 @@
   {
    "type": "function",
    "name": "onAllocate",
+   "inputs": [
+    {
+     "name": "owner",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "atoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "onCashClaim",
    "inputs": [
     {
      "name": "owner",
@@ -3270,6 +3002,19 @@
     }
    ],
    "stateMutability": "pure"
+  },
+  {
+   "type": "function",
+   "name": "protocolFeeEscrowQ",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
   },
   {
    "type": "function",
@@ -4145,6 +3890,25 @@
   },
   {
    "type": "function",
+   "name": "traderClaimed",
+   "inputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "traderIdAt",
    "inputs": [
     {
@@ -4202,6 +3966,19 @@
   {
    "type": "function",
    "name": "treasuryQ",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "unpaidTraderClaims",
    "inputs": [],
    "outputs": [
     {
@@ -4408,6 +4185,19 @@
   },
   {
    "type": "function",
+   "name": "withdrawProtocolFees",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "atoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
    "name": "withdrawTreasury",
    "inputs": [],
    "outputs": [
@@ -4427,7 +4217,7 @@
     {
      "name": "",
      "type": "uint8",
-     "internalType": "enum RiskStorage.Work"
+     "internalType": "enum AccountingState"
     }
    ],
    "stateMutability": "view"
@@ -5320,6 +5110,43 @@
   },
   {
    "type": "event",
+   "name": "OrderAmendedDown",
+   "inputs": [
+    {
+     "name": "trader",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "slot",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "generation",
+     "type": "uint24",
+     "indexed": false,
+     "internalType": "uint24"
+    },
+    {
+     "name": "oldLots",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    },
+    {
+     "name": "newLots",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
    "name": "OrdersInvalidated",
    "inputs": [
     {
@@ -5916,12 +5743,12 @@
   },
   {
    "type": "error",
-   "name": "Rejected",
+   "name": "ProfileListingMismatch",
    "inputs": []
   },
   {
    "type": "error",
-   "name": "ReservationUnderflow",
+   "name": "Rejected",
    "inputs": []
   },
   {
@@ -6020,6 +5847,11 @@
   {
    "type": "error",
    "name": "ZeroWorkBudget",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "ReservationUnderflow",
    "inputs": []
   }
  ]
