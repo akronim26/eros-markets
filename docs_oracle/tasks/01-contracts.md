@@ -259,11 +259,12 @@ Plan §13: owner OA · 5 PD · depends O10–O13 · acceptance: §11.1 unit test
 - Depends: O14.3
 - Plan: §5.4, §6.4, §6.5, D1, D2, D9, D10, D11, ORC-2, ORC-3, ORC-5, ORC-8, ORC-9, ADJ-27
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/ResolutionOracle.sol, oracle/test/unit/OracleAssertions.t.sol
 - Build: `assertProposal` (attempts < 3, outcome not rejected, `now + liveness ≤ voidDeadline`, `TreasuryShort`, `fundAssertion`, venue `assertOutcome` with `renderClaim`, `Asserted`); `bondFor`, `livenessFor` (heartbeat fallback), `renderClaim`; `syncAssertion`; `finalizeMarket` (`trySettle`, then `statusOf`); `_final` (engine `settle(1)`/`settle(0)`/`settleInvalid()` in the same transaction, treasury booking per final reason, `releaseListing`); `_reject` (mask, Review with `retryOpensAt`, Voided → Final INVALID when YES and NO are both rejected); `voidMarket` (applies a settled or settleable assertion first, `markStuck` for a live team bond).
 - Done when: the §11.1 "Assertion lifecycle", "Void", "Treasury bookkeeping per final reason" and "Liveness fallback" cases pass against `MockAssertionVenue` and `MockResolutionEngine`; an engine revert rolls the oracle transaction back.
 - Check: cd oracle && forge test --match-path test/unit/OracleAssertions.t.sol
+- Notes: Team decisions: a rejection applied by `voidMarket` (venue settled false at or after `voidDeadline`) is booked as a rejection (`onBondLost`, mask bit, `AssertionRejected`) and the market is then voided in the same call (VOID_DEADLINE); keeper functions return false or NOT_READY (ADJ-32); `TreasuryShort(need, have)` is checked before `fundAssertion`, whose own errors (e.g. `PerMarketCapExceeded`) bubble; engine reverts bubble and roll the whole call back (S-02), and `settle*`'s `newlyAccepted` is ignored (a duplicate is harmless, a conflict reverts). Attempt keys per ADJ-27 (`attempts` before the increment; `attempts − 1` when booking). The retry window is the market's listing-time copy (`MarketCore.retryWindowSecs`). `_reject` also clears `rewardAtoms` with `proposer` on the permissionless path. Views: `bondFor` is 0 before the halt (no OI or venue pinned); `livenessFor` gives the reviewed liveness while no proposal is recorded; `renderClaim` is empty without a proposal; all three are 0/empty for an unknown market. 29 tests; 51 mutations: 45 caught first, 6 survivors closed: 2 by new tests (ledger exactly the bond, NO rejected first), 3 by asserting the oracle never calls `onBondLost`/`markStuck` where §5.4 books nothing, and 1 redundant `livenessFor` check removed.
 
 ### O14.5 · Early check and the Layer 2 panel paths
 - Owner: OA
