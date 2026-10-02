@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
+enum AccountingState {
+    READY,
+    ROLLOVER_SWEEP,
+    FLOOR_SWEEP,
+    HALT_SWEEP
+}
+
 /// @notice Proposed G0 pure-input contract, risk economics v1.0. No protocol storage.
 /// @dev Integer widths do not enforce the narrower economic bounds. Library callers must
 ///      validate decoded inputs and every posted result. Times are uint64 Unix seconds.

@@ -70,11 +70,15 @@ contract G6Test is CombinedBase {
             e.claimTrader(who[i]); // once only
         }
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms(), "INV-03");
+        assertTrue(e.allTraderClaimsPaid(), "zero-atom entitlements do not prevent completion");
     }
 
     function _common(uint256 priceWad) internal view {
         // Every Q stays classified: LP atoms outstanding + treasury Q + keeper Q == market allocation.
-        assertEq(e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.keeperPayableQ(), e.allocationQ());
+        assertEq(
+            e.outstandingReserveAtoms() * 1e18 + e.treasuryQ() + e.protocolFeeEscrowQ() + e.keeperPayableQ(),
+            e.allocationQ()
+        );
         assertEq(e.conversionEligibility(), e.R_DISABLED(), "conversion stays disabled");
         assertFalse(e.recoveryEnabled(), "recovery disabled");
         assertTrue(e.claimsEnabled());
@@ -173,7 +177,9 @@ contract G6Test is CombinedBase {
         uint256 small = g0 - gasleft();
 
         _bilateral();
-        for (uint32 i = 3; i <= 34; ++i) _fund(_who(i), 1e6, false);
+        for (uint32 i = 3; i <= 34; ++i) {
+            _fund(_who(i), 1e6, false);
+        }
         assertEq(e.participantCount(), 34);
         vm.warp(block.timestamp + 60);
         oracle.haltEarly();
@@ -185,8 +191,6 @@ contract G6Test is CombinedBase {
         assertEq(large, small);
     }
 
-    /// Fee fractions survive settlement as classified Q: a 0.6-atom protocol fee is retained in the
-    /// treasury escrow (A-F03 notes it is folded into the reserve treasury) and only whole atoms leave.
     function test_feeFractionStaysClassified() public {
         _variant = 1; // 0.1% taker fee
         _bilateralWith(121);
@@ -201,10 +205,13 @@ contract G6Test is CombinedBase {
         oracle.finalize(ORACLE_YES);
         _prepare(32);
         _common(1e18);
-        uint256 tq = e.treasuryQ();
-        uint256 atoms = e.withdrawTreasury();
-        assertEq(atoms, tq / 1e18);
-        assertEq(e.treasuryQ(), tq % 1e18, "fraction retained");
+        uint256 protocolFees = e.protocolFeeEscrowQ();
+        uint256 reserveDust = e.treasuryQ();
+        assertEq(protocolFees, fee0 + 600e15);
+        uint256 atoms = e.withdrawProtocolFees();
+        assertEq(atoms, protocolFees / 1e18);
+        assertEq(e.protocolFeeEscrowQ(), protocolFees % 1e18, "fraction retained");
+        assertEq(e.treasuryQ(), reserveDust, "reserve dust remains separate");
         _common(1e18);
     }
 }

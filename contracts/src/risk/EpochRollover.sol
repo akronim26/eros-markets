@@ -4,10 +4,13 @@ import {AccountSync} from "./AccountSync.sol";
 import {PremiumMath as P} from "../math/PremiumMath.sol";
 import {FundingMath as F} from "../math/FundingMath.sol";
 import {QMath as Q} from "../math/QMath.sol";
+import {AccountingState} from "../math/MathTypes.sol";
 
 abstract contract EpochRollover is AccountSync {
     function _openEpoch(int256 rate, P.Tariff memory nextTariff, uint64 freshThrough) internal {
-        if (fundingClearingQ != 0 || fundingCushionQ != 0 || halted || work != Work.READY) revert BadState();
+        if (fundingClearingQ != 0 || fundingCushionQ != 0 || halted || work != AccountingState.READY) {
+            revert BadState();
+        }
         if (rate != 0 && !fundingFeatureEnabled) revert Rejected();
         if (
             Q.abs(rate) > 1e18 || nextTariff.hazard0WadPerDay > 1e18 || nextTariff.hazard1WadPerDay > 1e18
@@ -31,19 +34,19 @@ abstract contract EpochRollover is AccountSync {
 
     function _beginRollover(Context memory c) internal {
         _validateContext(c);
-        if (work != Work.READY || halted || c.at < epoch.end) revert BadState();
+        if (!active || work != AccountingState.READY || halted || c.at < epoch.end) revert BadState();
         _advanceFunding(epoch.end, c.freshThrough);
         epoch.stopped = true;
-        work = Work.ROLLOVER_SWEEP;
+        work = AccountingState.ROLLOVER_SWEEP;
         ++generation;
-        ++marketOrderEpoch;
+        _bumpMarketOrderEpoch();
         sweepCutoff = epoch.end;
         cursor = 0;
         sweepCount = participants.length;
     }
 
     function _rollPage(uint8 maximum) internal returns (bool complete) {
-        if (work != Work.ROLLOVER_SWEEP || maximum == 0 || maximum > 32) revert BadState();
+        if (work != AccountingState.ROLLOVER_SWEEP || maximum == 0 || maximum > 32) revert BadState();
         uint256 end = Q.min(cursor + maximum, sweepCount);
         while (cursor < end) {
             address owner = participants[cursor++];
@@ -61,8 +64,8 @@ abstract contract EpochRollover is AccountSync {
     }
 
     function _finishRollover(int256 rate, P.Tariff memory nextTariff, uint64 freshThrough) internal {
-        if (work != Work.ROLLOVER_SWEEP || cursor != sweepCount) revert BadState();
-        work = Work.READY;
+        if (work != AccountingState.ROLLOVER_SWEEP || cursor != sweepCount) revert BadState();
+        work = AccountingState.READY;
         _openEpoch(rate, nextTariff, freshThrough);
     }
 }

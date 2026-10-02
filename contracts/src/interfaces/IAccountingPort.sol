@@ -80,6 +80,10 @@ abstract contract IAccountingPort {
 
     function _acctAccount(uint32 trader) internal view virtual returns (AccountView memory);
 
+    function _acctPreviewAccount(uint32 trader, uint64) internal view virtual returns (AccountView memory) {
+        return _acctAccount(trader);
+    }
+
     /// @dev A's order-aware endpoint deficits (incl. fee caps), per-account cap and both reserve
     ///      inequalities for the account at its current state plus (dCashQ, dLots), with `sums` as
     ///      its reservation set (resting + any permit), after replacing its contribution.
@@ -88,6 +92,16 @@ abstract contract IAccountingPort {
         view
         virtual
         returns (OA.CoverageInput memory);
+
+    function _acctPreviewCoverage(
+        uint32 trader,
+        OA.OrderSums memory sums,
+        int256 dCashQ,
+        int256 dLots,
+        uint64
+    ) internal view virtual returns (OA.CoverageInput memory) {
+        return _acctCoverage(trader, sums, dCashQ, dLots);
+    }
 
     function _acctReplaceContribution(uint32 trader, OA.OrderSums memory sums) internal virtual;
 
@@ -137,7 +151,10 @@ abstract contract IAccountingPort {
     /// @dev One page (<= 32 accounts) of A's floor sweep: touch at the floor cutoff and take over
     ///      any account with a negative endpoint (price-free predicate 2). `p.done` once every
     ///      frozen participant was visited; A then marks the market reconciled and READY.
-    function _acctFloorPage(uint256 maxAccounts) internal virtual returns (JobProgress memory p, uint64 takeovers);
+    function _acctFloorPage(uint256 maxAccounts)
+        internal
+        virtual
+        returns (JobProgress memory p, uint64 takeovers);
 
     function _acctAccountCount() internal view virtual returns (uint64);
 

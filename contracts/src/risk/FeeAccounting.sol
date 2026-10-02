@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 import {ReserveAccounting} from "./ReserveAccounting.sol";
+import {AccountingState} from "../math/MathTypes.sol";
 
 abstract contract FeeAccounting is ReserveAccounting {
     function _creditKeeper(address owner, uint256 amountQ) internal {
@@ -10,7 +11,7 @@ abstract contract FeeAccounting is ReserveAccounting {
     }
 
     function withdrawKeeper() external nonReentrant returns (uint256 atoms) {
-        if ((halted || work != Work.READY) && !claimsEnabled) revert BadState();
+        if ((halted || work != AccountingState.READY) && !claimsEnabled) revert BadState();
         atoms = keeperQ[msg.sender] / 1e18;
         keeperQ[msg.sender] -= atoms * 1e18;
         keeperPayableQ -= atoms * 1e18;

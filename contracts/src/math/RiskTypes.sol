@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {MathTypes} from "./MathTypes.sol";
+import {MathTypes, AccountingState} from "./MathTypes.sol";
 
 // Person B shared names (spec §4.6, §7.2, §8.1). Unit constants are re-exported from Person A's
 // MathTypes (A001), so there is one source of truth for Q / WAD / payoff / tick bounds. `Side` and
@@ -24,14 +24,6 @@ enum Stage {
     REDUCE_ONLY,
     HALTED,
     CLAIMS_READY
-}
-
-/// @dev Same ordinals as Person A's `RiskStorage.Work` (asserted in test/integration/IntegrationTypes.t.sol).
-enum AccountingState {
-    READY,
-    ROLLOVER_SWEEP,
-    FLOOR_SWEEP,
-    HALT_SWEEP
 }
 
 enum PricingMode {

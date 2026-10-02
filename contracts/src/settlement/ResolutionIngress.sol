@@ -34,7 +34,9 @@ abstract contract ResolutionIngress is RiskView, IResolutionEngine {
         uint64 frozenAccountCount,
         uint64 frozenBookEpoch
     );
-    event OracleFinalityAccepted(bytes32 indexed marketId, bytes32 snapshotId, MathTypes.FinalOutcome outcome);
+    event OracleFinalityAccepted(
+        bytes32 indexed marketId, bytes32 snapshotId, MathTypes.FinalOutcome outcome
+    );
 
     function _earlyHaltAt() internal view virtual override returns (uint64) {
         return _earlyHalt;
@@ -87,8 +89,9 @@ abstract contract ResolutionIngress is RiskView, IResolutionEngine {
         uint64 haltAt = uint64(LifecycleMath.economicHaltAt(_scheduledT, _earlyHalt));
         (uint64 epochEnd, uint64 frozenRoll) = _acctEpochBounds();
         uint64 cutoff = uint64(LifecycleMath.accrualCutoff(haltAt, epochEnd, frozenRoll));
-        uint64 bookEpoch = _invalidateMarketOrders();
+        _invalidateMarketOrders();
         FreezeResult memory f = _acctFreeze(haltAt, cutoff);
+        uint64 bookEpoch = _acctMarketOrderEpoch();
         HaltView storage h = _halt;
         h.halted = true;
         h.economicHaltAt = haltAt;

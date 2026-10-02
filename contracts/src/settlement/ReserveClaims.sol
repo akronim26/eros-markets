@@ -9,6 +9,7 @@ abstract contract ReserveClaims is ClaimEscrow {
     uint256 public lpAtomsAllocated;
     uint256 public treasuryQ;
     uint256 public outstandingReserveAtoms;
+    uint256 public protocolFeeEscrowQ;
 
     function _prepareReservePage(uint8 maximum) internal returns (bool complete) {
         if (!payoutsAllocated || maximum == 0 || maximum > 32) revert BadState();
@@ -24,12 +25,16 @@ abstract contract ReserveClaims is ClaimEscrow {
         }
         complete = reserveCursor == count;
         if (complete) {
-            treasuryQ = reserveResidualQ - lpAtomsAllocated * 1e18 + protocolFeeQ;
+            treasuryQ = reserveResidualQ - lpAtomsAllocated * 1e18;
+            protocolFeeEscrowQ = protocolFeeQ;
             protocolFeeQ = 0;
             outstandingReserveAtoms = lpAtomsAllocated;
             reserveVault.finish();
             claimsEnabled = true;
-            if (outstandingReserveAtoms * 1e18 + treasuryQ + keeperPayableQ != allocationQ) {
+            if (
+                outstandingReserveAtoms * 1e18 + treasuryQ + protocolFeeEscrowQ + keeperPayableQ
+                    != allocationQ
+            ) {
                 revert BadState();
             }
         }
@@ -47,6 +52,14 @@ abstract contract ReserveClaims is ClaimEscrow {
         if (!claimsEnabled) revert BadState();
         atoms = treasuryQ / 1e18;
         treasuryQ -= atoms * 1e18;
+        allocationQ -= atoms * 1e18;
+        if (atoms != 0) collateralVault.escrow(treasury, atoms);
+    }
+
+    function withdrawProtocolFees() external nonReentrant returns (uint256 atoms) {
+        if (!claimsEnabled) revert BadState();
+        atoms = protocolFeeEscrowQ / 1e18;
+        protocolFeeEscrowQ -= atoms * 1e18;
         allocationQ -= atoms * 1e18;
         if (atoms != 0) collateralVault.escrow(treasury, atoms);
     }
