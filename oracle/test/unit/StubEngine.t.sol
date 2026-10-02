@@ -240,6 +240,11 @@ contract StubEngineTest is Test {
 
     // ------------------------------------------------------------------ factory
 
+    function test_factory_rejectsZeroRegistry() public {
+        vm.expectRevert(StubMarketFactory.ZeroAddress.selector);
+        new StubMarketFactory(address(0));
+    }
+
     function test_factory_onlyRegistry() public {
         IMarketConfig.Listing memory m = _listing();
         m.marketId = keccak256("m4");

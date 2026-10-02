@@ -48,6 +48,9 @@ interface IERC20Transfer {
 contract BondTreasury is IBondTreasury, ReentrancyGuard {
     using SafeTransferLib for address;
 
+    /// @notice A constructor address that must be set is zero (deploy-script mistake).
+    error ZeroAddress();
+
     struct DisputeRecord {
         bytes32 marketId;
         address venue; // 0 = no recorded dispute
@@ -95,6 +98,9 @@ contract BondTreasury is IBondTreasury, ReentrancyGuard {
     }
 
     constructor(address usdc_, address oracle_, address registry_, address governance_) {
+        if (usdc_ == address(0) || oracle_ == address(0) || registry_ == address(0) || governance_ == address(0)) {
+            revert ZeroAddress();
+        }
         usdc = usdc_;
         oracle = oracle_;
         registry = registry_;

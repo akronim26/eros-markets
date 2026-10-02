@@ -49,6 +49,25 @@ contract TreasuryLedgersTest is Test {
 
     // ------------------------------------------------------------------ constructor and limits
 
+    /// External, so `expectRevert` checks each deployment instead of ending the test at the first one.
+    function deployTreasury(address u, address o, address r, address g) external returns (address) {
+        return address(new BondTreasury(u, o, r, g));
+    }
+
+    function test_constructor_rejectsZeroAddresses() public {
+        address z = address(0);
+        bytes4 err = BondTreasury.ZeroAddress.selector;
+        vm.expectRevert(err);
+        this.deployTreasury(z, oracle, registry, gov);
+        vm.expectRevert(err);
+        this.deployTreasury(address(usdc), z, registry, gov);
+        vm.expectRevert(err);
+        this.deployTreasury(address(usdc), oracle, z, gov);
+        vm.expectRevert(err);
+        this.deployTreasury(address(usdc), oracle, registry, z);
+        assertTrue(this.deployTreasury(address(usdc), oracle, registry, gov) != address(0));
+    }
+
     function test_constructorAndInitialState() public view {
         assertEq(t.usdc(), address(usdc));
         assertEq(t.oracle(), oracle);

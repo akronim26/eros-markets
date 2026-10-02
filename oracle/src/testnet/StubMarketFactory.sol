@@ -12,6 +12,7 @@ import {ResolutionEngineStub} from "./ResolutionEngineStub.sol";
 contract StubMarketFactory is IMarketFactory {
     error OnlyRegistry();
     error MarketExists();
+    error ZeroAddress();
 
     address public immutable registry;
     mapping(bytes32 marketId => address engine) public engineOf;
@@ -19,6 +20,7 @@ contract StubMarketFactory is IMarketFactory {
     event MarketDeployed(bytes32 indexed marketId, address engine);
 
     constructor(address registry_) {
+        if (registry_ == address(0)) revert ZeroAddress();
         registry = registry_;
     }
 

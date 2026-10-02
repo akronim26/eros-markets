@@ -88,6 +88,27 @@ contract OracleTrustSetsTest is Test {
         assertFalse(m.simMode());
     }
 
+    /// External, so `expectRevert` checks each deployment instead of ending the test at the first one.
+    function deployOracle(address r, address t, address u, address g, address gd) external returns (address) {
+        return address(new ResolutionOracle(r, t, u, 1, g, gd));
+    }
+
+    function test_constructor_rejectsZeroAddresses() public {
+        address z = address(0);
+        bytes4 err = ResolutionOracle.ZeroAddress.selector;
+        vm.expectRevert(err);
+        this.deployOracle(z, treasury, usdc, gov, guardian);
+        vm.expectRevert(err);
+        this.deployOracle(registry, z, usdc, gov, guardian);
+        vm.expectRevert(err);
+        this.deployOracle(registry, treasury, z, gov, guardian);
+        vm.expectRevert(err);
+        this.deployOracle(registry, treasury, usdc, z, guardian);
+        vm.expectRevert(err);
+        this.deployOracle(registry, treasury, usdc, gov, z);
+        assertTrue(this.deployOracle(registry, treasury, usdc, gov, guardian) != address(0));
+    }
+
     // ------------------------------------------------------------------ createTrustSet
 
     function test_create_storesAndCounts() public {

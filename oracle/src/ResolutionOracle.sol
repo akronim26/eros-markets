@@ -67,6 +67,9 @@ import {SigLib} from "./libraries/SigLib.sol";
 ///      The guardian can only revoke, with immediate effect on pinned sets too. `BadTrustSet` codes are
 ///      C.3's 1-9 plus 0 = no such trust set (ADJ-31).
 contract ResolutionOracle is EIP712, ReentrancyGuard {
+    /// @notice A constructor address that must be set is zero (deploy-script mistake).
+    error ZeroAddress();
+
     // ------------------------------------------------------------------ immutables (C.1)
     address public immutable registry; // MarketRegistry
     address public immutable treasury; // BondTreasury
@@ -112,6 +115,10 @@ contract ResolutionOracle is EIP712, ReentrancyGuard {
         address governance_,
         address guardian_
     ) {
+        if (
+            registry_ == address(0) || treasury_ == address(0) || usdc_ == address(0) || governance_ == address(0)
+                || guardian_ == address(0)
+        ) revert ZeroAddress();
         registry = registry_;
         treasury = treasury_;
         usdc = usdc_;
