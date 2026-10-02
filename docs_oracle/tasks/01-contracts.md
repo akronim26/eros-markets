@@ -443,11 +443,12 @@ Plan §13: owner OA · 2 PD · depends O17 · acceptance: dry-run on anvil and a
 - Depends: O17.2, O17.3
 - Plan: §6.11, C.6
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/src/KeeperRouter.sol, oracle/test/unit/KeeperRouter.t.sol
 - Build: `finalizeMany`, `assertMany`, `haltAndRequest`, each inner call in try/catch; no funds, no approvals.
 - Done when: an engine revert on one market does not block the others; a `TooEarly` request never undoes the halt.
 - Check: cd oracle && forge test --match-path test/unit/KeeperRouter.t.sol
+- Notes: `KeeperRouter is IKeeperRouter` with constructor `(oracle)` (zero address refused, as the other contracts); it holds no funds, no approvals and no state but the oracle's address, and has no privilege. `finalizeMany` reports each status and whether the call reverted (a reverted call reports NOT_READY); `assertMany` reports false for a call with nothing to assert and for one that reverted (C.6 has no separate reverted array); `haltAndRequest` wraps `haltScheduled` and `requestResolution` separately and returns what each reported. Tests on the oracle fixture: a market whose engine reverts on `settle` (first in the batch) and an unknown id are caught while the markets after them finalize, with every status passed through (FINAL, REJECTED, DISPUTED, NOT_READY) and the reverted market finalized by the same batch once its engine recovers; assertions with nothing to assert, an unknown id and a bond the treasury refuses (per-market cap below the bond) report false without blocking the others; the halt stands when the request reverts TooEarly (before T + bufferSecs) or NoFeed, and the request goes out after the buffer; the router's token balance and allowances stay 0. 4 tests; 5/5 mutations caught (finalize or assert not wrapped, halt and request in one try, a status dropped, assertions always true). 1,754 B runtime (added to `deployments/gas.json`).
 
 ### O19.3 · DeployUmaSandbox and DeployOracle
 - Owner: OA
