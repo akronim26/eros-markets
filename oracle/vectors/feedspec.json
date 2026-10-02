@@ -1456,6 +1456,26 @@
         "bufferSecs": 900,
         "l1TimeoutSecs": 21600
       }
+    },
+    {
+      "name": "order: L1 host and path both wrong -> L1 host first",
+      "expectCode": 5,
+      "l1Host": "stats.example-data.org",
+      "authRefKnown": true,
+      "spec": {
+        "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+        "urlParam": "evt_1",
+        "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "finalPath": "event.status",
+        "finalValue": "FINAL",
+        "valuePath": "event..home",
+        "valueType": 1,
+        "decimals": 0,
+        "op": 2,
+        "target": "2",
+        "bufferSecs": 900,
+        "l1TimeoutSecs": 21600
+      }
     }
   ]
 }

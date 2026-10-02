@@ -259,6 +259,69 @@ export function evaluateResponse(spec: FeedSpec, statusCode: number, body: strin
   }
 }
 
+// ---------------------------------------------------------------- listing validation (registry parity)
+
+/** Globals bounds for `bufferSecs` and `l1TimeoutSecs` (the registry's pinned globals version). */
+export type TimingBounds = { bufferMinSecs: number; bufferMaxSecs: number; l1TimeoutMinSecs: number; l1TimeoutMaxSecs: number }
+
+/** `IMarketRegistry.BadFeed` codes, as `FeedSpecLib.validate` returns them. */
+export const BadFeed = {
+  OK: 0, HTTPS: 1, HOST: 2, ID: 3, URL_PARAM: 4, L1_HOST: 5, PATH: 6, FINAL_VALUE: 7,
+  OP_TYPE: 8, DECIMALS: 9, TARGET: 10, TIMING: 11, AUTH_REF: 12,
+} as const
+
+const MAX_DECIMALS = 18
+
+/**
+ * The registry's listing check of a Layer 1 FeedSpec (`FeedSpecLib.validate`, plan §6.3 rule 3, O20.2): the
+ * first failing BadFeed code in code order 1..12, or 0. `l1Host` is `allowList[0]`; `authRefKnown` is
+ * `spec.authRef == 0 || registry.authRefKnown(spec.authRef)`. The listing CLI runs it before a pack goes on
+ * chain; `vectors/feedspec.json` pins it to the Solidity code.
+ */
+export function validateSpec(spec: FeedSpec, l1Host: string, authRefKnown: boolean, b: TimingBounds): number {
+  const url = codeOfThrow(() => checkTemplate(spec.urlTemplate))
+  if (url === 'NOT_HTTPS') return BadFeed.HTTPS
+  if (url === 'BAD_HOST') return BadFeed.HOST
+  if (url !== undefined) return BadFeed.ID // MULTIPLE_ID_PLACEHOLDERS, ID_NOT_IN_PATH
+  if (!URL_PARAM_RE.test(spec.urlParam)) return BadFeed.URL_PARAM
+  if (hostOf(spec.urlTemplate.replace(ID, () => spec.urlParam)) !== l1Host) return BadFeed.L1_HOST
+  if (!validatePath(spec.finalPath) || !validatePath(spec.valuePath)) return BadFeed.PATH
+  if (spec.finalValue.length === 0) return BadFeed.FINAL_VALUE
+  if (!isValidOpForType(spec.valueType, spec.op)) return BadFeed.OP_TYPE
+  if (spec.valueType === ValueType.DECIMAL ? spec.decimals > MAX_DECIMALS : spec.decimals !== 0) return BadFeed.DECIMALS
+  if (!isValidTarget(spec.target, spec.valueType, spec.decimals)) return BadFeed.TARGET
+  const timing =
+    spec.bufferSecs < spec.l1TimeoutSecs &&
+    spec.bufferSecs >= b.bufferMinSecs && spec.bufferSecs <= b.bufferMaxSecs &&
+    spec.l1TimeoutSecs >= b.l1TimeoutMinSecs && spec.l1TimeoutSecs <= b.l1TimeoutMaxSecs
+  if (!timing) return BadFeed.TIMING
+  if (!authRefKnown) return BadFeed.AUTH_REF
+  return BadFeed.OK
+}
+
+function isValidOpForType(t: number, op: number): boolean {
+  if (t !== ValueType.STRING && t !== ValueType.INT && t !== ValueType.DECIMAL) return false
+  if (!(op >= Op.EQ && op <= Op.LTE) || !Number.isInteger(op)) return false
+  return t !== ValueType.STRING || op === Op.EQ || op === Op.NEQ
+}
+
+/** STRING: non-empty; INT and DECIMAL: the evaluator's own typed parse (no rounding). */
+function isValidTarget(target: string, t: ValueType, decimals: number): boolean {
+  if (t === ValueType.STRING) return target.length > 0
+  return codeOfThrow(() => parseTyped(target, t, decimals)) === undefined
+}
+
+/** The EvalError code a call throws, or undefined when it returns. */
+function codeOfThrow(f: () => unknown): string | undefined {
+  try {
+    f()
+    return undefined
+  } catch (e) {
+    if (e instanceof EvalError) return e.code
+    throw e
+  }
+}
+
 export function allowListed(url: string, allowList: string[]): boolean {
   try {
     const h = hostOf(url)
