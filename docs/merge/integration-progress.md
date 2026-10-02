@@ -171,7 +171,11 @@ See `artifacts/risk/review-validation.json` for per-suite counts, execution
 provenance and the exact toolchain. Earlier gas and CI invariant measurements
 remain historical; they are not relabeled as fresh measurements.
 
-### Current resume point
+### Resume point at `3b11044` (superseded)
+
+Superseded on 2026-10-02: B's delta review was completed in `32d30ac`, and the team moved to
+shared, turn-by-turn ownership. The live state and open items are in `docs/merge/STATUS.md`; this
+log is history only. Original text:
 
 Person B must review the new delta before G7 receives coordinator acceptance and
 an accepted merge SHA. A-F01/A-F02/A-F03 and A043 are no longer open. A-I01's global
