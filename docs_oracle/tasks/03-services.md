@@ -180,11 +180,12 @@ Plan §13: owner OB · 4 PD · depends O32 · acceptance: signed payload accepte
 - Depends: O33.2
 - Plan: §8.3
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/services/panel-runner/src/calibration.ts
 - Build: Isotonic map per model from JSON breakpoints (O39.4 publishes the measured maps; until then a pinned placeholder map, so every result still goes to review); `ĉ = clip(g(c), 0.01, 0.99)`; `calibratedBps = floor(ĉ × 10000)`; `calibratorHash = keccak256(JCS(all three maps))`; display-only candidate `ℓ = (n_eff/n) Σ s_i·logit(ĉ_i)`.
 - Done when: unit tests cover clipping, flooring and the hash.
 - Check: cd oracle/services/panel-runner && bun test
+- Notes: `src/calibration.ts`. A map is exactly `{model, breakpoints: [[c, g], ...]}` (c strictly increasing, g non-decreasing, both in [0, 1]); g is linear between breakpoints and the end value outside them (as isotonic regression predicts). `calibratedBps = floor(clip(g(c), 0.01, 0.99) × 10000)` computed in exact rationals from each number's shortest decimal form: float flooring is wrong for 564 of the 9,801 basis points in [100, 9900] (0.071 × 10000 = 709.999… in doubles), and the test checks all 9,801 come back as themselves. `calibratorHash = keccak256(JCS([map₁, map₂, map₃]))`, the array in the market's modelIdHashes order: O39.4 must publish maps in this form and hash them the same way (its tests compare with this). ABSTAIN calibrates to 0. Placeholder until O39.4: every model maps to 0.49, so 4,900 bps, below the 5,000 bps `highConfFloorBps` any market's `highConfBps` must clear: no result passes the auto gate on calibration, and an early check is never "known" (it returns to None unless flagged). Candidate (display only): `ℓ = (n_eff/n) Σ s_i·logit(ĉ_i)`, s = +1 YES, −1 NO, 0 otherwise, `n_eff = n²/Σρ_ij` with ρ the identity until O39 measures it; also shown as a probability. 13 tests (hand-worked interpolation, clipping, flooring, the hash against a hand-written canonical string, order sensitivity, correlated n_eff); 14/14 mutations caught after one fix (the hash had covered only the two known fields; a map now must have exactly those two).
 
 ### O33.4 · KMS signing
 - Owner: OB
