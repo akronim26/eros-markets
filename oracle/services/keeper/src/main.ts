@@ -12,9 +12,9 @@ import { loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
 import { createPublicClient, http, type Hex } from 'viem'
 import { z } from 'zod'
 import { viemChain } from './chain'
-import { planners } from './jobs'
+import { globalPlanners, planners } from './jobs'
 import { Keeper } from './keeper'
-import { IndexerSource, RegistryLogSource } from './sources'
+import { IndexerSource, RegistryLogSource, TreasuryDisputeSource } from './sources'
 import type { Logger, MarketSource } from './types'
 
 const env = z
@@ -37,14 +37,17 @@ const log: Logger = {
 const deployments = loadDeployments(env.NETWORK)
 const chain = viemChain({ rpcUrl: env.RPC_URL, privateKey: env.KEEPER_PRIVATE_KEY as Hex, deployments })
 const registry = deployments.contracts.MarketRegistry
+const treasury = deployments.contracts.BondTreasury
+const logs = createPublicClient({ transport: http(env.RPC_URL) })
 const source: MarketSource = env.INDEXER_URL
   ? new IndexerSource(env.INDEXER_URL)
-  : new RegistryLogSource(createPublicClient({ transport: http(env.RPC_URL) }), registry.address, BigInt(registry.deployBlock))
+  : new RegistryLogSource(logs, registry.address, BigInt(registry.deployBlock))
+const disputes = new TreasuryDisputeSource(logs, treasury.address, BigInt(treasury.deployBlock))
 
 // Testnet markets run on ResolutionEngineStub (StubMarketFactory is deployed only there); mainnet on the real engine.
 const realEngine = !('StubMarketFactory' in deployments.contracts)
 const jobs = planners({ realEngine })
-const keeper = new Keeper({ chain, source, planners: jobs, gas: loadGas(), delayMs: env.DELAY_MS, log })
+const keeper = new Keeper({ chain, source, planners: jobs, globalPlanners: globalPlanners(disputes), gas: loadGas(), delayMs: env.DELAY_MS, log })
 const stop = new AbortController()
 for (const sig of ['SIGINT', 'SIGTERM'] as const) process.on(sig, () => stop.abort())
 log.info('keeper started', { network: env.NETWORK, planners: jobs.length, realEngine, source: env.INDEXER_URL ? 'indexer' : 'registry logs' })

@@ -4,7 +4,7 @@
 import { type GasTable, loadGas } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { keccak256, toHex } from 'viem'
-import type { AssertionStatus, Chain, Job, MarketInfo, Planner, ReceiptStatus, Resolution } from '../src/types'
+import type { AssertionStatus, Chain, DisputeRecord, Job, MarketInfo, Planner, ReceiptStatus, Resolution, SettlementStatus, TreasuryState } from '../src/types'
 
 export const ZERO32 = `0x${'00'.repeat(32)}` as Hex
 export const ZERO_ADDR = `0x${'00'.repeat(20)}` as Hex
@@ -41,7 +41,13 @@ export function resolution(over: Partial<Resolution> = {}): Resolution {
   }
 }
 
-export const INFO: MarketInfo = { tau: 1000n, hasFeed: true, bufferSecs: 60n, l1TimeoutSecs: 300n, l2DeadlineSecs: 600n, earlyTtlSecs: 600n }
+export const ENGINE = '0x00000000000000000000000000000000000000ee' as Hex
+export const INFO: MarketInfo = { tau: 1000n, hasFeed: true, bufferSecs: 60n, l1TimeoutSecs: 300n, l2DeadlineSecs: 600n, earlyTtlSecs: 600n, engine: ENGINE }
+
+export const SETTLEMENT: SettlementStatus = {
+  halted: true, finalOutcome: 2, invalidPriceReady: false, snapshotCursor: 0n, payoutCursor: 0n, accountCount: 64n,
+  claimsEnabled: false, accountingComplete: false, recoveryRequired: false,
+}
 
 /** The real gas.json, so planners' gas keys are checked against what was measured. */
 export const GAS: GasTable = loadGas()
@@ -70,6 +76,11 @@ export class FakeChain implements Chain {
   ledger = 10_000_000_000n
   bond = 2_000_000n
   minInterval = 60n
+  settlement: SettlementStatus = { ...SETTLEMENT }
+  disputes = new Map<Hex, DisputeRecord>()
+  treasury: TreasuryState = { usdcBalance: 1_000_000_000n, assertionLedger: 500_000_000n, watchdogFloat: 100_000_000n, totalCommitted: 400_000_000n, openDisputes: 0 }
+  /** Simulated results that revert, by function name. */
+  revertFn = new Set<string>()
   /** Results simulate() returns per function, overriding the bump logic (e.g. a FinalizeStatus). */
   simResult = new Map<string, unknown>()
   private nonce = 0
@@ -88,6 +99,9 @@ export class FakeChain implements Chain {
       assertionStatus: (venue, a) => this.assertionStatus(venue, a),
       assertionLedger: () => this.assertionLedger(),
       bondFor: (i) => this.bondFor(i),
+      settlementStatus: (e) => this.settlementStatus(e),
+      treasuryDispute: (a) => this.treasuryDispute(a),
+      treasuryState: () => this.treasuryState(),
       simulate: (j) => this.simulate(j),
       send: (j, g) => this.sendFrom(from, j, g),
       receiptStatus: (h) => this.receiptStatus(h),
@@ -119,8 +133,18 @@ export class FakeChain implements Chain {
   async bondFor(_i: Hex) {
     return this.bond
   }
+  async settlementStatus(_e: Hex) {
+    return { ...this.settlement }
+  }
+  async treasuryDispute(a: Hex) {
+    return this.disputes.get(a) ?? { marketId: ZERO32, venue: ZERO_ADDR, bond: 0n }
+  }
+  async treasuryState() {
+    return { ...this.treasury }
+  }
   async simulate(j: Job) {
     if (this.revertSim.has(j.marketId)) throw new Error('execution reverted: NotDue()')
+    if (this.revertFn.has(j.functionName)) throw new Error(`execution reverted: ${j.functionName}`)
     if (this.simResult.has(j.functionName)) return this.simResult.get(j.functionName)
     return this.markets.get(j.marketId)!.requestCount < this.cap // false = nothing would change
   }

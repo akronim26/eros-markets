@@ -6,8 +6,8 @@ import type { ContractFunctionReturnType, Hex } from 'viem'
 /** `getResolution`'s return value as viem decodes it. */
 export type Resolution = ContractFunctionReturnType<typeof ResolutionOracleAbi, 'view', 'getResolution'>
 
-/** The contracts a job may call, by their name in deployments/<network>.json. */
-export type Target = 'ResolutionOracle' | 'KeeperRouter' | 'BondTreasury'
+/** The contracts a job may call: by their name in deployments/<network>.json, or a market's engine (`address`). */
+export type Target = 'ResolutionOracle' | 'KeeperRouter' | 'BondTreasury' | 'Engine'
 
 /**
  * One transaction a planner wants sent. The key `(marketId, stateVersion, action)` identifies it: the keeper sends a
@@ -26,6 +26,13 @@ export type Job = {
   isNoop?: (result: unknown) => boolean
   /** Jobs with the same batch key that pass their checks in one tick are sent together (O31.2: finalizeMany). */
   batch?: Batch
+  /** The engine's address, for target 'Engine'. */
+  address?: Hex
+  /**
+   * For a job whose state is not the oracle's resolution (engine progress, a treasury dispute): reads the
+   * current version, which must still equal `stateVersion` when the job is sent (O31.3).
+   */
+  freshVersion?: () => Promise<Hex>
 }
 
 export type Batch = {
@@ -45,6 +52,7 @@ export type MarketInfo = {
   l1TimeoutSecs: bigint // feed markets only (0 otherwise)
   l2DeadlineSecs: bigint
   earlyTtlSecs: bigint
+  engine: Hex
 }
 
 export type AssertionStatus = { exists: boolean; disputed: boolean; settled: boolean; truthful: boolean; expiresAt: bigint }
@@ -58,7 +66,50 @@ export interface MarketReads {
   bondFor(): Promise<bigint>
   /** `minRequestIntervalSecs` of the globals version the market pinned. */
   minRequestIntervalSecs(): Promise<bigint>
+  /** The engine's `getSettlementStatus()`. */
+  settlementStatus(): Promise<SettlementStatus>
 }
+
+/** The fields of the engine's SettlementView the keeper uses. */
+export type SettlementStatus = {
+  halted: boolean
+  finalOutcome: number // engine numbering (engineAbi.ts EngineOutcome)
+  invalidPriceReady: boolean
+  snapshotCursor: bigint
+  payoutCursor: bigint
+  accountCount: bigint
+  claimsEnabled: boolean
+  accountingComplete: boolean
+  recoveryRequired: boolean
+}
+
+/** BondTreasury's record of a dispute it funded (`venue` zero once closed or never recorded). */
+export type DisputeRecord = { marketId: Hex; venue: Hex; bond: bigint }
+
+/** Where the keeper learns the assertions BondTreasury has disputed (DisputeFunded). */
+export interface DisputeSource {
+  assertionIds(): Promise<Hex[]>
+}
+
+/** BondTreasury's balances and counters that the treasury jobs read. */
+export type TreasuryState = {
+  usdcBalance: bigint // USDC the treasury holds
+  assertionLedger: bigint
+  watchdogFloat: bigint
+  totalCommitted: bigint
+  openDisputes: number
+}
+
+/** What a global planner sees: every market read this tick, the chain's clock, reads and alerts. */
+export type GlobalView = {
+  now: bigint
+  markets: MarketView[]
+  reads: { treasury(): Promise<TreasuryState>; dispute(assertionId: Hex): Promise<DisputeRecord> }
+  alert(msg: string, data?: Record<string, unknown>): void
+}
+
+/** Plans jobs that belong to no single market (treasury), or only checks and alerts. */
+export type GlobalPlanner = (g: GlobalView) => Job[] | Promise<Job[]>
 
 /** What a planner sees of one market: the state read this tick, its version, its listing and the chain's clock. */
 export type MarketView = {
@@ -90,6 +141,9 @@ export interface Chain {
   assertionStatus(venue: Hex, assertionId: Hex): Promise<AssertionStatus>
   assertionLedger(): Promise<bigint>
   bondFor(id: Hex): Promise<bigint>
+  settlementStatus(engine: Hex): Promise<SettlementStatus>
+  treasuryDispute(assertionId: Hex): Promise<DisputeRecord>
+  treasuryState(): Promise<TreasuryState>
   /** eth_call of the job from the keeper's account at `latest`; throws when it would revert. */
   simulate(job: Job): Promise<unknown>
   /** Signs and broadcasts with exactly `gas` as the limit; returns the hash without waiting for a receipt. */

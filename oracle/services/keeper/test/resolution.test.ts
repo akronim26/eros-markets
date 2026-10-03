@@ -31,6 +31,9 @@ async function plan(r: Partial<Resolution>, now: bigint, o: Opts = {}) {
       assertionLedger: async () => (reads.push('ledger'), o.ledger ?? 10_000_000_000n),
       bondFor: async () => (reads.push('bond'), o.bond ?? 2_000_000n),
       minRequestIntervalSecs: async () => (reads.push('interval'), o.minInterval ?? 60n),
+      settlementStatus: async () => {
+        throw new Error('the resolution jobs never read the engine')
+      },
     },
     alert: (msg) => alerts.push(msg),
   }

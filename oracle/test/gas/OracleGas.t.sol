@@ -121,6 +121,7 @@ contract OracleGasTest is RegistryFixture {
     bytes32 internal mEarly; // feed, EarlyCheck since listing (early TTL over)
     bytes32 internal mSync; // no feed, asserted at T and disputed on OOv3 (state still Proposed)
     bytes32[3] internal mFinMore; // no feed, asserted, liveness over: finalizeMany with mFinalize
+    bytes32 internal mClose; // no feed, asserted at T and disputed by the watchdog with the treasury float (O31.3)
 
     function setUp() public {
         vm.chainId(10143);
@@ -157,6 +158,7 @@ contract OracleGasTest is RegistryFixture {
         token.mint(me, 100_000e6);
         token.approve(address(treasury), type(uint256).max);
         treasury.deposit(Ledger.ASSERTION, 10_000e6);
+        treasury.deposit(Ledger.WATCHDOG_FLOAT, 1_000e6);
 
         mReport = _list("report", true, false, 0);
         mHalt = _list("halt", true, false, 0);
@@ -172,6 +174,7 @@ contract OracleGasTest is RegistryFixture {
         for (uint256 i; i < 3; ++i) {
             mFinMore[i] = _list(string.concat("finalize-", vm.toString(i)), false, false, 0);
         }
+        mClose = _list("close", false, false, 0);
         _toEarlyCheck(mEarly);
 
         vm.warp(T);
@@ -179,6 +182,10 @@ contract OracleGasTest is RegistryFixture {
         _toProposed(mSync);
         assertTrue(ro.assertProposal(mSync));
         _disputeOnVenue(mSync);
+        _toProposed(mClose);
+        assertTrue(ro.assertProposal(mClose));
+        vm.prank(ro.watchdogOf(mClose));
+        treasury.disputeViaVenue(mClose);
         for (uint256 i; i < 3; ++i) {
             _toProposed(mFinMore[i]);
             assertTrue(ro.assertProposal(mFinMore[i]));
@@ -382,6 +389,26 @@ contract OracleGasTest is RegistryFixture {
         for (uint256 i; i < 4; ++i) {
             assertEq(uint8(ro.getResolution(ids[i]).state), uint8(RState.Final));
         }
+    }
+
+    /// `BondTreasury.closeDispute` on its costlier path: the venue never settled, so the market's resolution is
+    /// read too (Final with VOID_DEADLINE).
+    function test_gas_closeDispute() public {
+        bytes32 assertionId = ro.getResolution(mClose).assertionId;
+        vm.warp(ro.getResolution(mClose).voidDeadline);
+        assertTrue(ro.voidMarket(mClose));
+        _checkLimit("closeDispute", address(treasury), abi.encodeCall(treasury.closeDispute, (assertionId)));
+        assertEq(treasury.openDisputes(), 0);
+    }
+
+    /// `BondTreasury.skim` crediting USDC no ledger accounts for (a donation; dispute winnings alike). The
+    /// donation exceeds the bonds the treasury counts while they are out at the venue, so skim credits (the
+    /// path that writes); with less it returns 0, which costs less.
+    function test_gas_skim() public {
+        uint256 before = treasury.balanceOf(Ledger.WATCHDOG_FLOAT);
+        token.mint(address(treasury), 10_000e6);
+        _checkLimit("skim", address(treasury), abi.encodeCall(treasury.skim, ()));
+        assertGt(treasury.balanceOf(Ledger.WATCHDOG_FLOAT), before, "skim credited the float");
     }
 
     // ------------------------------------------------------------------ measurement
