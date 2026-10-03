@@ -1,0 +1,18 @@
+
+! Using default private key for chain write simulation. To use your own key, set CRE_ETH_PRIVATE_KEY in your .env file or system environment.
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 58ce2937432cf79ec74aa3eef50d3e4ad97a8780e1296adf006bab8b13db8f2f
+  Config hash: 43efc03850d26d2f10a087a8dc0bf46d596260af024d401ab5ae0d7c8c77abda
+2026-10-03T02:35:33Z [SIMULATION] Simulator Initialized
+
+2026-10-03T02:35:33Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+
+2026-10-03T02:35:40Z [USER LOG] dryrun https://api.example-sports.com/v1/events/evt_1: ERROR|0x0000000000000000000000000000000000000000000000000000000000000000|FETCH_FAILED
+
+✓ Workflow Simulation Result:
+"ERROR|0x0000000000000000000000000000000000000000000000000000000000000000|FETCH_FAILED"
+
+2026-10-03T02:35:40Z [SIMULATION] Execution finished signal received
+2026-10-03T02:35:40Z [SIMULATION] Skipping WorkflowEngineV2
