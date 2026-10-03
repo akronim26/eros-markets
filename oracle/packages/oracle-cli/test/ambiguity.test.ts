@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { keccak256, toBytes } from 'viem'
-import { ambiguity, ambiguityPrompt, applyTriage, parseUndecided, PROMPT_PATH } from '../src/ambiguity'
+import { ambiguity, ambiguityPrompt, ANSWER_RETRIES, applyTriage, parseUndecided, PROMPT_PATH } from '../src/ambiguity'
 import { list } from '../src/list'
 import { type CallModel, httpModelClient, type ModelCall, modelRequest, responseText, retryDelayMs, temperatureFor } from '../src/models'
 
@@ -92,6 +92,25 @@ describe('ambiguity', () => {
     const r = await ambiguity({ input, out, callModel: down })
     expect(r.pass).toBe(false)
     expect(r.runs[0].error).toBe('HTTP 503')
+    expect(r.runs[0].failedAttempts).toHaveLength(ANSWER_RETRIES) // tried 1 + 3 times
+  }, FORGE)
+
+  test('an empty or garbled answer is retried and recorded; a later valid answer counts', async () => {
+    const { input, out } = await packFor()
+    const seq = ['!!!!!!!!', '', NONE]
+    let n = 0
+    const flaky: CallModel = async (m) => {
+      if (m !== MODELS[1]) return NONE
+      const a = seq[n++]
+      if (a === '') throw new Error('empty response from nvidia')
+      return a
+    }
+    const r = await ambiguity({ input, out, callModel: flaky })
+    expect(r.result).toBe('PASS')
+    expect(r.runs[1].error).toBeUndefined()
+    expect(r.runs[1].failedAttempts!.map((f) => f.error)).toEqual([expect.stringMatching(/JSON|undecided/i), 'empty response from nvidia'])
+    expect(r.runs[1].failedAttempts![0].response).toBe('!!!!!!!!')
+    expect(n).toBe(3)
   }, FORGE)
 
   test('models must be the ones ai.modelIdHashes names, in order', async () => {
