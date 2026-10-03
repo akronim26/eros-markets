@@ -1,0 +1,473 @@
+{
+  "schema": "pricefeed-timestamp-evidence/1",
+  "reviewedAt": "2026-10-03T09:57:54.330177+00:00",
+  "mode": "review-of-existing-captures",
+  "newSourceRequests": 0,
+  "providerTimestampMeaningConfirmed": false,
+  "archives": [
+    {
+      "path": "var/live-demo-1790959881522.sqlite",
+      "captureCount": 36,
+      "payloadIntegrityVerified": true,
+      "workers": [
+        {
+          "worker": "readonly:0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb:60853708478456543766262549859214991255573301006704578370875039498477095018713",
+          "samples": [
+            {
+              "sourceMs": "1790959882559",
+              "receivedAtMs": "1790959882854",
+              "sourceAgeMs": "295",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "efe9e73e737c849493df3ba183d5b13826bed424316ae28aceba9314fee775fd",
+              "rawBookSha256": "017f6fe1300cc470a5ae12c04b1589dc2e7f33e5c88ac698eaf1b38e31691ac7",
+              "capturePayloadSha256": "c2ff11656ff07add49d3c2b469386fa6306b1a06ae668711d48e113d5a3f691c"
+            },
+            {
+              "sourceMs": "1790959891866",
+              "receivedAtMs": "1790959892389",
+              "sourceAgeMs": "523",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "1e2dc601681d73ab5587406384c08cd0d38835be3b6a6753547127ce40533440",
+              "rawBookSha256": "efd41d0634aaaa6884a69092010713786bb6d876ad297e62e079d8e5e0939ea2",
+              "capturePayloadSha256": "66ab68a5030be0e243eb65809eda29cab523a73155da772b36d291f8542906d7"
+            },
+            {
+              "sourceMs": "1790959902177",
+              "receivedAtMs": "1790959902328",
+              "sourceAgeMs": "151",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "9159d5845bfa874c30b919b4e7efea27141dc79a29eee440c19606a52821bb06",
+              "rawBookSha256": "4ee6fd372ec434e94cef5b19cd3fae15ba25a7a4bfb29f468a74a56466213aec",
+              "capturePayloadSha256": "2dae0831e0ff330103dfedd1eb61d5875ba844173dbe2ca2624731940f9cd1f4"
+            },
+            {
+              "sourceMs": "1790959912343",
+              "receivedAtMs": "1790959912830",
+              "sourceAgeMs": "487",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "036283f710635d555c10ab321572c988c48e737803b5e9896c7023ffd5807c98",
+              "rawBookSha256": "9418011ca83985d1b42f4effa8f5c4baf4dad4fb8b0039a3131627e29dca946c",
+              "capturePayloadSha256": "1b52f6da4f168be4459c283921300ee10360240e1f7bb6ac8425cea575e2567b"
+            },
+            {
+              "sourceMs": "1790959921696",
+              "receivedAtMs": "1790959922084",
+              "sourceAgeMs": "388",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "01f96fe3e3877f39467ee3ab0d3ead61ca62060fabe06def7b862d083c734bb5",
+              "rawBookSha256": "db31979d2ac30bbede35a322abaf4f269ecf79ced87d1be95e224bf75b34334d",
+              "capturePayloadSha256": "993ffac38f4c27c55a62c88122563a49839f0ab62495033887e89a49e8a23484"
+            },
+            {
+              "sourceMs": "1790959933140",
+              "receivedAtMs": "1790959933766",
+              "sourceAgeMs": "626",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "7a0029b159b79eee0342e0a702c5c8960d432cdf81207031f1955e0c09f19360",
+              "rawBookSha256": "e48ce345570ac1c5392aa1bad9333fc9bd0f0c2c1b512fa00ad95e9e45644110",
+              "capturePayloadSha256": "4ca26225586ff031061fe4f5757ef7c8ca61d13b2a4d489a99f5cdc51ee252c0"
+            },
+            {
+              "sourceMs": "1790959941838",
+              "receivedAtMs": "1790959942063",
+              "sourceAgeMs": "225",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "f7b7610b1b7c9bfb8ac931ed2cd01e348933d8fd17f974d7d4900b3a4cdb4c52",
+              "rawBookSha256": "fb540200abd6447e780974b4f063cf373d14801b42adaea8e023f6ce6746136b",
+              "capturePayloadSha256": "f1a6bf087e98ce1aea337a1bf4ece3bc9b33363c72cbc530160d5ac2b12b98a5"
+            },
+            {
+              "sourceMs": "1790959951450",
+              "receivedAtMs": "1790959952142",
+              "sourceAgeMs": "692",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "2941469ed4b4a9292e53a6b5d572756d9db9887fd2fac935a687388156817332",
+              "rawBookSha256": "9ec174d9504fccb065652a6d9fcd1ead0395c33f0821b67d0eb4f259e8e413f0",
+              "capturePayloadSha256": "8500c227c5b94e44af807097777e92c49600d788836fad5477f70488f35d2036"
+            },
+            {
+              "sourceMs": "1790959961838",
+              "receivedAtMs": "1790959962532",
+              "sourceAgeMs": "694",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "b2b7c338bee9f511c9531322e8ac1dbe8e7c2f86f47f69a2e1ac050bc2d65f51",
+              "rawBookSha256": "e505e3e3dd5905c11d86ccd84ec626380693a4f44dc152c298b8a6cc853825c3",
+              "capturePayloadSha256": "201b072896df8f549f6244b7214f0b47bd385562571e8066ed38ced600080624"
+            },
+            {
+              "sourceMs": "1790959971856",
+              "receivedAtMs": "1790959972262",
+              "sourceAgeMs": "406",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "5d6b281d5fc862e1fe9f1284e4005d431094af80f25060fe739ebad4fb5ce4e2",
+              "rawBookSha256": "9a6721116100ccd1f76a804dc38fe0191f62180451778e221ed4849c3969fbe4",
+              "capturePayloadSha256": "ef88e73471a3f2df99b2ea463a9d26d53d477303addd7e2f53640d0ee60dda55"
+            },
+            {
+              "sourceMs": "1790959982263",
+              "receivedAtMs": "1790959982604",
+              "sourceAgeMs": "341",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "e945c7e655e0255cf66e861bf398ebe77118c9d81a4c372c4a4da79f10ce1af4",
+              "rawBookSha256": "8f8cf51b86a7635abd4b971dfd3b8cae5f499a087a2f5de1f1fa4caa2ce63e98",
+              "capturePayloadSha256": "3ded0c1a57107887cdade67ac4a63bb9bd3fa703167f04084d6879bb46373c53"
+            },
+            {
+              "sourceMs": "1790959991859",
+              "receivedAtMs": "1790959992547",
+              "sourceAgeMs": "688",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "5d6b281d5fc862e1fe9f1284e4005d431094af80f25060fe739ebad4fb5ce4e2",
+              "rawBookSha256": "2985889f6a444d5e11605de949aefe9eb1f341ce729596a382cb7c941daddd31",
+              "capturePayloadSha256": "f86ce9511851f9c5aee9d2c89b352bd9847cba1c9b71ea40d0c8161eea4fda41"
+            },
+            {
+              "sourceMs": "1790959999899",
+              "receivedAtMs": "1790960002161",
+              "sourceAgeMs": "2262",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "2941469ed4b4a9292e53a6b5d572756d9db9887fd2fac935a687388156817332",
+              "rawBookSha256": "64eec58c1a76b760c6c106d1cfe4039832ef501c4f3f78fd0f8155ade1db0e22",
+              "capturePayloadSha256": "55d9e07a2b0e6354f9d79972723c5cee79b2d14c7682907038199658dd86d3d4"
+            },
+            {
+              "sourceMs": "1790960010991",
+              "receivedAtMs": "1790960012310",
+              "sourceAgeMs": "1319",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "88688504e77e2315e9728bf62b817d58067cc5a83a852c9bf67e6416153620b9",
+              "rawBookSha256": "13f9bb6d40fc4a2dfb65e74dbba56f60ab8119e9c7945a9b1d321c22baa2d409",
+              "capturePayloadSha256": "8b6b3504ee1174b3c5492406a2ea3bf24aa429c6acd7e9e56889032c7378cbee"
+            },
+            {
+              "sourceMs": "1790960022191",
+              "receivedAtMs": "1790960022342",
+              "sourceAgeMs": "151",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "497d44fa98bd0c70ed5862c585db752ba06a0b958a911c72b17b757429559396",
+              "rawBookSha256": "7b2b6d16b8c125213876b40d04175d93ff78e25f0aad60fb398768bd670c9cb2",
+              "capturePayloadSha256": "cdae1b06dfb31a1c3180080e5a599e5f6e62032555e4663dd9bf20e92b793965"
+            },
+            {
+              "sourceMs": "1790960024363",
+              "receivedAtMs": "1790960032575",
+              "sourceAgeMs": "8212",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "3528bc29b0464d12a957325c0cf43048506879a280769c1f6b021699edd470ee",
+              "rawBookSha256": "f61170ae3c19c1515b882e5d795867f77f643a95fd57868e215b4b2037c65ca9",
+              "capturePayloadSha256": "a74294199e9ce7087adc4efcebdf7070e3c9a3de33d95ac9e03497b4464eeec9"
+            },
+            {
+              "sourceMs": "1790960041865",
+              "receivedAtMs": "1790960042609",
+              "sourceAgeMs": "744",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "99503fb8f59cacc68cb8d578ba5dac180c0e6c34c7c40f1b7285128be83f1ede",
+              "rawBookSha256": "9f95145820ad4ea058151a72f3f026c57c30d91d862224ce124e9a097f1a34fe",
+              "capturePayloadSha256": "6586d2f8935f453ec41a491e127bf2d5ddbff5d72f0326a6b92cf0d30dcb3628"
+            },
+            {
+              "sourceMs": "1790960051290",
+              "receivedAtMs": "1790960052440",
+              "sourceAgeMs": "1150",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "d1d3082ca1a5e7b0d39add5c6d21ab167c12f678897bdd9de853d8e4736938be",
+              "rawBookSha256": "c4744187eb706487826174df823f0167d1796e5fe55ad64d99f15f8489b558bf",
+              "capturePayloadSha256": "64d8b0026cde4e0e1cf189b21bdc016feb5b2d8916a70379185a97a4927f1bcf"
+            },
+            {
+              "sourceMs": "1790960061860",
+              "receivedAtMs": "1790960062167",
+              "sourceAgeMs": "307",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "e4cb634f86b98320ffd15cf049124224f3b6c6d9455305447feb58db70976e87",
+              "rawBookSha256": "b5d4fc06749b740ed5ddd99861d2807dac86dbc24c8465e3aeb61f9697d8a80d",
+              "capturePayloadSha256": "08b71cbe51c569b90bdc36baefcda2c6befade639437f5edfd0fe1e1bde14a0a"
+            },
+            {
+              "sourceMs": "1790960071246",
+              "receivedAtMs": "1790960072203",
+              "sourceAgeMs": "957",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "168cf5a4cc114d55d652d172ae3d6bf551d3410a53c060c75f40fc7608fb8cea",
+              "rawBookSha256": "0b50da2116a5e7331fb4a3f2d2f6b218a3af3fb428dddd61d1b1504bcfb903ed",
+              "capturePayloadSha256": "c7f43806bf354503ffc524b00784f458f81cc8e293484b69d51f1ba746512a37"
+            },
+            {
+              "sourceMs": "1790960082421",
+              "receivedAtMs": "1790960082851",
+              "sourceAgeMs": "430",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "ebe9f94fcf6bc743eb191075b289f97586d340162d34b51f338dde44cc246550",
+              "rawBookSha256": "66b0cd48999d8639e0958d5ab7f32cbe9acb17f0ea10f7bda2e811b71bc968e7",
+              "capturePayloadSha256": "76e0dd3e85458462915564333372c97118673ed1c1506a0fd7c083cc322e9024"
+            },
+            {
+              "sourceMs": "1790960092883",
+              "receivedAtMs": "1790960093602",
+              "sourceAgeMs": "719",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "5b7e27e9b67afbc1c875e9f3ff43909766467b105f4f66efb5983f96d95641d3",
+              "rawBookSha256": "dc0e65ced86f052e39c071053b3d1823ea1deb89376de674dde94ae3cc419ec1",
+              "capturePayloadSha256": "f0da277ae0cd57828f7abbbe56f9b54c090c6551edfb46ae6611e42165821f9a"
+            },
+            {
+              "sourceMs": "1790960097730",
+              "receivedAtMs": "1790960102205",
+              "sourceAgeMs": "4475",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "769a5a41ff86b3e73ee87a684640d4720e7b9207a7f24f8b6819c32aca8d084b",
+              "rawBookSha256": "c0187858bb4e91369e567b0302ae35d2f44857c13b1ce6731de809fa8580f036",
+              "capturePayloadSha256": "7418ca2768ed7ab562e1ecb841f58aefdbf8fa38367ff6fd8914f67b3feb34cc"
+            },
+            {
+              "sourceMs": "1790960107080",
+              "receivedAtMs": "1790960113072",
+              "sourceAgeMs": "5992",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "803bdcea7312efd34439958b66d8c6215d4b866c654644ebc3a984ed1a289555",
+              "rawBookSha256": "6e68dbf8743ac857b48c63f950ad37b0c8be097cbd356ebfd3fe12c4e61f5440",
+              "capturePayloadSha256": "1411f95185dc4ff09c08f74d821b9d4b7654a932492f9ea2820b760aa5b6cb57"
+            },
+            {
+              "sourceMs": "1790960122297",
+              "receivedAtMs": "1790960122581",
+              "sourceAgeMs": "284",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "c1125d85e5046098803b2b6280a244121d019aa8291bd57e921f6a3d6c116f40",
+              "rawBookSha256": "ea4259e520dc870db8be65979888c5b8524da7fc91868ef7df6cf147f57dbd67",
+              "capturePayloadSha256": "4f98c33049eca4fa55849eb0473efbb8d7b55eb2631f8322cfb67c8037ac9b45"
+            },
+            {
+              "sourceMs": "1790960133285",
+              "receivedAtMs": "1790960133641",
+              "sourceAgeMs": "356",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "c22748f39b94c1669dc8896be50251b9d3bc9bee66aa717ea78a65e7cbabd74d",
+              "rawBookSha256": "0239cfa82139ee5e1bdb35f3ea413455f445fc50ea3a36f94457975c368b5c2a",
+              "capturePayloadSha256": "360966bac68c793246caca3d2ca2756cd571a9866bcc9a164034f6064ac9e296"
+            },
+            {
+              "sourceMs": "1790960141818",
+              "receivedAtMs": "1790960142241",
+              "sourceAgeMs": "423",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "52fa9fbaeb43d288167f9a91d2519a77365a72b6659ee27c6bd5f08e983a1f62",
+              "rawBookSha256": "dd1601c4b57cfe33a397dc092c10862de1e70b9c8d5cc532254257d09c168e10",
+              "capturePayloadSha256": "81432083b8170715192f78d17745477d85c59a61fe7c886f4d7ae116d47ac253"
+            },
+            {
+              "sourceMs": "1790960152235",
+              "receivedAtMs": "1790960152482",
+              "sourceAgeMs": "247",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "e8baa37ed2129acea6411f75cef35786dcbf6be724e67003554d0605ca348212",
+              "rawBookSha256": "d27256bcd8f1943fa41db0af8f70b193d0597fac1f208416deb0b781f144264b",
+              "capturePayloadSha256": "85711b396fd404eb0d099162cb5cc59181e4f2653764071fd6f45d39c4cb0a72"
+            },
+            {
+              "sourceMs": "1790960162334",
+              "receivedAtMs": "1790960162620",
+              "sourceAgeMs": "286",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "569d6cdda0684d6a5771111b2babaaa2b503848000784dc73d5c1b497f632a2c",
+              "rawBookSha256": "12f7f2c54b7e04bd68c6c52e98b4f173ddaaf3ee4f47ee3b12dc96008cec582c",
+              "capturePayloadSha256": "fc22599303313e4ee879c414663ad31db64a1964dfa8875ef6d3e6ecb0838209"
+            },
+            {
+              "sourceMs": "1790960172287",
+              "receivedAtMs": "1790960172961",
+              "sourceAgeMs": "674",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "bfc75785f2d7749730e2e1050951543ff4349ba5051639ce7569ae6a811d4f69",
+              "rawBookSha256": "59559a6adad36e491ac325f9e52a51b14d68f0e8bb92e423971a1a2f372c1f07",
+              "capturePayloadSha256": "a6b64b0a43e780bbfb71b3cb17a13ef707edb1a9f6618611e0c4c044e7ff1108"
+            },
+            {
+              "sourceMs": "1790960182873",
+              "receivedAtMs": "1790960183201",
+              "sourceAgeMs": "328",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "6c0dd5c706f71774c8db36695f707f7c14e5f444076fbedce245aae3e7014dba",
+              "rawBookSha256": "3216f23fb74926d478f0cc8c1f87a70ff525ef003bc47cc614535047b9aec36c",
+              "capturePayloadSha256": "c98ba623a4437940af42982e3ed175e39ee0722b9e99b21713d088aa18a4af15"
+            },
+            {
+              "sourceMs": "1790960191871",
+              "receivedAtMs": "1790960192325",
+              "sourceAgeMs": "454",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "6a0d55e119cdfb818ea25530f9ce44fb542898c3f185402ef38ad71fd93bd97f",
+              "rawBookSha256": "092321a8d65feb3649062f969979ea21cfe91c0ff8867147258434e02e2db647",
+              "capturePayloadSha256": "b913213a1981c1b035273b72626c2566f89938db8133c4418b34e2b10538eae0"
+            },
+            {
+              "sourceMs": "1790960201875",
+              "receivedAtMs": "1790960202349",
+              "sourceAgeMs": "474",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "83a078fc43801244a932715858abbbc4a9a055af3540dc38e1685954a39f967e",
+              "rawBookSha256": "8ae6fa2d0208d135c89ece64658e53c4d75bc49d6ed0a96d6f64ee2370cc623e",
+              "capturePayloadSha256": "15b523e43b48e9ed2780cf6f175a7ee7eb624a72309866e059112316cdb0975e"
+            },
+            {
+              "sourceMs": "1790960211875",
+              "receivedAtMs": "1790960212294",
+              "sourceAgeMs": "419",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "b0dfd4d3b01cc672804708f06f8836acd4aef7bcbd16ac2638691f4dc449ea7b",
+              "rawBookSha256": "22d434a0e4b2db842591d7549695f27dc84d97a619ec7ef1b0c9e7284d459605",
+              "capturePayloadSha256": "166a198bda56f315504c035b21faca1454fffd4ae8e1a95584c661d2c407d1c9"
+            },
+            {
+              "sourceMs": "1790960221930",
+              "receivedAtMs": "1790960222317",
+              "sourceAgeMs": "387",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "4dc095dbe9f67c32e87204d9ad47a8d4ce499438cb780ea3d2cbd7807d291680",
+              "rawBookSha256": "5cbf6cf1ff44d8c4ed48365199bf950e40a73af4a2c612d482345707b9ec11f1",
+              "capturePayloadSha256": "d0f366fcf7eb2673424ff6123aeb81844bc45021383e038dc7c889213adab014"
+            },
+            {
+              "sourceMs": "1790960232226",
+              "receivedAtMs": "1790960232961",
+              "sourceAgeMs": "735",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "1cf3775faa0f4fd2a9008da6135640fc035ee033c421324af2d78b6962f713a8",
+              "rawBookSha256": "c8cc68a5de49ca098620154d08b9955ccbb95301928cc27e07104fb9509f0bb4",
+              "capturePayloadSha256": "dbb459dc28c26b7014a41f4ee84da1291275e50829a873e86b69e89a2a2ea550"
+            }
+          ],
+          "bookSampleCount": 36,
+          "sourceAgeMsMin": "151",
+          "sourceAgeMsMax": "8212",
+          "repeatedSourceTimes": 0,
+          "sameDisplayedFieldsWithAdvancingTime": 0,
+          "maxSuccessiveSourceGapMs": "17502"
+        }
+      ]
+    },
+    {
+      "path": "var/source-review-network.sqlite",
+      "captureCount": 9,
+      "payloadIntegrityVerified": true,
+      "workers": [
+        {
+          "worker": "readonly:0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d:109876868437950584369987384406356259939519193117253465815665152916226511121427",
+          "samples": [
+            {
+              "sourceMs": "1790956826942",
+              "receivedAtMs": "1790956836246",
+              "sourceAgeMs": "9304",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "2f22af74e7459d9c1102d1595448fc8dfc453bb0ca16ee774ddb10710c7b0e60",
+              "rawBookSha256": "257a16adbfd0b5b022056a8c1a79459d66deef2c43624804b3d65529b85ff3c5",
+              "capturePayloadSha256": "d7ba7d261b867374ebdcf6806ecc1baa5e7e1ca42e43b4934c0e168432924697"
+            },
+            {
+              "sourceMs": "1790956843220",
+              "receivedAtMs": "1790956845151",
+              "sourceAgeMs": "1931",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "2f22af74e7459d9c1102d1595448fc8dfc453bb0ca16ee774ddb10710c7b0e60",
+              "rawBookSha256": "7a4f751f1fb8b3c21b4ac7fd2198fb8bbfce8524078f217009ec251d5e235944",
+              "capturePayloadSha256": "d7fa1bbb9afe9abfcaef1bc193d5308c0b345d9d4083b9bbea163d5b1f64504a"
+            },
+            {
+              "sourceMs": "1790956843220",
+              "receivedAtMs": "1790956855271",
+              "sourceAgeMs": "12051",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "2f22af74e7459d9c1102d1595448fc8dfc453bb0ca16ee774ddb10710c7b0e60",
+              "rawBookSha256": "7a4f751f1fb8b3c21b4ac7fd2198fb8bbfce8524078f217009ec251d5e235944",
+              "capturePayloadSha256": "c2c0ef357744fbcb6cb506b2ca0c3f9d0c503ef3c82a6c2f4d3a73e63d15305b"
+            }
+          ],
+          "bookSampleCount": 3,
+          "sourceAgeMsMin": "1931",
+          "sourceAgeMsMax": "12051",
+          "repeatedSourceTimes": 1,
+          "sameDisplayedFieldsWithAdvancingTime": 1,
+          "maxSuccessiveSourceGapMs": "16278"
+        },
+        {
+          "worker": "readonly:0x5c6b053b29d7b88810ef830daea181cabafc3edb833f33b13aa1d2cc6365e7de:62599171215799060914733466480643361931303749340817042598476918875325918609653",
+          "samples": [
+            {
+              "sourceMs": "1790956829015",
+              "receivedAtMs": "1790956836345",
+              "sourceAgeMs": "7330",
+              "inspectionStatus": "DEGRADED",
+              "displayedFieldsSha256": "a96b74644f97c742312b58e991a0c4fee5edb3774828fa03dd53a14c231e5759",
+              "rawBookSha256": "5264345550696045b30c485fe6636c5db309c9ff7692a26910c09aa8a8015f67",
+              "capturePayloadSha256": "ecb26a03bd7ba5bf4c2a7bffacebbbb7c59129296554f69edc4a55e9bbc9df66"
+            },
+            {
+              "sourceMs": "1790956829015",
+              "receivedAtMs": "1790956844949",
+              "sourceAgeMs": "15934",
+              "inspectionStatus": "DEGRADED",
+              "displayedFieldsSha256": "a96b74644f97c742312b58e991a0c4fee5edb3774828fa03dd53a14c231e5759",
+              "rawBookSha256": "5264345550696045b30c485fe6636c5db309c9ff7692a26910c09aa8a8015f67",
+              "capturePayloadSha256": "9952b3533a8a3b3086fcb7b85e9ce51160d830ee65890f572f1f1807035d7c33"
+            },
+            {
+              "sourceMs": "1790956850132",
+              "receivedAtMs": "1790956855184",
+              "sourceAgeMs": "5052",
+              "inspectionStatus": "DEGRADED",
+              "displayedFieldsSha256": "a96b74644f97c742312b58e991a0c4fee5edb3774828fa03dd53a14c231e5759",
+              "rawBookSha256": "81ba7ab046f40f42644132e604adaaaaa49384792253dfa7b50fcfeaec4c9d16",
+              "capturePayloadSha256": "42aa24f8d14de7591edfb45fbecfcf99c1351a3c44e000f45288267c32b5029a"
+            }
+          ],
+          "bookSampleCount": 3,
+          "sourceAgeMsMin": "5052",
+          "sourceAgeMsMax": "15934",
+          "repeatedSourceTimes": 1,
+          "sameDisplayedFieldsWithAdvancingTime": 1,
+          "maxSuccessiveSourceGapMs": "21117"
+        },
+        {
+          "worker": "readonly:0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb:60853708478456543766262549859214991255573301006704578370875039498477095018713",
+          "samples": [
+            {
+              "sourceMs": "1790956833881",
+              "receivedAtMs": "1790956836651",
+              "sourceAgeMs": "2770",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "64224434578687c6d9df94f3c9d6cf5b7e7bf6c9d9ee26c09f540501b5739568",
+              "rawBookSha256": "fb18425404a2bdd6911267943e0f9f3f492026a8fb2cd4e94aefb4f8771613a8",
+              "capturePayloadSha256": "a6e0a072f0e3724a2689a0882d5f1764068b414c5a9f7cddb62d68dee5177596"
+            },
+            {
+              "sourceMs": "1790956833881",
+              "receivedAtMs": "1790956845046",
+              "sourceAgeMs": "11165",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "64224434578687c6d9df94f3c9d6cf5b7e7bf6c9d9ee26c09f540501b5739568",
+              "rawBookSha256": "fb18425404a2bdd6911267943e0f9f3f492026a8fb2cd4e94aefb4f8771613a8",
+              "capturePayloadSha256": "d6d214e5e96a449c6c88fb496ab96bb84a1f1e5bf4f67abd06eaa9a7568facfd"
+            },
+            {
+              "sourceMs": "1790956854841",
+              "receivedAtMs": "1790956855085",
+              "sourceAgeMs": "244",
+              "inspectionStatus": "COLLECTING",
+              "displayedFieldsSha256": "ae91a1b485ea9e58f11fa6cac2d48c64c68bc457305222d70a8dd7fd4a67e730",
+              "rawBookSha256": "26bc18ac1e441a189b572924bf22c81945a35aac5d14f9a0bd1604d3165d1bd6",
+              "capturePayloadSha256": "2da36dc0b91c9dbcd68ecd4905b788e6ea3a97dd081ae874fa1d9c20be654889"
+            }
+          ],
+          "bookSampleCount": 3,
+          "sourceAgeMsMin": "244",
+          "sourceAgeMsMax": "11165",
+          "repeatedSourceTimes": 1,
+          "sameDisplayedFieldsWithAdvancingTime": 0,
+          "maxSuccessiveSourceGapMs": "20960"
+        }
+      ]
+    }
+  ],
+  "limitation": "Retained samples establish observed behavior only; advancing time does not prove snapshot-generation semantics or quiet-market availability."
+}
