@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T04:23:52.659114+00:00",
-  "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+  "recorded_at": "2026-10-03T14:31:17.411775+00:00",
+  "source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -53,7 +53,7 @@
     "contracts/src/risk/AccountingPort.sol": "0e0cdfa11df577f7ce3772bab0d42d6fab11c24063a0965495dfd3174f4018e9",
     "contracts/src/risk/AccountRegistry.sol": "3e9c258592adc806041153f66c70a3ee181fd8b439d78fa8c065bae4c888b6ac",
     "contracts/src/risk/AccountSync.sol": "67c9617089eb30b70172f9a315af204d90fc8befabe09867252523c477ce59cb",
-    "contracts/src/risk/BookRiskAdapter.sol": "4ed202db1c63bff091405edabaa259b3c1a57f59746f3594cd130373242afd04",
+    "contracts/src/risk/BookRiskAdapter.sol": "320f95e6b7c619392a53e6e4494a42b26ef20fcb1809d56952db861835c394cc",
     "contracts/src/risk/ClearingCore.sol": "604d692ceac02d92d6ade9a75b110203a973f56542657ec19cc490d2fdc82845",
     "contracts/src/risk/EpochRollover.sol": "4a01e7976e00f07a89921fb3d5729780c6c1daa4414a6c9b61e1a5c6f814fbcd",
     "contracts/src/risk/FeeAccounting.sol": "cbcf09e015faaeb12a14d281516d4c81e16cdad281a4ab1ad9b32de5c905ab70",
@@ -61,7 +61,7 @@
     "contracts/src/risk/FloorLifecycle.sol": "f84e1acac1a22a7120d3a0ea85522d6695d980e2212fe2b4efa18de285bb2e9c",
     "contracts/src/risk/FreezeAccounting.sol": "8167b726693675c02ff0ae694df8d8b43a5767a17c7e39b05c5a716315cd6a78",
     "contracts/src/risk/FundingAccounting.sol": "92ee2c6a924e8eb9e8eb1655c7b8d0df1dc77ddd42c2cd80d1e819d5ec47460e",
-    "contracts/src/risk/LiquidationBookAdapter.sol": "82082ba3ff50d3fa8394f483f7dbbdf42c74b36ab79bccec162ec79fb37a219b",
+    "contracts/src/risk/LiquidationBookAdapter.sol": "1f4dae807ab664c34a3fd66292c0135f057c0d82752260c19429968e011b8278",
     "contracts/src/risk/LiquidationEligibility.sol": "26be2adef5753587667c9e46016944b382323435985f721fef1f2ef232fc8829",
     "contracts/src/risk/LiquidationFees.sol": "71e3bc0fe197a9d0f0a4911e327feb55e101250ea8675f9b56cc7428a3b094aa",
     "contracts/src/risk/MonitorPolicy.sol": "0621e55973378fc71a75f9d64217f80cf210c376ba7abd9d30b5d1b386fdfd50",
@@ -149,7 +149,7 @@
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B018.t.sol:B018Test\": {\"duration\": \"45ms 180\\u00c2\\u00b5s 400ns\", \"test_results\": {\"test_contextCarriesTimeAndStage()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 37480}}, \"duration\": \"463\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_emptyBookBootstrapUsesIndexOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 8682939}}, \"duration\": \"9ms 625\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_haltOverridesBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 8304663}}, \"duration\": \"8ms 447\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_missingPerpAfterNormalFallsBackToBackedOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 57116738}}, \"duration\": \"43ms 979\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_noIndexNoExposure()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 67440}}, \"duration\": \"718\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_normalOnlyAtEpochOpeningWithAllWindows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 53449483}}, \"duration\": \"39ms 322\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_openingWithoutFullWindowsStaysBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 21302083}}, \"duration\": \"14ms 763\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_profileActivatesOnlyAtEpochOpening()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 188444}}, \"duration\": \"969\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B018.t.sol:B018Test\": {\"duration\": \"62ms 622\\u00c2\\u00b5s 200ns\", \"test_results\": {\"test_contextCarriesTimeAndStage()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 37480}}, \"duration\": \"538\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_emptyBookBootstrapUsesIndexOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 8682939}}, \"duration\": \"6ms 669\\u00c2\\u00b5s 700ns\", \"gas_snapshots\": {}}, \"test_haltOverridesBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 8304663}}, \"duration\": \"5ms 828\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_missingPerpAfterNormalFallsBackToBackedOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 57116738}}, \"duration\": \"61ms 221\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"test_noIndexNoExposure()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 67440}}, \"duration\": \"1ms 170\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_normalOnlyAtEpochOpeningWithAllWindows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 53449483}}, \"duration\": \"55ms 865\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_openingWithoutFullWindowsStaysBootstrap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 21302083}}, \"duration\": \"13ms 199\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"test_profileActivatesOnlyAtEpochOpening()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 188444}}, \"duration\": \"1ms 118\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],

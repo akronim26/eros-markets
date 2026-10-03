@@ -181,18 +181,18 @@
       "id": "G7",
       "status": "blocked",
       "merge_sha": null,
-      "reviewed_by": [
-        "A",
-        "B"
-      ],
+      "reviewed_by": [],
       "evidence": [
         "artifacts/gates/G7.json",
         "docs/contracts/G7.json",
         "contracts/test/gates/G7.t.sol"
       ],
-      "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
-      "technical_status": "checks_passed",
+      "review_pending": [
+        "Independent teammate review of RB-I01 repair and concrete BookRiskEngine",
+        "Source-bound review refresh after independent review"
+      ],
+      "note": "Earlier A/B reviews apply to their recorded historical source. New RB-I01 economic repairs and concrete engine change source; no approval is carried forward or self-authored. G0-G6 accepted historical SHAs are retained. Current tests and testnet evidence are separate from peer review and human G7/release acceptance. RB-I02 and the production PERP sampler remain open.",
+      "technical_status": "source_review_pending",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {

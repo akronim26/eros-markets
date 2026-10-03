@@ -1,14 +1,218 @@
 {
- "note": "External ABI of the abstract RiskAccountingBridge (Person B controllers + Person A accounting). Exported directly from the production composition, not CombinedEngine or MockBookAdapter. Includes OrderAdmissionMath.ReservationUnderflow, a production library error omitted from the abstract contract's compiler ABI. No deployment constructor or book hook internals are included; a concrete production engine must supply the book adapter and deployment wiring. integration/risk.",
+ "note": "Concrete initial-1x BookRiskEngine deployment and public book ABI. Composes the real Book with RiskAccountingBridge; authenticated INDEX only. Fully backed bootstrap mode until a reviewed PERP depth adapter exists. Funding, recovery and conversion disabled; no test feed or failure injection.",
  "source": {
-  "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
+  "src/engine/BookRiskEngine.sol": "BookRiskEngine"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "16683169a7e7fc0132c8a98302a1be20606355b69fae893a22a8a712e60f6c9d",
+ "source_sha256": "ee8735d710203df5f1f4aea37e1860010729a9782623e33be8b8f266fc26614d",
  "abi": [
+  {
+   "type": "constructor",
+   "inputs": [
+    {
+     "name": "vault",
+     "type": "address",
+     "internalType": "contract CollateralVault"
+    },
+    {
+     "name": "reserveTreasury",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "configuration",
+     "type": "tuple",
+     "internalType": "struct IMarketConfig.Listing",
+     "components": [
+      {
+       "name": "marketId",
+       "type": "bytes32",
+       "internalType": "bytes32"
+      },
+      {
+       "name": "token",
+       "type": "address",
+       "internalType": "address"
+      },
+      {
+       "name": "registry",
+       "type": "address",
+       "internalType": "address"
+      },
+      {
+       "name": "resolutionAuthority",
+       "type": "address",
+       "internalType": "address"
+      },
+      {
+       "name": "monitor",
+       "type": "address",
+       "internalType": "address"
+      },
+      {
+       "name": "governance",
+       "type": "address",
+       "internalType": "address"
+      },
+      {
+       "name": "scheduledT",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "listedAt",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "sourceHash",
+       "type": "bytes32",
+       "internalType": "bytes32"
+      },
+      {
+       "name": "rulesHash",
+       "type": "bytes32",
+       "internalType": "bytes32"
+      },
+      {
+       "name": "invalidRule",
+       "type": "tuple",
+       "internalType": "struct IMarketConfig.InvalidRule",
+       "components": [
+        {
+         "name": "fallbackListed",
+         "type": "bool",
+         "internalType": "bool"
+        },
+        {
+         "name": "captureGraceSecs",
+         "type": "uint64",
+         "internalType": "uint64"
+        },
+        {
+         "name": "fallbackPriceWad",
+         "type": "uint256",
+         "internalType": "uint256"
+        },
+        {
+         "name": "voidSecs",
+         "type": "uint64",
+         "internalType": "uint64"
+        }
+       ]
+      },
+      {
+       "name": "template",
+       "type": "uint8",
+       "internalType": "enum MarginMath.Template"
+      },
+      {
+       "name": "deploymentCapX",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "maxTraders",
+       "type": "uint32",
+       "internalType": "uint32"
+      },
+      {
+       "name": "indexSourceId",
+       "type": "bytes32",
+       "internalType": "bytes32"
+      },
+      {
+       "name": "indexSigner",
+       "type": "address",
+       "internalType": "address"
+      },
+      {
+       "name": "indexRulesHash",
+       "type": "bytes32",
+       "internalType": "bytes32"
+      },
+      {
+       "name": "depthNLots",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "maxSpreadWad",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "bootstrapBandWad",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "minOrderLots",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "maxOrderLots",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "maxLiqLotsPerBlock",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "fundingEnabled",
+       "type": "bool",
+       "internalType": "bool"
+      }
+     ]
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
   {
    "type": "function",
    "name": "ELIGIBLE",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "FLAG_BUY",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "FLAG_LIVE",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "FLAG_REDUCE_ONLY",
    "inputs": [],
    "outputs": [
     {
@@ -650,7 +854,106 @@
   },
   {
    "type": "function",
+   "name": "batch",
+   "inputs": [
+    {
+     "name": "cancels",
+     "type": "uint32[]",
+     "internalType": "uint32[]"
+    },
+    {
+     "name": "places",
+     "type": "tuple[]",
+     "internalType": "struct Book.Place[]",
+     "components": [
+      {
+       "name": "kind",
+       "type": "uint8",
+       "internalType": "enum IBookRiskHooks.OrderKind"
+      },
+      {
+       "name": "isBuy",
+       "type": "bool",
+       "internalType": "bool"
+      },
+      {
+       "name": "reduceOnly",
+       "type": "bool",
+       "internalType": "bool"
+      },
+      {
+       "name": "tick",
+       "type": "uint16",
+       "internalType": "uint16"
+      },
+      {
+       "name": "size",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "maxFills",
+       "type": "uint8",
+       "internalType": "uint8"
+      },
+      {
+       "name": "expiryBlock",
+       "type": "uint32",
+       "internalType": "uint32"
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "ids",
+     "type": "uint32[]",
+     "internalType": "uint32[]"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
    "name": "beginRollover",
+   "inputs": [],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "bestBidAsk",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "bid",
+     "type": "uint16",
+     "internalType": "uint16"
+    },
+    {
+     "name": "ask",
+     "type": "uint16",
+     "internalType": "uint16"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "cancel",
+   "inputs": [
+    {
+     "name": "id",
+     "type": "uint32",
+     "internalType": "uint32"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "cancelAll",
    "inputs": [],
    "outputs": [],
    "stateMutability": "nonpayable"
@@ -1285,6 +1588,133 @@
        "name": "snapshotId",
        "type": "bytes32",
        "internalType": "bytes32"
+      }
+     ]
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "getLevel",
+   "inputs": [
+    {
+     "name": "isBuy",
+     "type": "bool",
+     "internalType": "bool"
+    },
+    {
+     "name": "tick",
+     "type": "uint16",
+     "internalType": "uint16"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "tuple",
+     "internalType": "struct Book.Level",
+     "components": [
+      {
+       "name": "head",
+       "type": "uint32",
+       "internalType": "uint32"
+      },
+      {
+       "name": "tail",
+       "type": "uint32",
+       "internalType": "uint32"
+      },
+      {
+       "name": "size",
+       "type": "uint96",
+       "internalType": "uint96"
+      },
+      {
+       "name": "used",
+       "type": "bool",
+       "internalType": "bool"
+      }
+     ]
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "getOrder",
+   "inputs": [
+    {
+     "name": "id",
+     "type": "uint32",
+     "internalType": "uint32"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "o",
+     "type": "tuple",
+     "internalType": "struct Book.Order",
+     "components": [
+      {
+       "name": "owner",
+       "type": "uint32",
+       "internalType": "uint32"
+      },
+      {
+       "name": "size",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "next",
+       "type": "uint32",
+       "internalType": "uint32"
+      },
+      {
+       "name": "prev",
+       "type": "uint32",
+       "internalType": "uint32"
+      },
+      {
+       "name": "tick",
+       "type": "uint16",
+       "internalType": "uint16"
+      },
+      {
+       "name": "flags",
+       "type": "uint8",
+       "internalType": "uint8"
+      },
+      {
+       "name": "gen",
+       "type": "uint8",
+       "internalType": "uint8"
+      },
+      {
+       "name": "reduceVersion",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "marketEpoch",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "accountEpoch",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "expiryBlock",
+       "type": "uint32",
+       "internalType": "uint32"
+      },
+      {
+       "name": "feeCapQ",
+       "type": "uint256",
+       "internalType": "uint256"
       }
      ]
     }
@@ -2114,6 +2544,19 @@
   },
   {
    "type": "function",
+   "name": "maxFills",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "observationDigest",
    "inputs": [
     {
@@ -2405,6 +2848,62 @@
     }
    ],
    "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "placeOrder",
+   "inputs": [
+    {
+     "name": "p",
+     "type": "tuple",
+     "internalType": "struct Book.Place",
+     "components": [
+      {
+       "name": "kind",
+       "type": "uint8",
+       "internalType": "enum IBookRiskHooks.OrderKind"
+      },
+      {
+       "name": "isBuy",
+       "type": "bool",
+       "internalType": "bool"
+      },
+      {
+       "name": "reduceOnly",
+       "type": "bool",
+       "internalType": "bool"
+      },
+      {
+       "name": "tick",
+       "type": "uint16",
+       "internalType": "uint16"
+      },
+      {
+       "name": "size",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "maxFills",
+       "type": "uint8",
+       "internalType": "uint8"
+      },
+      {
+       "name": "expiryBlock",
+       "type": "uint32",
+       "internalType": "uint32"
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "id",
+     "type": "uint32",
+     "internalType": "uint32"
+    }
+   ],
+   "stateMutability": "nonpayable"
   },
   {
    "type": "function",
@@ -3897,6 +4396,34 @@
   },
   {
    "type": "function",
+   "name": "touch",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "bid",
+     "type": "uint16",
+     "internalType": "uint16"
+    },
+    {
+     "name": "bidSize",
+     "type": "uint96",
+     "internalType": "uint96"
+    },
+    {
+     "name": "ask",
+     "type": "uint16",
+     "internalType": "uint16"
+    },
+    {
+     "name": "askSize",
+     "type": "uint96",
+     "internalType": "uint96"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "traderAtoms",
    "inputs": [
     {
@@ -4349,6 +4876,31 @@
   },
   {
    "type": "event",
+   "name": "AllOrdersCancelled",
+   "inputs": [
+    {
+     "name": "trader",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "marketEpoch",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    },
+    {
+     "name": "accountEpoch",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
    "name": "BookCloseAttempt",
    "inputs": [
     {
@@ -4564,6 +5116,55 @@
     },
     {
      "name": "keeperFeeQ",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "Fill",
+   "inputs": [
+    {
+     "name": "makerOrder",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "maker",
+     "type": "uint32",
+     "indexed": false,
+     "internalType": "uint32"
+    },
+    {
+     "name": "taker",
+     "type": "uint32",
+     "indexed": false,
+     "internalType": "uint32"
+    },
+    {
+     "name": "tick",
+     "type": "uint16",
+     "indexed": false,
+     "internalType": "uint16"
+    },
+    {
+     "name": "size",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    },
+    {
+     "name": "makerFeeQ",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "takerFeeQ",
      "type": "uint256",
      "indexed": false,
      "internalType": "uint256"
@@ -5012,6 +5613,19 @@
   },
   {
    "type": "event",
+   "name": "MaxFillsSet",
+   "inputs": [
+    {
+     "name": "maxFills",
+     "type": "uint8",
+     "indexed": false,
+     "internalType": "uint8"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
    "name": "MonitorRestriction",
    "inputs": [
     {
@@ -5173,6 +5787,93 @@
      "type": "uint64",
      "indexed": false,
      "internalType": "uint64"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "OrderCancelled",
+   "inputs": [
+    {
+     "name": "id",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "size",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    },
+    {
+     "name": "reason",
+     "type": "uint8",
+     "indexed": false,
+     "internalType": "enum Book.CancelReason"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "OrderPlaced",
+   "inputs": [
+    {
+     "name": "id",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "trader",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "tick",
+     "type": "uint16",
+     "indexed": false,
+     "internalType": "uint16"
+    },
+    {
+     "name": "size",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    },
+    {
+     "name": "flags",
+     "type": "uint8",
+     "indexed": false,
+     "internalType": "uint8"
+    },
+    {
+     "name": "expiryBlock",
+     "type": "uint32",
+     "indexed": false,
+     "internalType": "uint32"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "OrderRejected",
+   "inputs": [
+    {
+     "name": "trader",
+     "type": "uint32",
+     "indexed": true,
+     "internalType": "uint32"
+    },
+    {
+     "name": "reason",
+     "type": "uint8",
+     "indexed": false,
+     "internalType": "enum RejectCode"
     }
    ],
    "anonymous": false
@@ -5578,6 +6279,11 @@
   },
   {
    "type": "error",
+   "name": "BadExpiry",
+   "inputs": []
+  },
+  {
+   "type": "error",
    "name": "BadListing",
    "inputs": [
     {
@@ -5586,6 +6292,11 @@
      "internalType": "uint8"
     }
    ]
+  },
+  {
+   "type": "error",
+   "name": "BadMaxFills",
+   "inputs": []
   },
   {
    "type": "error",
@@ -5609,7 +6320,17 @@
   },
   {
    "type": "error",
+   "name": "BadSize",
+   "inputs": []
+  },
+  {
+   "type": "error",
    "name": "BadState",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "BadTick",
    "inputs": []
   },
   {
@@ -5655,6 +6376,11 @@
   {
    "type": "error",
    "name": "BadWorkBudget",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "BookFull",
    "inputs": []
   },
   {
@@ -5735,12 +6461,37 @@
   },
   {
    "type": "error",
+   "name": "InvalidDeploymentDependency",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "MarketExists",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "NoMarket",
+   "inputs": []
+  },
+  {
+   "type": "error",
    "name": "NonMonotoneSample",
    "inputs": []
   },
   {
    "type": "error",
    "name": "NotHalted",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "NotLive",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "NotOwner",
    "inputs": []
   },
   {
@@ -5756,6 +6507,11 @@
   {
    "type": "error",
    "name": "OutsideBootstrapBand",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "PostOnlyCrosses",
    "inputs": []
   },
   {
@@ -5781,6 +6537,11 @@
   {
    "type": "error",
    "name": "Rejected",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "ReservationUnderflow",
    "inputs": []
   },
   {
@@ -5868,6 +6629,11 @@
   },
   {
    "type": "error",
+   "name": "UnsafeInitialConfiguration",
+   "inputs": []
+  },
+  {
+   "type": "error",
    "name": "Unsorted",
    "inputs": []
   },
@@ -5879,11 +6645,6 @@
   {
    "type": "error",
    "name": "ZeroWorkBudget",
-   "inputs": []
-  },
-  {
-   "type": "error",
-   "name": "ReservationUnderflow",
    "inputs": []
   }
  ]

@@ -14,7 +14,7 @@
   "harness_runtime_bytes": 35479,
   "harness_code_size_limit": 1000000,
   "production_composition_size": "real counterpart composition and chain deployment measurement pending",
-  "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+  "source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
   "toolchain": {
     "python": "3.12.10",
     "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",
