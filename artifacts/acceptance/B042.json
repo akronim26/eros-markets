@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:14:50.944436+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:36:42.091674+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -134,7 +134,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "docs/app-state-fixtures.json": "b4b27123971066d711c13abe1826ec87a4012eef984fb613db5a3eba8c397c7c"
   },
@@ -187,15 +187,16 @@
       "argv": [
         "node",
         "--test",
+        "--test-reporter=tap",
         "tmp/risk-sdk-b/test/read-model.test.js"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "TAP version 13\n# Subtest: accounts decode with units, identity and labelled projections\nok 1 - accounts decode with units, identity and labelled projections\n  ---\n  duration_ms: 7.7181\n  type: 'test'\n  ...\n# Subtest: projection does not change the withdrawable amount\nok 2 - projection does not change the withdrawable amount\n  ---\n  duration_ms: 0.547\n  type: 'test'\n  ...\n# Subtest: markets decode stage, pricing and pending work\nok 3 - markets decode stage, pricing and pending work\n  ---\n  duration_ms: 3.1096\n  type: 'test'\n  ...\n# Subtest: every settlement state is distinct and claimable only with claimsEnabled\nok 4 - every settlement state is distinct and claimable only with claimsEnabled\n  ---\n  duration_ms: 0.6569\n  type: 'test'\n  ...\n# Subtest: oracle finality alone is never claimable\nok 5 - oracle finality alone is never claimable\n  ---\n  duration_ms: 0.2885\n  type: 'test'\n  ...\n# Subtest: unit helpers floor Q to atoms toward negative infinity\nok 6 - unit helpers floor Q to atoms toward negative infinity\n  ---\n  duration_ms: 0.2628\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 196.1659\n"
+      "output": "TAP version 13\n# Subtest: accounts decode with units, identity and labelled projections\nok 1 - accounts decode with units, identity and labelled projections\n  ---\n  duration_ms: 10.0624\n  type: 'test'\n  ...\n# Subtest: projection does not change the withdrawable amount\nok 2 - projection does not change the withdrawable amount\n  ---\n  duration_ms: 0.5471\n  type: 'test'\n  ...\n# Subtest: markets decode stage, pricing and pending work\nok 3 - markets decode stage, pricing and pending work\n  ---\n  duration_ms: 3.2817\n  type: 'test'\n  ...\n# Subtest: every settlement state is distinct and claimable only with claimsEnabled\nok 4 - every settlement state is distinct and claimable only with claimsEnabled\n  ---\n  duration_ms: 0.6434\n  type: 'test'\n  ...\n# Subtest: oracle finality alone is never claimable\nok 5 - oracle finality alone is never claimable\n  ---\n  duration_ms: 0.2889\n  type: 'test'\n  ...\n# Subtest: unit helpers floor Q to atoms toward negative infinity\nok 6 - unit helpers floor Q to atoms toward negative infinity\n  ---\n  duration_ms: 0.2886\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 450.1705\n"
     }
   ],
-  "test_count": 3,
+  "test_count": 8,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
