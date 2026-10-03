@@ -3,7 +3,7 @@
 //   NETWORK                 deployments/<NETWORK>.json (default monad-testnet)
 //   RPC_URL                 the watchdog's own RPC endpoint
 //   WATCHDOG_PRIVATE_KEY    the trust set's watchdog key
-//   WATCHDOG_MODEL          default groq:qwen/qwen3.8-27b@2026-10-03; needs its provider's key
+//   WATCHDOG_MODEL          default google:gemini-3.8-flash@2026-10-03 (GEMINI_API_KEY); needs its provider's key
 //   SNAPSHOT_DIR            where `eros-snapshot:` snapshots are read (default ./snapshots)
 //   FALLBACKS               optional JSON file {marketId: FeedSpec}
 //   FEED_AUTH               optional JSON file {authRef: {header, env}}

@@ -152,7 +152,7 @@ Plan §13: owner OB · 4 PD · depends O32 · acceptance: signed payload accepte
 - Owner: OB
 - PD: 1
 - Depends: O32.3
-- Plan: §8.3
+- Plan: §8.3, ADJ-48
 - Cut: no
 - Status: done
 - Files: oracle/services/panel-runner/src/models/*
@@ -288,14 +288,14 @@ Plan §13: owner OA · 3 PD · depends O30, O20 · acceptance: wrong-proposal dr
 - Owner: OA
 - PD: 0.75
 - Depends: O35.1
-- Plan: §9.2, §8.3, ADJ-44
+- Plan: §9.2, §8.3, ADJ-44, ADJ-48
 - Cut: no
 - Status: done
 - Files: oracle/services/watchdog/src/model.ts
 - Build: For L2, REVIEWED and PERMISSIONLESS proposals: a fourth model family with a different prompt on the same snapshot, plus the L1 feed if one exists.
 - Done when: tests with recorded responses produce contradiction and agreement verdicts.
 - Check: cd oracle/services/watchdog && bun test
-- Notes: `services/watchdog/src/model.ts`. The fourth family is Qwen 3.8 27B on Groq (`groq:qwen/qwen3.8-27b@2026-10-03`); the panel is GPT-OSS, Kimi and Gemini. Its prompt is its own: sources numbered from 1 in `<source>` tags with entity-escaped text, and the answer is `{outcome YES|NO|INVALID|UNDETERMINED, confidence, sources, reason ≤ 600}`, schema-checked after removing thinking blocks and fences. The model is not shown the proposal. It runs on the snapshot the proposal names, checked against its evidenceHash (`eros-snapshot:` from the snapshot directory, ADJ-41, or an https URI), plus the Layer 1 feed when the market has one. Its outcome counts only at confidence ≥ 0.9, determined, and citing an allow-listed source that exists. Up to 3 retries on 5xx, network errors and invalid answers; none on another 4xx. Real recordings (`bun run record`, 3 Oct 2026, HTTP 200): on the 3-1 snapshot it answers YES and on the 1-1 snapshot NO, both confidence 1.0 citing sources 1 and 2. 11 tests (`test/model.test.ts`) on the recordings: agreement (YES on 3-1), contradiction (NO on 3-1; a permissionless YES on 1-1), feed and model together and split, prompt format and escaping, answer rules, retries, the snapshot checks.
+- Notes: `services/watchdog/src/model.ts`. The fourth family is Qwen 3.8 27B on Groq (`groq:qwen/qwen3.8-27b@2026-10-03`); the panel is GPT-OSS, Kimi and Gemini. Its prompt is its own: sources numbered from 1 in `<source>` tags with entity-escaped text, and the answer is `{outcome YES|NO|INVALID|UNDETERMINED, confidence, sources, reason ≤ 600}`, schema-checked after removing thinking blocks and fences. The model is not shown the proposal. It runs on the snapshot the proposal names, checked against its evidenceHash (`eros-snapshot:` from the snapshot directory, ADJ-41, or an https URI), plus the Layer 1 feed when the market has one. Its outcome counts only at confidence ≥ 0.9, determined, and citing an allow-listed source that exists. Up to 3 retries on 5xx, network errors and invalid answers; none on another 4xx. Real recordings (`bun run record`, 3 Oct 2026, HTTP 200): on the 3-1 snapshot it answers YES and on the 1-1 snapshot NO, both confidence 1.0 citing sources 1 and 2. 11 tests (`test/model.test.ts`) on the recordings: agreement (YES on 3-1), contradiction (NO on 3-1; a permissionless YES on 1-1), feed and model together and split, prompt format and escaping, answer rules, retries, the snapshot checks. Update (ADJ-48): the watchdog now runs Gemini 3.8 Flash (`google:gemini-3.8-flash@2026-10-03`), because the panel's third model became Qwen 3.8 Flash; its recorded answers were re-recorded with Gemini.
 
 ### O35.3 · Dispute, float accounting and heartbeat
 - Owner: OA
