@@ -16,6 +16,12 @@ export const DEVELOPMENT_POLICIES={
   timestampPolicyHash:keccak256(stringToHex('preserve-source-ms-floor-seconds-freeze-published-recheck-30s-v1')),
   failurePolicyHash:keccak256(stringToHex('UNAPPROVED-DIAGNOSTIC:valid-only-no-fabricated-time-v1')),
 };
+// User-selected local policy. A different failure hash requires a new local listing/domain.
+export const DEVELOPMENT_INVALID_POLICIES={...DEVELOPMENT_POLICIES,
+  failurePolicyHash:keccak256(stringToHex('UNAPPROVED-DIAGNOSTIC:fresh-invalid-zero-price-impacts-preserve-depth-v1'))};
+export function permitsInvalidDepth(rules:RulesManifest):boolean {
+  return rules.failurePolicyHash.toLowerCase()===DEVELOPMENT_INVALID_POLICIES.failurePolicyHash;
+}
 export type SnapshotEvidence={bookBody:string;metadata:unknown;event:unknown;bookReceivedAtMs:bigint;
   metadataReceivedAtMs:bigint;eventReceivedAtMs:bigint};
 /** Pure builder for disabled development configurations. No key or network access. */
@@ -26,7 +32,8 @@ export function prepareObservation(cfg:MarketConfig,rules:RulesManifest,evidence
   if(BigInt(d.chainId)!==31337n)throw new Error('DEVELOPMENT_CHAIN_ONLY');
   if(minimumHeadroomMs<=0n||minimumHeadroomMs>30000n)throw new Error('BAD_PUBLICATION_HEADROOM');
   for(const [field,value] of Object.entries(DEVELOPMENT_POLICIES))
-    if(m[field as keyof typeof DEVELOPMENT_POLICIES].toLowerCase()!==value)throw new Error('UNSUPPORTED_RULES_POLICY');
+    if(m[field as keyof typeof DEVELOPMENT_POLICIES].toLowerCase()!==value
+      &&!(field==='failurePolicyHash'&&permitsInvalidDepth(m)))throw new Error('UNSUPPORTED_RULES_POLICY');
   const bindings={marketId:d.marketId,sourceId:d.sourceId,scheduledT:d.scheduledT,
     ...cfg.mapping,depthNLots:cfg.pricing.depthNLots,maxSpreadWad:cfg.pricing.maxSpreadWad};
   for(const [field,value] of Object.entries(bindings))
@@ -40,11 +47,13 @@ export function prepareObservation(cfg:MarketConfig,rules:RulesManifest,evidence
   const raw=record(JSON.parse(evidence.bookBody));
   const metadataAt=evidence.metadataReceivedAtMs<evidence.eventReceivedAtMs?evidence.metadataReceivedAtMs:evidence.eventReceivedAtMs;
   const inspection=inspectSnapshot(cfg,raw,publishedAtMs,null,{rulesDigest:externalDigest,tradeable:market.tradeable&&event.tradeable},metadataAt,externalDigest);
-  if(inspection.status!=='COLLECTING'||!inspection.summary||!inspection.time)throw new Error(`OBSERVATION_UNAVAILABLE:${inspection.reason}`);
+  const invalid=inspection.status==='INVALID_DEPTH'&&permitsInvalidDepth(m);
+  if((inspection.status!=='COLLECTING'&&!invalid)||!inspection.summary||!inspection.time)throw new Error(`OBSERVATION_UNAVAILABLE:${inspection.reason}`);
   if(!sourceTime(raw.timestamp,publishedAtMs,null,minimumHeadroomMs).hasHeadroom)throw new Error('INSUFFICIENT_PUBLICATION_HEADROOM');
   const summary=inspection.summary;
   const observation={marketId:d.marketId,sourceId:d.sourceId,sequence,observedAt:inspection.time.observedAt,
-    publishedAt:publishedAtMs/1000n,priceWad:summary.priceWad!,impactBidWad:summary.impactBidWad!,impactAskWad:summary.impactAskWad!,
+    publishedAt:publishedAtMs/1000n,priceWad:invalid?0n:summary.priceWad!,
+    impactBidWad:invalid?0n:summary.impactBidWad!,impactAskWad:invalid?0n:summary.impactAskWad!,
     bidDepthLots:summary.bidDepthLots,askDepthLots:summary.askDepthLots,sourceRulesHash:d.sourceRulesHash};
   const domain:PacketDomain={chainId:BigInt(d.chainId),engine:d.engineAddress,marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress};
   observationDigest(observation,domain.chainId,domain.engine);

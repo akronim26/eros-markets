@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { Hex } from 'viem';
 import { rulesHash, type RulesManifest } from '../src/rules.js';
-import { prepareObservation, DEVELOPMENT_POLICIES, type RawSigner } from '../src/publication.js';
+import { prepareObservation, DEVELOPMENT_POLICIES, DEVELOPMENT_INVALID_POLICIES, type RawSigner } from '../src/publication.js';
 import { parseConfig, type MarketConfig } from '../src/config.js';
 import { metadataIdentity, verifyEventMembership } from '../src/collector.js';
 import { createHash } from 'node:crypto';
@@ -29,7 +29,8 @@ export const marketIdentity=metadataIdentity(cfg,metadata),eventIdentity=verifyE
 export const rulesDigest=createHash('sha256').update(`${eventIdentity.rulesDigest}:${marketIdentity.rulesDigest}`).digest('hex');
 export const reviewed={...manifest,...DEVELOPMENT_POLICIES,externalRulesDigest:'0x'+rulesDigest};
 export const config={...cfg,destination:{...cfg.destination!,sourceRulesHash:rulesHash(reviewed)}};
+export const invalidReviewed={...reviewed,...DEVELOPMENT_INVALID_POLICIES};
+export const invalidConfig={...config,destination:{...config.destination!,sourceRulesHash:rulesHash(invalidReviewed)}};
 export const candidate=(sequence:bigint,now=1000100n)=>prepareObservation(config,reviewed,{bookBody:body,metadata,event,
   bookReceivedAtMs:1000050n,metadataReceivedAtMs:1000000n,eventReceivedAtMs:1000000n},sequence,now,1000n);
 export const signer:RawSigner={address:account.address,signDigest:async(request)=>account.sign({hash:request.digest})};
-

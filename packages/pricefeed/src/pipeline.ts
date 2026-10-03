@@ -91,6 +91,11 @@ export class LocalPipeline {
   private result(e:Entry,state:PipelineResult['state'],reason:string|null,sequence:bigint|null=null,r?:DeliveryRecord):PipelineResult {
     return {worker:e.config.key,state,reason,sequence,transactionHash:r?.txHash??null,depthValid:r?.accepted?.depthValid??null};
   }
+  private accepted(e:Entry,seq:bigint):void {
+    e.pending=e.pending.filter(v=>v!==seq);
+    if(!e.watch.includes(seq))e.watch.push(seq);
+    e.watch=e.watch.filter(v=>this.relay.get(e.domain,v)?.state!=='FINALIZED'||v===seq);
+  }
   private async publish(e:Entry,p:StoredPacket):Promise<PipelineResult>{
     const seq=p.packet.observation.sequence;
     if(!this.relay.get(e.domain,seq)&&!sourceTime(p.packet.sourceMs.toString(),this.now(),null,this.policy.headroomMs).hasHeadroom){
@@ -106,8 +111,7 @@ export class LocalPipeline {
       if(r.state==='UNKNOWN')r=await this.relay.reconcile(e.config,seq);
       if(!['UNKNOWN','MINED','FINALIZED'].includes(r.state))throw new Error(`PIPELINE_DELIVERY_RECOVERY_REQUIRED:${r.state}`);
       if(r.state==='MINED'||r.state==='FINALIZED'){
-        e.pending=e.pending.filter(v=>v!==seq);e.watch.push(seq);
-        e.watch=e.watch.filter(v=>this.relay.get(e.domain,v)?.state!=='FINALIZED'||v===seq);
+        this.accepted(e,seq);
       }
       return this.result(e,r.state as PipelineResult['state'],r.reason,seq,r);
     });
@@ -118,14 +122,24 @@ export class LocalPipeline {
     if(this.busy.has(result.worker))throw new Error('PIPELINE_WORKER_BUSY');this.busy.add(result.worker);
     try{
       // Observe receipts even during a source outage; never allocate past unresolved delivery.
+      let recovered:PipelineResult|undefined;
       await this.serialized(async()=>{
         this.relay.renew();
         for(const seq of [...e.watch]){
           const r=await this.relay.reconcile(e.config,seq);
           if(r.state==='ORPHANED'){e.watch=e.watch.filter(v=>v!==seq);e.pending.push(seq);e.pending.sort((a,b)=>a<b?-1:a>b?1:0);}
         }
+        const seq=e.pending[0];
+        if(seq!==undefined&&this.relay.get(e.domain,seq)?.txHash){
+          const r=await this.relay.reconcile(e.config,seq);
+          if(r.state==='MINED'||r.state==='FINALIZED'){
+            this.accepted(e,seq);recovered=this.result(e,r.state,r.reason,seq,r);
+          }
+        }
       });
       if(result.inspection.status==='QUARANTINED')throw new Error(`PIPELINE_SOURCE_QUARANTINED:${result.inspection.reason}`);
+      if(recovered)return recovered;
+      if(result.inspection.status==='INVALID_DEPTH')return this.result(e,'SOURCE_UNAVAILABLE',`INVALID_DEPTH:${result.inspection.reason}`);
       if(e.pending.length)return await this.publish(e,this.packets.get(e.domain,e.pending[0]!)!);
       if(result.inspection.status!=='COLLECTING'||!result.book||!result.metadata||!result.event)
         return this.result(e,'SOURCE_UNAVAILABLE',result.inspection.reason??result.inspection.status);

@@ -543,7 +543,18 @@ package suite passed 184 tests after these changes (12 publication tests plus
 172 earlier tests); Fraction vectors (144, seed 20261002, included in the suite)
 and wire compatibility also passed. No new Solidity test or source request ran.
 
-## Pending commit — continuous read-only collection (PF012/PF017)
+## Commit 42b4df5 — continuous collection and local relay (PF012-PF019)
+
+Full hash: `42b4df578e075cab13c01c069c995b7e6918c90c`
+
+Committed by the user: 2026-10-04 00:41:10 +05:30
+
+Message: `feat: add continuous collection and local relay verification`
+
+The entries below preserve the staged implementation/evidence history. The
+commit hash was recorded after observing the actual user commit. Additional
+local pipeline/adapter additions in that commit are noted in the 04 October
+decision update below; historical test counts are not re-certified by this edit.
 
 Base commit: `86b5431e5f8177ec99c5bd40d6b3a74da4f672e4`.
 Suggested message: `feat: add continuous pricefeed collection service (PF012-PF017)`.
@@ -614,7 +625,7 @@ pipeline. No human gates or counterpart files changed. Suggested combined
 current-batch message:
 `feat: add continuous collection and local relay verification (PF012-PF019)`.
 
-## Progress update — 2026-10-04: operations and RPC clarification (uncommitted)
+## Progress update — 2026-10-04: operations and RPC clarification (before commit 42b4df5)
 
 **Git status.** The current branch remains `pricefeed`; reading project-wide
 documentation did not switch branches. HEAD is still
@@ -681,3 +692,89 @@ remains 193 passing tests, with wire/event-ABI and 144-vector Fraction checks
 passing as documented above; those are historical results, not a new campaign.
 Suggested message for the combined pending implementation batch remains
 `feat: add continuous collection and local relay verification (PF012-PF019)`.
+
+## Pending commit — consolidate requirements decisions (PF003)
+
+Date: 2026-10-04. Base commit:
+`42b4df578e075cab13c01c069c995b7e6918c90c`.
+Suggested message: `test: document pricefeed requirements decisions (PF003)`.
+
+**What changed.** Expanded `docs/decisions.md` to preserve the agreed before-fee
+VWAP, directed rounding, two-sided displayed depth, exact fractional aggregation,
+floor-total lot conversion and source-constraint policy; conservative authentic
+source-time/frozen-retry handling; and the existing risk wire/output and
+ownership boundaries. Recorded the candidate typed ABI/Keccak manifest as a
+proposal, not canonical Q04 approval. Distinguished shared category configuration
+from approved event mappings and engine invalid-depth behavior from unfinished
+Q08 producer policy. Recorded hosting as undecided, example cadence/request
+accounting as diagnostic settings, and the reported Alchemy Monad RPC as an
+unvalidated candidate. Named review, provider semantics/units, actual mapping,
+calibration, operational budgets/key backend/finality and release remain open.
+
+**New user commit observed.** Recorded actual commit 42b4df5 above. It also
+contains `src/pipeline.ts`, `src/local-rpc.ts`, `scripts/pipeline-local.ts` and
+pipeline tests/demo additions. Source inspection confirms a joined development
+path and concrete loopback RPC adapter restricted to disabled configs, public
+fixture keys and chain 31337. This supersedes the earlier operational update's
+claim that no local integrated path/concrete adapter existed. Production adapters
+and an operational approved pipeline remain absent. No runtime or test-pass
+claim is added merely because these files were committed. The preceding
+'uncommitted' operations entry was written before this user commit and is now
+part of it; its historical HEAD/status statement is not the current Git state.
+
+**Verification.** Documentation/source/Git review only; no new package, live
+source or engine tests run for this decision update. Only package decision/progress
+documents edited; existing unrelated workspace changes left untouched.
+
+**Operating-model clarification — 04 October 2026.** At the user's request,
+reread all of this progress log, `docs/decisions.md` and root `CLAUDE.md` before
+continuing. The pricefeed-specific scope overrides the risk team's branch and
+commit workflow: stay on `pricefeed`, edit only this package, leave risk/CLOB/oracle
+internals untouched and keep commits manual. Existing Q02 pricing choices and
+conservative Q03 handling remain selected; do not reopen them as unanswered.
+
+The user withdrew the once-per-minute proposal. Recorded continuous operation
+with independent internal worker scheduling and supervisor-managed restarts.
+The current 10-second example remains an initial test cadence; Q07 production
+cadence/headroom requires measured source/signing/inclusion latency and genuine
+30-second carry / complete 300-second coverage. Hosting remains undecided.
+The local joined pipeline and loopback adapter are present, while Monad adapter,
+operational key/configuration, invalid-transition and full lifecycle work remain.
+No external transaction or deployment is implied by this clarification.
+
+This is a documentation-only clarification; no new tests or network/chain runs
+were performed. The preceding PDF/code review in this conversation ran `npm test`
+with exit 0 and 200 passing tests, zero failures/skips/cancellations/todo cases;
+that result is separate from the older staged counts above and does not establish
+a new real-chain pipeline pass.
+
+## Pending commit — joined pipeline verification and invalid-depth checkpoints (PF014-PF020)
+
+Date: 2026-10-04. Base commit: `42b4df578e075cab13c01c069c995b7e6918c90c`.
+Suggested message: `feat: add invalid-depth checkpoints and pipeline recovery (PF014-PF020)`.
+
+**Decision.** The user selected a local-development invalid-checkpoint policy:
+for fresh, verified but invalid-depth books, preserve authentic source/publish
+times and actual depths; set price and both impact prices to zero so ingress
+records depthValid=false. Preserve computed impacts and failure reasons in the
+source archive. This changes the versioned failure-policy hash. Canonical Q04
+review, production Q08 acceptance and operational admission remain separate.
+
+**Verification in progress.** The existing joined pipeline successfully ran with
+fixture source data and a real owned Anvil chain: 15 observations accepted,
+exact receipts verified and independent time-segment TWAP matched (three seconds
+covered, full 300-second window unavailable as expected). Pinned Forge/Anvil
+1.8.3 and solc 0.8.30 were used. First sandbox run failed with localhost EPERM;
+the permitted local-only run with socket access exited 0. No external-chain
+transaction occurred. Evidence: `artifacts/pipeline/latest.json` and its retained
+four SQLite journals; this is synthetic source evidence, not a new live-source
+soak or full economic composition.
+
+Two tests added before implementation exposed an old-valid retry on new invalid
+evidence and a fixed-timestamp test-receipt fixture. The retry now reconciles
+pending receipts independently and suppresses the old-valid broadcast on invalid
+input. The test transport decodes submitted sequence and labels its acceptance
+time consistently. All nine targeted pipeline tests passed, including unsent
+allocation expiry/restart with a burned sequence. New invalid-builder tests
+and integrated policy verification are still in progress; no passing result
+is claimed for unfinished checks.

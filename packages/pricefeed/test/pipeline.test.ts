@@ -25,9 +25,9 @@ async function setup(){
   const packets=new PacketStore(join(dir,'packets.sqlite')),journal=new Journal(join(dir,'source.sqlite'));
   const domain=candidate(1n).domain;
   const signer=new LocalTestSigner(join(dir,'signer.sqlite'),domain,packets,()=>now);
-  const sent:Hex[]=[],receipts=new Map<Hex,DeliveryReceipt>();
+  const sent:Hex[]=[],receipts=new Map<Hex,DeliveryReceipt>();let blockTime=1001n;
   const provider:Provider={event:async()=>capture(event),metadata:async()=>capture(metadata),book:async()=>capture(JSON.parse(body))};
-  function capture(data:Record<string,unknown>){return {url:'https://fixture.invalid',receivedAtMs:1000050n,
+  function capture(data:Record<string,unknown>){return {url:'https://fixture.invalid',receivedAtMs:now-50n,
     latencyMs:1n,body:JSON.stringify(data),headers:{},data,attempts:1};}
   const worker=new Worker(config,provider,journal,'collector',()=>now);
   const transport:LocalRelayTransport={rpcUrl:'http://127.0.0.1:8545',sender:sender.address,pendingNonce:async()=>BigInt(receipts.size),
@@ -38,14 +38,15 @@ async function setup(){
     simulate:async()=>{},prepare:async(req)=>sender.signTransaction({type:'eip1559',chainId:31337,
       to:req.to as Hex,data:req.data,nonce:Number(req.nonce),gas:req.gas,maxFeePerGas:req.maxFeePerGas,maxPriorityFeePerGas:req.maxPriorityFeePerGas,value:0n}),
     broadcast:async(raw)=>{sent.push(raw);if(failSend)throw new Error('UNKNOWN_SEND');
-      const seq=BigInt(sent.filter((v,i,a)=>a.indexOf(v)===i).length),packet=packets.get(domain,seq)!;
-      const o=packet.packet.observation,tx=keccak256(raw);chainSeq=seq;chainTime=o.observedAt;
+      const obs=decodeFunctionData({abi:INGRESS_ABI,data:parseTransaction(raw).data!}).args[0] as unknown as Observation;
+      const seq=obs.sequence,packet=packets.get(domain,seq)!;
+      const o=packet.packet.observation,tx=keccak256(raw);chainSeq=seq;chainTime=o.observedAt;blockTime=(now+999n)/1000n;
       receipts.set(tx,{status:'success',transactionHash:tx,blockNumber:10n,blockHash:h('aa') as Hex,logs:[{
         address:domain.engine,transactionHash:tx,blockNumber:10n,blockHash:h('aa') as Hex,logIndex:0,removed:false,
         topics:encodeEventTopics({abi:ACCEPTED_ABI,eventName:'ObservationAccepted',args:{sourceId:o.sourceId as Hex}}) as Hex[],
         data:encodeAbiParameters(parseAbiParameters('uint64,uint64,uint64,uint64,uint256,bool,bytes32'),
-          [o.sequence,o.observedAt,o.publishedAt,1001n,o.priceWad,true,packet.digest])}]});return tx;},
-    receipt:async(hash)=>receipts.get(hash)??null,block:async(n)=>({number:n,hash:h('aa') as Hex,timestamp:1001n}),head:async()=>10n};
+          [o.sequence,o.observedAt,o.publishedAt,blockTime,o.priceWad,o.impactBidWad>0n,packet.digest])}]});return tx;},
+    receipt:async(hash)=>receipts.get(hash)??null,block:async(n)=>({number:n,hash:h('aa') as Hex,timestamp:blockTime}),head:async()=>10n};
   const relay=new LocalRelay(join(dir,'relay.sqlite'),packets,transport,policy,()=>now);
   const pipeline=new LocalPipeline([{worker,rules:reviewed,signer}],packets,relay,transport,policy,()=>now);
   return {dir,domain,packets,journal,signer,relay,pipeline,worker,provider,transport,sent,
@@ -145,4 +146,44 @@ test('continuous joined service shuts down cleanly and source quarantine cannot 
 test('concrete RPC adapter rejects external destinations and missing listing ABI before any request',()=>{
   assert.throws(()=>localRpcTransport('https://mainnet.example',[]),/LOCAL_RPC_ONLY/);
   assert.throws(()=>localRpcTransport('http://127.0.0.1:8545',[]),/LISTING_ABI/);
+});
+
+test('new invalid source evidence does not rebroadcast an older valid packet, but its receipt is reconciled',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();s.setFail(true);
+    await s.pipeline.process(await s.worker.poll());
+    const frozen=s.packets.get(s.domain,1n)!,raw=s.sent[0];
+    s.provider.book=async()=>{
+      const data={...JSON.parse(body),asks:[{price:'0.90',size:'6'}]};
+      return {url:'fixture://wide',receivedAtMs:1000050n,latencyMs:1n,body:JSON.stringify(data),headers:{},data,attempts:1};
+    };
+    const invalid=await s.worker.poll();assert.equal(invalid.inspection.status,'INVALID_DEPTH');
+    const sends=s.sent.length,result=await s.pipeline.process(invalid);
+    assert.equal(result.state,'SOURCE_UNAVAILABLE');assert.match(result.reason!,/INVALID_DEPTH/);
+    assert.equal(s.sent.length,sends);assert.deepEqual(s.packets.get(s.domain,1n),frozen);
+    assert.equal(s.packets.list(s.domain).length,1);
+    // A receipt may arrive while source data is invalid. Reconciliation is read-only.
+    s.setFail(false);await s.transport.broadcast(raw!);const afterExternalSend=s.sent.length;
+    const accepted=await s.pipeline.process(await s.worker.poll());
+    assert.equal(accepted.state,'FINALIZED');assert.equal(accepted.sequence,1n);
+    assert.equal(s.sent.length,afterExternalSend);assert.equal(s.packets.list(s.domain).length,1);
+  }finally{s.close();}
+});
+
+test('restart expires an unsent allocation and burns its sequence before publishing new evidence',async()=>{
+  const s=await setup();try{
+    const fence=s.packets.acquire(s.domain,'crashed',1000100n,1000n);
+    s.packets.reconcile(s.domain,'crashed',fence,1000100n,{lastSequence:0n,lastObservedAt:0n});
+    s.packets.allocate(s.domain,'crashed',fence,1000100n,seq=>candidate(seq));
+    s.packets.release(s.domain,'crashed',fence);s.setNow(1030001n);
+    await s.pipeline.start();
+    const expired=await s.pipeline.process(await s.worker.poll());assert.equal(expired.state,'EXPIRED');
+    assert.equal(expired.sequence,1n);assert.equal(s.sent.length,0);assert.equal(s.signer.reservations().length,0);
+    assert.equal(s.packets.get(s.domain,1n)!.packet.observation.publishedAt,1000n);
+    const data={...JSON.parse(body),timestamp:'1030000'};
+    s.provider.book=async()=>({url:'fixture://fresh',receivedAtMs:1030001n,latencyMs:1n,body:JSON.stringify(data),headers:{},data,attempts:1});
+    const next=await s.pipeline.process(await s.worker.poll());
+    assert.equal(next.state,'FINALIZED');assert.equal(next.sequence,2n);
+    assert.equal(parseTransaction(s.sent[0]!).nonce,0);assert.equal(s.packets.get(s.domain,1n)!.state,'EXPIRED');
+  }finally{s.close();}
 });

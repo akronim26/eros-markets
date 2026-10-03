@@ -13,7 +13,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { LocalTestSigner } from '../src/local-test-signer.js';
 import { copyFileSync } from 'node:fs';
 
-import { h, account, manifest, reviewed, config, metadata, event, body, candidate, signer } from './publication-fixture.js';
+import { h, account, manifest, reviewed, config, invalidReviewed, invalidConfig, metadata, event, body, candidate, signer } from './publication-fixture.js';
 
 test('candidate rules encoding agrees with independently assembled ABI words and is presentation independent',()=>{
   const word=(n:bigint)=>n.toString(16).padStart(64,'0');
@@ -64,6 +64,40 @@ test('builder recomputes raw book and metadata, binds rules, preserves source ti
     {bookBody:body,metadata,event,bookReceivedAtMs:1000050n,metadataReceivedAtMs:1000000n,eventReceivedAtMs:1000000n},1n,1000100n,1000n),/RULES/);
   assert.throws(()=>prepareObservation(config,reviewed,{bookBody:body,metadata:{...metadata,description:'changed'},event,
     bookReceivedAtMs:1000050n,metadataReceivedAtMs:1000000n,eventReceivedAtMs:1000000n},1n,1000100n,1000n),/RULES/);
+});
+
+test('explicit invalid policy preserves authentic time/depth and zeroes impacts for thin, wide, crossed and endpoint books',()=>{
+  const variations=[
+    {bids:[{price:'0.59',size:'4'}]},
+    {asks:[{price:'0.90',size:'6'}]},
+    {bids:[{price:'0.70',size:'6'}]},
+    {bids:[{price:'0.00',size:'6'}]},
+  ];
+  for(const variation of variations){
+    const evidence={bookBody:JSON.stringify({...JSON.parse(body),...variation}),metadata,event,
+      bookReceivedAtMs:1000050n,metadataReceivedAtMs:1000000n,eventReceivedAtMs:1000000n};
+    assert.throws(()=>prepareObservation(config,reviewed,evidence,1n,1000100n,1000n),/OBSERVATION_UNAVAILABLE/);
+    const p=prepareObservation(invalidConfig,invalidReviewed,evidence,1n,1000100n,1000n);
+    assert.equal(p.observation.observedAt,1000n);assert.equal(p.observation.publishedAt,1000n);
+    assert.equal(p.observation.priceWad,0n);assert.equal(p.observation.impactBidWad,0n);assert.equal(p.observation.impactAskWad,0n);
+    assert.equal(p.observation.bidDepthLots,variation.bids?.[0]?.size==='4'?4000n:6000n);
+    assert.equal(p.observation.askDepthLots,6000n);assert.equal(p.sourceMs,1000000n);
+    assert.equal(p.observation.sourceRulesHash,rulesHash(invalidReviewed));
+  }
+  assert.notEqual(rulesHash(reviewed),rulesHash(invalidReviewed));
+});
+
+test('invalid policy cannot manufacture checkpoints from untrusted, missing, closed or stale evidence',()=>{
+  const raw=JSON.parse(body);
+  const variations=[{timestamp:undefined},{timestamp:'1000200'},{timestamp:'960000'},
+    {asset_id:'2'},{asks:[]},{asks:[{price:'bad',size:'6'}]}];
+  const build=(book:unknown,m=metadata)=>prepareObservation(invalidConfig,invalidReviewed,
+    {bookBody:JSON.stringify(book),metadata:m,event,bookReceivedAtMs:1000050n,
+      metadataReceivedAtMs:1000000n,eventReceivedAtMs:1000000n},1n,1000100n,1000n);
+  for(const variation of variations)assert.throws(()=>build({...raw,...variation}),/OBSERVATION_UNAVAILABLE/);
+  assert.throws(()=>build(raw,{...metadata,closed:true}),/OBSERVATION_UNAVAILABLE/);
+  assert.throws(()=>build(raw,{...metadata,description:'changed rules'}),/SOURCE_RULES_CHANGED/);
+  const valid=build(raw);assert.equal(valid.observation.priceWad,600000000000000000n);
 });
 test('durable allocation burns expired sequences, survives restart and fences stale owners',()=>{
   const dir=mkdtempSync(join(tmpdir(),'pricefeed-packets-')),path=join(dir,'packets.sqlite');
