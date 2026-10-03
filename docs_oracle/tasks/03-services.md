@@ -15,11 +15,12 @@ Plan §13: owner OB · 1.5 PD · depends OG1 · acceptance: mirrors match Solidi
 - Depends: OG1
 - Plan: §9, §12.11, ADJ-09
 - Cut: no (the cut reads ABIs from forge output, ADJ-17)
-- Status: todo
+- Status: done
 - Files: oracle/packages/oracle-sdk/{package.json,src/abi/*,src/deployments.ts,test/*}
 - Build: Copy the ABIs of every oracle contract from `forge inspect` into the package with a hash check against `oracle/abi/SHA256SUMS`; typed loader for `deployments/<network>.json` and `gas.json` (§12.11 schema).
 - Done when: the hash check fails on any ABI drift and the loader parses the testnet file.
 - Check: cd oracle/packages/oracle-sdk && bun test
+- Notes: `@eros-oracle/oracle-sdk` (workspace member). `scripts/sync-abis.ts` (`bun run sync-abis`) runs `forge inspect <source>:<Name> abi --json` for the 11 Appendix C interfaces and the 9 deployed contracts (ResolutionOracle, MarketRegistry, BondTreasury, KeeperRouter, UmaAdapter, ErosSandboxOracle, TestUSDC, StubMarketFactory, ResolutionEngineStub; list in `src/abi/sources.ts`), writes `oracle/abi/<Name>.json`, regenerates `oracle/abi/SHA256SUMS` (now 20 files; the 11 O02.2 interface files are byte-identical) and writes `src/abi/<Name>.ts` (`as const` for viem types) stamped with the JSON's sha256; it replaces the manual regeneration command of O02.2. `forge inspect` output is byte-identical on Foundry 1.5.1 and 1.8.3. `src/deployments.ts`: zod schema of §12.11 (checksummed addresses, uint64 selector and final fee as bigint, the six core contracts required, StubMarketFactory optional), `loadDeployments(network, {expectChainId})` refusing another network or chain, `loadGas`/`gasLimit` (no limit is ever guessed for an unlisted call), `contractAddress`. 11 tests: SHA256SUMS lists exactly the files and every hash matches; every source has a snapshot and back; `forge inspect` of every source equals the snapshot (a planted function in IKeeperRouter fails it with "drifted ... run bun run sync-abis"); each SDK module is the generated form of its snapshot with the stamped hash; the oracle ABI has every call the services make; the loader parses DeployOracle's testnet output (the O19.3 fork dry run, committed as `test/fixtures/deployments.monad-testnet.json`; the live file is written at X04) and refuses a missing core contract, a bad address, a missing role, a selector above 2^53 written as a number, another network or chain, and invalid JSON; gas limits read from gas.json. Passes with the workspace tests under Foundry 1.8.3.
 
 ### O30.2 · EIP-712 types and BondMath mirror
 - Owner: OB
