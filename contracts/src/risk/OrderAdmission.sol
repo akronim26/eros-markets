@@ -234,6 +234,11 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
             d.reason = RejectCode.STALE_ORDER;
             return d;
         }
+        if (c.stage == Stage.REDUCE_ONLY && !mi.reduceOnly) {
+            d.prune = true;
+            d.reason = RejectCode.BAD_STAGE;
+            return d;
+        }
         AccountView memory acct = _acctPreviewAccount(mi.owner, c.economicTime);
         if (mi.reduceOnly) return _reduceOnlyMaker(acct, mi);
         d.allowedLots = mi.proposed;
