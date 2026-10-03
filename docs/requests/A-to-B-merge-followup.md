@@ -1,4 +1,4 @@
-# A to B: review and next-turn instructions
+# Unified Risk and Order Book: integration follow-up
 
 **Superseded ownership workflow — GOV-01, 2026-10-03:** there is no longer a separate A/B
 review dependency. Risk and Order Book are one team, with autonomous documented decisions and
@@ -6,15 +6,15 @@ required automated validation. The technical findings and evidence below remain 
 requests for teammate approval are historical. Follow `docs/merge/UNIFIED_WORKFLOW.md` instead.
 
 Date: 2026-10-03. Shared branch: `integration/risk`.
-This is a request from A, not an approval written on B's behalf.
+The filename and historical sections retain the former A/B handoff identity, not separate owners.
 
-## Current next turn: independently review the implemented non-oracle delta
+## Accepted integration: remaining inputs and deployment prerequisites
 
 This section supersedes the older merge-only instructions below. Read the current
 [Risk + Book tracker](../integration/RISK_BOOK_TRACKER.md) and final `docs/merge/STATUS.md` turn log.
 
-The user extended scope to book internals and all Risk & Clearing modules, including Person B's
-work. Oracle implementation/integration remains excluded. See
+The user merged Book and Risk & Clearing ownership and authorized remaining non-oracle work.
+Oracle implementation/integration remains excluded. See
 `docs/integration/NON_ORACLE_FIXES.md`; this is not a request to reimplement completed work.
 
 1. Fetch/fast-forward `integration/risk`, preserve local changes and inspect the completed turn log.
@@ -22,54 +22,69 @@ work. Oracle implementation/integration remains excluded. See
    `93e971e` RB-I04 bootstrap bands, `9c3a2e0` RB-I06 reduce-only makers, `0c93b63` RB-I07 domains,
    `3942100` RB-I05 real-book PERP sampler and `be3db1e` RB-I09 work bounds. Later `4a050df` records
    the confirmed RB-I08 release policy and regressions; `56787d2` pins TypeScript 5.9.3 and checks
-   runner selection for RB-I10. Review the final source
-   and evidence commits too; no main or oracle branch update is included.
-2. Review the earlier unapproved RB-I01/concrete/tooling source (`f2ebc61`, `1077dfa`, `47149e5`,
+   runner selection for RB-I10. RB-I11 strict INDEX-prefix sealing is implemented at `dcb6b0e`;
+   `29c5f87` repairs local smoke matching/settlement compatibility with two new regressions.
+   GOV-01 at `9081be0` retires separate signatures. Inspect final source/evidence commits too;
+   no main or oracle branch update is included.
+2. Preserve regressions for earlier RB-I01/concrete/tooling source (`f2ebc61`, `1077dfa`, `47149e5`,
    `163b709`, `5b82d9f`) as well as the new delta. RB-I01 covers active reduce-only continuation,
    current-state LIMIT resting authorization, and stopping liquidation immediately when health
    is restored. The repair must not authorize unrelated stale orders, flip sides or bypass coverage.
-3. Review RB-I02's exact-node maker version refresh, RB-I04's actual fill-price band, RB-I06's
+3. Retain RB-I02's exact-node maker version refresh, RB-I04's actual fill-price band, RB-I06's
    maker-side stage enforcement and RB-I07's atomic profile/listing validation. Keep fee attribution,
    reservation-before-posting, stale epochs, no-flip, coverage, preview parity and rollback intact.
-4. Review RB-I05's exact-N directed VWAP, shared 64-node scan, exclusion of all reduce-only depth,
+4. Retain RB-I05's exact-N directed VWAP, shared 64-node scan, exclusion of all reduce-only depth,
    later-block promotion, original observation time, backing-floor invalidation and source/account/
    book provenance. Fresh-INDEX fully backed startup must still work before PERP warm-up.
-   Review RB-I03 canonical IDs and RB-I09's concrete eight-step bound plus whole-batch action and
+   Keep RB-I03 canonical IDs and RB-I09's concrete eight-step bound plus whole-batch action and
    aggregate examination budgets. The larger-cap diagnostic harness is not the production setting.
-5. Reconcile final validation against its actual source SHA. Full-risk at `1654b9f` passes 818 tests
-   in 128 suites; seven later RB-I08 tests pass separately. ABI check passes 294/256/35. The expanded
-   MonadTen bundle passes 92 tests/10 suites, including 32 full-history gas benchmarks. Python passes
-   49/156/8/7 (220 total); SDK strict build, accounting reader and six Node tests pass. Inspect the
-   local TypeScript 5.9.3 lockfile/runner checks rather than assuming a global compiler.
-   Full CI at `4a050df` passes 825 tests/129 suites, zero failed/skipped, with 10000 fuzz cases
-   (seed `0x45524f53`) and 256x128 invariant campaigns. Ordered G0–G6 pass with
-   71/152/117/78/77/63/55 tests; G7 exits 2 at stale source-bound A043 after six passing tests.
-   Direct G7 and A044/B040–B044 pass separately; formatting and unchanged ABI checks pass.
-   The read-only estimate is 27,820,847 gas at block
-   67865259, not a broadcast; see `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`.
-   Concrete bytes are 120253 runtime, 129495 creation plus 928 arguments = 130423 initcode.
+5. Reconcile validation with its actual source SHA. RB-I11's strengthened sampler rerun passes
+   **21/21** (`tmp/rb-i11-final.log`). Completed validation baseline
+   `e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4` has unchanged Solidity from `dcb6b0e`: full CI
+   passes **832 tests / 130 suites**, zero failed/skipped, in 1,461.88 seconds; the final separate
+   Monad bundle passes **99 tests / 11 suites** in 3.04 seconds. Python **237/237** (66/156/8/7),
+   SDK compilation/six Node tests, format and ABI export/check pass; ABI entries are 294/256/35.
+   Runtime is **120,402 bytes**, creation **129,644 bytes**, constructor arguments **928 bytes**,
+   initcode **130,572 bytes**. Read-only testnet estimation using historical fixture dependencies
+   returns **27,853,253 gas** at block **67,886,057**; see
+   `artifacts/risk/unified-deployment-estimate-2026-10-03.json`. No new deployment occurred.
+   Ordered G0–G7 pass at `c91acf75ae9770f0bf5ae2238b4018202d57acd8`, with unchanged Solidity/runners,
+   counts **88/152/117/78/77/63/55/156**, and no skipped checks. Aggregate evidence:
+   `artifacts/risk/unified-integration-2026-10-03.json`. Pre-seal evidence stays historical:
+   full risk 818/128 at `1654b9f`, full CI 825/129 at
+   `4a050df`, Monad 92/10, Python220, ABI294/256/35 and creation estimate27,820,847 gas at block
+   67,865,259. Do not apply those old bytecode/gas/source hashes to RB-I11 or add overlapping counts.
+   Install the locked local TypeScript5.9.3 package before SDK/task checks; do not use global `tsc`.
 6. Preserve the historical controlled testnet deployment, matching and final cash-payout evidence:
    `artifacts/risk/monad-testnet-deployment.json`, `monad-testnet-smoke.json` and historical
    `real-book-validation-2026-10-03.json`. That closed market has older bytecode and does not contain
    this turn's changes. Fixture
    collateral, synthetic signed INDEX and manual authority are not the production counterparts.
-7. Record your actual reviewed SHA, findings and refreshed source fingerprints only after review.
-   G7 stays blocked for peer review and human acceptance; historical approvals do not cover this delta.
+7. GOV-02 is implemented at `e05bbbb`; source-bound A043/B043 checks pass **68/3** without
+   weakening regressions or false-pass/empty-suite handling. Do not refresh old A/B fingerprints.
+   The user's explicitly authorized G7 acceptance is recorded for `c91acf7` in
+   `docs/spec/gate_status.json` at **2026-10-03 17:39:11 UTC**, with `reviewed_by: []`.
+   Runners still emit `accepted=false` / `merge_sha=null`; human acceptance remains separate.
+   This accepts the non-oracle local integration candidate, not independent security review,
+   production approval, a new deployment or authorization to push main.
 8. The user confirmed RB-I08 (`docs/questions/RB-I08-reduce-only-release.md`): keep safe excess release
-   available under the existing guards. Review its spec clarification and seven passing tests, not a changed
+   available under the existing guards. Preserve its spec clarification and seven passing tests, not a changed
    production predicate. Coordinate collector/factory roles and
    calibration inputs without inventing them. Oracle integration requires separate authorization;
    its observed enum is NONE/YES/NO/INVALID = 0/1/2/3, with Voided using settleInvalid, not enum 4.
-9. RB-I11 remains **OPEN / policy confirmation pending**. Read
-   `docs/questions/RB-I11-index-prefix-seal.md`: later authenticated INDEX corrections can leave
-   retained BASIS tied to the former INDEX history. Strictly newer authenticated INDEX before
-   promotion is a proposed policy, not an implemented fix. Do not silently change observation
-   semantics or treat the existing sampler as fully resolved before that policy is confirmed.
+9. RB-I11 is implemented under the selected unified-team policy. Read
+   `docs/questions/RB-I11-index-prefix-seal.md`: publication waits for a strictly newer
+   authenticated INDEX timestamp, retaining valid unexpired pending captures without retimestamping.
+   Existing monotone ingress then prevents capture-time corrections after publication. Keep
+   freshness/eligibility and all signed correction/backfill regressions; continuous normal pricing
+   needs INDEX cadence comfortably below30 seconds, while fresh-INDEX bootstrap stays available.
+   Keep environment/address records tied to observed deployments and actual local settings;
+   never invent addresses or include private endpoints, keys or passwords.
 
 The live smoke is terminal/closed. Do not replay its completed setup/trade/settlement calls or
 stale signed calldata. The runbook documents fresh offline signing; no private endpoint or key
-belongs in handoffs. The new source remains unbroadcast; no replacement deployment is authorized
-by this review request. Cap 1, uncalibrated margin and funding/recovery/conversion off remain
+belongs in handoffs. The new source remains unbroadcast; this document does not broaden any
+separate network/wallet/spending authorization. Cap 1, uncalibrated margin and funding/recovery/conversion off remain
 deliberate. The older sections below are historical context only, including superseded open-item,
 oracle-enum and test-count statements; they are not the current instructions.
 
