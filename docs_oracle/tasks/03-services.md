@@ -220,13 +220,14 @@ Plan §13: owner OB · 2.5 PD · depends O30 · acceptance: E2/E3 committee step
 - Owner: OB
 - PD: 0.75
 - Depends: O30.3
-- Plan: §8.4
+- Plan: §8.4, ADJ-41, ADJ-43
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/services/committee-console/src/backend/*
 - Build: Assemble each case: question, rules, rendered snapshot, panel labels, rationales, ĉ, candidate, `rejectedMask`, deadlines; notes as JCS → `noteHash`, pinned to IPFS.
 - Done when: tests build a case from a recorded market state.
 - Check: cd oracle/services/committee-console && bun test
+- Notes: `services/committee-console/src/backend/`. `buildCase(id)` reads everything at `latest` (CaseChain: `chain.ts` over viem, StateChanged and PanelResultAccepted logs read once in 100-block steps and cached) and returns the case. It contains: the question and rules; the outcomes still allowed (YES/NO/INVALID minus `rejectedMask`); the trust set a proposal is signed for (the active one from EarlyReview, the pinned one otherwise) and its committee; the snapshot (by default the panel's) checked against its hash, with each item rendered as text as the panel saw it; the signed labels, ĉ = bps/10 000 and the display-only candidate; the deadlines (in review since, service level T_r = 2 h, L2 deadline, retryOpensAt, early TTL, voidDeadline); and `reviewable` (Review, Open, or EarlyReview before T and within the TTL). Snapshots and notes are local (ADJ-41, ADJ-43): `EvidenceStore` reads `<evidenceHash>.json` and checks its hash. Rationales come from the runner's run record `<evidenceHash>.panel.json`, which the panel runner now writes beside each snapshot (labels, confidences, citations, rationales, ĉ, flags, findings, candidate). PanelResultAccepted does not carry the flags, so without the record the flags show as unknown. Notes: `noteHash = keccak256(JCS(note))`; a note is `{version, marketId, outcome, evidenceHash, addedSources, reviewer, text, writtenAt}`, kept as its canonical bytes in `notes/<noteHash>.json`. Tests (`test/case.test.ts`, 10) build cases from a recorded market state: `test/fixtures/recorded-review`, the CaseChain reads, snapshot and run record of a market the real panel runner took to Review on a local deploy, written by the O34.2 local-deploy test with RECORD=1. They cover hand-computed candidate and note hash, rejected outcomes, EarlyReview, a missing snapshot and a tampered one.
 
 ### O34.2 · Signing and submission
 - Owner: OB

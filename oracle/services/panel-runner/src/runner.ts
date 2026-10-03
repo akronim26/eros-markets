@@ -6,7 +6,9 @@
 //      (anything else would sign a result the market did not commit to: alert, no run)
 //   2. take a fresh snapshot (Layer 1 URL if the market has a feed, the allow-list, the configured pages), keep its
 //      canonical bytes under its evidenceHash (ADJ-41: evidenceURI = eros-snapshot:<evidenceHash>)
-//   3. scan it for injection, ask the three models independently, calibrate
+//   3. scan it for injection, ask the three models independently, calibrate; keep the run's record (labels,
+//      confidences, citations, rationales, ĉ, flags, the candidate) as `<evidenceHash>.panel.json` beside the snapshot,
+//      for the committee console (O34.1)
 //   4. pre-check the route locally, only to save gas (the contract decides):
 //        EARLY   flagged, or three identical known labels each ≥ highConfBps → EarlyReview, else back to None: sent
 //        POST_T  two or more NOT_YET → the market stays: not sent; the run repeats after 15 min, 30 min, 1 h, 2 h, …
@@ -20,7 +22,7 @@ import { canonicalBytes, evidenceHash, type Item, type Snapshot, type SnapshotRe
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { type Address, type Hex, keccak256, stringToBytes } from 'viem'
-import { type CalibrationMap, calibrate, calibratorHash } from './calibration'
+import { type CalibrationMap, type Candidate, calibrate, calibratorHash, candidate } from './calibration'
 import type { Scan } from './injection'
 import type { ModelOutcome } from './models/client'
 import { buildCall, type PinnedPrompt, promptFor } from './prompts'
@@ -80,6 +82,20 @@ export type RunResult = {
   scan: Scan
   sent?: Hex
   skipped?: string
+}
+
+/** What a run kept beside its snapshot (`<evidenceHash>.panel.json`) for the committee console. Not hashed or signed. */
+export type PanelRecord = {
+  version: 1
+  marketId: Hex
+  phase: number
+  evidenceHash: Hex
+  evidenceURI: string
+  outcomes: { model: string; label: string; labelCode: number; confidence: number | null; cited: number[]; rationale: string; abstainReason?: string }[]
+  calibratedBps: number[]
+  flags: number
+  findings: Scan['findings']
+  candidate: Candidate
 }
 
 export type RunnerDeps = {
@@ -152,6 +168,19 @@ export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null>
   const outcomes = await d.askPanel(models, buildCall(prompt, { ...(await c.text(id)), tau: m.tau }, snapshot), snapshot.items)
   const bps = calibrate(outcomes, maps)
   const labels = outcomes.map((o) => o.labelCode)
+  const record: PanelRecord = {
+    version: 1,
+    marketId: id,
+    phase,
+    evidenceHash: evHash,
+    evidenceURI: uri,
+    outcomes: outcomes.map((o) => ({ model: o.model, label: o.label, labelCode: o.labelCode, confidence: o.confidence, cited: o.cited, rationale: o.rationale, ...(o.abstainReason ? { abstainReason: o.abstainReason } : {}) })),
+    calibratedBps: bps,
+    flags: scan.flags,
+    findings: scan.findings,
+    candidate: candidate(outcomes, bps),
+  }
+  writeFileSync(join(d.snapshotDir, `${evHash}.panel.json`), JSON.stringify(record, null, 2) + '\n')
   const validated = phase === Phase.POST_T && (await c.categoryValidated(ai.categoryId, m.gateHash))
   const route = preRoute(phase, labels, bps, scan.flags, ai, validated)
   const base: RunResult = { id, phase, route, evidenceHash: evHash, evidenceURI: uri, outcomes, calibratedBps: bps, scan }
