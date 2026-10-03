@@ -6,7 +6,9 @@ import {BookRiskEngine} from "../../src/engine/BookRiskEngine.sol";
 import {IBookRiskHooks} from "../../src/interfaces/IBookRiskHooks.sol";
 import {IMarketConfig} from "../../src/interfaces/IMarketConfig.sol";
 import {IPriceSource} from "../../src/interfaces/IPriceSource.sol";
+import {PricingMath} from "../../src/math/PricingMath.sol";
 import {PricingMode} from "../../src/math/RiskTypes.sol";
+import {PriceIngress} from "../../src/pricing/PriceIngress.sol";
 import {CollateralVault} from "../../src/vaults/CollateralVault.sol";
 import {Vm} from "forge-std/Vm.sol";
 
@@ -51,8 +53,35 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
     function _publishDepth() internal {
         vm.roll(block.number + 1);
         _sampleDepth();
+        vm.warp(block.timestamp + 10);
+        _submitNextIndex();
         vm.roll(block.number + 1);
         assertTrue(_sampleDepth());
+    }
+
+    function _submitNextIndex() internal {
+        IPriceSource.Observation memory observation =
+            _observation(engine.sourceState(configuration.indexSourceId).lastSequence + 1);
+        engine.submitObservation(observation, _signature(observation, SIGNER_KEY));
+    }
+
+    function _assertPerpRecord(uint64 capturedAt, bool expectedValid) internal {
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        uint256 found;
+        for (uint256 logIndex; logIndex < entries.length; ++logIndex) {
+            if (
+                entries[logIndex].topics[0]
+                    != keccak256("PerpObservationRecorded(uint64,uint256,bool,int256,bool)")
+            ) continue;
+            (uint64 observedAt,, bool valid, int256 basisWad, bool basisValid) =
+                abi.decode(entries[logIndex].data, (uint64, uint256, bool, int256, bool));
+            assertEq(observedAt, capturedAt);
+            assertEq(valid, expectedValid);
+            assertEq(basisValid, expectedValid);
+            assertEq(basisWad, 0);
+            ++found;
+        }
+        assertEq(found, 1);
     }
 
     function _seedDepth() internal {
@@ -119,14 +148,142 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         vm.expectRevert();
         _sampleDepth();
         assertEq(engine.ringCount(1), 0);
+        vm.warp(block.timestamp + 1);
+        _submitNextIndex();
         vm.roll(block.number + 1);
         assertTrue(_sampleDepth());
+    }
+
+    function testUnsealedCaptureWaitsWithoutPublishingOrChangingItsTimestamp() public {
+        _warmIndex();
+        _seedDepth();
+        uint64 capturedAt = uint64(block.timestamp);
+        assertFalse(_sampleDepth());
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth());
+        assertEq(engine.ringCount(1), 0);
+        assertEq(engine.ringCount(2), 0);
+        for (uint256 offset = 1; offset <= 2; ++offset) {
+            vm.warp(capturedAt + offset);
+            vm.roll(block.number + 1);
+            assertFalse(_sampleDepth());
+            assertEq(engine.ringCount(1), 0);
+            assertEq(engine.ringCount(2), 0);
+        }
+        vm.warp(capturedAt + 10);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertTrue(_sampleDepth());
+        _assertPerpRecord(capturedAt, true);
+        assertEq(engine.ringCount(1), 1);
+        assertEq(engine.ringCount(2), 1);
+    }
+
+    function testSealedPublicationRejectsAuthenticatedCaptureTimeCorrection() public {
+        _warmIndex();
+        _seedDepth();
+        uint64 capturedAt = uint64(block.timestamp);
+        _sampleDepth();
+        vm.warp(capturedAt + 10);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertTrue(_sampleDepth());
+        _assertPerpRecord(capturedAt, true);
+
+        IPriceSource.Observation memory correction =
+            _observation(engine.sourceState(configuration.indexSourceId).lastSequence + 1);
+        correction.observedAt = capturedAt;
+        correction.priceWad = 6e17;
+        correction.impactBidWad = 59e16;
+        correction.impactAskWad = 61e16;
+        bytes memory signature = _signature(correction, SIGNER_KEY);
+        vm.expectRevert(PriceIngress.BackwardsObservation.selector);
+        engine.submitObservation(correction, signature);
+        correction.observedAt = capturedAt - 1;
+        signature = _signature(correction, SIGNER_KEY);
+        vm.expectRevert(PriceIngress.BackwardsObservation.selector);
+        engine.submitObservation(correction, signature);
+        assertEq(engine.sourceState(configuration.indexSourceId).lastObservedAt, capturedAt + 10);
+        PricingMath.Twap memory basisBefore = engine.basisTwap900(capturedAt + 10);
+        assertFalse(basisBefore.available);
+        assertEq(basisBefore.coveredSecs, 10);
+        assertEq(basisBefore.integral, 0);
+        correction.observedAt = capturedAt + 10;
+        engine.submitObservation(correction, _signature(correction, SIGNER_KEY));
+        assertEq(engine.sourceState(configuration.indexSourceId).lastSequence, correction.sequence);
+        PricingMath.Twap memory basisAfter = engine.basisTwap900(capturedAt + 10);
+        assertFalse(basisAfter.available);
+        assertEq(basisAfter.coveredSecs, basisBefore.coveredSecs);
+        assertEq(basisAfter.integral, basisBefore.integral);
+        assertEq(engine.ringCount(1), 1);
+        assertEq(engine.ringCount(2), 1);
+    }
+
+    function testDelayedIndexBackfillBeforeSealInvalidatesCapture() public {
+        _warmIndex();
+        _seedDepth();
+        vm.warp(block.timestamp + 5);
+        uint64 capturedAt = uint64(block.timestamp);
+        _sampleDepth();
+        vm.warp(capturedAt + 5);
+        IPriceSource.Observation memory delayed =
+            _observation(engine.sourceState(configuration.indexSourceId).lastSequence + 1);
+        delayed.observedAt = capturedAt - 1;
+        delayed.priceWad = 501e15;
+        delayed.impactBidWad = 491e15;
+        delayed.impactAskWad = 511e15;
+        engine.submitObservation(delayed, _signature(delayed, SIGNER_KEY));
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth());
+        _assertPerpRecord(capturedAt, false);
+    }
+
+    function testWaitingCaptureExpiresRatherThanRenewingObservationTime() public {
+        _warmIndex();
+        _seedDepth();
+        uint64 capturedAt = uint64(block.timestamp);
+        _sampleDepth();
+        vm.warp(capturedAt + 20);
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth());
+        assertEq(engine.ringCount(1), 0);
+        vm.warp(capturedAt + 31);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth());
+        _assertPerpRecord(capturedAt, false);
+    }
+
+    function testLaterInvalidIndexCannotPublishThroughUnavailableCurrentWindow() public {
+        _warmIndex();
+        _seedDepth();
+        uint64 capturedAt = uint64(block.timestamp);
+        _sampleDepth();
+        vm.warp(capturedAt + 10);
+        IPriceSource.Observation memory invalid =
+            _observation(engine.sourceState(configuration.indexSourceId).lastSequence + 1);
+        invalid.bidDepthLots = 0;
+        engine.submitObservation(invalid, _signature(invalid, SIGNER_KEY));
+        vm.warp(capturedAt + 11);
+        assertFalse(engine.riskContext().indexOk);
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth());
+        _assertPerpRecord(capturedAt, false);
     }
 
     function testMutationOnEitherSideInvalidatesPendingCapture() public {
         _warmIndex();
         _seedDepth();
         _sampleDepth();
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth());
         _placeDepth(SELLER, false, 520, 1, 0);
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 1);
@@ -135,6 +292,8 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 1);
         assertFalse(_sampleDepth());
+        vm.warp(block.timestamp + 1);
+        _submitNextIndex();
         vm.roll(block.number + 1);
         assertTrue(_sampleDepth());
     }
@@ -169,6 +328,7 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         uint64 capturedAt = uint64(block.timestamp);
         _sampleDepth();
         vm.warp(block.timestamp + 30);
+        _submitNextIndex();
         vm.roll(block.number + 1);
         vm.recordLogs();
         assertTrue(_sampleDepth());
@@ -283,19 +443,17 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         _warmIndex();
         _seedDepth();
         _publishDepth();
-        uint64 nextSequence = 32;
         uint64 openingAt = configuration.listedAt + 3600;
-        while (block.timestamp + 30 < openingAt) {
-            vm.warp(block.timestamp + 30);
-            IPriceSource.Observation memory observation = _observation(nextSequence++);
-            engine.submitObservation(observation, _signature(observation, SIGNER_KEY));
-            _publishDepth();
+        while (block.timestamp + 10 < openingAt) {
+            vm.warp(block.timestamp + 10);
+            _submitNextIndex();
+            vm.roll(block.number + 1);
+            assertTrue(_sampleDepth());
         }
         assertTrue(engine.basisTwap900(uint64(block.timestamp)).available);
         assertEq(uint8(engine.pricingMode()), uint8(PricingMode.BOOTSTRAP));
         vm.warp(openingAt);
-        IPriceSource.Observation memory finalObservation = _observation(nextSequence);
-        engine.submitObservation(finalObservation, _signature(finalObservation, SIGNER_KEY));
+        _submitNextIndex();
         engine.beginRollover();
         engine.rollPage(32);
         engine.finishRollover();

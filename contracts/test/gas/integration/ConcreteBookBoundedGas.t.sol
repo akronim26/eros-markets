@@ -6,6 +6,7 @@ import {BookRiskEngine} from "../../../src/engine/BookRiskEngine.sol";
 import {BookDepthSampler} from "../../../src/pricing/BookDepthSampler.sol";
 import {IBookRiskHooks} from "../../../src/interfaces/IBookRiskHooks.sol";
 import {IMarketConfig} from "../../../src/interfaces/IMarketConfig.sol";
+import {IPriceSource} from "../../../src/interfaces/IPriceSource.sol";
 import {CollateralVault} from "../../../src/vaults/CollateralVault.sol";
 import {MockUSDC} from "../../mocks/A/MockUSDC.sol";
 import {MockResolutionAuthority} from "../../mocks/B/MockResolutionAuthority.sol";
@@ -40,6 +41,7 @@ abstract contract ConcreteBookBoundedGasFixture is Test {
     uint64 internal constant MAKER_LOTS = 1000;
     uint256 internal constant MAKER_COUNT = 64;
     uint256 internal constant CALL_GAS_BUDGET = 29_500_000;
+    uint256 internal constant INDEX_SIGNER_KEY = 0x516;
     address internal constant TAKER = address(0x101);
     BoundedHistoryBookRiskEngine internal engine;
     CollateralVault internal vault;
@@ -53,7 +55,7 @@ abstract contract ConcreteBookBoundedGasFixture is Test {
         vault = new CollateralVault(address(token), address(this));
         MockResolutionAuthority authority = new MockResolutionAuthority();
         IMarketConfig.Listing memory configuration = ListingFixture.make(
-            LISTED_AT, address(authority), address(0x3031), address(this), address(0x516)
+            LISTED_AT, address(authority), address(0x3031), address(this), vm.addr(INDEX_SIGNER_KEY)
         );
         configuration.token = address(token);
         configuration.deploymentCapX = 1;
@@ -91,6 +93,27 @@ abstract contract ConcreteBookBoundedGasFixture is Test {
         vault.deposit(atoms);
         vault.allocate(address(engine), atoms, false);
         vm.stopPrank();
+    }
+
+    function _sealIndexPrefix() private {
+        vm.warp(block.timestamp + 1);
+        IMarketConfig.Listing memory configuration = engine.listing();
+        IPriceSource.Observation memory observation = IPriceSource.Observation({
+            marketId: configuration.marketId,
+            sourceId: configuration.indexSourceId,
+            sequence: 1,
+            observedAt: uint64(block.timestamp),
+            publishedAt: uint64(block.timestamp),
+            priceWad: 5e17,
+            impactBidWad: 49e16,
+            impactAskWad: 51e16,
+            bidDepthLots: configuration.depthNLots,
+            askDepthLots: configuration.depthNLots,
+            sourceRulesHash: configuration.indexRulesHash
+        });
+        (uint8 recovery, bytes32 signatureR, bytes32 signatureS) =
+            vm.sign(INDEX_SIGNER_KEY, engine.observationDigest(observation));
+        engine.submitObservation(observation, abi.encodePacked(signatureR, signatureS, recovery));
     }
 
     function _measure(uint8 maximum, uint64 requestedLots) internal {
@@ -292,6 +315,7 @@ abstract contract ConcreteBookBoundedGasFixture is Test {
         _checkProductionGas(callGas);
         assertFalse(published);
 
+        _sealIndexPrefix();
         vm.roll(block.number + 1);
         vm.cool(address(engine));
         beforeGas = gasleft();

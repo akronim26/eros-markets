@@ -116,8 +116,10 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         _lastSamplingBlock = block.number;
         RiskContext memory context = _pricingContext();
         PendingBookSample memory pending = _pendingBookSample;
-        delete _pendingBookSample;
-        if (context.halted) return false;
+        if (context.halted) {
+            delete _pendingBookSample;
+            return false;
+        }
         BookDepthQuote memory quote = _bookDepth(context);
         if (pending.observedBlock != 0) {
             bool unchanged = pending.observedBlock < block.number
@@ -134,6 +136,9 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
                     _depthRule.depthNLots,
                     _depthRule.maxSpreadWad
                 );
+                if (published && _sources[_indexSourceId].lastObservedAt <= pending.observedAt) {
+                    return false;
+                }
             }
             _recordPerp(
                 pending.observedAt,
@@ -143,6 +148,7 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
                 published ? pending.quote.askDepthLots : 0
             );
         }
+        delete _pendingBookSample;
         if (context.economicTime > _lastCaptureTime) {
             _lastCaptureTime = context.economicTime;
             _pendingBookSample = PendingBookSample(
