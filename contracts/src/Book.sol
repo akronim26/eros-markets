@@ -140,6 +140,8 @@ abstract contract Book is IBookRiskHooks {
     error BadMaxFills();
     error PostOnlyCrosses();
     error BadExpiry();
+    error BatchActionLimit();
+    error BatchStepLimit();
 
     // ------------------------------------------------------------------ engine hook
 
@@ -165,6 +167,12 @@ abstract contract Book is IBookRiskHooks {
         returns (uint32[] memory ids)
     {
         BookState storage b = _openBook();
+        if (cancels.length + places.length > maxBatchActions()) revert BatchActionLimit();
+        uint256 requestedSteps;
+        for (uint256 index; index < places.length; ++index) {
+            if (places[index].kind != OrderKind.POST_ONLY) requestedSteps += places[index].maxFills;
+            if (requestedSteps > b.maxFills) revert BatchStepLimit();
+        }
         uint32 trader = _traderOf(msg.sender);
         if (cancels.length != 0) {
             RiskSnapshot memory snap = _riskBeginAction();
@@ -217,6 +225,11 @@ abstract contract Book is IBookRiskHooks {
     /// @notice The most orders one taker order may examine.
     function maxFills() external view returns (uint8) {
         return _openBook().maxFills;
+    }
+
+    function maxBatchActions() public view returns (uint8) {
+        uint8 maximum = _openBook().maxFills;
+        return maximum < 32 ? maximum : 32;
     }
 
     /// @notice The order behind `id`, or an all-zero order if `id` is not live.

@@ -54,7 +54,7 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         parameters.template = configuration.template;
         parameters.deploymentCapX = 1;
         _initMarket(configuration, parameters);
-        _initBook(64);
+        _initBook(8);
     }
 
     function _traderOf(address owner) internal override returns (uint32 traderId) {

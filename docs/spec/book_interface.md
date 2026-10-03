@@ -363,6 +363,17 @@ placeOrder(request):
 
 The source's `maxFills` can be retained as an external field name for compatibility, but its documented meaning must be **maximum examined maker steps**. Expired nodes, stale epochs, self orders and failed readmissions all consume one. The policy supplies the actual numerical cap; this interface does not substitute D's eight-step recommendation for B's measured setting. Cap requested lots and batch action count before multiplication or traversal, and use checked conversions for narrower book fields.
 
+**Measured concrete bounds (RB-I09, 2026-10-03).** The current initial-1x `BookRiskEngine`
+sets `maxFills()` to 8 after a real-accounting 64-maker sweep exceeded the Monad transaction
+budget. This is a measured deployment setting, not a change to the abstract risk hook's upper
+bound of 64. `maxBatchActions()` returns `min(32, maxFills())`; cancellation and placement counts
+are added together. Before registration or any batch mutation, the book rejects oversized action
+counts and a sum of non-POST_ONLY requested `maxFills` above the market cap. POST_ONLY requests
+consume an action but no traversal budget. The declared-step budget is conservative even if a
+request eventually examines fewer nodes. Clients must read the deployed bounds, divide larger
+work into separate transactions, and not combine those transactions into an unbounded multicall.
+The sampler has a separate 64-node read budget; it does not raise the matching or batch caps.
+
 ## Failure and rollback matrix
 
 | Condition | Response | Economic/topology effects allowed to persist |
