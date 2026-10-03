@@ -149,6 +149,17 @@ a guaranteed cost or a new selected production policy. The CLI's 100-ms shared
 limiter coordinates one process; IP-wide coordination, Retry-After handling and
 measured load/freshness budgets remain to be completed/reviewed.
 
+On 04 October 2026, the requested durable live-source/restart campaign measured
+236/300-second crypto coverage and 294/300-second politics coverage at the
+ten-second diagnostic cadence. A separate five-second politics repeat accepted
+72 observations over six minutes, preserved 36 immutable packets through a
+four-journal restart and passed full 300/300-second coverage. The engine TWAP
+matched independent raw-book Fraction and time-segment reconstruction. All
+three outcomes are retained in `artifacts/pipeline/live-review.json`. Five seconds
+is **a tested diagnostic setting**, not a selected production Q07 interval.
+Source age and genuine valid coverage remain authoritative; failed windows do
+not become valid through repeat publication or relabeling timestamps.
+
 No hosting provider, server capacity or production deployment was selected.
 AWS/DigitalOcean were explanatory examples. An always-running service requires
 its own hosting, persistent storage, monitoring and tested restart/recovery;

@@ -53,6 +53,7 @@ async function main(){
     toolVersions:process.env.PRICEFEED_TOOL_VERSIONS?JSON.parse(process.env.PRICEFEED_TOOL_VERSIONS):null,
     fullEconomicEngine:false,completed:false};
   const save=()=>{mkdirSync('artifacts/pipeline',{recursive:true});const body=json(report)+'\n';
+    writeFileSync(`artifacts/pipeline/${directory.slice(4)}.json`,body);
     writeFileSync(`artifacts/pipeline/${mode}-${scenario}.json`,body);writeFileSync('artifacts/pipeline/latest.json',body);};
   const stop=new AbortController(),shutdown=()=>stop.abort();process.once('SIGINT',shutdown);process.once('SIGTERM',shutdown);
   try{
@@ -142,13 +143,18 @@ async function main(){
     report.runDurationMs=Date.now()-runStarted;
     const accepted=packets.list(domain).filter(p=>relay!.get(domain,p.packet.observation.sequence)?.accepted);
     assert.ok(accepted.length>0,'no matching accepted observation');
+    // Mine a final ordinary local block at the real clock so quiet-chain state
+    // cannot make an old evaluation endpoint look like current availability.
+    await client.request({method:'evm_mine' as never,params:[] as never});
     const block=await client.getBlock({blockTag:'latest'});
     const twap=await client.readContract({address:engine,abi:parseAbi(['function indexTwap300(uint64) view returns ((bool available,int256 twapWad,uint256 coveredSecs,int256 integral))']),
-      functionName:'indexTwap300',args:[block.timestamp]});
+      functionName:'indexTwap300',args:[block.timestamp],blockNumber:block.number});
     const expected=expectedDemoTwap(accepted.map(p=>{const receipt=relay!.get(domain,p.packet.observation.sequence)!.accepted!;
       return {t:p.packet.observation.observedAt,price:receipt.priceWad,valid:receipt.depthValid};}),block.timestamp);
     for(const field of ['available','twapWad','coveredSecs','integral'] as const)assert.equal(twap[field],expected[field]);
-    report.acceptedPackets=accepted.length;report.twap={actual:twap,expected,verified:true};
+    report.packets=accepted.map(p=>({packet:p.packet,digest:p.digest,signature:p.signature,delivery:relay!.get(domain,p.packet.observation.sequence)}));
+    report.acceptedPackets=accepted.length;report.twap={actual:twap,expected,verified:true,
+      evaluationBlock:{number:block.number,hash:block.hash,timestamp:block.timestamp}};
     if(requireWindow==='true')assert.equal(twap.available,true,'full 300-second valid coverage not established');
     const nonces=accepted.map(p=>relay!.get(domain,p.packet.observation.sequence)!.nonce.toString());
     assert.equal(new Set(nonces).size,nonces.length,'transaction nonce reused');
