@@ -15,29 +15,52 @@ Main was not changed. The old three-conflict rehearsal is superseded: this merge
 conflicts and silent canonical-type/helper hazards while retaining the reviewed accounting and
 stronger risk predicates. See `docs/merge/main-merge-prep.md`.
 
-The earlier 692-test merge baseline is historical. The current work repairs RB-I01, adds a
-guarded concrete `contracts/src/engine/BookRiskEngine.sol`, stateful real-book invariants, and
-controlled Monad testnet deployment/exercise tooling. Real A accounting/custody and real B risk
-are joined to the real Book; counterpart token, INDEX and resolution remain explicit test fixtures.
+The current non-oracle repair turn starts from `1958aef`. The user explicitly extended ownership
+to book internals and all Risk & Clearing work, including Person B's modules. Oracle implementation
+and oracle-branch integration remain excluded. Main is unchanged. The source commits through
+`be3db1e` implement RB-I02–RB-I07 and RB-I09. The user confirmed RB-I08: retain guarded safe
+excess-collateral release during REDUCE_ONLY; all seven focused regressions pass.
+See `docs/integration/NON_ORACLE_FIXES.md` for the fix ledger and validation scope.
 
-The user authorized Monad testnet evaluation and funded its test-only signer. Foundation
-deployment, two-account funding/activation, actual matching, YES settlement and cash claims have
-succeeded on chain 10143. Exact addresses, verification and current test results are recorded in
-`docs/integration/RISK_BOOK_TRACKER.md` and `artifacts/risk/real-book-validation-2026-10-03.json`.
-This is a completed, closed smoke market, not a production market or live oracle integration.
+The actual Book, A accounting/custody and B risk now include a bounded, stale-aware real-book
+PERP sampler. This does not enable leverage, funding, recovery or conversion: the concrete engine
+remains uncalibrated and fully backed at 1x. Matching examines at most eight makers per order;
+whole-batch action and aggregate examination bounds also apply. Independent economic review is pending.
 
-Current validation at `5b82d9f`: **727 Forge tests / 117 suites and 217 Python tests pass**.
-Eight focused smoke tests also pass under MonadTen. ABI export/check and formatting pass.
-Ordered G0–G6 pass; G7 exits 2 at stale A043. Separately, A044/B040–B044 and the six-test
-direct G7 suite pass; these technical passes do not manufacture a current review or gate acceptance.
+**RB-I11 remains OPEN: policy confirmation pending.** Later authenticated INDEX corrections can
+leave already published BASIS tied to the earlier INDEX history. A proposed publication condition
+would require a strictly newer authenticated INDEX observation to seal the captured prefix; it is
+not approved or implemented. See `docs/questions/RB-I11-index-prefix-seal.md`. The new sampler is
+not described as having every identified issue fixed.
+
+The earlier Monad testnet deployment, real matching, controlled YES settlement and cash claims
+remain historical successes on chain 10143. That smoke market is immutable and closed; none of
+this turn's new source has been broadcast. Its test collateral, signed INDEX fixture and manual
+resolution authority are not production counterparts. Historical receipts remain in
+`artifacts/risk/monad-testnet-deployment.json` and `monad-testnet-smoke.json`.
+
+The prior source `5b82d9f` passed 727 Forge tests and 217 Python tests; those counts do not certify
+the new delta. Current full-risk validation at `1654b9f` passes **818 tests / 128 suites**, with
+1000 fuzz runs and 48x64 invariants; seven later RB-I08 tests pass separately, not in that count.
+ABI export/check passes at **294 concrete / 256 abstract / 35 vault entries**. The expanded
+MonadTen bundle passes **92 tests / 10 suites**, including the full-history sampler benchmarks.
+Python A/B/audit/integration passes **49/156/8/7 (220 total)**. SDK `npm.cmd test` passes its
+strict build, accounting reader and six Node tests. Full CI at `4a050df` passes **825 tests /
+129 suites**, zero failed/skipped, with 10000 fuzz cases (seed `0x45524f53`) and 256x128 invariant
+campaigns. Ordered G0–G6 pass; G7 exits 2 at stale source-bound A043 after six passing tests.
+Independent review/human acceptance and RB-I11's policy decision remain open.
+Read-only deployment estimation for current source returns **27,820,847 gas** at block **67865259**:
+`artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`. This is not a deployment receipt.
 
 ## Review and gates
 
 - G0–G6: historical accepted records remain in `docs/spec/gate_status.json`; current technical
-  reruns are separate evidence in `artifacts/gates/`.
-- A043's earlier fingerprints cover the reviewed merge, not the new RB-I01/concrete-engine source.
+  reruns at `4a050df` exit 0 with 71/152/117/78/77/63/55 tests; evidence is in `artifacts/gates/`.
+- A043's earlier fingerprints cover the reviewed merge, not RB-I01 or the new RB-I02–RB-I09 delta.
   Independent teammate review and source-bound refresh are pending; no self-approval is written.
 - **G7 remains blocked for fresh peer review and human acceptance; merge_sha stays null**.
+- The current G7 runner exits 2 at A043 after six tests. Direct G7 Solidity tests pass 6/6;
+  A044/B040/B041/B042/B043/B044 also pass separately. B043's harness result is not a new peer approval.
 - B's acceptance recommendation at `3b11044 + 32d30ac` is historical, not a blanket approval of
   later source. B should inspect this merge and any subsequent repair on the next turn.
 - Monad testnet evaluation is explicitly authorized by the user. No mainnet release, merge into
@@ -62,13 +85,33 @@ direct G7 suite pass; these technical passes do not manufacture a current review
   taker's authorization after its own successful posting. Validate LIMIT permit-to-rest against
   current state. Forced matching stops when a favorable fill restores health. Tests first exposed
   the old behavior and the coupled over-liquidation risk; 60 targeted tests pass after repair.
-- **RB-I02: open, Low.** A partially filled reduce-only maker retains its old version and is pruned
-  on the next taker. A coordinated book-hook return/node-update change is required, not removing
-  stale-order protection. See `docs/requests/RB-I02-maker-remainder.md`.
-- **PERP sampler: open.** A bounded, stale-aware real book-depth adapter is missing. The concrete
-  engine deliberately remains uncalibrated, fully backed 1x bootstrap with funding/recovery off.
-- Next reviewer: B/shared teammate, independently review RB-I01 and the concrete engine plus
-  deployment tooling. Current instructions: `docs/requests/A-to-B-merge-followup.md`.
+- **RB-I02: implemented, peer review pending** at `857b5c0`. Refresh only the exact surviving
+  reduce-only maker node after its own successful fill; keep unrelated stale-order guards.
+- **RB-I03: implemented** at `bd9d5b9`. Canonical participant IDs use the append-only registry's
+  constant-time mapping; the concrete consumer is included in the later composition commit.
+- **RB-I04: implemented, peer review pending** at `93e971e`. Recheck the actual maker execution
+  price against the current bootstrap band, including voluntary reduce-only makers.
+- **RB-I05: implemented, peer review pending** at `3942100`. Exact-N depth, directed VWAP rounding,
+  shared 64-node scan, reduce-only exclusion and later-block provenance-checked promotion.
+  Fresh-INDEX fully backed placement/matching/cancellation remains available before PERP warm-up.
+- **RB-I06: implemented, peer review pending** at `9c3a2e0`. During REDUCE_ONLY, prune ordinary
+  makers rather than allowing them to open new exposure against a reducing taker.
+- **RB-I07: implemented, peer review pending** at `0c93b63`. Reject unsupported hazard and
+  listing band/spread domains before staging or initialization can poison later arithmetic.
+- **RB-I08: user decision confirmed.** Safe excess release remains available during REDUCE_ONLY
+  under the existing guards. Commit `4a050df` clarifies the spec and adds seven passing regressions;
+  see `docs/questions/RB-I08-reduce-only-release.md`. No production predicate was changed.
+- **RB-I09: implemented and measured; peer review pending** at `be3db1e`. Measured 64-maker matching
+  exceeded the transaction budget; the concrete bound is eight, with bounded whole batches.
+  Full-history, cold-account and admission-halving gas regressions retain the larger-cap comparisons.
+- **RB-I10: implemented** at `56787d2`. Pin the local SDK compiler to TypeScript 5.9.3 and verify
+  runner selection rather than trusting an arbitrary global compiler; SDK and runner checks pass.
+- **RB-I11: OPEN, policy confirmation pending.** Decide whether book-derived PERP may publish
+  only after a strictly newer authenticated INDEX sample seals capture-time history. Existing
+  signed same-second/delayed correction semantics remain unchanged; no repair is claimed.
+- Next reviewer: B/shared teammate, independently review all new economic/interface deltas and
+  prior unreviewed RB-I01/concrete tooling. Do not reimplement the already-shipped sampler or
+  maker repair. Current instructions: `docs/requests/A-to-B-merge-followup.md`.
 
 An inherited informational keeper observation is also recorded in `docs/questions/A-I01.md`:
 earned fees can be withdrawn after wall-clock T before stored halt is materialized. No custody
@@ -76,27 +119,37 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 
 ## Counterparts and production
 
-- **Book:** actual Book + risk/accounting deployed and exercised on Monad testnet. RB-I01 needs
-  review; RB-I02 and the production PERP sampler remain open. Book internals were not edited.
-- **Oracle:** fetched `origin/feat/oracle` is now `ccbdb50`, with implementation, SDK and tests,
-  not merely a plan. Real-engine integration remains BLOCKED_BY_COUNTERPART; this branch was not
-  merged. Public enum NONE/YES/NO/INVALID is 0/1/2/3; Voided uses settleInvalid, not enum 4.
+- **Book:** actual Book + risk/accounting was exercised on Monad testnet at the older source.
+  This turn edits book internals under explicit user authorization; the new repairs and sampler
+  are unbroadcast and require independent review, not another implementation handoff.
+- **Oracle:** implementation, SDK and tests were observed at `origin/feat/oracle:ccbdb50`.
+  Real-engine integration remains excluded and BLOCKED_BY_COUNTERPART; no oracle branch was merged.
+  Public enum NONE/YES/NO/INVALID is 0/1/2/3; Voided uses settleInvalid, not enum 4.
 - **Price collector/signing service, real factory join, frontend/indexer:** BLOCKED_BY_COUNTERPART.
   Ownership is coordinated within the three existing teams, not assumed additional teams.
 - **Conversion:** disabled, NOT_IN_RELEASE.
-- Toolchain agreed by both teammates: forge 1.8.3, solc 0.8.30, Prague, optimizer 200. This machine:
-  Python 3.12.10, TypeScript 5.9.2, audit NumPy 2.2.6. B used different Python/TS/NumPy versions.
+- Toolchain: forge 1.8.3, solc 0.8.30, Prague, optimizer 200. SDK TypeScript is now pinned locally
+  to 5.9.3 by `56787d2`; historical global 5.9.2 results are not the current compiler choice.
+  This machine uses Python 3.12.10 and audit NumPy 2.2.6; historical teammate environments differed.
 - Main's default code-size setting is 131072; risk/ci fixture limits are 1000000. These settings do
   not certify a target-chain limit. Fixture sizes and limitations are in the release manifest.
+- Current concrete artifact: 120253 runtime bytes, 129495 creation bytes plus 928 constructor
+  argument bytes, totaling 130423 initcode bytes. The read-only RPC estimate above is separate
+  from the historical deployed bytecode and from operation-gas regression results.
 - Production configuration, empirical calibration, dependency/code hashes, real-chain gas,
   independent audit and an explicit release decision remain required. Launch defaults remain
   1x leverage with funding/recovery/conversion off.
 
 ## Next turn
 
-1. B: independently review RB-I01 and the concrete engine, then refresh source-bound review evidence.
-2. Book and Risk: agree RB-I02 maker-remainder semantics and a bounded PERP sampler.
-3. Oracle and Risk: jointly test the implemented oracle against the real engine after authorizing integration.
+1. Inspect the completed validation/evidence at `4a050df`; preserve exact source-bound counts
+   and distinguish passing technical checks from blocked review or policy decisions.
+2. B/shared teammate: independently review RB-I01 and the new RB-I02–RB-I09 source, then refresh
+   source-bound review evidence only for work actually reviewed. Inspect RB-I10's pinned compiler
+   and reproducible runner selection alongside the current SDK outputs.
+3. Humans: confirm RB-I11's proposed INDEX-prefix publication policy before implementation.
+   Coordinate factory/collector joins; oracle integration requires separate authorization.
+   Review the confirmed RB-I08 guards rather than reopening the user's chosen policy.
 4. Humans: G7 acceptance at a real reviewed commit; eventual main update and production release decisions.
 5. Never relabel controlled testnet fixtures as production counterpart acceptance.
 
@@ -105,7 +158,11 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Initial history report: `docs/merge/history-review-2026-10-03.md`.
 - Reviews: `artifacts/reviews/A-on-B.md`, `A-on-B.json`, `B-on-A.md`.
 - Current tracker: `docs/integration/RISK_BOOK_TRACKER.md`.
-- Current validation: `artifacts/risk/real-book-validation-2026-10-03.json`,
+- Current non-oracle work: `docs/integration/NON_ORACLE_FIXES.md`; deployment estimate:
+  `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`.
+- Current structured validation: `artifacts/risk/non-oracle-fixes-2026-10-03.json`; pending
+  review and policy decisions remain explicit. RB-I11 question: `docs/questions/RB-I11-index-prefix-seal.md`.
+- Historical live validation: `artifacts/risk/real-book-validation-2026-10-03.json`,
   `monad-testnet-deployment.json`, `monad-testnet-smoke.json` under `artifacts/risk/`.
   `merge-validation-2026-10-03.json` and `review-validation.json` retain historical 692/641-test scope.
 - Counterparts/release: `artifacts/risk/counterpart-status.json`, `release-manifest.json`.
@@ -276,3 +333,54 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   Risk + Book agree RB-I02 and bounded PERP depth; Risk + Oracle coordinate actual-engine finality
   tests. Collector/factory/app joins and production calibration remain open. G7 human acceptance,
   production/mainnet deployment and main update are not authorized or claimed.
+
+### 2026-10-03 (non-oracle repair turn) — YASH-ai-bit (with Codex agent) — turn complete; policy/review open
+
+- Started from `1958aef` on `integration/risk`. The user authorized book internals and all Risk &
+  Clearing modules, including Person B's work; oracle implementation/integration remains excluded.
+  No main update, new deployment, review fingerprint or human gate acceptance is claimed.
+  Final fetch still has `origin/integration/risk` at `1958aef`; no remote teammate changes arrived.
+- Task commits: `bd9d5b9` RB-I03 canonical IDs; `857b5c0` RB-I02 maker remainder; `93e971e`
+  RB-I04 bootstrap execution band; `9c3a2e0` RB-I06 reduce-only makers; `0c93b63` RB-I07 domains;
+  `3942100` RB-I05 bounded real-book PERP sampler; `be3db1e` RB-I09 whole-call work bounds.
+  Follow-up commits: `1654b9f` full-history gas qualification, `aaf700c` ABI/snapshot refresh,
+  `56787d2` SDK compiler/runner work and `4a050df` RB-I08's confirmed policy/spec/tests.
+  Final evidence/documentation commits follow these task commits; report their actual SHAs from
+  `git log` at handoff rather than inventing a source or acceptance commit.
+- Tests first reproduced the maker/version, bootstrap price, stage and domain defects. Repairs
+  retain real A+B+Book accounting, fee reservations, both-outcome coverage and atomic rollback.
+  Sampler policy is user-approved; implementation review is not independent teammate acceptance.
+- Gas regression retained its original failures: 64-maker call 58,109,534 under Prague and
+  30,994,601 under MonadTen. Concrete matching now caps examinations at eight; batch actions
+  are capped at `min(32, maxFills)` and declared non-POST_ONLY examinations share `maxFills`.
+- Expanded MonadTen run: **92 tests / 10 suites pass**, including 32 full-history gas benchmarks.
+  The earlier 90-test bundle measured 16,619,933 gas for the eight-action normal-price mixed
+  halving/matching call. The 64-distinct-account sampler measures 3,143,792 gas for the view,
+  3,383,491 for capture and 3,290,777 for later-block promotion at fixture commit `1654b9f`.
+  Full-risk there passes **818 tests / 128 suites**, 1000 fuzz and 48x64 invariants; ABI export/check
+  passes **294/256/35**. Python A/B/audit/integration passes **49/156/8/7 (220 total)**; SDK
+  `npm.cmd test` passes strict compilation, accounting-reader checks and six Node tests, exit 0.
+  Full CI at `4a050df` passes **825 tests / 129 suites**, zero failed/skipped, in 1469.81 seconds.
+  Command: `FOUNDRY_PROFILE=ci FORGE_SNAPSHOT_EMIT=false FORGE_SNAPSHOT_CHECK=true forge test --fuzz-seed 0x45524f53 -vv`;
+  10000 fuzz cases and 256x128 invariant campaigns; log `tmp/non-oracle-full-ci.log`.
+  Ordered G0–G6 exit 0 at `4a050df`: **71/152/117/78/77/63/55** tests. G0 adds three SDK runner
+  regressions. G7 exits **2** at stale source-bound A043 after six passing Solidity tests.
+  A044/B040/B041/B042/B043/B044 separately exit 0: **44/2/2/3/1/1**; direct G7 Solidity exits 0,
+  **6 tests / 2 suites**. `forge fmt --check` and ABI check exit 0, with **294/256/35** unchanged.
+  The seven subsequent RB-I08 regressions pass separately in
+  `tmp/rb-i08-policy.log`; no expected full-suite count is reported as an observed result.
+- Read-only testnet deployment estimate at block 67865259: 27,820,847 gas. Artifact sizes are
+  120253 runtime / 129495 creation + 928 arguments = 130423 initcode bytes. Evidence:
+  `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`; `broadcast` is false.
+  No new source exists at the older closed smoke-market address.
+- The user confirmed RB-I08 during this turn: retain safe excess collateral release under the
+  existing guards. Added narrow spec clarification and seven passing monitor/time, preview/execution,
+  backing, stale-price, free-withdrawal and rollover regressions; no production behavior change.
+- RB-I11 was subsequently documented as OPEN: authenticated INDEX correction can change the
+  historical basis relationship after a PERP observation has been published. The proposed sealed
+  INDEX-prefix publication rule awaits policy confirmation; no runtime or fixture changes made.
+- Open items: independent teammate review of all new deltas and earlier RB-I01; RB-I11 policy;
+  collector/factory roles and inputs; production calibration/security/release decisions.
+  G7 remains blocked for current peer review and human acceptance; `merge_sha` stays null.
+- Next owner: B/shared teammate, following `docs/requests/A-to-B-merge-followup.md`.
+  Review the implemented sampler and maker repair rather than asking another team to rebuild them.

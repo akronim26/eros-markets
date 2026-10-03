@@ -3,32 +3,70 @@
 Date: 2026-10-03. Shared branch: `integration/risk`.
 This is a request from A, not an approval written on B's behalf.
 
-## Current next turn: real-book repair and testnet evaluation
+## Current next turn: independently review the implemented non-oracle delta
 
 This section supersedes the older merge-only instructions below. Read the current
 [Risk + Book tracker](../integration/RISK_BOOK_TRACKER.md) and final `docs/merge/STATUS.md` turn log.
 
-1. Fetch/fast-forward `integration/risk`; review source commits `f2ebc61`, `1077dfa`, `47149e5`,
-   `163b709` and `5b82d9f` after baseline `16f0d90`. No main or oracle branch update is included.
-2. Independently review RB-I01: active reduce-only taker continuation after its own posting,
+The user extended scope to book internals and all Risk & Clearing modules, including Person B's
+work. Oracle implementation/integration remains excluded. See
+`docs/integration/NON_ORACLE_FIXES.md`; this is not a request to reimplement completed work.
+
+1. Fetch/fast-forward `integration/risk`, preserve local changes and inspect the completed turn log.
+   New source starts after `1958aef`: `bd9d5b9` RB-I03 IDs, `857b5c0` RB-I02 maker remainders,
+   `93e971e` RB-I04 bootstrap bands, `9c3a2e0` RB-I06 reduce-only makers, `0c93b63` RB-I07 domains,
+   `3942100` RB-I05 real-book PERP sampler and `be3db1e` RB-I09 work bounds. Later `4a050df` records
+   the confirmed RB-I08 release policy and regressions; `56787d2` pins TypeScript 5.9.3 and checks
+   runner selection for RB-I10. Review the final source
+   and evidence commits too; no main or oracle branch update is included.
+2. Review the earlier unapproved RB-I01/concrete/tooling source (`f2ebc61`, `1077dfa`, `47149e5`,
+   `163b709`, `5b82d9f`) as well as the new delta. RB-I01 covers active reduce-only continuation,
    current-state LIMIT resting authorization, and stopping liquidation immediately when health
    is restored. The repair must not authorize unrelated stale orders, flip sides or bypass coverage.
-3. Review concrete `BookRiskEngine` bounds/roles, canonical trader IDs, signed INDEX ingress and
-   full-backing-only behavior. Cap 1, uncalibrated margin, funding/recovery/conversion off are deliberate.
-   No normal PERP source is configured; this is not a leveraged-market implementation certificate.
-4. Inspect controlled testnet deployment, signatures, matching and final cash payouts. Evidence:
-   `artifacts/risk/monad-testnet-deployment.json`, `monad-testnet-smoke.json` and the current validation
-   JSON. Test collateral and resolution authority are intentionally not the production counterparts.
-5. Record your actual reviewed SHA, findings and refreshed source fingerprints only after review.
+3. Review RB-I02's exact-node maker version refresh, RB-I04's actual fill-price band, RB-I06's
+   maker-side stage enforcement and RB-I07's atomic profile/listing validation. Keep fee attribution,
+   reservation-before-posting, stale epochs, no-flip, coverage, preview parity and rollback intact.
+4. Review RB-I05's exact-N directed VWAP, shared 64-node scan, exclusion of all reduce-only depth,
+   later-block promotion, original observation time, backing-floor invalidation and source/account/
+   book provenance. Fresh-INDEX fully backed startup must still work before PERP warm-up.
+   Review RB-I03 canonical IDs and RB-I09's concrete eight-step bound plus whole-batch action and
+   aggregate examination budgets. The larger-cap diagnostic harness is not the production setting.
+5. Reconcile final validation against its actual source SHA. Full-risk at `1654b9f` passes 818 tests
+   in 128 suites; seven later RB-I08 tests pass separately. ABI check passes 294/256/35. The expanded
+   MonadTen bundle passes 92 tests/10 suites, including 32 full-history gas benchmarks. Python passes
+   49/156/8/7 (220 total); SDK strict build, accounting reader and six Node tests pass. Inspect the
+   local TypeScript 5.9.3 lockfile/runner checks rather than assuming a global compiler.
+   Full CI at `4a050df` passes 825 tests/129 suites, zero failed/skipped, with 10000 fuzz cases
+   (seed `0x45524f53`) and 256x128 invariant campaigns. Ordered G0–G6 pass with
+   71/152/117/78/77/63/55 tests; G7 exits 2 at stale source-bound A043 after six passing tests.
+   Direct G7 and A044/B040–B044 pass separately; formatting and unchanged ABI checks pass.
+   The read-only estimate is 27,820,847 gas at block
+   67865259, not a broadcast; see `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`.
+   Concrete bytes are 120253 runtime, 129495 creation plus 928 arguments = 130423 initcode.
+6. Preserve the historical controlled testnet deployment, matching and final cash-payout evidence:
+   `artifacts/risk/monad-testnet-deployment.json`, `monad-testnet-smoke.json` and historical
+   `real-book-validation-2026-10-03.json`. That closed market has older bytecode and does not contain
+   this turn's changes. Fixture
+   collateral, synthetic signed INDEX and manual authority are not the production counterparts.
+7. Record your actual reviewed SHA, findings and refreshed source fingerprints only after review.
    G7 stays blocked for peer review and human acceptance; historical approvals do not cover this delta.
-6. Coordinate RB-I02 with the book developer using `RB-I02-maker-remainder.md`; do not remove the
-   position-version guard. Coordinate bounded PERP depth sampling separately.
-7. Oracle now has implementation at `origin/feat/oracle:ccbdb50`; jointly test its actual public
-   NONE/YES/NO/INVALID mapping 0/1/2/3 and Voided->settleInvalid after integration is authorized.
+8. The user confirmed RB-I08 (`docs/questions/RB-I08-reduce-only-release.md`): keep safe excess release
+   available under the existing guards. Review its spec clarification and seven passing tests, not a changed
+   production predicate. Coordinate collector/factory roles and
+   calibration inputs without inventing them. Oracle integration requires separate authorization;
+   its observed enum is NONE/YES/NO/INVALID = 0/1/2/3, with Voided using settleInvalid, not enum 4.
+9. RB-I11 remains **OPEN / policy confirmation pending**. Read
+   `docs/questions/RB-I11-index-prefix-seal.md`: later authenticated INDEX corrections can leave
+   retained BASIS tied to the former INDEX history. Strictly newer authenticated INDEX before
+   promotion is a proposed policy, not an implemented fix. Do not silently change observation
+   semantics or treat the existing sampler as fully resolved before that policy is confirmed.
 
 The live smoke is terminal/closed. Do not replay its completed setup/trade/settlement calls or
 stale signed calldata. The runbook documents fresh offline signing; no private endpoint or key
-belongs in handoffs. The older sections below remain historical context only.
+belongs in handoffs. The new source remains unbroadcast; no replacement deployment is authorized
+by this review request. Cap 1, uncalibrated margin and funding/recovery/conversion off remain
+deliberate. The older sections below are historical context only, including superseded open-item,
+oracle-enum and test-count statements; they are not the current instructions.
 
 ## Historical merge-only handoff
 

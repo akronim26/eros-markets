@@ -1,14 +1,27 @@
 # Risk & Clearing handoff (book, oracle and frontend teams)
 
 Branch `integration/risk` · spec v1.1 · economic baseline v1.0 · testnet evaluation only.
-Updated 2026-10-03 through `5b82d9f` and the completed authorized Monad testnet evaluation.
-**The authorized testnet foundation, real-book trade, YES settlement and cash exit are verified complete.**
-This test market is now closed. The real Book + real A accounting/vault + real B
-risk composition runs on chain 10143. Token, resolution authority, synthetic INDEX and listing/role inputs remain controlled
-test fixtures, not production counterparts. RB-I01 repair `f2ebc61` awaits independent teammate
-review; RB-I02 maker-remainder liveness and a production PERP depth sampler remain open.
-Production approval is false; G7 human acceptance remains blocked. The consolidated planning
-index is [RISK_BOOK_TRACKER.md](../integration/RISK_BOOK_TRACKER.md).
+Updated 2026-10-03 through source `4a050df`; production code is unchanged from
+concrete execution bounds `be3db1e`, following sampler `3942100`.
+**Current source contains RB-I02 maker-remainder repairs and the RB-I05 bounded PERP sampler.**
+The non-oracle changes and remaining work are tracked in
+[NON_ORACLE_FIXES.md](../integration/NON_ORACLE_FIXES.md). Targeted Monad validation passes
+92/92 and ABI exports/checks pass. Full CI at `4a050df` passes **825 tests / 129 suites**;
+ordered G0-G6 pass, while G7 exits 2 for stale source-bound A043 review. Independent teammate
+review is still required, including RB-I01 and the new economic/interface changes. Production
+approval is false and G7 human acceptance remains blocked; no approval is manufactured here.
+
+**RB-I11 remains OPEN:** a later authenticated INDEX correction can change capture-time INDEX
+history after PERP publication while stored BASIS retains the older value. Existing green
+checks do not resolve this coherence issue. Strict INDEX-prefix sealing is proposed, not
+implemented, and awaits user confirmation; see
+[RB-I11-index-prefix-seal.md](../questions/RB-I11-index-prefix-seal.md).
+
+The earlier authorized testnet foundation, real-book trade, YES settlement and cash exit are
+verified complete, but that immutable market is closed and **does not contain the new repairs**.
+No replacement deployment was broadcast. Its token, resolution authority, synthetic INDEX and
+listing/role inputs remain controlled fixtures, not production counterparts. The consolidated
+planning index is [RISK_BOOK_TRACKER.md](../integration/RISK_BOOK_TRACKER.md).
 
 ## 1. What the engine is
 
@@ -22,19 +35,39 @@ Do not deploy their unrestricted feed or failure-injection helpers.
 
 `contracts/src/engine/BookRiskEngine.sol` is the concrete composition without those helpers.
 It enforces initial 1x, uncalibrated full backing, funding/recovery disabled and zero trading fees,
-with premium load 1. Signed INDEX ingress is wired; a production PERP book-depth sampler is not,
-so this composition supports **fully backed bootstrap evaluation only**, not normal leveraged
-PERP pricing. Its runtime is 114,546 bytes; creation code 123,665 bytes plus 928 constructor bytes
-gives 124,593-byte initcode. These fit the verified Monad testnet limits (131,072/262,144 bytes),
-but exceed Ethereum EIP-170. See section 12 for simulation scope and remaining release checks.
+with premium load 1. Signed independent INDEX ingress and actual Book-derived PERP sampling are
+wired. Fresh INDEX supports fully backed bootstrap trading before sampler warm-up; completed
+PERP/BASIS windows and an accounting epoch can enable normal pricing without enabling leverage
+or funding. This is implemented behavior, not a coherent-pricing release claim while RB-I11 is
+open. The sampler requires independent economic review, not relabeling as a completed production
+collector/oracle integration. The proposed seal would wait for `INDEX.lastObservedAt` strictly
+after capture time, retaining a valid pending capture until sealed or expired. For continuous
+normal pricing it needs INDEX cadence comfortably below 30 seconds, e.g. 10 seconds; fresh-INDEX
+fully backed bootstrap place/match/cancel must remain available before any promotion. No such
+sealing condition has yet been added to the source.
+
+Current runtime is **120,253 bytes**; creation code **129,495 bytes** plus **928 constructor bytes**
+gives **130,423-byte initcode**. The public-testnet read-only creation estimate is **27,820,847 gas**
+at block **67,865,259**, below the 30M transaction ceiling; see
+`artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`. Runtime/initcode fit Monad's
+131,072/262,144-byte limits but exceed Ethereum EIP-170. This is not a new deployment receipt.
+The older deployed engine's 114,546-byte runtime and 27,904,929 gas remain historical evidence.
+
+The concrete execution limit is `maxFills() == 8`, counting examined makers, not just fills.
+`maxBatchActions() == 8` counts all cancel/place requests; requested non-POST_ONLY `maxFills`
+must sum to at most eight per batch. Split larger work across separate transactions, not an
+unqualified multicall. Sampler traversal retains its separate shared **64-node** budget.
 
 ## 2. ABIs
 
-- Concrete deployment ABI: `artifacts/risk/book-risk-engine-abi.json` (**285 entries**, including
+- Concrete deployment ABI: `artifacts/risk/book-risk-engine-abi.json` (**294 entries**, including
   constructor/public book methods); compiler artifact `contracts/out/BookRiskEngine.sol/BookRiskEngine.json`.
-- Abstract engine: `artifacts/risk/engine-abi.json` (**254 entries**; no deployment constructor).
-- Vault: `artifacts/risk/vault-abi.json` (**35 entries**). All three exports/checks passed on the
-  current source; this does not refresh economic review or approve production use.
+- Abstract engine: `artifacts/risk/engine-abi.json` (**256 entries**; no deployment constructor).
+- Vault: `artifacts/risk/vault-abi.json` (**35 entries**). Current exports/checks pass, committed
+  at `aaf700c`; concrete ABI source SHA-256 is
+  `a5499d80b5e96fd6e06f2c04e0a14281ceebd3715e738e4a5b7890a3d3de7e58`.
+  The earlier 285/254/35 counts describe historical `5b82d9f`, not the sampler/batch delta.
+  ABI checks never refresh economic approval.
 - Book seam (internal, not an ABI): `contracts/src/interfaces/IBookRiskHooks.sol`.
 - Oracle seam: `contracts/src/interfaces/IResolutionIngress.sol` (`IResolutionEngine`).
 - Price observations: `contracts/src/interfaces/IPriceSource.sol` (`submitObservation(obs, sig)`).
@@ -44,15 +77,16 @@ Mutating entry points:
 
 | Who | Function | Notes |
 |---|---|---|
-| User (via vault) | `CollateralVault.deposit(atoms)`, `allocate(engine, atoms, false)`, `withdraw(atoms)` | exact-receipt deposits only (fee-on-transfer rejected). The first allocation registers the trader; engine trader id = registry index + 1 (`traderIdAt(i)`, `traderIdOf(addr)`) |
+| User (via vault) | `CollateralVault.deposit(atoms)`, `allocate(engine, atoms, false)`, `withdraw(atoms)` | exact-receipt deposits only (fee-on-transfer rejected). First allocation sets canonical `participantId(owner) = registry index + 1`; concrete first Book use resolves it in O(1), then caches `traderIdOf(owner)` |
 | User | `release(atoms)` | guarded by B's release decision and A's coverage; `previewRelease` / `previewAccount.usableReleaseAtoms` gives the exact usable amount at this block |
 | LP / capital authority | `CollateralVault.allocate(engine, atoms, true)` | shares 1:1 only before activation; afterwards a donation (no shares) |
 | LP | `ReserveVault.notice()` then `redeemReserve(owner)` | 7-day notice; only after claims are prepared |
 | Governance | `activateMarket()`, `stageRiskParams(params)` | activation opens the first accounting epoch |
 | Monitor | `requestReduceOnly(reason)`, `clearReduceOnly(reason)`, `raiseHazards(h0, h1)` | cannot halt, finalize or lower hazards |
 | Anyone (keepers) | `beginRollover()`, `rollPage(n<=32)`, `finishRollover()` | hourly accounting epochs; trading pauses from epoch end until the last page |
+| Anyone (keepers) | `samplePerp()` | capture actual eligible depth; later-block promotion within 30 seconds retains original observed time. `bookDepth()` is the read-only quote, not proof of accepted history |
 | Anyone | `floorSweep(n<=32)` | backing floor at T-12h |
-| Anyone | `liquidate(trader, maxLots, maxExaminations<=64, partner)` | book close, pair reduction (partner != 0) or takeover; zero-effect calls pay nothing |
+| Anyone | `liquidate(trader, maxLots, maxExaminations, partner)` | book close, pair reduction (partner != 0) or takeover; abstract hook ceiling is 64, but the concrete Book route is capped at 8: read `maxFills()` rather than sending 64. Zero-effect calls pay nothing |
 | Anyone | `materializeScheduledHalt()` at or after T | |
 | Pinned oracle | `halt()`, `settle(Y)`, `settleInvalid()` | see section 8 |
 | Anyone | `captureInvalidPrice()`, `prepareSnapshotChunk(n)`, `preparePayoutChunk(n)`, `finishPreparation()` | bounded jobs (n <= 32) |
@@ -104,6 +138,7 @@ Risk / lifecycle / settlement (B): `ReservationChanged`, `MakerPruned`, `OrdersI
 `FreshnessGap`, `MovementRestriction`, `MonitorRestriction`, `HazardRaiseRequested`, `MarketHalted`,
 `OracleFinalityAccepted`, `InvalidPriceCaptured`, `SnapshotPreparationProgress`,
 `PayoutPreparationProgress`, `ClaimsEnabled`, `RecoveryRequired`, `ClaimModeSelected`.
+Concrete sampler: `BookDepthCaptured`; successful/invalid promotion uses `PerpObservationRecorded`.
 Vault: `Deposit`, `Allocation`, `Released`, `Escrowed`, `Paid`.
 
 ## 5. Reason codes and errors
@@ -171,10 +206,13 @@ through `a114d06` and were merged at `13ca730`. The original request remains his
    ```
 3. Also replay B's scripted seam vectors, G4/G5 mock-book suites and the complete suite.
    RB-I01's taker-permit version repair is implemented at `f2ebc61`, with independent teammate
-   review pending. **RB-I02 remains open:** a partially filled reduce-only maker remainder becomes
-   stale after the fill. Coordinate its intended semantics and repair with the book team; do not
-   modify book internals without that coordination. A bounded stale-aware PERP depth sampler is
-   also absent. See `docs/requests/A-to-B-merge-followup.md` and the integration tracker.
+   review pending. **RB-I02 is implemented at `857b5c0`:** only the successfully filled surviving
+   maker node receives accounting's accepted post-fill version; unrelated orders remain stale.
+   The user's non-oracle scope authorized the Book repair. RB-I05's stale-aware PERP sampler is
+   implemented at `3942100`; RB-I09 concrete execution/batch bounds are in `be3db1e`. These are
+   local source changes, not Book-team acceptance or changes to the old deployed engine.
+   Review the current [non-oracle ledger](../integration/NON_ORACLE_FIXES.md), regression evidence
+   and [sampler policy](../questions/RB-I05-book-depth-policy.md) before claiming closure.
 
 ## 8. Oracle team
 
@@ -225,14 +263,36 @@ an amount that passes the current release preview. It is checked again at execut
 
 ## 10. Status and limits
 
+- RB-I11 is a known open pricing-coherence finding at `4a050df`, with policy confirmation and
+  implementation/regressions pending. Neither the prior green suite nor a current CI pass closes
+  it; final CI/gate evidence and economic/human approvals must remain distinct from this finding.
+- Current non-oracle validation: targeted Monad tests at `1654b9f` pass **92/92**, including two
+  full-history 64-node sampler gas cases. The full risk run at `1654b9f`, before later RB-I08
+  additions, passes **818 tests / 128 suites**, zero failures. Full CI at `4a050df` passes
+  **825 tests / 129 suites**, zero failed/skipped, with 10,000 fuzz runs, seed `0x45524f53`,
+  and invariant configuration 256 runs × depth 128. Elapsed: 1,469.81 seconds; log:
+  `tmp/non-oracle-full-ci.log`. Ordered gate outcomes are recorded separately below.
+  ABI exports/checks pass at `aaf700c`. The 727-test baseline below is historical and does not
+  certify the new delta. Peer review and human G7 acceptance remain outstanding.
+- RB-I08's user-confirmed safe excess-collateral release policy retains existing production
+  behavior during monitor/scheduled REDUCE_ONLY; seven focused regressions pass at `4a050df`.
+  Required collateral, stale prices, halt and accounting-readiness checks are not bypassed.
+  See `docs/questions/RB-I08-reduce-only-release.md`; those seven tests are included in the
+  later 825-test CI result, not added to it.
+- SDK pinning at `56787d2` passes `npm test --prefix packages/risk-sdk`; Python suites now pass
+  **220 tests** including three new local-compiler runner regressions. Do not add this Python
+  count or overlapping focused checks to the full Forge total.
 - Gate acceptance and exact run status: `docs/spec/gate_status.json` and `artifacts/gates/`.
-  At `5b82d9f`, ordered **G0-G6 exited 0**, with counts **68/152/117/78/77/63/55**.
+  At `4a050df`, ordered **G0-G6 exited 0**, with counts **71/152/117/78/77/63/55**.
+  G0 includes the three new SDK runner regressions; its earlier `5b82d9f` count was 68.
   **G7 exited 2 after six tests**: `A review does not cover the current source and review regressions`.
   Separate downstream runs **A044/B040/B041/B042/B043/B044 exited 0** with **44/2/2/3/1/1** tests;
-  direct `test/gates/G7.t.sol` also passed **six** tests, exit 0. These are separately verified
+  direct `test/gates/G7.t.sol` also passed **six tests / two suites**, exit 0. These are separately verified
   technical results, not an ordered G7 pass; B043's harness pass is not a new teammate review.
-  Evidence: `artifacts/risk/real-book-validation-2026-10-03.json` (evidence commit `20330d8`,
-  validated source `5b82d9f`). A043 is recorded in
+  Format and ABI checks also exit 0; ABI counts remain 294/256/35. Current evidence:
+  `artifacts/risk/non-oracle-fixes-2026-10-03.json`, source `4a050df`. Earlier
+  `artifacts/risk/real-book-validation-2026-10-03.json` (commit `20330d8`, source `5b82d9f`)
+  remains historical. A043 is recorded in
   `artifacts/reviews/A-on-B.md`, but its old fingerprints are stale after the new source changes.
   Do not refresh approvals for one's own economic repair. Independent teammate review and the
   subsequent G7 rerun are pending; G7 has empty `reviewed_by` and null `merge_sha`.
@@ -267,6 +327,13 @@ settings and **Prague** EVM remain pinned by `contracts/foundry.toml`. Earlier r
 Forge 1.3.5 or 1.5.1 and are historical evidence, not the current shared reproduction baseline.
 Set `FORGE_SNAPSHOT_EMIT=false` when reviewing to avoid rewriting book-team gas snapshots.
 
+SDK TypeScript is pinned locally to **5.9.3** by `packages/risk-sdk/package.json` and its lockfile.
+Run `npm ci --prefix packages/risk-sdk --ignore-scripts --no-audit --no-fund`, then
+`npm test --prefix packages/risk-sdk`. A032/B042 evidence uses the local compiler and fails if
+it is missing or has a different version; no global compiler fallback is accepted. Node22.18.0
+and npm11.13.0 are the tested local versions, not additional pinned runtime requirements.
+See `packages/risk-sdk/README.md`; the SDK remains read-only and non-authoritative.
+
 The `risk` and `ci` profiles allow **1,000,000 bytes for local test code**. `CombinedBase`
 embeds multiple engine deployment variants, and Forge 1.8.3 enforces the test contract's size
 as well as the fixture engine's size. This allowance is not a production or target-chain limit.
@@ -296,6 +363,9 @@ artifacts for actual counts, source state and counterpart status.
 
 ## 12. Authorized Monad testnet evaluation
 
+- **Historical live deployment:** every receipt/address below belongs to the earlier closed,
+  immutable bootstrap-only engine. No non-oracle repair or sampler was broadcast to a new engine.
+  Current read-only size/gas estimation is separate evidence in section 1, not a replacement receipt.
 - Target: chain **10143**, Forge **1.8.3**, `--network monad`, `monad:MonadTen`; compiler remains
   solc **0.8.30**, Prague, optimizer 200. The 1,000,000-byte local test allowance is not a chain limit.
 - `artifacts/risk/monad-testnet-preflight-2026-10-03.json` records the successful in-process fork
