@@ -148,6 +148,55 @@ class RunnerTest(unittest.TestCase):
             self.assertEqual(run.returncode, 2)
             self.assertNotEqual(self.task_record(task)["status"], "passed")
 
+    def prepare_sdk_compiler(self, installed_version=None):
+        directory = self.root / "packages/risk-sdk"
+        directory.mkdir(parents=True)
+        for name in ("package.json", "package-lock.json"):
+            shutil.copyfile(ROOT / "packages/risk-sdk" / name, directory / name)
+        if installed_version is not None:
+            compiler = directory / "node_modules/typescript/bin/tsc"
+            compiler.parent.mkdir(parents=True)
+            compiler.write_text("process.stderr.write('local compiler fixture failure'); process.exit(7);\n", encoding="utf-8")
+            (compiler.parent.parent / "package.json").write_text(
+                json.dumps({"version": installed_version}), encoding="utf-8")
+
+    def test_sdk_missing_local_compiler_fails_without_global_fallback(self):
+        self.prepare_sdk_compiler()
+        run = self.run_script("check-task.sh", "B042")
+        self.assertEqual(run.returncode, 2, run.stdout + run.stderr)
+        record = self.task_record("B042")
+        self.assertEqual(record["status"], "failed")
+        self.assertEqual(record["test_count"], 0)
+        self.assertIn("npm ci --prefix packages/risk-sdk", record["reason"])
+
+    def test_sdk_wrong_local_compiler_version_fails(self):
+        self.prepare_sdk_compiler("5.9.2")
+        run = self.run_script("check-task.sh", "B042")
+        self.assertEqual(run.returncode, 2, run.stdout + run.stderr)
+        record = self.task_record("B042")
+        self.assertEqual(record["status"], "failed")
+        self.assertEqual(record["test_count"], 0)
+        self.assertIn("expected 5.9.3", record["reason"])
+
+    def test_sdk_local_compiler_and_lock_are_recorded_without_vendor_hashes(self):
+        self.prepare_sdk_compiler("5.9.3")
+        fixture = self.root / "docs/app-state-fixtures.json"
+        fixture.parent.mkdir()
+        fixture.write_text("{}\n", encoding="utf-8")
+        run = self.run_script("check-task.sh", "B042")
+        self.assertEqual(run.returncode, 1, run.stdout + run.stderr)
+        record = self.task_record("B042")
+        self.assertEqual(record["status"], "failed")
+        self.assertEqual(record["toolchain"]["typescript"], "5.9.3")
+        command = record["commands"][0]
+        self.assertEqual(command["argv"][0], "node")
+        self.assertEqual(Path(command["argv"][1]), self.root / "packages/risk-sdk/node_modules/typescript/bin/tsc")
+        self.assertEqual(command["exit_code"], 7)
+        self.assertIn("local compiler fixture failure", command["output"])
+        for name in ("package.json", "package-lock.json"):
+            self.assertIn(f"packages/risk-sdk/{name}", record["fixture_hashes"])
+        self.assertFalse(any("node_modules" in name for name in record["fixture_hashes"]))
+
     def prepare_solidity(self, relative, source):
         directory = self.root / "contracts"
         directory.mkdir(exist_ok=True)

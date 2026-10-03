@@ -70,11 +70,24 @@ record["worktree_dirty"] = None if dirty is None else bool(dirty)
 def hash_path(path):
     record["fixture_hashes"][path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
 
+def sdk_compiler(*arguments):
+    directory = root / "packages/risk-sdk"
+    compiler = directory / "node_modules/typescript/bin/tsc"
+    install = "npm ci --prefix packages/risk-sdk --ignore-scripts --no-audit --no-fund"
+    if not compiler.is_file():
+        raise ValueError("Pinned SDK TypeScript compiler not installed; run " + install)
+    expected = json.loads((directory / "package.json").read_text(encoding="utf-8"))["devDependencies"]["typescript"]
+    installed = json.loads((compiler.parent.parent / "package.json").read_text(encoding="utf-8"))["version"]
+    if installed != expected:
+        raise ValueError(f"SDK TypeScript version {installed}; expected {expected}; run {install}")
+    record["toolchain"]["typescript"] = installed
+    return ["node", str(compiler), *arguments]
+
 for location in ("reference/common", "reference/fixtures", "reference/a", "contracts/src/math", "contracts/src/risk", "contracts/src/vaults", "contracts/src/settlement", "contracts/test/harness/A", "contracts/test/mocks/A", "contracts/test/risk/A", "contracts/test/invariant/A", "packages/risk-sdk"):
     directory = root / location
     if directory.exists():
         for path in sorted(directory.rglob("*")):
-            if path.is_file() and "__pycache__" not in path.parts:
+            if path.is_file() and "__pycache__" not in path.parts and "node_modules" not in path.parts:
                 hash_path(path)
 for location in ("contracts/foundry.toml", "scripts/check-task.sh", ".gitmodules"):
     if (root / location).is_file():
@@ -109,12 +122,8 @@ try:
         # Integration fix: A002's runner had no B W7 configuration. Each B W7 task runs its own
         # suites plus the combined (real A + real B) suites that carry its evidence.
         def step(argv, cwd=".", env_extra=None):
-            if os.name == "nt" and argv[0] == "tsc":
-                import shutil
-                shim = shutil.which("tsc")
-                if not shim:
-                    raise ValueError("TypeScript compiler not installed")
-                argv = ["node", str(Path(shim).parent / "node_modules/typescript/bin/tsc"), *argv[1:]]
+            if argv[0] == "tsc":
+                argv = sdk_compiler(*argv[1:])
             env = {**os.environ, **(env_extra or {})}
             run = subprocess.run(argv, cwd=root / cwd, env=env, capture_output=True, text=True)
             print(run.stdout[-2000:], end=""); print(run.stderr[-2000:], end="", file=sys.stderr)
@@ -218,15 +227,8 @@ try:
             raise ValueError("forge returned no successful complete suite; missing/skipped tests fail")
         if task == "A032" and run.returncode == 0:
             sdk_commands = [
-                ["tsc", "--target", "es2020", "--module", "commonjs", "--strict", "--outDir", "tmp/risk-sdk", "packages/risk-sdk/src/accounting.ts", "packages/risk-sdk/test/accounting.test.ts"],
+                sdk_compiler("--target", "es2020", "--module", "commonjs", "--strict", "--outDir", "tmp/risk-sdk", "packages/risk-sdk/src/accounting.ts", "packages/risk-sdk/test/accounting.test.ts"),
                 ["node", "tmp/risk-sdk/test/accounting.test.js"]]
-            # Windows npm installs the CLI as a .cmd shim; invoke its JS entry
-            # through Node instead of passing user/source strings to a shell.
-            if os.name == "nt":
-                import shutil
-                shim = shutil.which("tsc")
-                if not shim: raise ValueError("TypeScript compiler not installed")
-                sdk_commands[0] = ["node", str(Path(shim).parent / "node_modules/typescript/bin/tsc"), *sdk_commands[0][1:]]
             for sdk_command in sdk_commands:
                 sdk_run = subprocess.run(sdk_command, cwd=root, capture_output=True, text=True)
                 record["commands"].append({"argv":sdk_command,"cwd":".","exit_code":sdk_run.returncode,
