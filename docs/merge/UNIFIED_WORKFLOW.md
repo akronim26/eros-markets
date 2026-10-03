@@ -42,12 +42,30 @@ checks. They reject failed, empty, skipped or malformed suites and stale source
 fingerprints. Historical review files remain untouched; technical results do not
 become peer approval. Historical accepted predecessor SHAs must still be ancestors.
 
+Acceptance runners clear inherited `FOUNDRY_*` / `DAPP_*` overrides before pinning
+the risk profile and seed. They reject global `.foundry/foundry.toml` configuration
+without reading or changing it, so hidden filters cannot silently omit regressions.
+Use an environment without global Foundry configuration for these checks; keep
+operator settings and signing credentials private and outside the repository.
+
 G7's human acceptance record remains separate. On 2026-10-03 the user explicitly
 answered **"Yes—record G7 acceptance after passing checks"**. This permits recording
 the actual passing candidate SHA in `docs/spec/gate_status.json`; it does not approve
 production deployment or a merge into main. The technical runner still emits
 `accepted=false` and `merge_sha=null`. Unvalidated production counterparts remain
 explicitly blocked. Consult the status record for the completed acceptance result.
+
+**Recorded outcome:** all G0-G7 checks pass at `c91acf75ae9770f0bf5ae2238b4018202d57acd8`
+(reported checks 88/152/117/78/77/63/55/156; no skips). G7 acceptance is recorded
+under the user's authorization at **2026-10-03 17:39:11 UTC**, with no A/B reviewer
+identity added. Current CI passes 832 tests, Monad-targeted checks 99, and Python
+237; see `artifacts/risk/unified-integration-2026-10-03.json` for exact scope and
+overlap. Acceptance names an integration candidate, not a merge into main.
+
+Do not use the historical `scripts/integration/mark-gate.py` helper for this workflow:
+it records the retired A/B metadata and its old authorization text. Current acceptance
+is recorded separately with the actual candidate, current user authorization and no
+invented reviewer identity; `check-gate.sh` only supplies technical evidence.
 
 ## RB-I11 decision
 

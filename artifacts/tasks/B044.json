@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:18:44.372313+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:36:58.489359+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,10 +133,10 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "artifacts/risk/integration-release.json": "2f77d99cfc79fbec0e3e1cfd8ec0df3040f85f73a87b92eb471dda15a484ccdb",
-    "artifacts/risk/release-manifest.json": "aa89a10d97ca3ce3c540a350cc0aa73b7079c362427dc2cbe9cb19b4778a1843"
+    "artifacts/risk/release-manifest.json": "13da8b8eecf388e746b8e00ece2e97d051ea77e31aa7ea668d234b26fd78953e"
   },
   "components": {
     "selected_suite": "real",
@@ -149,12 +149,13 @@
         "forge",
         "test",
         "--match-path",
-        "test/integration/ReleaseDefaults.t.sol"
+        "test/integration/ReleaseDefaults.t.sol",
+        "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 1 test for test/integration/ReleaseDefaults.t.sol:ReleaseDefaultsTest\n[PASS] test_initialDeploymentDefaults() (gas: 72007842)\nSuite result: ok. 1 passed; 0 failed; 0 skipped; finished in 112.80ms (98.01ms CPU time)\n\nRan 1 test suite in 131.15ms (112.80ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)\n"
+      "output": "{\"status\": \"passed\", \"checks_run\": 1, \"skipped_count\": 0, \"command\": [\"forge\", \"test\", \"--match-path\", \"test/integration/ReleaseDefaults.t.sol\", \"--json\"], \"exit_code\": 0, \"forge_exit_code\": 0, \"suite_results\": {\"test/integration/ReleaseDefaults.t.sol:ReleaseDefaultsTest\": {\"test_initialDeploymentDefaults()\": \"Success\"}}, \"failure_output\": \"\", \"reason\": \"All selected regressions passed\"}"
     }
   ],
   "test_count": 1,

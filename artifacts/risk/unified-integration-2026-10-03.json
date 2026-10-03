@@ -1,0 +1,471 @@
+{
+  "schema": "eros-unified-integration-validation/1",
+  "recorded_date": "2026-10-03",
+  "status": "technical_checks_passed_user_authorized_G7_accepted",
+  "validation_mode": "unified_team_technical_validation",
+  "source": {
+    "contract_source_commit": "dcb6b0e9023f5dab297a233303e5762df8270d09",
+    "implementation_and_runner_baseline_commit": "e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4",
+    "gate_candidate_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+    "gate_worktree_note": "Runtime and runner changes are committed in the candidate; documentation and evidence outside those committed inputs remain dirty during the gate run.",
+    "solidity_and_foundry_config_unchanged_since_contract_source": true,
+    "verified_unchanged_paths": [
+      "contracts/src",
+      "contracts/test",
+      "contracts/script",
+      "contracts/foundry.toml",
+      "contracts/remappings.txt"
+    ],
+    "provenance_note": "The CI contract run precedes final governance/runner metadata commits. No tracked Solidity, Solidity test/script or Foundry configuration difference exists from the stated contract source through the candidate."
+  },
+  "scope": {
+    "included": "Unified Risk, Clearing and Order Book non-oracle implementation and local technical validation",
+    "oracle_implementation_and_live_integration": "excluded",
+    "independent_review": false,
+    "independent_audit": false,
+    "production_approved": false,
+    "main_merge_authorized": false,
+    "new_broadcast": false,
+    "historical_testnet_deployment": {
+      "status": "unchanged_closed_controlled_fixture",
+      "reports": [
+        "artifacts/risk/monad-testnet-deployment.json",
+        "artifacts/risk/monad-testnet-smoke.json"
+      ],
+      "note": "The previously deployed fixture has not acquired the new source changes. Local tests and a read-only estimate are not a new deployment or production collateral/oracle acceptance."
+    }
+  },
+  "toolchain": {
+    "forge": "1.8.3",
+    "solc": "0.8.30+commit.73712a01",
+    "compiled_evm_version": "prague",
+    "optimizer_runs": 200,
+    "python": "3.12.10",
+    "node": "22.18.0",
+    "npm": "11.13.0",
+    "typescript": "5.9.3",
+    "numpy": "2.2.6",
+    "version_log_note": "tmp/unified-toolchain.log records versions at a33fe94116b6662693535122c7a538147ba3f2c6; that logged HEAD is not the later gate candidate."
+  },
+  "validation": {
+    "full_ci": {
+      "command": "forge test --fuzz-seed 0x45524f53 -vv",
+      "cwd": "contracts",
+      "environment": {
+        "FOUNDRY_PROFILE": "ci",
+        "FORGE_SNAPSHOT_EMIT": "false",
+        "FORGE_SNAPSHOT_CHECK": "true"
+      },
+      "exit_code": 0,
+      "tests_passed": 832,
+      "test_suites": 130,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "duration_seconds": 1461.88,
+      "fuzz_runs": 10000,
+      "fuzz_seed": "0x45524f53",
+      "invariant_runs": 256,
+      "invariant_depth": 128,
+      "log": "tmp/unified-full-ci.log"
+    },
+    "monad_targeted": {
+      "command": "forge test --match-contract 'BookBatchBoundsTest|ConcreteBook.*GasTest|BookDepthSamplerTest|BookRiskEngineTest|Testnet.*Test|LocalBookRiskSmokeTest' --network monad --hardfork monad:MonadTen -vv",
+      "cwd": "contracts",
+      "environment": {
+        "FOUNDRY_PROFILE": "risk",
+        "FORGE_SNAPSHOT_EMIT": "false",
+        "FORGE_SNAPSHOT_CHECK": "true",
+        "MONAD_GAS_CHECK": "true"
+      },
+      "exit_code": 0,
+      "tests_passed": 99,
+      "test_suites": 11,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "duration_seconds": 3.04,
+      "log": "tmp/unified-monad-final.log",
+      "execution_scope": "Local Foundry MonadTen gas model; not a broadcast or a transaction receipt."
+    },
+    "python": {
+      "cwd": ".",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTHONPATH": "tmp/audit-python"
+      },
+      "total_tests_passed": 237,
+      "suites": [
+        {
+          "name": "a",
+          "command": "python -B -m unittest discover -s reference/tests/a -v",
+          "tests_passed": 66,
+          "exit_code": 0,
+          "duration_seconds": 41.398,
+          "log": "tmp/unified-python-a.log"
+        },
+        {
+          "name": "b",
+          "command": "python -B -m unittest discover -s reference/tests/b -v",
+          "tests_passed": 156,
+          "exit_code": 0,
+          "duration_seconds": 8.509,
+          "log": "tmp/unified-python-b.log"
+        },
+        {
+          "name": "audit",
+          "command": "python -B -m unittest discover -s reference/tests/audit -t . -v",
+          "tests_passed": 8,
+          "exit_code": 0,
+          "duration_seconds": 4.548,
+          "log": "tmp/unified-python-audit.log"
+        },
+        {
+          "name": "integration",
+          "command": "python -B -m unittest discover -s reference/tests/integration -t . -v",
+          "tests_passed": 7,
+          "exit_code": 0,
+          "duration_seconds": 0.005,
+          "log": "tmp/unified-python-integration.log"
+        }
+      ],
+      "note": "The A total includes the 17 mocked GOV-02 tests; do not add those again. Existing A runner tests execute disposable Forge fixtures under coordinator ownership."
+    },
+    "sdk": {
+      "command": "npm.cmd --prefix packages/risk-sdk test",
+      "cwd": ".",
+      "exit_code": 0,
+      "strict_public_typecheck": "passed",
+      "strict_accounting_compile_and_assertions": "passed",
+      "read_model_tests_passed": 6,
+      "read_model_tests_failed": 0,
+      "read_model_tests_skipped": 0,
+      "read_model_tests_cancelled": 0,
+      "read_model_tests_todo": 0,
+      "log": "tmp/unified-sdk.log"
+    },
+    "regenerated_accounting_task_evidence": {
+      "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "A041": {"path": "artifacts/risk/gas-accounting.json", "status": "measured_locally", "participant_count": 1024, "gas_model": "Prague accounting-harness call gas, not a Monad deployment certificate"},
+      "A042": {"path": "artifacts/risk/custody-reconciliation.json", "status": "A_local_pass", "tests_passed": 2, "counterpart_decisions": "scripted_mock", "collateral": "deterministic MockUSDC"},
+      "scope_note": "These runner-generated legacy A-suite outputs retain local-harness scope and historical pending-counterpart labels. They are not the authoritative status of the separately validated real-book integration, current concrete deployment estimate or historical controlled testnet fixture."
+    },
+    "format": {
+      "command": "forge fmt --check",
+      "cwd": "contracts",
+      "exit_code": 0,
+      "log": "tmp/unified-format.log"
+    },
+    "abi": {
+      "export_command": "python scripts/export-risk-abis.py",
+      "check_command": "python scripts/export-risk-abis.py --check",
+      "cwd": ".",
+      "environment": {
+        "FOUNDRY_PROFILE": "risk",
+        "FORGE_SNAPSHOT_EMIT": "false",
+        "FORGE_SNAPSHOT_CHECK": "true"
+      },
+      "export_exit_code": 0,
+      "check_exit_code": 0,
+      "log": "tmp/unified-abi-check.log",
+      "artifacts": [
+        {
+          "name": "book-risk-engine-abi.json",
+          "entries": 294,
+          "source_files": 73,
+          "source_sha256": "40e05c0e8034dcdba2a14fc19a97f2323412e69f92dc2146cac913ef8695cbb3"
+        },
+        {
+          "name": "engine-abi.json",
+          "entries": 256,
+          "source_files": 69,
+          "source_sha256": "560de62041057523879f4a1545688b49afca84c8c01dad8c44ba22fc6ee7c42e"
+        },
+        {
+          "name": "vault-abi.json",
+          "entries": 35,
+          "source_files": 1,
+          "source_sha256": "b657d07bd8b7e4fd98010ed1d63b5334b0d8da3be1fd471aed55f61aea539582"
+        }
+      ]
+    }
+  },
+  "gas_measurements": {
+    "log": "tmp/unified-monad-final.log",
+    "units": "EVM gas",
+    "measurement_scope": "Named cold-engine call-gas measurements bracket the target call with gasleft after vm.cool(engine). They exclude fixture setup and transaction intrinsic gas; whole Foundry test gas is not a single production transaction.",
+    "concrete_maximum_examined_per_call": 8,
+    "concrete_maximum_batch_actions": 8,
+    "concrete_maximum_batch_aggregate_requested_steps": 8,
+    "asserted_call_gas_ceiling_exclusive": 29500000,
+    "monad_transaction_gas_limit": 30000000,
+    "measured_not_exhaustive_proof": true,
+    "concrete_calls": {
+      "eight_maker_fill": 4540860,
+      "eight_expired_maker_prunes": 2020436,
+      "first_32_account_snapshot_page": 2722523
+    },
+    "full_history_fixture": {
+      "ring_entries_per_source": 1024,
+      "ring_sources": 3,
+      "resting_ask_makers": 64,
+      "notes": "Test-only subclass seeds bounded histories. Normal-pricing and bootstrap conditions are measured separately. Test-only cap setters enable 16/24 comparisons; production remains capped at 8."
+    },
+    "full_history_cap_8": {
+      "normal_pricing": {
+        "eight_fills": 8077028,
+        "eight_fills_after_maximum_size_halving": 8599578,
+        "eight_maximum_size_placements": 10618511,
+        "eight_cancellations": 2380134,
+        "eight_matching_orders": 11722715,
+        "mixed_seven_maximum_size_post_only_plus_one_eight_fill_ioc": 16619933
+      },
+      "bootstrap": {
+        "eight_fills": 7593886,
+        "eight_fills_after_maximum_size_halving": 8116436,
+        "eight_maximum_size_placements": 10239631,
+        "eight_cancellations": 2265514,
+        "eight_matching_orders": 10923834,
+        "mixed_seven_maximum_size_post_only_plus_one_eight_fill_ioc": 15819923
+      },
+      "largest_measured_cap_8_operational_call": 16619933,
+      "largest_context": "Normal pricing, three full 1024-entry history rings, seven maximum-size POST_ONLY admissions plus one IOC examining/filling eight makers."
+    },
+    "full_history_sampler": {
+      "examined_nodes": 64,
+      "distinct_examined_accounts": 64,
+      "required_depth_lots_per_side": 32000,
+      "bid_tick": 490,
+      "ask_tick": 500,
+      "normal_pricing": {
+        "depth_view": 3108170,
+        "capture": 3347942,
+        "sealed_promotion": 4060839
+      },
+      "bootstrap": {
+        "depth_view": 3143792,
+        "capture": 3383564,
+        "sealed_promotion": 4147461
+      },
+      "sealing_context": "Capture does not publish in its block. A later authenticated INDEX observation seals the prefix; a subsequent-block promotion retains original capture time. The signature submission is outside the measured promotion call.",
+      "backing_and_custody": "Fixtures use MockUSDC and a mock resolution authority. Full histories are seeded directly; the final sealing observation uses the concrete signature-verification path."
+    },
+    "unsupported_comparison_only": {
+      "production_permits_these_caps": false,
+      "cap_16_matching_batch": {
+        "normal_pricing": 22808511,
+        "bootstrap": 21218538
+      },
+      "cap_24_matching_batch": {
+        "normal_pricing": 33951707,
+        "bootstrap": 31570642
+      },
+      "note": "These test-only larger-cap measurements are retained as comparisons, not evidence that the production cap can be raised. Both 24-order matching batches exceed 30 million call gas."
+    }
+  },
+  "regression_evidence": {
+    "RB-I11": {
+      "behavior": "Require a strictly later authenticated INDEX checkpoint before publishing a pending book capture; preserve waiting captures, original timestamps and expiry.",
+      "red": {
+        "tests_passed": 18,
+        "tests_failed": 3,
+        "tests_skipped": 0,
+        "exit_code": 1,
+        "log": "tmp/rb-i11-red.log"
+      },
+      "green": {
+        "tests_passed": 21,
+        "tests_failed": 0,
+        "tests_skipped": 0,
+        "exit_code": 0,
+        "log": "tmp/rb-i11-final.log"
+      },
+      "included_in_full_ci_and_monad_targeted": true
+    },
+    "RB-I12": {
+      "red": {
+        "tests_passed": 1,
+        "tests_failed": 1,
+        "tests_skipped": 0,
+        "failure": "payout incomplete",
+        "exit_code": 1,
+        "log": "tmp/rb-i12-local-smoke-red.log"
+      },
+      "green": {
+        "tests_passed": 2,
+        "tests_failed": 0,
+        "tests_skipped": 0,
+        "exit_code": 0,
+        "log": "tmp/rb-i12-local-smoke-green.log"
+      },
+      "offline_smoke": {
+        "command": "forge script script/LocalBookRiskSmoke.s.sol:LocalBookRiskSmoke --chain-id 31337 --block-timestamp 1000000 -vv",
+        "cwd": "contracts",
+        "environment": {
+          "FOUNDRY_PROFILE": "risk",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "LOCAL_SMOKE_SENDER": "0x0000000000000000000000000000000000006007"
+        },
+        "exit_code": 0,
+        "aggregate_script_gas": 45478303,
+        "rpc_used": false,
+        "broadcast": false,
+        "log": "tmp/rb-i12-local-script-green.log",
+        "note": "Aggregate local script gas includes multiple deployments/actions and is not a single-transaction gas measurement. Emitted addresses are ephemeral local fixtures, not new public deployments."
+      }
+    },
+    "GOV-02": {
+      "historical_reviews_modified": false,
+      "mandatory_a_b_signatures": "retired",
+      "retained_checks": "A043 all review regressions, B043 dedicated regressions, all other G7 tasks, accepted predecessor ancestry and combined Solidity gate.",
+      "source_bound_evidence": [
+        "artifacts/validation/A043.json",
+        "artifacts/validation/B043.json"
+      ],
+      "evidence_status": "passed at the gate candidate; source fingerprints revalidated by the coordinator before recording user-authorized acceptance",
+      "current_regression_checks": {"A043": 68, "B043": 3},
+      "qa_red": {
+        "tests_failed": 3,
+        "exit_code": 1,
+        "log": "tmp/unified-gov-qa-red.log"
+      },
+      "qa_green_before_global_guard": {
+        "tests_passed": 16,
+        "exit_code": 0,
+        "log": "tmp/unified-gov-qa-green.log"
+      },
+      "global_guard_red": {
+        "tests_failed": 1,
+        "exit_code": 1,
+        "log": "tmp/unified-gov-global-red.log"
+      },
+      "final_mocked_green": {
+        "tests_passed": 17,
+        "tests_failed": 0,
+        "exit_code": 0,
+        "log": "tmp/unified-gov-global-green.log"
+      },
+      "coverage": "Failed/empty/skipped results; canonical evidence paths; stale source; no self-acceptance; inherited FOUNDRY_/DAPP_ override removal; global Foundry config fail-closed without reading settings; strict G1 unittest and B042 Node summaries."
+    }
+  },
+  "deployment_preflight": {
+    "report": "artifacts/risk/unified-deployment-estimate-2026-10-03.json",
+    "mode": "read_only_estimate",
+    "status": "estimate_ok",
+    "chain_id": 10143,
+    "observed_block": 67886057,
+    "runtime_template_bytes": 120402,
+    "creation_bytes": 129644,
+    "constructor_argument_bytes": 928,
+    "initcode_bytes": 130572,
+    "estimated_gas": 27853253,
+    "gas_allowance": 30000000,
+    "remaining_gas_headroom": 2146747,
+    "runtime_limit_bytes": 131072,
+    "initcode_limit_bytes": 262144,
+    "broadcast": false,
+    "caveats": "Estimate uses already deployed fixture dependencies at the reported block. Artifact runtime has immutable placeholders; it is not a final deployed runtime hash or receipt. Endpoint and credentials are deliberately omitted."
+  },
+  "gates_and_acceptance": {
+    "gate_candidate_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+    "technical_status": "ordered_G0_G7_checks_passed",
+    "reported_checks_note": "Gate test_count values are reported checks, not independent tests: they include A044 record checks and B042 compiler commands, and overlap full CI. Do not sum them into an independent test total.",
+    "observed_gates": [
+      {"gate": "G0", "exit_code": 0, "reported_checks": 88, "skipped_checks": 0, "log": "tmp/unified-G0.log", "artifact": "artifacts/gates/G0.json"},
+      {"gate": "G1", "exit_code": 0, "reported_checks": 152, "skipped_checks": 0, "log": "tmp/unified-G1.log", "artifact": "artifacts/gates/G1.json"},
+      {"gate": "G2", "exit_code": 0, "reported_checks": 117, "skipped_checks": 0, "log": "tmp/unified-G2.log", "artifact": "artifacts/gates/G2.json"},
+      {"gate": "G3", "exit_code": 0, "reported_checks": 78, "skipped_checks": 0, "log": "tmp/unified-G3.log", "artifact": "artifacts/gates/G3.json"},
+      {"gate": "G4", "exit_code": 0, "reported_checks": 77, "skipped_checks": 0, "log": "tmp/unified-G4.log", "artifact": "artifacts/gates/G4.json"},
+      {"gate": "G5", "exit_code": 0, "reported_checks": 63, "skipped_checks": 0, "log": "tmp/unified-G5.log", "artifact": "artifacts/gates/G5.json"},
+      {"gate": "G6", "exit_code": 0, "reported_checks": 55, "skipped_checks": 0, "log": "tmp/unified-G6.log", "artifact": "artifacts/gates/G6.json"},
+      {"gate": "G7", "exit_code": 0, "reported_checks": 156, "skipped_checks": 0, "log": "tmp/unified-G7.log", "artifact": "artifacts/gates/G7.json"}
+    ],
+    "execution": "bash scripts/check-gate.sh Gn, from repository root, in G0 through G7 order using pinned Forge 1.8.3",
+    "G7_task_reported_checks": {"A040": 2, "A041": 2, "A042": 2, "A043": 68, "A044": 44, "B040": 9, "B041": 11, "B042": 8, "B043": 3, "B044": 1},
+    "G7_combined_solidity_tests": 6,
+    "task_evidence_pattern": "artifacts/tasks/{task}.json",
+    "authoritative_status_path": "docs/spec/gate_status.json",
+    "technical_evidence_directory": "artifacts/gates",
+    "user_authorization": {
+      "conditional": true,
+      "instruction": "Yes—record G7 acceptance after passing checks",
+      "permits_main_merge": false,
+      "permits_deployment": false
+    },
+    "accepted": true,
+    "merge_sha": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+    "reviewed_by": [],
+    "accepted_at_utc": "2026-10-03 17:39:11 UTC",
+    "accepted_by": "User, via explicit conditional authorization on 2026-10-03",
+    "recorded_by": "Codex, after verifying the required checks passed",
+    "acceptance_scope": "Unified non-oracle integration candidate and local technical handoff; not production or live-counterpart approval",
+    "technical_runner_record": {"accepted": false, "merge_sha": null, "reviewed_by": []},
+    "note": "The separate user-authorized acceptance was recorded only after actual passing gate evidence for the candidate. The legacy merge_sha names that integration candidate, not a merge into main. All technical runner artifacts still have accepted=false and merge_sha=null; no historical A/B approval is fabricated."
+  },
+  "limitations": [
+    "Unified-team implementation and automated technical validation are not an independent security audit.",
+    "Oracle implementation/integration, production feed cadence, signer/governance roles and live production collateral remain outside this validation scope.",
+    "The strict INDEX-prefix seal adds a later-observation delay; no production feed service guarantee is invented.",
+    "Gas tests cover the stated bounded fixtures, not every possible execution state, and do not authorize raising the concrete cap.",
+    "Fixture construction can make a whole Foundry test exceed 30 million gas; supported production calls are assessed using the separate named call measurements.",
+    "No new broadcast, main merge or production release is claimed.",
+    "Raw tmp logs are local, uncommitted evidence. Their byte hashes below identify the saved outputs; they are not themselves independent attestations."
+  ],
+  "hash_conventions": {
+    "saved_log_sha256": "SHA-256 of the exact saved local log bytes",
+    "referenced_artifact_sha256_lf": "SHA-256 of UTF-8 text after CRLF-to-LF normalization, preserving cross-platform Git checkout compatibility"
+  },
+  "saved_log_sha256": {
+    "tmp/unified-G0.log": "f45e55744e8af7046b9767b71dcd9ca5732423042937a45c74db3230a4817cf3",
+    "tmp/unified-G1.log": "03adf8a264fc3e43ac03f18b2e8bc6550d5f62b00285cdc40886cba0a2d82391",
+    "tmp/unified-G2.log": "82026d9153917fffdc845f2031baa97773d21c2a1c018973cac1960b745d07a9",
+    "tmp/unified-G3.log": "17c0c1c0ee470a291992dfe519076bdfef90e95530c514883c8dbef2bbde8ce3",
+    "tmp/unified-G4.log": "75783e08ff48e73b5e2c002d4b24e4ebe4537b950c3c5be12155bf516ce0912a",
+    "tmp/unified-G5.log": "feb8e68121cb15579cba4aede83bc082afb11f2d6664704b84635a919988a6ab",
+    "tmp/unified-G6.log": "008759ce9ecd2c1a1df26db2bc0f063973c5b185c0c8bd0df85c63dc9e581bc8",
+    "tmp/unified-G7.log": "f613cb9b3767398498834efe27a5f0cdce2824324ac0822a799f8f5642e0e347",
+    "tmp/unified-full-ci.log": "f20381f7490dda34519b9b154a15d5e175ce0d7ca303f37bc1b23eecf12edbcb",
+    "tmp/unified-monad-final.log": "c73889992f594d7ee539bcb8556b8f52e4086402e57d75d826a4d4a695bbb88a",
+    "tmp/unified-python-a.log": "66c45ce5ea564cade72166b776e7db0c7f5d3e079e555a0d2576f7344e2046ca",
+    "tmp/unified-python-b.log": "4d1e7e598b15cd6f24287710074abfafd4f98b0fdffb18fc52e932d4a54a513a",
+    "tmp/unified-python-audit.log": "01c25eb60a722fb42b826073b3301ad6d9408bc6338cfb6c3f5362dd46f77f05",
+    "tmp/unified-python-integration.log": "7e6233da948db4a3492f84372dcabfb40f6bccf6e89fb2f66b07b8f06e2c4479",
+    "tmp/unified-sdk.log": "d9dccad932a7241050d03d4006e060eca13ca474d14474afe6a1383123b687f4",
+    "tmp/unified-format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tmp/unified-abi-check.log": "b5224faa4f71da4dabd3294d76732989e52d8efa54661d189a7b07462eeb6781",
+    "tmp/unified-toolchain.log": "5c87f7f020707960a42a6d6476529274e7293d1510c4c51c60cc308ec730e7fd",
+    "tmp/rb-i11-red.log": "59fd06fb04456306588a9b190697f6908ba58158418190fe07d9f8cdf017cc28",
+    "tmp/rb-i11-final.log": "81ce7412ec60e10b876b7544ae58b36ff9f21b0f167f9aee74e5aeed1fc0104f",
+    "tmp/rb-i12-local-smoke-red.log": "69b4e9b7c78b7bfc5a24debdf4241f4167728b32ad840d38a819da4ffc986f9a",
+    "tmp/rb-i12-local-smoke-green.log": "c72d6a4319cf4033b03aedc30c15565a54281f84cb4cf31615e20f83dafda9f6",
+    "tmp/rb-i12-local-script-green.log": "8f7f996380cf7e5b7983f6fa0e9353dd472c4167d309d164eeee7ace00219352",
+    "tmp/unified-gov-qa-red.log": "12a4d8a492c7def2bd838b7c2fda0391baf2d208bb2c066360540949f052384c",
+    "tmp/unified-gov-qa-green.log": "b8c36b2d0dbab67a0fb6a2abdea187883f29ba548863701ab75a6679e1fdd6fc",
+    "tmp/unified-gov-global-red.log": "94d0452dd303cda2e16ae74bf77d0108d763986f9ae35fe93fa4881413ad2820",
+    "tmp/unified-gov-global-green.log": "7bf85cb295912b04521147f38e9655382394481c105a908af0f852779bcc4414"
+  },
+  "referenced_artifact_sha256_lf": {
+    "artifacts/risk/gas-accounting.json": "a23e25eb9e57d7e43640cc250150af69944fe1ff8ea4469ae594fc94f1dadbff",
+    "artifacts/risk/custody-reconciliation.json": "f02161e8ef2fb126725d185d93abb596b42881fccf3f12f5fb279351f1c41ed5",
+    "artifacts/gates/G0.json": "e70625beb96afd42114d3c7174ce38370ceb50441620c16efa5b1e9b0e0dee08",
+    "artifacts/gates/G1.json": "c9e689710cc6f69ba338f53f732891772cebd85f1d7db307d6115d0b00b2c63a",
+    "artifacts/gates/G2.json": "19f4140547d24f0d32ebea89479fd82f72cdce906cbbd61f77e214d83ed81be0",
+    "artifacts/gates/G3.json": "3719018aa8bf0ccf2823301a8ffb7cda64051420739c5604f054ad7b3dc47f21",
+    "artifacts/gates/G4.json": "1967877e52e775f55f9838ac41dbf4ad1d66fa3a95181baa333ec993e5996c67",
+    "artifacts/gates/G5.json": "778465b161bf8c73e8f3d957b7b7b507d563c6a4171c3bcfae3f5308a26e927a",
+    "artifacts/gates/G6.json": "1cf42e13f5ca500f8b8689ef2dae8b25f353e0fa2ed7e10db2dccf4d57a574b9",
+    "artifacts/gates/G7.json": "91d1edf5f92c225f9f28f9901f55af93b7079816b6b868ce905523fba96ae0b9",
+    "artifacts/tasks/A040.json": "b45472732420a6b70902cd5e3fd1ae865ba93d89ab312a2b8843eb4cd67f160f",
+    "artifacts/tasks/A041.json": "9666afbd2398beef2ce722b9d65f63a64327feb9d254d5750ac632db0ab70188",
+    "artifacts/tasks/A042.json": "d87c665598434fe44df64cc4a1abb3087b6a549cab3e0f6cb5f5df13f0c228e3",
+    "artifacts/tasks/A043.json": "b984344d7963a982c73ac3e101fc2337951c3c3ba1ff40d43fcfd1e01cb72580",
+    "artifacts/tasks/A044.json": "ec43eeb64b89558f86d345abf5786a2b9c2ff4e7f05e080fe05dbe09dbb647f8",
+    "artifacts/tasks/B040.json": "8f14a0898369e8657f5ed98d6ec86bee2ced0dee046f8ac194b007ac2d8d2a64",
+    "artifacts/tasks/B041.json": "95a92266f637442db8f0424452d1119beca0fbac88e1d43800e1242419b2abdf",
+    "artifacts/tasks/B042.json": "ab99d1b92d8ed152e9914f244012a17c5d13d6fbc32e99a0f44f9c919b904cc1",
+    "artifacts/tasks/B043.json": "661cd23d1d4777ef5eb03de73983acd0e621b740477d6173986f7c2f78ec633a",
+    "artifacts/tasks/B044.json": "aa2612a5cc8617ed2fbbd1062eeb4346ed9615ff83a01f3cc474b7c72335143c",
+    "artifacts/validation/A043.json": "a32fc3c3f52722a4b4c955287eb55b95eda6ed78aadb7f3c386fe21776bc4bf5",
+    "artifacts/validation/B043.json": "1d0525819d41232439a647122734b2e2a9534a99c674939e2818fd41b76119c0",
+    "artifacts/risk/unified-deployment-estimate-2026-10-03.json": "48fafbefc59b160185aa3bf0f78fc96430b52d0401ed1a8436f6c33adde4ca32"
+  }
+}

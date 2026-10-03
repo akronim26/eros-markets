@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:13:25.980727+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:34:33.724252+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,7 +133,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "contracts/test/risk/B/B037.t.sol": "5a93b855eb497178250cf292a0bfd659182bd820e608a4a82e372264b809ef01"
   },
@@ -154,7 +154,7 @@
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B037.t.sol:B037Test\": {\"duration\": \"7ms 338\\u00c2\\u00b5s 100ns\", \"test_results\": {\"test_deliveryRetriesAndDuplicates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 592767}}, \"duration\": \"2ms 222\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}, \"test_earlyBinaryDoesNotWaitForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 903750}}, \"duration\": \"1ms 939\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidStaysPending()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 516477}}, \"duration\": \"1ms 765\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}, \"test_enumMappingRows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 485183}}, \"duration\": \"1ms 788\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_oiIncludesReserveAndConvertsExplicitly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 456037}}, \"duration\": \"1ms 662\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_onlyPinnedOracle()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 60315}}, \"duration\": \"1ms 647\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}, \"test_scheduledLateKeeperClock()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 416386}}, \"duration\": \"1ms 403\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B037.t.sol:B037Test\": {\"duration\": \"17ms 988\\u00c2\\u00b5s 500ns\", \"test_results\": {\"test_deliveryRetriesAndDuplicates()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 592767}}, \"duration\": \"1ms 881\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_earlyBinaryDoesNotWaitForT()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 903750}}, \"duration\": \"2ms 463\\u00c2\\u00b5s 700ns\", \"gas_snapshots\": {}}, \"test_earlyInvalidStaysPending()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 516477}}, \"duration\": \"1ms 229\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}, \"test_enumMappingRows()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 485183}}, \"duration\": \"1ms 391\\u00c2\\u00b5s 700ns\", \"gas_snapshots\": {}}, \"test_oiIncludesReserveAndConvertsExplicitly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 456037}}, \"duration\": \"2ms 509\\u00c2\\u00b5s 700ns\", \"gas_snapshots\": {}}, \"test_onlyPinnedOracle()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 60315}}, \"duration\": \"5ms 619\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_scheduledLateKeeperClock()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 416386}}, \"duration\": \"1ms 897\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],

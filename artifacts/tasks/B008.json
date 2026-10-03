@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:09:32.561299+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:29:32.505359+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,7 +133,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "reference/tests/b/test_b008.py": "b5c94cfc1fdd8192f51537d978e082b59eaa1f19a62e8a6fd9dadcfc9faa02b4"
   },
@@ -157,7 +157,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "in_process_unittest_discovery",
-      "output": "test_fee_waiver (test_b008.Bankruptcy.test_fee_waiver) ... ok\ntest_golden_long (test_b008.Bankruptcy.test_golden_long) ... ok\ntest_infeasible (test_b008.Bankruptcy.test_infeasible) ... ok\ntest_partial_close_uses_remaining_mark (test_b008.Bankruptcy.test_partial_close_uses_remaining_mark) ... ok\ntest_short_mirror (test_b008.Bankruptcy.test_short_mirror) ... ok\ntest_bad_price_levels_stop (test_b008.BookClose.test_bad_price_levels_stop) ... ok\ntest_block_pacing (test_b008.BookClose.test_block_pacing) ... ok\ntest_every_fill_satisfies_predicate (test_b008.BookClose.test_every_fill_satisfies_predicate) ... ok\ntest_examination_cap (test_b008.BookClose.test_examination_cap) ... ok\ntest_restores_health_with_rechecked_fills (test_b008.BookClose.test_restores_health_with_rechecked_fills) ... ok\ntest_grace (test_b008.Eligibility.test_grace) ... ok\ntest_flat (test_b008.Estimate.test_flat) ... ok\ntest_invalid_roots_full_close (test_b008.Estimate.test_invalid_roots_full_close) ... ok\ntest_worked_estimate (test_b008.Estimate.test_worked_estimate) ... ok\ntest_rules (test_b008.Predicate.test_rules) ... ok\ntest_both_endpoints_nonpositive (test_b008.Takeover.test_both_endpoints_nonpositive) ... ok\ntest_empty_book_needs_more_work (test_b008.Takeover.test_empty_book_needs_more_work) ... ok\ntest_floor_endpoint_deficit_is_price_free_takeover (test_b008.Takeover.test_floor_endpoint_deficit_is_price_free_takeover) ... ok\ntest_missing_block_cap_disables_forced_book (test_b008.Takeover.test_missing_block_cap_disables_forced_book) ... ok\ntest_positive_equity_small_budget_no_takeover (test_b008.Takeover.test_positive_equity_small_budget_no_takeover) ... ok\ntest_signature_has_no_work_budget (test_b008.Takeover.test_signature_has_no_work_budget) ... ok\ntest_stale_price_positive_equity_not_eligible (test_b008.Takeover.test_stale_price_positive_equity_not_eligible) ... ok\ntest_zero_budget_rejected (test_b008.Takeover.test_zero_budget_rejected) ... ok\ntest_zero_equity_takeover (test_b008.Takeover.test_zero_equity_takeover) ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 0.030s\n\nOK\n"
+      "output": "test_fee_waiver (test_b008.Bankruptcy.test_fee_waiver) ... ok\ntest_golden_long (test_b008.Bankruptcy.test_golden_long) ... ok\ntest_infeasible (test_b008.Bankruptcy.test_infeasible) ... ok\ntest_partial_close_uses_remaining_mark (test_b008.Bankruptcy.test_partial_close_uses_remaining_mark) ... ok\ntest_short_mirror (test_b008.Bankruptcy.test_short_mirror) ... ok\ntest_bad_price_levels_stop (test_b008.BookClose.test_bad_price_levels_stop) ... ok\ntest_block_pacing (test_b008.BookClose.test_block_pacing) ... ok\ntest_every_fill_satisfies_predicate (test_b008.BookClose.test_every_fill_satisfies_predicate) ... ok\ntest_examination_cap (test_b008.BookClose.test_examination_cap) ... ok\ntest_restores_health_with_rechecked_fills (test_b008.BookClose.test_restores_health_with_rechecked_fills) ... ok\ntest_grace (test_b008.Eligibility.test_grace) ... ok\ntest_flat (test_b008.Estimate.test_flat) ... ok\ntest_invalid_roots_full_close (test_b008.Estimate.test_invalid_roots_full_close) ... ok\ntest_worked_estimate (test_b008.Estimate.test_worked_estimate) ... ok\ntest_rules (test_b008.Predicate.test_rules) ... ok\ntest_both_endpoints_nonpositive (test_b008.Takeover.test_both_endpoints_nonpositive) ... ok\ntest_empty_book_needs_more_work (test_b008.Takeover.test_empty_book_needs_more_work) ... ok\ntest_floor_endpoint_deficit_is_price_free_takeover (test_b008.Takeover.test_floor_endpoint_deficit_is_price_free_takeover) ... ok\ntest_missing_block_cap_disables_forced_book (test_b008.Takeover.test_missing_block_cap_disables_forced_book) ... ok\ntest_positive_equity_small_budget_no_takeover (test_b008.Takeover.test_positive_equity_small_budget_no_takeover) ... ok\ntest_signature_has_no_work_budget (test_b008.Takeover.test_signature_has_no_work_budget) ... ok\ntest_stale_price_positive_equity_not_eligible (test_b008.Takeover.test_stale_price_positive_equity_not_eligible) ... ok\ntest_zero_budget_rejected (test_b008.Takeover.test_zero_budget_rejected) ... ok\ntest_zero_equity_takeover (test_b008.Takeover.test_zero_equity_takeover) ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 0.053s\n\nOK\n"
     }
   ],
   "test_count": 24,

@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:09:22.303373+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:29:22.487574+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,7 +133,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "reference/tests/b/test_b005.py": "7d03cd7209c5427304c74929d44abfe069ff89c1058a31dcde0eaa0ad303cb81"
   },
@@ -157,7 +157,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "in_process_unittest_discovery",
-      "output": "test_long_im_120 (test_b005.DirectLeverageFixture.test_long_im_120) ... ok\ntest_long_with_120_passes_and_leverage_5x (test_b005.DirectLeverageFixture.test_long_with_120_passes_and_leverage_5x) ... ok\ntest_short_collateral_80_fails_100_passes (test_b005.DirectLeverageFixture.test_short_collateral_80_fails_100_passes) ... ok\ntest_short_im_about_95894 (test_b005.DirectLeverageFixture.test_short_im_about_95894) ... ok\ntest_expired_envelope_is_full_backing (test_b005.FullBackingAndCaps.test_expired_envelope_is_full_backing) ... ok\ntest_full_backing_health_uses_exact_endpoints (test_b005.FullBackingAndCaps.test_full_backing_health_uses_exact_endpoints) ... ok\ntest_hazard_domain_failure (test_b005.FullBackingAndCaps.test_hazard_domain_failure) ... ok\ntest_initial_deployment_cap_1 (test_b005.FullBackingAndCaps.test_initial_deployment_cap_1) ... ok\ntest_missing_calibration_is_1x (test_b005.FullBackingAndCaps.test_missing_calibration_is_1x) ... ok\ntest_template_caps (test_b005.FullBackingAndCaps.test_template_caps) ... ok\ntest_im_never_exceeds_worst_loss (test_b005.Monotone.test_im_never_exceeds_worst_loss) ... ok\ntest_im_nondecreasing_in_size_both_signs (test_b005.Monotone.test_im_nondecreasing_in_size_both_signs) ... ok\ntest_mm_nondecreasing_in_horizon_inputs (test_b005.Monotone.test_mm_nondecreasing_in_horizon_inputs) ... ok\ntest_below_mm_and_between (test_b005.ZeroAndNegative.test_below_mm_and_between) ... ok\ntest_flat_is_zero_margin (test_b005.ZeroAndNegative.test_flat_is_zero_margin) ... ok\ntest_zero_and_negative_equity (test_b005.ZeroAndNegative.test_zero_and_negative_equity) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 0.137s\n\nOK\n"
+      "output": "test_long_im_120 (test_b005.DirectLeverageFixture.test_long_im_120) ... ok\ntest_long_with_120_passes_and_leverage_5x (test_b005.DirectLeverageFixture.test_long_with_120_passes_and_leverage_5x) ... ok\ntest_short_collateral_80_fails_100_passes (test_b005.DirectLeverageFixture.test_short_collateral_80_fails_100_passes) ... ok\ntest_short_im_about_95894 (test_b005.DirectLeverageFixture.test_short_im_about_95894) ... ok\ntest_expired_envelope_is_full_backing (test_b005.FullBackingAndCaps.test_expired_envelope_is_full_backing) ... ok\ntest_full_backing_health_uses_exact_endpoints (test_b005.FullBackingAndCaps.test_full_backing_health_uses_exact_endpoints) ... ok\ntest_hazard_domain_failure (test_b005.FullBackingAndCaps.test_hazard_domain_failure) ... ok\ntest_initial_deployment_cap_1 (test_b005.FullBackingAndCaps.test_initial_deployment_cap_1) ... ok\ntest_missing_calibration_is_1x (test_b005.FullBackingAndCaps.test_missing_calibration_is_1x) ... ok\ntest_template_caps (test_b005.FullBackingAndCaps.test_template_caps) ... ok\ntest_im_never_exceeds_worst_loss (test_b005.Monotone.test_im_never_exceeds_worst_loss) ... ok\ntest_im_nondecreasing_in_size_both_signs (test_b005.Monotone.test_im_nondecreasing_in_size_both_signs) ... ok\ntest_mm_nondecreasing_in_horizon_inputs (test_b005.Monotone.test_mm_nondecreasing_in_horizon_inputs) ... ok\ntest_below_mm_and_between (test_b005.ZeroAndNegative.test_below_mm_and_between) ... ok\ntest_flat_is_zero_margin (test_b005.ZeroAndNegative.test_flat_is_zero_margin) ... ok\ntest_zero_and_negative_equity (test_b005.ZeroAndNegative.test_zero_and_negative_equity) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 0.134s\n\nOK\n"
     }
   ],
   "test_count": 16,

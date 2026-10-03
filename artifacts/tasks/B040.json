@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:18:22.368652+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:36:09.789498+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,9 +133,9 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
-    "artifacts/risk/counterpart-status.json": "02940eec17ab2e07ef0c050dccab933954ca013d4617bdd9ec156c218c08a916"
+    "artifacts/risk/counterpart-status.json": "8a6d6a92765357f5d07c50a723fc06c60ba47aef1f2ca52fd8d4360774d648a7"
   },
   "components": {
     "selected_suite": "real",
@@ -148,27 +148,29 @@
         "forge",
         "test",
         "--match-path",
-        "test/integration/B/FullLifecycle.t.sol"
+        "test/integration/B/FullLifecycle.t.sol",
+        "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 4 tests for test/integration/B/FullLifecycle.t.sol:FullLifecycleTest\n[PASS] test_campaignBootstrapToClaims() (gas: 94360859)\n[PASS] test_conversionStaysDisabled() (gas: 447745)\n[PASS] test_earlyHaltNoPath() (gas: 34272368)\n[PASS] test_earlyInvalidPendingThenCapture() (gas: 709632657)\nSuite result: ok. 4 passed; 0 failed; 0 skipped; finished in 9.82s (10.01s CPU time)\n\nRan 1 test suite in 9.83s (9.82s CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)\n"
+      "output": "{\"status\": \"passed\", \"checks_run\": 4, \"skipped_count\": 0, \"command\": [\"forge\", \"test\", \"--match-path\", \"test/integration/B/FullLifecycle.t.sol\", \"--json\"], \"exit_code\": 0, \"forge_exit_code\": 0, \"suite_results\": {\"test/integration/B/FullLifecycle.t.sol:FullLifecycleTest\": {\"test_campaignBootstrapToClaims()\": \"Success\", \"test_conversionStaysDisabled()\": \"Success\", \"test_earlyHaltNoPath()\": \"Success\", \"test_earlyInvalidPendingThenCapture()\": \"Success\"}}, \"failure_output\": \"\", \"reason\": \"All selected regressions passed\"}"
     },
     {
       "argv": [
         "forge",
         "test",
         "--match-path",
-        "test/integration/EndToEnd.t.sol"
+        "test/integration/EndToEnd.t.sol",
+        "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 5 tests for test/integration/EndToEnd.t.sol:EndToEndTest\n[PASS] test_e2e_NO_haltMidRollover_pages1_reverseClaims() (gas: 142979914)\n[PASS] test_e2e_YES_haltAtT_pages32() (gas: 145218785)\n[PASS] test_e2e_earlyINVALID_fallback_pages3_reverseClaims() (gas: 406664106)\n[PASS] test_e2e_earlyINVALID_twap_pages7() (gas: 406670623)\n[PASS] test_e2e_step6_shortfallFixtures() (gas: 339095400)\nSuite result: ok. 5 passed; 0 failed; 0 skipped; finished in 2.43s (6.65s CPU time)\n\nRan 1 test suite in 2.45s (2.43s CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)\n"
+      "output": "{\"status\": \"passed\", \"checks_run\": 5, \"skipped_count\": 0, \"command\": [\"forge\", \"test\", \"--match-path\", \"test/integration/EndToEnd.t.sol\", \"--json\"], \"exit_code\": 0, \"forge_exit_code\": 0, \"suite_results\": {\"test/integration/EndToEnd.t.sol:EndToEndTest\": {\"test_e2e_NO_haltMidRollover_pages1_reverseClaims()\": \"Success\", \"test_e2e_YES_haltAtT_pages32()\": \"Success\", \"test_e2e_earlyINVALID_fallback_pages3_reverseClaims()\": \"Success\", \"test_e2e_earlyINVALID_twap_pages7()\": \"Success\", \"test_e2e_step6_shortfallFixtures()\": \"Success\"}}, \"failure_output\": \"\", \"reason\": \"All selected regressions passed\"}"
     }
   ],
-  "test_count": 2,
+  "test_count": 9,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,
