@@ -12,6 +12,7 @@ export class ModelError extends Error {}
 export const KEYS: Record<string, string> = {
   anthropic: 'ANTHROPIC_API_KEY', openai: 'OPENAI_API_KEY', google: 'GEMINI_API_KEY',
   groq: 'GROQ_API_KEY', mistral: 'MISTRAL_API_KEY', cerebras: 'CEREBRAS_API_KEY', nvidia: 'NVIDIA_API_KEY',
+  aicredits: 'CREDITED_API_KEY',
 }
 const PROVIDERS = Object.keys(KEYS).join(', ')
 /** Output budget, reasoning included: reasoning models spend part of it before they answer. */
@@ -29,6 +30,9 @@ const CHAT: Record<string, { url: string; seed: string; jsonMode: boolean; maxFi
   cerebras: { url: 'https://api.cerebras.ai/v1/chat/completions', seed: 'seed', jsonMode: true, maxField: 'max_completion_tokens', maxTokens: 4096 },
   // NVIDIA build (hosted NIM): JSON mode is not offered for every model, so the answer is checked by parseUndecided.
   nvidia: { url: 'https://integrate.api.nvidia.com/v1/chat/completions', seed: 'seed', jsonMode: false, maxField: 'max_tokens', maxTokens: MAX_OUTPUT_TOKENS },
+  // AICredits (aicredits.in): a paid OpenAI-compatible gateway; the model id names the vendor ("google/gemini-3.8-flash").
+  // Gemini's thinking counts against the output budget, as on Google's own API.
+  aicredits: { url: 'https://api.aicredits.in/v1/chat/completions', seed: 'seed', jsonMode: false, maxField: 'max_tokens', maxTokens: GEMINI_MAX_OUTPUT_TOKENS },
 }
 
 /**
@@ -74,6 +78,7 @@ export function modelRequest(model: string, call: ModelCall, key: string, opts: 
     case 'mistral':
     case 'cerebras':
     case 'nvidia':
+    case 'aicredits':
       return json(CHAT[provider].url, { authorization: `Bearer ${key}` }, {
         model: id, temperature: temperatureFor(model), [CHAT[provider].seed]: 0, [CHAT[provider].maxField]: CHAT[provider].maxTokens,
         ...(provider === 'openai' && opts.schema
