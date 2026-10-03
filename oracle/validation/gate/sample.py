@@ -8,7 +8,7 @@ hash). Candidates beyond the quota are listed as spares: the runner moves to the
 fetchable allow-listed page, without calling any model.
 
   python3 -m gate.sample      # writes gate/runs/sample.jsonl (local, git-ignored: it holds the rules text, ADJ-39)
-  python3 -m gate.sample --run crypto-price   # gate/runs/crypto-price-sample.jsonl (ADJ-47)
+  python3 -m gate.sample --run crypto-price   # gate/runs/crypto-price-sample.jsonl (ADJ-50)
 """
 
 from __future__ import annotations
@@ -72,9 +72,9 @@ def build(rows: list[dict]) -> list[dict]:
     return picked
 
 
-# ---- the crypto-price run (ADJ-47)
+# ---- the crypto-price run (ADJ-50)
 
-CRYPTO_QUOTA = {"train": 15, "calibration": 30, "holdout": 123}  # option B (₹10 cap, ADJ-47): calibration needs 30 parents for real maps
+CRYPTO_QUOTA = {"train": 15, "calibration": 30, "holdout": 123}  # option B (₹10 cap, ADJ-50): calibration needs 30 parents for real maps
 CRYPTO_SPARES = 5
 CRYPTO_ORDER = ("calibration", "train", "holdout")  # what the cap reaches first: maps, then θ, then the holdout
 BINANCE = "https://api.binance.com/api/v3/klines"

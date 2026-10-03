@@ -14,7 +14,7 @@ Pilot for ADJ-46: 27 sampled markets, 16 with fetchable evidence put to the pane
 
 ### Data and code
 
-- Code commit: `60172876aacdffebaabc7c067a85ec078b67fecb`
+- Code commit: `6d0ba15fc623cd758dc2ba9493eb3a17d2d2abd2`
 - rowsSha256: `ee3feffc12360bf4a2fce0bf35191b8617f169a30b8aec8c0093df5f124ba288`
 - rawTarSha256: `4c4b518cde03f5c62754e8f17aaf17bca699905aef863727f710bd367af3106d`
 - manifestSha256: `7fb7710610e3e52cee71c97df95ef267494ad03af76187d9d8ddcad5a7d5c9f5`
@@ -62,7 +62,7 @@ OI_review = c_r / (Δp − r·T_r) with c_r = $50, r·T_r = 10%/year × 2 h = 1/
 
 No category meets U95 ≤ 2% and N ≥ 150, so no `setCategory` operation is prepared.
 
-## Crypto-price attempt (ADJ-47): stopped after two trial markets
+## Crypto-price attempt (ADJ-50): stopped after two trial markets
 
 A separate run tried to validate a `crypto-price` category on Kalshi's settled "<asset> price at <time>: <strike> or above" markets (their own hashed pull: 258 parents, 123 in the holdout, below the 150 the gate needs) with Binance's 1-minute candles as evidence and Gemini 3.5 Flash-Lite as the paid model. It was stopped by the team after two trials of the same market (₹0.29): the historical rules name the CF Benchmarks index, which cannot be fetched, and say the market resolves No when that data is unavailable, so a careful model (GPT-OSS) refused the Binance substitute, one (Gemini Flash-Lite) misread the candles, and only Kimi answered the obvious YES. With the rules and the evidence naming different sources, almost no market could reach a unanimous answer. No gate was frozen for it.
 

@@ -1,4 +1,4 @@
-"""Crypto price-threshold markets for the crypto-price category (plan §10 step 1, ADJ-47).
+"""Crypto price-threshold markets for the crypto-price category (plan §10 step 1, ADJ-50).
 
 The main dataset (O39.1) holds only 78 holdout parents of Kalshi's crypto price-threshold events, below the 150 the
 gate needs, so this pulls those events on their own: settled markets of Kalshi's "<asset> price at <time>" series

@@ -19,7 +19,7 @@ committed and pinned by its sha256.
 
   python3 -m gate.gate --import   # panel.jsonl → panel-runs.json
   python3 -m gate.gate            # writes calibration/maps.json and gate/gate.json
-  python3 -m gate.gate --run crypto-price [--import]   # the crypto-price run (ADJ-47): gate/crypto-price/, calibration/crypto-price.json
+  python3 -m gate.gate --run crypto-price [--import]   # the crypto-price run (ADJ-50): gate/crypto-price/, calibration/crypto-price.json
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ MAPS_FILE = ROOT / "calibration" / "maps.json"
 TEMPLATES = ROOT.parent / "services" / "panel-runner" / "src" / "prompts" / "templates"
 CATEGORIES = ("sports", "macro", "elections", "politics", "crypto", "companies", "other")  # the panel runner's order
 MODELS = ("groq:openai/gpt-oss-120b@2026-10-03", "nvidia:moonshotai/kimi-k3@2026-10-03", "aicredits:google/gemini-3.8-flash@2026-10-04")
-# The crypto-price run (ADJ-47): the same two free models, and Gemini 3.5 Flash-Lite through AICredits, the Gemini
+# The crypto-price run (ADJ-50): the same two free models, and Gemini 3.5 Flash-Lite through AICredits, the Gemini
 # that fits the remaining budget (3.8 Flash's hidden reasoning cost ₹0.2-0.6 a call).
 CRYPTO_MODELS = ("groq:openai/gpt-oss-120b@2026-10-03", "nvidia:moonshotai/kimi-k3@2026-10-03", "aicredits:google/gemini-3.5-flash-lite@2026-10-04")
 THETA_GRID = tuple(range(9000, 10000, 100))
