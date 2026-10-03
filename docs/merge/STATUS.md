@@ -15,25 +15,33 @@ Main was not changed. The old three-conflict rehearsal is superseded: this merge
 conflicts and silent canonical-type/helper hazards while retaining the reviewed accounting and
 stronger risk predicates. See `docs/merge/main-merge-prep.md`.
 
-Validation: **692 Forge tests, 217 Python tests and all ordered G0–G7 technical checks pass**.
-The real-book suite contributes 17 tests; A043's review suite contributes 45. G7 human acceptance
-is still blocked, and RB-I01 remains open rather than being hidden by characterization passes.
+The earlier 692-test merge baseline is historical. The current work repairs RB-I01, adds a
+guarded concrete `contracts/src/engine/BookRiskEngine.sol`, stateful real-book invariants, and
+controlled Monad testnet deployment/exercise tooling. Real A accounting/custody and real B risk
+are joined to the real Book; counterpart token, INDEX and resolution remain explicit test fixtures.
 
-The real book now has a test-only composition with real A accounting/vault and real B controllers:
-`contracts/test/integration/RealBookIntegration.t.sol`. The book is no longer missing its ten
-structural hooks. Main's earlier `BookRiskEngine` fixture still uses mocked A and is not the new
-end-to-end evidence. Final validation is recorded in `artifacts/risk/merge-validation-2026-10-03.json`.
+The user authorized Monad testnet evaluation and funded its test-only signer. Foundation
+deployment, two-account funding/activation, actual matching, YES settlement and cash claims have
+succeeded on chain 10143. Exact addresses, verification and current test results are recorded in
+`docs/integration/RISK_BOOK_TRACKER.md` and `artifacts/risk/real-book-validation-2026-10-03.json`.
+This is a completed, closed smoke market, not a production market or live oracle integration.
+
+Current validation at `5b82d9f`: **727 Forge tests / 117 suites and 217 Python tests pass**.
+Eight focused smoke tests also pass under MonadTen. ABI export/check and formatting pass.
+Ordered G0–G6 pass; G7 exits 2 at stale A043. Separately, A044/B040–B044 and the six-test
+direct G7 suite pass; these technical passes do not manufacture a current review or gate acceptance.
 
 ## Review and gates
 
 - G0–G6: historical accepted records remain in `docs/spec/gate_status.json`; current technical
   reruns are separate evidence in `artifacts/gates/`.
-- A043 fingerprints are refreshed over 85 reviewed source/dependency files and match the final
-  reviewed merge and regressions. No other person's approval is authored by this agent.
-- **G7 remains blocked for human acceptance; merge_sha stays null**, regardless of technical passes.
+- A043's earlier fingerprints cover the reviewed merge, not the new RB-I01/concrete-engine source.
+  Independent teammate review and source-bound refresh are pending; no self-approval is written.
+- **G7 remains blocked for fresh peer review and human acceptance; merge_sha stays null**.
 - B's acceptance recommendation at `3b11044 + 32d30ac` is historical, not a blanket approval of
   later source. B should inspect this merge and any subsequent repair on the next turn.
-- No deployment, merge into main, calibration approval or target-chain size approval is authorized.
+- Monad testnet evaluation is explicitly authorized by the user. No mainnet release, merge into
+  main, calibration approval or human G7 acceptance is authorized.
 
 ## Completed review items
 
@@ -48,18 +56,19 @@ end-to-end evidence. Final validation is recorded in `artifacts/risk/merge-valid
 | A-I01 | Accepted exact global-vault fee classification, all six choices, plus four independent custody/recovery regressions. |
 | Main reconciliation | Merged at `13ca730`; main's healthy-after-pair liquidation stop retained. |
 
-## Open integration finding: RB-I01
+## Integration repairs and open work
 
-Real A increments a position version after a fill, but the active reduce-only permit retains its
-admission version. Characterization tests show voluntary and forced IOC reductions stop after
-their first maker; a partially filled reduce-only LIMIT rests with an immediately stale version.
-This is conservative under-execution, not an unauthorized fill. It limits liquidation throughput
-and remainder liveness. **Not repaired or waived.**
-
-Next owner: B/shared team's next turn; coordinate intended semantics with the book developer,
-write intended-behavior tests, then repair without weakening genuine stale-order, no-flip or
-per-fill health checks. A independently reviews any economic repair afterwards.
-Exact reproductions and instructions: `docs/requests/A-to-B-merge-followup.md`.
+- **RB-I01: implemented, peer review pending** at `f2ebc61`. Refresh only the active reduce-only
+  taker's authorization after its own successful posting. Validate LIMIT permit-to-rest against
+  current state. Forced matching stops when a favorable fill restores health. Tests first exposed
+  the old behavior and the coupled over-liquidation risk; 60 targeted tests pass after repair.
+- **RB-I02: open, Low.** A partially filled reduce-only maker retains its old version and is pruned
+  on the next taker. A coordinated book-hook return/node-update change is required, not removing
+  stale-order protection. See `docs/requests/RB-I02-maker-remainder.md`.
+- **PERP sampler: open.** A bounded, stale-aware real book-depth adapter is missing. The concrete
+  engine deliberately remains uncalibrated, fully backed 1x bootstrap with funding/recovery off.
+- Next reviewer: B/shared teammate, independently review RB-I01 and the concrete engine plus
+  deployment tooling. Current instructions: `docs/requests/A-to-B-merge-followup.md`.
 
 An inherited informational keeper observation is also recorded in `docs/questions/A-I01.md`:
 earned fees can be withdrawn after wall-clock T before stored halt is materialized. No custody
@@ -67,12 +76,13 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 
 ## Counterparts and production
 
-- **Book:** real modules are composed locally, not deployed. Fresh real-book evidence replaces the
-  obsolete request to implement ten structural hooks. RB-I01 and production adapter wiring remain open.
-- **Oracle:** branch `origin/feat/oracle` still has only a plan at `0e7a2af`; implementation and
-  terminal enum confirmation (including VOIDED = 4) remain BLOCKED_BY_COUNTERPART.
-- **Price collector/signing service, factory/registry, frontend/indexer:** BLOCKED_BY_COUNTERPART.
-  SDK and deterministic fixtures are not live consumers.
+- **Book:** actual Book + risk/accounting deployed and exercised on Monad testnet. RB-I01 needs
+  review; RB-I02 and the production PERP sampler remain open. Book internals were not edited.
+- **Oracle:** fetched `origin/feat/oracle` is now `ccbdb50`, with implementation, SDK and tests,
+  not merely a plan. Real-engine integration remains BLOCKED_BY_COUNTERPART; this branch was not
+  merged. Public enum NONE/YES/NO/INVALID is 0/1/2/3; Voided uses settleInvalid, not enum 4.
+- **Price collector/signing service, real factory join, frontend/indexer:** BLOCKED_BY_COUNTERPART.
+  Ownership is coordinated within the three existing teams, not assumed additional teams.
 - **Conversion:** disabled, NOT_IN_RELEASE.
 - Toolchain agreed by both teammates: forge 1.8.3, solc 0.8.30, Prague, optimizer 200. This machine:
   Python 3.12.10, TypeScript 5.9.2, audit NumPy 2.2.6. B used different Python/TS/NumPy versions.
@@ -84,17 +94,20 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 
 ## Next turn
 
-1. B: read `docs/requests/A-to-B-merge-followup.md`, review the merge and triage RB-I01.
-2. Counterpart owners: real oracle/feed/factory/app joins and production adapter wiring.
-3. Humans: G7 acceptance at a real reviewed commit; eventual main update; chain-size/release decisions.
-4. Never relabel mock or local-fixture evidence as a deployed production pass.
+1. B: independently review RB-I01 and the concrete engine, then refresh source-bound review evidence.
+2. Book and Risk: agree RB-I02 maker-remainder semantics and a bounded PERP sampler.
+3. Oracle and Risk: jointly test the implemented oracle against the real engine after authorizing integration.
+4. Humans: G7 acceptance at a real reviewed commit; eventual main update and production release decisions.
+5. Never relabel controlled testnet fixtures as production counterpart acceptance.
 
 ## Current records
 
 - Initial history report: `docs/merge/history-review-2026-10-03.md`.
 - Reviews: `artifacts/reviews/A-on-B.md`, `A-on-B.json`, `B-on-A.md`.
-- Current validation: `artifacts/risk/merge-validation-2026-10-03.json`; old `review-validation.json`
-  remains historical evidence for the previous 641-test source.
+- Current tracker: `docs/integration/RISK_BOOK_TRACKER.md`.
+- Current validation: `artifacts/risk/real-book-validation-2026-10-03.json`,
+  `monad-testnet-deployment.json`, `monad-testnet-smoke.json` under `artifacts/risk/`.
+  `merge-validation-2026-10-03.json` and `review-validation.json` retain historical 692/641-test scope.
 - Counterparts/release: `artifacts/risk/counterpart-status.json`, `release-manifest.json`.
 - Merge resolution: `docs/merge/main-merge-prep.md`; six fee choices: `docs/questions/A-I01.md`.
 
@@ -206,3 +219,60 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Structured next-turn instructions: `docs/requests/A-to-B-merge-followup.md`. Next owner B/shared
   turn: review the merge, triage/repair RB-I01 with intended-behavior tests; A reviews any economic
   repair independently. Humans retain G7 acceptance; oracle/feed/factory/app owners retain their joins.
+
+### 2026-10-03 (testnet turn) — YASH-ai-bit (with Codex agent) — turn complete
+
+- Started from shared branch `16f0d90`; preserved the existing untracked A-to-B handoff and Python
+  caches. Final fetch still has that remote risk head. Main remains `a114d06`; fetched oracle is
+  now `ccbdb50` with real implementation, not a plan-only branch. No main/oracle merge or push.
+- The user authorized real-book/risk testing and implementation, Monad testnet evaluation, a local
+  test-only deployment wallet, and a living Markdown tracker. The user funded the public signer
+  with 10 test MON. Encrypted keystore and Windows-protected password/RPC remain outside Git;
+  no credential, private key or password is included in reports.
+- Implemented RB-I01 with failing tests first: safe active reduce-only taker continuation,
+  current-version LIMIT rest conversion, and forced-fill stop after restored health. Initial
+  liquidation regression exposed 648734 lots closed instead of 300000; fixed without weakening
+  genuine stale-order, no-flip, coverage, ownership or rollback checks. Peer review remains pending.
+- Added the guarded concrete 1x `BookRiskEngine`, controlled collateral/authority fixtures,
+  deployment/verification scripts, offline fresh signing and a stateful real-book invariant handler.
+  Did not edit book or oracle internals. RB-I02 maker remainder and the PERP sampler stay open.
+- Task commits: `f2ebc61` RB-I01; `1077dfa` concrete engine/preflight; `47149e5` stateful invariants;
+  `163b709` signed lifecycle/verification; `5b82d9f` fresh offline signing and final-state verifier;
+  `20330d8` full/gate/ABI and live-chain evidence. This final docs commit adds the living tracker,
+  reconciled handoffs/manifests and this turn log; its SHA is available from `git log -1`.
+- Validation at `5b82d9f`, Forge 1.8.3 / solc 0.8.30 / Prague / optimizer 200:
+  - `FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test -vv`: exit 0, **727/727**,
+    117 suites, zero failed/skipped. Includes 23 real-book, 9 concrete-engine and 8 smoke tests.
+  - Focused smoke under `--network monad --hardfork monad:MonadTen`: exit 0, **8/8**.
+  - Python A/B/audit/integration: exits 0, **46/156/8/7** (217 total).
+  - New real-book invariants: 48 runs x 64 depth, 3072 calls, zero reverts; fuzz 1000 and
+    deterministic eight-fill checks. Full CI 10000-fuzz/256x128 campaign not rerun.
+  - ABI export/check: exit 0, concrete/abstract/vault **285/254/35**; `forge fmt --check`: exit 0.
+  - Ordered G0–G6 exit 0 (**68/152/117/78/77/63/55**). G7 exits **2** after six tests at A043:
+    current source is not covered by historical fingerprints. No fingerprints or approval invented.
+  - A044/B040/B041/B042/B043/B044 separately exit 0 (**44/2/2/3/1/1**); direct G7 Solidity suite
+    exit 0 (**6/6**). B043 harness success is not new independent peer review or G7 acceptance.
+- Live Monad chain 10143: foundation six transactions, setup five, direct trade one, settlement
+  three; **15 successful receipts**. Engine `0x4aE742676984D2C383645E4745Eaf3943b67DE72` has
+  114546 runtime / 124593 initcode bytes; engine creation receipt gas **27904929**, below 30M.
+  Seven final smoke runtimes and expected roles/immutables compared with local artifacts. Nested
+  ReserveVault runtime was not independently compared; RPC/artifact verification is not an audit.
+- Actual vault-backed deposits and allocation total 200 test tokens; matching posts +/-100000 lots
+  at tick 500. Manual YES finality, bounded preparation and claims leave actor balances **150/50**,
+  zero unpaid trader claims, and zero actual/recognized vault custody. Market is terminally closed.
+  Fixture collateral, synthetic signed INDEX and manual authority are not production counterparts.
+- Operational finding: fork-based trade simulation outlasted the 30-second freshness window;
+  node gas estimation rejected it and **no trade transaction was broadcast** by that attempt.
+  Fresh offline preparation and direct estimated send succeeded, without bypassing freshness.
+  Local Anvil launch was unavailable; no local-node execution is claimed in place of the live run.
+- Actual total fee **4.223887319407733183 test MON**; remaining signer balance
+  **5.776112680592266817 test MON**. No more broadcasts planned. Receipts/state evidence:
+  `artifacts/risk/monad-testnet-deployment.json`, `monad-testnet-smoke.json` and
+  `real-book-validation-2026-10-03.json`; runbook includes bounded fresh-signing reproduction.
+- Current shared planning file: `docs/integration/RISK_BOOK_TRACKER.md`. Review source/evidence,
+  limits and owner-specific next steps there before changing behavior. Generated lane-A handoff
+  artifacts retain lane-local mock labels; they do not supersede combined/live evidence.
+- Next turn: independent Risk teammate reviews RB-I01/concrete source and refreshes review evidence;
+  Risk + Book agree RB-I02 and bounded PERP depth; Risk + Oracle coordinate actual-engine finality
+  tests. Collector/factory/app joins and production calibration remain open. G7 human acceptance,
+  production/mainnet deployment and main update are not authorized or claimed.

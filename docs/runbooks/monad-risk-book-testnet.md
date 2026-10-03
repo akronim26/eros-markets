@@ -1,4 +1,4 @@
-# Risk + Book: Monad testnet preflight
+# Risk + Book: Monad testnet workflow
 
 Scope: testnet evaluation of the concrete `contracts/src/engine/BookRiskEngine.sol`,
 not a mainnet release. A successful estimate is not a deployment or release approval.
@@ -77,8 +77,10 @@ which lacks MonadTen/MIP-8. [Official Foundry guide](https://docs.monad.xyz/tool
 - Choose actual `listedAt` and `scheduledT`: at deployment T must be at least one day away and
   at most 2,588,400 seconds away; also preserve the listing's void/fallback horizon constraints.
 - Fix cap 1 and funding false. Supply collateral budgets for traders and any reserve seeding.
-  Real public-chain time cannot be warped: index warmup is 300 seconds with continuous coverage
-  and freshness at most 30 seconds per observation; reserve withdrawal notice is seven days.
+  Real public-chain time cannot be warped: a live source needs 300 seconds of continuously covered
+  index history, with freshness at most 30 seconds per observation; reserve withdrawal notice is
+  seven days. The controlled smoke below explicitly signs synthetic historical observations;
+  this does not demonstrate elapsed-time collection from a live source.
 
 ## Read-only checks
 
@@ -181,6 +183,135 @@ FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge script \
 There is deliberately no `--broadcast` in this example. The risk profile's large size allowance
 is for the script/test harness only; enforce real runtime/initcode and 30M per-transaction limits
 on every resulting deployment. Fund/activate/trade only under an explicitly approved scenario.
+
+## Executed controlled smoke workflow
+
+Use the [integration tracker](../integration/RISK_BOOK_TRACKER.md) for current addresses, ownership,
+remaining work and transaction links. The 2026-10-03 public-chain records are the
+[verified deployment](../../artifacts/risk/monad-testnet-deployment.json),
+[ordered smoke transactions](../../artifacts/risk/monad-testnet-smoke-transactions.json), and
+[verified completed smoke](../../artifacts/risk/monad-testnet-smoke.json). These records distinguish
+actual successful receipts and runtime comparisons from rehearsals. They are not production
+release approval, independent economic review, or evidence for the missing live counterparts.
+
+The successful sequence uses the already authorized encrypted keystore outside Git. The
+`TESTNET_DEPLOYER` environment value is only its public address. Keep the keystore, password file,
+private RPC URL and unsanitized command output outside committed evidence. Never put a password
+or private key in a command example, shell history, chat or source file.
+
+### 1. Deploy, verify, then set up actors
+
+Run the reviewed `DeployTestnetRiskBook` deployment only after its simulation, size/gas checks
+and explicit spending authorization. Verify all six successful transactions, deployed code,
+vault registration and authority binding with `scripts/verify-monad-deployment.py` before setup.
+
+`ExerciseTestnetRiskBook.setup(address engine)` then performs five authorized transactions:
+create the smoke coordinator and two trader actors, mint 100 `RISK-TEST` (100,000,000 six-decimal
+atoms) to each actor, fund both through token approval plus the actual vault deposit/allocation path,
+and activate through engine governance. Use `SmokePrepared` to identify the coordinator and
+actors. Actors accept only their coordinator; the coordinator accepts only the controller.
+There is no arbitrary-call helper or accounting authorization bypass.
+
+Retain and verify the five setup receipts before trading. Confirm the deployed coordinator's
+controller and engine, `funded=true`, `traded=false`, `completed=false`, exactly two participants,
+200 USDC-equivalent allocation, and an active, non-halted engine. Use the actual listing and
+source state; do not reuse predicted addresses or constructor inputs from an earlier dry run.
+
+### 2. Prepare fresh trade calldata without a remote fork
+
+**Do not use the forked `ExerciseTestnetRiskBook.trade(address)` broadcast path for this live
+workflow.** In the observed attempt, remote-fork storage reads outlasted the 30-second price
+freshness bound. Local simulation succeeded at its old fork time, but node gas estimation
+reverted with `UnusableIndex()` (`0x4044fef1`); no trade transaction was sent. Replaying that
+`trade-latest.json` calldata cannot refresh its signed timestamps.
+
+The successful route uses `contracts/script/PrepareTestnetTrade.s.sol:PrepareTestnetTrade`.
+It neither forks nor calls an engine/RPC nor broadcasts. It generates **11** synthetic samples
+at **30-second** intervals spanning `[latestAt - 300, latestAt]`, each with depth 500, price 0.5,
+impact bid 0.49 and ask 0.51. It signs the canonical raw observation digest with the loaded
+controller keystore through `vm.sign(address, digest)`. The digest remains bound to chain 10143,
+the actual engine, market and source/rules identity. No EIP-191 prefix is added.
+
+Before the timed section, finish compilation, check the keystore/controller address, verify
+RPC chain ID 10143, and read the engine listing/source state. Match the market/source/rules
+values to the deployed fixture. Set `FIRST_SEQUENCE = source.lastSequence + 1`; the prepared
+window requires `source.lastObservedAt <= latestAt - 300`. The initial successful smoke had
+no previously accepted samples. Do not send a backwards window into an already updated source.
+
+Then start an elapsed-time guard and read a **fresh latest RPC block timestamp**, not the host
+clock or a previous fork timestamp, into `LATEST_AT`. Immediately run the offline helper. This
+Git Bash example assumes pinned Forge is on PATH and the public inputs plus private local paths
+are already populated; it deliberately clears both inherited fork URL variables for that child:
+
+```sh
+cd contracts
+env -u ETH_RPC_URL -u FOUNDRY_ETH_RPC_URL \
+  FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false \
+  forge script script/PrepareTestnetTrade.s.sol:PrepareTestnetTrade \
+  --chain 10143 --network monad --hardfork monad:MonadTen \
+  --sender "$TESTNET_DEPLOYER" --keystore "$KEYSTORE_PATH" --password-file "$PASSWORD_FILE" \
+  --sig 'prepare(address,bytes32,bytes32,bytes32,uint64,uint64)' \
+  "$ENGINE" "$MARKET_ID" "$SOURCE_ID" "$RULES_HASH" "$FIRST_SEQUENCE" "$LATEST_AT" \
+  --json > "$PREPARED_JSON" 2> "$PRIVATE_PREPARE_LOG"
+```
+
+There must be **no** `--rpc-url`, fork option or `--broadcast` on this command. In PowerShell,
+clear `Env:ETH_RPC_URL` and `Env:FOUNDRY_ETH_RPC_URL` in the child environment too; merely omitting
+`--rpc-url` is insufficient. Restore the parent environment without printing either value.
+Require exit zero and JSON `success=true`; the returned hex is `returns.callData.value`.
+Signatures and calldata are public transaction data, but do not publish unsanitized logs.
+
+### 3. Estimate once and send the exact fresh bytes
+
+Immediately ask the actual node for `eth_estimateGas` with `from=TESTNET_DEPLOYER`, `to=SMOKE`,
+`value=0` and the prepared bytes as `data`. An estimate failure is a stop condition, not a reason
+to disable checks. Select a bounded gas limit from this fresh estimate, below 30M and within
+the approved MON budget; do not copy old gas prices or oversized harness limits.
+
+Before sending, require both elapsed preparation time and the signed latest sample's age at
+a newly read latest block to be **less than 20 seconds**, with no future timestamp. This leaves
+inclusion headroom but does not guarantee inclusion within 30 seconds. If the guard fails,
+discard the calldata, reread source sequence/time and regenerate from a fresh block. Keep retries
+bounded; do not re-sign or resend blindly after an ambiguous send without checking its receipt.
+
+Send the exact bytes directly with the same authorized encrypted keystore, for example:
+
+```sh
+cast send "$SMOKE" --data "$CALLDATA" --chain 10143 --rpc-url "$MONAD_TESTNET_RPC" \
+  --keystore "$KEYSTORE_PATH" --password-file "$PASSWORD_FILE" \
+  --gas-limit "$APPROVED_GAS_LIMIT" --json > "$TRADE_RECEIPT_JSON" 2> "$PRIVATE_SEND_LOG"
+```
+
+`--data` takes literal hex; load the file's returned value into the variable rather than assuming
+`@file` syntax. Check exit status, transaction hash and successful mined receipt. In one transaction
+the coordinator relays authenticated observations, rests the seller's 100,000-lot limit at tick 500,
+and submits the buyer's matching IOC. It asserts the consumed order, positions `+100,000/-100,000`,
+cash `50/150` USDC-equivalent and zero protocol fees. A late inclusion still fails the original
+freshness checks and rolls back observations and both orders atomically; no stale-price bypass exists.
+
+### 4. Halt, finalize YES, prepare and claim
+
+After verifying the trade, `ExerciseTestnetRiskBook.settle(address smoke)` uses three controller
+transactions: authority halt, authority `finalize(1)`, and coordinator `completeSettlement()`.
+Matching repeated YES finality is accepted for retry; conflicting finality still reverts. The
+script refuses an untraded or already completed coordinator before starting its broadcast.
+
+Preparation is bounded: two one-account snapshot pages, then four one-account payout pages
+(two scans and two allocations), followed by `finishPreparation` and actual vault-backed claims.
+The coordinator checks **150/50 USDC-equivalent** actor token balances, every trader claim paid,
+and zero recognized/token custody remaining in the vault. Inspect all three successful receipts;
+finality alone is not proof that preparation or claims completed.
+
+This is a terminal smoke: the engine remains halted/complete, not a reusable continuous-trading
+demo. Claimed fixture tokens remain in the actor contracts, which deliberately have no withdrawal
+or arbitrary-send port. They are not real collateral or user wallet balances. The index is synthetic,
+finality controller-operated, funding/recovery disabled, and no normal-PERP pricing claim is made.
+
+Run `scripts/verify-monad-smoke.py` with the expected controller/engine/coordinator and the ordered
+setup-five/trade-one/settlement-three receipt list. It is read-only: it checks code, successful
+transactions and final state without signing or broadcasting. Update the linked tracker/evidence
+only after verification; preserve failed estimation attempts as failed operational evidence, not
+failed mined transactions or successful trades.
 
 ## Wallet and QuickNode cost controls
 
