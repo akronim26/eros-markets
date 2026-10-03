@@ -57,6 +57,19 @@ test('unknown send retries original raw transaction/nonce; exact receipt is mine
     assert.equal(s.packets.get(s.domain,1n)!.packet.observation.sequence,1n);
   }finally{s.close();}
 });
+test('slow lifecycle guard cannot consume source headroom unnoticed before nonce reservation or broadcast',async()=>{
+  for(const delayedCheck of [1,2]){
+    const s=await setup();let checks=0;try{
+      await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n,async()=>{
+        if(++checks===delayedCheck)s.setNow(1031000n);
+      }),/HEADROOM_EXPIRED/);
+      assert.equal(s.sent.length,0);
+      const record=s.relay.get(s.domain,1n);
+      if(delayedCheck===1){assert.equal(record,null);assert.equal(s.prepareCalls(),0);}
+      else {assert.equal(record!.state,'QUARANTINED');assert.ok(record!.raw);assert.equal(record!.attempts,0);}
+    }finally{s.close();}
+  }
+});
 test('older unknown packet blocks newer source sequence and shared nonce survives restart',async()=>{
   const s=await setup();let replacement:LocalRelay|undefined;
   try{

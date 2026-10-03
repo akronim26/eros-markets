@@ -1,0 +1,38 @@
+{
+  "task": "PF023",
+  "recordedAtUtc": "2026-10-03T21:11:17.656358+00:00",
+  "baseGitSha": "849576c71c3ac70da696a59c31d75c71059af284",
+  "command": [
+    "npm",
+    "test"
+  ],
+  "cwd": "/home/mihir/eros-markets/packages/pricefeed",
+  "exitCode": 0,
+  "tap": {
+    "tests": 223,
+    "pass": 223,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "node": "v24.21.0",
+  "includesReferenceVectors": 144,
+  "referenceSeed": 20261002,
+  "logSha256": "51a102d7439d1c47d4d2c113f1095f0dfaf352ef98f2d7a2bd486b9d17834979",
+  "sourceSha256": {
+    "src/lifecycle.ts": "d3abf90cc434ae87d5dbeb9fa55c13bd74fa9f3bd6d0b73a6943478b200f771c",
+    "src/service.ts": "a69ab064739478be0777986fd5708fcd0f4a47da00f21eb3e0aff105065e24db",
+    "src/pipeline.ts": "d899406fe7403e426b1a936374c55f02faaa5b2b3c3298c685e0b101bba59d43",
+    "src/local-relay.ts": "842a25eefb19a352b678f03f39d02f3731e3b3824693735c2612586c5d8a47c7",
+    "src/health.ts": "4404cac9a22d07089e3d252efbcc4f12357349adfe4909e3d3f9508acd6eeeab",
+    "test/lifecycle.test.ts": "8572c9aa0625ce63dcde0cda5101cb6a08cd6bddb75e7c3c4fd2e1cbfa6d10dc",
+    "test/pipeline.test.ts": "98f5abe7ff1459b286b6933030c7855e8279da33e2fa0715b591c7efb9bd761d",
+    "test/local-relay.test.ts": "7360cd145b9470aa30a7a5367b6df6a6b353e48cf985a66f71d5a8030f8faf3c",
+    "package.json": "28f3fb9bec2628f2eae03e954fce386dff383d5cff5678865bac5f3592719b53"
+  },
+  "sourceStatus": "current uncommitted package changes",
+  "externalTransactions": 0,
+  "humanGatesAccepted": false,
+  "productionReady": false
+}

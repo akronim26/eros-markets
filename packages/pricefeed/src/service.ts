@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import type { PollResult } from './worker.js';
 
-export type ScheduledWorker={config:{key:string;poll:{intervalMs:number}};poll():Promise<PollResult>};
+export type ScheduledWorker={config:{key:string;poll:{intervalMs:number}};poll():Promise<PollResult>;shouldPoll?():Promise<boolean>};
 function pause(ms:number,signal:AbortSignal):Promise<void> {
   if(signal.aborted)return Promise.resolve();
   return new Promise(resolve=>{
@@ -27,6 +27,8 @@ export class CollectionService {
         try{
           while(!stop.signal.aborted){
             const begun=performance.now();
+            if(worker.shouldPoll&&!await worker.shouldPoll())break;
+            if(stop.signal.aborted)break;
             const result=await worker.poll();
             await onResult(result); // raw evidence has been archived before this callback.
             const remaining=worker.config.poll.intervalMs-(performance.now()-begun);

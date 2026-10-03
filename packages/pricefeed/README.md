@@ -40,6 +40,18 @@ joins collection, durable preparation, signing and `LocalRelay`; `localRpcTransp
 supplies the loopback-only adapter. See `docs/rules-hash-proposal.md` and
 `docs/risk-requirements-crosscheck.md` for the remaining policy boundaries.
 
+`LocalLifecycle` now supplies an optional durable development recorder gate.
+It keeps publishing the same authenticated source samples in RECORD_ONLY after
+an engine halt, blocks output on unavailable/inconsistent engine checkpoints,
+and stops each worker beyond its explicit recording deadline. A config declaring
+requiredFeedUntil must attach that controller. Source closure is archived as a
+gap. Deadline crossings during signing/simulation/transaction preparation are
+tested. This uses injected block-labeled readers; a concrete approved engine
+lifecycle reader and production policy are still required. See
+[`docs/lifecycle.md`](docs/lifecycle.md) and run `npm run test:lifecycle` with the
+pinned Forge/solc paths. Four signed accelerated 24-hour fixtures import the real
+ingress/store/INVALID modules; they are separate from live-source soak evidence.
+
 ## Live-data local demo
 
 The separately authorized demo connects real Polymarket data to an owned local
@@ -206,7 +218,7 @@ semantics, canonical rules dossier, units/quote/precision, exact event equivalen
 measured operating budgets, production invalid/lifecycle policy,
 environment/signer/relay/finality and release/calibration.
 The joined development pipeline and concrete loopback adapter are present.
-Operational RPC/key adapters, full lifecycle recording, broader recovery/load
+Operational RPC/key/lifecycle readers, approved recording/closure policy, broader recovery/load
 campaigns and reviewed production acceptance remain incomplete. The staged
 PF001–PF028 audit is in
 [`docs/plan-status.md`](docs/plan-status.md).

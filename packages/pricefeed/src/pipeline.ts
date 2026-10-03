@@ -8,15 +8,19 @@ import { LocalRelay, type LocalRelayTransport, type RelayPolicy, type DeliveryRe
 import { CollectionService, type ScheduledWorker } from './service.js';
 import type { PollResult } from './worker.js';
 import { sourceTime } from './time.js';
+import type { LocalLifecycle, LifecycleView } from './lifecycle.js';
 
 export type RecoverableSigner=RawSigner&{reconcile(owner:string,fence:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void};
-export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig};rules:RulesManifest;signer:RecoverableSigner};
-type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null};
-export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'QUARANTINED'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
-  reason:string|null;sequence:bigint|null;transactionHash:string|null;depthValid:boolean|null};
+export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig};rules:RulesManifest;signer:RecoverableSigner;lifecycle?:LocalLifecycle};
+type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null;lifecycleView:LifecycleView|null};
+export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'QUARANTINED'|'STOPPED'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
+  reason:string|null;sequence:bigint|null;transactionHash:string|null;depthValid:boolean|null;lifecycle:LifecycleView|null};
+class LifecycleBlocked extends Error {
+  constructor(readonly result:PipelineResult){super(`LIFECYCLE_BLOCKED:${result.state}:${result.reason}`);}
+}
 
 /** First joined development path: disabled configs, public test signer, chain 31337.
- * Stores are caller-owned. Operational admission and invalid-transition policy stay closed. */
+ * Stores are caller-owned. Production admission stays closed; development policies are explicit. */
 export class LocalPipeline {
   private readonly owner=randomUUID();
   private readonly entries=new Map<string,Entry>();
@@ -36,10 +40,12 @@ export class LocalPipeline {
       const config=parseConfig(JSON.parse(json(input.worker.config))),d=config.destination,rules=parseRules(input.rules);
       if(config.enabled||!d||d.chainId!=='31337')throw new Error('LOCAL_DISABLED_CONFIG_ONLY');
       if(input.signer.address.toLowerCase()!==d.signerAddress.toLowerCase()||rulesHash(rules)!==d.sourceRulesHash.toLowerCase())throw new Error('PIPELINE_RULES_OR_SIGNER_MISMATCH');
+      input.lifecycle?.assertConfig(config);
+      if(config.requiredFeedUntil!==null&&!input.lifecycle)throw new Error('PIPELINE_LIFECYCLE_REQUIRED');
       const domain:PacketDomain={chainId:31337n,engine:d.engineAddress,marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress};
       const ns=packetNamespace(domain);
       if(this.entries.has(config.key)||domains.has(ns))throw new Error('DUPLICATE_PIPELINE_WORKER');domains.add(ns);
-      this.entries.set(config.key,{...input,config,rules,domain,fence:0n,pending:[],watch:[],quarantined:null});
+      this.entries.set(config.key,{...input,config,rules,domain,fence:0n,pending:[],watch:[],quarantined:null,lifecycleView:null});
     }
   }
   private async bounded<T>(op:Promise<T>):Promise<T>{
@@ -89,7 +95,15 @@ export class LocalPipeline {
     }
   }
   private result(e:Entry,state:PipelineResult['state'],reason:string|null,sequence:bigint|null=null,r?:DeliveryRecord):PipelineResult {
-    return {worker:e.config.key,state,reason,sequence,transactionHash:r?.txHash??null,depthValid:r?.accepted?.depthValid??null};
+    return {worker:e.config.key,state,reason,sequence,transactionHash:r?.txHash??null,depthValid:r?.accepted?.depthValid??null,lifecycle:e.lifecycleView};
+  }
+  private async lifecycleGate(e:Entry):Promise<PipelineResult|null>{
+    if(!e.lifecycle)return null;
+    const view=await this.bounded(e.lifecycle.check());e.lifecycleView=view;
+    if(view.mode==='STOPPED')return this.result(e,'STOPPED',view.reason);
+    if(view.mode==='QUARANTINED')return this.result(e,'QUARANTINED',view.reason);
+    if(view.mode==='DEGRADED')return this.result(e,'SOURCE_UNAVAILABLE',view.reason);
+    return null; // RECORD_ONLY uses the identical authenticated observation path.
   }
   private accepted(e:Entry,seq:bigint):void {
     e.pending=e.pending.filter(v=>v!==seq);
@@ -98,6 +112,7 @@ export class LocalPipeline {
   }
   private async publish(e:Entry,p:StoredPacket):Promise<PipelineResult>{
     const seq=p.packet.observation.sequence;
+    const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
     if(!this.relay.get(e.domain,seq)&&!sourceTime(p.packet.sourceMs.toString(),this.now(),null,this.policy.headroomMs).hasHeadroom){
       this.packets.expire(e.domain,this.owner,e.fence,this.now(),seq,'UNSENT_HEADROOM_EXPIRED');
       e.pending=e.pending.filter(v=>v!==seq);return this.result(e,'EXPIRED','UNSENT_HEADROOM_EXPIRED',seq);
@@ -105,9 +120,14 @@ export class LocalPipeline {
     if(p.state!=='SIGNED')p=await this.bounded(signPrepared(this.packets,e.domain,this.owner,e.fence,seq,e.signer,this.now,this.policy.headroomMs));
     if(p.state==='EXPIRED'){e.pending=e.pending.filter(v=>v!==seq);return this.result(e,'EXPIRED',p.reason,seq);}
     return this.serialized(async()=>{
+      const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
       this.relay.renew();let r=this.relay.get(e.domain,seq);
       if(r?.txHash)r=await this.relay.reconcile(e.config,seq);
-      if(!r||!['MINED','FINALIZED'].includes(r.state))r=await this.relay.deliver(e.config,this.owner,e.fence,seq);
+      if(!r||!['MINED','FINALIZED'].includes(r.state)){
+        try{r=await this.relay.deliver(e.config,this.owner,e.fence,seq,e.lifecycle?async()=>{
+          const blocked=await this.lifecycleGate(e);if(blocked)throw new LifecycleBlocked(blocked);
+        }:undefined);}catch(error){if(error instanceof LifecycleBlocked)return error.result;throw error;}
+      }
       if(r.state==='UNKNOWN')r=await this.relay.reconcile(e.config,seq);
       if(!['UNKNOWN','MINED','FINALIZED'].includes(r.state))throw new Error(`PIPELINE_DELIVERY_RECOVERY_REQUIRED:${r.state}`);
       if(r.state==='MINED'||r.state==='FINALIZED'){
@@ -139,7 +159,8 @@ export class LocalPipeline {
       });
       if(result.inspection.status==='QUARANTINED')e.quarantined=result.inspection.reason??'SOURCE_QUARANTINED';
       if(e.quarantined)return this.result(e,'QUARANTINED',e.quarantined);
-      if(recovered)return recovered;
+      const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
+      if(recovered)return {...recovered,lifecycle:e.lifecycleView};
       const invalid=result.inspection.status==='INVALID_DEPTH',allowInvalid=invalid&&permitsInvalidDepth(e.rules);
       if(invalid&&!allowInvalid)return this.result(e,'SOURCE_UNAVAILABLE',`INVALID_DEPTH:${result.inspection.reason}`);
       const complete=!!result.book&&!!result.metadata&&!!result.event;
@@ -186,7 +207,12 @@ export class LocalPipeline {
     if(signal.aborted)forward();let failure:unknown;
     const heartbeat=setInterval(()=>{try{this.renew();}catch(error){failure=error;stop.abort();}},Math.max(1,Number(this.policy.leaseMs/3n)));
     try{
-      await new CollectionService([...this.entries.values()].map(e=>e.worker)).run(stop.signal,async result=>{
+      const scheduled:ScheduledWorker[]=[...this.entries.values()].map(e=>e.lifecycle?{
+        config:e.config,poll:()=>e.worker.poll(),shouldPoll:async()=>{
+          await this.lifecycleGate(e);return e.lifecycleView?.mode!=='STOPPED';
+        },
+      }:e.worker);
+      await new CollectionService(scheduled).run(stop.signal,async result=>{
         if(!stop.signal.aborted)await onResult(await this.process(result));
       });
       if(failure)throw failure;
