@@ -220,3 +220,15 @@ Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY
   measurement jump (not diagnosed).
 - Next turn: teammate (YASH-ai-bit) — review B-D02 and A-I01, refresh A043 fingerprints if accepted,
   rerun G7.
+
+### 2026-10-03 — YASH-ai-bit (with Codex agent) — turn in progress
+
+- Started at `2506235`, equal to the fetched shared branch; tracked source is clean. Existing
+  untracked A-to-B handoff and Python caches are preserved, not incorporated as new evidence.
+- Reported branch history to the human before changes. `origin/main` is now `a114d06`: the old
+  `c5db208` merge rehearsal and the claim that no book-hook implementation exists are stale.
+  Main has a real-book/real-B fixture, but its A accounting is still scripted.
+- Scope: cross-review B-D02, B-D03 and A-I01; answer B-D01 through B-D05; add independent
+  regression evidence as needed; refresh A043 only after review and rerun the gates.
+- The human explicitly requested merging current `origin/main` into `integration/risk` and
+  validating the real-book integration. No merge into main, G7 acceptance or deployment is authorized.

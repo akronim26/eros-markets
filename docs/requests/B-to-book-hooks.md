@@ -1,5 +1,17 @@
 # Request to the order-book team: risk hook seam (CP-BOOK)
 
+## Status update — 2026-10-03
+
+The original request below describes the book that remains on `integration/risk` at `2506235`.
+The book team has since implemented the ten structural interface changes on `origin/main`
+through `a114d06`, including single-market lots/engine IDs, epoch metadata, paired risk hooks,
+cancel-all, expiry and forced reduction. Do not ask them to implement these again without
+reviewing those commits. Main's real-book/B test still uses `MockAccountingPort`; the remaining
+join is real Book + real A accounting + real B risk, followed by fresh integration evidence.
+The real-counterpart status remains blocked until that join is validated.
+
+## Original request — historical baseline
+
 From: Risk & Clearing (integration/risk). Status: **BLOCKED_BY_COUNTERPART**. The published hook
 fixtures (contracts/test/risk/B/BookSeam.t.sol, contracts/test/gates/G4.t.sol) could not be run
 against `contracts/src/Book.sol`, because no adapter can map its hooks onto the risk seam in

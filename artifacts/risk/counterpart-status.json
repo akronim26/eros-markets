@@ -9,7 +9,9 @@
    "local_double": "contracts/test/mocks/B/MockBookAdapter.sol",
    "mock_status": "PASS on real A+B: contracts/test/gates/G4.t.sol, G5.t.sol, test/integration/EndToEnd.t.sol (MockBookAdapter)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "contracts/src/Book.sol present but its hook set cannot host the risk seam (10 exact mismatches: docs/requests/B-to-book-hooks.md); fixtures not run against it"
+   "reason": "Book hook implementation is available on origin/main at a114d06, but is not merged into integration/risk at 2506235. Main tests real Book with real B and MockAccountingPort; this branch tests real A+B with MockBookAdapter. Real A+B+Book join and fresh evidence remain required.",
+   "counterpart_source_commit": "a114d06a1cebdf107c47d75947b114b3dd94b60e",
+   "inspection_date": "2026-10-03"
   },
   {
    "id": "CP-PRICE",

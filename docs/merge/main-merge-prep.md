@@ -1,5 +1,16 @@
 # Merge prep: `origin/main` into `integration/risk` (dry run; nothing merged into main)
 
+## Current-head warning — 2026-10-03
+
+The rehearsal below is historical: it used main `c5db208`, not current `a114d06`.
+The new main includes book-hook implementation and economic risk fixes. A read-only merge-tree
+against integration `2506235` finds five conflicts (adds `CLAUDE.md` and `OrderAdmission.sol`
+to the three below), plus provisional-type imports and snapshot-helper/reduction-check hazards
+in automatically merged files. See `history-review-2026-10-03.md` for the current assessment.
+Do not reuse the three-file resolution as evidence that the current merge is safe or tested.
+
+## Historical rehearsal
+
 - Prepared 2026-10-02 by 0xr10t (with Claude agent).
 - Branch: local `scratch/main-merge-prep`, never pushed.
 - No merge into `main` was made and none is authorized. A human decides when to merge.
