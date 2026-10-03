@@ -48,14 +48,26 @@ describe('IndexerSource', () => {
       return new Response(JSON.stringify(body), { status: 200 })
     }) as unknown as typeof fetch
 
-  test('pages through every Market id', async () => {
+  test('pages through every Market id until an empty page', async () => {
     const calls: unknown[] = []
     const src = new IndexerSource(new IndexerClient('http://indexer/v1/graphql', 10143, fake([
       { data: { Market: [{ id: id(1) }, { id: id(2) }] } },
       { data: { Market: [{ id: id(3) }] } },
+      { data: { Market: [] } },
     ], calls)), 2)
     expect(await src.marketIds()).toEqual([id(1), id(2), id(3)])
-    expect(calls).toEqual([{ limit: 2, offset: 0 }, { limit: 2, offset: 2 }])
+    expect(calls).toEqual([{ limit: 2, offset: 0 }, { limit: 2, offset: 2 }, { limit: 2, offset: 3 }])
+  })
+
+  test('a server capping rows below the page size does not end the list early', async () => {
+    const calls: unknown[] = []
+    const src = new IndexerSource(new IndexerClient('u', 10143, fake([
+      { data: { Market: [{ id: id(1) }] } }, // asked for 1000, the server returns 1
+      { data: { Market: [{ id: id(2) }] } },
+      { data: { Market: [] } },
+    ], calls)))
+    expect(await src.marketIds()).toEqual([id(1), id(2)])
+    expect(calls).toEqual([{ limit: 1000, offset: 0 }, { limit: 1000, offset: 1 }, { limit: 1000, offset: 2 }])
   })
 
   test('an HTTP error, GraphQL errors or a malformed answer throw', async () => {
@@ -67,9 +79,9 @@ describe('IndexerSource', () => {
 
   test('treasury disputes: the Dispute rows funded by the float', async () => {
     const calls: unknown[] = []
-    const src = new IndexerDisputeSource(new IndexerClient('u', 10143, fake([{ data: { Dispute: [{ id: id(7) }] } }], calls)), 5)
+    const src = new IndexerDisputeSource(new IndexerClient('u', 10143, fake([{ data: { Dispute: [{ id: id(7) }] } }, { data: { Dispute: [] } }], calls)), 5)
     expect(await src.assertionIds()).toEqual([id(7)])
-    expect(calls).toEqual([{ limit: 5, offset: 0 }])
+    expect(calls).toEqual([{ limit: 5, offset: 0 }, { limit: 5, offset: 1 }])
   })
 })
 
@@ -125,11 +137,11 @@ describe('the indexer first, RPC logs as the fallback', () => {
   const indexer = (m: Mode) =>
     new IndexerClient('http://indexer/v1/graphql', 10143, (async (_u: string, init: RequestInit) => {
       if (!m.up) throw new TypeError('connect ECONNREFUSED')
-      const q = JSON.parse(init.body as string).query as string
+      const { query: q, variables } = JSON.parse(init.body as string) as { query: string; variables: { offset?: number } }
       if (q.includes('_meta')) return Response.json({ data: { _meta: [{ chainId: 10143, progressBlock: m.progress, sourceBlock: m.progress, isReady: true }] } })
-      if (q.includes('Dispute(')) return Response.json({ data: { Dispute: m.disputes.map((x) => ({ id: x })) } })
+      if (q.includes('Dispute(')) return Response.json({ data: { Dispute: m.disputes.slice(variables.offset).map((x) => ({ id: x })) } })
       if (m.marketsFail) return Response.json({ errors: [{ message: 'database is starting' }] })
-      return Response.json({ data: { Market: m.markets.map((x) => ({ id: x })) } })
+      return Response.json({ data: { Market: m.markets.slice(variables.offset).map((x) => ({ id: x })) } })
     }) as unknown as typeof fetch)
   function chainLogs(head: { n: bigint }, listed: Map<bigint, Hex>, disputed: Map<bigint, Hex>) {
     const ranges: [string, bigint, bigint][] = []

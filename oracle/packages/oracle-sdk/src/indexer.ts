@@ -66,7 +66,12 @@ export const OPEN_ASSERTIONS = `query OpenAssertions($limit: Int = 200) {
   }
 }`
 
-/** Watchdog intake: every proposal and every assertion in the block range (from, to], in chain order. */
+/**
+ * Watchdog intake: every proposal and every assertion in the block range (from, to], in chain order. The reader asks
+ * for at most WATCHDOG_RANGE_BLOCKS at a time, so an answer stays far below any server row cap.
+ */
+export const WATCHDOG_RANGE_BLOCKS = 10_000n
+
 export const WATCHDOG_EVENTS = `query WatchdogEvents($from: Int!, $to: Int!) {
   Proposal(where: { block: { _gt: $from, _lte: $to } }, order_by: [{ block: asc }, { logIndex: asc }]) {
     market_id outcome path evidenceHash evidenceURI valueHash observedAt attempt block logIndex
@@ -128,15 +133,19 @@ export class IndexerClient {
     return m
   }
 
-  /** Every row of a paged list query ($limit, $offset), concatenated. */
+  /**
+   * Every row of a paged list query ($limit, $offset), concatenated. It stops at an empty page, not a short one: a
+   * server may return fewer rows than asked (a Hasura row cap), and a short page must not end the list.
+   */
   async all<T>(query: string, field: string, pageSize = 1000): Promise<T[]> {
     const rows: T[] = []
-    for (let offset = 0; ; offset += pageSize) {
+    for (let offset = 0; ; ) {
       const data = await this.query<Record<string, T[]>>(query, { limit: pageSize, offset })
       const page = data[field]
       if (!Array.isArray(page)) throw new IndexerError(`indexer ${this.url}: no ${field} list in the response`)
+      if (page.length === 0) return rows
       rows.push(...page)
-      if (page.length < pageSize) return rows
+      offset += page.length
     }
   }
 }

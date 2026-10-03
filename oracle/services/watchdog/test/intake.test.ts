@@ -93,6 +93,14 @@ describe('watchdog intake from the indexer', () => {
     expect(x.calls).toEqual([])
   })
 
+  test('a long catch-up is read 10,000 blocks per query', async () => {
+    const x: Ix = { up: true, progress: 25_000, calls: [], rows: [] }
+    const r = new IntakeReader({ start: 1n, head: async () => 25_000n, readLogs: logs().readLogs, indexer: { client: indexer(x), maxLagBlocks: 300n } })
+    for (let i = 0; i < 4; i++) await r.events()
+    expect(x.calls).toEqual([{ from: 0, to: 10_000 }, { from: 10_000, to: 20_000 }, { from: 20_000, to: 25_000 }])
+    expect(r.cursor).toBe(25_001n)
+  })
+
   test('without an indexer it is the log scan alone', async () => {
     const l = logs()
     const r = new IntakeReader({ start: 1n, head: async () => 150n, readLogs: l.readLogs })
