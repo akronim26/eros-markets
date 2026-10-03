@@ -1,6 +1,6 @@
 # Risk & Clearing — STATUS
 
-- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-03.
+- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-04.
 - Unified Risk and Order Book ownership and automated validation: `CLAUDE.md` and `docs/merge/UNIFIED_WORKFLOW.md`.
 - Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
@@ -13,8 +13,16 @@ seal for RB-I11 is implemented in `dcb6b0e`, with 21 passing sampler regressions
 runner migration is implemented in `bee683b` plus `e05bbbb`, with 17 mocked regressions passing;
 ordered G0-G7 all exit 0 at metadata `c91acf7`. Earlier exit-2 records remain historical.
 The user's explicit conditional G7 acceptance is now satisfied and recorded at
-**2026-10-03 17:39:11 UTC** for that source. Main merge and deployment remain separately
-unauthorized. Historical turn-log review blockers are not current dependencies.
+**2026-10-03 17:39:11 UTC** for that source. Main merge remains unauthorized. The user separately
+authorized the current-source Monad testnet foundation deployment on 2026-10-04; it succeeded.
+Historical turn-log review blockers are not current dependencies.
+
+**RB-DEPLOY complete:** source `162ac92`, Solidity unchanged at `dcb6b0e`, now deployed as engine
+`0x58c63bfd94c13acb6f1da665406cc16cf80d1b69` on chain **10143**. Six successful transactions;
+five runtimes and vault/authority/reserve bindings verified. Root **[addresses.md](../../addresses.md)**
+is the current address/env handoff. New market is **unactivated**, with no minted collateral,
+trading, halt or settlement. Frontend/oracle integration and demo setup are delegated to their team.
+This fixture's immutable manual authority cannot be replaced with the real oracle in place.
 
 A reviewed B's newer work at `2506235`: **B-D02, B-D03 and A-I01 accepted**. All six fee-escrow
 choices are confirmed in `docs/questions/A-I01.md`; B-D01 through B-D05 have A dispositions.
@@ -48,9 +56,10 @@ bounded two-phase payout preparation. Two regressions and standalone offline cha
 pass; neither is a public-chain deployment or a live production-counterpart test.
 
 The earlier Monad testnet deployment, real matching, controlled YES settlement and cash claims
-remain historical successes on chain 10143. That smoke market is immutable and closed; none of
-this turn's new source has been broadcast. Its test collateral, signed INDEX fixture and manual
-resolution authority are not production counterparts. Historical receipts remain in
+remain historical successes on chain 10143. That smoke market is immutable and closed; it does
+not contain the new source. The separate current-source foundation is recorded above. Test
+collateral, signed INDEX fixture and manual resolution authority are not production counterparts.
+Historical receipts remain in
 `artifacts/risk/monad-testnet-deployment.json` and `monad-testnet-smoke.json`.
 
 The prior source `5b82d9f` passed 727 Forge tests and 217 Python tests; those counts do not certify
@@ -173,30 +182,37 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   not certify a target-chain limit. Fixture sizes and limitations are in the release manifest.
 - Current concrete runtime/creation/args/initcode: 120402/129644/928/130572 bytes. Current
   source-bound ABI checks and read-only fixture creation estimate pass. Revalidate actual selected
-  constructor dependencies/state before a separately authorized deployment; no new broadcast.
-- Safe configuration: root `.env.example` plus `docs/runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md`
-  distinguish actual env consumers, CLI arguments, historical addresses and blank new addresses.
+  constructor dependencies/state for each deployment. The authorized current-source foundation
+  is now verified; engine creation receipt gas is **29,245,915**, including the selected gas margin.
+- Safe configuration: root `addresses.md` contains verified current public addresses; root
+  `.env.example` stays blank and `docs/runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md` distinguishes
+  actual env consumers, CLI arguments, current fixtures and historical closed-market addresses.
 - Production configuration, empirical calibration, dependency/code hashes, real-chain gas,
   independent audit and an explicit release decision remain required. Launch defaults remain
   1x leverage with funding/recovery/conversion off.
 
 ## Next turn
 
-1. Preserve completed source-bound evidence and accepted non-oracle integration at `c91acf7`.
-   Solidity remains `dcb6b0e`; GOV runner candidate is `e05bbbb`. Commit/push the final evidence
-   and documentation on `integration/risk`, without rewriting accepted source or historical logs.
-2. Keep the old closed smoke market distinct from new source. Re-estimate and verify any future
-   explicitly authorized deployment; do not reuse historical addresses as a current live market.
-3. Coordinate actual factory/collector roles and inputs; oracle integration requires separate
-   authorization. Do not invent production addresses, feed service guarantees or calibration.
-4. Main updates and new deployments require separate authorization; current source is not deployed.
-5. Never relabel controlled testnet fixtures as production counterpart acceptance.
+1. Preserve accepted non-oracle integration at `c91acf7`, Solidity `dcb6b0e` and source-bound
+   gate evidence. Current-source foundation deployment is complete; do not rerun it blindly.
+2. Frontend/oracle integration team uses root `addresses.md` for the current unactivated fixture.
+   Coordinate test funding, authorized activation and fresh signed INDEX before trading; the
+   ten-day schedule expires at **2026-10-13 19:39:36 UTC**, regardless of activation time.
+3. A real oracle needs a new immutable listing/deployment with the actual authority, collector
+   and factory inputs. Do not invent production addresses, feed guarantees or calibration.
+4. Keep old closed-market receipts and new inactive-market evidence distinct. No smoke actors
+   or settlement were created/executed for the new instance; ongoing demo setup is delegated.
+5. Main updates, further broadcasts and production release need appropriate separate authority;
+   never relabel controlled fixtures as production-counterpart acceptance.
 
 ## Current records
 
 - Initial history report: `docs/merge/history-review-2026-10-03.md`.
 - Reviews: `artifacts/reviews/A-on-B.md`, `A-on-B.json`, `B-on-A.md`.
 - Current tracker: `docs/integration/RISK_BOOK_TRACKER.md`.
+- Current deployed addresses: root `addresses.md`; six-receipt verification and nested reserve/
+  inactive-state supplement: `artifacts/risk/monad-testnet-deployment-2026-10-04.json` and
+  `artifacts/risk/monad-testnet-foundation-state-2026-10-04.json`.
 - Current non-oracle work: `docs/integration/NON_ORACLE_FIXES.md`; deployment estimate:
   `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`.
 - Current aggregate path: `artifacts/risk/unified-integration-2026-10-03.json`. Earlier structured
@@ -478,3 +494,44 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Final task-wise evidence and documentation accompany this handoff on `integration/risk`.
   Next release work needs actual oracle/collector/factory inputs; main and new deployment need
   separate authorization. No source repair was redeployed to the historical closed smoke market.
+
+### 2026-10-04 (RB-DEPLOY) — unified Risk and Order Book — turn complete
+
+- User authorized deploying current contracts and recording addresses at repository root; frontend/
+  oracle integration and ongoing demo/settlement handling are delegated to their integration team.
+  Started at `162ac929d1b8bbb577ecc1fdcdb07816416b0e31`; fetched shared remote and preserved the
+  pre-existing untracked handoff/caches. Main, Solidity, gate evidence and oracle branch unchanged.
+- Pinned Forge 1.8.3, solc 0.8.30 Prague optimizer 200. Fresh command from `contracts`:
+  `FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false FORGE_SNAPSHOT_CHECK=true forge test --match-contract 'TestnetRiskFixturesTest|BookRiskEngineTest|BookDepthSamplerTest' --network monad --hardfork monad:MonadTen -vv`
+  exits **0**, **45 passed / 4 suites**, zero failed/skipped (`tmp/deploy-2026-10-04-tests.log`).
+  `python scripts/export-risk-abis.py --check` exits **0**, ABI counts **294/256/35**, unchanged digest.
+  Existing full CI/G0-G7 evidence was not rerun or reclassified as fresh live testing.
+- Chain/nonce/balance preflight and full dry-run `DeployTestnetRiskBook` exit **0**. Broadcast used
+  `--network monad --slow --gas-estimate-multiplier 105 --with-gas-price 110gwei
+  --priority-gas-price 2gwei --confirmations 3 --skip-simulation --broadcast`, with existing encrypted
+  keystore and private RPC. The prior full rehearsal passed; skipping the second simulation forces
+  Forge 1.8.3 to estimate each sequential transaction via RPC rather than reuse underestimates for
+  the two storage-binding calls. No contract checks were weakened; all receipt gas limits <30M.
+- Broadcast exits **0**, six transactions at nonces **15..20** all status **1**. Engine plus nested
+  reserve, collateral vault, test collateral and test authority deployed; engine registered and
+  authority bound. Receipt gas total **32,073,366** across six transactions; engine **29,245,915**.
+  Actual cost **3.271483332 test MON**, below the **4 MON** internal ceiling; balance after
+  **2.504629348592266817 MON**, reconciled exactly to fees at block **67,915,348**.
+- `python scripts/verify-monad-deployment.py --broadcast contracts/broadcast/DeployTestnetRiskBook.s.sol/10143/run-latest.json --output artifacts/risk/monad-testnet-deployment-2026-10-04.json`
+  exits **0**. Read-only supplementary artifact/getter checks also exit **0**: nested ReserveVault
+  runtime matches and engine binding is correct; active/halted/claims/price-ready false; token
+  supply, allocations, reserve shares/holders and settlement account count zero. Source/runtimes,
+  block hashes, views and balance reconciliation recorded in the dated foundation-state JSON.
+- No token mint, actor/coordinator deployment, activation, trade, halt, finality or settlement this
+  turn. New engine is `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69`; `addresses.md` contains every
+  actual contract address, market/source/rules IDs, schedule, roles, ABIs and transaction links.
+  This is an immutable controller-oracle test fixture, not the real oracle integration or audit.
+- Final local evidence/receipt/address/ABI/fee/link consistency checks and credential-pattern checks
+  exit **0**; `git diff --check` exits **0**. Final fetch matches the starting shared source;
+  `git diff c91acf7 -- contracts` is empty. Unrelated untracked files are not staged.
+- Secrets stay outside Git/chat; a user-only temporary keystore-password file was removed after
+  broadcasting. Raw RPC/broadcast/cache logs stay ignored. Public evidence and documentation are
+  the task-wise RB-DEPLOY commit on `integration/risk`; historical manifests remain unchanged.
+- Next owner: frontend/oracle integration team for activation/feed/UI and a correctly configured
+  real-oracle market. Current fixture halt time is **2026-10-13 19:39:36 UTC**. No further broadcast
+  or main update is included; see root `addresses.md` rather than the old closed-market ledger.

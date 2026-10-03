@@ -1,5 +1,17 @@
 # Risk and Order Book implementation progress
 
+## Current deployment — RB-DEPLOY, 2026-10-04
+
+Current-source Risk + Book foundation is deployed on **Monad testnet 10143**. Root
+**[addresses.md](addresses.md)** is the current address/configuration handoff. Six transactions
+succeeded; all five runtimes, vault/authority/reserve bindings and inactive state were verified.
+Engine: `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69`, from source `162ac92`, Solidity unchanged
+at `dcb6b0e`. Fresh targeted Monad tests pass **45/45**, ABI check exits **0**.
+The market is **not activated or settled**, and no collateral or actors were created beyond the
+empty test token contract. Frontend/oracle integration and demo setup are delegated to their team.
+The controller-only test resolution authority is immutable; real-oracle integration needs a new,
+correctly configured market. Main and historical gate/smoke evidence are unchanged.
+
 ## Governing workflow — GOV-01, 2026-10-03
 
 Risk and Order Book are now one team; mandatory A/B peer review is retired by the user's
@@ -8,8 +20,8 @@ describe the previous workflow, not current approval dependencies. RB-I11's stri
 seal is implemented in `dcb6b0e`; 21 sampler regressions pass. G7 runner migration `bee683b`
 plus guard `e05bbbb` passes 17 mocked regressions; full CI passes 832/130 suites. Ordered G0-G7
 all exit 0 at metadata `c91acf7`. The user's authorized G7 acceptance is recorded for that source
-at **2026-10-03 17:39:11 UTC**, after required checks passed. No main merge, independent audit
-or new deployment is claimed.
+at **2026-10-03 17:39:11 UTC**, after required checks passed. That acceptance did not claim a main
+merge, independent audit or deployment; the later authorized deployment is recorded above.
 
 ## Current non-oracle implementation update — 2026-10-03
 
@@ -37,8 +49,9 @@ Its reported 45,478,303 aggregate gas spans multiple virtual transactions, not o
 The concrete source now supports bounded, provenance-checked real-book PERP observations while
 retaining fresh-INDEX startup and uncalibrated, fully backed 1x defaults. Matching/batches have
 an eight-examination concrete budget. Funding, recovery and conversion remain disabled.
-The new source is **not deployed**. The older Monad smoke market successfully matched and paid
-150/50 test tokens after controlled YES settlement; that immutable market remains closed.
+The new source is now deployed as the **unactivated** foundation recorded above. The older Monad
+smoke market successfully matched and paid 150/50 test tokens after controlled YES settlement;
+that immutable market remains closed.
 
 The earlier 727-Forge/217-Python results apply to the historical source, not this delta.
 A full-risk run at `1654b9f` passes 818 tests/128 suites; seven later RB-I08 tests pass separately.
@@ -71,8 +84,8 @@ approval. Evidence: `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.js
 Current aggregate: `artifacts/risk/unified-integration-2026-10-03.json`. CI/Monad/reference/SDK/
 ABI/format and all gates pass; non-oracle integration acceptance is recorded. Final evidence
 and docs are ready for commit/push on `integration/risk`, without rewriting historical reviews.
-Safe env setup and historical versus blank new addresses are in
-`docs/runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md` and root `.env.example`.
+Current deployed addresses are in root `addresses.md`; safe env setup and historical addresses
+are in `docs/runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md`, with root `.env.example` kept blank.
 Production collector/factory/calibration joins remain open; oracle integration needs separate
 authorization. Earlier sections below preserve historical source ranges and instructions only.
 
