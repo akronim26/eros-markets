@@ -1,0 +1,10 @@
+{
+  "httpStatus": 500,
+  "headers": {},
+  "body": {
+    "error": {
+      "message": "Internal server error",
+      "type": "server_error"
+    }
+  }
+}

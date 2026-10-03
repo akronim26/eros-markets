@@ -1,0 +1,21 @@
+{
+  "httpStatus": 200,
+  "headers": {},
+  "body": {
+    "candidates": [
+      {
+        "content": {
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 805,
+      "thoughtsTokenCount": 32768,
+      "totalTokenCount": 33573
+    },
+    "modelVersion": "gemini-x"
+  }
+}

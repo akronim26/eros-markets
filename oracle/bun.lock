@@ -42,6 +42,15 @@
         "zod": "4.6.5",
       },
     },
+    "services/panel-runner": {
+      "name": "@eros-oracle/panel-runner",
+      "version": "0.1.0",
+      "dependencies": {
+        "@eros-oracle/oracle-sdk": "workspace:*",
+        "@eros-oracle/snapshotter": "workspace:*",
+        "viem": "2.57.2",
+      },
+    },
     "services/snapshotter": {
       "name": "@eros-oracle/snapshotter",
       "version": "0.1.0",
@@ -61,6 +70,8 @@
     "@eros-oracle/oracle-cli": ["@eros-oracle/oracle-cli@workspace:packages/oracle-cli"],
 
     "@eros-oracle/oracle-sdk": ["@eros-oracle/oracle-sdk@workspace:packages/oracle-sdk"],
+
+    "@eros-oracle/panel-runner": ["@eros-oracle/panel-runner@workspace:services/panel-runner"],
 
     "@eros-oracle/snapshotter": ["@eros-oracle/snapshotter@workspace:services/snapshotter"],
 
