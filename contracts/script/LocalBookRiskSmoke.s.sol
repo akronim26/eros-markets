@@ -27,7 +27,7 @@ contract LocalSmokeTrader {
         returns (uint32)
     {
         require(msg.sender == controller, "controller only");
-        return engine.placeOrder(Book.Place(kind, isBuy, false, 500, 100_000, 64, 0));
+        return engine.placeOrder(Book.Place(kind, isBuy, false, 500, 100_000, engine.maxFills(), 0));
     }
 }
 
@@ -64,7 +64,11 @@ contract LocalBookRiskSmoke is Script {
         require(oracle.finalize(1), "finality not accepted");
         require(!engine.claimsEnabled(), "premature claims");
         require(engine.prepareSnapshotChunk(32).done, "snapshot incomplete");
-        require(engine.preparePayoutChunk(32).done, "payout incomplete");
+        bool payoutsReady;
+        for (uint8 pass; pass < 2 && !payoutsReady; ++pass) {
+            payoutsReady = engine.preparePayoutChunk(32).done;
+        }
+        require(payoutsReady, "payout incomplete");
         require(engine.finishPreparation(), "claims not ready");
         require(engine.claimTrader(address(buyer)) == 150e6, "buyer payout");
         require(engine.claimTrader(address(seller)) == 50e6, "seller payout");
