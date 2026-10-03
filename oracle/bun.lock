@@ -46,9 +46,11 @@
       "name": "@eros-oracle/panel-runner",
       "version": "0.1.0",
       "dependencies": {
+        "@eros-oracle/feedspec": "workspace:*",
         "@eros-oracle/oracle-sdk": "workspace:*",
         "@eros-oracle/snapshotter": "workspace:*",
         "viem": "2.57.2",
+        "zod": "4.6.5",
       },
     },
     "services/snapshotter": {

@@ -411,6 +411,49 @@ contract OracleGasTest is RegistryFixture {
         assertGt(treasury.balanceOf(Ledger.WATCHDOG_FLOAT), before, "skim credited the float");
     }
 
+    /// `submitPanelResult` on each route the panel runner sends (O33.5), with a 256-byte evidence URI (the
+    /// contract's maximum): after T to Review (no validated category at launch), and before T to EarlyReview
+    /// (three confident identical labels) or back to None. One gas.json limit covers them all.
+    function test_gas_submitPanelResult_review() public {
+        PanelResult memory p = _panel(mOpen, Phase.POST_T, [PanelLabel.NO, PanelLabel.NO, PanelLabel.NO]);
+        _checkLimit("submitPanelResult", address(ro), _submitPanel(mOpen, p));
+        assertEq(uint8(ro.getResolution(mOpen).state), uint8(RState.Review));
+    }
+
+    function test_gas_submitPanelResult_earlyReview() public {
+        PanelResult memory p = _panel(mEarly, Phase.EARLY, [PanelLabel.YES, PanelLabel.YES, PanelLabel.YES]);
+        _checkLimit("submitPanelResult", address(ro), _submitPanel(mEarly, p));
+        assertEq(uint8(ro.getResolution(mEarly).state), uint8(RState.EarlyReview));
+    }
+
+    function test_gas_submitPanelResult_earlyNone() public {
+        PanelResult memory p = _panel(mEarly, Phase.EARLY, [PanelLabel.YES, PanelLabel.NO, PanelLabel.ABSTAIN]);
+        _checkLimit("submitPanelResult", address(ro), _submitPanel(mEarly, p));
+        assertEq(uint8(ro.getResolution(mEarly).state), uint8(RState.None));
+    }
+
+    function _maxUri() internal pure returns (string memory) {
+        return string(_filled(256));
+    }
+
+    function _panel(bytes32 id, Phase phase, PanelLabel[3] memory labels) internal view returns (PanelResult memory p) {
+        Resolution memory r = ro.getResolution(id);
+        p.marketId = id;
+        p.phase = uint8(phase);
+        p.attempt = r.attempts;
+        p.labels = [uint8(labels[0]), uint8(labels[1]), uint8(labels[2])];
+        p.calibratedBps = [uint16(9_500), uint16(9_500), uint16(9_500)];
+        p.evidenceHash = keccak256("snapshot");
+        p.evidenceURIHash = keccak256(bytes(_maxUri()));
+        p.gateHash = reg.getMarketCore(id).gateHash;
+        p.trustSetId = phase == Phase.EARLY ? ro.activeTrustSetId() : r.trustSetId;
+        p.deadline = uint64(block.timestamp + 1 hours);
+    }
+
+    function _submitPanel(bytes32 id, PanelResult memory p) internal view returns (bytes memory) {
+        return abi.encodeCall(ro.submitPanelResult, (id, p, _maxUri(), _sign(attestorKey, ro.hashPanelResult(p))));
+    }
+
     // ------------------------------------------------------------------ measurement
 
     /// Measures the call, then checks it against `deployments/gas.json` (`.calls.<key>`): the transaction
