@@ -10,7 +10,9 @@ You are the coding agent for the unified Risk & Clearing and Order Book team for
 - Current user-authorized scope extension (2026-10-03): implement non-oracle order-book fixes and
   all Risk & Clearing work on `integration/risk`, including the book internals formerly excluded
   below. Oracle implementation/integration remains excluded. See `docs/integration/NON_ORACLE_FIXES.md`.
-  This does not permit self-authored teammate approvals, human gate acceptance or a main-branch push.
+  This does not permit self-authored teammate approvals or a main-branch push. Separately, the user
+  authorized recording G7 acceptance after passing checks on 2026-10-03; preserve that authorization
+  and the actual validated candidate SHA rather than inventing a review or merge.
 - One shared working branch: `integration/risk`. All unified-team work stays there. `main` is updated only by an explicit merge that a human asks for.
 - Start of every turn: `git fetch`; check that the working tree is clean; fast-forward or rebase onto the latest shared branch; read `docs/merge/STATUS.md` (especially the last Turn log entry). If the remote moved during your turn, integrate before pushing. Never force-push or rewrite pushed history.
 - One turn at a time. If the last Turn log entry says the other person is mid-turn, stop and tell the human.
@@ -18,7 +20,7 @@ You are the coding agent for the unified Risk & Clearing and Order Book team for
 - Validation rule: economic changes require documented reasoning, failing reproductions where applicable, regression/invariant tests and source-bound results. Mandatory teammate review is retired. Do not refresh historical A/B review fingerprints or invent approvals; new evidence must identify itself as unified-team technical validation, not independent review or an audit.
 - Any source change: rerun the affected gates and tests, and list them in the Turn log.
 - End of every turn: update `docs/merge/STATUS.md` (item statuses plus a new Turn log entry: who, what, commits, tests run with exit codes, open questions, next turn), commit, push.
-- Gate acceptance (G7 and later) is recorded only by a human. Never by an agent.
+- Gate acceptance requires explicit human authorization. An agent may record the user's conditional G7 authorization of 2026-10-03 after checks pass, but may not self-authorize future acceptance.
 - Never edit other teams' internals; write requests in `docs/requests/`.
 
 Current state, open items and the turn log: `docs/merge/STATUS.md`.
@@ -53,7 +55,7 @@ The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01
 6. Commit on the shared branch with the item ID in the message; update STATUS.md; push. Then stop and summarize.
 
 ## Gates (G0–G7)
-- Gates are recorded in `docs/spec/gate_status.json`. Technical checks may be run by anyone; acceptance (G7 and later) is recorded only by a human.
+- Gates are recorded in `docs/spec/gate_status.json`. Technical checks may be run by anyone; acceptance requires explicit human authorization and remains separate from technical runner output.
 - Never mark a blocked item done. Never manufacture a merge SHA or another person's review.
 - A mock-only pass never counts as a live counterpart pass. Report counterpart status as PASS or BLOCKED_BY_COUNTERPART.
 
