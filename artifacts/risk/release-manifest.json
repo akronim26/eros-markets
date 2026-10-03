@@ -8,11 +8,14 @@
  "engine": {
   "composition": "contracts/src/engine/RiskAccountingBridge.sol (Person B controllers on Person A accounting/custody/settlement)",
   "test_composition": "contracts/test/integration/CombinedEngine.sol (+ MockBookAdapter)",
-  "runtime_bytes_with_mock_book": 112865,
+  "runtime_bytes_with_mock_book": 112723,
   "eip170": 24576,
-  "creation_bytes_with_mock_book": 121632,
-  "measurement_note": "Solc 0.8.30, optimizer 200, Prague; local mock-book composition only. Test fixture size allowance is not production approval.",
-  "source_sha256_lf": "88d8bf0ebf38a0aaf78f98d0525bd77f4f9adf47f233d2961d696e70771d9ec8"
+  "creation_bytes_with_mock_book": 121505,
+  "measurement_note": "Forge 1.8.3, solc 0.8.30, optimizer200, Prague at 96cf262. Both are TEST compositions; real-book fixture includes unrestricted feed and failure-injection helpers. Abstract ABI is not a deployment ABI. Actual target-chain runtime/initcode limits and production wiring remain unverified.",
+  "source_sha256_lf": "89077ea8220e8f9c1de6de58089f8436187d3874dc3fddc78d291b1b517a444b",
+  "real_book_test_composition": "contracts/test/integration/RealBookIntegration.t.sol:RealBookEngine",
+  "runtime_bytes_with_real_book_fixture": 114737,
+  "creation_bytes_with_real_book_fixture": 123964
  },
  "initial_defaults": {
   "leverage_caps": "1x (listing.deploymentCapX = 1; uncalibrated profile forces full backing)",
@@ -62,26 +65,28 @@
   "premium load as a manifest field (engine immutable today, fixture 1e18)",
   "Monad gas measurements (only local Ethereum/Prague schedule measured)",
   "contract size / split decision for the composed engine",
-  "team confirmation of Forge 1.8.3 reproduction target and a pinned TypeScript dependency"
+  "pinned TypeScript dependency",
+  "RB-I01 reduction-version liveness disposition and any independently reviewed repair"
  ],
- "counterparts": "artifacts/risk/counterpart-status.json (all live joins BLOCKED_BY_COUNTERPART)",
- "gates": "docs/spec/gate_status.json (G0-G7 ordered technical checks pass; A review complete; G7 final acceptance awaits B delta review)",
- "fresh_validation": "artifacts/risk/review-validation.json (641 Forge and 217 Python tests pass)",
- "source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+ "counterparts": "artifacts/risk/counterpart-status.json (real Book+A+B source tests pass with open RB-I01; live deployed wiring and other counterpart joins remain blocked)",
+ "gates": "docs/spec/gate_status.json; actual ordered rerun results in artifacts/gates. G7 acceptance remains human-only and blocked with null merge_sha.",
+ "fresh_validation": "artifacts/risk/merge-validation-2026-10-03.json (current merge); review-validation.json remains historical.",
+ "source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
  "toolchain": {
   "forge": "1.8.3",
   "solc": "0.8.30",
   "python": "3.12.10",
   "typescript": "5.9.2",
   "numpy_audit_only": "2.2.6",
-  "team_confirmation": "B confirmation of the existing CI Forge pin remains pending"
+  "team_confirmation": "A and B agree forge1.8.3 + solc0.8.30 + Prague; local Python/TypeScript/NumPy versions differ from B's recorded environment."
  },
  "worktree_dirty": true,
  "historical_manifest_source_commit": "4a848c4ebf73019fd4fa6c1fdf6c8e7486c7820d",
  "historical_measurements": "gas-engine.json and invariant-campaign.json preserve earlier source/toolchain results; do not treat their numbers or CI campaign as measurements of the new implementation.",
  "retained_limitations": [
-  "A-I01: fractional protocol/keeper Q remains inside market allocation, not global vault fee escrows.",
-  "B's historical review does not approve the new implementation commits.",
-  "Real book/oracle/price/factory joins and main reconciliation are not part of this review."
+  "RB-I01: reduce-only and forced multi-maker execution stops after its first fill; partial reduce-only LIMIT remainder becomes stale",
+  "Book local source integration is not deployed/live production adapter approval",
+  "Oracle, price collector, factory/registry, indexer/frontend, calibration and chain-specific gas/size acceptance remain pending",
+  "B review at32d30ac applies to71576ed..3b11044, not blanket approval of this newer merge; G7 human acceptance pending"
  ]
 }

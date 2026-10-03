@@ -80,5 +80,13 @@ review. Preserve integration's projected accounting, reduction/cap checks, reser
 order and actual-fee reporting. Main's post-pair liquidation-health recheck is a distinct fix
 to retain, not formatting noise.
 
-No working-tree merge was performed. The immediate review is B-D02/B-D03/A-I01; a current-main
-merge and G7 acceptance require their separate human decisions.
+At the time of this initial inspection, no working-tree merge had been performed. The immediate
+review was B-D02/B-D03/A-I01; a current-main merge and G7 acceptance required separate decisions.
+
+## Subsequent human direction
+
+After this report, the human explicitly requested merging current main into `integration/risk`
+and validating the real-book integration. That merge is `13ca730`; reconciliation and fresh
+evidence are recorded in `docs/merge/main-merge-prep.md` and
+`artifacts/risk/merge-validation-2026-10-03.json`. Main itself is unchanged. G7 acceptance remains
+human-only and was not granted by that merge instruction.

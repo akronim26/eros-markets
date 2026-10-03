@@ -2,16 +2,37 @@
  "schema": "eros-counterpart-status/1",
  "task": "B040",
  "spec_version": "1.1",
- "note": "Integration status on integration/risk (real Person A + real Person B). A mock-only pass is never a live pass. No deployment of any kind.",
+ "note": "Local integration includes real A+B with both mock-book and real-book fixtures. Local source passes do not claim deployed/live counterparts or close RB-I01. No deployment authorized.",
  "counterparts": [
   {
    "id": "CP-BOOK",
    "local_double": "contracts/test/mocks/B/MockBookAdapter.sol",
    "mock_status": "PASS on real A+B: contracts/test/gates/G4.t.sol, G5.t.sol, test/integration/EndToEnd.t.sol (MockBookAdapter)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "Book hook implementation is available on origin/main at a114d06, but is not merged into integration/risk at 2506235. Main tests real Book with real B and MockAccountingPort; this branch tests real A+B with MockBookAdapter. Real A+B+Book join and fresh evidence remain required.",
+   "reason": "The ten hook changes from main a114d06 are merged at 13ca730. Real A+B+Book local tests pass, including characterization of open RB-I01 reduction-version liveness. Live production wiring/release is still blocked: the concrete adapter remains a test fixture and counterpart factory/deployment integration is absent. Do not interpret BLOCKED_BY_COUNTERPART as missing book hook implementation.",
    "counterpart_source_commit": "a114d06a1cebdf107c47d75947b114b3dd94b60e",
-   "inspection_date": "2026-10-03"
+   "inspection_date": "2026-10-03",
+   "local_real_integration_status": "PASS_WITH_OPEN_LIVENESS_FINDING",
+   "local_real_integration": {
+    "source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
+    "composition": "contracts/test/integration/RealBookIntegration.t.sol:RealBookEngine",
+    "real_components": [
+     "Book",
+     "A accounting and vault",
+     "B risk controllers"
+    ],
+    "tests_passed": 17,
+    "test_doubles": [
+     "price observations",
+     "resolution authority",
+     "ERC20 token",
+     "listing/deployment configuration"
+    ],
+    "open_findings": [
+     "RB-I01"
+    ],
+    "deployment": "none"
+   }
   },
   {
    "id": "CP-PRICE",

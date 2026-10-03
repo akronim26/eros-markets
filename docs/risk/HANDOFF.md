@@ -1,11 +1,11 @@
 # Risk & Clearing handoff (book, oracle and frontend teams)
 
 Branch `integration/risk` · spec v1.1 · economic baseline v1.0 · local-fixture level only.
-Updated 2026-10-02 for Person A's integration-review working tree; final gate/evidence reruns
-remain authoritative for acceptance.
-**No deployment exists or is authorized.** Every result below uses mock counterparts; the live
-join with each of your systems is BLOCKED until your code runs these fixtures
-(`artifacts/risk/counterpart-status.json`).
+Updated 2026-10-03 after B's newer work was reviewed and main was merged into integration/risk.
+**No deployment exists or is authorized.** Real Book + real A accounting/vault + real B risk now
+pass local source-integration tests. Oracle, price feed, token and deployment inputs remain
+fixtures; live production joins remain blocked. RB-I01 reduction-version liveness is open
+(`artifacts/risk/counterpart-status.json`, `docs/requests/A-to-B-merge-followup.md`).
 
 ## 1. What the engine is
 
@@ -13,9 +13,9 @@ One isolated engine per market. It is composed of Person B's risk, lifecycle and
 controllers and Person A's accounting, custody and settlement ledgers, joined by
 `contracts/src/engine/RiskAccountingBridge.sol`. Collateral is held by `CollateralVault` (A017).
 The test composition `contracts/test/integration/CombinedEngine.sol` adds a mock order book
-(`MockBookAdapter`). Historical composed-engine measurements exceed EIP-170; the review changes
-require fresh bytecode measurement. Production contract splitting and target-chain size limits
-remain separate release work.
+(`MockBookAdapter`). `RealBookIntegration.t.sol:RealBookEngine` composes the real book instead.
+Both are test-only compositions; fresh sizes are recorded in the release manifest. They exceed
+EIP-170, and production wiring, splitting and target-chain limits remain separate release work.
 
 ## 2. ABIs
 
@@ -139,22 +139,25 @@ payout, not merely claims readiness. Conversion eligibility remains `DISABLED`.
 
 ## 7. Book team
 
-The seam the engine needs is `IBookRiskHooks` (nine `_risk*` hooks). `Book.sol` currently exposes a
-different hook set; the ten exact mismatches are listed in `docs/requests/B-to-book-hooks.md`.
-To run our fixtures against your book:
+The book now implements `IBookRiskHooks`; the ten old structural requests shipped on main
+through `a114d06` and were merged at `13ca730`. The original request remains historical in
+`docs/requests/B-to-book-hooks.md`. Current local source-integration evidence:
 
-1. Compose your book with the engine in place of `MockBookAdapter` in
-   `contracts/test/integration/CombinedEngine.sol` (same constructor), calling the `_risk*` hooks in
-   the order shown by `MockBookAdapter._mockPlaceWithMode` / `_mockRest` / `_mockCancel`.
+1. Inspect `contracts/test/integration/RealBookIntegration.t.sol`: real Book + real A+B, with
+   authenticated A-registry lookup and forced IOC wiring. Do not deploy its unrestricted feed or
+   failure-injection helpers. Main's separate `BookRiskEngine` still has mocked A accounting.
 2. Run:
    ```bash
    cd contracts
+   FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/integration/RealBookIntegration.t.sol"
    FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/gates/G4.t.sol"
    FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/gates/G5.t.sol"
    FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/integration/EndToEnd.t.sol"
    ```
-3. Also replay the B seam vectors: `FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path test/risk/B/BookSeam.t.sol` (scripted
-   accounting) and report PASS or the exact failing assertion.
+3. Also replay B's scripted seam vectors, G4/G5 mock-book suites and the complete suite. Triage
+   RB-I01 before claiming production completion: first-fill position-version changes stop further
+   reduce-only matches and invalidate a partially filled LIMIT remainder. Characterization tests
+   passing do not mean that limitation is repaired. See `docs/requests/A-to-B-merge-followup.md`.
 
 ## 8. Oracle team
 
@@ -163,8 +166,8 @@ The engine accepts only the pinned `resolutionAuthority` from the listing. Oracl
 YES → `settle(1)`, NO → `settle(0)`, INVALID → `settleInvalid()`, NONE reverts; a VOIDED value
 (4, guessed; B assumption I-5, unconfirmed) is treated as INVALID.
 `halt()` and finality acceptance perform constant account work; the gate suite compares
-finality cost across different participant counts. Read current measurements from the regenerated
-gas artifacts rather than reusing pre-review numbers. A repeated identical finality is a no-op; a
+finality cost across different participant counts. `gas-engine.json` retains earlier source-bound
+mock-book measurements, not this merge's or Monad's gas. A repeated identical finality is a no-op; a
 conflicting one reverts. INVALID waits for the scheduled [T-24h, T] index window, or the disclosed
 0.5 fallback one hour after T if data is missing. To run our fixtures against your oracle:
 replace `MockResolutionAuthority` (`contracts/test/mocks/B/MockResolutionAuthority.sol`) with your
@@ -192,23 +195,23 @@ an amount that passes the current release preview. It is checked again at execut
 ## 10. Status and limits
 
 - Gate acceptance and exact run status: `docs/spec/gate_status.json` and `artifacts/gates/`.
-  G0-G7 technical checks pass in order on Forge 1.8.3. A043 is complete in
+  Current technical rerun results are retained separately from human acceptance. A043 is recorded in
   `artifacts/reviews/A-on-B.md`. B's delta review of `71576ed..3b11044` is complete
   (`artifacts/reviews/B-on-A.md`, addendum 2026-10-02, commit `32d30ac`). G7 acceptance and an
   accepted merge SHA are still pending and can be recorded only by a human. Current state and
   open items: `docs/merge/STATUS.md`.
-- Invariant campaign INV-01..INV-10: `artifacts/risk/invariant-campaign.json`.
-- Gas (Ethereum/Prague schedule in forge, not Monad): `artifacts/risk/gas-engine.json`.
+- Historical invariant campaign INV-01..INV-10: `artifacts/risk/invariant-campaign.json`.
+- Historical gas (Ethereum/Prague schedule, not Monad): `artifacts/risk/gas-engine.json`.
 - Release defaults and missing production inputs: `artifacts/risk/release-manifest.json`.
-- A-F01, A-F02 and A-F03 fixes pass their regressions. The complete Forge run has
-  641 passes and no failures, including all eight BookGas tests; Python has 217 passes.
-  Fresh per-suite evidence is `artifacts/risk/review-validation.json`.
+- A-F01, A-F02 and A-F03 repairs remain. Current per-suite evidence is
+  `artifacts/risk/merge-validation-2026-10-03.json`; the 641-test
+  `artifacts/risk/review-validation.json` is historical, not the merged source's result.
   The original audit is preserved with a dated resolution addendum in `docs/merge/A-audit.md`.
-- A-I01 (implemented 2026-10-02, pending teammate review): at payout-scan completion the engine
+- A-I01 (implemented by B 2026-10-02; reviewed and accepted by A 2026-10-03): at payout-scan completion the engine
   moves exact `protocolFeeQ` and `keeperPayableQ` into the vault's global fee escrows and reduces
   `allocationQ` by exactly that Q; reserve dust stays in `treasuryQ`. The removed engine
-  `protocolFeeEscrowQ()` / `withdrawProtocolFees()` are replaced by the vault escrow. Test counts
-  above are from `3b11044`; the current run is in `docs/merge/STATUS.md`.
+  `protocolFeeEscrowQ()` / `withdrawProtocolFees()` are replaced by the vault escrow. All six
+  choices are confirmed in `docs/questions/A-I01.md`.
 
 ## 11. Toolchain and review regressions
 

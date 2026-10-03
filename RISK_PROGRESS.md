@@ -1,5 +1,21 @@
 # Person A risk implementation progress
 
+## Shared integration update — 2026-10-03
+
+Current branch: `integration/risk`. History was inspected and reported before edits; see
+`docs/merge/history-review-2026-10-03.md`. B's newer B-D02/B-D03/A-I01 work is reviewed and accepted,
+including all six vault-fee choices. B's earlier review of A's fixes is already complete.
+
+The human authorized main `a114d06` into this branch; merge `13ca730` reconciles five conflicts
+and the canonical-type/helper hazards. A test-only engine now composes real Book, real A
+accounting/vault, and real B controllers. It exposes an inherited reduction-version liveness
+limitation (RB-I01); no version safety checks were removed. Main was not updated or deployed.
+
+Current results and next steps: `docs/merge/STATUS.md`,
+`artifacts/risk/merge-validation-2026-10-03.json`, and the structured B handoff
+`docs/requests/A-to-B-merge-followup.md`. G7 human acceptance and production counterparts remain
+separate from technical passes. Earlier entries below are historical, not current blockers.
+
 ## Integration review update — 2026-10-02
 
 Current work is on `integration/risk` based on `71576ed`. The initial history report
