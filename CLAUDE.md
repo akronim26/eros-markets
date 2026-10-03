@@ -64,7 +64,9 @@ The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01
 - Never invent calibration inputs, addresses, command output or test results.
 - A failed invariant stays failed until fixed. Do not weaken a test to make it pass.
 - If the spec is ambiguous, write the question to `docs/questions/<item>.md`, pick nothing silently, and stop that item.
-- No deployment of any kind is authorized.
+- Production/mainnet deployment is not authorized. The user's controlled Monad testnet evaluation
+  authorization of 2026-10-03 is recorded in `docs/integration/RISK_BOOK_TRACKER.md`; it does not
+  grant production release, gate acceptance or permission to broaden the deployment scope.
 
 ## End-of-session report (always)
 Items attempted; status of each (done / unverified / blocked, and why); commands run with exit codes; files changed; open questions; what is needed from the teammate, a counterpart team or a human; next turn.

@@ -2,17 +2,18 @@
  "schema": "eros-counterpart-status/1",
  "task": "B040",
  "spec_version": "1.1",
- "note": "Local integration includes real A+B with both mock-book and real-book fixtures. Local source passes do not claim deployed/live counterparts or close RB-I01. No deployment authorized.",
+ "note": "User-authorized Monad testnet foundation and controlled real Book+A+B trade/YES-settlement/cash-exit scenario are verified complete; this market is closed. Production live_status values remain separate and blocked. RB-I01 repair f2ebc61 awaits independent teammate review; RB-I02 maker-remainder liveness remains open.",
+ "gate_validation": "5b82d9f: G0-G6 exit 0 (68/152/117/78/77/63/55); G7 exit 2 after six tests because A043 does not cover current source/review regressions. Separate downstream runs A044/B040/B041/B042/B043/B044 passed 44/2/2/3/1/1 tests, and direct test/gates/G7.t.sol passed six; all exit 0. This is not an ordered G7 pass, and B043 technical-harness success is not new peer review. G7 reviewed_by remains empty, merge_sha null; independent review and human acceptance pending. Evidence: artifacts/risk/real-book-validation-2026-10-03.json, committed at 20330d8.",
  "counterparts": [
   {
    "id": "CP-BOOK",
    "local_double": "contracts/test/mocks/B/MockBookAdapter.sol",
    "mock_status": "PASS on real A+B: contracts/test/gates/G4.t.sol, G5.t.sol, test/integration/EndToEnd.t.sol (MockBookAdapter)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "The ten hook changes from main a114d06 are merged at 13ca730. Real A+B+Book local tests pass, including characterization of open RB-I01 reduction-version liveness. Live production wiring/release is still blocked: the concrete adapter remains a test fixture and counterpart factory/deployment integration is absent. Do not interpret BLOCKED_BY_COUNTERPART as missing book hook implementation.",
+   "reason": "The ten hook changes from main a114d06 are merged at 13ca730. A concrete contracts/src/engine/BookRiskEngine.sol now joins real Book and real A+B without unrestricted feed/failure helpers. Production release remains blocked by RB-I02 maker-remainder liveness, the missing PERP depth sampler, independent review of RB-I01 repair, and unresolved production counterpart wiring/calibration. Do not interpret BLOCKED_BY_COUNTERPART as missing book hook implementation or as prohibiting the separately authorized testnet evaluation.",
    "counterpart_source_commit": "a114d06a1cebdf107c47d75947b114b3dd94b60e",
    "inspection_date": "2026-10-03",
-   "local_real_integration_status": "PASS_WITH_OPEN_LIVENESS_FINDING",
+   "local_real_integration_status": "FOCUSED_PASS_WITH_OPEN_PRODUCTION_BLOCKERS",
    "local_real_integration": {
     "source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
     "composition": "contracts/test/integration/RealBookIntegration.t.sol:RealBookEngine",
@@ -31,7 +32,39 @@
     "open_findings": [
      "RB-I01"
     ],
-    "deployment": "none"
+    "deployment": "none at this historical 96cf262 baseline",
+    "evidence_scope": "Historical 17-test merge result; the RB-I01 characterization predates repair f2ebc61"
+   },
+   "current_source_integration": {
+    "source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
+    "composition": "contracts/src/engine/BookRiskEngine.sol:BookRiskEngine",
+    "focused_legacy_evm_tests": {
+     "real_book": 23,
+     "concrete_engine": 9
+    },
+    "full_risk_suite": "PASS at 5b82d9f: 727 tests, 117 suites, zero failed/skipped (tmp/full-risk-final.log); Python 46/156/8/7 passed. Eight smoke tests are included in 727 and also passed separately under MonadTen (tmp/monad-smoke-tests.log). Prior 47149e5 baseline was 719/116.",
+    "rb_i01": "IMPLEMENTED at f2ebc61; independent teammate review pending",
+    "open_findings": [
+     "RB-I02 partially filled reduce-only maker remainder becomes stale",
+     "Production PERP depth sampler absent; concrete engine is fully backed 1x bootstrap-only"
+    ]
+   },
+   "testnet_evaluation": {
+    "authorization": "Explicit user authorization; not production approval",
+    "status": "VERIFIED_COMPLETED_TESTNET_SMOKE",
+    "chain_id": 10143,
+    "execution_hardfork": "monad:MonadTen",
+    "preflight_evidence": "artifacts/risk/monad-testnet-preflight-2026-10-03.json",
+    "live_deployment_evidence": "artifacts/risk/monad-testnet-deployment.json",
+    "live_smoke_evidence": "artifacts/risk/monad-testnet-smoke.json (block 67852827, nine successful phase receipts, seven runtime comparisons and final claim/token state)",
+    "engine": "0x4aE742676984D2C383645E4745Eaf3943b67DE72",
+    "smoke_coordinator": "0x0D54dd5411d2a036Bc40aD854aB14289FF9075AF",
+    "setup_status": "PASS",
+    "trade_status": "PASS",
+    "trade_transaction": "0x0bbc3efecc17f366040d259759767d3e608a7a8d29521763271c886cff8d5dce",
+    "settlement_status": "PASS: halted, manual YES outcome, both claims paid, controlled actor balances 150000000/50000000 six-decimal test-token atoms, vault token/recognized atoms zero; market closed",
+    "settlement_transaction": "0x9193a7ce574c51bb2e83f7f2be521add1b9bfb70098b0cca16382ba2743b6f25",
+    "dependencies": "Controlled test collateral, manual resolution authority, signed synthetic INDEX and test listing/roles; no production oracle or calibration claim"
    }
   },
   {
@@ -39,21 +72,26 @@
    "local_double": "test signer keys in contracts/test/risk/B/B016.t.sol; direct store feeds in other suites",
    "mock_status": "PASS (B016-B018, B021)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "no collector/signing service in this repository; tests feed observations directly; envelope I-3 unconfirmed"
+   "reason": "no production collector/signing service in this repository; envelope I-3 unconfirmed; concrete engine has no PERP depth sampler",
+   "testnet_evaluation": "Controller-signed synthetic INDEX observations exercise authenticated ingress only; this is not a live price-feed service or production source calibration"
   },
   {
    "id": "CP-ORACLE",
    "local_double": "contracts/test/mocks/B/MockResolutionAuthority.sol",
    "mock_status": "PASS on real A+B: contracts/test/gates/G5.t.sol, G6.t.sol, test/integration/EndToEnd.t.sol (MockResolutionAuthority)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "no ResolutionOracle implementation in this repository (searched contracts/src on integration/risk); oracle enum values I-5 unconfirmed"
+   "reason": "ResolutionOracle, treasury, keeper and venue implementations exist on origin/feat/oracle ccbdb50, with OG0/OG1 recorded passed on that branch. They are not merged into this risk branch or validated with this concrete engine; OG2/OG3/OG3b remain not_started. OracleTypes and seam S-01 confirm NONE/YES/NO/INVALID = 0/1/2/3, with Voided calling settleInvalid (never outcome 4). Real-engine/factory integration and acceptance remain pending, not oracle implementation from scratch.",
+   "counterpart_source_commit": "ccbdb50",
+   "counterpart_evidence": "origin/feat/oracle:docs_oracle/gates.json; docs_oracle/seam-decisions.md; oracle/src/ResolutionOracle.sol; oracle/src/types/OracleTypes.sol (read-only branch inspection, not an independent oracle audit)",
+   "testnet_evaluation": "Controller-only TestnetResolutionAuthority is deployed and its binding verified; manual halt/YES finality and cash settlement passed. This bind-once forwarder does not implement or validate three-layer oracle logic."
   },
   {
    "id": "CP-FACTORY",
    "local_double": "ListingFixture in contracts/test/risk/B/B019.t.sol",
    "mock_status": "PASS (B019)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "no factory/registry; listing field additions I-6 unconfirmed"
+   "reason": "MarketRegistry exists on origin/feat/oracle ccbdb50 and its seam S-07 documents listing fields, but is not integrated with this concrete engine. That branch supplies only a testnet StubMarketFactory, not the real engine MarketFactory. Real deployment/listing/hash/auth integration remains pending; coordination owner for that join is not assigned here.",
+   "testnet_evaluation": "Explicit deployment-script listing and controller roles are fixtures; the registry address field is not a deployed production registry implementation"
   },
   {
    "id": "CP-TOKEN",
@@ -70,5 +108,5 @@
    "reason": "no indexer/frontend consumer in this repository"
   }
  ],
- "person_a": "real (merged into integration/risk; CombinedEngine)"
+ "person_a": "real accounting and custody in both historical integration fixtures and the current concrete BookRiskEngine; production approval remains false"
 }

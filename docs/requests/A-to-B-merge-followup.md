@@ -3,6 +3,35 @@
 Date: 2026-10-03. Shared branch: `integration/risk`.
 This is a request from A, not an approval written on B's behalf.
 
+## Current next turn: real-book repair and testnet evaluation
+
+This section supersedes the older merge-only instructions below. Read the current
+[Risk + Book tracker](../integration/RISK_BOOK_TRACKER.md) and final `docs/merge/STATUS.md` turn log.
+
+1. Fetch/fast-forward `integration/risk`; review source commits `f2ebc61`, `1077dfa`, `47149e5`,
+   `163b709` and `5b82d9f` after baseline `16f0d90`. No main or oracle branch update is included.
+2. Independently review RB-I01: active reduce-only taker continuation after its own posting,
+   current-state LIMIT resting authorization, and stopping liquidation immediately when health
+   is restored. The repair must not authorize unrelated stale orders, flip sides or bypass coverage.
+3. Review concrete `BookRiskEngine` bounds/roles, canonical trader IDs, signed INDEX ingress and
+   full-backing-only behavior. Cap 1, uncalibrated margin, funding/recovery/conversion off are deliberate.
+   No normal PERP source is configured; this is not a leveraged-market implementation certificate.
+4. Inspect controlled testnet deployment, signatures, matching and final cash payouts. Evidence:
+   `artifacts/risk/monad-testnet-deployment.json`, `monad-testnet-smoke.json` and the current validation
+   JSON. Test collateral and resolution authority are intentionally not the production counterparts.
+5. Record your actual reviewed SHA, findings and refreshed source fingerprints only after review.
+   G7 stays blocked for peer review and human acceptance; historical approvals do not cover this delta.
+6. Coordinate RB-I02 with the book developer using `RB-I02-maker-remainder.md`; do not remove the
+   position-version guard. Coordinate bounded PERP depth sampling separately.
+7. Oracle now has implementation at `origin/feat/oracle:ccbdb50`; jointly test its actual public
+   NONE/YES/NO/INVALID mapping 0/1/2/3 and Voided->settleInvalid after integration is authorized.
+
+The live smoke is terminal/closed. Do not replay its completed setup/trade/settlement calls or
+stale signed calldata. The runbook documents fresh offline signing; no private endpoint or key
+belongs in handoffs. The older sections below remain historical context only.
+
+## Historical merge-only handoff
+
 ## Completed
 
 1. Reviewed your work through `2506235`: B-D02, B-D03 and A-I01 are accepted.

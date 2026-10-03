@@ -1,5 +1,19 @@
 # Person A risk implementation progress
 
+## Real-book and Monad update — 2026-10-03
+
+The shared living checklist is **[Risk + Book tracker](docs/integration/RISK_BOOK_TRACKER.md)**.
+It maps implementations, validation, exact testnet addresses/receipts, limitations, owners and
+the checklist to follow when behavior changes. Update it alongside `docs/merge/STATUS.md`.
+
+RB-I01 is repaired, awaiting independent review. A guarded concrete engine combining real Book,
+A accounting/vault and B risk is deployed on Monad testnet. Funding, matching, controlled YES settlement and
+both cash claims succeeded. This uses test collateral, synthetic signed INDEX and controlled
+finality: it is not production approval or actual oracle integration. The smoke market is closed.
+RB-I02 maker remainder liveness, the PERP sampler and real counterpart joins remain open.
+Current evidence: `artifacts/risk/real-book-validation-2026-10-03.json` and the tracker.
+Earlier sections below describe their historical source ranges, not current deployment status.
+
 ## Shared integration update — 2026-10-03
 
 Current branch: `integration/risk`. History was inspected and reported before edits; see
