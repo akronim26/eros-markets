@@ -129,10 +129,30 @@ try:
             print(run.stdout[-2000:], end=""); print(run.stderr[-2000:], end="", file=sys.stderr)
             record["commands"].append({"argv": argv, "cwd": cwd, "exit_code": run.returncode,
                                        "execution": "subprocess", "output": (run.stdout + run.stderr)[-4000:]})
-            record["test_count"] += 1
+            if argv[:2] == ["node", "--test"]:
+                summary = {name: int(value) for name, value in
+                           re.findall(r"^# (tests|pass|fail|cancelled|skipped|todo) (\d+)\s*$", run.stdout, re.MULTILINE)}
+                record["test_count"] += summary.get("tests", 0)
+                record["skipped_count"] += summary.get("skipped", 0)
+                if (set(summary) != {"tests", "pass", "fail", "cancelled", "skipped", "todo"}
+                        or summary["tests"] <= 0 or summary["pass"] != summary["tests"]
+                        or any(summary[name] for name in ("fail", "cancelled", "skipped", "todo"))):
+                    record["reason"] = "Node test suite is failed, empty, skipped or incomplete"
+                    return 1
+            else:
+                record["test_count"] += 1
             return run.returncode
         def forge(path):
-            return step(["forge", "test", "--match-path", path], "contracts", {"FOUNDRY_PROFILE": "risk"})
+            from scripts.check_a_review import run_forge_suite
+            report = run_forge_suite(root, path)
+            record["commands"].append({"argv": report["command"], "cwd": "contracts",
+                                       "exit_code": report["forge_exit_code"] if report["forge_exit_code"] is not None else 1,
+                                       "execution": "subprocess", "output": json.dumps(report)})
+            record["test_count"] += report["checks_run"]
+            record["skipped_count"] += report["skipped_count"]
+            if report["status"] != "passed":
+                record["reason"] = report["reason"]
+            return report["exit_code"]
         def need_json(path, forbid_live_pass=False):
             data = json.loads((root / path).read_text())
             if forbid_live_pass and any(c.get("live_status") == "PASS" for c in data.get("counterparts", [])):
@@ -151,14 +171,20 @@ try:
                                "--moduleResolution", "node", "packages/risk-sdk/src/index.ts"]))
             codes.append(step(["tsc", "--noCheck", "--esModuleInterop", "--target", "es2020", "--module", "commonjs", "--outDir", out,
                                "packages/risk-sdk/src/index.ts", "packages/risk-sdk/test/read-model.test.ts"]))
-            codes.append(step(["node", "--test", out + "/test/read-model.test.js"]))
+            codes.append(step(["node", "--test", "--test-reporter=tap", out + "/test/read-model.test.js"]))
             need_json("docs/app-state-fixtures.json")
         elif task == "B043":
-            text = (root / "artifacts/reviews/B-on-A.md").read_text()
-            if "Review status: COMPLETE" not in text:
-                raise ValueError("B043: review is not complete")
-            hash_path(root / "artifacts/reviews/B-on-A.md")
-            codes.append(forge("test/reviews/B043Review.t.sol"))
+            from scripts.check_a_review import run_technical_validation
+            report = run_technical_validation(root, task)
+            record["commands"].append({"argv": report.get("command", []), "cwd": "contracts",
+                                       "exit_code": report["exit_code"], "execution": "subprocess",
+                                       "output": json.dumps(report)})
+            record["test_count"] = report["checks_run"]
+            record["skipped_count"] = report["skipped_count"]
+            record["reason"] = report["reason"]
+            record["artifacts"].append(report["evidence"])
+            hash_path(root / report["evidence"])
+            codes.append(report["exit_code"])
         elif task == "B044":
             need_json("artifacts/risk/integration-release.json"); need_json("artifacts/risk/release-manifest.json")
             if not (root / "docs/runbooks/lifecycle.md").is_file():
@@ -175,9 +201,13 @@ try:
         record["exit_code"] = run.returncode
         report = json.loads(run.stdout)
         record["test_count"] = report["checks_run"]
-        if report["status"] in ("pending_peer_merge", "pending_peer_review"):
-            record["status"] = "blocked"
-            record["reason"] = report["reason"]
+        record["skipped_count"] = report.get("skipped_count", 0)
+        record["reason"] = report["reason"]
+        if run.returncode == 0 and (report["status"] != "passed" or record["test_count"] <= 0 or record["skipped_count"]):
+            raise ValueError("Handoff validation returned failed, empty or skipped checks")
+        if task == "A043" and report.get("evidence"):
+            record["artifacts"].append(report["evidence"])
+            hash_path(root / report["evidence"])
     else:
         family = "math" if number <= 15 else "risk"
         campaigns = {"A040": "test/invariant/A/AccountingInvariants.t.sol",
@@ -197,7 +227,8 @@ try:
             if reference_run.returncode: raise ValueError("independent integrated reference failed")
         command = ["forge", "test", "--match-path", relative, "--json"]
         if task == "A041": command.append("-vv")
-        env = {**os.environ, "FOUNDRY_PROFILE": "risk"}
+        from scripts.check_a_review import forge_environment
+        env = forge_environment()
         run = subprocess.run(command, cwd=root / "contracts", env=env, capture_output=True, text=True)
         print(run.stderr, end="", file=sys.stderr)
         record["exit_code"] = run.returncode

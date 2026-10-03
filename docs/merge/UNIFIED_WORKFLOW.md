@@ -1,6 +1,6 @@
 # Unified Risk and Order Book workflow
 
-Effective 2026-10-03. Item: GOV-01.
+Effective 2026-10-03. Items: GOV-01 / GOV-02.
 
 The user explicitly merged the Risk and Order Book teams and instructed us to make
 our own decisions without mandatory A/B review. This supersedes older ownership,
@@ -33,19 +33,21 @@ approvals of newly authored code.
 
 ## G7 transition
 
-The old scripts still enforce the former review workflow. Their last recorded G7
-result is exit 2 at A043; this document does not turn that historical failure into
-a pass. Migrating those scripts is an outstanding engineering task, not a request
-for a nonexistent Person A or Person B to review code.
+GOV-02 replaces the former signature enforcement with source-bound technical
+validation in `artifacts/validation/A043.json` and `B043.json`. The previous G7 exit
+2 at A043 remains a historical result; only a new successful run establishes a pass.
 
-The migration must retain the A043/B043 adversarial regression suites and all other
-G7 technical checks, replace mandatory peer signatures with clearly labeled unified
-technical evidence, and test failure/empty-suite handling. Do not simply regenerate
-old review hashes, disable tests or relabel technical results as peer approval.
+The runners retain A043/B043 adversarial regression suites and all other G7 technical
+checks. They reject failed, empty, skipped or malformed suites and stale source
+fingerprints. Historical review files remain untouched; technical results do not
+become peer approval. Historical accepted predecessor SHAs must still be ancestors.
 
-G7's human acceptance record remains separate: no accepted SHA, main merge or
-production readiness is manufactured by this policy change. Counterparts can remain
-explicitly blocked where actual integration has not been validated.
+G7's human acceptance record remains separate. On 2026-10-03 the user explicitly
+answered **"Yes—record G7 acceptance after passing checks"**. This permits recording
+the actual passing candidate SHA in `docs/spec/gate_status.json`; it does not approve
+production deployment or a merge into main. The technical runner still emits
+`accepted=false` and `merge_sha=null`. Unvalidated production counterparts remain
+explicitly blocked. Consult the status record for the completed acceptance result.
 
 ## RB-I11 decision
 
@@ -58,11 +60,12 @@ This prevents subsequent accepted corrections from changing the capture's histor
 INDEX prefix under the existing monotone ingress rule. It adds a feed-update delay;
 continuous normal pricing needs a cadence comfortably below 30 seconds. Ten seconds
 is a test cadence, not an invented production service guarantee. Fully backed startup
-must remain usable before PERP warm-up. Implementation and regression validation are
-still pending; the policy decision no longer awaits a user or teammate response.
+must remain usable before PERP warm-up. Implementation is committed in `dcb6b0e`;
+all 21 sampler regressions pass, including correction sealing and waiting expiry.
 
 ## Current scope of this update
 
-Documentation/governance only. No runtime, gate-runner, oracle or deployment changes.
-Next engineering work: implement and test RB-I11, migrate legacy G7 review enforcement,
-then rerun the affected technical checks before proposing acceptance or redeployment.
+RB-I11 runtime and regression changes, RB-I12 local smoke compatibility, GOV-02
+runner migration, current validation and environment/address documentation. Oracle
+remains excluded. No new deployment is performed by this update; existing closed
+smoke addresses do not contain these repairs.

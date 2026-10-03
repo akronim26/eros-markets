@@ -1,7 +1,9 @@
 """Exercise the runners in disposable repositories, never a counterfeit B lane."""
 
 import json
+import contextlib
 import hashlib
+import io
 import os
 from pathlib import Path
 import re
@@ -14,6 +16,7 @@ import tomllib
 import unittest
 from unittest.mock import patch
 
+from scripts import check_a_review
 from scripts.check_a_review import validate_review
 
 
@@ -38,7 +41,7 @@ class RunnerTest(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         (self.root / "scripts").mkdir()
-        for name in ("check-task.sh", "check-gate.sh"):
+        for name in ("check-task.sh", "check-gate.sh", "check_a_review.py"):
             shutil.copyfile(ROOT / "scripts" / name, self.root / "scripts" / name)
 
     def write_suite(self, task, body):
@@ -362,6 +365,292 @@ contract GateRunnerSmoke { function testRunnerSmoke() public pure { assert(true)
             git.return_value.returncode = 1
             with self.assertRaisesRegex(ValueError, "not an ancestor"):
                 validate_review(self.root)
+
+
+class UnifiedValidationTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix="eros-unified-runner-")
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.stdout = json.dumps({"test/reviews/B043Review.t.sol:ReviewFixture": {
+            "test_results": {"testRegression()": {"status": "Success"}}}})
+        self.forge_exit = 0
+        self.commands = []
+        self.forge_environments = []
+        self.mutate_during_run = False
+        self.ancestor_exit = 0
+        self.task_result = {"status": "passed", "exit_code": 0, "test_count": 1, "skipped_count": 0}
+        self.node_stdout = "# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n"
+        self.reference_stderr = "Ran 1 test in 0.001s\n\nOK\n"
+        for relative in ("contracts/src/Fixture.sol", "contracts/test/reviews/B043Review.t.sol",
+                         "contracts/test/harness/Fixture.sol", "contracts/foundry.toml"):
+            self.write(relative, "fixture\n")
+        for name in ("check_a_review.py", "check-a-handoff.py", "check-task.sh", "check-gate.sh"):
+            self.write("scripts/" + name, (ROOT / "scripts" / name).read_text(encoding="utf-8"))
+        self.subprocess = patch("subprocess.run", side_effect=self.fake_run)
+        self.subprocess.start()
+        self.addCleanup(self.subprocess.stop)
+
+    def write(self, relative, content):
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+        return path
+
+    def fake_run(self, command, **kwargs):
+        self.commands.append(command)
+        if command[:3] == ["git", "rev-parse", "HEAD"]:
+            return subprocess.CompletedProcess(command, 0, "a" * 40 + "\n", "")
+        if command[:2] == ["git", "merge-base"]:
+            return subprocess.CompletedProcess(command, self.ancestor_exit, "", "")
+        if command[:2] == ["git", "status"] or command[:2] == ["git", "submodule"]:
+            return subprocess.CompletedProcess(command, 0, "", "")
+        if command == ["forge", "--version"]:
+            return subprocess.CompletedProcess(command, 0, "forge fixture\n", "")
+        if command[:2] == ["forge", "test"]:
+            self.forge_environments.append(kwargs.get("env", {}))
+            if self.mutate_during_run:
+                self.write("contracts/src/Fixture.sol", "changed during execution\n")
+            return subprocess.CompletedProcess(command, self.forge_exit, self.stdout, "")
+        if command[0] == "node":
+            return subprocess.CompletedProcess(command, 0, self.node_stdout if command[1] == "--test" else "", "")
+        if command[:3] == [sys.executable, "-m", "unittest"]:
+            return subprocess.CompletedProcess(command, 0, "", self.reference_stderr)
+        if len(command) == 3 and command[1] == "scripts/check-task.sh":
+            self.write(f"artifacts/tasks/{command[2]}.json", json.dumps(self.task_result))
+            return subprocess.CompletedProcess(command, 0, "", "")
+        raise AssertionError("Unexpected subprocess: " + repr(command))
+
+    def execute_script(self, name, arguments):
+        path = self.root / "scripts" / name
+        source = path.read_text(encoding="utf-8")
+        if name.endswith(".sh"):
+            source = source.split("<<'PY'\n", 1)[1].rsplit("\nPY", 1)[0]
+        old_directory = Path.cwd()
+        old_path = list(sys.path)
+        try:
+            with patch.object(sys, "argv", [str(path), *arguments]), \
+                    patch.dict(sys.modules, {"check_a_review": check_a_review}), \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                try:
+                    exec(compile(source, str(path), "exec"), {"__file__": str(path), "__name__": "__main__"})
+                except SystemExit as error:
+                    return error.code
+                return 0
+        finally:
+            os.chdir(old_directory)
+            sys.path[:] = old_path
+
+    def test_unified_runs_both_historical_regression_paths_without_review_signatures(self):
+        for task, expected in (("A043", "test/reviews/*.t.sol"), ("B043", "test/reviews/B043Review.t.sol")):
+            with self.subTest(task=task):
+                report = check_a_review.run_technical_validation(self.root, task)
+                self.assertEqual(report["status"], "passed")
+                self.assertEqual(report["checks_run"], 1)
+                self.assertEqual(report["command"], ["forge", "test", "--match-path", expected, "--json"])
+                self.assertEqual(report["validation_mode"], "unified_team_technical_validation")
+                self.assertFalse(report["independent_review"])
+                self.assertFalse(report["independent_audit"])
+                self.assertFalse(report["accepted"])
+                self.assertIsNone(report["merge_sha"])
+                self.assertEqual(report["source_commit"], "a" * 40)
+                self.assertIn("contracts/test/harness/Fixture.sol", report["source_hashes"])
+                self.assertEqual(check_a_review.validate_technical_validation(self.root, task), report)
+        self.assertFalse((self.root / "artifacts/reviews").exists())
+
+    def test_unified_rejects_failed_empty_skipped_and_malformed_results(self):
+        mixed = json.loads(self.stdout)
+        mixed["emptySuite"] = {"test_results": {}}
+        for output, code in (("{}", 0), ("[]", 0), ("not json", 0),
+                             (json.dumps(mixed), 0),
+                             ('{"suite":{"test_results":{}}}', 0),
+                             ('{"suite":{"test_results":{"test()":{"status":"Skipped"}}}}', 0),
+                             ('{"suite":{"test_results":{"test()":{"status":"Failure"}}}}', 0),
+                             ('{"suite":{"test_results":{"test()":null}}}', 0),
+                             (self.stdout, 1)):
+            with self.subTest(output=output, code=code):
+                self.stdout, self.forge_exit = output, code
+                report = check_a_review.run_technical_validation(self.root, "A043")
+                self.assertEqual(report["status"], "failed")
+                self.assertNotEqual(report["exit_code"], 0)
+                with self.assertRaises(ValueError):
+                    check_a_review.validate_technical_validation(self.root, "A043")
+
+    def test_unified_rejects_source_changes_during_execution(self):
+        self.mutate_during_run = True
+        report = check_a_review.run_technical_validation(self.root, "A043")
+        self.assertEqual(report["status"], "failed")
+        self.assertIn("changed", report["reason"])
+
+    def test_unified_evidence_rejects_changed_added_or_deleted_inputs(self):
+        for relative in ("contracts/src/Fixture.sol", "contracts/test/harness/Fixture.sol", "scripts/check-task.sh"):
+            check_a_review.run_technical_validation(self.root, "A043")
+            self.write(relative, "changed\n")
+            with self.assertRaisesRegex(ValueError, "source"):
+                check_a_review.validate_technical_validation(self.root, "A043")
+        check_a_review.run_technical_validation(self.root, "A043")
+        added = self.write("contracts/test/reviews/Added.t.sol", "new\n")
+        with self.assertRaisesRegex(ValueError, "source"):
+            check_a_review.validate_technical_validation(self.root, "A043")
+        check_a_review.run_technical_validation(self.root, "A043")
+        added.unlink()
+        with self.assertRaisesRegex(ValueError, "source"):
+            check_a_review.validate_technical_validation(self.root, "A043")
+
+    def test_unified_preserves_historical_review_files_and_rejects_unrelated_evidence(self):
+        historical = self.write("artifacts/reviews/A-on-B.json", '{"historical":"untouched"}\n')
+        report = self.write("artifacts/reviews/B-on-A.md", "Historical review\n")
+        check_a_review.run_technical_validation(self.root, "A043")
+        self.assertEqual(historical.read_text(), '{"historical":"untouched"}\n')
+        self.assertEqual(report.read_text(), "Historical review\n")
+        self.ancestor_exit = 1
+        with self.assertRaisesRegex(ValueError, "ancestor"):
+            check_a_review.validate_technical_validation(self.root, "A043")
+
+    def test_unified_a043_entrypoint_emits_technical_result(self):
+        self.assertEqual(self.execute_script("check-a-handoff.py", ["A043"]), 0)
+        evidence = json.loads((self.root / "artifacts/validation/A043.json").read_text())
+        self.assertEqual(evidence["status"], "passed")
+
+    def test_unified_b043_entrypoint_keeps_suite_and_fails_empty_results(self):
+        self.assertEqual(self.execute_script("check-task.sh", [str(self.root), "B043"]), 0)
+        record = json.loads((self.root / "artifacts/tasks/B043.json").read_text())
+        self.assertEqual(record["test_count"], 1)
+        self.assertIn("artifacts/validation/B043.json", record["artifacts"])
+        self.stdout = "{}"
+        self.assertNotEqual(self.execute_script("check-task.sh", [str(self.root), "B043"]), 0)
+        self.assertEqual(json.loads((self.root / "artifacts/tasks/B043.json").read_text())["status"], "failed")
+
+    def test_unified_other_b_handoff_forge_suites_reject_empty_or_skipped_results(self):
+        self.write("artifacts/risk/counterpart-status.json", "{}")
+        for output in ("{}", '{"suite":{"test_results":{"test()":{"status":"Skipped"}}}}'):
+            self.stdout = output
+            self.assertNotEqual(self.execute_script("check-task.sh", [str(self.root), "B040"]), 0)
+
+    def test_unified_sdk_suite_rejects_empty_skipped_cancelled_or_incomplete_results(self):
+        self.write("packages/risk-sdk/package.json", '{"devDependencies":{"typescript":"5.9.3"}}')
+        self.write("packages/risk-sdk/node_modules/typescript/package.json", '{"version":"5.9.3"}')
+        self.write("packages/risk-sdk/node_modules/typescript/bin/tsc", "fixture\n")
+        self.write("docs/app-state-fixtures.json", "{}")
+        self.assertEqual(self.execute_script("check-task.sh", [str(self.root), "B042"]), 0)
+        success = self.node_stdout
+        for output in ("", success.replace("tests 1", "tests 0").replace("pass 1", "pass 0"),
+                       success.replace("pass 1", "pass 0").replace("skipped 0", "skipped 1"),
+                       success.replace("cancelled 0", "cancelled 1"), success.replace("todo 0", "todo 1"),
+                       success.replace("pass 1", "pass 0")):
+            self.node_stdout = output
+            self.assertNotEqual(self.execute_script("check-task.sh", [str(self.root), "B042"]), 0)
+
+    def test_unified_a044_requires_current_passing_technical_evidence(self):
+        for number in range(1, 44):
+            self.write(f"artifacts/tasks/A{number:03d}.json", json.dumps({
+                "status": "passed", "exit_code": 0, "test_count": 1, "skipped_count": 0}))
+        self.write("docs/runbooks/accounting.md", "runbook\n")
+        check_a_review.run_technical_validation(self.root, "A043")
+        self.assertEqual(self.execute_script("check-a-handoff.py", ["A044"]), 0)
+        manifest = json.loads((self.root / "artifacts/risk/accounting-release.json").read_text())
+        self.assertEqual(manifest["status"], "UNIFIED_TECHNICAL_HANDOFF")
+        self.assertFalse(manifest["production_approved"])
+        self.assertFalse(manifest["independent_audit"])
+        for record in ({"status": "blocked", "exit_code": 2, "test_count": 0},
+                       {"status": "passed", "exit_code": 0, "test_count": 0},
+                       {"status": "passed", "exit_code": 0, "test_count": 1, "skipped_count": 1}):
+            self.write("artifacts/tasks/A043.json", json.dumps(record))
+            self.assertNotEqual(self.execute_script("check-a-handoff.py", ["A044"]), 0)
+        self.write("artifacts/tasks/A043.json", json.dumps(self.task_result))
+        self.write("contracts/src/Fixture.sol", "changed\n")
+        self.assertNotEqual(self.execute_script("check-a-handoff.py", ["A044"]), 0)
+
+    def prepare_gate(self, gate="G7"):
+        for relative in ("reference/common/units.py", "reference/common/result_schema.json",
+                         "contracts/src/math/MathTypes.sol", "docs/math/units.md",
+                         "docs/math/risk-function-contracts.json", "docs/ownership.json",
+                         "docs/counterpart-contracts.md", "reference/fixtures/golden_cases.json",
+                         "docs/math/golden-case-rationale.md", f"docs/contracts/{gate}.json",
+                         f"contracts/test/gates/{gate}.t.sol"):
+            self.write(relative, "{}\n")
+        if gate == "G1":
+            self.write("reference/integration/combined_trace.py", "fixture\n")
+            self.write("reference/tests/integration/test_g1.py", "fixture\n")
+            for lane in "ab":
+                for number in range(3, 10):
+                    self.write(f"reference/tests/{lane}/test_{lane}{number:03d}.py", "fixture\n")
+        self.write("docs/spec/gate_status.json", json.dumps({"gates": [{
+            "id": f"G{int(gate[1]) - 1}", "status": "passed", "merge_sha": "a" * 40, "reviewed_by": []}]}))
+        for task in ("A043", "B043"):
+            check_a_review.run_technical_validation(self.root, task)
+
+    def test_unified_g7_keeps_all_tasks_and_never_self_accepts_without_peer_identities(self):
+        self.prepare_gate()
+        self.assertEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G7"]), 0)
+        record = json.loads((self.root / "artifacts/gates/G7.json").read_text())
+        tasks = [command[2] for command in self.commands if len(command) == 3 and command[1] == "scripts/check-task.sh"]
+        self.assertEqual(tasks, [f"{lane}{number:03d}" for lane in "AB" for number in range(40, 45)])
+        self.assertEqual(record["status"], "checks_passed")
+        self.assertFalse(record["accepted"])
+        self.assertIsNone(record["merge_sha"])
+        self.assertEqual(record["reviewed_by"], [])
+
+    def test_unified_g7_still_rejects_missing_or_unrelated_predecessor(self):
+        self.prepare_gate()
+        self.ancestor_exit = 1
+        self.assertNotEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G7"]), 0)
+        self.ancestor_exit = 0
+        self.write("docs/spec/gate_status.json", '{"gates":[]}')
+        self.assertNotEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G7"]), 0)
+
+    def test_unified_g7_rejects_bad_task_records_or_missing_technical_evidence(self):
+        self.prepare_gate()
+        for record in ({"status": "failed", "exit_code": 1, "test_count": 1},
+                       {"status": "passed", "exit_code": 0, "test_count": 0},
+                       {"status": "passed", "exit_code": 0, "test_count": 1, "skipped_count": 1}):
+            self.task_result = record
+            self.assertNotEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G7"]), 0)
+        self.task_result = {"status": "passed", "exit_code": 0, "test_count": 1, "skipped_count": 0}
+        (self.root / "artifacts/validation/B043.json").unlink()
+        self.assertNotEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G7"]), 0)
+
+    def test_unified_rejects_malformed_or_relabeled_stored_evidence(self):
+        report = check_a_review.run_technical_validation(self.root, "A043")
+        for value in ([], {}, {**report, "independent_review": True}, {**report, "accepted": True},
+                      {**report, "source_commit": None}, {**report, "checks_run": 2},
+                      {**report, "evidence": "artifacts/reviews/A-on-B.json"},
+                      {**report, "suite_results": {}}, {**report, "command": ["forge", "test"]}):
+            self.write("artifacts/validation/A043.json", json.dumps(value))
+            with self.assertRaises(ValueError):
+                check_a_review.validate_technical_validation(self.root, "A043")
+
+    def test_unified_forge_environment_blocks_inherited_filters_and_config_overrides(self):
+        self.write("contracts/test/math/A/A010.t.sol", "fixture\n")
+        self.write("artifacts/risk/counterpart-status.json", "{}")
+        self.prepare_gate()
+        self.forge_environments.clear()
+        overrides = {name: "untrusted-override" for name in (
+            "FOUNDRY_MATCH_TEST", "FOUNDRY_NO_MATCH_TEST", "FOUNDRY_MATCH_CONTRACT",
+            "FOUNDRY_NO_MATCH_CONTRACT", "FOUNDRY_MATCH_PATH", "FOUNDRY_NO_MATCH_PATH",
+            "FOUNDRY_CONFIG", "FOUNDRY_PROFILE", "FOUNDRY_FUZZ_SEED", "FOUNDRY_FUZZ_RUNS",
+            "DAPP_MATCH_TEST", "DAPP_NO_MATCH_TEST", "DAPP_CONFIG", "DAPP_TEST_NUMBER")}
+        overrides.update(FORGE_SNAPSHOT_CHECK="true", FORGE_SNAPSHOT_EMIT="true", GOV_TEST_MARKER="retained")
+        with patch.dict(os.environ, overrides):
+            self.assertEqual(check_a_review.run_technical_validation(self.root, "A043")["status"], "passed")
+            for task in ("B040", "A010"):
+                self.assertEqual(self.execute_script("check-task.sh", [str(self.root), task]), 0)
+            self.assertEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G7"]), 0)
+        self.assertEqual(len(self.forge_environments), 5)
+        pinned = {"FOUNDRY_PROFILE": "risk", "FOUNDRY_FUZZ_SEED": "0x45524f53"}
+        for environment in self.forge_environments:
+            self.assertEqual({name: value for name, value in environment.items()
+                              if name.upper().startswith(("FOUNDRY_", "DAPP_"))}, pinned)
+            self.assertEqual(environment["FORGE_SNAPSHOT_EMIT"], "false")
+            self.assertEqual(environment["FORGE_SNAPSHOT_CHECK"], "true")
+            self.assertEqual(environment["GOV_TEST_MARKER"], "retained")
+
+    def test_unified_g1_reference_rejects_skips_expected_failures_and_missing_success(self):
+        self.prepare_gate("G1")
+        self.assertEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G1"]), 0)
+        for summary in ("OK (skipped=1)", "OK (expected failures=1)", "FAILED (failures=1)", ""):
+            self.reference_stderr = "Ran 1 test in 0.001s\n\n" + summary + "\n"
+            self.assertNotEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G1"]), 0)
 
 
 if __name__ == "__main__":
