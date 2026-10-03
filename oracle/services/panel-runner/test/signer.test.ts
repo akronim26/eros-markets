@@ -1,6 +1,5 @@
-// Task O33.4: PanelResult signing with the local attestor key (ADJ-42). The signed cases are pinned in
-// vectors/panel-sig.json, which the Foundry test test/vectors/PanelSigVectors.t.sol checks with the oracle's own
-// SigLib.hashPanelResult and isValidAttestorSig. Regenerate with WRITE_PANEL_SIG_VECTORS=1 bun test test/signer.test.ts.
+// vectors/panel-sig.json is also checked by PanelSigVectors.t.sol against SigLib.
+// Regenerate with WRITE_PANEL_SIG_VECTORS=1 bun test test/signer.test.ts.
 import { type PanelResult } from '@eros-oracle/oracle-sdk'
 import { describe, expect, test } from 'bun:test'
 import { readFileSync, writeFileSync } from 'node:fs'

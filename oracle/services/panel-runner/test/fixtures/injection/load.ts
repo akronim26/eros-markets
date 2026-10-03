@@ -1,4 +1,4 @@
-// The injection fixtures (manifest.json) as one snapshot: item i is manifest entry i, allow-listed, HTTP 200.
+// The fixtures as one snapshot: item i is manifest entry i, allow-listed, HTTP 200.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import type { Item, Snapshot } from '@eros-oracle/snapshotter'

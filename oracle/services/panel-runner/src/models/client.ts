@@ -1,9 +1,5 @@
-// Task O33.1: one panel model, asked once (plan §8.3). Temperature 0 and seed 0 where the API takes them (the
-// provider table in oracle-sdk), the answer schema sent where the provider enforces it and checked here always.
-// Failures: a network error, a timeout, HTTP 429 or 5xx, an answer cut off or empty, or invalid output are retried
-// up to 3 times with back-off (the provider's Retry-After, else 5 s, 15 s, 45 s); then the model ABSTAINs. A missing
-// key or another 4xx cannot succeed on retry and ABSTAINs at once. A valid answer whose citations fail
-// (`checkCitations`) is ABSTAIN too. Every attempt is recorded for the evidence log.
+// One panel model call. Network errors, timeouts, 429, 5xx, cut-off or invalid answers are retried up to 3 times,
+// then ABSTAIN. A missing key or another 4xx ABSTAINs at once. Every attempt is recorded for the evidence log.
 import { KEYS, modelIdHash, modelRequest, parseModel, responseText, retryDelayMs, type ModelCall } from '@eros-oracle/oracle-sdk'
 import type { Item } from '@eros-oracle/snapshotter'
 import type { Hex } from 'viem'
@@ -14,22 +10,21 @@ export const CALL_TIMEOUT_MS = 300_000 // thinking models can take minutes
 
 export type AbstainReason = 'API_FAILURE' | 'NO_VALID_CITATION' | 'ONLY_CONTEXT_CITED'
 
-/** One HTTP call: its status (0 when no response came), why it failed, and the provider's Retry-After if sent. */
+/** `status` is 0 when no response came. */
 export type Attempt = { httpStatus: number; error?: string; retryAfter?: string }
 
 export type ModelOutcome = {
   model: string
   modelIdHash: Hex
   label: Label | 'ABSTAIN'
-  /** The contract's PanelLabel code. */
   labelCode: number
-  /** The model's own confidence; null when it gave no valid answer. Calibration (O33.3) maps it. */
+  /** Uncalibrated; null without a valid answer. */
   confidence: number | null
   /** Valid citations only. */
   cited: number[]
   rationale: string
   abstainReason?: AbstainReason
-  /** The answer as the model gave it (for the evidence log), when it gave a valid one. */
+  /** For the evidence log. */
   answer?: Answer
   attempts: Attempt[]
 }
@@ -41,7 +36,7 @@ export type ClientDeps = {
   timeoutMs?: number
 }
 
-/** A failure the next attempt may not repeat. */
+/** A failure a retry may fix. */
 class Retryable extends Error {
   constructor(message: string, readonly retryAfter: string | null = null) {
     super(message)
@@ -83,7 +78,7 @@ export async function askModel(model: string, call: ModelCall, items: readonly I
         const body = (await res.text()).slice(0, 300)
         if (status === 429 || status >= 500) throw new Retryable(`HTTP ${status} ${body}`, res.headers.get('retry-after'))
         attempts.push({ httpStatus: status, error: `HTTP ${status} ${body}` })
-        return abstain('API_FAILURE') // another 4xx (bad key, bad request) will not change on retry
+        return abstain('API_FAILURE') // other 4xx will not change on retry
       }
       let answer: Answer
       try {

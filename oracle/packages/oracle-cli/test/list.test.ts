@@ -1,7 +1,5 @@
-// Task O22.2: `oracle-cli list` writes a pack for a sample market and the pack passes createMarket (rules 1-6,
-// then the commitment, the factory handshake and the store) in the Foundry dry-run. Expected values are built
-// here independently: marketId and dryRunHash with viem, the claim text by token substitution (as O10.3 did),
-// the pack schema from listings/example/pack.json (the one ListMarket was dry-run with in O19.4).
+// Expected values are built independently: ids and hashes with viem, the claim by token substitution, the pack
+// schema from listings/example/pack.json.
 import { describe, expect, test } from 'bun:test'
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -60,7 +58,7 @@ describe('a sample market', () => {
     const pack = JSON.parse(readFileSync(join(r.dir, 'pack.json'), 'utf8'))
     expect(pack.marketInput.dryRunHash).toBe(keccak256(new Uint8Array(ref)))
     expect(r.dryRunHash).toBe(pack.marketInput.dryRunHash)
-    expect(pack.marketInput.ambiguityLogHash).toBe(ZERO32) // set by the ambiguity pass (O22.3)
+    expect(pack.marketInput.ambiguityLogHash).toBe(ZERO32) // set later by the ambiguity pass
     expect(r.reference).toEqual({
       url: 'https://api.example-sports.com/v1/events/evt_finished_1', status: 'YES', valueHash: keccak256(toBytes('3')),
     })

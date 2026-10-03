@@ -1,5 +1,4 @@
-// Task O32.1: the evidence fetcher against a local HTTP fixture (plan §8.2): source order, the item format, the
-// 512 KB item and 4 MB snapshot caps, plain GETs. Expected hashes are computed here from the fixture's bytes.
+// Expected hashes are computed here from the fixture's bytes.
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { createHash } from 'node:crypto'
 import { itemBytes, orderSources, takeSnapshot } from '../src/fetcher'
@@ -11,7 +10,7 @@ const ALLOW = ['api.example-sports.com', 'stats.example-data.org']
 const L1 = 'https://api.example-sports.com/v1/events/evt_1'
 const sha = (b: Uint8Array | string) => createHash('sha256').update(b).digest('hex')
 const enc = (s: string) => new TextEncoder().encode(s)
-/** A request with the Layer 1 URL, or none (`null`: a market without a feed). */
+/** `null` for a market without a feed. */
 const req = (pages: string[], l1: string | null = L1): SnapshotRequest => ({ marketId: MARKET, l1Url: l1 ?? undefined, allowList: ALLOW, pages })
 
 let fx: ReturnType<typeof startFixture>

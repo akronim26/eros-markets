@@ -1,15 +1,12 @@
-// Task O31.1: `bun src/main.ts` runs one keeper instance (plan §9.1, §12.7). Configuration comes from the
-// environment; the key comes from the secret manager in production and from deployments/testnet-keys.env on
-// testnet (ADJ-38), never from git.
+// Runs one keeper instance. The key comes from a secret manager (production) or deployments/testnet-keys.env.
 //
-//   NETWORK            deployments/<NETWORK>.json (default monad-testnet)
-//   RPC_URL            the instance's own RPC endpoint
-//   KEEPER_PRIVATE_KEY the instance's sending key
-//   INDEXER_URL        Envio GraphQL (oracle/indexer); markets and treasury disputes come from it, and the registry's
-//                      and treasury's logs are scanned only when it is down or behind. Without it, logs only.
-//   INDEXER_MAX_LAG_BLOCKS  how far the indexer may trail the chain head before the logs are read (default 300)
-//   POLL_MS            tick interval (default 15000)
-//   DELAY_MS           offset of the second instance between planning and sending (default 0)
+//   NETWORK                 deployments/<NETWORK>.json (default monad-testnet)
+//   RPC_URL                 this instance's RPC endpoint
+//   KEEPER_PRIVATE_KEY      this instance's sending key
+//   INDEXER_URL             Envio GraphQL; RPC logs are read only when it is down or behind (logs only if unset)
+//   INDEXER_MAX_LAG_BLOCKS  how far the indexer may trail the head before falling back (default 300)
+//   POLL_MS                 tick interval (default 15000)
+//   DELAY_MS                planning-to-sending offset for a second instance (default 0)
 import { IndexerClient, loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
 import { createPublicClient, http, type Hex } from 'viem'
 import { z } from 'zod'
@@ -49,7 +46,7 @@ const head = () => logs.getBlockNumber()
 const source: MarketSource = indexer ? indexedMarkets(indexer, marketLogs, head, env.INDEXER_MAX_LAG_BLOCKS, log) : marketLogs
 const disputes: DisputeSource = indexer ? indexedDisputes(indexer, disputeLogs, head, env.INDEXER_MAX_LAG_BLOCKS, log) : disputeLogs
 
-// Testnet markets run on ResolutionEngineStub (StubMarketFactory is deployed only there); mainnet on the real engine.
+// StubMarketFactory exists only on testnet, where markets run on ResolutionEngineStub.
 const realEngine = !('StubMarketFactory' in deployments.contracts)
 const jobs = planners({ realEngine })
 const keeper = new Keeper({ chain, source, planners: jobs, globalPlanners: globalPlanners(disputes), gas: loadGas(), delayMs: env.DELAY_MS, log })

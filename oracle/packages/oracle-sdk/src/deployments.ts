@@ -1,5 +1,4 @@
-// Task O30.1: typed loading of deployments/<network>.json and gas.json (plan §12.11). The deploy scripts write these
-// files; every service reads them here, so a missing contract or a malformed address fails at startup, not mid-job.
+// Validated loading of deployments/<network>.json and gas.json, so a bad file fails at startup, not mid-job.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { getAddress } from 'viem'
@@ -17,7 +16,7 @@ const deployed = z.object({
   testnetOnly: z.boolean().optional(),
 })
 
-/** The contracts every network has; StubMarketFactory exists on testnets only (§12.4 step 7). */
+/** Contracts every network has. StubMarketFactory exists on testnets only. */
 export const CORE_CONTRACTS = ['Timelock', 'ResolutionOracle', 'MarketRegistry', 'BondTreasury', 'UmaAdapter', 'KeeperRouter'] as const
 
 export const deploymentsSchema = z.object({
@@ -107,12 +106,12 @@ export function loadDeployments(network: string, opts: { dir?: string; path?: st
   return d
 }
 
-/** gas.json: each call type's measured limit, which every service sends with (§6.9, §9). */
+/** gas.json: the measured gas limit for each call type. */
 export function loadGas(path = join(ORACLE_ROOT, 'deployments', 'gas.json')): GasTable {
   return parse(gasSchema, readFileSync(path, 'utf8'), path)
 }
 
-/** The gas limit for a call type; throws for a call gas.json does not list (never guess a limit). */
+/** Throws for a call type gas.json does not list, rather than guess a limit. */
 export function gasLimit(gas: GasTable, call: string): bigint {
   const c = gas.calls[call]
   if (!c) throw new DeploymentsError(`gas.json has no limit for ${call}`)

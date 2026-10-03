@@ -1,9 +1,6 @@
-// Task O33.5 acceptance on a local deploy (the keeper's O31.4 stack: O19.3/O19.4 scripts on anvil; a public testnet
-// deploy is not authorized, so the testnet run stays for X04). The runner, models and evidence are harness.ts's. Four
-// routes, each checked on the oracle:
-//   after T   a clean snapshot: the signed payload is accepted and the market goes to Review (no validated category)
-//             a flagged snapshot: accepted with flags = 1, the market goes to Review
-//   before T  a clean early check returns the market to None; a flagged one goes to EarlyReview
+// Four routes checked on a local oracle:
+//   after T   clean → Review (no validated category); flagged → Review with flags = 1
+//   before T  clean → None; flagged → EarlyReview
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import type { Hex } from 'viem'
 import { deployStack, resolution, revertTo, snapshot, type Stack } from '../../../keeper/test/fork/stack'
@@ -37,7 +34,7 @@ beforeEach(async () => {
 describe('panel runner on a local deploy', () => {
   test('after T, clean: the signed payload is accepted and the market goes to Review', async () => {
     const id = await listPinned(s)
-    const r = await makeRunner(s, ev) // before the state change: it reads StateChanged logs from here on
+    const r = await makeRunner(s, ev) // before the state change
     await toL2Pending(s, id)
     const { run, routedTo, flags } = await runPanel(s, r)
     expect(run.route).toBe('Review')

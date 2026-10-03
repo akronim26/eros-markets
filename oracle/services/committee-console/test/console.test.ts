@@ -1,6 +1,3 @@
-// Task O34.3: a reviewer completes a case without leaving the console: reads it (rules first), adds a source (a new
-// snapshot through the snapshotter), proposes with a note, a second member signs, anyone submits; and the service-level
-// alerts fire at T_r, the L2 deadline − 2 h and retryOpensAt − 2 h. Chain: the recorded Review state (FakeChain).
 import { loadGas } from '@eros-oracle/oracle-sdk'
 import { takeSnapshot } from '@eros-oracle/snapshotter'
 import { beforeEach, describe, expect, test } from 'bun:test'

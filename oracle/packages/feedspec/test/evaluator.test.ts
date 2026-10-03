@@ -1,5 +1,3 @@
-// Task O20.1: the plan §11.2 evaluator cases, the URL and host rules (with the `{id}` placement check that
-// matches the registry's HostLib.checkTemplate), and the JSON parser's guarantees.
 import { describe, expect, test } from 'bun:test'
 import {
   allowListed,
@@ -19,7 +17,7 @@ import {
   ValueType,
 } from '../src/index'
 
-/** Appendix B.3's FeedSpec: home score > 2 once the event is FINAL. */
+/** Home score > 2 once the event is FINAL. */
 const SPEC: FeedSpec = {
   urlTemplate: 'https://api.example-sports.com/v1/events/{id}',
   urlParam: 'evt_1',
@@ -183,7 +181,7 @@ describe('URL and host rules', () => {
     expect(codeOf(() => buildUrl({ ...SPEC, urlParam: 'x'.repeat(129) }))).toBe('BAD_URL_PARAM')
     expect(codeOf(() => buildUrl({ ...SPEC, urlParam: 'a/b' }))).toBe('BAD_URL_PARAM')
     expect(codeOf(() => buildUrl({ ...SPEC, urlParam: 'a$&b' }))).toBe('BAD_URL_PARAM')
-    // urlParam is checked even without {id} (registry rule 4)
+    // urlParam is checked even without {id}, as the registry does
     expect(codeOf(() => buildUrl({ ...SPEC, urlTemplate: 'https://api.example-sports.com/x', urlParam: '' }))).toBe(
       'BAD_URL_PARAM',
     )

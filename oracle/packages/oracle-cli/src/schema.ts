@@ -1,6 +1,5 @@
-// The input of `oracle-cli list` (O22.2): what the lister decides, in the shape of the pack ListMarket reads
-// (script/ListMarket.s.sol). The CLI adds marketId, dryRunHash and ambiguityLogHash. Integers that may exceed
-// 2^53 are written as decimal strings (a JSON number above that has already lost precision when parsed).
+// Input of `oracle-cli list`, shaped like ListMarket's pack minus marketId, dryRunHash and ambiguityLogHash.
+// Integers that may exceed 2^53 are decimal strings, since JSON numbers lose precision there.
 import { z } from 'zod'
 
 const hex = (bytes: number) => z.string().regex(new RegExp(`^0x[0-9a-fA-F]{${bytes * 2}}$`))
@@ -45,11 +44,11 @@ export const feedSchema = z.object({
 export const listingSchema = z.object({
   /** marketId = keccak256 of the slug's UTF-8 bytes. */
   slug: z.string().min(1),
-  /** The finished event of the same type whose response becomes reference.json (§12.9 step 2). */
+  /** A finished event of the same type; its response becomes reference.json. */
   reference: z.object({ urlParam: z.string() }),
-  /** §12.9 step 3: an event of the same type that is not final yet, for the NOT_READY run (oracle-cli dryrun). */
+  /** An unfinished event of the same type, for the dry run's NOT_READY case. */
   dryRun: z.object({ liveUrlParam: z.string() }).optional(),
-  /** §12.9 step 5: the panel models as "provider:model-id@version"; their keccak256 must be ai.modelIdHashes. */
+  /** "provider:model-id@version"; their keccak256 must equal ai.modelIdHashes. */
   ambiguity: z.object({ models: z.tuple([modelId, modelId, modelId]) }).optional(),
   marketInput: z.object({
     question: z.string().min(1),

@@ -1,6 +1,4 @@
-// Task O34.3 (ADJ-22): a reviewer adds sources. That is a new snapshot through the snapshotter (plan §8.2, spec §6.6):
-// the market's Layer 1 endpoint and allow-list as for the panel, the panel's pages (from its snapshot when the store
-// has it) and the added pages, all fetched fresh. It gets its own hash and URI and is kept in the store.
+// Adding sources takes a fresh snapshot of the panel's sources plus the new pages, stored under its own hash.
 import { type Snapshot, type SnapshotRequest } from '@eros-oracle/snapshotter'
 import type { Hex } from 'viem'
 import type { EvidenceStore } from '../backend/store'

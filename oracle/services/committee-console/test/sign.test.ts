@@ -1,5 +1,3 @@
-// Task O34.2: building, signing, collecting and submitting ReviewedProposals against the recorded Review state. The
-// contract's own acceptance is the local-deploy test (test/fork); here each check the console makes before sending.
 import { HALF_N, loadGas, oracleDomain, reviewedProposalDigest } from '@eros-oracle/oracle-sdk'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { cpSync, mkdtempSync } from 'node:fs'
@@ -33,7 +31,7 @@ beforeEach(async () => {
   b = newBundle(c, { chainId: chain.chainId, oracle: chain.oracle, outcome: 'NO', evidenceHash: c.evidence!.evidenceHash, evidenceURI: c.evidence!.evidenceURI, noteHash: NOTE, now: chain.t })
 })
 
-/** The high-s twin of a valid signature: (r, n − s, v flipped), which ecrecover accepts and SigLib refuses. */
+/** (r, n − s, v flipped): ecrecover accepts it, SigLib refuses it. */
 function highS(sig: Hex): Hex {
   const n = HALF_N * 2n + 1n
   const s = hexToBigInt(sliceHex(sig, 32, 64))

@@ -1,10 +1,6 @@
-// Task O32.1: the evidence fetcher (plan §8.2). Sources, in order: the Layer 1 endpoint when the market has a
-// feed, then the configured pages on allow-listed hosts (in the allow-list's host order, then as configured), then
-// every other page as context (marked `allowListed: false`). Each is fetched with a plain GET: no cookies, no
-// credentials, no redirects followed (a 3xx is stored as it came, so a redirect cannot swap in another host's
-// page). Bodies are stored raw, streamed and cut at 512 KB per item and 4 MB per snapshot; once the snapshot is
-// full the remaining sources are listed as omitted rather than fetched. Text for prompts is extracted separately
-// (text.ts) and never stored.
+// Evidence fetcher. Order: the Layer 1 endpoint, allow-listed pages by host order, then other pages as context. Plain
+// GETs with no credentials and no redirects followed, so a redirect cannot swap in another host's page. Bodies are
+// stored raw, capped at 512 KB per item and 4 MB per snapshot; sources past the cap are listed as omitted.
 import { hostOf } from '@eros-oracle/feedspec'
 import { createHash } from 'node:crypto'
 import {
@@ -31,7 +27,7 @@ const HEADERS = { accept: '*/*', 'user-agent': 'eros-snapshotter/1' }
 
 type Source = { url: string; host: string; allowListed: boolean }
 
-/** The sources in snapshot order, without duplicates; URLs that are not https with a plain host are omitted. */
+/** Deduplicated, in snapshot order; URLs that are not https with a plain host are omitted. */
 export function orderSources(req: SnapshotRequest): { sources: Source[]; omitted: Omitted[] } {
   const seen = new Set<string>()
   const omitted: Omitted[] = []
@@ -41,7 +37,7 @@ export function orderSources(req: SnapshotRequest): { sources: Source[]; omitted
     seen.add(url)
     let host: string
     try {
-      host = hostOf(url) // https, lowercase host, no port or userinfo (the registry's host rules)
+      host = hostOf(url) // the registry's host rules
     } catch {
       omitted.push({ url, reason: 'BAD_URL' })
       return
@@ -79,7 +75,7 @@ export async function takeSnapshot(req: SnapshotRequest, o: FetcherOptions = {})
   return { version: SNAPSHOT_VERSION, marketId: req.marketId, takenAt, allowList: [...req.allowList], items, omitted }
 }
 
-/** One plain GET; the body is read up to `cap` bytes and the rest is not downloaded. */
+/** Reads at most `cap` bytes of the body. */
 export async function fetchItem(src: Source, cap: number, fetchFn: typeof fetch, clock: () => number, timeoutMs: number): Promise<Item> {
   const ctl = new AbortController()
   const timer = setTimeout(() => ctl.abort(), timeoutMs)
@@ -114,10 +110,7 @@ export async function fetchItem(src: Source, cap: number, fetchFn: typeof fetch,
   }
 }
 
-/**
- * The first `cap` bytes of the body. As soon as more arrive the request is aborted: cancelling the reader alone
- * leaves Bun's connection open and the rest of the body downloading.
- */
+/** Aborts the request past `cap`: cancelling the reader alone leaves Bun downloading the rest. */
 async function readCapped(res: Response, cap: number, ctl: AbortController): Promise<{ bytes: Uint8Array; truncated: boolean }> {
   if (!res.body) return { bytes: new Uint8Array(), truncated: false }
   const reader = res.body.getReader()
@@ -149,5 +142,4 @@ async function readCapped(res: Response, cap: number, ctl: AbortController): Pro
 
 export const sha256Hex = (b: Uint8Array) => createHash('sha256').update(b).digest('hex')
 
-/** The stored bytes of an item. */
 export const itemBytes = (item: Item) => new Uint8Array(Buffer.from(item.bytesBase64, 'base64'))

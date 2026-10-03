@@ -1,6 +1,4 @@
-// Task O30.2: bigint mirrors of src/libraries/BondMath.sol and VoidBound.sol (plan §6.4, §6.5, §14.2, Appendix
-// C.7). Services size bonds, pick liveness and check voidSecs with these before sending, so they agree with what
-// the contract will compute. Checked against vectors/bond.json and vectors/voidbound.json.
+// Mirrors of BondMath.sol and VoidBound.sol, so services compute what the contracts will.
 
 export const ATOMS_PER_LOT = 1000n // 1 lot = 0.001 claim; a claim pays 1e6 USDC atoms at YES
 export const BPS = 10_000n
@@ -26,7 +24,7 @@ export function bond(oiLots: bigint, minBond: bigint, bondBps: number | bigint, 
   return max(ceilDiv(oiLots * ATOMS_PER_LOT * bps, BPS), minBond, venueMinimumBond)
 }
 
-/** A watchdog is fresh when not revoked and its last heartbeat (never 0, never in the future) is at most max age old. */
+/** Fresh: not revoked, and the last heartbeat is set, not in the future and at most `heartbeatMaxAgeSecs` old. */
 export function isWatchdogFresh(now: bigint, lastHeartbeat: bigint, heartbeatMaxAgeSecs: bigint, revoked: boolean): boolean {
   if (revoked || lastHeartbeat === 0n || lastHeartbeat > now) return false
   return now - lastHeartbeat <= heartbeatMaxAgeSecs
@@ -34,7 +32,7 @@ export function isWatchdogFresh(now: bigint, lastHeartbeat: bigint, heartbeatMax
 
 export type Liveness = { livenessL1: bigint; livenessAuto: bigint; livenessReviewed: bigint }
 
-/** L1 and L2_AUTO use their own liveness only while the watchdog is fresh; everything else is reviewed liveness. */
+/** L1 and L2_AUTO get their own liveness only while the watchdog is fresh; otherwise reviewed liveness. */
 export function liveness(path: number, uma: Liveness, watchdogFresh: boolean): bigint {
   if (path === Path.NONE) throw new Error('NoPath')
   if (path === Path.L1 && watchdogFresh) return uma.livenessL1

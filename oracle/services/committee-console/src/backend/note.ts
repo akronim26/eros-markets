@@ -1,5 +1,4 @@
-// Task O34.1: the reviewer's note (plan §8.4). `noteHash = keccak256(JCS(note))` is signed in the ReviewedProposal; the
-// note itself is kept by the console as its canonical bytes under that hash (ADJ-41: no IPFS pinning on testnet).
+// The reviewer's note. Its `noteHash = keccak256(JCS(note))` is signed; the note is stored locally under that hash.
 import { canonicalBytes } from '@eros-oracle/snapshotter'
 import { type Address, getAddress, type Hex, keccak256 } from 'viem'
 import { CHOICES, type Choice } from './types'
@@ -12,7 +11,7 @@ export type Note = {
   outcome: Choice
   /** The snapshot the reviewer decided on. */
   evidenceHash: Hex
-  /** Pages the reviewer added to the panel's sources (a new snapshot, ADJ-22). */
+  /** Pages the reviewer added to the panel's sources. */
   addedSources: string[]
   reviewer: Address
   text: string

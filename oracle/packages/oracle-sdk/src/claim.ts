@@ -1,7 +1,5 @@
-// Task O30.3: a byte-for-byte mirror of src/libraries/ClaimRenderer.sol (plan §6.3 rule 6, §6.4, §12.9, ADJ-16):
-// the UMA claim a proposal asserts, the template rules, and the registry's worst-case length bound. It works on
-// UTF-8 bytes as the library does. Checked against vectors/claim.json, which ClaimVectors.t.sol writes from the
-// library itself.
+// Byte-for-byte mirror of ClaimRenderer.sol: the UMA claim text, the template rules and the worst-case length.
+// Works on UTF-8 bytes, as the library does.
 import { type Address, type Hex, concatBytes, getAddress, numberToHex, stringToBytes } from 'viem'
 
 export class InvalidTemplate extends Error {
@@ -22,7 +20,7 @@ export const CLAIM_TOKENS = [
 const TAU_UNIX = 6
 const TOKEN_BYTES = CLAIM_TOKENS.map((t) => stringToBytes(`{{${t}}}`))
 
-// Fixed output sizes of the worst-case bound (plan §6.3 rule 6), as in the library.
+// Fixed output sizes used by the worst-case bound.
 const FIXED_TOKEN_OUTPUT = 66 + 20 + 42 + 20 + 20 + 7 + 66 // MARKET_ID, CHAIN_ID, ORACLE, TAU_UTC, TAU_UNIX, OUTCOME, EVIDENCE_HASH
 const MIN_EVIDENCE = 256 // MAX_EVIDENCE_URI_BYTES
 const L1_EVIDENCE_FIXED = 26 + 66 + 9 // "Layer 1 CRE report, value " + hash + ", source "
@@ -84,9 +82,8 @@ export function isValidTemplate(template: string): boolean {
 }
 
 /**
- * The registry's upper bound on the rendered length (`worstCaseLength`); `l1UrlLen` is the byte length of the
- * Layer 1 URL (0 without a feed). Like the library it throws only when a "{{" is not a token; token counts are
- * not checked here.
+ * `worstCaseLength`: upper bound on the rendered length. `l1UrlLen` is the Layer 1 URL's byte length (0 without a
+ * feed). Throws only when a "{{" is not a token; token counts are not checked.
  */
 export function worstCaseLength(template: string, questionLen: number, rulesLen: number, l1UrlLen: number): bigint {
   const t = stringToBytes(template)
@@ -102,7 +99,7 @@ const hex32 = (h: Hex) => numberToHex(BigInt(h), { size: 32 })
 /** The `{{EVIDENCE}}` text of a Layer 1 proposal (`l1Evidence`). */
 export const l1Evidence = (valueHash: Hex, url: string): string => `Layer 1 CRE report, value ${hex32(valueHash)}, source ${url}`
 
-/** Proleptic Gregorian date of a day count since 1970-01-01 (the algorithm Solady's DateTimeLib uses). */
+/** Date of a day count since 1970-01-01 (Solady DateTimeLib's algorithm). */
 function civil(days: bigint): [bigint, bigint, bigint] {
   const z = days + 719468n
   const era = z / 146097n
@@ -139,7 +136,7 @@ function value(k: number, f: ClaimFields): string {
   }
 }
 
-/** One-pass render (`render`): throws InvalidTemplate on a template that breaks the rules, then NoOutcome. */
+/** `render`: throws InvalidTemplate for a template that breaks the rules, then NoOutcome. */
 export function renderClaim(template: string, f: ClaimFields): Uint8Array {
   if (f.tau < 0n || f.tau >= 1n << 64n) throw new RangeError('tau is not a uint64')
   if (f.chainId < 0n || f.chainId >= 1n << 256n) throw new RangeError('chainId is not a uint256')

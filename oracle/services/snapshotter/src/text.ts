@@ -1,14 +1,11 @@
-// Task O32.1: text for prompts (plan §8.2: "HTML is stored raw; text is extracted only for the prompt"). The
-// snapshot keeps the bytes; the panel runner (O33) builds its data blocks from this text. Nothing here is hashed or
-// pinned, so it can improve without changing any evidenceHash. Scripts, styles, comments and similar are dropped
-// here, but text hidden by CSS (display:none and the like) is kept; the injection detector (O33.2) scans the raw
-// bytes and flags such text when it is long or reads like an instruction.
+// Prompt text from stored bytes. Nothing here is hashed, so it can change without changing any evidenceHash.
+// CSS-hidden text is kept; the injection detector flags it from the raw bytes.
 import type { Item } from './types'
 import { itemBytes } from './fetcher'
 
 const TEXTUAL = /^(text\/|application\/(json|[a-z0-9.+-]*\+json|xml|[a-z0-9.+-]*\+xml|javascript|csv)\b)/
 
-/** The charset of a Content-Type header, default UTF-8; an unknown label falls back to UTF-8. */
+/** From the Content-Type header; UTF-8 when absent or unknown. */
 export function decoderFor(contentType: string): TextDecoder {
   const m = /;\s*charset\s*=\s*"?([^";\s]+)"?/i.exec(contentType)
   try {
@@ -20,7 +17,7 @@ export function decoderFor(contentType: string): TextDecoder {
 
 const mediaType = (contentType: string) => contentType.split(';')[0].trim().toLowerCase()
 
-/** The item as prompt text, or null when it has no text (binary types, a failed fetch, an empty body). */
+/** Null for binary types, failed fetches and empty bodies. */
 export function promptText(item: Item): string | null {
   if (item.httpStatus === 0 || item.bytesBase64 === '') return null
   const type = mediaType(item.contentType)
@@ -48,7 +45,7 @@ function decodeEntities(s: string): string {
 
 const BLOCK = /^(p|div|br|li|ul|ol|tr|table|h[1-6]|section|article|header|footer|main|nav|aside|blockquote|pre|dd|dt|dl|hr|td|th)$/
 
-/** Visible text of an HTML page: no scripts, styles, comments or tags; block elements become line breaks. */
+/** Drops scripts, styles, comments and tags; block elements become line breaks. */
 export function htmlText(html: string): string {
   const stripped = html
     .replace(/<!--[\s\S]*?-->/g, ' ')

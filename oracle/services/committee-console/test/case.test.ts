@@ -1,6 +1,5 @@
-// Task O34.1: cases built from a recorded market state (test/fixtures/recorded-review: a market the real panel runner
-// took to Review on a local deploy, with its snapshot and run record). Expected values come from the listing pack, the
-// recorded panel result and hand arithmetic, not from the code under test.
+// Cases from a recorded Review state. Expected values come from the listing pack, the recorded result and hand
+// arithmetic, not from the code under test.
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'

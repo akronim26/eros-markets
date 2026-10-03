@@ -1,4 +1,3 @@
-// Task O37.2: the derived Market fields Disputes Live sorts and filters on (live, deadline).
 import type { Assertion, Market } from 'envio'
 import { describe, expect, it } from 'vitest'
 import { blankMarket, deadlineOf, refresh } from '../src/lib'

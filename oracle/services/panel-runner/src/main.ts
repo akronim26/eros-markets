@@ -1,16 +1,14 @@
-// Task O33.5: `bun src/main.ts` runs the panel runner (plan §8.3, §12.7). Configuration from the environment; keys are
-// testnet-only hot keys (ADJ-38, ADJ-42), never in git.
+// Runs the panel runner. Keys are testnet-only hot keys.
 //
 //   NETWORK              deployments/<NETWORK>.json (default monad-testnet)
 //   RPC_URL              the runner's RPC endpoint
-//   RELAYER_PRIVATE_KEY  the EOA that sends submitPanelResult (pays gas; trusted for nothing)
-//   ATTESTOR_PRIVATE_KEY the trust set's runner attestor (signs PanelResults)
-//   PANEL_MODELS         the configured models, "provider:model-id@version", comma-separated
-//   GROQ_API_KEY, NVIDIA_API_KEY, GEMINI_API_KEY, …  the providers' keys (oracle-sdk KEYS); GROQ_API_KEY also runs
-//                        the injection classifier
-//   CALIBRATION          a JSON file of calibration maps (default: the placeholder maps, ADJ: O33.3)
-//   SOURCES              a JSON file {marketId: [page URLs]} of configured evidence pages (optional)
-//   SNAPSHOT_DIR         where snapshots are kept (default ./snapshots, ADJ-41)
+//   RELAYER_PRIVATE_KEY  sends submitPanelResult (pays gas, trusted for nothing)
+//   ATTESTOR_PRIVATE_KEY the trust set's runner attestor, which signs PanelResults
+//   PANEL_MODELS         "provider:model-id@version", comma-separated
+//   <PROVIDER>_API_KEY   one per provider (oracle-sdk KEYS); GROQ_API_KEY also runs the injection classifier
+//   CALIBRATION          JSON file of calibration maps (default: the placeholder maps)
+//   SOURCES              optional JSON file {marketId: [page URLs]}
+//   SNAPSHOT_DIR         default ./snapshots
 //   POLL_MS              tick interval (default 30000)
 import { loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
 import { takeSnapshot } from '@eros-oracle/snapshotter'

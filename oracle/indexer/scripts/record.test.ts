@@ -1,16 +1,9 @@
-// Task O37.2: records the events the handler tests replay. A local deploy of the whole stack (the keeper's O31.4 anvil
-// stack: DeployUmaSandbox, DeployOracle, CreateTrustSet and FundTreasury through the Timelock) and two markets taken
-// through every path an entity comes from, by the real services' code where they exist:
-//   A  Layer 1: halt, request, the CRE report through the sim forwarder (ReportProcessed), assert (OOv3 AssertionMade,
-//      the adapter, the treasury's bond), the watchdog's heartbeat and its dispute with the float, sync, the sandbox
-//      DVM answers "untruthful" (PricePushed), finalize rejects the assertion (bond lost), the dispute is closed, and
-//      the market is voided at its voidDeadline.
-//   B  Layer 2: escalated, the panel runner's signed result routes to Review, two committee members propose and
-//      submit through the console (REVIEWED), assert, liveness passes, finalize (Final, bond returned).
-// Every log of the chain is written with its block and transaction to test/fixtures/recorded/events.json, with the
-// local addresses by contract name (the tests map them onto config.yaml's).
+// Records the events the handler tests replay, from a local deploy driven by the real services' code:
+//   A  Layer 1 report, asserted, disputed by the watchdog, rejected by the DVM, voided at its deadline
+//   B  Layer 2 panel result to Review, a committee proposal, asserted, Final
+// Writes every log to test/fixtures/recorded/events.json with the local addresses by contract name.
 //
-//   cd oracle/indexer && bun test scripts/record.test.ts       (needs anvil and forge; not part of `pnpm test`)
+//   bun test scripts/record.test.ts       (needs anvil and forge; not part of `pnpm test`)
 import { expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -85,7 +78,6 @@ test('record the lifecycle events', async () => {
     await send(anyone, treasury, encodeFunctionData({ abi: TREASURY_ABI, functionName: 'skim' }))
 
     // ---- B: Layer 2 → Review → the committee's REVIEWED proposal → Final
-    // the panel harness's pinned market (its models, prompt and calibration), under a second market id
     const idB = await listExample(s, (pack) => {
       pack.marketInput.marketId = `0x${'b2'.repeat(32)}`
       pack.marketInput.ai.modelIdHashes = MODELS.map(modelIdHash)
@@ -119,7 +111,6 @@ test('record the lifecycle events', async () => {
     await callOracle('voidMarket', idA)
     expect((await resolution(s, idA)).state).toBe(10)
 
-    // ---- every log, with its block and transaction
     const logs = (await rpc(s.rpcUrl, 'eth_getLogs', [{ fromBlock: '0x0', toBlock: 'latest' }])) as any[] // not getBlockNumber: viem caches it
     const blocks = new Map<string, { number: number; timestamp: number; hash: string }>()
     const froms = new Map<string, string>()

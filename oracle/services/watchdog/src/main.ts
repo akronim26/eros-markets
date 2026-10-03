@@ -1,19 +1,17 @@
-// Task O35.4 setup: `bun src/main.ts` runs the watchdog (plan §9.2, §12.7). It is meant to run apart from the keeper and
-// the panel runner (its own machine, RPC endpoint and keys); configuration from the environment, keys are testnet-only
-// hot keys (ADJ-38), never in git.
+// Runs the watchdog. Run it apart from the keeper and panel runner, with its own machine, RPC endpoint and keys.
 //
-//   NETWORK               deployments/<NETWORK>.json (default monad-testnet)
-//   RPC_URL               the watchdog's own RPC endpoint
-//   WATCHDOG_PRIVATE_KEY  the trust set's watchdog key (heartbeat, disputes)
-//   WATCHDOG_MODEL        the fourth model (default groq:qwen/qwen3.8-27b@2026-10-03) and its provider's key (oracle-sdk KEYS)
-//   SNAPSHOT_DIR          where `eros-snapshot:` snapshots are read (default ./snapshots, ADJ-41)
-//   FALLBACKS             optional JSON file {marketId: FeedSpec} of fallback sources (ADJ-44)
-//   FEED_AUTH             optional JSON file {authRef: {header, env}}: the header and the variable holding its value
-//   PAGER_WEBHOOK         optional URL a page is POSTed to as JSON (else pages go to stderr)
-//   POLL_MS               tick interval (default 15000); FROM_BLOCK where intake starts (default the deploy block)
-//   INDEXER_URL           Envio GraphQL (oracle/indexer): intake reads proposals and assertions from it, and the oracle's
-//                         logs only while it is down or behind; without it, logs only
-//   INDEXER_MAX_LAG_BLOCKS  how far the indexer may trail the chain head before the logs are read (default 300)
+//   NETWORK                 deployments/<NETWORK>.json (default monad-testnet)
+//   RPC_URL                 the watchdog's own RPC endpoint
+//   WATCHDOG_PRIVATE_KEY    the trust set's watchdog key
+//   WATCHDOG_MODEL          default groq:qwen/qwen3.8-27b@2026-10-03; needs its provider's key
+//   SNAPSHOT_DIR            where `eros-snapshot:` snapshots are read (default ./snapshots)
+//   FALLBACKS               optional JSON file {marketId: FeedSpec}
+//   FEED_AUTH               optional JSON file {authRef: {header, env}}
+//   PAGER_WEBHOOK           optional URL pages are POSTed to (else stderr)
+//   POLL_MS                 tick interval (default 15000)
+//   FROM_BLOCK              where intake starts (default the deploy block)
+//   INDEXER_URL             Envio GraphQL; logs are read only when it is down or behind (logs only if unset)
+//   INDEXER_MAX_LAG_BLOCKS  how far the indexer may trail the head before falling back (default 300)
 import { IndexerClient, loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
 import { existsSync, readFileSync } from 'node:fs'
 import type { Hex } from 'viem'

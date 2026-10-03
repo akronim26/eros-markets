@@ -1,6 +1,5 @@
-// Task O31.2: the resolution jobs of plan §9.1, as one planner in priority order. Each condition mirrors the
-// contract's own check (ResolutionOracle.sol), so a job is planned only when the call would do something; the
-// keeper's eth_call before sending is the final word. Gas keys are the measured entries of deployments/gas.json.
+// Resolution jobs in priority order. Each condition mirrors ResolutionOracle's own check; the eth_call before
+// sending has the final word.
 //
 //   void         not Final, now >= voidDeadline                          voidMarket (voidMarketStuck with a live assertion)
 //   halt         pre-halt (None, EarlyCheck, EarlyReview), now >= T     haltScheduled
@@ -26,16 +25,16 @@ export const FinalizeStatus = { NOT_READY: 0, FINAL: 1, REJECTED: 2, DISPUTED: 3
 
 const A_MAX = 3
 const ZERO32 = `0x${'00'.repeat(32)}`
-export const REQUEST_EVERY_SECS = 300n // plan §9.1: every 5 min (the contract's floor is minRequestIntervalSecs)
+export const REQUEST_EVERY_SECS = 300n // the contract's own floor is minRequestIntervalSecs
 export const FINALIZE_BATCH_MAX = 4 // finalizeMany4 is the largest batch measured
 
 export type ResolutionPlannerOptions = {
-  /** The market engines are the production engine (mainnet); false on testnet (ResolutionEngineStub). */
+  /** False on testnet, where markets run on ResolutionEngineStub. */
   realEngine: boolean
   requestEverySecs?: bigint
 }
 
-/** finalizeMany for k markets: finalizeMany1.limit + (k - 1) x finalizeMany4.perExtraMarket (gas.json, O31.2). */
+/** `finalizeMany1.limit + (k - 1) × finalizeMany4.perExtraMarket`. */
 export function finalizeManyGas(table: GasTable, k: number): bigint {
   if (!Number.isInteger(k) || k < 1 || k > FINALIZE_BATCH_MAX) throw new RangeError(`finalizeMany batch of ${k} is not measured`)
   const per = (table.calls.finalizeMany4 as { perExtraMarket?: unknown } | undefined)?.perExtraMarket
@@ -79,7 +78,7 @@ export function resolutionPlanner(opts: ResolutionPlannerOptions): Planner {
       return job('request', 'requestResolution', 'requestResolution')
     }
     if (s === RState.L2Pending || s === RState.Review) {
-      if (now < info.tau) return [] // an early-halted market stays committee-only until T (ORC-15)
+      if (now < info.tau) return [] // an early-halted market stays committee-only until T
       const opensAt = r.retryOpensAt !== 0n ? r.retryOpensAt : r.l2StartedAt + info.l2DeadlineSecs
       return now >= opensAt ? job('open', 'openAfterDeadline', 'openAfterDeadline') : []
     }

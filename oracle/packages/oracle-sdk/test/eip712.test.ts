@@ -1,5 +1,4 @@
-// Task O30.2: the EIP-712 mirror reproduces vectors/eip712.json (written from SigLib and the oracle's views):
-// type strings, typehashes, domain separator, P1 and R1 digests, and the signed examples byte for byte.
+// vectors/eip712.json is written from SigLib and the oracle's views.
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'

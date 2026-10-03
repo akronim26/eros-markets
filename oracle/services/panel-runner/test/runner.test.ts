@@ -1,7 +1,4 @@
-// Task O33.5: the runner's decisions against an in-memory chain: what it sends (payload fields, signature, gas key),
-// what it does not (NOT_YET majority, a route without a measured gas limit, a market pinned to another
-// configuration), the NOT_YET re-run schedule with fresh snapshots, and the StateChanged trigger with polling.
-// The local-deploy acceptance (a real oracle accepting the payload and routing it) is test/fork/panel.test.ts.
+// The runner against an in-memory chain; test/fork/panel.test.ts runs it against a real oracle.
 import { loadGas, modelIdHash, oracleDomain, type PanelResult, panelResultDigest } from '@eros-oracle/oracle-sdk'
 import type { Item, Snapshot } from '@eros-oracle/snapshotter'
 import { canonicalBytes, evidenceHash } from '@eros-oracle/snapshotter'
@@ -153,9 +150,9 @@ describe('runOnce', () => {
     // the models are the market's, in its modelIdHashes order (not the configured order), with the pinned prompt
     expect(asked[0].models).toEqual(MODELS)
     expect(asked[0].user).toContain('Question: Will the home team score more than 2 goals?')
-    // the snapshot is kept under its hash, as its canonical bytes (ADJ-41)
+    // the snapshot is kept under its hash, as its canonical bytes
     expect(Buffer.compare(readFileSync(join(deps.snapshotDir, `${ev}.json`)), Buffer.from(canonicalBytes(snapshots[0])))).toBe(0)
-    // and the run's record beside it, for the committee console (O34.1)
+    // and the run's record beside it
     const rec = JSON.parse(readFileSync(join(deps.snapshotDir, `${ev}.panel.json`), 'utf8'))
     expect(rec).toMatchObject({ version: 1, marketId: ID, phase: 2, evidenceHash: ev, evidenceURI: uri, calibratedBps: [4900, 4900, 4900], flags: 0 })
     expect(rec.outcomes.map((o: any) => [o.model, o.label, o.labelCode])).toEqual(MODELS.map((m, i) => [m, ['NO', 'NO', 'YES'][i], [2, 2, 1][i]]))
@@ -195,7 +192,7 @@ describe('runOnce', () => {
     const r = (await runOnce(ID, deps))!
     expect(r.route).toBe('AutoPropose')
     expect(r.sent).toBeDefined()
-    expect(chain.sent.map((x) => x.gas)).toEqual([420_000n]) // gas.json submitPanelResultAutoPropose (ADJ-47)
+    expect(chain.sent.map((x) => x.gas)).toEqual([420_000n]) // gas.json submitPanelResultAutoPropose
     const { [GAS_KEY_AUTO]: _, ...calls } = deps.gas.calls
     const r2 = (await runOnce(ID, { ...deps, gas: { ...deps.gas, calls } }))!
     expect(r2.skipped).toBe(`no gas.json limit for ${GAS_KEY_AUTO}`)

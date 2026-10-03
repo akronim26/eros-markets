@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// oracle-cli (ADJ-13). Commands: `list` (O22.2), `dryrun` and `ambiguity` (O22.3).
+// oracle-cli: `list`, `dryrun` and `ambiguity`.
 import { parseArgs } from 'node:util'
 import { ForgeError } from './forge'
 import { ambiguity, applyTriage, TRIAGE_FILE } from './ambiguity'

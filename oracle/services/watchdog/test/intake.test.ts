@@ -1,6 +1,4 @@
-// Envio intake (O37.3 → O35.1): the watchdog reads proposals and assertions from the indexer up to its progress block,
-// and the oracle's logs (100 blocks per call) when the indexer is down, erroring or too far behind; one cursor, so no
-// block is read twice or skipped across a switch.
+// One cursor across indexer and log reads: no block is read twice or skipped across a switch.
 import { IndexerClient } from '@eros-oracle/oracle-sdk'
 import { describe, expect, test } from 'bun:test'
 import type { Hex } from 'viem'

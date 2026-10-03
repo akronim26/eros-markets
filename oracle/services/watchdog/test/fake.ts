@@ -1,5 +1,4 @@
-// In-memory WatchdogChain for the unit tests (the contracts' own behaviour is the local-deploy test's), and the
-// example market's fixtures: its FeedSpec and texts as listed (listings/example/pack.json), canned provider pages.
+// In-memory WatchdogChain and the example market's fixtures (listings/example/pack.json).
 import type { FeedSpec } from '@eros-oracle/feedspec'
 import { readFileSync } from 'node:fs'
 import { type Address, type Hex, keccak256, stringToBytes } from 'viem'
@@ -14,10 +13,9 @@ export const ZERO = `0x${'00'.repeat(32)}` as Hex
 export const VENUE = '0x00000000000000000000000000000000000000e0' as Address
 export const ME = '0x000000000000000000000000000000000000da7c' as Address
 
-/** The provider's event JSON for a score. */
 export const event = (home: number, away: number, status = 'FINAL') => JSON.stringify({ event: { status, home, away } })
 
-/** A fetch answering from a table of URL → (status, body); records each request. */
+/** Answers from a URL → (status, body) table and records each request. */
 export function tableFetch(table: Record<string, { status?: number; body: string } | (() => never)>) {
   const calls: { url: string; init?: RequestInit }[] = []
   const fn = (async (input: string | URL | Request, init?: RequestInit) => {
@@ -31,7 +29,6 @@ export function tableFetch(table: Record<string, { status?: number; body: string
   return { fn, calls }
 }
 
-/** A Layer 1 proposal as ProposedL1 records it: the workflow observed `lexeme` and proposed `outcome`. */
 export const l1Proposal = (outcome: 1 | 2, lexeme = '3'): Proposal => ({
   marketId: ID,
   outcome,
@@ -60,7 +57,7 @@ export class FakeChain implements WatchdogChain {
   disputed: { id: Hex; gas: bigint }[] = []
   beats: bigint[] = []
 
-  /** The market Proposed with `p`, asserted with `assertionId` (or not yet when omitted). */
+  /** Unasserted when `assertionId` is omitted. */
   propose(p: Proposal, assertionId?: Hex, st: Partial<AssertionStatus> = {}) {
     this.res.set(p.marketId.toLowerCase(), {
       state: 7, proposed: p.outcome, path: p.path, attempts: assertionId ? p.attempt + 1 : p.attempt,

@@ -1,19 +1,12 @@
-// Task O31.1: the keeper's job loop (plan §9, §9.1). Each tick it lists the markets, reads every `getResolution` at
-// `latest`, asks the planners for due jobs and sends at most one job per market. A job is keyed
-// `(marketId, stateVersion, action)` and is sent only if, just before sending:
-//   1. this instance has not sent (or started sending) the same key,
-//   2. gas.json has a measured limit for the call (Monad charges the limit; it is never guessed),
-//   3. a fresh read still shows the planned state version (else the job is stale and dropped),
-//   4. an eth_call at `latest` neither reverts nor reports that it would change nothing.
-// Running two instances is safe: the contract calls are idempotent, a second instance that runs `delayMs` later
-// re-reads after the first one's transaction and drops the job as stale, and if both send before either lands,
-// the later transaction is a no-op on chain. A sent key is forgotten when its transaction reverts or stays
-// unconfirmed past `resendAfterMs`, so a lost transaction is retried.
-// O31.2: planners also see the market's listing (read once, it never changes), lazy reads (venue status, treasury,
-// globals) and an `alert`; jobs sharing a batch key that pass their checks are sent as one call (finalizeMany).
-// O31.3: a planner may return fallbacks: the jobs are tried in order and the first that would revert or change
-// nothing gives way to the next (engine follow-up). A job may carry its own state version (`freshVersion`: engine
-// progress, a treasury dispute). Global planners plan jobs that belong to no market (treasury) or only alert.
+// The keeper loop. Each tick reads every market, plans due jobs and sends at most one per market. A job is keyed
+// `(marketId, stateVersion, action)` and is sent only if:
+//   1. this instance has not already sent the key,
+//   2. gas.json has a measured limit for the call (Monad charges the full limit, so it is never guessed),
+//   3. a fresh read still shows the planned state version,
+//   4. an eth_call neither reverts nor reports that it would change nothing.
+// Two instances are safe together: calls are idempotent and the delayed instance drops jobs that went stale. A key
+// is forgotten when its transaction reverts or stays unconfirmed past `resendAfterMs`, so lost sends are retried.
+// A planner may return fallbacks: each job that would revert or change nothing gives way to the next.
 import { type GasTable, gasLimit } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { jobKey, stateVersion } from './version'
@@ -37,10 +30,10 @@ export type KeeperOptions = {
   chain: Chain
   source: MarketSource
   planners: Planner[]
-  /** Treasury jobs and checks, after the market jobs (O31.3). */
+  /** Run after the market jobs. */
   globalPlanners?: GlobalPlanner[]
   gas: GasTable
-  /** Wait between planning and sending; the second instance runs with an offset so it sees the first's effects. */
+  /** Wait between planning and sending; a second instance uses an offset so it sees the first one's effects. */
   delayMs?: number
   /** A sent key with no receipt after this long is forgotten so the job can be retried. */
   resendAfterMs?: number
@@ -53,8 +46,8 @@ export type KeeperOptions = {
 
 export type TickReport = { markets: number; unreadable: number; results: JobResult[] }
 
-// hash null while the send is in flight; `oracle` when the key's version is the market's resolution (pruned when it
-// changes), otherwise a job-specific version (pruned some time after its transaction succeeded)
+// `hash` is null while the send is in flight. `oracle`: the key's version is the market's resolution (pruned when
+// it changes) rather than a job-specific version (pruned after its transaction succeeds).
 type Sent = { hash: Hex | null; at: number; oracle: boolean }
 type Checked = { job: Job; key: string; gas: bigint }
 
@@ -73,7 +66,6 @@ export async function mapLimit<T, R>(items: readonly T[], limit: number, fn: (t:
   return out
 }
 
-/** Splits `xs` into runs of at most `n`. */
 const chunks = <T>(xs: T[], n: number): T[][] => Array.from({ length: Math.ceil(xs.length / n) }, (_, i) => xs.slice(i * n, i * n + n))
 
 export class Keeper {
@@ -94,7 +86,6 @@ export class Keeper {
     }
   }
 
-  /** Keys this instance has sent (or is sending) and still remembers. */
   sentKeys(): string[] {
     return [...this.sent.keys()]
   }
@@ -175,11 +166,7 @@ export class Keeper {
     return (msg: string, data: Record<string, unknown> = {}) => this.o.log.error(msg, { alert: true, marketId: id, ...data })
   }
 
-  /**
-   * The jobs of the first planner that has any for this market (in its order: the first that can be sent wins);
-   * a planner that throws is logged and skipped. A job must be for this market, and at its state version unless it
-   * carries its own (`freshVersion`).
-   */
+  /** The jobs of the first planner with any; a planner that throws is logged and skipped. */
   private async plan(v: MarketView): Promise<Job[]> {
     for (const planner of this.o.planners) {
       try {
@@ -208,17 +195,14 @@ export class Keeper {
     return results
   }
 
-  /** Sends one job if all four checks pass; never throws. `fallback`: another job follows if this one gives way. */
+  /** Sends one job if all four checks pass; never throws. */
   async execute(job: Job, fallback = false): Promise<JobResult> {
     const c = await this.check(job, fallback)
     if (!('gas' in c)) return c
     return (await this.send(c.job, [c], c.gas))[0]
   }
 
-  /**
-   * Checks each job on its own, then sends the survivors in runs of at most `batch.max` with the batch call (a
-   * run of one is sent as its own job). Every member of a sent run reports the same transaction.
-   */
+  /** Checks each job, then sends the survivors in batch calls of at most `batch.max` (a run of one goes alone). */
   private async executeBatch(group: Job[]): Promise<JobResult[]> {
     const spec = group[0].batch!
     const checked = await mapLimit(group, this.o.concurrency, (j) => this.check(j))
@@ -244,7 +228,7 @@ export class Keeper {
     return results
   }
 
-  /** Checks 1-4 for one job; claims its key on success (released again on any failure). */
+  /** Claims the job's key if checks 1-4 pass. */
   private async check(job: Job, fallback = false): Promise<Checked | JobResult> {
     const { chain, log } = this.o
     const key = jobKey(job)
@@ -258,7 +242,7 @@ export class Keeper {
       log.error('no measured gas limit: job not sent', { key, gasKey: job.gasKey })
       return result('no-gas-limit', { error: String(e) })
     }
-    this.sent.set(key, { hash: null, at: this.o.clock(), oracle: !job.freshVersion }) // claimed before any await: a concurrent duplicate stops at the check above
+    this.sent.set(key, { hash: null, at: this.o.clock(), oracle: !job.freshVersion }) // before any await, so a concurrent duplicate stops above
     try {
       const fresh = job.freshVersion ? await job.freshVersion() : stateVersion(await chain.getResolution(job.marketId))
       if (fresh !== job.stateVersion) {
@@ -286,7 +270,6 @@ export class Keeper {
     }
   }
 
-  /** Broadcasts `call` for the claimed keys of `members`. */
   private async send(call: Job, members: Checked[], gas: bigint): Promise<JobResult[]> {
     try {
       const hash = await this.o.chain.send(call, gas)
@@ -300,7 +283,7 @@ export class Keeper {
     }
   }
 
-  /** Keys of a market whose state version has changed can never be sent again; drop them. */
+  /** Drops keys whose market has moved to a new state version; they can never be sent again. */
   private forgetOlderVersions(views: MarketView[]) {
     const current = new Map(views.map((v) => [v.id, v.stateVersion.toLowerCase()]))
     for (const [key, s] of this.sent) {
@@ -334,7 +317,7 @@ export class Keeper {
     }
   }
 
-  /** Ticks every `pollMs` until `signal` aborts; a failed tick is logged and the loop goes on. */
+  /** A failed tick is logged and the loop goes on. */
   async run(pollMs: number, signal?: AbortSignal) {
     while (!signal?.aborted) {
       try {

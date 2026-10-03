@@ -1,8 +1,5 @@
-// Task O37.2: every entity populated from recorded events. The events are a real local deploy's (scripts/record.test.ts,
-// fixture test/fixtures/recorded/events.json), replayed on Monad testnet's addresses through the real handlers
-// (Envio's test indexer). Expected values come from the recorded scenario, not from the handlers: market A went
-// L1 → Proposed → disputed by the watchdog's float → the sandbox DVM said untruthful → Review → voided at its
-// voidDeadline; market B went Layer 2 → Review → the committee's REVIEWED proposal → Final.
+// Replays recorded events (scripts/record.test.ts) through the real handlers. Expected values come from the recorded
+// scenario: market A went L1 → disputed → rejected → Review → voided; market B went Layer 2 → Review → REVIEWED → Final.
 import { createTestIndexer } from 'envio'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { RECORDED, simulateItems, TESTNET } from './replay'
@@ -72,7 +69,7 @@ describe('Assertion, Dispute, Proposal, PanelResult', () => {
     expect(ps.map((p) => [p.market_id, p.pathName, p.outcome, p.attempt])).toEqual([[A, 'L1', 1, 0], [B, 'REVIEWED', 1, 0]])
     expect(ps[0]!.valueHash).toBe('0x2a80e1ef1d7842f27f2e6be0972bb708b9a135c38860dbe73c27c3486c34f4de') // keccak256("3"), the reported value
     expect(ps[0]!.evidenceURI).toBeUndefined()
-    // ordering fields the watchdog's intake reads: the log's own block and index
+    // the ordering fields the watchdog's intake reads
     for (const p of ps) expect(p.id).toBe(`10143-${p.block}-${p.logIndex}`)
     const asserted = sorted((await indexer.Assertion.getAll()).map((a) => ({ ...a, block: a.assertedBlock, id: `x-x-${a.assertedLogIndex}` })))
     expect(asserted.map((a) => a.market_id)).toEqual([A, B])

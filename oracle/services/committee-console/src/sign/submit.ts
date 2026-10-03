@@ -1,8 +1,5 @@
-// Task O34.2: submission (plan §8.4: "submitted by anyone"). The bundle must be current (staleness) and carry the
-// threshold of valid member signatures; the first `threshold` of them, ascending by signer, are sent. Gas comes from
-// deployments/gas.json: `submitReviewedProposal` was measured with up to three EOA signatures; a contract member's
-// ERC-1271 check is not measured, so a bundle that needs one is not sent (its key is absent) — the same rule as the
-// panel runner's unmeasured route.
+// Anyone may submit a current bundle with enough valid signatures; the first `threshold`, ascending by signer, are
+// sent. Gas was measured for up to three EOA signatures only, so a bundle needing an ERC-1271 check is not sent.
 import { gasLimit, type GasTable } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import type { CaseChain } from '../backend/types'
@@ -11,7 +8,6 @@ import { collect, staleness } from './collect'
 
 export const GAS_KEY = 'submitReviewedProposal'
 export const GAS_KEY_ERC1271 = 'submitReviewedProposalERC1271'
-/** The most signatures gas.json's measurement covers. */
 export const MEASURED_SIGNATURES = 3
 
 export async function submitBundle(b: Bundle, chain: CaseChain, gas: GasTable): Promise<Hex> {
@@ -29,6 +25,6 @@ export async function submitBundle(b: Bundle, chain: CaseChain, gas: GasTable): 
   } catch {
     throw new ProposalError(`no gas.json limit for ${key}: not sent`)
   }
-  await chain.simulateReviewed(b.proposal.marketId, b.proposal, b.evidenceURI, sigs) // a revert throws: nothing is sent
+  await chain.simulateReviewed(b.proposal.marketId, b.proposal, b.evidenceURI, sigs)
   return chain.sendReviewed(b.proposal.marketId, b.proposal, b.evidenceURI, sigs, limit)
 }

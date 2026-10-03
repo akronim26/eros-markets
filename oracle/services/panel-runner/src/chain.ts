@@ -1,6 +1,5 @@
-// Task O33.5: the runner's PanelChain over viem. Reads at `latest`; StateChanged logs read in 100-block steps (Monad's
-// public RPC caps log ranges, plan §9.3); submitPanelResult eth_called, then sent from the relayer EOA with an explicit
-// gas limit (Monad charges the limit) and no wait on the receipt.
+// The runner's chain over viem. StateChanged logs are read in 100-block steps (Monad's RPC cap); submitPanelResult is
+// eth_called, then sent with an explicit gas limit and no wait for the receipt.
 import { contractAddress, type Deployments, MarketRegistryAbi, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import { buildUrl } from '@eros-oracle/feedspec'
 import { createPublicClient, createWalletClient, defineChain, type Hex, http } from 'viem'

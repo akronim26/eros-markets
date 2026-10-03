@@ -1,7 +1,5 @@
-// Task O32.2: RFC 8785 canonical JSON and the evidence hash (plan §8.2). Expected values come from outside this
-// code: the RFC's own examples (written out below from RFC 8785 §3.2.2-§3.2.4 and Appendix B), the reference
-// implementation's test data and a 10,000-line sample of its ES6 number file (test/vectors/jcs, see its README),
-// and canonical strings written by hand.
+// Expected values come from RFC 8785's examples, the reference implementation's test data (test/vectors/jcs) and
+// hand-written canonical strings.
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'

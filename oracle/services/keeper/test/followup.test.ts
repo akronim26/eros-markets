@@ -1,5 +1,3 @@
-// Task O31.3: engine follow-up after Final, treasury disputes and skim, the hourly commitments check: each job's
-// trigger and no-op path, through the keeper core (fallbacks, job-specific versions, global planners).
 import { describe, expect, test } from 'bun:test'
 import { type GasTable, gasLimit } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
@@ -13,7 +11,7 @@ import type { Logger } from '../src/types'
 import { stateVersion } from '../src/version'
 import { ENGINE, FakeChain, GAS, id, resolution, SETTLEMENT, ZERO32 } from './fake'
 
-/** gas.json plus stand-in limits for the engine calls, which are measured only at the risk merge. */
+/** gas.json plus stand-in limits for the engine calls, which are not measured yet. */
 const WITH_ENGINE: GasTable = {
   ...GAS,
   calls: {

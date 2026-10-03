@@ -1,9 +1,7 @@
-// `oracle-cli dryrun` (plan §12.9 steps 1 and 3, O22.3): writes listings/<marketId>/dryrun.log with
-//  1. the provider burst test: N parallel GETs of the reference event, one per DON node, every one HTTP 200
-//     (a 429 means the plan cannot serve one call per node per request, §7.4);
-//  2. three `cre workflow simulate dryrun` runs: the finished reference event must give exactly the status and
-//     value hash of reference.json, an event that is not final yet NOT_READY, and a wrong value path ERROR.
-// The log is written in every case; any mismatch makes the command fail (§12.9: back to step 2).
+// `oracle-cli dryrun` writes dryrun.log and fails on any mismatch:
+//  1. burst test: one parallel GET per DON node, all HTTP 200 (a 429 means the provider plan is too small);
+//  2. three simulations: the reference event reproduces reference.json, an unfinished event gives NOT_READY, and a
+//     wrong value path gives ERROR.
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -12,12 +10,12 @@ import { keccak256, toBytes } from 'viem'
 import { ORACLE_ROOT } from './forge'
 import { authSecretsFor, ListError, nodeHeaders, packDir, readListing, ZERO32 } from './list'
 
-/** Runs the dry-run workflow with a config file and returns its result string ("STATUS|valueHash|code"). */
+/** Returns the workflow's "STATUS|valueHash|code". */
 export type Simulate = (configPath: string) => Promise<string>
 
 export type DryRunOptions = {
   input: string
-  nodes: number // DON size: one parallel request per node in the burst test
+  nodes: number // DON size
   network?: string
   out?: string
   fetchImpl?: typeof fetch
@@ -46,7 +44,6 @@ export async function dryRun(o: DryRunOptions): Promise<DryRunResult> {
   const wrong: FeedSpec = { ...finished, valuePath: `${feed.valuePath}.${WRONG_SEGMENT}` }
   const headers = nodeHeaders(feed.authRef, network, o.env)
 
-  // 1. Burst: one GET per DON node, all at once.
   const url = buildUrl(finished)
   const statuses = await Promise.all(
     Array.from({ length: o.nodes }, () =>
@@ -66,7 +63,6 @@ export async function dryRun(o: DryRunOptions): Promise<DryRunResult> {
     pass: counts.get('200') === o.nodes,
   }
 
-  // 2. Simulations. The finished run must reproduce reference.json's evaluation exactly.
   const ref = new Uint8Array(readFileSync(refPath))
   const ev = evaluateResponse(finished, 200, new TextDecoder('utf-8').decode(ref).trim(), ref.length)
   if (ev.status !== 'YES' && ev.status !== 'NO') throw new ListError(`reference.json evaluates to ${ev.status}, not YES or NO`)
@@ -113,12 +109,11 @@ export async function dryRun(o: DryRunOptions): Promise<DryRunResult> {
   return { dir, log, pass, burst, runs }
 }
 
-/** The dry-run workflow's config (workflows/dryrun/main.ts): the resolution workflow's authRef table. */
+/** Config for workflows/dryrun, with the resolution workflow's authRef table. */
 export function dryRunConfig(feed: FeedSpec, allowList: string[], network: string) {
   return { schedule: '0 */5 * * * *', httpTimeout: '8s', allowList, authSecrets: authSecretsFor(network), feed }
 }
 
-/** `cre workflow simulate dryrun --target local-sim --limits default` with a config, from oracle/workflows. */
 export const creSimulate: Simulate = async (configPath) => {
   const p = Bun.spawn(
     ['cre', 'workflow', 'simulate', 'dryrun', '--target', 'local-sim', '--limits', 'default',
@@ -129,7 +124,7 @@ export const creSimulate: Simulate = async (configPath) => {
   return simulationResult(out + err, code)
 }
 
-/** The quoted result after "Workflow Simulation Result:" in the simulator's output. */
+/** The quoted value after "Workflow Simulation Result:". */
 export function simulationResult(output: string, exitCode: number): string {
   const lines = output.split('\n')
   const at = lines.findIndex((l) => l.includes('Workflow Simulation Result:'))

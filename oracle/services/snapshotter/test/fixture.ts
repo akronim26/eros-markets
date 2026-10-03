@@ -1,6 +1,4 @@
-// A local HTTP fixture for the fetcher's tests: a real Bun server on 127.0.0.1. Production URLs are https with
-// plain hosts (the registry's rules), so the tests' fetch routes `https://<host>/<path>` to
-// `http://127.0.0.1:<port>/<host>/<path>`; everything else (headers, status, streaming, cancellation) is real HTTP.
+// A real local Bun server. `https://<host>/<path>` is routed to `http://127.0.0.1:<port>/<host>/<path>`.
 
 export type Hit = { path: string; method: string; headers: Record<string, string> }
 
@@ -11,7 +9,7 @@ export const STATS_HTML =
 export const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13])
 export const LATIN1 = new Uint8Array([0x63, 0x61, 0x66, 0xe9]) // "café" in ISO-8859-1
 
-/** `n` deterministic bytes (so a test can hash the expected prefix independently). */
+/** Deterministic, so a test can hash the expected prefix independently. */
 export const pattern = (n: number) => Uint8Array.from({ length: n }, (_, i) => (i * 31 + 7) & 0xff)
 
 export function startFixture() {
@@ -65,7 +63,6 @@ export function startFixture() {
     },
   })
   const base = `http://127.0.0.1:${server.port}`
-  /** A fetch that sends `https://<host>/<path>` to the fixture; any other host is unreachable. */
   const fetchFn = ((input: string | URL | Request, init?: RequestInit) => {
     const u = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
     const target = u.hostname === 'unreachable.example' ? 'http://127.0.0.1:1/' : `${base}/${u.hostname}${u.pathname}${u.search}`

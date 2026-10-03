@@ -1,6 +1,5 @@
-// Task O34.1: one case for the committee (plan §8.4): the question and rules, the snapshot rendered as the panel saw it,
-// the panel's labels, rationales and ĉ, the display-only candidate, the outcomes still allowed (`rejectedMask`) and the
-// deadlines. Everything onchain is read at `latest`; the snapshot comes from the local store, checked against its hash.
+// Assembles a committee case: rules, the snapshot as the panel saw it, the panel's answers, the outcomes still allowed
+// and the deadlines. The snapshot comes from the local store, checked against its hash.
 import { candidate } from '@eros-oracle/panel-runner'
 import { promptText } from '@eros-oracle/snapshotter'
 import type { Hex } from 'viem'
@@ -17,10 +16,10 @@ import {
   STATE_NAME,
 } from './types'
 
-/** Review service level T_r (plan §8.4, placeholder). */
+/** Review service level T_r (placeholder value). */
 export const T_R_SECS = 2n * 3600n
 
-/** The snapshot a case shows: a reviewer's re-snapshot when given, else the panel's. */
+/** A reviewer's re-snapshot when given, else the panel's. */
 export type EvidenceChoice = { evidenceHash: Hex; evidenceURI: string }
 
 export async function buildCase(id: Hex, chain: CaseChain, store: EvidenceStore, evidence?: EvidenceChoice): Promise<Case> {
@@ -68,7 +67,7 @@ export async function buildCase(id: Hex, chain: CaseChain, store: EvidenceStore,
       labels,
       calibratedBps: panelEv.calibratedBps,
       chat: panelEv.calibratedBps.map((b) => b / 10_000),
-      // PanelResultAccepted does not carry the flags: they come from the runner's record when the store has it
+      // PanelResultAccepted does not carry the flags, so they come from the runner's record if stored.
       flags: record ? record.flags : null,
       injectionSuspected: record ? record.flags !== 0 : null,
       routedTo: STATE_NAME[panelEv.routedTo] ?? String(panelEv.routedTo),
@@ -83,7 +82,7 @@ export async function buildCase(id: Hex, chain: CaseChain, store: EvidenceStore,
             ...(o.abstainReason ? { abstainReason: o.abstainReason } : {}),
           }))
         : null,
-      // from the signed labels and ĉ, not from the record (display only, plan §8.3)
+      // from the signed labels and ĉ, not the record
       candidate: candidate(labels.map((label) => ({ label })) as never, panelEv.calibratedBps),
     }
   }

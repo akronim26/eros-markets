@@ -1,6 +1,5 @@
-// Task O33.2: the injection scan (plan §8.3, EM-15 defence 3) on a fixture set (fixtures/injection/manifest.json):
-// every injected item is flagged, no clean item is. The classifier's answers are the real ones Prompt Guard 2 gave
-// for these exact chunks (classifier-recorded.json, `bun run record:classifier`), replayed by chunk hash.
+// Every injected fixture is flagged and no clean one is. Classifier answers are Prompt Guard 2's real ones for these
+// chunks, replayed by chunk hash.
 import type { Item } from '@eros-oracle/snapshotter'
 import { describe, expect, test } from 'bun:test'
 import { createHash } from 'node:crypto'
@@ -15,7 +14,7 @@ const sports = loadPrompts().find((p) => p.category === 'sports')!
 const RECORDED = JSON.parse(readFileSync(new URL('./fixtures/injection/classifier-recorded.json', import.meta.url).pathname, 'utf8'))
 const C = String.fromCodePoint
 
-/** Groq's chat completions for Prompt Guard, answered from the recording; an unrecorded chunk fails the test. */
+/** An unrecorded chunk fails the test. */
 const replay: typeof fetch = (async (_url: string, init: RequestInit) => {
   const chunk = JSON.parse(init.body as string).messages[0].content as string
   const answer = RECORDED.answers[createHash('sha256').update(chunk).digest('hex')]
@@ -30,7 +29,6 @@ const text = (s: string, contentType = 'text/plain'): Item => ({
 })
 const rules = (item: Item) => detect(item, 0).map((f) => f.rule).sort()
 
-/** What the deterministic detector finds in each fixture. */
 const EXPECTED: Record<string, string[]> = {
   'clean/l1-feed.json': [],
   'clean/match-report.html': [], // hidden menu, "skip to content", hidden "Loading…", emoji with ZWJ, "ignored ... instructions"

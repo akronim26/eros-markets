@@ -1,7 +1,5 @@
-// Task O31.1: where the keeper learns which markets exist (plan §9.1, §9.3), and O31.3 which disputes the treasury
-// funded. The Envio indexer (O37) is the normal source; the registry's MarketListed and the treasury's DisputeFunded
-// logs, read 100 blocks per call because Monad's public RPC caps log ranges there (§9.3), are the fallback whenever the
-// indexer does not answer or is too far behind the chain head. A fixed list serves tests and one-off runs.
+// Which markets exist and which disputes the treasury funded. The Envio indexer is the normal source; RPC logs
+// (100 blocks per call, Monad's public RPC cap) are the fallback when it is down or behind.
 import { BondTreasuryAbi, freshProgress, type IndexerClient, KEEPER_MARKETS, MarketRegistryAbi, TREASURY_DISPUTES } from '@eros-oracle/oracle-sdk'
 import type { Address, Hex } from 'viem'
 import { type DisputeSource, type Logger, type MarketSource, silentLogger } from './types'
@@ -13,7 +11,6 @@ export class StaticSource implements MarketSource {
   }
 }
 
-/** Envio HyperIndex (§9.3): every `Market` entity's id, a page at a time. */
 export class IndexerSource implements MarketSource {
   constructor(
     private readonly indexer: IndexerClient,
@@ -25,7 +22,6 @@ export class IndexerSource implements MarketSource {
   }
 }
 
-/** Envio HyperIndex: every assertion the treasury disputed with the watchdog float (`Dispute.viaTreasury`). */
 export class IndexerDisputeSource implements DisputeSource {
   constructor(
     private readonly indexer: IndexerClient,
@@ -42,17 +38,12 @@ const DISPUTE_FUNDED = BondTreasuryAbi.find((x) => x.type === 'event' && x.name 
 
 type IdEvent = typeof MARKET_LISTED | typeof DISPUTE_FUNDED
 
-/** The read side of a viem public client that the log sources need. */
 export type LogClient = {
   getBlockNumber(): Promise<bigint>
   getLogs(args: { address: Address; event: IdEvent; fromBlock: bigint; toBlock: bigint }): Promise<{ args: Record<string, unknown> }[]>
 }
 
-/**
- * One indexed bytes32 of an event, collected from `fromBlock`, scanned forward `step` blocks per call (Monad's
- * public RPC caps log ranges at 100 blocks, §9.3). The cursor and the ids seen are kept, so each later call reads
- * only the new blocks.
- */
+/** Collects one indexed bytes32 of an event, `step` blocks per call; each read scans only blocks not yet seen. */
 export class LogIdSource {
   private next: bigint
   private readonly ids = new Set<Hex>()
@@ -69,7 +60,7 @@ export class LogIdSource {
     this.next = fromBlock
   }
 
-  /** Takes ids already known up to `block` (from the indexer): a later read() starts after it. */
+  /** Adds ids known up to `block` (from the indexer); the next read starts after it. */
   advance(ids: Hex[], block: bigint): void {
     for (const id of ids) this.ids.add(id.toLowerCase() as Hex)
     if (block + 1n > this.next) this.next = block + 1n
@@ -84,13 +75,12 @@ export class LogIdSource {
         const v = l.args[this.arg]
         if (typeof v === 'string') this.ids.add(v.toLowerCase() as Hex)
       }
-      this.next = to + 1n // advanced only after the range was read: a failed call is retried from the same block
+      this.next = to + 1n // only after a successful read, so a failure retries the same range
     }
     return [...this.ids]
   }
 }
 
-/** MarketListed logs of the registry from its deploy block. */
 export class RegistryLogSource implements MarketSource {
   private readonly logs: LogIdSource
   constructor(client: LogClient, registry: Address, fromBlock: bigint, step = 100n) {
@@ -104,7 +94,6 @@ export class RegistryLogSource implements MarketSource {
   }
 }
 
-/** DisputeFunded logs of BondTreasury from its deploy block: every assertion the treasury disputed (O31.3). */
 export class TreasuryDisputeSource implements DisputeSource {
   private readonly logs: LogIdSource
   constructor(client: LogClient, treasury: Address, fromBlock: bigint, step = 100n) {
@@ -118,13 +107,11 @@ export class TreasuryDisputeSource implements DisputeSource {
   }
 }
 
-/** A list of ids the indexer serves and a log scan can rebuild (RegistryLogSource, TreasuryDisputeSource). */
 type Scanned = { advance(ids: Hex[], block: bigint): void }
 
 /**
- * The indexer first, the log scan when it is not usable: down, erroring, or more than `maxLagBlocks` behind the chain
- * head. While the indexer is used, the log scan's cursor follows its progress, so a fallback reads only the blocks
- * the indexer had not covered. Switches are logged once each way.
+ * The indexer, or the log scan when the indexer is down, erroring or more than `maxLagBlocks` behind. The scan's
+ * cursor follows the indexer's progress, so a fallback reads only uncovered blocks. Each switch is logged once.
  */
 export class IndexedIds {
   private usingIndexer: boolean | null = null
@@ -163,14 +150,12 @@ export class IndexedIds {
   }
 }
 
-/** Markets from the indexer, with the registry's logs as the fallback. */
 export function indexedMarkets(indexer: IndexerClient, logs: RegistryLogSource, head: () => Promise<bigint>, maxLagBlocks: bigint, log?: Logger): MarketSource {
   const src = new IndexerSource(indexer)
   const ids = new IndexedIds({ name: 'markets', indexer, fromIndexer: () => src.marketIds(), fromLogs: () => logs.marketIds(), logs, head, maxLagBlocks, log })
   return { marketIds: () => ids.ids() }
 }
 
-/** Treasury disputes from the indexer, with the treasury's logs as the fallback. */
 export function indexedDisputes(indexer: IndexerClient, logs: TreasuryDisputeSource, head: () => Promise<bigint>, maxLagBlocks: bigint, log?: Logger): DisputeSource {
   const src = new IndexerDisputeSource(indexer)
   const ids = new IndexedIds({ name: 'treasury disputes', indexer, fromIndexer: () => src.assertionIds(), fromLogs: () => logs.assertionIds(), logs, head, maxLagBlocks, log })

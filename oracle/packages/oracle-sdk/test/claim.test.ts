@@ -1,5 +1,4 @@
-// Task O30.3: the claim mirror renders every vector of vectors/claim.json (written from ClaimRenderer by
-// ClaimVectors.t.sol) byte for byte, with the same worst-case bound and the same error.
+// vectors/claim.json is written from ClaimRenderer by ClaimVectors.t.sol.
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'

@@ -1,6 +1,4 @@
-// Task O37.1: config.yaml's sources are the testnet deployment: every address and start block from
-// deployments/monad-testnet.json (deployBlock for the oracle's contracts; the UMA sandbox was deployed just before,
-// DeployUmaSandbox's receipts), and the handlers' own-address table agrees.
+// config.yaml and the handlers' address table must match deployments/monad-testnet.json.
 import { readFileSync } from 'node:fs'
 import { parse } from 'yaml'
 import { describe, expect, it } from 'vitest'

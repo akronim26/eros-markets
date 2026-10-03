@@ -1,12 +1,5 @@
-// Task O35.3 acceptance on a local deploy (the keeper's O31.4 stack; a public testnet deploy is not authorized, so the
-// testnet drill stays for O35.4 after X04). The trust set's watchdog is this test's key; FundTreasury put 1,000 USDC in
-// WATCHDOG_FLOAT. The real watchdog (viemWatchdogChain, the Layer 1 re-run, disputeViaVenue, the heartbeat) runs against
-// it; the provider's feed is a canned response (the watchdog's own egress). The example market is listed with 30-minute
-// Layer 1 liveness and 1-hour reviewed liveness: the demo's 120 s is shorter than the watchdog's 10-minute margin before
-// expiry, inside which it does not dispute (ADJ-44).
-//   1. a wrong Layer 1 proposal (YES while the feed says home 1): checked at once, disputed with the float as soon as it
-//      is asserted, inside liveness
-//   2. a stopped heartbeat: livenessFor moves from the L1 value to the reviewed one, and an assertion made then gets it
+// The real watchdog against a local deploy, with a canned feed. Liveness is 30 min (L1) and 1 h (reviewed) because the
+// watchdog does not dispute in the last 10 minutes before expiry.
 import { loadGas, MarketRegistryAbi, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { type Address, createWalletClient, type Hex, http, parseEventLogs } from 'viem'
@@ -49,7 +42,7 @@ beforeEach(async () => {
   base = await snapshot(s)
 })
 
-/** The example market with liveness the watchdog can dispute inside (voidSecs raised to the registry's bound for it). */
+/** voidSecs raised to the registry's bound for the longer liveness. */
 const list = () =>
   listExample(s, (pack) => {
     pack.marketInput.uma.livenessL1 = Number(LIVENESS_L1)
@@ -73,7 +66,6 @@ async function anyone(functionName: string, args: unknown[]) {
   return r
 }
 
-/** Halt at T, then the CRE report (sim forwarder) proposing `outcome` observed at T + bufferSecs. */
 async function haltAndReport(id: Hex, outcome: 1 | 2) {
   const r0 = await s.pc.readContract({ address: s.deployments.contracts.MarketRegistry.address as Address, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [id] })
   await warpTo(s, r0.tau)
@@ -98,7 +90,7 @@ describe('watchdog on a local deploy', () => {
     expect(t.checked[0].verdict.kind).toBe('CONTRADICT')
     expect(t.checked[0].result).toEqual({ action: 'WAIT', reason: 'not asserted yet' })
 
-    const asserted = await anyone('assertProposal', [id]) // the keeper's job
+    const asserted = await anyone('assertProposal', [id])
     const [a] = parseEventLogs({ abi: ResolutionOracleAbi, eventName: 'Asserted', logs: asserted.logs })
     expect(a.args.liveness).toBe(LIVENESS_L1) // the heartbeat is fresh
     const floatBefore = await chain.floatBalance()

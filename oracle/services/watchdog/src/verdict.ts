@@ -1,6 +1,5 @@
-// Task O35.1: one rule turns the watchdog's signals into a verdict on a proposal (plan §9.2). A source that gives no
-// outcome (not final, an error, undetermined, low confidence) does not count either way. The watchdog disputes only when
-// every source that answered supports another outcome; when they split, a human decides.
+// Sources without an outcome do not count. The watchdog disputes only when every answering source contradicts the
+// proposal; a split goes to a human.
 import type { OutcomeName, Signal, Verdict } from './types'
 
 export function combine(proposed: OutcomeName, signals: Signal[]): Verdict {

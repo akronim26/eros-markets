@@ -1,6 +1,4 @@
-// Task O30.2: the EIP-712 messages the attestor and the committee sign (plan §6.4, D7, Appendix C.7), mirroring
-// src/libraries/SigLib.sol. Type strings, domain and digests are checked against vectors/eip712.json, which
-// Solidity writes; a change on either side fails test/eip712.test.ts.
+// EIP-712 messages the attestor and the committee sign, mirroring SigLib.sol (checked against vectors/eip712.json).
 import {
   type Address,
   type Hex,
@@ -22,7 +20,7 @@ export const DOMAIN_VERSION = '1'
 /** secp256k1 n / 2: SigLib refuses a signature with a larger `s` (the malleable twin). */
 export const HALF_N = 0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0n
 
-/** Enum values are ABI (OracleTypes.sol): never reorder. */
+/** Values are ABI (OracleTypes.sol): never reorder. */
 export const Outcome = { NONE: 0, YES: 1, NO: 2, INVALID: 3 } as const
 export const PanelLabel = { ABSTAIN: 0, YES: 1, NO: 2, INVALID: 3, NOT_YET: 4 } as const
 export const Phase = { NONE: 0, EARLY: 1, POST_T: 2 } as const
@@ -93,7 +91,7 @@ export function oracleDomain(chainId: number, verifyingContract: Address): Oracl
   return { name: DOMAIN_NAME, version: DOMAIN_VERSION, chainId, verifyingContract: getAddress(verifyingContract) }
 }
 
-/** keccak256 of a string's UTF-8 bytes, as the contract hashes marketId seeds, evidence URIs and notes. */
+/** keccak256 of a string's UTF-8 bytes. */
 export const hashText = (s: string): Hex => keccak256(toBytes(s))
 
 export function domainSeparator(domain: OracleDomain): Hex {
@@ -133,10 +131,7 @@ export const signPanelResult = (account: LocalAccount, domain: OracleDomain, r: 
 export const signReviewedProposal = (account: LocalAccount, domain: OracleDomain, p: ReviewedProposal): Promise<Hex> =>
   account.signTypedData({ domain, types: reviewedProposalTypes, primaryType: 'ReviewedProposal', message: p })
 
-/**
- * The signer of an EOA signature as SigLib accepts it: 65 bytes, v 27 or 28, low s. Returns null for any
- * signature the contract would refuse, so a service never submits one.
- */
+/** The signer of a 65-byte, v 27/28, low-s signature; null for any signature SigLib would refuse. */
 export async function recoverSigner(digest: Hex, signature: Hex): Promise<Address | null> {
   if (size(signature) !== 65) return null
   const v = Number(hexToBigInt(sliceHex(signature, 64, 65)))
@@ -145,10 +140,7 @@ export async function recoverSigner(digest: Hex, signature: Hex): Promise<Addres
   return recoverAddress({ hash: digest, signature })
 }
 
-/**
- * Committee signatures in the order `submitReviewedProposal` requires: strictly ascending by signer. Throws on a
- * duplicate signer, which the contract would refuse as SignersNotSorted.
- */
+/** Sorts committee signatures strictly ascending by signer, as the contract requires; throws on a duplicate signer. */
 export function sortCommitteeSigs<T extends { signer: Address }>(sigs: readonly T[]): T[] {
   const sorted = [...sigs].sort((a, b) => (hexToBigInt(a.signer) < hexToBigInt(b.signer) ? -1 : 1))
   for (let i = 1; i < sorted.length; i++) {

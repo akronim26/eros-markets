@@ -1,5 +1,4 @@
-// Task O37.2: the KeystoneForwarder's ReportProcessed for reports to this oracle → ReportAttempt; the testnet
-// sandbox DVM's requests and answers → SandboxRequest.
+// KeystoneForwarder reports to this oracle → ReportAttempt; the testnet sandbox DVM → SandboxRequest.
 import { indexer } from 'envio'
 import { OWN } from '../addresses'
 import { lc, logId, ts } from '../lib'
@@ -10,12 +9,12 @@ indexer.onEvent(
     event: 'ReportProcessed',
     where: ({ chain }) => {
       const oracle = OWN[chain.id]?.oracle
-      return oracle ? { params: { receiver: oracle } } : false // no oracle on this chain: nothing to keep
+      return oracle ? { params: { receiver: oracle } } : false
     },
   },
   async ({ event, context }) => {
     const p = event.params
-    if (lc(p.receiver) !== lc(OWN[event.chainId]?.oracle ?? '')) return // the where filter's rule, also applied here
+    if (lc(p.receiver) !== lc(OWN[event.chainId]?.oracle ?? '')) return // test simulations bypass `where`
     context.ReportAttempt.set({
       id: logId(event), forwarder: event.srcAddress, receiver: p.receiver, workflowExecutionId: p.workflowExecutionId, reportId: p.reportId,
       result: p.result, relayer: event.transaction.from, block: event.block.number, timestamp: ts(event), txHash: event.transaction.hash,

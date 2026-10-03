@@ -1,6 +1,4 @@
-// Task O31.1: the state version in the job key (plan §9.1). The oracle has no version counter, so the keeper uses
-// the keccak256 of the ABI-encoded Resolution: any change to a market's resolution (state, attempts, request count,
-// assertion, deadlines, ...) gives a new version, and a job planned on an older one is dropped.
+// The oracle has no version counter, so a market's state version is keccak256 of its ABI-encoded Resolution.
 import { ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import { encodeAbiParameters, type Hex, keccak256 } from 'viem'
 import type { Job, Resolution } from './types'

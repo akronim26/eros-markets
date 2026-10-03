@@ -1,7 +1,4 @@
-// Task O20.2: the shared vectors (O02.2, O10.2) give the same results in TypeScript as in Foundry
-// (test/unit/FeedSpecLib.t.sol reads the same files). Every validation case returns the exact BadFeed code
-// the registry returns; every specHash, computed with viem's `encodeAbiParameters` on the FeedSpec tuple,
-// equals the Solidity `keccak256(abi.encode(spec))`.
+// test/unit/FeedSpecLib.t.sol reads the same vectors, so both sides must agree on BadFeed codes and specHash.
 import { describe, expect, test } from 'bun:test'
 import { encodeAbiParameters, keccak256, type Hex } from 'viem'
 import { type FeedSpec, type TimingBounds, validateSpec } from '../src/index'
@@ -17,7 +14,7 @@ const hashVectors = (await Bun.file(new URL('../../../vectors/spechash.json', im
   vectors: HashVector[]
 }
 
-/** The FeedSpec tuple exactly as `abi.encode(FeedSpec)` lays it out (Appendix C.2 field order). */
+/** The FeedSpec tuple in `abi.encode(FeedSpec)` field order. */
 const FEED_SPEC_TUPLE = [
   {
     type: 'tuple',

@@ -1,22 +1,11 @@
-// Task O33.5: the panel runner's loop (plan §8.1, §8.3, §8.5, §8.6). A market enters the panel when the oracle moves it
-// into EarlyCheck (phase EARLY, before T) or L2Pending (phase POST_T); the runner learns it from StateChanged logs and,
-// in case a log was missed, by re-reading every market it has seen. One run:
-//   1. check that the market pins this runner's configuration: modelIdHashes are the configured models in order, the
-//      category's template has the pinned promptHash, and the calibration maps hash to the pinned calibratorHash
-//      (anything else would sign a result the market did not commit to: alert, no run)
-//   2. take a fresh snapshot (Layer 1 URL if the market has a feed, the allow-list, the configured pages), keep its
-//      canonical bytes under its evidenceHash (ADJ-41: evidenceURI = eros-snapshot:<evidenceHash>)
-//   3. scan it for injection, ask the three models independently, calibrate; keep the run's record (labels,
-//      confidences, citations, rationales, ĉ, flags, the candidate) as `<evidenceHash>.panel.json` beside the snapshot,
-//      for the committee console (O34.1)
-//   4. pre-check the route locally, only to save gas (the contract decides):
-//        EARLY   flagged, or three identical known labels each ≥ highConfBps → EarlyReview, else back to None: sent
-//        POST_T  two or more NOT_YET → the market stays: not sent; the run repeats after 15 min, 30 min, 1 h, 2 h, …
-//                (each with a fresh snapshot) until l2StartedAt + l2DeadlineSecs
-//                a result that could auto-propose (its category is validated) → its own gas key, which gas.json does
-//                not have yet: not sent (alert); otherwise → Review: sent
-//   5. sign the PanelResult (attempt = Resolution.attempts; the active trust set before T, the pinned one after),
-//      eth_call it, then send it from the relayer EOA with the measured gas limit.
+// The panel runner loop. A market enters the panel in EarlyCheck (before T) or L2Pending (after T); the runner learns
+// this from StateChanged logs and re-reads every market it has seen in case a log was missed. One run:
+//   1. check the market pins this runner's models, prompt and calibration (else alert and skip)
+//   2. take a fresh snapshot and keep it under its evidenceHash
+//   3. scan for injection, ask the models, calibrate; keep `<evidenceHash>.panel.json` for the committee console
+//   4. pre-check the route to save gas (the contract decides): a NOT_YET majority after T is not sent and re-runs
+//      after 15 min, 30 min, 1 h, … until the L2 deadline
+//   5. sign the PanelResult, eth_call it, then send it with the measured gas limit
 import { gasLimit, type GasTable, type ModelCall, modelIdHash, type PanelResult } from '@eros-oracle/oracle-sdk'
 import { canonicalBytes, evidenceHash, type Item, type Snapshot, type SnapshotRequest } from '@eros-oracle/snapshotter'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -31,10 +20,10 @@ import { type DigestSigner, signPanelResult } from './signer'
 export const RState = { None: 0, EarlyCheck: 1, EarlyReview: 2, L1Pending: 3, L2Pending: 4, Review: 5 } as const
 export const Phase = { EARLY: 1, POST_T: 2 } as const
 export const LABEL = { ABSTAIN: 0, YES: 1, NO: 2, INVALID: 3, NOT_YET: 4 } as const
-export const RERUN_FIRST_SECS = 15n * 60n // then doubling: 30 min, 1 h, 2 h, … (plan §8.3)
+export const RERUN_FIRST_SECS = 15n * 60n // then doubling
 export const SIGNATURE_TTL_SECS = 3600n
 export const GAS_KEY = 'submitPanelResult'
-export const GAS_KEY_AUTO = 'submitPanelResultAutoPropose' // measured in OracleGas (ADJ-47)
+export const GAS_KEY_AUTO = 'submitPanelResultAutoPropose'
 
 export type AIConfig = { modelIdHashes: readonly Hex[]; promptHash: Hex; calibratorHash: Hex; categoryId: Hex; highConfBps: number }
 export type MarketView = {
@@ -50,12 +39,11 @@ export type MarketView = {
   earlyTtlSecs: bigint
 }
 
-/** What the runner reads from and sends to the chain (viem in chain.ts; an in-memory double in the tests). */
 export type PanelChain = {
   chainId: number
   oracle: Address
   now(): Promise<bigint>
-  /** StateChanged logs since the last call: (marketId, to). */
+  /** StateChanged logs since the last call. */
   stateChanges(): Promise<{ id: Hex; to: number }[]>
   market(id: Hex): Promise<MarketView>
   aiConfig(id: Hex): Promise<AIConfig>
@@ -64,7 +52,7 @@ export type PanelChain = {
   allowList(id: Hex): Promise<string[]>
   activeTrustSetId(): Promise<number>
   categoryValidated(categoryId: Hex, gateHash: Hex): Promise<boolean>
-  /** eth_call of submitPanelResult; throws with the revert. Returns the state it routes to. */
+  /** Returns the state it routes to; throws with the revert. */
   simulate(id: Hex, r: PanelResult, uri: string, sig: Hex): Promise<number>
   send(id: Hex, r: PanelResult, uri: string, sig: Hex, gas: bigint): Promise<Hex>
 }
@@ -84,7 +72,7 @@ export type RunResult = {
   skipped?: string
 }
 
-/** What a run kept beside its snapshot (`<evidenceHash>.panel.json`) for the committee console. Not hashed or signed. */
+/** `<evidenceHash>.panel.json`, for the committee console. Not hashed or signed. */
 export type PanelRecord = {
   version: 1
   marketId: Hex
@@ -102,17 +90,15 @@ export type RunnerDeps = {
   chain: PanelChain
   signer: DigestSigner
   prompts: readonly PinnedPrompt[]
-  /** The configured models ("provider:model-id@version"); a market's modelIdHashes pick three of them. */
+  /** A market's modelIdHashes pick three of these. */
   models: readonly string[]
-  /** One calibration map per configured model. */
   maps: readonly CalibrationMap[]
   gas: GasTable
   takeSnapshot(req: SnapshotRequest): Promise<Snapshot>
   scan(snapshot: Snapshot, prompt: PinnedPrompt): Promise<Scan>
   askPanel(models: readonly string[], call: ModelCall, items: readonly Item[]): Promise<ModelOutcome[]>
-  /** Configured evidence pages per market (listing pack or a reviewer's additions). */
+  /** Extra evidence pages per market. */
   pagesFor?(id: Hex): string[]
-  /** Where snapshots are kept (ADJ-41). */
   snapshotDir: string
   log?: (level: 'info' | 'warn' | 'error', msg: string, data?: Record<string, unknown>) => void
 }
@@ -121,7 +107,7 @@ export class RunnerConfigError extends Error {}
 
 const quiet = () => {}
 
-/** The configured models a market pins, in its modelIdHashes order; throws when one is not configured. */
+/** In modelIdHashes order; throws when one is not configured. */
 export function pinnedModels(ai: AIConfig, models: readonly string[]): string[] {
   return ai.modelIdHashes.map((h) => {
     const m = models.find((x) => modelIdHash(x) === h.toLowerCase())
@@ -133,7 +119,7 @@ export function pinnedModels(ai: AIConfig, models: readonly string[]): string[] 
 const unanimousKnown = (labels: number[]) => labels[0] === labels[1] && labels[1] === labels[2] && [LABEL.YES, LABEL.NO, LABEL.INVALID].includes(labels[0] as 1 | 2 | 3)
 const unanimousBinary = (labels: number[]) => labels[0] === labels[1] && labels[1] === labels[2] && (labels[0] === LABEL.YES || labels[0] === LABEL.NO)
 
-/** The route the contract will take (plan §8.5, §8.6), for gas only. */
+/** The contract's expected route, used only to save gas. */
 export function preRoute(phase: number, labels: number[], bps: number[], flags: number, ai: AIConfig, categoryValidated: boolean): Route {
   if (phase === Phase.EARLY) return flags !== 0 || (unanimousKnown(labels) && bps.every((b) => b >= ai.highConfBps)) ? 'EarlyReview' : 'None'
   if (labels.filter((l) => l === LABEL.NOT_YET).length >= 2) return 'NotYet'
@@ -141,7 +127,6 @@ export function preRoute(phase: number, labels: number[], bps: number[], flags: 
   return couldAuto ? 'AutoPropose' : 'Review'
 }
 
-/** One panel run for a market in EarlyCheck or L2Pending. */
 export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null> {
   const log = d.log ?? quiet
   const c = d.chain
@@ -208,7 +193,7 @@ export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null>
     deadline: (await c.now()) + SIGNATURE_TTL_SECS,
   }
   const { signature } = await signPanelResult(d.signer, c.chainId, c.oracle, result)
-  await c.simulate(id, result, uri, signature) // a revert throws: nothing is sent
+  await c.simulate(id, result, uri, signature)
   const sent = await c.send(id, result, uri, signature, gas)
   log('info', 'panel result sent', { marketId: id, route, hash: sent, flags: scan.flags, labels })
   return { ...base, sent }
@@ -217,9 +202,8 @@ export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null>
 type Watch = { key: string; runs: number; nextAt: bigint; done: boolean }
 
 /**
- * The loop. Each tick reads new StateChanged logs, then every market it has seen: a market in EarlyCheck (within its
- * early TTL) or L2Pending (before its L2 deadline) is run once per entry, and again on the NOT_YET schedule; a run that
- * fails is retried on the same schedule. A market leaving those states is dropped.
+ * Runs each market once per entry into EarlyCheck or L2Pending, then again on the NOT_YET schedule; failed runs retry
+ * on the same schedule. A market leaving those states is dropped.
  */
 export class PanelRunner {
   private readonly seen = new Set<Hex>()
@@ -241,7 +225,7 @@ export class PanelRunner {
         this.watch.delete(id)
         continue
       }
-      // one entry into the state = one key: a market that re-enters EarlyCheck later starts over
+      // A market that re-enters EarlyCheck later starts over.
       const key = inEarly ? `early:${m.earlyStartedAt}` : `l2:${m.l2StartedAt}:${m.attempts}`
       let w = this.watch.get(id)
       if (!w || w.key !== key) {
@@ -256,7 +240,7 @@ export class PanelRunner {
         else w.nextAt = now + (RERUN_FIRST_SECS << BigInt(w.runs))
       } catch (e) {
         log('error', 'panel run failed', { marketId: id, error: String(e) })
-        if (e instanceof RunnerConfigError) w.done = true // retrying cannot fix a market pinned to another configuration
+        if (e instanceof RunnerConfigError) w.done = true // retrying cannot fix a configuration mismatch
         else w.nextAt = now + (RERUN_FIRST_SECS << BigInt(w.runs))
       }
       w.runs++
