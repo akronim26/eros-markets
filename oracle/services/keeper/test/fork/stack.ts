@@ -103,7 +103,10 @@ export async function rpc(url: string, method: string, params: unknown[] = []): 
 }
 
 /** Starts anvil on `port` and deploys, configures and funds the stack; the chain is left at the deploy. */
-export async function deployStack(port: number): Promise<Stack> {
+/** Deploy options: the trust set's runner attestor (default a placeholder no one holds; the panel test passes its key's address). */
+export type StackOptions = { attestor?: Address }
+
+export async function deployStack(port: number, opts: StackOptions = {}): Promise<Stack> {
   const rpcUrl = `http://127.0.0.1:${port}`
   const anvil = Bun.spawn(['anvil', '--port', String(port), '--code-size-limit', '131072', '--silent'], { stdout: 'ignore', stderr: 'ignore' })
   const dir = `deployments/dryrun/keeper-fork-${port}` // gitignored; scripts may write under ./deployments
@@ -125,7 +128,7 @@ export async function deployStack(port: number): Promise<Stack> {
       SANDBOX_OWNER: addr('safe'),
       SIM_RELAYERS: addr('relayer'),
       // trust-set members the scenarios never act as (no panel or committee path is exercised here)
-      ATTESTOR: '0x00000000000000000000000000000000000A77E5',
+      ATTESTOR: opts.attestor ?? '0x00000000000000000000000000000000000A77E5',
       WATCHDOG: '0x000000000000000000000000000000000000DA7C',
       COMMITTEE: '0x0000000000000000000000000000000000000C01,0x0000000000000000000000000000000000000C02,0x0000000000000000000000000000000000000C03',
     }
@@ -184,18 +187,31 @@ export async function deployStack(port: number): Promise<Stack> {
 }
 
 /** The example pack, its times moved to the chain's now, listed by the Safe's transaction from ListMarket. */
-export async function listExample(s: Stack): Promise<Hex> {
+/**
+ * The example pack (or `edit` of it: written next to the deployments, where ListMarket may read it), its times moved
+ * to the chain's now, listed by the Safe's transaction from ListMarket.
+ */
+export async function listExample(s: Stack, edit?: (pack: any) => void): Promise<Hex> {
   const dir = `deployments/dryrun/keeper-fork-${new URL(s.rpcUrl).port}`
+  let packPath = PACK
+  let marketId = s.marketId
+  if (edit) {
+    const pack = JSON.parse(readFileSync(join(ORACLE_ROOT, PACK), 'utf8'))
+    edit(pack)
+    packPath = `${dir}/pack.json`
+    writeFileSync(join(ORACLE_ROOT, packPath), JSON.stringify(pack, null, 2))
+    marketId = pack.marketInput.marketId
+  }
   const out = forge(['script', 'script/ListMarket.s.sol', '--rpc-url', s.rpcUrl], {
     DEPLOYMENTS: `${dir}/anvil.json`,
     PARAMS: `${dir}/params.json`,
-    PACK,
+    PACK: packPath,
     SHIFT_TO_NOW: 'true',
   })
   const [data] = printed(out, 'Lister transaction (the team Safe)')
   const to = s.deployments.contracts.MarketRegistry.address as Address
   await sendFrom(s, 'safe', to, data)
-  return s.marketId
+  return marketId as Hex
 }
 
 async function sendFrom(s: Stack, k: keyof typeof KEYS, to: Address, data: Hex) {
