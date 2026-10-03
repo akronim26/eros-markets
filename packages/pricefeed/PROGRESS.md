@@ -748,7 +748,11 @@ with exit 0 and 200 passing tests, zero failures/skips/cancellations/todo cases;
 that result is separate from the older staged counts above and does not establish
 a new real-chain pipeline pass.
 
-## Pending commit — joined pipeline verification and invalid-depth checkpoints (PF014-PF020)
+## Commit dbe6a48 — joined pipeline verification and invalid-depth checkpoints (PF014-PF020)
+
+Full hash: `dbe6a48dc84767697329f0d7d0f0875e425196d9`.
+Committed by the user: 2026-10-04 01:07:36 +05:30.
+Message: `feat: add invalid-depth checkpoints and pipeline recovery`.
 
 Date: 2026-10-04. Base commit: `42b4df578e075cab13c01c069c995b7e6918c90c`.
 Suggested message: `feat: add invalid-depth checkpoints and pipeline recovery (PF014-PF020)`.
@@ -778,3 +782,74 @@ time consistently. All nine targeted pipeline tests passed, including unsent
 allocation expiry/restart with a burned sequence. New invalid-builder tests
 and integrated policy verification are still in progress; no passing result
 is claimed for unfinished checks.
+
+**Further verified integration.** The invalid-policy builder suite passed all 14
+tests; the joined pipeline suite passed all 12 then-current tests. Fresh verified
+thin/wide/crossed/endpoint books produce zero price/impacts with real depth/time;
+untrusted, missing, closed and stale source evidence remains unavailable.
+The policy is explicitly selected for local development and changes the rules
+hash; valid-only manifests retain their previous behavior.
+
+## Pending follow-up — simulation, source isolation and reviewable evidence (PF016-PF020)
+
+Date: 2026-10-04. Suggested message:
+`fix: preserve worker isolation and relay headroom (PF016-PF019)`.
+
+**Failure and correction.** The new fixture transition scenario first failed
+after the missing-time gap with actual ingress `FutureTimestamp()` (selector
+0x0ff02cef): a quiet automining Anvil chain's latest block timestamp predates new
+authentic evidence. The loopback adapter now simulates the next pending block;
+mined ingress still enforces zero future tolerance. No source/publish timestamp
+was changed to make the packet pass. Simulation precedes nonce reservation, so
+a rejected simulation does not burn the shared transaction nonce.
+
+The repeated real local-contract transition run exited 0: 28 packets accepted,
+including invalid checkpoints, missing-time gaps retained and valid recovery at
+the independently known fixture price 0.63. Full 300-second availability was
+not claimed for the six-second fixture. Reports now retain signed packets,
+delivery data, verified tool versions and SHA-256 hashes of closed SQLite
+archives. Fixture scenario and genuine-source evidence are stored separately.
+
+**Source isolation.** A quarantined worker returns an explicit QUARANTINED status
+and stays quarantined in its pipeline instance while independent workers keep
+running. The real collector persists quarantine across restart. Shared storage,
+fencing and integrity failures still stop the service. Source outages/invalid
+evidence suppress old-valid rebroadcast; matching pending receipts can still be
+reconciled. An unresolved reserved nonce cannot be discarded to skip ahead.
+
+**Verification in progress.** The 18 targeted pipeline/relay tests passed,
+including source isolation, rejected simulation without nonce consumption and
+outage receipt reconciliation. A new post-simulation headroom test and complete
+package verification are in progress. Monad operational adapters, full lifecycle,
+fee replacement/cancellation and production acceptance remain unfinished.
+
+## Pending campaign — real-source durable pipeline and journal restart (PF016/PF020/PF021)
+
+Date: 2026-10-04. Observed HEAD:
+`06721884e31668affe0c5f669d269a42141dd11f`, committed by the user on
+2026-10-04 01:17:40 +05:30 as
+`feat: add invalid-depth checkpoints and pipeline recovery`.
+Existing uncommitted simulation/isolation fixes were retained.
+Suggested message: `test: add live pricefeed journal restart checks (PF016-PF021)`.
+
+**Authorized next step.** The user requested completion of the proposed real
+Polymarket / owned-local-engine campaign, including full 300-second coverage and
+restart/recovery. No Monad/external-chain send or production deployment is part
+of this campaign. All implementation/evidence remains within this package.
+
+**Changes.** Extended `scripts/pipeline-local.ts` with an optional timed restart
+and a required-full-window assertion. The restart closes all four SQLite
+journals and reconstructs the worker, signer, packet store, relay and pipeline
+on the same owned chain. It verifies persisted packet/digest/signature/raw
+transaction/nonce bytes remain unchanged and that chain acceptance advances
+after resuming. This is a graceful in-process reconstruction, not a forced OS
+kill or restored-backup drill. Source time and chain time are never accelerated.
+
+**Verification so far.** Real-source six-second preflight exited 0 with one
+accepted valid observation through the durable pipeline. Eight-second fixture
+restart smoke exited 0 with 44 accepted packets. Initial sandbox localhost
+listen failed with EPERM; authorized socket/network execution was then used.
+An unused-variable TypeScript error was fixed before the passing build/runs.
+Current `npm test` exited 0: 210 tests, zero failures/skips/cancellations/todo.
+The six-minute real-source run with restart at 180 seconds is IN PROGRESS;
+no full-window result or production readiness is claimed before it finishes.

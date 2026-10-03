@@ -1,11 +1,11 @@
 {
   "command": [
-    "/tmp/pricefeed-foundry-v1.8.3/forge",
+    "/tmp/eros-foundry-v1.8.3/forge",
     "test",
     "--root",
     "test/integration",
     "--use",
-    "/tmp/pricefeed-solc-0.8.30",
+    "/home/mihir/.local/share/svm/0.8.30/solc-0.8.30",
     "--json"
   ],
   "exitCode": 0,

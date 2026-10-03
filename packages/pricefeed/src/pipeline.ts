@@ -11,8 +11,8 @@ import { sourceTime } from './time.js';
 
 export type RecoverableSigner=RawSigner&{reconcile(owner:string,fence:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void};
 export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig};rules:RulesManifest;signer:RecoverableSigner};
-type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[]};
-export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
+type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null};
+export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'QUARANTINED'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
   reason:string|null;sequence:bigint|null;transactionHash:string|null;depthValid:boolean|null};
 
 /** First joined development path: disabled configs, public test signer, chain 31337.
@@ -39,7 +39,7 @@ export class LocalPipeline {
       const domain:PacketDomain={chainId:31337n,engine:d.engineAddress,marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress};
       const ns=packetNamespace(domain);
       if(this.entries.has(config.key)||domains.has(ns))throw new Error('DUPLICATE_PIPELINE_WORKER');domains.add(ns);
-      this.entries.set(config.key,{...input,config,rules,domain,fence:0n,pending:[],watch:[]});
+      this.entries.set(config.key,{...input,config,rules,domain,fence:0n,pending:[],watch:[],quarantined:null});
     }
   }
   private async bounded<T>(op:Promise<T>):Promise<T>{
@@ -137,7 +137,8 @@ export class LocalPipeline {
           }
         }
       });
-      if(result.inspection.status==='QUARANTINED')throw new Error(`PIPELINE_SOURCE_QUARANTINED:${result.inspection.reason}`);
+      if(result.inspection.status==='QUARANTINED')e.quarantined=result.inspection.reason??'SOURCE_QUARANTINED';
+      if(e.quarantined)return this.result(e,'QUARANTINED',e.quarantined);
       if(recovered)return recovered;
       const invalid=result.inspection.status==='INVALID_DEPTH',allowInvalid=invalid&&permitsInvalidDepth(e.rules);
       if(invalid&&!allowInvalid)return this.result(e,'SOURCE_UNAVAILABLE',`INVALID_DEPTH:${result.inspection.reason}`);

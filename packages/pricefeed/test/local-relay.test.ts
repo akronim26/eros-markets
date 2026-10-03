@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { encodeAbiParameters, encodeEventTopics, keccak256, parseAbiParameters, type Hex } from 'viem';
+import { encodeAbiParameters, encodeEventTopics, keccak256, parseAbiParameters, parseTransaction, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { LocalRelay, type LocalRelayTransport, type RelayPolicy } from '../src/local-relay.js';
 import { PacketStore } from '../src/packet-store.js';
@@ -88,5 +88,24 @@ test('a signing delay past headroom quarantines the reserved nonce and preserves
     await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/HEADROOM/);
     assert.equal(s.sent.length,0);assert.equal(s.relay.get(s.domain,1n)!.state,'QUARANTINED');
     assert.equal(s.packets.get(s.domain,1n)!.packet.observation.publishedAt,1000n);
+  }finally{s.close();}
+});
+test('a rejected simulation consumes no transaction nonce and can retry the identical signed observation',async()=>{
+  const s=await setup();try{
+    s.transport.simulate=async()=>{throw new Error('SIMULATION_REJECTED');};
+    await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/SIMULATION_REJECTED/);
+    assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.prepareCalls(),0);assert.equal(s.sent.length,0);
+    s.transport.simulate=async()=>{};
+    const retry=await s.relay.deliver(config,'owner',s.fence,1n);
+    assert.equal(retry.nonce,0n);assert.equal(parseTransaction(retry.raw!).nonce,0);
+    assert.equal(s.packets.get(s.domain,1n)!.digest,s.signed.digest);
+  }finally{s.close();}
+});
+test('headroom exhausted during simulation never reserves a nonce or changes the signed packet',async()=>{
+  const s=await setup();try{
+    s.transport.simulate=async()=>{s.setNow(1030001n);};
+    await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/HEADROOM/);
+    assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.prepareCalls(),0);assert.equal(s.sent.length,0);
+    assert.deepEqual(s.packets.get(s.domain,1n),s.signed);
   }finally{s.close();}
 });
