@@ -2,7 +2,7 @@
 // oracle-cli (ADJ-13). Commands: `list` (O22.2), `dryrun` and `ambiguity` (O22.3).
 import { parseArgs } from 'node:util'
 import { ForgeError } from './forge'
-import { ambiguity } from './ambiguity'
+import { ambiguity, applyTriage, TRIAGE_FILE } from './ambiguity'
 import { dryRun } from './dryrun'
 import { list, ListError } from './list'
 import { ModelError } from './models'
@@ -25,11 +25,16 @@ usage: oracle-cli dryrun --input <listing.json> --nodes <N> [--network <name>] [
   \`cre workflow simulate dryrun\` runs (finished -> the reference's YES/NO, dryRun.liveUrlParam ->
   NOT_READY, wrong value path -> ERROR). Writes dryrun.log into the pack; exits 1 on any mismatch.
 
-usage: oracle-cli ambiguity --input <listing.json> [--out <dir>]
+usage: oracle-cli ambiguity --input <listing.json> [--out <dir>] [--triage <ambiguity-triage.json>]
 
   Gives the question and rules to the three models of ambiguity.models (checked against
-  ai.modelIdHashes; keys ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY). Writes ambiguity.log and,
-  when no model lists an undecided case, sets ambiguityLogHash in pack.json; exits 1 otherwise.`
+  ai.modelIdHashes; keys ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GROQ_API_KEY,
+  MISTRAL_API_KEY, CEREBRAS_API_KEY,
+  NVIDIA_API_KEY). Writes ambiguity.log and,
+  when no model lists an undecided case, sets ambiguityLogHash in pack.json; exits 1 otherwise. When
+  every model answered but some listed cases, the pass is NEEDS_TRIAGE and ambiguity-triage.json is
+  written into the pack: give each case "decided" (with a clause quoted from the rules) or "immaterial"
+  (with a reason), set triagedBy, then run with --triage <that file> (no model calls) to record it and set the hash.`
 
 async function main(argv: string[]): Promise<number> {
   const { positionals, values } = parseArgs({
@@ -47,6 +52,7 @@ async function main(argv: string[]): Promise<number> {
       'no-check': { type: 'boolean' },
       force: { type: 'boolean' },
       nodes: { type: 'string' },
+      triage: { type: 'string' },
       help: { type: 'boolean', short: 'h' },
     },
   })
@@ -62,6 +68,11 @@ async function main(argv: string[]): Promise<number> {
       console.log(`wrote ${r.dir}/dryrun.log`)
       return r.pass ? 0 : 1
     }
+    if (command === 'ambiguity' && values.triage !== undefined) {
+      const r = applyTriage({ input: values.input, out: values.out, triage: values.triage || undefined })
+      console.log(`triage recorded in ${r.dir}/ambiguity.log; PASS_TRIAGED, ambiguityLogHash ${r.ambiguityLogHash}`)
+      return 0
+    }
     if (command === 'ambiguity') {
       const r = await ambiguity({ input: values.input, out: values.out })
       for (const run of r.runs) {
@@ -69,7 +80,13 @@ async function main(argv: string[]): Promise<number> {
         console.log(`${run.model}: ${what}`)
         for (const u of run.undecided ?? []) console.log(`  - ${u.case}: ${u.why}`)
       }
-      console.log(`wrote ${r.dir}/ambiguity.log; ${r.pass ? `PASS, ambiguityLogHash ${r.ambiguityLogHash}` : 'FAIL, ambiguityLogHash left zero: fix the rules and re-run list'}`)
+      const next = {
+        PASS: `PASS, ambiguityLogHash ${r.ambiguityLogHash}`,
+        NEEDS_TRIAGE: `NEEDS_TRIAGE: fix the rules and re-run list and the pass, or give every case a disposition in ${r.dir}/${TRIAGE_FILE} and run with --triage`,
+        FAIL: 'FAIL (a model did not answer validly): run the pass again',
+        PASS_TRIAGED: '',
+      }[r.result]
+      console.log(`wrote ${r.dir}/ambiguity.log; ${next}`)
       return r.pass ? 0 : 1
     }
     const r = await list({
