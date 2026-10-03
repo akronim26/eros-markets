@@ -380,6 +380,9 @@ abstract contract Book is IBookRiskHooks {
             uint64 left = size - r.filledLots; // a hook overfill underflows here and reverts
             o.size = left;
             o.feeCapQ = o.feeCapQ * left / size; // the pro-rata attribution risk consumed (M-11)
+            if (o.flags & FLAG_REDUCE_ONLY != 0 && !r.removeMakerRemainder) {
+                o.reduceVersion = r.makerPostFillVersion;
+            }
             b.levels[o.tick][o.flags & FLAG_BUY != 0 ? BID : ASK].size -= r.filledLots;
         }
         emit Fill(_id(s, o.gen), o.owner, permit.trader, o.tick, r.filledLots, r.makerFeeQ, r.takerFeeQ);

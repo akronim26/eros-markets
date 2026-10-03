@@ -226,6 +226,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         r.makerFeeQ = f.makerFeeQ;
         r.takerFeeQ = f.takerFeeQ;
         r.makerRemainingLots = maker.remainingLots - lots;
+        if (maker.reduceOnly) r.makerPostFillVersion = _acctAccount(maker.owner).positionVersion;
         r.removeMakerRemainder = md.removeRemainder && r.makerRemainingLots != 0;
     }
 
