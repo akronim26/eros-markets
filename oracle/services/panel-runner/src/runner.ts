@@ -34,7 +34,7 @@ export const LABEL = { ABSTAIN: 0, YES: 1, NO: 2, INVALID: 3, NOT_YET: 4 } as co
 export const RERUN_FIRST_SECS = 15n * 60n // then doubling: 30 min, 1 h, 2 h, … (plan §8.3)
 export const SIGNATURE_TTL_SECS = 3600n
 export const GAS_KEY = 'submitPanelResult'
-export const GAS_KEY_AUTO = 'submitPanelResultAutoPropose' // not measured: a validated category does not exist yet
+export const GAS_KEY_AUTO = 'submitPanelResultAutoPropose' // measured in OracleGas (ADJ-47)
 
 export type AIConfig = { modelIdHashes: readonly Hex[]; promptHash: Hex; calibratorHash: Hex; categoryId: Hex; highConfBps: number }
 export type MarketView = {

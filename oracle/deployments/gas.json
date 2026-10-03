@@ -187,7 +187,7 @@
       "limit": 190000,
       "status": "measured",
       "engine": "ResolutionEngineStub (testnet)",
-      "note": "Panel runner (O33.5): the most expensive route it sends, after T to Review, with a 256-byte evidence URI (the contract's maximum); before T to EarlyReview 131,014 and to None 131,573. The auto-propose route (L2_AUTO, needs a validated category) is not measured: the runner does not send it (key submitPanelResultAutoPropose absent). No plan 6.9 budget."
+      "note": "Panel runner (O33.5): the most expensive route it sends, after T to Review, with a 256-byte evidence URI (the contract's maximum); before T to EarlyReview 131,014 and to None 131,573. The auto-propose route has its own key, submitPanelResultAutoPropose. No plan 6.9 budget."
     },
     "submitReviewedProposal": {
       "transaction": 507129,
@@ -210,6 +210,13 @@
       "limit": 70000,
       "status": "measured",
       "note": "Watchdog (O35.3): ResolutionOracle.watchdogHeartbeat, the first one (a zero storage slot written); later ones cost less. No plan 6.9 budget."
+    },
+    "submitPanelResultAutoPropose": {
+      "transaction": 349958,
+      "limit": 420000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Panel runner's auto-propose route (L2_AUTO, ADJ-47): three identical YES labels above θ_hi in a category validated for the market's gateHash, recorded as an L2_AUTO proposal, with a 256-byte evidence URI. Measured by test_gas_submitPanelResult_autoPropose; limit 1.2 × the transaction. No plan 6.9 budget."
     }
   },
   "contractSizes": {
