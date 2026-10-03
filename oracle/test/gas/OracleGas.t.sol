@@ -122,6 +122,10 @@ contract OracleGasTest is RegistryFixture {
     bytes32 internal mSync; // no feed, asserted at T and disputed on OOv3 (state still Proposed)
     bytes32[3] internal mFinMore; // no feed, asserted, liveness over: finalizeMany with mFinalize
     bytes32 internal mClose; // no feed, asserted at T and disputed by the watchdog with the treasury float (O31.3)
+    // Committee and watchdog calls (O34.2, O35.3)
+    bytes32 internal mReview; // no feed, halted at T, panel result accepted: Review
+    bytes32 internal mEarlyReview; // feed, EarlyCheck then a confident panel: EarlyReview (before T)
+    bytes32 internal mDispute; // no feed, asserted at T + 400 (live until T + 700)
 
     function setUp() public {
         vm.chainId(10143);
@@ -144,7 +148,10 @@ contract OracleGasTest is RegistryFixture {
         reg = new MarketRegistry(oracleAddr, treasuryAddr, address(stubFactory), usdc, gov, lister);
         require(address(treasury) == treasuryAddr && address(ro) == oracleAddr && address(reg) == registryAddr);
         seamFactory.setRegistry(address(reg));
-        adapter = new UmaAdapter(oov3, usdc, address(ro), address(treasury));
+        // UmaAdapter and KeeperRouter come from their artifacts: embedding their creation code would take this test
+        // contract past the 128 KiB code-size limit.
+        adapter =
+            UmaAdapter(deployCode("UmaAdapter.sol:UmaAdapter", abi.encode(oov3, usdc, address(ro), address(treasury))));
 
         _committee();
         vm.startPrank(gov);
@@ -167,7 +174,7 @@ contract OracleGasTest is RegistryFixture {
         mFinalize = _list("finalize", false, false, 0);
         mHaltReal = _list("halt-real", true, true, 0);
         mFinalizeReal = _list("finalize-real", false, true, 0);
-        router = new KeeperRouter(address(ro));
+        router = KeeperRouter(deployCode("KeeperRouter.sol:KeeperRouter", abi.encode(address(ro))));
         mOpen = _list("open", false, false, 0);
         mEarly = _list("early", true, false, 0);
         mSync = _list("sync", false, false, 0);
@@ -175,7 +182,12 @@ contract OracleGasTest is RegistryFixture {
             mFinMore[i] = _list(string.concat("finalize-", vm.toString(i)), false, false, 0);
         }
         mClose = _list("close", false, false, 0);
+        mReview = _list("review", false, false, 0);
+        mEarlyReview = _list("early-review", true, false, 0);
+        mDispute = _list("dispute", false, false, 0);
         _toEarlyCheck(mEarly);
+        _toEarlyCheck(mEarlyReview);
+        _submitPanelNow(mEarlyReview, Phase.EARLY);
 
         vm.warp(T);
         ro.haltScheduled(mOpen);
@@ -197,7 +209,11 @@ contract OracleGasTest is RegistryFixture {
         _toProposed(mFinalizeReal);
         assertTrue(ro.assertProposal(mFinalize));
         assertTrue(ro.assertProposal(mFinalizeReal));
+        ro.haltScheduled(mReview);
+        _submitPanelNow(mReview, Phase.POST_T);
         vm.warp(T + 400); // past the reviewed liveness (300 s); the report observes from T + 60
+        _toProposed(mDispute);
+        assertTrue(ro.assertProposal(mDispute));
     }
 
     // ------------------------------------------------------------------ §6.9 call types
@@ -432,6 +448,65 @@ contract OracleGasTest is RegistryFixture {
         assertEq(uint8(ro.getResolution(mEarly).state), uint8(RState.None));
     }
 
+    /// `submitReviewedProposal` from Review with the whole committee signing (3 of 3, the most a
+    /// 3-member committee can send) and a 256-byte evidence URI (O34.2).
+    function test_gas_submitReviewedProposal_review() public {
+        _checkLimit("submitReviewedProposal", address(ro), _submitReviewed(mReview, false));
+        assertEq(uint8(ro.getResolution(mReview).state), uint8(RState.Proposed));
+    }
+
+    /// From EarlyReview the proposal also halts the engine at once (§8.5): the costlier route.
+    function test_gas_submitReviewedProposal_early() public {
+        vm.warp(ro.getResolution(mEarlyReview).earlyStartedAt + 60); // before T, within the early TTL
+        _checkLimit("submitReviewedProposal", address(ro), _submitReviewed(mEarlyReview, true));
+        assertEq(uint8(ro.getResolution(mEarlyReview).state), uint8(RState.Proposed));
+    }
+
+    /// The watchdog disputes a live team assertion with WATCHDOG_FLOAT (O35.3).
+    function test_gas_disputeViaVenue() public {
+        _checkLimitFrom(
+            "disputeViaVenue",
+            ro.watchdogOf(mDispute),
+            address(treasury),
+            abi.encodeCall(treasury.disputeViaVenue, (mDispute))
+        );
+        assertEq(treasury.openDisputes(), 2);
+    }
+
+    /// The watchdog's heartbeat (O35.3), its first one (a fresh storage slot).
+    function test_gas_watchdogHeartbeat() public {
+        address w = ro.watchdogOf(mDispute);
+        _checkLimitFrom("watchdogHeartbeat", w, address(ro), abi.encodeCall(ro.watchdogHeartbeat, ()));
+        assertEq(ro.lastHeartbeat(w), block.timestamp);
+    }
+
+    function _submitReviewed(bytes32 id, bool early) internal view returns (bytes memory) {
+        Resolution memory r = ro.getResolution(id);
+        ReviewedProposal memory q;
+        q.marketId = id;
+        q.outcome = uint8(Outcome.NO);
+        q.evidenceHash = keccak256("snapshot");
+        q.evidenceURIHash = keccak256(bytes(_maxUri()));
+        q.noteHash = keccak256("note");
+        q.attempt = r.attempts;
+        q.rejectedMask = r.rejectedMask;
+        q.early = early;
+        q.trustSetId = early ? ro.activeTrustSetId() : r.trustSetId;
+        q.deadline = uint64(block.timestamp + 1 hours);
+        bytes32 d = ro.hashReviewedProposal(q);
+        Sig[] memory s = new Sig[](3);
+        for (uint256 i; i < 3; ++i) {
+            s[i] = Sig(members[i], _sign(memberKeys[i], d));
+        }
+        return abi.encodeCall(ro.submitReviewedProposal, (id, q, _maxUri(), s));
+    }
+
+    /// A panel result with three confident NOs: Review after T, EarlyReview before.
+    function _submitPanelNow(bytes32 id, Phase phase) internal {
+        PanelResult memory p = _panel(id, phase, [PanelLabel.NO, PanelLabel.NO, PanelLabel.NO]);
+        ro.submitPanelResult(id, p, _maxUri(), _sign(attestorKey, ro.hashPanelResult(p)));
+    }
+
     function _maxUri() internal pure returns (string memory) {
         return string(_filled(256));
     }
@@ -478,8 +553,13 @@ contract OracleGasTest is RegistryFixture {
 
     /// Measures a call that has no §6.9 budget and checks the transaction against its gas.json `limit`.
     function _checkLimit(string memory key, address to, bytes memory data) internal {
-        uint256 used = _measure(address(this), to, data);
-        uint256 execution = used - _measure(address(this), address(noop), data);
+        _checkLimitFrom(key, address(this), to, data);
+    }
+
+    /// As `_checkLimit`, sent by `from` (a role the call is restricted to).
+    function _checkLimitFrom(string memory key, address from, address to, bytes memory data) internal {
+        uint256 used = _measure(from, to, data);
+        uint256 execution = used - _measure(from, address(noop), data);
         uint256 limit = stdJson.readUint(gasJson, string.concat(".calls.", key, ".limit"));
         emit log_named_uint(string.concat(key, " transaction"), used);
         emit log_named_uint(string.concat(key, " execution"), execution);

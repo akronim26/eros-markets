@@ -188,6 +188,28 @@
       "status": "measured",
       "engine": "ResolutionEngineStub (testnet)",
       "note": "Panel runner (O33.5): the most expensive route it sends, after T to Review, with a 256-byte evidence URI (the contract's maximum); before T to EarlyReview 131,014 and to None 131,573. The auto-propose route (L2_AUTO, needs a validated category) is not measured: the runner does not send it (key submitPanelResultAutoPropose absent). No plan 6.9 budget."
+    },
+    "submitReviewedProposal": {
+      "transaction": 507129,
+      "execution": 448111,
+      "limit": 610000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Committee console (O34.2): the costlier route, from EarlyReview before T (the proposal halts the engine at once, section 8.5); from Review 361,449. Both with all three members signing (EOAs) and a 256-byte evidence URI. A committee member that is a contract (a Safe, ERC-1271) is not measured: the console sends such a proposal only under the key submitReviewedProposalERC1271, which is absent. No plan 6.9 budget."
+    },
+    "disputeViaVenue": {
+      "transaction": 531374,
+      "execution": 506075,
+      "limit": 640000,
+      "status": "measured",
+      "note": "Watchdog (O35.3): BondTreasury.disputeViaVenue on a live team assertion on the real OOv3 with the sandbox DVM (the dispute pays the bond from WATCHDOG_FLOAT and OOv3 requests a price from the DVM). No plan 6.9 budget."
+    },
+    "watchdogHeartbeat": {
+      "transaction": 55172,
+      "execution": 31156,
+      "limit": 70000,
+      "status": "measured",
+      "note": "Watchdog (O35.3): ResolutionOracle.watchdogHeartbeat, the first one (a zero storage slot written); later ones cost less. No plan 6.9 budget."
     }
   },
   "contractSizes": {
