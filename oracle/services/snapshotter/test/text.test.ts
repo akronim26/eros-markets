@@ -1,4 +1,3 @@
-// Task O32.1: prompt text is extracted from the stored bytes and never replaces them (plan §8.2).
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { itemBytes, takeSnapshot } from '../src/fetcher'
 import { htmlText, promptText } from '../src/text'

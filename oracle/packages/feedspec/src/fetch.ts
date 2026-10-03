@@ -1,7 +1,5 @@
-// Node-mode fetch shared by workflows/resolution and workflows/dryrun (plan §7.5: "same fetch, evaluator and
-// identical consensus"). It lives here, with no package imports, because each workflow is a standalone package
-// with its own node_modules (ADJ-10): a bare import from a file outside the workflow would resolve to another
-// copy of the SDK. The workflow passes in its own SDK `text` and its own keccak (ADJ-36).
+// Node-mode fetch shared by both workflows. It has no package imports: each workflow has its own node_modules, so
+// the caller passes in its own SDK `text` and keccak.
 import { evaluateResponse, type FeedSpec, MAX_BODY_BYTES } from './index'
 
 export const ZERO32 = `0x${'00'.repeat(32)}`
@@ -16,14 +14,11 @@ export type NodeHttpRequest = {
 }
 export type NodeHttpResponse = { statusCode: number; body: Uint8Array }
 export type NodeFetchDeps<Resp extends NodeHttpResponse> = {
-  text: (resp: Resp) => string // the SDK's `text` (UTF-8 decode, trimmed)
-  hashLexeme: (lexeme: string) => string // keccak256 of the lexeme's UTF-8 bytes, 0x-prefixed
+  text: (resp: Resp) => string
+  hashLexeme: (lexeme: string) => string // 0x-prefixed keccak256 of the UTF-8 bytes
 }
 
-/**
- * Returns the node-mode function: each DON node fetches and evaluates independently and returns
- * "STATUS|valueHash|code", the string identical consensus agrees on.
- */
+/** Each DON node fetches and evaluates independently, returning "STATUS|valueHash|code" for identical consensus. */
 export const nodeFetch =
   <Resp extends NodeHttpResponse>(deps: NodeFetchDeps<Resp>) =>
   (
@@ -43,7 +38,7 @@ export const nodeFetch =
           method: 'GET',
           multiHeaders,
           timeout,
-          cacheSettings: { store: false }, // maxAge unset (0) => never read from cache; fresh per node
+          cacheSettings: { store: false }, // with maxAge unset, every node fetches fresh
         })
         .result()
       const bodyBytes = resp.body.length
@@ -52,6 +47,6 @@ export const nodeFetch =
       const vh = ev.status === 'YES' || ev.status === 'NO' ? deps.hashLexeme(ev.valueLexeme) : ZERO32
       return `${ev.status}|${vh}|${ev.code}`
     } catch {
-      return 'ERROR|' + ZERO32 + '|FETCH_FAILED' // timeout, 429 throttling at transport, >250KB, etc.
+      return 'ERROR|' + ZERO32 + '|FETCH_FAILED' // timeout, 429, body over 250 KB, ...
     }
   }

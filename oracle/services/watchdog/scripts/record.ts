@@ -1,8 +1,5 @@
-// `bun run record`: records the fourth model's real answers for the watchdog's tests (O35.2). Two fixed snapshots of the
-// example market (home 3-1, so YES under its rules; home 1-1, so NO) are built with the snapshotter from canned pages,
-// written to test/fixtures/snapshots/, and each is sent once with the watchdog's prompt. The raw response (status, a few
-// headers, body) goes to test/fixtures/recorded/; request headers, and so the key, are never written. Key: the model
-// provider's variable (oracle-sdk KEYS), e.g. GROQ_API_KEY.
+// `bun run record`: records the watchdog model's real answers on two fixed snapshots of the example market (3-1, so
+// YES; 1-1, so NO) into test/fixtures/. Request headers, and so the API key, are never written.
 import { KEYS, modelRequest, parseModel } from '@eros-oracle/oracle-sdk'
 import { canonicalBytes, takeSnapshot } from '@eros-oracle/snapshotter'
 import { mkdirSync, writeFileSync } from 'node:fs'

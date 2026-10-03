@@ -1,7 +1,5 @@
-// Task O35.3: the watchdog's loop (plan §9.2). Each tick: heartbeat if due; new proposals from the intake are checked at
-// once (Layer 1 re-run for L1, the fourth model plus the feed for every other path); AGREE ends there, UNSURE pages a
-// human, CONTRADICT disputes once the proposal is asserted (or pages when it cannot); then the float is checked against
-// the live bonds.
+// Each tick: heartbeat if due, check new proposals (AGREE: done, UNSURE: page, CONTRADICT: dispute once asserted or
+// page), then check the float against live bonds.
 import type { GasTable } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { actOnContradiction, type DisputeResult } from './dispute'

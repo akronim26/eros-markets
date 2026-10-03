@@ -1,16 +1,14 @@
-// Task O34.3: the reviewer console (plan §8.4), as a CLI (§13.1 cut: "partial (as a CLI)"; ADJ-43). One reviewer takes a
-// case from reading to a submitted proposal without leaving it:
-//   case <id>                         the case (rules first; evidence; panel as reference; deadlines and alerts)
-//   snapshot <id> [url ...]           a new snapshot with the added sources (ADJ-22); the case then shows it
-//   propose <id> <YES|NO|INVALID> <note>   writes the note (noteHash), builds the ReviewedProposal and signs it
-//   sign <bundle> <YES|NO|INVALID>    another member signs, naming the outcome they chose themselves
-//   typed-data <bundle>               the eth_signTypedData_v4 payload for a wallet (hardware wallet, Safe)
-//   add-sig <bundle> <signer> <sig>   a signature made in a wallet
-//   status <bundle>                   signatures checked as the contract will, threshold, staleness
-//   submit <bundle>                   eth_call, then send (anyone)
-//   alerts                            service-level alerts across markets waiting for the committee
-// Per-market state (the reviewer's current snapshot) is kept in <dataDir>/cases/<id>.json; bundles in
-// <dataDir>/proposals/<digest>.json.
+// The reviewer console CLI:
+//   case <id>                              rules first, then evidence, panel, deadlines and alerts
+//   snapshot <id> [url ...]                a new snapshot with added sources; the case then shows it
+//   propose <id> <YES|NO|INVALID> <note>   writes the note, builds the ReviewedProposal and signs it
+//   sign <bundle> <YES|NO|INVALID>         another member signs, naming the outcome they chose themselves
+//   typed-data <bundle>                    the eth_signTypedData_v4 payload for a wallet
+//   add-sig <bundle> <signer> <sig>        a signature made in a wallet
+//   status <bundle>                        signatures, threshold and staleness
+//   submit <bundle>                        eth_call, then send
+//   alerts                                 service-level alerts across markets
+// State lives in <dataDir>/cases/<id>.json and <dataDir>/proposals/<digest>.json.
 import type { GasTable } from '@eros-oracle/oracle-sdk'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -32,10 +30,10 @@ export type ConsoleDeps = {
   store: EvidenceStore
   gas: GasTable
   takeSnapshot: TakeSnapshot
-  /** The reviewer's own key (a committee member); not needed to read, check or submit. */
+  /** Not needed to read, check or submit. */
   account?: LocalAccount
   dataDir: string
-  /** Unix seconds for the note's writtenAt (default the clock). */
+  /** Unix seconds; defaults to the clock. */
   clock?: () => number
 }
 
@@ -53,7 +51,6 @@ export class CommitteeConsole {
     return JSON.parse(readFileSync(p, 'utf8'))
   }
 
-  /** The case with the reviewer's own snapshot when they took one. */
   async case(id: Hex): Promise<Case> {
     const s = this.session(id)
     return buildCase(id, this.d.chain, this.d.store, s ? { evidenceHash: s.evidenceHash, evidenceURI: s.evidenceURI } : undefined)
@@ -63,7 +60,7 @@ export class CommitteeConsole {
     return renderCase(await this.case(id), await this.d.chain.now())
   }
 
-  /** A new snapshot: the panel's sources (or the reviewer's last snapshot's) plus `urls`. */
+  /** The current snapshot's sources plus `urls`. */
   async snapshot(id: Hex, urls: string[]): Promise<Session> {
     const c = await this.case(id)
     const prev = this.session(id)
@@ -74,10 +71,7 @@ export class CommitteeConsole {
     return s
   }
 
-  /**
-   * The reviewer's decision: the note is written and hashed, the proposal built on the case's snapshot (which the
-   * reviewer must have been able to read) and signed with the reviewer's key. Returns the bundle's path.
-   */
+  /** Writes the note, builds the proposal on the case's snapshot and signs it. Returns the bundle's path. */
   async propose(id: Hex, outcome: Choice, noteText: string): Promise<{ path: string; bundle: Bundle }> {
     const account = this.requireAccount()
     const c = await this.case(id)
@@ -107,7 +101,7 @@ export class CommitteeConsole {
     return { path: this.save(signed), bundle: signed }
   }
 
-  /** Another member signs, after choosing the same outcome on their own. */
+  /** The member must choose the same outcome on their own. */
   async sign(path: string, outcome: Choice): Promise<Bundle> {
     const account = this.requireAccount()
     const b = this.load(path)
@@ -142,7 +136,6 @@ export class CommitteeConsole {
     return submitBundle(this.load(path), this.d.chain, this.d.gas)
   }
 
-  /** Due service-level alerts of every market waiting for the committee. */
   async alerts() {
     const now = await this.d.chain.now()
     const out: { marketId: Hex; kind: string; severity: string; at: bigint; deadline: bigint }[] = []

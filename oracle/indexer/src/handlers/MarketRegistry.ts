@@ -1,4 +1,4 @@
-// Task O37.2: MarketRegistry events → Market (listing fields), Category.
+// MarketRegistry → Market (listing fields) and Category.
 import { indexer } from 'envio'
 import { blankMarket, lc, num, refresh, ts } from '../lib'
 

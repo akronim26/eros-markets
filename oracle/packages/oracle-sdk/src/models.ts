@@ -1,7 +1,5 @@
-// Model API requests shared by the listing CLI's ambiguity pass (O22.3) and the panel runner (O33.1): one chat call
-// per model, temperature 0, JSON output, the provider's response text. A model is "provider:model-id@version"
-// (§8.3); the API is called with model-id, and `modelIdHash = keccak256("provider:model-id@version")`.
-// Moved here from oracle-cli in O33.1 so both use one provider table.
+// Model API calls shared by the listing CLI and the panel runner: one JSON chat call per model.
+// A model is named "provider:model-id@version"; the API is called with model-id.
 import { type Hex, keccak256, stringToBytes } from 'viem'
 
 export type ModelCall = { system: string; user: string }
@@ -18,34 +16,30 @@ const PROVIDERS = Object.keys(KEYS).join(', ')
 /** Output budget, reasoning included: reasoning models spend part of it before they answer. */
 const MAX_OUTPUT_TOKENS = 8192
 const GEMINI_MAX_OUTPUT_TOKENS = 32768
-/** OpenAI-compatible chat completions: the base URL, the name of the seed field, and whether to ask for the
- *  provider's JSON mode. Groq's JSON mode rejects some gpt-oss answers with json_validate_failed and returns
- *  nothing; without it the answer still has to pass parseUndecided, so nothing invalid gets through. */
+/**
+ * OpenAI-compatible providers. JSON mode is off where it drops valid answers (Groq fails some gpt-oss answers with
+ * json_validate_failed); callers validate every answer anyway.
+ */
 const CHAT: Record<string, { url: string; seed: string; jsonMode: boolean; maxField: string; maxTokens: number }> = {
   openai: { url: 'https://api.openai.com/v1/chat/completions', seed: 'seed', jsonMode: true, maxField: 'max_completion_tokens', maxTokens: MAX_OUTPUT_TOKENS },
-  // Groq counts the prompt plus this budget against the free tier's 8,000 tokens per minute for gpt-oss-120b.
+  // The free tier counts prompt plus this budget against 8,000 tokens per minute.
   groq: { url: 'https://api.groq.com/openai/v1/chat/completions', seed: 'seed', jsonMode: false, maxField: 'max_completion_tokens', maxTokens: 6000 },
   mistral: { url: 'https://api.mistral.ai/v1/chat/completions', seed: 'random_seed', jsonMode: true, maxField: 'max_tokens', maxTokens: MAX_OUTPUT_TOKENS },
-  // Cerebras's free tier has capped context at 8,192 tokens (prompt plus output).
+  // The free tier caps context at 8,192 tokens.
   cerebras: { url: 'https://api.cerebras.ai/v1/chat/completions', seed: 'seed', jsonMode: true, maxField: 'max_completion_tokens', maxTokens: 4096 },
-  // NVIDIA build (hosted NIM): JSON mode is not offered for every model, so the answer is checked by parseUndecided.
+  // JSON mode is not offered for every model.
   nvidia: { url: 'https://integrate.api.nvidia.com/v1/chat/completions', seed: 'seed', jsonMode: false, maxField: 'max_tokens', maxTokens: MAX_OUTPUT_TOKENS },
-  // AICredits (aicredits.in): a paid OpenAI-compatible gateway; the model id names the vendor ("google/gemini-3.8-flash").
-  // Gemini's thinking counts against the output budget, as on Google's own API.
+  // Model ids name the vendor ("google/gemini-3.8-flash"); Gemini's thinking counts against the output budget.
   aicredits: { url: 'https://api.aicredits.in/v1/chat/completions', seed: 'seed', jsonMode: false, maxField: 'max_tokens', maxTokens: GEMINI_MAX_OUTPUT_TOKENS },
 }
 
-/**
- * Temperature per API model id: 0 (the panel's rule, §8.3) unless a model degenerates at 0. Kimi K3 on NVIDIA
- * returned an empty answer and a reasoning trace of "!!!!" at 0 and answers normally at its recommended 1.0
- * (tested 3 Oct 2026). Every run records the temperature it used in ambiguity.log.
- */
+/** Temperature 0 unless a model degenerates at 0: Kimi K3 on NVIDIA answers "!!!!" or nothing at 0. */
 const TEMPERATURE: Record<string, number> = { 'moonshotai/kimi-k3': 1.0 }
 export const temperatureFor = (model: string) => TEMPERATURE[parseModel(model).id] ?? 0
 
-/** `keccak256("provider:model-id@version")` (§8.3), the value pinned in a market's `ai.modelIdHashes`. */
+/** `keccak256("provider:model-id@version")`, as pinned in a market's `ai.modelIdHashes`. */
 export function modelIdHash(model: string): Hex {
-  parseModel(model) // refuses anything but "provider:model-id@version"
+  parseModel(model)
   return keccak256(stringToBytes(model))
 }
 
@@ -56,13 +50,12 @@ export function parseModel(model: string): { provider: string; id: string; versi
 }
 
 /**
- * Structured-output options (O33.1): `schema` is a JSON schema the answer must follow, sent as OpenAI's strict
- * `json_schema` response format where the provider enforces it (OpenAI); everywhere else the caller validates the
- * answer against it. `seed` is sent to Gemini (the chat providers always get seed 0).
+ * `schema` is sent as a strict `json_schema` response format to OpenAI; elsewhere the caller validates against it.
+ * `seed` goes to Gemini; chat providers always get seed 0.
  */
 export type RequestOptions = { schema?: { name: string; schema: object }; seed?: number }
 
-/** The HTTP request for one call (exported for tests). */
+/** Exported for tests. */
 export function modelRequest(model: string, call: ModelCall, key: string, opts: RequestOptions = {}): { url: string; init: RequestInit } {
   const { provider, id } = parseModel(model)
   const json = (url: string, headers: Record<string, string>, body: unknown) => ({
@@ -90,7 +83,7 @@ export function modelRequest(model: string, call: ModelCall, key: string, opts: 
       return json(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(id)}:generateContent`, { 'x-goog-api-key': key }, {
         systemInstruction: { parts: [{ text: call.system }] },
         contents: [{ role: 'user', parts: [{ text: call.user }] }],
-        // Gemini's thinking tokens count against maxOutputTokens: 8,192 cut 3.8 Flash off before it answered.
+        // Thinking counts against maxOutputTokens: 8,192 cut 3.8 Flash off before it answered.
         generationConfig: {
           temperature: temperatureFor(model), responseMimeType: 'application/json', maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
           ...(opts.seed !== undefined ? { seed: opts.seed } : {}),
@@ -101,7 +94,7 @@ export function modelRequest(model: string, call: ModelCall, key: string, opts: 
   }
 }
 
-/** The text of a provider's response body; an answer stopped by the token limit is an error, not an answer. */
+/** The answer text; an answer cut off by the token limit throws. */
 export function responseText(provider: string, body: any): string {
   const stop =
     provider === 'anthropic' ? body?.stop_reason
@@ -120,7 +113,7 @@ export function responseText(provider: string, body: any): string {
   return text
 }
 
-/** Waits before retry n (0-based): the provider's Retry-After when it sends one, else 5 s, 15 s, 45 s; at most 60 s. */
+/** Delay before retry n (0-based): Retry-After if sent, else 5, 15, 45 s; capped at 60 s. */
 export function retryDelayMs(attempt: number, retryAfter: string | null): number {
   const secs = retryAfter !== null && /^\d+$/.test(retryAfter.trim()) ? Number(retryAfter.trim()) : 5 * 3 ** attempt
   return Math.min(secs, 60) * 1000

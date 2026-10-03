@@ -1,8 +1,6 @@
-// Task O35.3: acting on a contradiction (plan §9.2, D11). While the proposal's assertion is live and before
-// `expiresAt − 10 min`, the watchdog calls `BondTreasury.disputeViaVenue(id)` (the bond comes from WATCHDOG_FLOAT) and
-// pages a human; without float, too late, or with the treasury's open-dispute limit reached, it pages only. A proposal
-// that is not asserted yet is waited for (the keeper asserts it). Every call is eth_called first and sent with
-// gas.json's limit.
+// On a contradiction, disputes via BondTreasury (bond from WATCHDOG_FLOAT) and pages, while the assertion is live and
+// before `expiresAt − 10 min`. Without float, too late, or at the open-dispute limit, it only pages. An unasserted
+// proposal is waited for.
 import { gasLimit, type GasTable } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { OUTCOME_NAME, type Page, PATH_NAME, type Proposal, RState, type Verdict, type WatchdogChain } from './types'

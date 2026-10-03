@@ -1,6 +1,4 @@
-// Task O22.3, step 5: the ambiguity pass writes ambiguity.log, sets ambiguityLogHash only when no model lists
-// an undecided case, and fails loudly otherwise. Model calls are scripted doubles here; the HTTP clients are
-// checked for their request shapes, response parsing and retries.
+// Model calls are scripted doubles; the HTTP clients are checked for request shapes, parsing and retries.
 import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'

@@ -1,6 +1,3 @@
-// Task O31.1: the keeper core. Done when a duplicate job is never sent twice and a stale state version is dropped;
-// also covered: two instances racing, the eth_call and gas-limit gates, retries after a failed or lost send, and
-// isolation of one market's or one planner's failure.
 import { describe, expect, test } from 'bun:test'
 import { gasLimit } from '@eros-oracle/oracle-sdk'
 import { Keeper } from '../src/keeper'

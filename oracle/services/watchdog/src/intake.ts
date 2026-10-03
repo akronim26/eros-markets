@@ -1,18 +1,15 @@
-// Task O35.1: every proposal from every path, as soon as it is recorded (plan §9.2): Layer 1 reports (ProposedL1) and
-// panel, committee and permissionless proposals (ProposalRecorded), read from the oracle's logs each tick. A proposal is
-// checked once (market, attempt, path, evidence); `Asserted` logs tell the watchdog which assertions are live (float
-// accounting, O35.3).
+// New proposals from every path, each returned once per (market, attempt, path, evidence), and the latest assertion
+// per market for float accounting.
 import type { Hex } from 'viem'
 import { type Proposal, proposalKey, type WatchdogChain } from './types'
 
 export class Intake {
   private readonly seen = new Set<string>()
-  /** marketId → its latest assertionId, from Asserted logs. */
+  /** marketId → latest assertionId. */
   readonly asserted = new Map<Hex, Hex>()
 
   constructor(private readonly chain: WatchdogChain) {}
 
-  /** The proposals not seen before, in log order. */
   async next(): Promise<Proposal[]> {
     const { proposals, asserted } = await this.chain.events()
     for (const a of asserted) this.asserted.set(a.marketId.toLowerCase() as Hex, a.assertionId)

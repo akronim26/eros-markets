@@ -1,9 +1,7 @@
-// Task O34.1: what the committee console reads from and sends to the chain (viem in chain.ts; an in-memory double in
-// the tests), and the case it assembles for a reviewer (plan §8.4).
 import type { ReviewedProposal } from '@eros-oracle/oracle-sdk'
 import type { Address, Hex } from 'viem'
 
-/** RState values (OracleTypes.sol; ABI, never reordered). */
+/** RState (OracleTypes.sol); values are ABI. */
 export const RState = {
   None: 0, EarlyCheck: 1, EarlyReview: 2, L1Pending: 3, L2Pending: 4, Review: 5, Open: 6, Proposed: 7, Disputed: 8, Voided: 9, Final: 10,
 } as const
@@ -28,7 +26,6 @@ export type ResolutionView = {
 
 export type CoreView = { tau: bigint; hasFeed: boolean; gateHash: Hex; l2DeadlineSecs: bigint; earlyTtlSecs: bigint }
 
-/** The latest `PanelResultAccepted` of a market, with its block time. */
 export type PanelEvent = {
   phase: number
   labels: number[]
@@ -57,12 +54,12 @@ export type CaseChain = {
   lastPanelResult(id: Hex): Promise<PanelEvent | null>
   /** Block time of the market's latest StateChanged into `state`; null if it never entered it. */
   enteredAt(id: Hex, state: number): Promise<bigint | null>
-  /** Markets with any StateChanged (the alerts' universe). */
+  /** Markets with any StateChanged. */
   markets(): Promise<Hex[]>
   isContract(a: Address): Promise<boolean>
   /** ERC-1271: `isValidSignature(digest, signature) == 0x1626ba7e` on `signer`. */
   isValidSignature(signer: Address, digest: Hex, signature: Hex): Promise<boolean>
-  /** eth_call of submitReviewedProposal; throws with the revert. */
+  /** Throws with the revert reason. */
   simulateReviewed(id: Hex, p: ReviewedProposal, uri: string, sigs: readonly Sig[]): Promise<void>
   sendReviewed(id: Hex, p: ReviewedProposal, uri: string, sigs: readonly Sig[], gas: bigint): Promise<Hex>
 }
@@ -77,7 +74,7 @@ export type CaseItem = {
   fetchedAt: number
   truncated: boolean
   error?: string
-  /** The item's text as the panel saw it (HTML stripped); null for bytes that are not text. */
+  /** As the panel saw it; null for non-text bytes. */
   text: string | null
 }
 
@@ -101,15 +98,15 @@ export type Case = {
   tau: bigint
   attempt: number
   rejectedMask: number
-  /** YES, NO, INVALID minus the outcomes the venue already rejected (ORC-6). */
+  /** YES, NO, INVALID minus those the venue already rejected. */
   allowed: Choice[]
-  /** The trust set a proposal is signed for: the active one from EarlyReview, the market's pinned one otherwise. */
+  /** The active trust set from EarlyReview, else the market's pinned one. */
   trustSetId: number
   committee: Committee
   evidence: {
     evidenceHash: Hex
     evidenceURI: string
-    /** False when the snapshot is not in the local store (its items are then not shown). */
+    /** False when the snapshot is not stored locally. */
     available: boolean
     items: CaseItem[]
   } | null
@@ -119,19 +116,18 @@ export type Case = {
     calibratedBps: number[]
     /** ĉ_i = calibratedBps / 10 000. */
     chat: number[]
-    /** null when the runner's record is not in the store (the event does not carry the flags). */
+    /** Null when the runner's record is not stored; the event does not carry flags. */
     flags: number | null
     injectionSuspected: boolean | null
     routedTo: string
     at: bigint
-    /** The runner's record (rationales, confidences, citations) when the store has it. */
     models: CaseModel[] | null
     candidate: { logOdds: number; probabilityYes: number; nEff: number }
   } | null
   deadlines: {
     /** When the market last entered Review (or EarlyReview). */
     reviewSince: bigint | null
-    /** reviewSince + T_r: the review service level (§8.4). */
+    /** reviewSince + T_r. */
     serviceLevelAt: bigint | null
     l2DeadlineAt: bigint | null
     retryOpensAt: bigint | null

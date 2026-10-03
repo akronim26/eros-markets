@@ -1,5 +1,4 @@
-// Task O35.1: intake of every proposal, and the Layer 1 re-run flagging a contradiction between a recorded L1 outcome
-// and what the feed says now. The example market's FeedSpec: YES when event.home > 2 once event.status is FINAL.
+// The example market's FeedSpec: YES when event.home > 2 once event.status is FINAL.
 import { describe, expect, test } from 'bun:test'
 import { keccak256, stringToBytes } from 'viem'
 import { Intake } from '../src/intake'

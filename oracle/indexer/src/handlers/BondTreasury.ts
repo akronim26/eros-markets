@@ -1,4 +1,4 @@
-// Task O37.2: BondTreasury events → TreasuryLedger (one row per movement) and the treasury side of Dispute.
+// BondTreasury → TreasuryLedger (one row per movement) and the treasury side of Dispute.
 import { indexer, type TreasuryLedger } from 'envio'
 import { lc, logId, num, ts } from '../lib'
 

@@ -1,30 +1,24 @@
-// Task O31.3: engine follow-up after Final (plan §9.1 "courtesy; owned by Risk", §3.2). Claims open only through
-// Risk's permissionless, chunked preparation (SettlementController): the price for INVALID is captured, the
-// frozen snapshot and the payouts are prepared 32 accounts at a time, then `finishPreparation` enables claims.
-// The keeper reads the engine's `getSettlementStatus()` and offers, in order:
+// Engine follow-up after Final: drives the Risk engine's chunked settlement preparation until claims open.
 //
-//   INVALID without a captured price      captureInvalidPrice()   (a capture that is not possible yet is a no-op)
-//   otherwise                             finishPreparation(), then preparePayoutChunk(32), then prepareSnapshotChunk(32)
+//   INVALID without a captured price   captureInvalidPrice()
+//   otherwise                          finishPreparation(), preparePayoutChunk(32), prepareSnapshotChunk(32)
 //
-// The core tries them in that order and sends the first that would not revert: finishing reverts until both jobs
-// are done, a payout chunk reverts until the snapshot is done, so the one sent is always the next step. Nothing
-// is planned once claims are enabled (the testnet stub engine reports that as soon as the outcome is final), and
-// RECOVERY_REQUIRED is an alert for Risk, not a job. The job's version is the engine status, so each chunk is a
-// new key and a chunk is never sent twice for the same progress.
+// The keeper sends the first that would not revert; each reverts until the step before it is done, so the one sent
+// is always the next step. The job version is the engine status, so no chunk is sent twice. RECOVERY_REQUIRED is
+// an alert, not a job.
 //
-// Gas: the four calls have no gas.json entry yet. Their cost depends on Person A's accounting (32 accounts per
-// chunk), which the oracle's seam harness only mocks, so they are measured at the risk merge; until then the
-// keeper refuses them ("no measured gas limit") rather than guess.
+// These calls have no gas.json entry until they are measured against the real engine; until then the keeper
+// refuses to send them.
 import { encodeAbiParameters, type Hex, keccak256, parseAbiParameters } from 'viem'
 import { EngineOutcome } from '../engineAbi'
 import type { Job, MarketView, Planner, SettlementStatus } from '../types'
 import { RState } from './resolution'
 
-export const CHUNK = 32n // SettlementController.MAX_CHUNK; plan §9.1 "(32)"
+export const CHUNK = 32n // SettlementController.MAX_CHUNK
 
 const VERSION_TYPES = parseAbiParameters('bytes32, bool, uint8, bool, uint64, uint64, uint64, bool, bool, bool')
 
-/** The engine-progress version of a market: its oracle version and every status field the jobs depend on. */
+/** Hash of the oracle version and every settlement field the jobs depend on. */
 export function engineVersion(oracleVersion: Hex, s: SettlementStatus): Hex {
   return keccak256(
     encodeAbiParameters(VERSION_TYPES, [

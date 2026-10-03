@@ -1,6 +1,5 @@
-// Task O34.1: the console's local evidence store (ADJ-41). Snapshots are the panel runner's files, `<evidenceHash>.json`
-// (canonical bytes) and `<evidenceHash>.panel.json` (the run's record); a reviewer's re-snapshot is written the same way.
-// Every snapshot read is checked against its hash. Notes go to `notes/<noteHash>.json`.
+// Local evidence store shared with the panel runner: `<evidenceHash>.json` (canonical bytes), `<evidenceHash>.panel.json`
+// (run record) and `notes/<noteHash>.json`. Every snapshot read is checked against its hash.
 import type { PanelRecord } from '@eros-oracle/panel-runner'
 import { canonicalBytes, evidenceHash, type Snapshot } from '@eros-oracle/snapshotter'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -11,7 +10,7 @@ import { type Note, noteHash } from './note'
 export const SNAPSHOT_URI_PREFIX = 'eros-snapshot:'
 export const snapshotURI = (h: Hex) => `${SNAPSHOT_URI_PREFIX}${h.toLowerCase()}`
 
-/** The evidenceHash an `eros-snapshot:` URI names; null for any other URI. */
+/** Null for anything but an `eros-snapshot:` URI. */
 export function hashFromURI(uri: string): Hex | null {
   const m = /^eros-snapshot:(0x[0-9a-fA-F]{64})$/.exec(uri)
   return m ? (m[1].toLowerCase() as Hex) : null
@@ -29,7 +28,7 @@ export class EvidenceStore {
     return join(this.dir, name)
   }
 
-  /** The snapshot stored under `hash`, checked against it; null when the store does not have it. */
+  /** Checked against `hash`; null when not stored. */
   snapshot(hash: Hex): Snapshot | null {
     const p = this.path(`${hash.toLowerCase()}.json`)
     if (!existsSync(p)) return null

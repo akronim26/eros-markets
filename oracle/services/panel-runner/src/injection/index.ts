@@ -1,7 +1,5 @@
-// Task O33.2: the injection scan of a snapshot (plan §8.3, EM-15 defence 3). Every item goes through the
-// deterministic detector (raw bytes) and the classifier (the text the item puts into the prompt). Any finding, or a
-// classifier that could not answer, sets FLAG_INJECTION_SUSPECTED in the signed PanelResult, and the contract then
-// routes the result to the committee (Review after T, EarlyReview before), never to an auto-proposal.
+// Injection scan: the detector on raw bytes and the classifier on prompt text. Any finding, or a classifier failure,
+// sets FLAG_INJECTION_SUSPECTED, which makes the contract route the result to the committee.
 import type { Snapshot } from '@eros-oracle/snapshotter'
 import { evidenceTexts, type PinnedPrompt } from '../prompts'
 import { CLASSIFIER_THRESHOLD, ClassifierUnavailable, classify, type ClassifierDeps } from './classifier'
@@ -10,7 +8,7 @@ import { detect, type Finding as DetectorFinding } from './detector'
 export * from './classifier'
 export * from './detector'
 
-/** OracleConst.FLAG_INJECTION_SUSPECTED: PanelResult.flags bit 0. */
+/** OracleConst.FLAG_INJECTION_SUSPECTED. */
 export const FLAG_INJECTION_SUSPECTED = 1
 
 export type Finding = DetectorFinding | { item: number; rule: 'CLASSIFIER'; detail: string } | { item: number; rule: 'CLASSIFIER_UNAVAILABLE'; detail: string }

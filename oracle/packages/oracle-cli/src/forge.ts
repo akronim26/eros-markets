@@ -1,5 +1,4 @@
-// The Foundry side of `oracle-cli list`: the createMarket dry-run (forge/CheckPack.s.sol), run with `forge script`
-// in the oracle root without an RPC; nothing is sent. The claim preview uses oracle-sdk's ClaimRenderer mirror (O30.3).
+// createMarket dry-run for `oracle-cli list` (forge/CheckPack.s.sol), run locally without an RPC.
 
 export const ORACLE_ROOT = new URL('../../../', import.meta.url).pathname
 const FORGE_DIR = 'packages/oracle-cli/forge'
@@ -20,7 +19,7 @@ function forge(args: string[], env: Record<string, string> = {}): { code: number
   return { code: p.exitCode ?? 1, out: p.stdout.toString() + p.stderr.toString() }
 }
 
-/** The revert a failed script reports ("script failed: BadAllowList(3)"), or the last error line. */
+/** The revert reason ("script failed: BadAllowList(3)"), or the last error line. */
 function failure(out: string): string {
   const lines = out.split('\n')
   const failed = lines.find((l) => l.includes('script failed:'))
@@ -30,7 +29,7 @@ function failure(out: string): string {
 
 export type CheckOptions = { params: string; now?: bigint; providers?: string[]; minBond?: bigint }
 
-/** createMarket with the pack against a throwaway stack (CheckPack.s.sol); throws with the revert. */
+/** Throws with the revert reason. */
 export function checkPack(packJson: string, o: CheckOptions): string {
   const env: Record<string, string> = { PACK_JSON: packJson, PARAMS: o.params }
   if (o.now !== undefined) env.NOW = o.now.toString()

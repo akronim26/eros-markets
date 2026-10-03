@@ -1,6 +1,5 @@
-// Task O37.2: the assertion venue — the UmaAdapter's events and UMA OOv3's own — → Assertion and Dispute.
-// OOv3 is shared on a production chain, so only assertions made through this deployment's UmaAdapter (the
-// callbackRecipient) are kept, and disputes and settlements of other assertions are ignored.
+// UmaAdapter and OOv3 → Assertion and Dispute. OOv3 is shared on production chains, so only assertions whose
+// callbackRecipient is this deployment's UmaAdapter are kept.
 import { type Assertion, indexer } from 'envio'
 import { OWN } from '../addresses'
 import { lc, ts } from '../lib'

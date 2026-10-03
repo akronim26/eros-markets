@@ -1,5 +1,4 @@
-// Task O34.3: the case as the reviewer reads it. The rules come first and in full: the reviewer chooses YES, NO or
-// INVALID from the rules alone (plan §8.4); the panel's labels and the candidate follow as reference.
+// Rules come first and in full, since the reviewer decides from them; the panel's answers follow as reference.
 import type { Case } from '../backend/types'
 import { dueAlerts, serviceAlerts } from './service'
 

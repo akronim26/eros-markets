@@ -1,10 +1,6 @@
-// Task O31.4: the keeper against a real local deploy (plan §9.1, §11.3; stack.ts). Real keepers (viemChain, the
-// registry's MarketListed logs, gas.json, the production planners) tick against the oracle, UMA's OOv3 and the
-// stub engine while the test moves the chain's clock and plays the other actors: the CRE relayer, a disputer, the
-// DVM. Scenarios: the L1 path to Final, a rejection to Review, the void at the deadline (with and without a stuck
-// bond), and two keeper instances racing. In each, the market reaches the expected state, every job is sent by
-// the planner the scenario expects, and no transaction the keepers sent reverted.
-// Each scenario starts from the same snapshot (stack deployed and funded, nothing listed) with fresh keeper keys.
+// Real keepers against a local deploy of the oracle, UMA's OOv3 and the stub engine. The test moves the clock and
+// plays the CRE relayer, a disputer and the DVM. No keeper transaction may revert. Each scenario starts from the
+// same snapshot with fresh keeper keys.
 import { loadGas, MarketRegistryAbi } from '@eros-oracle/oracle-sdk'
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { type Address, createPublicClient, type Hex, http } from 'viem'
@@ -32,7 +28,7 @@ import {
 } from './stack'
 
 const DEPLOY_MS = 600_000
-const SCENARIO_MS = 300_000 // each lists through forge script (several seconds)
+const SCENARIO_MS = 300_000 // listing through forge script takes seconds
 const YES = 1
 const NO = 2
 const INVALID = 3
@@ -42,7 +38,6 @@ const VOID_DEADLINE = 3
 type Instance = {
   keeper: Keeper
   address: Address
-  /** Every transaction this instance sent, with the jobs it carried and its receipt status. */
   sent: { hash: Hex; action: string; gasKey: string; status?: 'success' | 'reverted' }[]
   alerts: string[]
 }
@@ -50,7 +45,7 @@ type Instance = {
 let s: Stack
 let base: Hex
 
-/** A keeper instance as main.ts wires it, with a fresh funded key. */
+/** Wired as main.ts does, with a fresh funded key. */
 async function instance(delayMs = 0): Promise<Instance> {
   const key = generatePrivateKey()
   const address = privateKeyToAccount(key).address
@@ -79,7 +74,7 @@ async function instance(delayMs = 0): Promise<Instance> {
   return { keeper, address, sent, alerts }
 }
 
-/** One tick of each instance (concurrently); waits for every new transaction and returns the actions sent. */
+/** Ticks every instance concurrently and returns the actions sent, once their transactions land. */
 async function tick(...xs: Instance[]): Promise<string[]> {
   const before = xs.map((x) => x.sent.length)
   const reports = await Promise.all(xs.map((x) => x.keeper.tick()))
@@ -104,7 +99,6 @@ async function core(id: Hex) {
   return { tau: c.tau, buffer: BigInt(f.bufferSecs), l1Timeout: BigInt(f.l1TimeoutSecs), l2Deadline: BigInt(c.l2DeadlineSecs) }
 }
 
-/** Listing, halt at T, the L1 request after the buffer, the CRE report, the treasury's assertion. */
 async function toAsserted(k: Instance, outcome: 1 | 2 = YES): Promise<Hex> {
   const id = await listExample(s)
   const c = await core(id)

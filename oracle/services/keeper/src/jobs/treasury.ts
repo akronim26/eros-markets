@@ -1,4 +1,4 @@
-// Task O31.3: treasury jobs (plan §9.1, §6.6). Global planners: they belong to no single market.
+// Treasury jobs, which belong to no single market.
 //
 //   close dispute   a dispute BondTreasury funded (DisputeFunded) is still open; the treasury closes it once the
 //                   venue settled the assertion or the market is Final with VOID_DEADLINE (else the call returns

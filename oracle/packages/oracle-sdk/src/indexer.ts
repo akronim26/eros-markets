@@ -1,25 +1,21 @@
-// Task O37.3: the oracle's Envio HyperIndex as the services read it (plan §9.3: keepers, the watchdog and the UI read
-// events through Envio, because Monad's public RPC caps log reads at 100 blocks). The GraphQL is Envio's Hasura API
-// (`envio dev` / `envio start`: http://localhost:8080/v1/graphql) over oracle/indexer/schema.graphql; the indexer's
-// tests validate every query here against that schema. Question and rules text are not events: read them from
-// MarketRegistry.
+// Queries against the Envio indexer's GraphQL API (oracle/indexer), used because Monad's public RPC caps log reads
+// at 100 blocks. The indexer's tests validate every query against its schema.
 //
-// Freshness: `_meta.progressBlock` is the last block whose events are written. A reader that needs every event up to
-// a block (the watchdog's intake) reads only up to progressBlock; IndexerClient.progress() reports it with the chain
-// head so a caller can fall back to RPC logs when the indexer is down or too far behind.
+// `_meta.progressBlock` is the last block whose events are fully written; readers that need every event read no
+// further, and fall back to RPC logs when the indexer is down or behind.
 
 export const MARKET_FIELDS = `
   id state stateName live deadline tau hasFeed engine attempts proposedOutcome proposedPath evidenceHash evidenceURI
   valueHash observedAt haltedAt voidDeadline rejectedMask retryOpensAt finalOutcome finalReason voidReason updatedAt
   assertion { id expiresAt bond liveness disputed settled asserter }`
 
-/** Disputes Live: every market in Proposed, Disputed, Review or Open, soonest deadline first. */
+/** Markets in Proposed, Disputed, Review or Open, soonest deadline first. */
 export const LIVE_MARKETS = `query LiveMarkets($limit: Int = 100) {
   Market(where: { live: { _eq: true } }, order_by: [{ deadline: asc }, { id: asc }], limit: $limit) {${MARKET_FIELDS}
   }
 }`
 
-/** Disputes Live detail: the market, its state history, proposals, panel results, assertions and disputes. */
+/** One market with its state history, proposals, panel results, assertions and disputes. */
 export const MARKET_DETAIL = `query MarketDetail($id: String!) {
   Market_by_pk(id: $id) {${MARKET_FIELDS}
     rulesHash specHash gateHash listedAt listedTx oiHaltLots trustSetId requestCount panelNotYet
@@ -35,7 +31,7 @@ fragment AssertionFields on Assertion {
   settled truthful settledAt rejected rejectedMask retryOpensAt
 }`
 
-/** A market's assertion history (every attempt, oldest first). */
+/** A market's assertions, oldest attempt first. */
 export const ASSERTION_HISTORY = `query AssertionHistory($market: String!) {
   Assertion(where: { market_id: { _eq: $market } }, order_by: [{ attempt: asc }]) {
     id attempt venue outcome path bond liveness expiresAt asserter assertedAt assertedTx disputed disputer disputedAt
@@ -43,34 +39,33 @@ export const ASSERTION_HISTORY = `query AssertionHistory($market: String!) {
   }
 }`
 
-/** Keeper: every listed market's id, a page at a time (each job re-reads the market on chain before acting). */
+/** Every listed market's id, paged. */
 export const KEEPER_MARKETS = `query KeeperMarkets($limit: Int!, $offset: Int!) {
   Market(order_by: [{ id: asc }], limit: $limit, offset: $offset) { id }
 }`
 
-/** Keeper: every assertion the treasury disputed with the watchdog float (closeDispute once it settles, O31.3). */
+/** Every assertion the treasury disputed, paged. */
 export const TREASURY_DISPUTES = `query TreasuryDisputes($limit: Int!, $offset: Int!) {
   Dispute(where: { viaTreasury: { _eq: true } }, order_by: [{ id: asc }], limit: $limit, offset: $offset) { id }
 }`
 
-/** Keepers: markets not Final whose current deadline has passed, oldest first. */
+/** Non-final markets past their deadline, oldest first. */
 export const KEEPER_DUE = `query KeeperDue($now: numeric!, $limit: Int = 200) {
   Market(where: { state: { _neq: 10 }, deadline: { _lte: $now } }, order_by: [{ deadline: asc }], limit: $limit) {${MARKET_FIELDS}
   }
 }`
 
-/** Live, unsettled assertions by expiry. */
+/** Unsettled assertions by expiry. */
 export const OPEN_ASSERTIONS = `query OpenAssertions($limit: Int = 200) {
   Assertion(where: { settled: { _eq: false }, rejected: { _eq: false } }, order_by: [{ expiresAt: asc }], limit: $limit) {
     id expiresAt bond disputed market { id state }
   }
 }`
 
-/**
- * Watchdog intake: every proposal and every assertion in the block range (from, to], in chain order. The reader asks
- * for at most WATCHDOG_RANGE_BLOCKS at a time, so an answer stays far below any server row cap.
- */
+/** Widest block range per WATCHDOG_EVENTS query, so a response stays well under any server row cap. */
 export const WATCHDOG_RANGE_BLOCKS = 10_000n
+
+/** Proposals and assertions in blocks (from, to], in chain order. */
 
 export const WATCHDOG_EVENTS = `query WatchdogEvents($from: Int!, $to: Int!) {
   Proposal(where: { block: { _gt: $from, _lte: $to } }, order_by: [{ block: asc }, { logIndex: asc }]) {
@@ -81,12 +76,12 @@ export const WATCHDOG_EVENTS = `query WatchdogEvents($from: Int!, $to: Int!) {
   }
 }`
 
-/** Refused CRE reports to the oracle (a misconfiguration or a forged report). */
+/** CRE reports the oracle refused. */
 export const FAILED_REPORTS = `query FailedReports {
   ReportAttempt(where: { result: { _eq: false } }, order_by: [{ block: desc }]) { forwarder workflowExecutionId reportId relayer block txHash }
 }`
 
-/** How far the indexer has written events for one chain (Envio's _meta). */
+/** The indexer's progress on one chain. */
 export const INDEXER_PROGRESS = `query IndexerProgress($chainId: Int!) {
   _meta(where: { chainId: { _eq: $chainId } }) { chainId progressBlock sourceBlock isReady }
 }`
@@ -97,7 +92,7 @@ export const INDEXER_QUERIES = {
 
 export class IndexerError extends Error {}
 
-/** One query to the indexer's GraphQL endpoint; an HTTP error, GraphQL errors or no data throw. */
+/** Throws IndexerError on a network or HTTP error, GraphQL errors, or a response without data. */
 export async function gql<T>(url: string, query: string, variables: Record<string, unknown> = {}, fetchFn: typeof fetch = fetch, timeoutMs = 10_000): Promise<T> {
   let res: Response
   try {
@@ -125,7 +120,7 @@ export class IndexerClient {
     return gql<T>(this.url, query, variables, this.fetchFn)
   }
 
-  /** The indexer's progress on this chain; throws when the indexer does not index it. */
+  /** Throws when the indexer does not index this chain. */
   async progress(): Promise<IndexerProgress> {
     const { _meta } = await this.query<{ _meta: IndexerProgress[] }>(INDEXER_PROGRESS, { chainId: this.chainId })
     const m = _meta?.[0]
@@ -133,10 +128,7 @@ export class IndexerClient {
     return m
   }
 
-  /**
-   * Every row of a paged list query ($limit, $offset), concatenated. It stops at an empty page, not a short one: a
-   * server may return fewer rows than asked (a Hasura row cap), and a short page must not end the list.
-   */
+  /** Every row of a `$limit`/`$offset` query. Stops at an empty page, not a short one: Hasura may cap rows per page. */
   async all<T>(query: string, field: string, pageSize = 1000): Promise<T[]> {
     const rows: T[] = []
     for (let offset = 0; ; ) {
@@ -150,10 +142,7 @@ export class IndexerClient {
   }
 }
 
-/**
- * Whether the indexer can be trusted for reads up to now: it answers and is at most `maxLagBlocks` behind the chain
- * head. Returns the progress when fresh, or the reason it is not (the caller then reads RPC logs instead).
- */
+/** The indexer's progress if it answers and trails `head` by at most `maxLagBlocks`, else the reason it does not. */
 export async function freshProgress(c: IndexerClient, head: bigint, maxLagBlocks: bigint): Promise<{ ok: true; progress: IndexerProgress } | { ok: false; reason: string }> {
   try {
     const p = await c.progress()

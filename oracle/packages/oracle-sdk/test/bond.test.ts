@@ -1,5 +1,3 @@
-// Task O30.2: the BondMath and VoidBound mirrors reproduce vectors/bond.json and both vectors of
-// vectors/voidbound.json, and follow the Solidity edge cases (rounding up, floors, watchdog freshness, liveness).
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'

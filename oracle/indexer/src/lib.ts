@@ -1,10 +1,10 @@
-// Task O37.2: helpers shared by the handlers. Enum numbers are OracleTypes.sol's (ABI: never reorder).
+// Enum values are OracleTypes.sol's and ABI: never reorder.
 import type { Assertion, Market } from 'envio'
 
 export const STATE = ['None', 'EarlyCheck', 'EarlyReview', 'L1Pending', 'L2Pending', 'Review', 'Open', 'Proposed', 'Disputed', 'Voided', 'Final'] as const
 export const PATH = ['NONE', 'L1', 'L2_AUTO', 'REVIEWED', 'PERMISSIONLESS'] as const
 export const RS = { Review: 5, Open: 6, Proposed: 7, Disputed: 8, Final: 10 } as const
-/** The states Disputes Live lists (plan §9.5). */
+/** States shown as live: Proposed, Disputed, Review, Open. */
 export const LIVE_STATES: readonly number[] = [RS.Proposed, RS.Disputed, RS.Review, RS.Open]
 
 type Ev = { chainId: number; block: { number: number; timestamp: number }; logIndex: number; transaction: { hash: string; from?: string } }
@@ -15,7 +15,7 @@ export const ts = (e: Ev) => BigInt(e.block.timestamp)
 export const lc = (s: string) => s.toLowerCase()
 export const num = (b: bigint) => Number(b)
 
-/** A market seen before its MarketListed log (the oracle initialises it inside createMarket) starts from these. */
+/** Defaults for a market seen before its MarketListed log, since the oracle initialises it inside createMarket. */
 export function blankMarket(id: string, e: Ev): Market {
   return {
     id, engine: '', tau: 0n, hasFeed: false, groupId: '', rulesHash: '', specHash: '', gateHash: '', listedAt: ts(e), listedTx: e.transaction.hash,
@@ -27,8 +27,8 @@ export function blankMarket(id: string, e: Ev): Market {
 }
 
 /**
- * The soonest deadline that applies to the market now: a live, undisputed assertion's expiry; in Review after a
- * rejection, when the retry window opens; once halted, voidDeadline; before the halt, tau.
+ * A live undisputed assertion's expiry; in Review after a rejection, retryOpensAt; once halted, voidDeadline; else tau.
+ * The soonest that applies wins.
  */
 export function deadlineOf(m: Market, a: Assertion | undefined): bigint {
   const candidates: bigint[] = []
@@ -39,7 +39,7 @@ export function deadlineOf(m: Market, a: Assertion | undefined): bigint {
   return candidates.reduce((x, y) => (y < x ? y : x))
 }
 
-/** The market with its state-derived fields (live, deadline, updatedAt) brought up to date. */
+/** Recomputes live, deadline and updatedAt. */
 export function refresh(m: Market, a: Assertion | undefined, e: Ev): Market {
   const next = { ...m, stateName: STATE[m.state] ?? String(m.state), live: LIVE_STATES.includes(m.state), updatedAt: ts(e) }
   return { ...next, deadline: deadlineOf(next, a) }

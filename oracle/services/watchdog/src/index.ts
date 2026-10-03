@@ -1,4 +1,3 @@
-// The watchdog (plan §9.2): O35.1 intake and Layer 1 re-run, O35.2 fourth model family, O35.3 dispute, heartbeat, float.
 export * from './chain'
 export * from './dispute'
 export * from './heartbeat'

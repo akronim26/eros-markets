@@ -1,6 +1,5 @@
-// Task O31.1: the Chain the keeper uses, over viem (plan §9): reads at `latest`, eth_call before sending, an
-// explicit gas limit on every transaction, and no waiting on receipts (Monad executes asynchronously; the next
-// tick re-reads instead).
+// The keeper's Chain over viem: reads at `latest`, eth_call before sending, an explicit gas limit on every send,
+// and no waiting on receipts (Monad executes asynchronously; the next tick re-reads).
 import {
   BondTreasuryAbi,
   contractAddress,
@@ -46,7 +45,7 @@ export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: 
     rpcUrls: { default: { http: [opts.rpcUrl] } },
   })
   const transport = http(opts.rpcUrl)
-  const account = privateKeyToAccount(opts.privateKey, { nonceManager }) // back-to-back sends without waiting
+  const account = privateKeyToAccount(opts.privateKey, { nonceManager }) // allows back-to-back sends
   const pc = createPublicClient({ chain, transport })
   const wc = createWalletClient({ chain, transport, account })
   const oracle = contractAddress(d, 'ResolutionOracle')

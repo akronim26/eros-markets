@@ -1,13 +1,12 @@
-// Task O34.2: a ReviewedProposal being signed (plan §8.4, D7). The bundle is the console backend's unit of collection:
-// the proposal, its evidence URI and the members' signatures, kept as JSON until it is submitted. Its digest is the
-// one `submitReviewedProposal` verifies (oracle-sdk `reviewedProposalDigest`, checked against the contract's vectors).
+// A ReviewedProposal being signed: the proposal, its evidence URI and the members' signatures, kept as JSON until
+// submitted.
 import { oracleDomain, type ReviewedProposal, reviewedProposalDigest, reviewedProposalTypes } from '@eros-oracle/oracle-sdk'
 import { type Address, getAddress, type Hex, keccak256, stringToBytes } from 'viem'
 import { z } from 'zod'
 import { type Case, type Choice, OUTCOME_CODE, type Sig } from '../backend/types'
 
 export const MAX_EVIDENCE_URI_BYTES = 256 // OracleConst.MAX_EVIDENCE_URI_BYTES
-/** How long members have to sign (and anyone to submit) by default. */
+/** Default time to collect signatures and submit. */
 export const PROPOSAL_TTL_SECS = 6n * 3600n
 
 export type Bundle = {
@@ -54,7 +53,7 @@ export const bundleJson = (b: Bundle) =>
 
 export const bundleDigest = (b: Bundle): Hex => reviewedProposalDigest(oracleDomain(b.chainId, b.oracle), b.proposal)
 
-/** The eth_signTypedData_v4 payload a wallet (hardware wallet, Safe app) signs for this bundle. */
+/** The eth_signTypedData_v4 payload for a wallet. */
 export function typedData(b: Bundle) {
   return {
     types: {
@@ -72,17 +71,14 @@ export function typedData(b: Bundle) {
   }
 }
 
-/**
- * A new bundle for a reviewer's choice on a case. Refuses a case the committee cannot propose on now, an outcome the
- * venue already rejected, and an evidence URI the contract would refuse.
- */
+/** Refuses a case the committee cannot act on now, a rejected outcome, or an evidence URI the contract would refuse. */
 export function newBundle(c: Case, a: { chainId: number; oracle: Address; outcome: Choice; evidenceHash: Hex; evidenceURI: string; noteHash: Hex; now: bigint; ttlSecs?: bigint }): Bundle {
   if (!c.reviewable) throw new ProposalError(`market ${c.marketId} is ${c.state}: the committee cannot propose now`)
   if (!c.allowed.includes(a.outcome)) throw new ProposalError(`${a.outcome} is not allowed: the venue already rejected it`)
   const uriBytes = stringToBytes(a.evidenceURI).length
   if (uriBytes === 0 || uriBytes > MAX_EVIDENCE_URI_BYTES) throw new ProposalError(`evidence URI must be 1..${MAX_EVIDENCE_URI_BYTES} bytes`)
   let deadline = a.now + (a.ttlSecs ?? PROPOSAL_TTL_SECS)
-  // an early proposal is only accepted before T and within the early TTL: no point signing past that
+  // An early proposal is accepted only before T and within the early TTL.
   if (c.early) {
     const end = [c.tau, c.deadlines.earlyExpiresAt ?? c.tau].reduce((x, y) => (x < y ? x : y)) - 1n
     if (end < deadline) deadline = end

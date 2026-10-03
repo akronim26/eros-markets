@@ -1,4 +1,3 @@
-// Task O35.3: when the watchdog disputes and when it only pages; the heartbeat schedule; float accounting; the loop.
 import { loadGas } from '@eros-oracle/oracle-sdk'
 import { describe, expect, test } from 'bun:test'
 import type { Hex } from 'viem'

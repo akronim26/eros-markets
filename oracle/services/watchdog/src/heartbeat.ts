@@ -1,6 +1,5 @@
-// Task O35.3: the heartbeat and float accounting (plan §9.2, D11). `watchdogHeartbeat()` every 10 minutes (the oracle
-// treats an age above heartbeatMaxAgeSecs, 15 min, as stale and moves L1 and L2_AUTO assertions to the reviewed
-// liveness). The float must cover a dispute of every live assertion: an alert when WATCHDOG_FLOAT < Σ B(live assertions).
+// Heartbeat every 10 minutes (the oracle treats over 15 as stale and switches to reviewed liveness), and an alert when
+// WATCHDOG_FLOAT cannot cover a dispute of every live assertion.
 import { gasLimit, type GasTable } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { type Page, RState, type WatchdogChain } from './types'
@@ -8,7 +7,7 @@ import { type Page, RState, type WatchdogChain } from './types'
 export const HEARTBEAT_EVERY_SECS = 600n
 export const GAS_HEARTBEAT = 'watchdogHeartbeat'
 
-/** Sends a heartbeat when the last one is 10 minutes old or more; returns its hash, or null when none was due. */
+/** Returns the transaction hash, or null when no heartbeat was due. */
 export async function beat(chain: WatchdogChain, gas: GasTable): Promise<Hex | null> {
   const [now, last] = await Promise.all([chain.now(), chain.lastHeartbeat()])
   if (now < last + HEARTBEAT_EVERY_SECS) return null // last = 0: never sent
@@ -17,10 +16,7 @@ export async function beat(chain: WatchdogChain, gas: GasTable): Promise<Hex | n
 
 export type FloatStatus = { float: bigint; liveBonds: bigint; live: { marketId: Hex; assertionId: Hex; bond: bigint }[]; short: boolean }
 
-/**
- * Σ bond of the live assertions (asserted, not disputed, not settled, before expiresAt) of the markets the watchdog has
- * seen asserted, against WATCHDOG_FLOAT.
- */
+/** WATCHDOG_FLOAT against the summed bonds of live (undisputed, unsettled, unexpired) assertions. */
 export async function floatStatus(chain: WatchdogChain, asserted: ReadonlyMap<Hex, Hex>): Promise<FloatStatus> {
   const now = await chain.now()
   const live: FloatStatus['live'] = []
@@ -35,7 +31,7 @@ export async function floatStatus(chain: WatchdogChain, asserted: ReadonlyMap<He
   return { float, liveBonds, live, short: float < liveBonds }
 }
 
-/** Alerts once per change of the shortfall (not every tick). */
+/** Alerts once per change in the shortfall, not every tick. */
 export class FloatWatch {
   private last = ''
   constructor(private readonly page: Page) {}

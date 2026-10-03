@@ -1,7 +1,5 @@
-// Task O34.1: the console's CaseChain over viem. Reads at `latest`. StateChanged and PanelResultAccepted logs are read
-// once per process from `fromBlock` (default the oracle's deploy block) in 100-block steps (Monad's public RPC caps log
-// ranges, plan §9.3) and cached; later calls read only the new blocks. submitReviewedProposal is eth_called, then sent
-// with an explicit gas limit (Monad charges the limit).
+// The console's chain over viem. Logs are read in 100-block steps (Monad's RPC cap) and cached, so later calls read
+// only new blocks. submitReviewedProposal is eth_called, then sent with an explicit gas limit.
 import { contractAddress, type Deployments, MarketRegistryAbi, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import { buildUrl } from '@eros-oracle/feedspec'
 import { type Address, createPublicClient, createWalletClient, defineChain, type Hex, http, parseAbi } from 'viem'

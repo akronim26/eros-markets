@@ -1,9 +1,6 @@
-// Task O35.2: the fourth model family (plan §9.2, §8.3 point 4). For L2_AUTO, REVIEWED and PERMISSIONLESS proposals the
-// watchdog asks a model from a family the panel does not use (Qwen; the panel is GPT-OSS, Kimi and Gemini), with its own
-// prompt, on the same snapshot the proposal names (checked against its evidenceHash), plus the Layer 1 feed if the market
-// has one. The model is not shown the proposal (no anchoring). Its prompt, source format and answer schema differ from
-// the panel's on purpose: sources numbered from 1 in <source> tags with entity-escaped text; answer
-// {outcome, confidence, sources, reason} with UNDETERMINED instead of NOT_YET.
+// Checks non-L1 proposals with a model family the panel does not use, on the snapshot the proposal names. The model
+// never sees the proposal. Prompt, source format and answer schema differ from the panel's on purpose, so the two do
+// not share failure modes.
 import { KEYS, type ModelCall, modelRequest, parseModel, responseText, retryDelayMs } from '@eros-oracle/oracle-sdk'
 import { promptText, type Snapshot } from '@eros-oracle/snapshotter'
 import { existsSync, readFileSync } from 'node:fs'
@@ -15,7 +12,7 @@ import { combine } from './verdict'
 import { type MarketText, OUTCOME_NAME, type OutcomeName, type Proposal, type Signal, type Verdict, type WatchdogChain } from './types'
 
 export const WATCHDOG_MODEL = 'groq:qwen/qwen3.8-27b@2026-10-03'
-/** The model's own confidence needed for its outcome to count (uncalibrated: a high bar). */
+/** Uncalibrated, so the bar is high. */
 export const MIN_CONFIDENCE = 0.9
 export const SOURCE_CHARS = 6000
 export const TOTAL_CHARS = 24_000
@@ -34,7 +31,6 @@ const SYSTEM = [
 
 const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-/** The watchdog's own prompt for a market and snapshot. */
 export function watchdogCall(m: MarketText, snapshot: Snapshot): ModelCall {
   let budget = TOTAL_CHARS
   const sources = snapshot.items.map((it, i) => {
@@ -65,7 +61,7 @@ const answerSchema = z
 export type WatchdogAnswer = z.infer<typeof answerSchema>
 export class BadAnswer extends Error {}
 
-/** The answer in a model's text: thinking blocks and code fences removed, then the one JSON object, schema-checked. */
+/** Strips thinking blocks and code fences, then parses and schema-checks the one JSON object. */
 export function parseWatchdogAnswer(text: string): WatchdogAnswer {
   const t = text.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```(?:json)?/g, '').trim()
   const start = t.indexOf('{')
@@ -85,7 +81,7 @@ export function parseWatchdogAnswer(text: string): WatchdogAnswer {
 export type ModelDeps = { env?: Record<string, string | undefined>; fetchFn?: typeof fetch; sleep?: (ms: number) => Promise<void>; timeoutMs?: number }
 export type Asked = { answer?: WatchdogAnswer; error?: string; httpStatuses: number[] }
 
-/** One model call with up to 3 retries (5xx, 429, network, an invalid answer); a 4xx other than 429 is final. */
+/** Retries 5xx, 429, network errors and invalid answers up to 3 times; other 4xx are final. */
 export async function askWatchdogModel(model: string, call: ModelCall, deps: ModelDeps = {}): Promise<Asked> {
   const { provider } = parseModel(model)
   const key = (deps.env ?? process.env)[KEYS[provider] ?? '']
@@ -112,10 +108,7 @@ export async function askWatchdogModel(model: string, call: ModelCall, deps: Mod
   return { error, httpStatuses: statuses }
 }
 
-/**
- * The model's signal. Its outcome counts only when it is YES, NO or INVALID, with confidence ≥ MIN_CONFIDENCE, resting
- * on at least one allow-listed source that exists (the panel's citation rule: context alone decides nothing).
- */
+/** The outcome counts only if YES, NO or INVALID, confident enough, and citing an existing allow-listed source. */
 export function modelSignal(asked: Asked, snapshot: Snapshot, minConfidence = MIN_CONFIDENCE): Signal {
   const a = asked.answer
   if (!a) return { source: 'MODEL', outcome: null, detail: `no answer: ${asked.error}` }
@@ -130,8 +123,8 @@ export function modelSignal(asked: Asked, snapshot: Snapshot, minConfidence = MI
 export class SnapshotUnavailable extends Error {}
 
 /**
- * The snapshot a proposal names, checked against its evidenceHash: `eros-snapshot:<hash>` from the snapshot directory
- * (ADJ-41), any https URI by a GET (a permissionless proposer's file). Null when it cannot be had or does not match.
+ * Loads `eros-snapshot:<hash>` from the snapshot directory, or GETs an https URI. Null when unavailable or when it
+ * does not match evidenceHash.
  */
 export function snapshotLoader(o: { dir?: string; fetchFn?: typeof fetch }) {
   return async (uri: string, evidenceHash: Hex): Promise<Snapshot | null> => {
@@ -162,7 +155,7 @@ export type CheckModelDeps = L1Deps & ModelDeps & {
   loadSnapshot(uri: string, evidenceHash: Hex): Promise<Snapshot | null>
 }
 
-/** The verdict on an L2_AUTO, REVIEWED or PERMISSIONLESS proposal: the fourth model on its snapshot, plus the feed. */
+/** For non-L1 proposals: the model on the snapshot, plus the feed. */
 export async function checkWithModel(p: Proposal, chain: WatchdogChain, deps: CheckModelDeps): Promise<Verdict> {
   const m = await chain.market(p.marketId)
   const signals: Signal[] = []

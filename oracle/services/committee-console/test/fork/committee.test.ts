@@ -1,10 +1,5 @@
-// Task O34.2 acceptance on a local deploy (the keeper's O31.4 stack; a public testnet deploy is not authorized, so the
-// testnet steps stay for O34.4 after X04). The trust set's committee is anvil's keys #6-#8 (threshold 2), its attestor
-// the panel harness's. The real panel runner takes the market to Review (or EarlyReview); then the console, over
-// viemCaseChain, does what two reviewers do: read the case, add a source (a new snapshot), propose with a note, sign as a
-// second member, submit. Checked on the oracle: the 2-of-3 proposal is accepted (Proposed, path REVIEWED, the
-// reviewer's snapshot as evidence); one signature is refused by the contract as well as by the console.
-// RECORD=1 also writes test/fixtures/recorded-review (the market state the unit tests build cases from).
+// Two reviewers take a market from Review to an accepted 2-of-3 proposal on a local oracle; one signature is refused by
+// both the console and the contract. RECORD=1 also writes test/fixtures/recorded-review for the unit tests.
 import { loadGas, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import { takeSnapshot } from '@eros-oracle/snapshotter'
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
@@ -59,7 +54,6 @@ async function consoles(snapshotDir: string) {
   return { chain, a: make(0), b: make(1) }
 }
 
-/** The market state the unit tests load (FakeChain): every CaseChain read, and the panel's snapshot and record. */
 async function record(chain: ReturnType<typeof viemCaseChain>, id: Hex, snapshotDir: string) {
   const r = await chain.resolution(id)
   const panel = (await chain.lastPanelResult(id))!

@@ -1,6 +1,5 @@
-// Task O37.2: the recorded local-deploy events (scripts/record.test.ts) as Envio simulate items on Monad testnet: each
-// log decoded with the ABIs the indexer uses, its local contract addresses (as the source and inside parameters)
-// replaced by the testnet ones from deployments/monad-testnet.json, and its block moved past the testnet start blocks.
+// Recorded local events as Envio simulate items: local addresses are replaced by testnet ones, and blocks are moved
+// past the testnet start blocks.
 import { readFileSync } from 'node:fs'
 import { type Abi, decodeEventLog, parseAbi } from 'viem'
 import { parse } from 'yaml'
@@ -10,7 +9,6 @@ export const RECORDED = JSON.parse(readFileSync(new URL('./fixtures/recorded/eve
 const D = JSON.parse(readFileSync(`${ROOT}deployments/monad-testnet.json`, 'utf8'))
 export const BLOCK_OFFSET = 67_901_624 // the oracle's testnet deployBlock: every replayed block is at or after it
 
-/** Testnet address per contract name (config.yaml's sources). */
 export const TESTNET: Record<string, string> = {
   ResolutionOracle: D.contracts.ResolutionOracle.address,
   MarketRegistry: D.contracts.MarketRegistry.address,
@@ -59,7 +57,6 @@ function convert(type: string, v: unknown): unknown {
 
 export type Item = { contract: string; event: string; srcAddress: string; logIndex: number; block: { number: number; timestamp: number; hash: string }; transaction: { hash: string; from: string }; params: Record<string, unknown> }
 
-/** Every recorded log of an indexed contract and event, in chain order. */
 export function simulateItems(): Item[] {
   const out: Item[] = []
   for (const l of RECORDED.logs) {

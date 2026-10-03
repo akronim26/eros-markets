@@ -1,7 +1,5 @@
-// Task O33.4: signing the EIP-712 PanelResult (plan §8.3). The contract accepts a 65-byte r‖s‖v signature with
-// v ∈ {27, 28} and s ≤ n/2 that `ecrecover`s to the trust set's runner attestor (SigLib.isValidAttestorSig).
-// Hackathon scope (ADJ-42): the attestor is a local key from the environment (ATTESTOR_PRIVATE_KEY, a testnet-only
-// key, ADJ-38), not a KMS key. Every signature is checked against the contract's rules before it is returned.
+// Signs PanelResults with a local attestor key (a KMS key is out of hackathon scope, ADJ-42). Every signature is
+// checked against SigLib's rules (65 bytes, v 27/28, low s) before it is returned.
 import { oracleDomain, panelResultDigest, type PanelResult } from '@eros-oracle/oracle-sdk'
 import { type Address, type Hex, recoverAddress, serializeSignature } from 'viem'
 import { privateKeyToAccount, sign } from 'viem/accounts'
@@ -13,7 +11,6 @@ export class SignerError extends Error {}
 
 export type Signature = { r: Hex; s: Hex; v: 27 | 28 }
 
-/** Signs a 32-byte digest as the attestor. */
 export type DigestSigner = { address: Address; signDigest(digest: Hex): Promise<Signature> }
 
 export function localSigner(privateKey: Hex): DigestSigner {
@@ -32,17 +29,15 @@ export function localSigner(privateKey: Hex): DigestSigner {
   }
 }
 
-/** The attestor from ATTESTOR_PRIVATE_KEY. */
 export function signerFromEnv(env: Record<string, string | undefined> = process.env): DigestSigner {
   const key = env.ATTESTOR_PRIVATE_KEY
   if (!key) throw new SignerError('set ATTESTOR_PRIVATE_KEY (the testnet attestor key, ADJ-38)')
   return localSigner(key as Hex)
 }
 
-/** The 65-byte r‖s‖v the contract takes. */
+/** 65-byte r‖s‖v. */
 export const packSignature = (sig: Signature): Hex => serializeSignature({ r: sig.r, s: sig.s, v: BigInt(sig.v) })
 
-/** Signs a PanelResult for the oracle at `oracle` on `chainId`; returns the digest and the packed signature. */
 export async function signPanelResult(signer: DigestSigner, chainId: number, oracle: Address, result: PanelResult): Promise<{ digest: Hex; signature: Hex }> {
   const digest = panelResultDigest(oracleDomain(chainId, oracle), result)
   return { digest, signature: packSignature(await signer.signDigest(digest)) }

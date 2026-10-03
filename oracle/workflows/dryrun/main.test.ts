@@ -1,6 +1,4 @@
-// Task O22.1: the dry-run handler with the CRE SDK test runtime (plan §7.5, §12.9 step 3). A finished event
-// prints YES or NO, a live one NOT_READY, a wrong path or a bad response ERROR, and no case writes anything:
-// an EvmMock with a writeReport double is registered for every run and must stay untouched.
+// No case may write: a writeReport double is registered for every run and must stay untouched.
 import { expect } from 'bun:test'
 import { create } from '@bufbuild/protobuf'
 import { addContractMock, EvmMock, HttpActionsMock, newTestRuntime, test } from '@chainlink/cre-sdk/test'

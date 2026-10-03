@@ -1,4 +1,3 @@
-// Task O31.1: market sources and the state version.
 import { describe, expect, test } from 'bun:test'
 import { encodeAbiParameters, type Hex, keccak256, parseAbiParameters } from 'viem'
 import { IndexerClient } from '@eros-oracle/oracle-sdk'

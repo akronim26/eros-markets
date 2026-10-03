@@ -1,5 +1,4 @@
-// The oracle ABIs the SDK carries (O30.1): every interface of Appendix C and every deployed contract, with the
-// Solidity source `forge inspect` reads it from. oracle/abi/ holds the snapshot and its SHA256SUMS.
+// Every oracle interface and deployed contract whose ABI the SDK carries, with its Solidity source.
 export const ORACLE_ROOT = new URL('../../../../', import.meta.url).pathname
 export const ABI_DIR = `${ORACLE_ROOT}abi`
 

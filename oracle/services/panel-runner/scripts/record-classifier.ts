@@ -1,6 +1,5 @@
-// `bun run record:classifier`: records the classifier's real answers (Prompt Guard 2 on Groq, GROQ_API_KEY) for every
-// chunk of every injection fixture's prompt text, so the scan tests replay them offline. Writes
-// test/fixtures/injection/classifier-recorded.json: { model, recordedAt, answers: { <sha256 of chunk>: <content> } }.
+// `bun run record:classifier`: records Prompt Guard 2's real answers for every chunk of the injection fixtures into
+// test/fixtures/injection/classifier-recorded.json, keyed by chunk sha256, for offline replay.
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { CLASSIFIER_MODEL, chunks } from '../src/injection/classifier'

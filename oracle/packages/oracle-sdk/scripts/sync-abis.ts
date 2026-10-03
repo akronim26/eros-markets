@@ -1,9 +1,7 @@
-// Task O30.1: the ABI snapshot and its SDK copy (plan §9). For every oracle interface and contract it writes
-// `forge inspect <source>:<Name> abi --json` to oracle/abi/<Name>.json, regenerates oracle/abi/SHA256SUMS, and
-// writes src/abi/<Name>.ts (`as const` for viem's types) stamped with the JSON's sha256. Run after any change to
-// an ABI; test/abi.test.ts fails until it is run (drift between the sources, the snapshot and the SDK).
+// Regenerates oracle/abi/<Name>.json, oracle/abi/SHA256SUMS and src/abi/<Name>.ts from `forge inspect`.
+// Run after any ABI change; test/abi.test.ts fails on drift.
 //
-//   cd oracle/packages/oracle-sdk && bun run sync-abis
+//   bun run sync-abis
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'

@@ -1,6 +1,5 @@
-// An in-memory chain for the keeper's unit tests. Each market has a Resolution; a "bump" job (requestResolution)
-// increments requestCount up to a cap, as a stand-in for any state-changing call. Sent transactions sit in a
-// mempool until `mine()`, so tests control when a send becomes visible (Monad executes asynchronously).
+// In-memory chain. A "bump" job (requestResolution) increments requestCount up to a cap, standing in for any
+// state-changing call. Sends wait in a mempool until `mine()`, so tests control when they land.
 import { type GasTable, loadGas } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { keccak256, toHex } from 'viem'
@@ -49,10 +48,9 @@ export const SETTLEMENT: SettlementStatus = {
   claimsEnabled: false, accountingComplete: false, recoveryRequired: false,
 }
 
-/** The real gas.json, so planners' gas keys are checked against what was measured. */
+/** The real gas.json, so planners' gas keys are checked. */
 export const GAS: GasTable = loadGas()
 
-/** Plans one bump while requestCount is below `cap`. */
 export const bumpPlanner = (cap = 1, gasKey = 'requestResolution'): Planner => (m) =>
   m.resolution.requestCount < cap
     ? [{ marketId: m.id, stateVersion: m.stateVersion, action: 'request', target: 'ResolutionOracle', functionName: 'requestResolution', args: [m.id], gasKey }]
@@ -79,9 +77,9 @@ export class FakeChain implements Chain {
   settlement: SettlementStatus = { ...SETTLEMENT }
   disputes = new Map<Hex, DisputeRecord>()
   treasury: TreasuryState = { usdcBalance: 1_000_000_000n, assertionLedger: 500_000_000n, watchdogFloat: 100_000_000n, totalCommitted: 400_000_000n, openDisputes: 0 }
-  /** Simulated results that revert, by function name. */
+  /** Function names whose simulation reverts. */
   revertFn = new Set<string>()
-  /** Results simulate() returns per function, overriding the bump logic (e.g. a FinalizeStatus). */
+  /** Per-function simulate() results, overriding the bump logic. */
   simResult = new Map<string, unknown>()
   private nonce = 0
 
@@ -89,7 +87,7 @@ export class FakeChain implements Chain {
     for (const m of ids) this.markets.set(m, resolution())
   }
 
-  /** A view of the chain as one keeper instance sees it (its own `from`), sharing state and mempool. */
+  /** One keeper instance's view (its own `from`), sharing state and mempool. */
   as(from: string): Chain {
     return {
       now: () => this.now(),
@@ -164,7 +162,7 @@ export class FakeChain implements Chain {
   async receiptStatus(h: Hex) {
     return this.receipts.get(h) ?? 'pending'
   }
-  /** Executes the mempool in order; a call that would change nothing succeeds as a no-op, like the oracle's. */
+  /** A call that would change nothing succeeds as a no-op, as on the oracle. */
   mine(revert = false) {
     for (const tx of this.mempool.splice(0)) {
       if (revert) {

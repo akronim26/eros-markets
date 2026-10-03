@@ -1,5 +1,4 @@
-// An in-memory CaseChain for the unit tests, loaded from a recorded market state (test/fixtures/recorded-review, written
-// by the local-deploy test with RECORD=1). It records what would be sent; contract behaviour is the local-deploy test's.
+// In-memory CaseChain loaded from test/fixtures/recorded-review (written by the fork test with RECORD=1).
 import type { ReviewedProposal } from '@eros-oracle/oracle-sdk'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -8,7 +7,7 @@ import type { CaseChain, Committee, CoreView, PanelEvent, ResolutionView, Sig } 
 
 export const RECORDED = new URL('./fixtures/recorded-review/', import.meta.url).pathname
 
-/** Anvil's public test keys #6-#8: the committee of the local-deploy test (sorted by address there). */
+/** Anvil's public test keys #6-#8, the fork test's committee. */
 export const MEMBER_KEYS = [
   '0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e',
   '0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356',

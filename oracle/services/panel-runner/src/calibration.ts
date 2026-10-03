@@ -1,12 +1,7 @@
-// Task O33.3: calibration and the reviewers' candidate (plan §8.3). Each model has an isotonic map g_i given as JSON
-// breakpoints [[c, g(c)], ...] (c strictly increasing in [0, 1], g non-decreasing); between breakpoints g is linear,
-// outside them it is the end value. ĉ_i = clip(g_i(c_i), 0.01, 0.99) and calibratedBps = floor(ĉ_i × 10000), computed
-// exactly: every number is taken as the rational of its shortest decimal form (0.29 is 29/100, not the double
-// below it), so a value on a basis-point boundary is never floored one short. calibratorHash = keccak256(JCS of the
-// array of the three maps, in the market's modelIdHashes order); O39.4 publishes the measured maps in the same form.
-// Until then PLACEHOLDER_MAPS map every confidence to 0.49: 4,900 bps, below the 5,000 bps floor any market's
-// highConfBps must clear, so no result can pass the auto-gate (or make an early check "known") on calibration.
-// The candidate ℓ = (n_eff / n) Σ s_i·logit(ĉ_i), n_eff = n² / Σ_ij ρ_ij, is for reviewers only and never opens the gate.
+// Calibration: each model has an isotonic map given as breakpoints [[c, g(c)], ...], linear between them and flat
+// outside. calibratedBps = floor(clip(g(c), 0.01, 0.99) × 10000), computed on exact rationals of each number's
+// shortest decimal form, so a value on a basis-point boundary is never floored one short.
+// PLACEHOLDER_MAPS give 4,900 bps, below the 5,000 bps floor of any highConfBps, so they can never pass the gate.
 import { canonicalize } from '@eros-oracle/snapshotter'
 import { type Hex, keccak256, stringToBytes } from 'viem'
 import type { ModelOutcome } from './models/client'
@@ -22,7 +17,7 @@ export class CalibrationError extends Error {}
 /** An exact rational n/d (d > 0). */
 type Q = { n: bigint; d: bigint }
 
-/** The rational value of a JSON number's shortest decimal form ("0.29" → 29/100, "1e-7" → 1/10^7). */
+/** "0.29" → 29/100, "1e-7" → 1/10^7. */
 export function rational(x: number | string): Q {
   const s = typeof x === 'number' ? String(x) : x
   const m = /^(-?)(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i.exec(s)
@@ -40,7 +35,10 @@ const mul = (a: Q, b: Q): Q => ({ n: a.n * b.n, d: a.d * b.d })
 const div = (a: Q, b: Q): Q => (b.n < 0n ? { n: -a.n * b.d, d: a.d * -b.n } : { n: a.n * b.d, d: a.d * b.n })
 const floorQ = (a: Q) => (a.n >= 0n ? a.n / a.d : -((-a.n + a.d - 1n) / a.d))
 
-/** Checks a map: exactly {model, breakpoints} (the whole map is hashed), a three-part model string, ≥ 2 breakpoints, c strictly increasing in [0, 1], g non-decreasing in [0, 1]. */
+/**
+ * Exactly {model, breakpoints} (the whole map is hashed), ≥ 2 breakpoints, c strictly increasing and g non-decreasing,
+ * both in [0, 1].
+ */
 export function checkMap(m: CalibrationMap): void {
   if (typeof m.model !== 'string' || !/^[a-z0-9-]+:[^@\s]+@\S+$/.test(m.model)) throw new CalibrationError(`bad model ${JSON.stringify(m.model)}`)
   const keys = Object.keys(m).sort().join(',')
@@ -59,18 +57,16 @@ export function checkMap(m: CalibrationMap): void {
   })
 }
 
-/** g(c), exactly: linear between breakpoints, the end values outside them. */
 function apply(m: CalibrationMap, c: Q): Q {
   const b = m.breakpoints.map(([x, y]) => [rational(x), rational(y)] as const)
   if (cmp(c, b[0][0]) <= 0) return b[0][1]
   if (cmp(c, b.at(-1)![0]) >= 0) return b.at(-1)![1]
-  const i = b.findIndex(([x]) => cmp(x, c) > 0) // first breakpoint above c (i ≥ 1)
+  const i = b.findIndex(([x]) => cmp(x, c) > 0) // i ≥ 1
   const [x0, y0] = b[i - 1]
   const [x1, y1] = b[i]
   return add(y0, mul(sub(y1, y0), div(sub(c, x0), sub(x1, x0))))
 }
 
-/** calibratedBps = floor(clip(g(c), 0.01, 0.99) × 10000). */
 export function calibratedBps(m: CalibrationMap, confidence: number): number {
   const c = rational(confidence)
   if (cmp(c, rational(0)) < 0 || cmp(c, rational(1)) > 0) throw new CalibrationError(`confidence ${confidence} outside [0, 1]`)
@@ -82,21 +78,17 @@ export function calibratedBps(m: CalibrationMap, confidence: number): number {
   return Number(floorQ(mul(g, { n: BPS, d: 1n })))
 }
 
-/** keccak256 of the JCS of the three maps (an array, in modelIdHashes order). */
+/** keccak256 of the JCS of the maps, in modelIdHashes order. */
 export function calibratorHash(maps: readonly CalibrationMap[]): Hex {
   if (maps.length !== 3) throw new CalibrationError(`three maps, got ${maps.length}`)
   maps.forEach(checkMap)
   return keccak256(stringToBytes(canonicalize(maps)))
 }
 
-/** The placeholder maps (constant 0.49) for the given models, until O39.4 publishes measured ones. */
 export const placeholderMaps = (models: readonly string[]): CalibrationMap[] =>
   models.map((model) => ({ model, breakpoints: [[0, 0.49], [1, 0.49]] }))
 
-/**
- * Each outcome's calibrated basis points: 0 for an ABSTAIN (it has no usable confidence), else through the model's map.
- * The maps must be for the outcomes' models, in the same order.
- */
+/** 0 for an ABSTAIN. The maps must match the outcomes' models, in order. */
 export function calibrate(outcomes: readonly ModelOutcome[], maps: readonly CalibrationMap[]): number[] {
   if (outcomes.length !== maps.length) throw new CalibrationError('one map per model')
   return outcomes.map((o, i) => {
@@ -108,8 +100,8 @@ export function calibrate(outcomes: readonly ModelOutcome[], maps: readonly Cali
 export type Candidate = { logOdds: number; probabilityYes: number; nEff: number }
 
 /**
- * The reviewers' candidate (display only): s_i = +1 for YES, −1 for NO, 0 otherwise; ĉ_i from calibratedBps; ρ the
- * models' error-correlation matrix (identity, i.e. independent, until O39 measures it).
+ * Display-only score for reviewers, never part of the gate: ℓ = (n_eff / n) Σ s_i·logit(ĉ_i), n_eff = n² / Σ ρ_ij,
+ * s_i = +1 for YES, −1 for NO, else 0. ρ defaults to the identity.
  */
 export function candidate(outcomes: readonly ModelOutcome[], bps: readonly number[], rho?: readonly (readonly number[])[]): Candidate {
   const n = outcomes.length

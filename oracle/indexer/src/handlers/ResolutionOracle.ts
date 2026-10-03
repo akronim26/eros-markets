@@ -1,5 +1,4 @@
-// Task O37.2: ResolutionOracle events → Market, Resolution (state history), Proposal, PanelResult, Assertion, Dispute,
-// TrustSet, Watchdog.
+// ResolutionOracle → Market, Resolution, Proposal, PanelResult, Assertion, Dispute, TrustSet and Watchdog.
 import { indexer, type Market } from 'envio'
 import { blankMarket, lc, logId, num, PATH, refresh, STATE, ts } from '../lib'
 
@@ -132,7 +131,6 @@ indexer.onEvent({ contract: 'ResolutionOracle', event: 'TrustSetCreated' }, asyn
 indexer.onEvent({ contract: 'ResolutionOracle', event: 'TrustSetActivated' }, async ({ event, context }) => {
   const id = String(event.params.setId)
   const t = await context.TrustSet.getOrThrow(id)
-  // one active set at a time: the previous one is no longer active
   for (const prev of await context.TrustSet.getWhere({ active: { _eq: true } })) if (prev.id !== id) context.TrustSet.set({ ...prev, active: false })
   context.TrustSet.set({ ...t, active: true, activatedAt: ts(event) })
 })

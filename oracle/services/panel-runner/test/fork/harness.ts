@@ -1,9 +1,5 @@
-// The panel runner on a local deploy (the keeper's O31.4 stack), shared by the O33.5 acceptance (panel.test.ts) and the
-// committee console's and watchdog's local-deploy tests (O34.2, O35.3). The trust set's runner attestor is ATTESTOR_KEY;
-// a market listed with `listPinned` pins the runner's three models, the sports prompt and the placeholder calibration
-// maps. The real runner (viemPanelChain, takeSnapshot, scanSnapshot, askPanel, the local signer) runs against it; the
-// models answer from the real recordings (test/fixtures/recorded), the evidence comes from a local HTTP server
-// (`startEvidence`; with `injected` the stats page carries an injection), the classifier answers "0.0001" (clean).
+// The real panel runner on a local deploy, shared with the committee console's and watchdog's fork tests. Models
+// replay real recordings, evidence comes from a local HTTP server, and the classifier always answers clean.
 import { loadGas, MarketRegistryAbi, modelIdHash, ResolutionEngineStubAbi, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import { takeSnapshot } from '@eros-oracle/snapshotter'
 import { expect } from 'bun:test'
@@ -32,7 +28,7 @@ export const STATS_PAGE = 'https://stats.example-data.org/match/evt_1'
 
 export type Evidence = { server: ReturnType<typeof Bun.serve>; injected: boolean; fetch: typeof fetch; stop(): void }
 
-/** The evidence hosts, served locally: the Layer 1 event and a stats page (with an injection when `injected`). */
+/** The Layer 1 event and a stats page, which carries an injection when `injected`. */
 export function startEvidence(): Evidence {
   const ev = { injected: false } as Evidence
   ev.server = Bun.serve({
@@ -59,7 +55,7 @@ export function startEvidence(): Evidence {
   return ev
 }
 
-/** The providers answer from the real recordings (status 200, valid YES answers citing items 0 and 1). */
+/** Valid YES answers citing items 0 and 1. */
 const recorded = (name: string) => JSON.parse(readFileSync(join(RECORDED, name), 'utf8'))
 const MODEL_REPLIES: Record<string, any> = {
   'api.groq.com': recorded('groq__openai_gpt-oss-120b.json'),
@@ -74,7 +70,7 @@ const modelFetch = (async (url: string, init: RequestInit) => {
 }) as unknown as typeof fetch
 const ENV = { GROQ_API_KEY: 'x', NVIDIA_API_KEY: 'x', GEMINI_API_KEY: 'x' }
 
-/** A runner reading StateChanged logs from now on (create it before the state change). */
+/** Reads StateChanged logs from now on, so create it before the state change. */
 export async function makeRunner(s: Stack, ev: Evidence, snapshotDir = mkdtempSync(join(tmpdir(), 'panel-fork-'))): Promise<PanelRunner> {
   const relayer = generatePrivateKey()
   await fund(s, privateKeyToAccount(relayer).address)
@@ -93,7 +89,6 @@ export async function makeRunner(s: Stack, ev: Evidence, snapshotDir = mkdtempSy
   })
 }
 
-/** The example market, pinned to this runner's models, prompt and calibration. */
 export const listPinned = (s: Stack) =>
   listExample(s, (pack) => {
     pack.marketInput.ai.modelIdHashes = MODELS.map(modelIdHash)
@@ -110,7 +105,7 @@ export async function call(s: Stack, from: Hex, address: Address, abi: any, func
   return r
 }
 
-/** Halt at T, no Layer 1 answer, escalate after l1TimeoutSecs: L2Pending (phase POST_T). */
+/** Halt at T, no Layer 1 answer, escalate: L2Pending. */
 export async function toL2Pending(s: Stack, id: Hex) {
   const anyone = generatePrivateKey()
   await fund(s, privateKeyToAccount(anyone).address)
@@ -122,7 +117,7 @@ export async function toL2Pending(s: Stack, id: Hex) {
   expect((await resolution(s, id)).state).toBe(RState.L2Pending)
 }
 
-/** The monitor makes the engine reduce-only and asks for an early check (phase EARLY, before T). */
+/** The engine goes reduce-only and requests an early check before T. */
 export async function toEarlyCheck(s: Stack, id: Hex) {
   const monitor = '0x0000000000000000000000000000000000000030'
   await rpc(s.rpcUrl, 'anvil_impersonateAccount', [monitor])
@@ -139,7 +134,7 @@ export async function toEarlyCheck(s: Stack, id: Hex) {
   expect((await resolution(s, id)).state).toBe(RState.EarlyCheck)
 }
 
-/** One runner tick; returns the run and the accepted event and decoded payload of the transaction it sent. */
+/** Returns the run and the accepted event and payload of the transaction sent. */
 export async function runPanel(s: Stack, r: PanelRunner): Promise<{ run: RunResult; routedTo: number; flags: number }> {
   const [run] = await r.tick()
   expect(run?.sent).toBeDefined()

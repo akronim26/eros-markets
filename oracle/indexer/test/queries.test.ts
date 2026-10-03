@@ -1,7 +1,4 @@
-// Task O37.3: every query is valid against the API Envio serves for schema.graphql. Envio exposes the entities through
-// Hasura; this builds Hasura's shape from schema.graphql (per entity: a list field with where / order_by / limit and
-// <Type>_by_pk; comparison operators per scalar; BigInt as numeric; object and array relationships) and validates each
-// query with graphql-js. That a query returns data on testnet is checked against the running indexer (O37.3 evidence).
+// Builds the Hasura API shape Envio serves from schema.graphql and validates every SDK query against it.
 import { readFileSync } from 'node:fs'
 import { buildSchema, type GraphQLSchema, parse, validate } from 'graphql'
 import { describe, expect, it } from 'vitest'
@@ -37,7 +34,7 @@ function hasuraSchema(sdl: string): GraphQLSchema {
     out.push(`input ${t}_order_by { ${[...plain.filter((f) => !f.list).map((f) => f.name), ...refs.map((f) => `${f.name}_id`)].map((n) => `${n}: order_by`).join(' ')} }`)
     query.push(`${t}${args}: [${t}!]!`, `${t}_by_pk(id: String!): ${t}`)
   }
-  // Envio's indexing status (docs: Observability, "Indexing status")
+  // Envio's indexing status
   out.push('type _meta { chainId: Int! progressBlock: Int! eventsProcessed: Int! bufferBlock: Int! firstEventBlock: Int sourceBlock: Int! readyAt: String isReady: Boolean! startBlock: Int! endBlock: Int }')
   out.push('input _meta_bool_exp { chainId: Int_comparison_exp }')
   query.push('_meta(where: _meta_bool_exp): [_meta!]!')

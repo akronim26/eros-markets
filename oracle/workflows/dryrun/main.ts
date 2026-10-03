@@ -1,7 +1,5 @@
-// Eros Markets — listing dry-run workflow (plan §7.5, §12.9 step 3). Simulation only, never deployed.
-// The candidate FeedSpec comes from config (it is not onchain yet). The URL checks, the secret lookup, the
-// node-mode fetch, the evaluator and identical consensus are the resolution workflow's. It prints
-// "STATUS|valueHash|code" with STATUS one of YES/NO/NOT_READY/ERROR, and has no EVM client, so it writes nothing.
+// Listing dry-run workflow, for simulation only. It runs the resolution workflow's checks, fetch and evaluator on a
+// candidate FeedSpec from config, prints "STATUS|valueHash|code", and has no EVM client, so it writes nothing.
 import {
   consensusIdenticalAggregation,
   cre,
@@ -22,7 +20,7 @@ const uint32 = z.number().int().min(0).max(0xffffffff)
 const configSchema = z.object({
   schedule: z.string(), // the cron trigger only starts the run; simulate fires it once
   httpTimeout: z.string().regex(/^[0-9]+s$/), // max "10s"
-  allowList: z.array(z.string()).min(1), // the candidate market's allow-list, host of urlTemplate first
+  allowList: z.array(z.string()).min(1), // host of urlTemplate first
   authSecrets: z.array(z.object({ authRef: hex32, secretId: z.string(), header: z.string(), prefix: z.string() })),
   feed: z.object({
     urlTemplate: z.string(),
@@ -50,7 +48,7 @@ export const onDryRun = (runtime: Runtime<Config>, _payload: CronPayload): strin
   const cfg = runtime.config
   const spec: FeedSpec = { ...cfg.feed }
 
-  // The same checks, in the same order, as onResolutionRequested after its specHash check.
+  // The resolution workflow's checks, in its order, after its specHash check.
   let url: string
   try { url = buildUrl(spec) } catch { return error('BAD_URL') }
   if (!allowListed(url, cfg.allowList)) return error('HOST_NOT_ALLOWED')

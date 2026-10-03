@@ -1,12 +1,11 @@
 #!/usr/bin/env bun
-// Task O34.3: `bun run console <command> …` (see console.ts for the commands). Configuration from the environment; keys
-// are testnet-only hot keys (ADJ-38), never in git.
+// `bun run console <command> …` (commands in console.ts). Keys are testnet-only hot keys.
 //
 //   NETWORK                deployments/<NETWORK>.json (default monad-testnet)
 //   RPC_URL                the reviewer's RPC endpoint
 //   COMMITTEE_PRIVATE_KEY  the reviewer's committee key (propose, sign)
-//   RELAYER_PRIVATE_KEY    the EOA that submits (anyone; pays gas)
-//   SNAPSHOT_DIR           the snapshot store shared with the panel runner (default ./snapshots, ADJ-41)
+//   RELAYER_PRIVATE_KEY    the EOA that submits and pays gas
+//   SNAPSHOT_DIR           the store shared with the panel runner (default ./snapshots)
 //   DATA_DIR               the console's cases and proposals (default ./committee)
 //   FROM_BLOCK             where log reads start (default the oracle's deploy block)
 import { loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'

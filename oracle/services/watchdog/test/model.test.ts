@@ -1,6 +1,4 @@
-// Task O35.2: the fourth model family on recorded responses (test/fixtures/recorded: real answers of Qwen 3.8 27B on
-// Groq to the watchdog's prompt, 3 Oct 2026; the snapshots they were asked about are test/fixtures/snapshots). With the
-// home team at 3-1 the model answers YES, at 1-1 NO; a proposal it supports is AGREE, one it does not is CONTRADICT.
+// Replays real Qwen 3.8 27B answers (Groq, 3 Oct 2026) on the snapshots in test/fixtures: 3-1 gives YES, 1-1 gives NO.
 import type { Snapshot } from '@eros-oracle/snapshotter'
 import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
@@ -28,7 +26,7 @@ const recorded = (name: string) => JSON.parse(readFileSync(join(FIX, 'recorded',
 const GROQ = 'https://api.groq.com/openai/v1/chat/completions'
 const ENV = { GROQ_API_KEY: 'test-key' }
 
-/** The model provider replaying a recording (and recording what it was sent). */
+/** Replays a recording and records what it was sent. */
 function replay(name: string) {
   const rec = recorded(name)
   const sent: any[] = []
@@ -40,7 +38,6 @@ function replay(name: string) {
   return { fn, sent }
 }
 
-/** A reviewed proposal of `outcome` on the named snapshot, kept in a snapshot directory. */
 function proposal(name: string, outcome: 1 | 2 | 3, path = 3): { p: Proposal; dir: string } {
   const dir = mkdtempSync(join(tmpdir(), 'wd-snap-'))
   const h = keccak256(snapBytes(name))

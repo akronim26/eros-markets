@@ -1,23 +1,18 @@
-// Task O33.1: a panel model's answer (plan §8.3). Structured output `{label, confidence, cited, rationale}`, the JSON
-// schema enforced here whatever the provider did: anything else is invalid output, which counts as an API failure
-// (retried, then ABSTAIN). Citations are checked against the snapshot afterwards: a label with no valid citation,
-// or citing only context (non-allow-listed) items, is ABSTAIN.
+// A panel answer `{label, confidence, cited, rationale}`, schema-checked here whatever the provider enforced. Invalid
+// output counts as an API failure. A label without a valid citation, or citing only context items, is ABSTAIN.
 import type { Item } from '@eros-oracle/snapshotter'
 
 export const LABELS = ['YES', 'NO', 'INVALID', 'NOT_YET'] as const
 export type Label = (typeof LABELS)[number]
 
-/** The contract's PanelLabel codes (OracleTypes.sol): ABSTAIN 0, YES 1, NO 2, INVALID 3, NOT_YET 4. */
+/** PanelLabel (OracleTypes.sol); values are ABI. */
 export const PANEL_LABEL = { ABSTAIN: 0, YES: 1, NO: 2, INVALID: 3, NOT_YET: 4 } as const
 
 export const RATIONALE_MAX_CHARS = 1000
 
 export type Answer = { label: Label; confidence: number; cited: number[]; rationale: string }
 
-/**
- * The schema sent to providers that enforce one (OpenAI strict mode: no numeric or length bounds, so those are
- * checked here). The same shape is stated in the prompt for the others.
- */
+/** For providers that enforce a schema. OpenAI strict mode has no numeric or length bounds, so those are checked here. */
 export const ANSWER_SCHEMA = {
   name: 'panel_answer',
   schema: {
@@ -35,7 +30,7 @@ export const ANSWER_SCHEMA = {
 
 export class InvalidAnswer extends Error {}
 
-/** The answer in `text`, or InvalidAnswer. A single ```json fenced block is accepted; nothing else around it. */
+/** Throws InvalidAnswer. A single ```json fenced block is accepted, with nothing around it. */
 export function parseAnswer(text: string): Answer {
   const body = text.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```$/, '$1')
   let v: unknown
@@ -61,10 +56,7 @@ export function parseAnswer(text: string): Answer {
 
 export type CitationCheck = { valid: number[]; reason?: 'NO_VALID_CITATION' | 'ONLY_CONTEXT_CITED' }
 
-/**
- * The cited items that exist in the snapshot and hold a response (a fetch that got none has nothing to cite). No
- * valid citation → NO_VALID_CITATION; valid citations all of context items → ONLY_CONTEXT_CITED (plan §8.2).
- */
+/** Keeps cited items that exist and hold a response. None → NO_VALID_CITATION; only context → ONLY_CONTEXT_CITED. */
 export function checkCitations(cited: number[], items: readonly Item[]): CitationCheck {
   const valid = cited.filter((i) => i < items.length && items[i].httpStatus !== 0)
   if (valid.length === 0) return { valid, reason: 'NO_VALID_CITATION' }

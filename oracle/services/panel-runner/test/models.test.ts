@@ -1,6 +1,4 @@
-// Task O33.1: the panel's model clients against provider responses (test/fixtures/responses, see its README; and any
-// recorded under test/fixtures/recorded). A scripted fetch replays them, so each failure path of plan §8.3 is
-// exercised: retries with back-off, then ABSTAIN; invalid output as an API failure; citations; independence.
+// A scripted fetch replays canned and recorded provider responses through every failure path.
 import { KEYS, modelIdHash, type ModelCall, parseModel } from '@eros-oracle/oracle-sdk'
 import type { Item } from '@eros-oracle/snapshotter'
 import { describe, expect, test } from 'bun:test'
@@ -15,7 +13,6 @@ const FIX = new URL('./fixtures/', import.meta.url).pathname
 type Fixture = { httpStatus: number; headers: Record<string, string>; body: unknown }
 const fixture = (name: string): Fixture => JSON.parse(readFileSync(join(FIX, 'responses', `${name}.json`), 'utf8'))
 const respond = (f: Fixture) => new Response(typeof f.body === 'string' ? f.body : JSON.stringify(f.body), { status: f.httpStatus, headers: f.headers })
-/** An OpenAI-compatible success whose message content is `content`. */
 const chat = (content: string): Fixture => {
   const f = fixture('openai-ok')
   ;(f.body as any).choices[0].message.content = content
@@ -34,7 +31,7 @@ const item = (allowListed: boolean, httpStatus = 200): Item => ({
 })
 const ITEMS = [item(true), item(true), item(false), item(true, 0)] // 2: context, 3: a fetch with no response
 
-/** A fetch that answers each call with the next response (or throws it), recording requests and sleeps. */
+/** Answers each call with the next response (or throws it); records requests and sleeps. */
 function scripted(...replies: (Fixture | Error | ((init: RequestInit) => Promise<Response>))[]) {
   const requests: { url: string; init: RequestInit; body: any }[] = []
   const sleeps: number[] = []
@@ -239,8 +236,7 @@ describe('the panel', () => {
 })
 
 describe('recorded provider responses', () => {
-  // Real responses from `bun run record` (3 Oct 2026; scripts/record.ts: two items, 0 allow-listed, 1 context). Each
-  // is replayed for every attempt the client makes.
+  // Real responses from `bun run record` (3 Oct 2026), replayed for every attempt.
   const dir = join(FIX, 'recorded')
   const files = existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.json')).sort() : []
   const EXPECTED: Record<string, { label: string; cited?: number[]; confidence?: number; attempts: number; abstainReason?: string }> = {

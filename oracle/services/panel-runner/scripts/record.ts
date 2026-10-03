@@ -1,8 +1,5 @@
-// `bun run record`: records one real response per panel model for the model-client tests (O33.1). Models come from
-// PANEL_MODELS ("provider:model-id@version", comma-separated) and keys from the provider's variable (oracle-sdk
-// KEYS). The call is a fixed two-item snapshot with a minimal stand-in prompt (the pinned panel prompts are O33.2).
-// Each raw response (status, a few headers, body) is written to test/fixtures/recorded/; request headers, and so
-// the keys, are never written.
+// `bun run record`: records one real response per PANEL_MODELS entry on a fixed two-item snapshot into
+// test/fixtures/recorded/. Request headers, and so the keys, are never written.
 import { KEYS, modelRequest, parseModel } from '@eros-oracle/oracle-sdk'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'

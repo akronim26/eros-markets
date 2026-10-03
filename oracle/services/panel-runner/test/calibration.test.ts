@@ -1,5 +1,4 @@
-// Task O33.3: calibration (clipping, flooring, exact arithmetic), calibratorHash and the reviewers' candidate.
-// Expected values are worked by hand below; the hash is checked against a canonical string written out by hand.
+// Expected values are worked by hand; the hash is checked against a hand-written canonical string.
 import { canonicalize } from '@eros-oracle/snapshotter'
 import { describe, expect, test } from 'bun:test'
 import { keccak256, stringToBytes } from 'viem'

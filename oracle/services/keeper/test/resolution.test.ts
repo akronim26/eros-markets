@@ -1,5 +1,3 @@
-// Task O31.2: each resolution job's trigger condition and its no-op path (plan §9.1), the gas key it sends with
-// (a measured gas.json entry), and finalize batching through KeeperRouter.finalizeMany.
 import { describe, expect, test } from 'bun:test'
 import { gasLimit } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'

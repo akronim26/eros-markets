@@ -1,10 +1,6 @@
-// Task O35.1: the watchdog's WatchdogChain over viem, on its own RPC endpoint (plan §9.2). Reads at `latest`;
-// disputeViaVenue and watchdogHeartbeat are eth_called / sent from the watchdog key with explicit gas limits.
-// Intake (proposals and assertions): from the Envio indexer when one is configured (plan §9.3, O37), read up to its
-// `_meta.progressBlock` only, so nothing written later is skipped; otherwise, or while the indexer is down or more
-// than `maxLagBlocks` behind the chain head, from the oracle's ProposedL1, ProposalRecorded and Asserted logs in
-// 100-block steps (Monad's public RPC caps log ranges). One block cursor serves both, so a block is read by exactly
-// one of them.
+// The watchdog's chain over viem. Reads at `latest`; sends are eth_called first and carry explicit gas limits.
+// Intake comes from the Envio indexer up to its progress block, or from the oracle's logs in 100-block steps when the
+// indexer is unset, down or behind. One shared cursor means every block is read exactly once.
 import {
   BondTreasuryAbi,
   contractAddress,
@@ -41,7 +37,7 @@ type IndexedProposal = {
 type IndexedAssertion = { id: string; market_id: string }
 type Events = Awaited<ReturnType<WatchdogChain['events']>>
 
-/** The indexer's rows as the watchdog's Proposal (the fields the log path gives, nothing more). */
+/** Maps indexer rows to the same fields the log path gives. */
 export function fromIndexer(rows: { Proposal: IndexedProposal[]; Assertion: IndexedAssertion[] }): Events {
   return {
     proposals: rows.Proposal.map((p) => {
@@ -55,9 +51,8 @@ export function fromIndexer(rows: { Proposal: IndexedProposal[]; Assertion: Inde
 }
 
 /**
- * The block cursor of the watchdog's intake: each call returns the events of the blocks after the last call, from the
- * indexer up to its progress block when it is fresh, else from the logs up to the head. A failed read leaves the cursor
- * where it was, so the range is read again (by whichever source is usable then).
+ * Returns the events of blocks not yet read: from the indexer up to its progress when fresh, else from the logs up to
+ * the head. A failed read leaves the cursor in place, so the range is read again.
  */
 export class IntakeReader {
   private next: bigint
@@ -69,7 +64,6 @@ export class IntakeReader {
     this.next = o.start
   }
 
-  /** The first block not read yet. */
   get cursor() {
     return this.next
   }
@@ -82,7 +76,7 @@ export class IntakeReader {
       if (fresh.ok) {
         const progress = BigInt(fresh.progress.progressBlock)
         const upTo = progress < head ? progress : head
-        const to = upTo < this.next + WATCHDOG_RANGE_BLOCKS - 1n ? upTo : this.next + WATCHDOG_RANGE_BLOCKS - 1n // the rest next tick
+        const to = upTo < this.next + WATCHDOG_RANGE_BLOCKS - 1n ? upTo : this.next + WATCHDOG_RANGE_BLOCKS - 1n // rest next tick
         if (to < this.next) return { proposals: [], asserted: [] }
         try {
           const out = fromIndexer(await idx.client.query(WATCHDOG_EVENTS, { from: Number(this.next) - 1, to: Number(to) }))
@@ -95,7 +89,7 @@ export class IntakeReader {
         }
       } else this.fallback(fresh.reason)
     }
-    // 100 blocks per call (Monad's public RPC cap); the cursor moves past each range read, so a failure resumes there
+    // The cursor moves past each range read, so a failure resumes there.
     const out: Events = { proposals: [], asserted: [] }
     while (this.next <= head) {
       const to = this.next + LOG_STEP - 1n < head ? this.next + LOG_STEP - 1n : head
@@ -103,7 +97,7 @@ export class IntakeReader {
       try {
         r = await this.o.readLogs(this.next, to)
       } catch (e) {
-        if (out.proposals.length || out.asserted.length) return out // what was read; the failed range is next
+        if (out.proposals.length || out.asserted.length) return out // the failed range is retried next tick
         throw e
       }
       out.proposals.push(...r.proposals)
@@ -125,7 +119,7 @@ export function viemWatchdogChain(opts: { rpcUrl: string; watchdogKey: Hex; depl
   const d = opts.deployments
   const chain = defineChain({ id: d.chainId, name: d.network, nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 }, rpcUrls: { default: { http: [opts.rpcUrl] } } })
   const pc = createPublicClient({ chain, transport: http(opts.rpcUrl) })
-  // its own nonce manager (not viem's shared one): heartbeats and disputes go out without waiting for receipts
+  // Own nonce manager: heartbeats and disputes go out without waiting for receipts.
   const account = privateKeyToAccount(opts.watchdogKey, { nonceManager: createNonceManager({ source: jsonRpc() }) })
   const wc = createWalletClient({ chain, transport: http(opts.rpcUrl), account })
   const oracle = contractAddress(d, 'ResolutionOracle')
@@ -137,7 +131,7 @@ export function viemWatchdogChain(opts: { rpcUrl: string; watchdogKey: Hex; depl
     pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: functionName as never, args: args as never, blockTag: 'latest' }) as Promise<any>
   const tr = (functionName: string, args: readonly unknown[] = []) =>
     pc.readContract({ address: treasury, abi: BondTreasuryAbi, functionName: functionName as never, args: args as never, blockTag: 'latest' }) as Promise<any>
-  /** The oracle's logs in [from, to] (at most LOG_STEP blocks: one call). */
+  /** One getLogs call over [from, to], at most LOG_STEP blocks. */
   async function readLogs(from: bigint, to: bigint): Promise<Events> {
     const proposals: Proposal[] = []
     const asserted: { marketId: Hex; assertionId: Hex }[] = []
@@ -150,7 +144,7 @@ export function viemWatchdogChain(opts: { rpcUrl: string; watchdogKey: Hex; depl
         else if (l.eventName === 'ProposalRecorded')
           proposals.push({ marketId: id, outcome: Number(l.args.outcome), path: Number(l.args.path), evidenceHash: l.args.evidenceHash, evidenceURI: l.args.evidenceURI, attempt: Number(l.args.attempt), ...at })
         else {
-          // ProposedL1 carries no attempt: the market's attempts now (an L1 proposal is the market's first, attempt 0)
+          // ProposedL1 carries no attempt; an L1 proposal is always the market's first.
           const r = await ro('getResolution', [id])
           proposals.push({ marketId: id, outcome: Number(l.args.outcome), path: 1, evidenceHash: l.args.evidenceHash, valueHash: l.args.valueHash, observedAt: BigInt(l.args.observedAt), attempt: Number(r.attempts), ...at })
         }
