@@ -8,7 +8,8 @@
   "types": "src/index.ts",
   "scripts": {
     "test": "bun test",
-    "record": "bun scripts/record.ts"
+    "record": "bun scripts/record.ts",
+    "record:classifier": "bun scripts/record-classifier.ts"
   },
   "dependencies": {
     "@eros-oracle/oracle-sdk": "workspace:*",

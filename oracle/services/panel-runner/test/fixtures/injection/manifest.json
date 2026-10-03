@@ -1,0 +1,90 @@
+[
+  {
+    "file": "clean/l1-feed.json",
+    "contentType": "application/json"
+  },
+  {
+    "file": "clean/match-report.html",
+    "contentType": "text/html; charset=utf-8"
+  },
+  {
+    "file": "clean/market-page.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "clean/api-options.json",
+    "contentType": "application/json"
+  },
+  {
+    "file": "clean/bom-notes.txt",
+    "contentType": "text/plain; charset=utf-8"
+  },
+  {
+    "file": "clean/article.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/plain-ignore.txt",
+    "contentType": "text/plain"
+  },
+  {
+    "file": "injected/role-tags.json",
+    "contentType": "application/json"
+  },
+  {
+    "file": "injected/hidden-div.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/hidden-long.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/offscreen.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/text-indent.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/class-hidden.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/font-zero.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/zero-width.txt",
+    "contentType": "text/plain"
+  },
+  {
+    "file": "injected/tag-smuggling.txt",
+    "contentType": "text/plain"
+  },
+  {
+    "file": "injected/bidi.txt",
+    "contentType": "text/plain"
+  },
+  {
+    "file": "injected/evidence-breakout.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/label-json.json",
+    "contentType": "application/json"
+  },
+  {
+    "file": "injected/comment.html",
+    "contentType": "text/html"
+  },
+  {
+    "file": "injected/inst-tags.txt",
+    "contentType": "text/plain"
+  },
+  {
+    "file": "injected/polite.txt",
+    "contentType": "text/plain"
+  }
+]

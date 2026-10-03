@@ -1,7 +1,8 @@
 // Task O32.1: text for prompts (plan §8.2: "HTML is stored raw; text is extracted only for the prompt"). The
 // snapshot keeps the bytes; the panel runner (O33) builds its data blocks from this text. Nothing here is hashed or
-// pinned, so it can improve without changing any evidenceHash. The injection detector (O33) scans the raw bytes,
-// not this text: hidden elements are dropped here.
+// pinned, so it can improve without changing any evidenceHash. Scripts, styles, comments and similar are dropped
+// here, but text hidden by CSS (display:none and the like) is kept; the injection detector (O33.2) scans the raw
+// bytes and flags such text when it is long or reads like an instruction.
 import type { Item } from './types'
 import { itemBytes } from './fetcher'
 
