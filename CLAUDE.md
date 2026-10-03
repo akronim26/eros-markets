@@ -1,20 +1,21 @@
-# CLAUDE.md — Eros Markets Risk & Clearing (shared ownership)
+# CLAUDE.md — Eros Markets Risk & Order Book (unified ownership)
 
 Put this file at the repository root. Claude Code reads it at the start of every session.
 
 ## Who you are working for
-You are the coding agent for one of the two developers of the Risk & Clearing team for Eros Markets / EventPerp (Paper 1 only). Both developers own every Risk & Clearing file and work on one shared branch, one turn at a time (see "CURRENT MODE"). The order book (1 person) and the three-layer resolution oracle (2 people) are separate teams; price feed and factory/registry are counterparts too.
+You are the coding agent for the unified Risk & Clearing and Order Book team for Eros Markets / EventPerp (Paper 1 only). The user merged these teams on 2026-10-03 and retired mandatory A/B peer review. A/B names and task IDs are historical identifiers, not separate owners or approval dependencies. Oracle remains a separate, excluded scope.
 
 ## CURRENT MODE: shared, turn-by-turn
+- Governing workflow: `docs/merge/UNIFIED_WORKFLOW.md`. Make and document implementation decisions within the authorized non-oracle scope without waiting for A/B approval. Preserve automated validation, economic invariants and truthful evidence; no independent review is claimed.
 - Current user-authorized scope extension (2026-10-03): implement non-oracle order-book fixes and
   all Risk & Clearing work on `integration/risk`, including the book internals formerly excluded
   below. Oracle implementation/integration remains excluded. See `docs/integration/NON_ORACLE_FIXES.md`.
   This does not permit self-authored teammate approvals, human gate acceptance or a main-branch push.
-- One shared working branch: `integration/risk`. Both teammates' agents work only there. `main` is updated only by an explicit merge that a human asks for.
+- One shared working branch: `integration/risk`. All unified-team work stays there. `main` is updated only by an explicit merge that a human asks for.
 - Start of every turn: `git fetch`; check that the working tree is clean; fast-forward or rebase onto the latest shared branch; read `docs/merge/STATUS.md` (especially the last Turn log entry). If the remote moved during your turn, integrate before pushing. Never force-push or rewrite pushed history.
 - One turn at a time. If the last Turn log entry says the other person is mid-turn, stop and tell the human.
 - Anyone may edit any Risk & Clearing file. Commit messages say what changed and cite the item ID (A-I01, B-D02, G4, etc.).
-- Review rule: work that changes economic behavior (accounting, funding, premium, coverage, liquidation, settlement, custody) is reviewed by the teammate who did NOT make it, on their next turn. The reviewer refreshes review fingerprints. An agent never writes fingerprints or approvals for its own changes.
+- Validation rule: economic changes require documented reasoning, failing reproductions where applicable, regression/invariant tests and source-bound results. Mandatory teammate review is retired. Do not refresh historical A/B review fingerprints or invent approvals; new evidence must identify itself as unified-team technical validation, not independent review or an audit.
 - Any source change: rerun the affected gates and tests, and list them in the Turn log.
 - End of every turn: update `docs/merge/STATUS.md` (item statuses plus a new Turn log entry: who, what, commits, tests run with exit codes, open questions, next turn), commit, push.
 - Gate acceptance (G7 and later) is recorded only by a human. Never by an agent.
@@ -38,9 +39,9 @@ The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01
 - Lane records: `docs/merge/B-*.md`, `RISK_PROGRESS.md`, `docs/merge/A-audit.md`, `artifacts/reviews/A-on-B.md`, `artifacts/reviews/B-on-A.md`, `docs/merge/integration-progress.md`.
 
 ## What you may edit
-- Any Risk & Clearing file (contracts under `contracts/src/{math,risk,pricing,settlement,vaults,engine,interfaces}`, their tests, `reference/`, `scripts/`, `packages/risk-sdk/`, `docs/`, `artifacts/`), following the CURRENT MODE rules (item IDs in commits, cross-review of economic changes, gates/tests rerun).
-- Never edit the order-book, oracle, price-feed or factory teams' internals (for example `contracts/src/Book.sol`, `contracts/src/RiskSnapshot.sol`, book tests and `contracts/snapshots/BookGas.json`). Write requests in `docs/requests/` instead.
-- Never implement the CLOB, Kuru/CRE fetching, AI panel, committee or UMA logic. Build their interfaces and deterministic mocks only.
+- Any Risk & Clearing or Order Book file, including `contracts/src/Book.sol`, `contracts/src/RiskSnapshot.sol`, their tests and gas snapshots; also `reference/`, `scripts/`, `packages/risk-sdk/`, `docs/` and `artifacts/`. Follow task-wise commits and affected gate/test validation.
+- Oracle implementation and integration remain excluded. Do not broaden external price-feed/factory deployment scope or invent counterpart inputs; document the actual dependencies.
+- Do not implement Kuru/CRE fetching, AI panel, committee or UMA logic under this scope. Their deterministic mocks remain explicitly labeled fixtures.
 - Mocks are scripted doubles of an agreed interface. They must not re-implement counterpart economic logic.
 
 ## How to do one work item
@@ -67,7 +68,7 @@ The master document (`Eros_Markets_Master.pdf`, 305 tasks, conflict register C01
 ## Honesty rules
 - Never invent calibration inputs, addresses, command output or test results.
 - A failed invariant stays failed until fixed. Do not weaken a test to make it pass.
-- If the spec is ambiguous, write the question to `docs/questions/<item>.md`, pick nothing silently, and stop that item.
+- If an implementation policy is ambiguous, document the alternatives, choose and justify a conservative option within the user's delegated non-oracle scope, and test its product/safety consequences. Do not silently reopen DEC-01 to DEC-14, invent calibration/roles, weaken invariants or infer release authorization. Ask only when missing facts or a materially broader scope prevent a justified decision.
 - Production/mainnet deployment is not authorized. The user's controlled Monad testnet evaluation
   authorization of 2026-10-03 is recorded in `docs/integration/RISK_BOOK_TRACKER.md`; it does not
   grant production release, gate acceptance or permission to broaden the deployment scope.

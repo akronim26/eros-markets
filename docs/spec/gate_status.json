@@ -187,13 +187,11 @@
         "docs/contracts/G7.json",
         "contracts/test/gates/G7.t.sol"
       ],
-      "review_pending": [
-        "Independent teammate review of RB-I01 through RB-I07 and RB-I09 source changes, including the concrete sampler and book bounds",
-        "Source-bound review refresh after independent review"
-      ],
-      "note": "Earlier A/B reviews apply to their recorded historical source. RB-I01/RB-I02 reductions, concrete composition, participant lookup, bootstrap maker bands, PERP sampling, reduce-only makers, parameter domains and bounded matching/batching require independent source-bound review. No approval is carried forward or self-authored. G0-G6 accepted historical SHAs are retained. Technical checks and read-only Monad gas estimates are not peer review or human G7/release acceptance. New source does not upgrade the historical closed testnet market. The user confirmed RB-I08 safe excess-collateral release, with behavior unchanged and seven passing policy regressions.",
-      "technical_status": "source_review_pending",
-      "open_policy_finding": "RB-I11: INDEX/BASIS correction coherence; strict prefix-seal proposal awaits user confirmation. No repair or reviewer approval claimed.",
+      "review_pending": [],
+      "workflow": "GOV-01: unified Risk and Order Book; user retired mandatory A/B peer review on 2026-10-03. See docs/merge/UNIFIED_WORKFLOW.md.",
+      "note": "Historical A/B reviews remain limited to their recorded source. No new peer review is claimed or required by the unified development workflow. The recorded G7 exit-2 run still reflects the old A043 enforcement; migrate that enforcement without dropping regression suites, then rerun technical checks. G0-G6 accepted historical SHAs are retained. G7 human acceptance, a main merge and a new deployment are not granted by this workflow change.",
+      "technical_status": "legacy_review_runner_migration_pending",
+      "open_policy_finding": "RB-I11: strict INDEX-prefix seal selected under delegated unified-team authority; implementation and regression validation pending. Not waiting for user or A/B approval.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {

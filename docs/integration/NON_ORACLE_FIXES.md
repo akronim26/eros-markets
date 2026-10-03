@@ -1,5 +1,11 @@
 # Non-oracle risk and order-book fixes
 
+**GOV-01 update (2026-10-03):** the merged Risk and Order Book team no longer requires A/B
+peer review. We selected RB-I11's strict INDEX-prefix seal under delegated decision authority;
+implementation and tests remain pending. Earlier approval-pending statements below describe
+the previous workflow. Automated checks stay mandatory, and old review records stay historical.
+See `docs/merge/UNIFIED_WORKFLOW.md`; legacy G7 enforcement migration remains engineering work.
+
 Started 2026-10-03 from `1958aef` on `integration/risk`.
 Current recorded source: `4a050df`. **RB-I11 remains open; this is not an all-findings-fixed record.**
 

@@ -1,4 +1,13 @@
-# Person A risk implementation progress
+# Risk and Order Book implementation progress
+
+## Governing workflow — GOV-01, 2026-10-03
+
+Risk and Order Book are now one team; mandatory A/B peer review is retired by the user's
+instruction. See `docs/merge/UNIFIED_WORKFLOW.md`. Older review-pending statements below
+describe the previous workflow, not current approval dependencies. RB-I11's strict INDEX-prefix
+seal is selected under delegated authority; implementation/tests and migration of the legacy
+G7 review-checking scripts remain pending. This documentation change grants no G7 acceptance,
+main merge, independent audit or new deployment.
 
 ## Current non-oracle implementation update — 2026-10-03
 
