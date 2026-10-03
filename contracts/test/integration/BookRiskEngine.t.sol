@@ -97,7 +97,7 @@ abstract contract BookRiskEngineFixture is Test {
         returns (uint32)
     {
         vm.prank(owner);
-        return engine.placeOrder(Book.Place(kind, isBuy, false, 500, lots, 64, 0));
+        return engine.placeOrder(Book.Place(kind, isBuy, false, 500, lots, 8, 0));
     }
 }
 
@@ -107,7 +107,8 @@ contract BookRiskEngineTest is BookRiskEngineFixture {
         assertFalse(engine.fundingFeatureEnabled());
         assertFalse(engine.recoveryEnabled());
         assertEq(engine.conversionEligibility(), engine.R_DISABLED());
-        assertEq(engine.maxFills(), 64);
+        assertEq(engine.maxFills(), 8);
+        assertEq(engine.maxBatchActions(), 8);
         configuration.deploymentCapX = 5;
         vm.expectRevert(BookRiskEngine.UnsafeInitialConfiguration.selector);
         new BookRiskEngine(vault, TREASURY, configuration);

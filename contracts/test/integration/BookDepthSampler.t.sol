@@ -41,7 +41,7 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
     {
         vm.prank(owner);
         return
-            engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, buys, false, tick, lots, 64, expiry));
+            engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, buys, false, tick, lots, 8, expiry));
     }
 
     function _sampleDepth() internal returns (bool) {
@@ -67,7 +67,7 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         assertFalse(_sampleDepth());
         assertEq(engine.ringCount(1), 0);
         vm.prank(BUYER);
-        engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 510, 100, 64, 0));
+        engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 510, 100, 8, 0));
         assertEq(engine.getOrder(askId).size, 400);
         vm.prank(BUYER);
         engine.cancel(bidId);
@@ -245,7 +245,7 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         _placeDepth(SELLER, true, 490, 500, 0);
         vm.prank(BUYER);
         uint32 reducingAsk =
-            engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, false, true, 510, 500, 64, 0));
+            engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, false, true, 510, 500, 8, 0));
         assertGt(reducingAsk, 0);
         IBookDepthEngine.Quote memory quote = IBookDepthEngine(address(engine)).bookDepth();
         assertEq(quote.bidDepthLots, 500);
