@@ -2,15 +2,15 @@
  "schema": "eros-counterpart-status/1",
  "task": "B040",
  "spec_version": "1.1",
- "note": "User-authorized Monad testnet foundation and controlled real Book+A+B trade/YES-settlement/cash-exit scenario are verified complete; this market is closed. Production live_status values remain separate and blocked. RB-I01 repair f2ebc61 awaits independent teammate review; RB-I02 maker-remainder liveness remains open.",
- "gate_validation": "5b82d9f: G0-G6 exit 0 (68/152/117/78/77/63/55); G7 exit 2 after six tests because A043 does not cover current source/review regressions. Separate downstream runs A044/B040/B041/B042/B043/B044 passed 44/2/2/3/1/1 tests, and direct test/gates/G7.t.sol passed six; all exit 0. This is not an ordered G7 pass, and B043 technical-harness success is not new peer review. G7 reviewed_by remains empty, merge_sha null; independent review and human acceptance pending. Evidence: artifacts/risk/real-book-validation-2026-10-03.json, committed at 20330d8.",
+ "note": "Non-oracle repair delta implemented on integration/risk; original controlled live testnet smoke is historical and closed, not upgraded. RB-I02 maker repair and bounded PERP sampler implemented; independent review and production wiring remain required. RB-I11 INDEX/BASIS coherence remains open, awaiting a policy decision; not every non-oracle issue is closed.",
+ "gate_validation": "At 4a050df, ordered G0-G6 exit 0 with counts 71/152/117/78/77/63/55. G0 gained three SDK compiler-runner regressions. G7 exits 2 after six checks at A043 because historical review fingerprints do not cover the current source. Separate A044/B040/B041/B042/B043/B044 exit 0 with 44/2/2/3/1/1 checks; direct G7 Solidity suite passes six tests. These are technical results, not fresh peer review or human acceptance. Historical accepted G0-G6 SHAs remain; G7 reviewed_by stays empty and merge_sha null.",
  "counterparts": [
   {
    "id": "CP-BOOK",
    "local_double": "contracts/test/mocks/B/MockBookAdapter.sol",
    "mock_status": "PASS on real A+B: contracts/test/gates/G4.t.sol, G5.t.sol, test/integration/EndToEnd.t.sol (MockBookAdapter)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "The ten hook changes from main a114d06 are merged at 13ca730. A concrete contracts/src/engine/BookRiskEngine.sol now joins real Book and real A+B without unrestricted feed/failure helpers. Production release remains blocked by RB-I02 maker-remainder liveness, the missing PERP depth sampler, independent review of RB-I01 repair, and unresolved production counterpart wiring/calibration. Do not interpret BLOCKED_BY_COUNTERPART as missing book hook implementation or as prohibiting the separately authorized testnet evaluation.",
+   "reason": "Real Book+A+B composition, maker/taker continuation, bootstrap bands, reduce-only maker admission, numeric domains and bounded PERP sampling are implemented. Concrete matching/batch cap8 is measured; sampler cap64 is separate. Local integration passes, but independent review and production oracle/feed/factory/calibration wiring remain unaccepted. No new source has been broadcast.",
    "counterpart_source_commit": "a114d06a1cebdf107c47d75947b114b3dd94b60e",
    "inspection_date": "2026-10-03",
    "local_real_integration_status": "FOCUSED_PASS_WITH_OPEN_PRODUCTION_BLOCKERS",
@@ -36,18 +36,35 @@
     "evidence_scope": "Historical 17-test merge result; the RB-I01 characterization predates repair f2ebc61"
    },
    "current_source_integration": {
-    "source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
+    "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
     "composition": "contracts/src/engine/BookRiskEngine.sol:BookRiskEngine",
-    "focused_legacy_evm_tests": {
-     "real_book": 23,
-     "concrete_engine": 9
-    },
-    "full_risk_suite": "PASS at 5b82d9f: 727 tests, 117 suites, zero failed/skipped (tmp/full-risk-final.log); Python 46/156/8/7 passed. Eight smoke tests are included in 727 and also passed separately under MonadTen (tmp/monad-smoke-tests.log). Prior 47149e5 baseline was 719/116.",
-    "rb_i01": "IMPLEMENTED at f2ebc61; independent teammate review pending",
+    "full_risk_suite": "Full CI at 4a050df: 825 tests / 129 suites, zero failed/skipped; 10,000 fuzz, 256 x 128 invariants, seed 0x45524f53 and strict book snapshots, exit 0. Earlier full risk at 1654b9f: 818 tests / 128 suites; seven added RB-I08 policy tests also pass separately. MonadTen targeted 92 tests / 10 suites; Python 49/156/8/7; SDK strict source/accounting and six Node tests; formatting and ABI checks all pass. Gates are recorded separately; RB-I11 remains an open policy finding.",
+    "monad_targeted": "92 tests /10 suites, zero failed/skipped; local MonadTen, not public-chain receipts",
+    "rb_i01": "IMPLEMENTED f2ebc61; independent review pending",
+    "implemented_delta": [
+     "RB-I02",
+     "RB-I03",
+     "RB-I04",
+     "RB-I05",
+     "RB-I06",
+     "RB-I07",
+     "RB-I09",
+     "RB-I10"
+    ],
+    "rb_i08": "User confirmed existing guarded excess-collateral release during REDUCE_ONLY; seven policy tests pass; no production predicate change",
     "open_findings": [
-     "RB-I02 partially filled reduce-only maker remainder becomes stale",
-     "Production PERP depth sampler absent; concrete engine is fully backed 1x bootstrap-only"
-    ]
+     "RB-I11"
+    ],
+    "review_status": "INDEPENDENT_REVIEW_PENDING",
+    "bounds": {
+     "matching": 8,
+     "batch_actions": 8,
+     "batch_declared_matching_steps": 8,
+     "sampler_examinations": 64
+    },
+    "gas_estimate_evidence": "artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json",
+    "new_broadcast": false,
+    "rb_i11": "POLICY_CONFIRMATION_PENDING: strict INDEX-prefix sealing proposed, not implemented; see docs/questions/RB-I11-index-prefix-seal.md"
    },
    "testnet_evaluation": {
     "authorization": "Explicit user authorization; not production approval",
@@ -64,7 +81,8 @@
     "trade_transaction": "0x0bbc3efecc17f366040d259759767d3e608a7a8d29521763271c886cff8d5dce",
     "settlement_status": "PASS: halted, manual YES outcome, both claims paid, controlled actor balances 150000000/50000000 six-decimal test-token atoms, vault token/recognized atoms zero; market closed",
     "settlement_transaction": "0x9193a7ce574c51bb2e83f7f2be521add1b9bfb70098b0cca16382ba2743b6f25",
-    "dependencies": "Controlled test collateral, manual resolution authority, signed synthetic INDEX and test listing/roles; no production oracle or calibration claim"
+    "dependencies": "Controlled test collateral, manual resolution authority, signed synthetic INDEX and test listing/roles; no production oracle or calibration claim",
+    "source_scope": "Historical source1077dfa/5b82d9f only; never compare these existing immutable addresses with the new sampler bytecode and claim current-source deployment."
    }
   },
   {
@@ -72,7 +90,7 @@
    "local_double": "test signer keys in contracts/test/risk/B/B016.t.sol; direct store feeds in other suites",
    "mock_status": "PASS (B016-B018, B021)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "no production collector/signing service in this repository; envelope I-3 unconfirmed; concrete engine has no PERP depth sampler",
+   "reason": "Production independent INDEX collector/signing service and envelope I-3 confirmation remain absent. Concrete bounded book-derived PERP sampler is implemented and locally tested, pending independent review; it does not replace authenticated INDEX collection. RB-I11 remains open: later authenticated INDEX corrections can change historical INDEX after BASIS publication. Proposed prefix sealing is not implemented.",
    "testnet_evaluation": "Controller-signed synthetic INDEX observations exercise authenticated ingress only; this is not a live price-feed service or production source calibration"
   },
   {

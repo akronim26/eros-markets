@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T14:33:31.987978+00:00",
-  "source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
+  "recorded_at": "2026-10-03T16:13:43.549592+00:00",
+  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -60,7 +60,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/invariant/A/AccountingInvariants.t.sol:AccountingInvariantsTest\": {\"duration\": \"2s 381ms 91\\u00c2\\u00b5s\", \"test_results\": {\"invariantConservationCoverageAndCustody()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Invariant\": {\"runs\": 48, \"calls\": 3072, \"reverts\": 0, \"workers\": 1, \"metrics\": {\"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.sync\": {\"calls\": 607, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.allocation\": {\"calls\": 580, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.liquidation\": {\"calls\": 633, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.paired\": {\"calls\": 611, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.rollover\": {\"calls\": 641, \"reverts\": 0, \"discards\": 0}}, \"failed_corpus_replays\": 0, \"optimization_best_value\": null}}, \"duration\": \"2s 360ms 384\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}}, \"warnings\": []}, \"test/invariant/A/AccountingInvariants.t.sol:IndependentAccountingTraceTest\": {\"duration\": \"38ms 766\\u00c2\\u00b5s 400ns\", \"test_results\": {\"testIndependentIntegratedTrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35681827}}, \"duration\": \"36ms 415\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA040: passed; 2 tests; artifacts/tasks/A040.json\n"
+      "output": "{\"test/invariant/A/AccountingInvariants.t.sol:AccountingInvariantsTest\": {\"duration\": \"4s 701ms 796\\u00c2\\u00b5s 400ns\", \"test_results\": {\"invariantConservationCoverageAndCustody()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Invariant\": {\"runs\": 48, \"calls\": 3072, \"reverts\": 0, \"workers\": 1, \"metrics\": {\"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.liquidation\": {\"calls\": 633, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.sync\": {\"calls\": 607, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.allocation\": {\"calls\": 580, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.rollover\": {\"calls\": 641, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.paired\": {\"calls\": 611, \"reverts\": 0, \"discards\": 0}}, \"failed_corpus_replays\": 0, \"optimization_best_value\": null}}, \"duration\": \"4s 667ms 342\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}}, \"warnings\": []}, \"test/invariant/A/AccountingInvariants.t.sol:IndependentAccountingTraceTest\": {\"duration\": \"95ms 811\\u00c2\\u00b5s 700ns\", \"test_results\": {\"testIndependentIntegratedTrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35693219}}, \"duration\": \"89ms 987\\u00c2\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA040: passed; 2 tests; artifacts/tasks/A040.json\n"
     },
     {
       "argv": [
@@ -71,7 +71,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/gas/A/AccountingGas.t.sol:AccountingGasTest\": {\"duration\": \"16s 576ms 561\\u00c2\\u00b5s 800ns\", \"test_results\": {\"testGasBounded1024AccountJobs()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"roll_begin_gas: 192708\", \"roll_32_account_max_gas: 4669926\", \"halt_1024_gas: 124277\", \"snapshot_32_account_max_gas: 3599473\", \"trader_claim_gas: 183369\", \"participant_count: 1024\"], \"kind\": {\"Unit\": {\"gas\": 346629248}}, \"duration\": \"1s 102ms 843\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}, \"testGasMathAndActivePremiumTouch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"premium_math_gas: 15057\", \"funding_premium_touch_gas: 311225\"], \"kind\": {\"Unit\": {\"gas\": 69234131}}, \"duration\": \"212ms 679\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA041: passed; 2 tests; artifacts/tasks/A041.json\n"
+      "output": "{\"test/gas/A/AccountingGas.t.sol:AccountingGasTest\": {\"duration\": \"24s 233ms 646\\u00c2\\u00b5s 800ns\", \"test_results\": {\"testGasBounded1024AccountJobs()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"roll_begin_gas: 192742\", \"roll_32_account_max_gas: 4669963\", \"halt_1024_gas: 124277\", \"snapshot_32_account_max_gas: 3599422\", \"trader_claim_gas: 183413\", \"participant_count: 1024\"], \"kind\": {\"Unit\": {\"gas\": 346629928}}, \"duration\": \"1s 596ms 9\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"testGasMathAndActivePremiumTouch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"premium_math_gas: 15057\", \"funding_premium_touch_gas: 311274\"], \"kind\": {\"Unit\": {\"gas\": 69234725}}, \"duration\": \"317ms 477\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA041: passed; 2 tests; artifacts/tasks/A041.json\n"
     },
     {
       "argv": [
@@ -82,7 +82,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/integration/A/CustodyExit.t.sol:CustodyExitTest\": {\"duration\": \"6ms 157\\u00c2\\u00b5s 700ns\", \"test_results\": {\"testAllEntitlementsExitWithoutBorrowingOtherMarket()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 12168833}}, \"duration\": \"3ms 32\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"testKeeperWithdrawalKeepsFractionAndOtherMarketLiability()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3065725}}, \"duration\": \"2ms 348\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA042: passed; 2 tests; artifacts/tasks/A042.json\n"
+      "output": "{\"test/integration/A/CustodyExit.t.sol:CustodyExitTest\": {\"duration\": \"14ms 115\\u00c2\\u00b5s 800ns\", \"test_results\": {\"testAllEntitlementsExitWithoutBorrowingOtherMarket()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 12214486}}, \"duration\": \"8ms 13\\u00c2\\u00b5s 200ns\", \"gas_snapshots\": {}}, \"testKeeperWithdrawalKeepsFractionAndOtherMarketLiability()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3065625}}, \"duration\": \"5ms 580\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA042: passed; 2 tests; artifacts/tasks/A042.json\n"
     },
     {
       "argv": [
