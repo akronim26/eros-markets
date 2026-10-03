@@ -1,0 +1,214 @@
+{
+  "schema": "eros-risk-book-validation/1",
+  "date": "2026-10-03",
+  "branch": "integration/risk",
+  "base_commit": "16f0d908f7fc625506fa24d0a53bd619b65bf74c",
+  "validated_source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
+  "source_unchanged_during_final_validation": true,
+  "working_tree_dirty": true,
+  "dirty_note": "Evidence and documentation updates plus pre-existing untracked handoff/caches; no uncommitted Solidity changes during the final full run.",
+  "task_commits": [
+    "f2ebc61",
+    "1077dfa",
+    "47149e5",
+    "163b709",
+    "5b82d9f"
+  ],
+  "toolchain": {
+    "forge": "1.8.3 (cae51ad458f6abb64852b7709eb784352429825d)",
+    "solc": "0.8.30",
+    "compiler_evm": "prague",
+    "optimizer_runs": 200,
+    "python": "3.12.10",
+    "typescript": "5.9.2",
+    "numpy": "2.2.6"
+  },
+  "commands": [
+    {
+      "command": "cd contracts && FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test -vv",
+      "exit_code": 0,
+      "passed": 727,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 117,
+      "scope": "Local risk profile, legacy/Ethereum execution; not an all-path Monad certificate",
+      "log": "tmp/full-risk-final.log",
+      "log_sha256": "1ae26f7f79097273ac8af913e4ca7e100d95db18e07d6a0d1735260a5effd675"
+    },
+    {
+      "command": "cd contracts && FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path test/integration/TestnetRiskSmoke.t.sol --network monad --hardfork monad:MonadTen -vv",
+      "exit_code": 0,
+      "passed": 8,
+      "failed": 0,
+      "scope": "Focused MonadTen execution of controlled testnet lifecycle and offline signing; these eight also appear in the full 727",
+      "log": "tmp/monad-smoke-tests.log",
+      "log_sha256": "f83c942ed1fe195224d3f6afd68f29c5bcb3b6b22283b98e309d4d4dee8840d2"
+    },
+    {
+      "command": "python -m unittest discover -s reference/tests/a",
+      "exit_code": 0,
+      "passed": 46
+    },
+    {
+      "command": "python -m unittest discover -s reference/tests/b",
+      "exit_code": 0,
+      "passed": 156
+    },
+    {
+      "command": "python -m unittest discover -s reference/tests/audit -t .",
+      "exit_code": 0,
+      "passed": 8
+    },
+    {
+      "command": "python -m unittest discover -s reference/tests/integration -t .",
+      "exit_code": 0,
+      "passed": 7
+    },
+    {
+      "command": "python scripts/export-risk-abis.py; python scripts/export-risk-abis.py --check",
+      "exit_codes": [
+        0,
+        0
+      ],
+      "concrete_engine_entries": 285,
+      "abstract_engine_entries": 254,
+      "vault_entries": 35
+    },
+    {
+      "command": "cd contracts && forge fmt --check",
+      "exit_code": 0
+    },
+    {
+      "command": "bash scripts/check-gate.sh G0 ... G7 (sequential separate invocations)",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      "recorded_test_counts": [
+        68,
+        152,
+        117,
+        78,
+        77,
+        63,
+        55,
+        6
+      ],
+      "g7_reason": "Stops at A043: A review does not cover the current source and review regressions; reviewed source changed. Six preceding tests passed, not a six-test complete G7 run."
+    },
+    {
+      "command": "bash scripts/check-task.sh A044/B040/B041/B042/B043/B044 (separate invocations)",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "test_counts": [
+        44,
+        2,
+        2,
+        3,
+        1,
+        1
+      ],
+      "scope": "Run separately after G7 stopped at A043. B043 harness pass does not grant new teammate review."
+    },
+    {
+      "command": "cd contracts && FOUNDRY_PROFILE=risk forge test --match-path test/gates/G7.t.sol -vv",
+      "exit_code": 0,
+      "passed": 6,
+      "failed": 0,
+      "scope": "Direct technical suite only; does not override G7 runner or acceptance."
+    }
+  ],
+  "real_book_regressions": {
+    "passed": 23,
+    "included_in_full_suite": true,
+    "rb_i01": "Repaired; independent economic review pending",
+    "rb_i02": "Open Low maker-remainder liveness; counterpart request, not waived"
+  },
+  "stateful_real_book": {
+    "suite": "contracts/test/invariant/integration/RealBookInvariants.t.sol",
+    "runs": 48,
+    "depth": 64,
+    "calls": 3072,
+    "reverts": 0,
+    "fuzz_runs": 1000,
+    "seed": "0x45524f53",
+    "scope": "Custody, paired ledger, coverage, A/B/physical reservations, permits, links/free IDs/bitmaps; deterministic eight-fill path also checks after every action"
+  },
+  "live_testnet": {
+    "chain_id": 10143,
+    "engine": "0x4aE742676984D2C383645E4745Eaf3943b67DE72",
+    "source_engine_commit": "1077dfa39c0a26324e02e0e3f3cdff9fd8957479",
+    "foundation_verifier": {
+      "command": "python scripts/verify-monad-deployment.py --broadcast contracts/broadcast/DeployTestnetRiskBook.s.sol/10143/run-latest.json --output artifacts/risk/monad-testnet-deployment.json",
+      "exit_code": 0,
+      "evidence": "artifacts/risk/monad-testnet-deployment.json"
+    },
+    "smoke_verifier": {
+      "command": "python scripts/verify-monad-smoke.py --smoke 0x0D54dd5411d2a036Bc40aD854aB14289FF9075AF --controller 0x76765dc99c2C9aeD0b2C23b39960f0de0aC5DA46 --engine 0x4aE742676984D2C383645E4745Eaf3943b67DE72 --receipts artifacts/risk/monad-testnet-smoke-transactions.json --output artifacts/risk/monad-testnet-smoke.json",
+      "exit_code": 0,
+      "evidence": "artifacts/risk/monad-testnet-smoke.json",
+      "observed_block": 67852827
+    },
+    "successful_transactions": 15,
+    "total_gas_used": 40887693,
+    "total_fee_wei": "4223887319407733183",
+    "deployer_remaining_wei": "5776112680592266817",
+    "engine_runtime_bytes": 114546,
+    "engine_initcode_bytes": 124593,
+    "engine_deployment_receipt_gas": 27904929,
+    "final_state": "Market halted and terminally settled YES. Buyer/seller actor token balances150000000/50000000 atoms; all claims paid; actual and recognized vault custody0.",
+    "real_components": [
+      "Book matcher and risk hooks",
+      "RiskAccountingBridge and A cash/position/custody accounting",
+      "signed PriceIngress authentication",
+      "bounded settlement and vault-backed trader claims"
+    ],
+    "fixture_components": [
+      "6-decimal controlled RISK-TEST collateral, not USDC",
+      "controller-signed synthetic INDEX observations, not a collector",
+      "controlled finality authority, not oracle consensus",
+      "test listing, roles and actor contracts"
+    ],
+    "unsuccessful_attempt": {
+      "phase": "fork-based trade before direct fresh signing",
+      "result": "Remote-fork simulation aged the observation window; node gas estimation reverted UnusableIndex",
+      "broadcast": false,
+      "receipt": null,
+      "log_sha256": "254ff81dfbd9a439791e2eb6825323e2ae4897c07d4ecd50811d8880ef0152f5",
+      "resolution": "Prepare11 samples offline spanning300seconds and send fresh estimated calldata directly; do not bypass source freshness"
+    },
+    "limitations": [
+      "Trusted RPC and local artifact comparison, not independent source reproduction or chain authentication",
+      "Nested ReserveVault runtime not independently compared",
+      "Actor contracts retain claimed test tokens; no claim of payouts to user wallets",
+      "One controlled fully-backed lifecycle, not every risk operation tested on-chain",
+      "No full CI 10000-fuzz/256x128-invariant rerun in this turn",
+      "No leveraged normal-PERP trading, live funding, production oracle/feed/factory or calibrated liquidation qualification"
+    ],
+    "further_broadcasts_planned": false
+  },
+  "acceptance": {
+    "peer_review": "PENDING independent teammate review of new economic changes and source-bound refresh",
+    "g7": "BLOCKED",
+    "merge_sha": null,
+    "production_approved": false
+  },
+  "branch_boundaries": {
+    "main": "a114d06a1cebdf107c47d75947b114b3dd94b60e unchanged",
+    "oracle": "ccbdb50e35807427236a1dd546b237195b3ec596 fetched, not merged",
+    "other_team_internals_edited": false
+  },
+  "evidence_scope_note": "Generated A-only accounting-release/custody/gas records retain their runner's lane-local mock/merge-pending labels; they do not override the combined tracker and actual testnet evidence."
+}
