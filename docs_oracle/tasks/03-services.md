@@ -28,11 +28,12 @@ Plan §13: owner OB · 1.5 PD · depends OG1 · acceptance: mirrors match Solidi
 - Depends: O30.1
 - Plan: §9, C.7, V-R4
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/packages/oracle-sdk/src/{eip712.ts,bond.ts}, oracle/packages/oracle-sdk/test/*
 - Build: `PanelResult` and `ReviewedProposal` typed-data definitions and domain builder; BondMath (and VoidBound) mirrors with bigint.
 - Done when: P1/R1 digests and the signed examples in `vectors/eip712.json`, the bond vector and both void-bound vectors match.
 - Check: cd oracle/packages/oracle-sdk && bun test
+- Notes: `src/eip712.ts`: `panelResultTypes`/`reviewedProposalTypes` (viem typed-data), `oracleDomain(chainId, verifyingContract)` (name "ErosResolutionOracle", version "1"), `domainSeparator`, struct hashes and digests (`panelResultDigest`, `reviewedProposalDigest`, the contract's `hashPanelResult`/`hashReviewedProposal`), `signPanelResult`/`signReviewedProposal` for a viem LocalAccount, `recoverSigner` that returns null for any signature SigLib refuses (not 65 bytes, v not 27/28, high s), `sortCommitteeSigs` (ascending, duplicate refused), the Outcome/PanelLabel/Phase enums and `hashText`. `src/bond.ts`: bigint `bond` (proportional term rounded up, negative or above-uint16 bps refused), `isWatchdogFresh`, `liveness` (Path enum, NoPath), `minVoidSecs`. 14 tests: type strings and typehashes, domain separator (and that it moves with chain and contract), P1/R1 digests, every field bound, the P1 attestor signature and both R1 committee signatures byte for byte from the vector keys (signed out of order, sorted to the vector order), refused short/bad-v/high-s (malleable twin) signatures; bond.json, rounding and floors, liveness and watchdog boundaries, both voidbound.json vectors and the no-feed case. 12/12 mutations caught (a field type, the domain version, the low-s and v checks, the sort, rounding down, A_max, R_max+2, T_L1 without a feed, the heartbeat boundary, the L1 freshness condition). SDK suite 25 tests.
 
 ### O30.3 · Claim-render mirror
 - Owner: OB
