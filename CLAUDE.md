@@ -6,6 +6,10 @@ Put this file at the repository root. Claude Code reads it at the start of every
 You are the coding agent for one of the two developers of the Risk & Clearing team for Eros Markets / EventPerp (Paper 1 only). Both developers own every Risk & Clearing file and work on one shared branch, one turn at a time (see "CURRENT MODE"). The order book (1 person) and the three-layer resolution oracle (2 people) are separate teams; price feed and factory/registry are counterparts too.
 
 ## CURRENT MODE: shared, turn-by-turn
+- Current user-authorized scope extension (2026-10-03): implement non-oracle order-book fixes and
+  all Risk & Clearing work on `integration/risk`, including the book internals formerly excluded
+  below. Oracle implementation/integration remains excluded. See `docs/integration/NON_ORACLE_FIXES.md`.
+  This does not permit self-authored teammate approvals, human gate acceptance or a main-branch push.
 - One shared working branch: `integration/risk`. Both teammates' agents work only there. `main` is updated only by an explicit merge that a human asks for.
 - Start of every turn: `git fetch`; check that the working tree is clean; fast-forward or rebase onto the latest shared branch; read `docs/merge/STATUS.md` (especially the last Turn log entry). If the remote moved during your turn, integrate before pushing. Never force-push or rewrite pushed history.
 - One turn at a time. If the last Turn log entry says the other person is mid-turn, stop and tell the human.

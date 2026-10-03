@@ -1,18 +1,49 @@
 # Person A risk implementation progress
 
-## Real-book and Monad update — 2026-10-03
+## Current non-oracle implementation update — 2026-10-03
 
 The shared living checklist is **[Risk + Book tracker](docs/integration/RISK_BOOK_TRACKER.md)**.
 It maps implementations, validation, exact testnet addresses/receipts, limitations, owners and
 the checklist to follow when behavior changes. Update it alongside `docs/merge/STATUS.md`.
 
-RB-I01 is repaired, awaiting independent review. A guarded concrete engine combining real Book,
-A accounting/vault and B risk is deployed on Monad testnet. Funding, matching, controlled YES settlement and
-both cash claims succeeded. This uses test collateral, synthetic signed INDEX and controlled
-finality: it is not production approval or actual oracle integration. The smoke market is closed.
-RB-I02 maker remainder liveness, the PERP sampler and real counterpart joins remain open.
-Current evidence: `artifacts/risk/real-book-validation-2026-10-03.json` and the tracker.
-Earlier sections below describe their historical source ranges, not current deployment status.
+The user now authorizes book internals and all Risk & Clearing work, including Person B's modules,
+on `integration/risk`; oracle implementation/integration is excluded and main is unchanged.
+From `1958aef`, RB-I02 maker remainders, RB-I03 canonical IDs, RB-I04 execution bands, RB-I05 real
+PERP depth, RB-I06 reduce-only makers, RB-I07 domains and RB-I09 work/gas bounds are implemented
+through `be3db1e`; RB-I10 pins the SDK/compiler runner in `56787d2`. RB-I01 remains repaired
+but awaits independent review. The user confirmed
+RB-I08: retain safe excess release under the existing guards; seven focused tests pass.
+See `docs/integration/NON_ORACLE_FIXES.md`.
+
+RB-I11 is **OPEN / policy confirmation pending**: later authenticated INDEX corrections can leave
+published BASIS tied to earlier INDEX history. The proposed strict-newer-INDEX publication rule
+is not approved or implemented; see `docs/questions/RB-I11-index-prefix-seal.md`. No all-fixed or
+production-ready claim follows from the implemented sampler or its passing tests.
+
+The concrete source now supports bounded, provenance-checked real-book PERP observations while
+retaining fresh-INDEX startup and uncalibrated, fully backed 1x defaults. Matching/batches have
+an eight-examination concrete budget. Funding, recovery and conversion remain disabled.
+The new source is **not deployed**. The older Monad smoke market successfully matched and paid
+150/50 test tokens after controlled YES settlement; that immutable market remains closed.
+
+The earlier 727-Forge/217-Python results apply to the historical source, not this delta.
+A full-risk run at `1654b9f` passes 818 tests/128 suites; seven later RB-I08 tests pass separately.
+ABI check passes 294 concrete/256 abstract/35 vault entries. The expanded MonadTen bundle passes
+92 tests/10 suites, including 32 full-history gas benchmarks. Python passes 49/156/8/7 (220 total);
+SDK strict build, accounting reader and six Node tests pass with local TypeScript 5.9.3.
+Full CI at `4a050df` passes 825 tests/129 suites, zero failed/skipped, with 10000 fuzz cases
+(seed `0x45524f53`) and 256x128 invariant campaigns. G0–G6 pass; G7 exits 2 at stale source-bound
+A043 after six passing tests. Direct G7 and A044/B040–B044 pass separately; formatting and ABI
+checks pass. None substitutes for independent review or human acceptance.
+A read-only current-artifact deployment estimate is
+27,820,847 gas, with 120253 runtime and 130423 total initcode bytes; it is not a receipt or release
+approval. Evidence: `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`.
+
+Next: independent B/shared-teammate review of every new economic and
+interface change. No self-authored review fingerprints or G7 human acceptance are granted.
+RB-I11 needs the user's policy confirmation before any implementation change.
+Production collector/factory/calibration joins remain open; oracle integration needs separate
+authorization. Earlier sections below preserve historical source ranges and instructions only.
 
 ## Shared integration update — 2026-10-03
 
