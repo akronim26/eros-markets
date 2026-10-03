@@ -300,13 +300,14 @@ Plan §13: owner OA · 3 PD · depends O30, O20 · acceptance: wrong-proposal dr
 - Owner: OA
 - PD: 0.75
 - Depends: O35.2
-- Plan: §9.2, D11
+- Plan: §9.2, D11, ADJ-44
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/services/watchdog/src/{dispute,heartbeat}.ts
 - Build: On a contradiction while the assertion is live and before `expiresAt − 10 min`: `BondTreasury.disputeViaVenue(id)` and page a human (page only without float); `watchdogHeartbeat()` every 10 min; alert when `WATCHDOG_FLOAT < Σ B(live assertions)`.
 - Done when: an anvil test disputes inside liveness and a stopped heartbeat moves L1 liveness to the reviewed value.
 - Check: cd oracle/services/watchdog && bun test
+- Notes: `services/watchdog/src/{dispute,heartbeat,watchdog,main}.ts`. On CONTRADICT, while the proposal is still the market's and its assertion is live (not disputed or settled) and `now < expiresAt − 10 min`: if this key is the market's watchdog, the float covers the bond and the treasury's open-dispute limit is not reached, it eth_calls then sends `BondTreasury.disputeViaVenue(id)` with gas.json's limit and pages; otherwise it pages only. A proposal not yet asserted is waited for, keeping the verdict from intake. UNSURE pages; AGREE is logged. Heartbeat every 10 minutes (`watchdogHeartbeat`). Float accounting: an alert, once per shortfall, when WATCHDOG_FLOAT < Σ bond of live assertions (asserted, not disputed or settled, before expiry). Pages go to stderr and an optional `PAGER_WEBHOOK`. Gas (measured with O34.2, Foundry 1.8.3): disputeViaVenue 531,374 (real OOv3 and sandbox DVM), limit 640,000; watchdogHeartbeat 55,172, limit 70,000. 8 unit tests (`test/dispute.test.ts`). Anvil acceptance (`test/fork/watchdog.test.ts`, the keeper's O31.4 stack with this test's watchdog key; `bun run test:fork`, Foundry 1.5.1). A wrong L1 YES report (the feed says home 1) is flagged at intake and, once asserted, disputed with the float inside liveness and before the 10-minute margin: the venue shows the treasury as disputer, the float drops by the bond, and the market goes Disputed. A stopped heartbeat moves `livenessFor` from the L1 value (30 min) to the reviewed one (60 min) exactly after heartbeatMaxAgeSecs, and an assertion made then gets the reviewed liveness. The test market uses longer liveness than the testnet demo (ADJ-44). The watchdog's chain uses its own nonce manager, not viem's shared one: the shared one kept stale nonces across the test's chain reverts. Mutation pass: 24/24 caught, after removing two redundant guards whose mutants were equivalent. Not in CI (team decision, 3 Oct 2026).
 
 ### O35.4 · Independent deployment and drill
 - Owner: OA
