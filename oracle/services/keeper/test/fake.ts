@@ -1,10 +1,10 @@
 // An in-memory chain for the keeper's unit tests. Each market has a Resolution; a "bump" job (requestResolution)
 // increments requestCount up to a cap, as a stand-in for any state-changing call. Sent transactions sit in a
 // mempool until `mine()`, so tests control when a send becomes visible (Monad executes asynchronously).
-import type { GasTable } from '@eros-oracle/oracle-sdk'
+import { type GasTable, loadGas } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { keccak256, toHex } from 'viem'
-import type { Chain, Job, Planner, ReceiptStatus, Resolution } from '../src/types'
+import type { AssertionStatus, Chain, Job, MarketInfo, Planner, ReceiptStatus, Resolution } from '../src/types'
 
 export const ZERO32 = `0x${'00'.repeat(32)}` as Hex
 export const ZERO_ADDR = `0x${'00'.repeat(20)}` as Hex
@@ -41,7 +41,10 @@ export function resolution(over: Partial<Resolution> = {}): Resolution {
   }
 }
 
-export const GAS: GasTable = { calls: { requestResolution: { limit: 120000 } } }
+export const INFO: MarketInfo = { tau: 1000n, hasFeed: true, bufferSecs: 60n, l1TimeoutSecs: 300n, l2DeadlineSecs: 600n, earlyTtlSecs: 600n }
+
+/** The real gas.json, so planners' gas keys are checked against what was measured. */
+export const GAS: GasTable = loadGas()
 
 /** Plans one bump while requestCount is below `cap`. */
 export const bumpPlanner = (cap = 1, gasKey = 'requestResolution'): Planner => (m) =>
@@ -61,6 +64,14 @@ export class FakeChain implements Chain {
   revertSim = new Set<Hex>()
   failSend = 0 // the next n sends throw
   failRead = new Set<Hex>()
+  info: MarketInfo = INFO
+  infoReads = 0
+  status: AssertionStatus = { exists: true, disputed: false, settled: false, truthful: false, expiresAt: 0n }
+  ledger = 10_000_000_000n
+  bond = 2_000_000n
+  minInterval = 60n
+  /** Results simulate() returns per function, overriding the bump logic (e.g. a FinalizeStatus). */
+  simResult = new Map<string, unknown>()
   private nonce = 0
 
   constructor(ids: Hex[] = [id(1)]) {
@@ -72,6 +83,11 @@ export class FakeChain implements Chain {
     return {
       now: () => this.now(),
       getResolution: (i) => this.getResolution(i),
+      marketInfo: (i) => this.marketInfo(i),
+      globalsMinRequestIntervalSecs: (v) => this.globalsMinRequestIntervalSecs(v),
+      assertionStatus: (venue, a) => this.assertionStatus(venue, a),
+      assertionLedger: () => this.assertionLedger(),
+      bondFor: (i) => this.bondFor(i),
       simulate: (j) => this.simulate(j),
       send: (j, g) => this.sendFrom(from, j, g),
       receiptStatus: (h) => this.receiptStatus(h),
@@ -87,8 +103,25 @@ export class FakeChain implements Chain {
     if (!r) throw new Error(`no market ${i}`)
     return { ...r }
   }
+  async marketInfo(_i: Hex) {
+    this.infoReads++
+    return this.info
+  }
+  async globalsMinRequestIntervalSecs(_v: number) {
+    return this.minInterval
+  }
+  async assertionStatus(_venue: Hex, _a: Hex) {
+    return this.status
+  }
+  async assertionLedger() {
+    return this.ledger
+  }
+  async bondFor(_i: Hex) {
+    return this.bond
+  }
   async simulate(j: Job) {
     if (this.revertSim.has(j.marketId)) throw new Error('execution reverted: NotDue()')
+    if (this.simResult.has(j.functionName)) return this.simResult.get(j.functionName)
     return this.markets.get(j.marketId)!.requestCount < this.cap // false = nothing would change
   }
   send(j: Job, gas: bigint) {

@@ -21,6 +21,8 @@ import {IOptimisticOracleV3} from "../../src/interfaces/IOptimisticOracleV3.sol"
 import {ResolutionOracle} from "../../src/ResolutionOracle.sol";
 import {MarketRegistry} from "../../src/MarketRegistry.sol";
 import {BondTreasury} from "../../src/BondTreasury.sol";
+import {KeeperRouter} from "../../src/KeeperRouter.sol";
+import {ResolutionEngineStub} from "../../src/testnet/ResolutionEngineStub.sol";
 import {UmaAdapter} from "../../src/venues/UmaAdapter.sol";
 import {ErosSandboxOracle} from "../../src/venues/ErosSandboxOracle.sol";
 import {StubMarketFactory} from "../../src/testnet/StubMarketFactory.sol";
@@ -97,6 +99,7 @@ contract OracleGasTest is RegistryFixture {
     IOptimisticOracleV3 internal oov3;
     MockKeystoneForwarderLite internal keystone;
     Noop internal noop;
+    KeeperRouter internal router;
     string internal gasJson;
 
     address internal guardian = makeAddr("guardian");
@@ -113,6 +116,11 @@ contract OracleGasTest is RegistryFixture {
     bytes32 internal mAssertSmall; // no feed, stub engine, default texts, Proposed (not asserted)
     bytes32 internal mFinalize; // no feed, stub engine, asserted on OOv3, liveness over
     bytes32 internal mFinalizeReal; // no feed, real engine, asserted on OOv3, liveness over
+    // Keeper calls (O31.2)
+    bytes32 internal mOpen; // no feed, halted at T: L2Pending
+    bytes32 internal mEarly; // feed, EarlyCheck since listing (early TTL over)
+    bytes32 internal mSync; // no feed, asserted at T and disputed on OOv3 (state still Proposed)
+    bytes32[3] internal mFinMore; // no feed, asserted, liveness over: finalizeMany with mFinalize
 
     function setUp() public {
         vm.chainId(10143);
@@ -157,8 +165,24 @@ contract OracleGasTest is RegistryFixture {
         mFinalize = _list("finalize", false, false, 0);
         mHaltReal = _list("halt-real", true, true, 0);
         mFinalizeReal = _list("finalize-real", false, true, 0);
+        router = new KeeperRouter(address(ro));
+        mOpen = _list("open", false, false, 0);
+        mEarly = _list("early", true, false, 0);
+        mSync = _list("sync", false, false, 0);
+        for (uint256 i; i < 3; ++i) {
+            mFinMore[i] = _list(string.concat("finalize-", vm.toString(i)), false, false, 0);
+        }
+        _toEarlyCheck(mEarly);
 
         vm.warp(T);
+        ro.haltScheduled(mOpen);
+        _toProposed(mSync);
+        assertTrue(ro.assertProposal(mSync));
+        _disputeOnVenue(mSync);
+        for (uint256 i; i < 3; ++i) {
+            _toProposed(mFinMore[i]);
+            assertTrue(ro.assertProposal(mFinMore[i]));
+        }
         ro.haltScheduled(mReport);
         _toProposed(mAssert);
         _toProposed(mAssertSmall);
@@ -290,6 +314,76 @@ contract OracleGasTest is RegistryFixture {
         _check("createMarketRealEngine", lister, address(reg), data, TX_LIMIT);
     }
 
+    // ------------------------------------------------------------------ keeper calls (O31.2, plan §9.1)
+    // No §6.9 budget exists for these: each is measured and checked against its gas.json limit only.
+
+    /// `requestResolution` on a feed market in L1Pending past T + buffer (emits the CRE log trigger).
+    function test_gas_requestResolution() public {
+        _checkLimit("requestResolution", address(ro), abi.encodeCall(ro.requestResolution, (mReport)));
+        assertEq(ro.getResolution(mReport).requestCount, 1);
+    }
+
+    /// `escalateToL2` once T + l1TimeoutSecs has passed.
+    function test_gas_escalateToL2() public {
+        _checkLimit("escalateToL2", address(ro), abi.encodeCall(ro.escalateToL2, (mReport)));
+        assertEq(uint8(ro.getResolution(mReport).state), uint8(RState.L2Pending));
+    }
+
+    /// `openAfterDeadline` once l2StartedAt + l2DeadlineSecs has passed.
+    function test_gas_openAfterDeadline() public {
+        vm.warp(T + 700);
+        _checkLimit("openAfterDeadline", address(ro), abi.encodeCall(ro.openAfterDeadline, (mOpen)));
+        assertEq(uint8(ro.getResolution(mOpen).state), uint8(RState.Open));
+    }
+
+    /// `expireEarly` once the early TTL has run out.
+    function test_gas_expireEarly() public {
+        _checkLimit("expireEarly", address(ro), abi.encodeCall(ro.expireEarly, (mEarly)));
+        assertEq(uint8(ro.getResolution(mEarly).state), uint8(RState.None));
+    }
+
+    /// `syncAssertion` after the live assertion was disputed on OOv3.
+    function test_gas_syncAssertion() public {
+        _checkLimit("syncAssertion", address(ro), abi.encodeCall(ro.syncAssertion, (mSync)));
+        assertEq(uint8(ro.getResolution(mSync).state), uint8(RState.Disputed));
+    }
+
+    /// `voidMarket` at voidDeadline on a market without an assertion.
+    function test_gas_voidMarket() public {
+        vm.warp(ro.getResolution(mOpen).voidDeadline);
+        _checkLimit("voidMarket", address(ro), abi.encodeCall(ro.voidMarket, (mOpen)));
+        assertEq(uint8(ro.getResolution(mOpen).state), uint8(RState.Final));
+    }
+
+    /// `voidMarket` at voidDeadline with a disputed, unresolved team assertion: the venue is read, the market
+    /// voided and the team bond written off (`markStuck`), the costliest void path.
+    function test_gas_voidMarket_stuck() public {
+        vm.warp(ro.getResolution(mSync).voidDeadline);
+        _checkLimit("voidMarketStuck", address(ro), abi.encodeCall(ro.voidMarket, (mSync)));
+        assertEq(uint8(ro.getResolution(mSync).state), uint8(RState.Final));
+    }
+
+    /// `KeeperRouter.finalizeMany` with one market (the router's own overhead over `finalizeMarket`).
+    function test_gas_finalizeMany_one() public {
+        bytes32[] memory ids = new bytes32[](1);
+        ids[0] = mFinalize;
+        _checkLimit("finalizeMany1", address(router), abi.encodeCall(router.finalizeMany, (ids)));
+        assertEq(uint8(ro.getResolution(mFinalize).state), uint8(RState.Final));
+    }
+
+    /// `KeeperRouter.finalizeMany` with four markets (the keeper's batch size).
+    function test_gas_finalizeMany_four() public {
+        bytes32[] memory ids = new bytes32[](4);
+        ids[0] = mFinalize;
+        for (uint256 i; i < 3; ++i) {
+            ids[i + 1] = mFinMore[i];
+        }
+        _checkLimit("finalizeMany4", address(router), abi.encodeCall(router.finalizeMany, (ids)));
+        for (uint256 i; i < 4; ++i) {
+            assertEq(uint8(ro.getResolution(ids[i]).state), uint8(RState.Final));
+        }
+    }
+
     // ------------------------------------------------------------------ measurement
 
     /// Measures the call, then checks it against `deployments/gas.json` (`.calls.<key>`): the transaction
@@ -310,6 +404,17 @@ contract OracleGasTest is RegistryFixture {
         emit log_named_uint(string.concat(key, " limit"), limit);
         assertLe(used, limit, string.concat(key, ": above its gas.json limit"));
         assertLe(execution, budget + excess, string.concat(key, ": above its section 6.9 budget"));
+    }
+
+    /// Measures a call that has no §6.9 budget and checks the transaction against its gas.json `limit`.
+    function _checkLimit(string memory key, address to, bytes memory data) internal {
+        uint256 used = _measure(address(this), to, data);
+        uint256 execution = used - _measure(address(this), address(noop), data);
+        uint256 limit = stdJson.readUint(gasJson, string.concat(".calls.", key, ".limit"));
+        emit log_named_uint(string.concat(key, " transaction"), used);
+        emit log_named_uint(string.concat(key, " execution"), execution);
+        emit log_named_uint(string.concat(key, " limit"), limit);
+        assertLe(used, limit, string.concat(key, ": above its gas.json limit"));
     }
 
     /// Execution gas of one engine call made by the oracle (its only authorized caller), on a snapshot
@@ -333,6 +438,7 @@ contract OracleGasTest is RegistryFixture {
         vm.cool(address(token));
         vm.cool(address(keystone));
         vm.cool(address(noop));
+        vm.cool(address(router));
         if (from != address(this)) vm.prank(from);
         uint256 before = gasleft();
         (bool ok, bytes memory ret) = to.call(data);
@@ -415,6 +521,26 @@ contract OracleGasTest is RegistryFixture {
         s[0] = Sig(members[0], _sign(memberKeys[0], d));
         s[1] = Sig(members[1], _sign(memberKeys[1], d));
         ro.submitReviewedProposal(id, q, URI, s);
+    }
+
+    /// The monitor puts the engine in reduce-only and asks for an early check (before T).
+    function _toEarlyCheck(bytes32 id) internal {
+        ResolutionEngineStub e = ResolutionEngineStub(reg.getMarketCore(id).engine);
+        vm.startPrank(reg.getMarketCore(id).monitor);
+        e.setMonitorRestricted(true);
+        ro.requestEarlyCheck(id);
+        vm.stopPrank();
+    }
+
+    /// A public disputer disputes the market's live assertion on OOv3 with its own bond.
+    function _disputeOnVenue(bytes32 id) internal {
+        Resolution memory r = ro.getResolution(id);
+        address disputer = makeAddr("disputer");
+        token.mint(disputer, r.bond);
+        vm.startPrank(disputer);
+        token.approve(address(oov3), r.bond);
+        oov3.disputeAssertion(r.assertionId, disputer);
+        vm.stopPrank();
     }
 
     function _report(bytes32 id) internal view returns (bytes memory) {

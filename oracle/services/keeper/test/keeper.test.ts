@@ -2,6 +2,7 @@
 // also covered: two instances racing, the eth_call and gas-limit gates, retries after a failed or lost send, and
 // isolation of one market's or one planner's failure.
 import { describe, expect, test } from 'bun:test'
+import { gasLimit } from '@eros-oracle/oracle-sdk'
 import { Keeper } from '../src/keeper'
 import { StaticSource } from '../src/sources'
 import type { Job, Planner } from '../src/types'
@@ -20,7 +21,7 @@ describe('duplicates', () => {
     expect(outcomes(await k.tick())).toEqual(['duplicate']) // not mined yet: same version, same key
     expect(outcomes(await k.tick())).toEqual(['duplicate'])
     expect(chain.sends).toHaveLength(1)
-    expect(chain.sends[0].gas).toBe(120000n) // the measured limit from gas.json, exactly
+    expect(chain.sends[0].gas).toBe(gasLimit(GAS, 'requestResolution')) // the measured limit from gas.json, exactly
   })
 
   test('the same job executed concurrently is sent once', async () => {
