@@ -51,7 +51,9 @@ abstract contract SettlementController is InvalidPrice {
     function _settlementPrice() internal view returns (bool ready, uint256 priceE18) {
         if (_finalOutcome == MathTypes.FinalOutcome.YES) return (true, 1e18);
         if (_finalOutcome == MathTypes.FinalOutcome.NO) return (true, 0);
-        if (_finalOutcome == MathTypes.FinalOutcome.INVALID && _invalidCaptured) return (true, _invalidPriceWad);
+        if (_finalOutcome == MathTypes.FinalOutcome.INVALID && _invalidCaptured) {
+            return (true, _invalidPriceWad);
+        }
         return (false, 0);
     }
 
@@ -84,7 +86,7 @@ abstract contract SettlementController is InvalidPrice {
         if (!_snapJob.done || !_payJob.done) revert PreparationIncomplete();
         FinishResult memory r = _acctFinishPreparation();
         (_recoveryRequired, _totalPayoutAtoms, _reserveContributionAtoms) =
-            (r.recoveryRequired, r.totalTraderPayoutAtoms, r.reserveContributionAtoms);
+        (r.recoveryRequired, r.totalTraderPayoutAtoms, r.reserveContributionAtoms);
         if (r.recoveryRequired || !r.claimsEnabled) {
             emit RecoveryRequired(_listing.marketId, _halt.snapshotId);
             return false;

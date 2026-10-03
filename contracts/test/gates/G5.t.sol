@@ -183,7 +183,9 @@ contract G5Test is CombinedBase {
         vm.warp(end + 30);
         if (state >= 1) e.beginRollover();
         if (state >= 2) e.rollPage(1);
-        if (state >= 3) while (!e.rollPage(1)) {}
+        if (state >= 3) {
+            while (!e.rollPage(1)) {}
+        }
         oracle.haltEarly();
         HaltView memory h = e.getHaltSnapshot();
         assertTrue(h.halted);

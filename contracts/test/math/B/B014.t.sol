@@ -10,7 +10,11 @@ import {MathTypes} from "../../../src/math/MathTypes.sol";
 import {RiskFixture} from "./B011.t.sol";
 
 contract B014Wrapper {
-    function accept(MathTypes.FinalOutcome a, MathTypes.FinalOutcome b) external pure returns (MathTypes.FinalOutcome, bool) {
+    function accept(MathTypes.FinalOutcome a, MathTypes.FinalOutcome b)
+        external
+        pure
+        returns (MathTypes.FinalOutcome, bool)
+    {
         return LC.acceptFinality(a, b);
     }
 
@@ -277,7 +281,8 @@ contract B014Test is Test {
     }
 
     function test_finality() public {
-        (MathTypes.FinalOutcome o, bool n) = LC.acceptFinality(MathTypes.FinalOutcome.UNSET, MathTypes.FinalOutcome.YES);
+        (MathTypes.FinalOutcome o, bool n) =
+            LC.acceptFinality(MathTypes.FinalOutcome.UNSET, MathTypes.FinalOutcome.YES);
         assertEq(uint8(o), uint8(MathTypes.FinalOutcome.YES));
         assertTrue(n);
         (o, n) = LC.acceptFinality(o, MathTypes.FinalOutcome.YES);
@@ -304,7 +309,8 @@ contract B014Test is Test {
             uint8(LC.ClaimsStatus.RECOVERY_REQUIRED)
         );
         assertEq(
-            uint8(LC.claimsStatus(MathTypes.FinalOutcome.YES, true, true, true, true)), uint8(LC.ClaimsStatus.CLAIMABLE)
+            uint8(LC.claimsStatus(MathTypes.FinalOutcome.YES, true, true, true, true)),
+            uint8(LC.ClaimsStatus.CLAIMABLE)
         );
         assertEq(
             uint8(LC.claimsStatus(MathTypes.FinalOutcome.UNSET, true, true, true, true)),

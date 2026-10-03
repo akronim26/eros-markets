@@ -213,7 +213,9 @@ library LifecycleMath {
         bool payoutComplete,
         bool liabilitiesCovered
     ) internal pure returns (ClaimsStatus) {
-        if (finality == MathTypes.FinalOutcome.UNSET) return ClaimsStatus.AWAITING_OUTCOME;
+        if (finality == MathTypes.FinalOutcome.UNSET) {
+            return ClaimsStatus.AWAITING_OUTCOME;
+        }
         if (!priceReady) return ClaimsStatus.ORACLE_FINAL_PRICE_PENDING;
         if (!snapshotComplete || !payoutComplete) return ClaimsStatus.ORACLE_FINAL_PREPARING;
         if (!liabilitiesCovered) return ClaimsStatus.RECOVERY_REQUIRED;

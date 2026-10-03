@@ -3,167 +3,176 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
+import {TraderIds} from "./BookHarness.sol";
+import {AdmissionMode, RejectCode} from "../src/math/RiskTypes.sol";
+import {MathTypes} from "../src/math/MathTypes.sol";
 
-// Four independent modules, each touching only its own part of Book, composed the way the
+// Three independent modules, each touching only its own part of Book, composed the way the
 // EventPerp core will be (spec §11.2: one contract composing Book, Clearing, Pricing, Markets...).
 // The logic inside is deliberately minimal; the point is that the seams compose.
 
-/// Markets / oracle (R4): owns market creation and the stage gate.
+/// Markets (R4): owns opening the book and its fill bound.
 abstract contract MarketsModule is Book {
+    function createMarket(uint8 maxFills_) external {
+        _initBook(maxFills_);
+    }
+}
+
+/// Clearing (R2): owns accounts, their trader ids and the stage gate, behind the risk hooks.
+/// Each matched pair posts both legs at the maker's price inside its own fill (risk spec §7.5).
+abstract contract ClearingModule is TraderIds {
     enum Stage {
         Open,
         ReduceOnly,
         Halted
     }
 
-    error MarketHalted();
-    error ReduceOnlyStage();
+    Stage public stage;
+    mapping(uint32 => int256) public position;
+    mapping(uint32 => int256) public cash; // -sum(lots x tick), USDC atoms
+    mapping(uint32 => mapping(bool => uint256)) public reserved;
+    uint256 public postings;
 
-    mapping(uint256 => Stage) public stageOf;
-
-    function createMarket(uint256 market, uint8 maxFills) external {
-        _initBook(market, maxFills);
+    function setStage(Stage s) external {
+        stage = s;
     }
-
-    function setStage(uint256 market, Stage s) external {
-        stageOf[market] = s;
-    }
-
-    function _admit(uint256 market, uint32, Place calldata p) internal view override {
-        Stage s = stageOf[market];
-        if (s == Stage.Halted) revert MarketHalted();
-        if (s == Stage.ReduceOnly && !p.reduceOnly) revert ReduceOnlyStage();
-    }
-}
-
-/// Clearing (R2): owns accounts. The taker is written once, from Book's totals.
-abstract contract ClearingModule is Book {
-    mapping(uint256 => mapping(uint32 => int256)) public position;
-    mapping(uint256 => mapping(uint32 => int256)) public cash; // -sum(size x tick), 0.001 USDC
-    mapping(uint256 => mapping(uint32 => mapping(bool => uint256))) public reserved;
-    uint256 public takerWrites;
 
     function _signed(bool isBuy, uint256 x) private pure returns (int256) {
         return isBuy ? int256(x) : -int256(x);
     }
 
-    function _takerStart(Ctx memory, uint96 size) internal pure override returns (uint96) {
-        return size;
+    function _riskBeginAction() internal pure override returns (RiskSnapshot memory s) {}
+
+    function _riskTouchAccount(uint32, RiskSnapshot memory) internal pure override {}
+
+    function _riskPrepareTaker(OrderRequest memory req, RiskSnapshot memory, AdmissionMode)
+        internal
+        view
+        override
+        returns (TakerPermit memory p, RejectCode reason)
+    {
+        (p.trader, p.side, p.limitTick, p.reduceOnly) = (req.trader, req.side, req.limitTick, req.reduceOnly);
+        if (stage == Stage.Halted) return (p, RejectCode.HALTED);
+        if (stage == Stage.ReduceOnly && !req.reduceOnly) return (p, RejectCode.BAD_STAGE);
+        p.remainingLots = req.requestedLots;
     }
 
-    function _makerFill(Ctx memory c, uint32 maker, bool makerBuys, uint16 tick, uint96 size, uint8)
+    function _riskTryMatchedFill(
+        RiskSnapshot memory,
+        TakerPermit memory permit,
+        OrderView memory maker,
+        uint64 lots
+    ) internal override returns (StepResult memory r) {
+        bool makerBuys = maker.side == MathTypes.Side.BUY;
+        position[maker.owner] += _signed(makerBuys, lots);
+        position[permit.trader] -= _signed(makerBuys, lots);
+        cash[maker.owner] -= _signed(makerBuys, uint256(lots) * maker.tick);
+        cash[permit.trader] += _signed(makerBuys, uint256(lots) * maker.tick);
+        reserved[maker.owner][makerBuys] -= lots;
+        permit.remainingLots -= lots;
+        ++postings;
+        r.filledLots = lots;
+    }
+
+    function _riskAdmitRest(RiskSnapshot memory, uint32, MathTypes.Side, uint16, uint64, uint32, bool)
+        internal
+        pure
+        override
+        returns (EpochTag memory, uint64, uint256)
+    {}
+
+    function _riskConvertPermitToRest(RiskSnapshot memory, TakerPermit memory permit, uint64 lots, uint32)
         internal
         override
-        returns (uint96)
+        returns (EpochTag memory, uint64, uint256)
     {
-        position[c.market][maker] += _signed(makerBuys, size);
-        cash[c.market][maker] -= _signed(makerBuys, uint256(size) * tick);
-        return size;
+        permit.remainingLots -= lots;
+        reserved[permit.trader][permit.side == MathTypes.Side.BUY] += lots;
+        return (EpochTag(0, 0), 0, 0);
     }
 
-    function _takerFill(Ctx memory, bool, uint16, uint96) internal pure override {}
-
-    function _takerDone(Ctx memory c) internal override {
-        if (c.filled == 0) return;
-        position[c.market][c.taker] += _signed(c.takerBuys, c.filled);
-        cash[c.market][c.taker] -= _signed(c.takerBuys, c.cost);
-        ++takerWrites;
+    function _riskOnUnrest(
+        RiskSnapshot memory,
+        uint32 owner,
+        EpochTag memory,
+        MathTypes.Side side,
+        uint16,
+        uint64 lots,
+        uint256
+    ) internal override {
+        reserved[owner][side == MathTypes.Side.BUY] -= lots;
     }
 
-    function _onRest(uint256 market, uint32 trader, uint16, uint96 size, uint8 flags) internal override {
-        reserved[market][trader][flags & FLAG_BUY != 0] += size;
-    }
+    function _riskCancelAll(uint32) internal pure override returns (EpochTag memory) {}
 
-    function _onUnrest(uint256 market, uint32 trader, uint96 size, uint8 flags) internal override {
-        reserved[market][trader][flags & FLAG_BUY != 0] -= size;
-    }
+    function _riskFinishTaker(RiskSnapshot memory, TakerPermit memory) internal pure override {}
 }
 
 /// Pricing (R3): reads the touch with a minimum-depth filter; a thin level counts as missing.
 abstract contract PricingModule is Book {
     uint96 public constant D_MIN = 250;
 
-    function filteredTouch(uint256 market) external view returns (uint16 bid, uint16 ask) {
-        (uint16 b, uint96 bs, uint16 a, uint96 as_) = _touch(market);
+    function filteredTouch() external view returns (uint16 bid, uint16 ask) {
+        (uint16 b, uint96 bs, uint16 a, uint96 as_) = _touch();
         bid = bs >= D_MIN ? b : 0; // missing bid reads as 0
         ask = as_ >= D_MIN ? a : 1000; // missing ask reads as 1.000
     }
 }
 
-/// Liquidation (R3): pulls an account's resting orders before taking over its position.
-abstract contract LiquidationModule is Book {
-    function pullOrders(uint256 market, uint32[] calldata ids) external returns (uint256 cancelled) {
-        for (uint256 i; i < ids.length; ++i) {
-            if (_forceCancel(market, ids[i], CancelReason.RISK)) ++cancelled;
-        }
-    }
-}
-
-contract ComposedCore is MarketsModule, ClearingModule, PricingModule, LiquidationModule {}
+contract ComposedCore is MarketsModule, ClearingModule, PricingModule {}
 
 contract BookCompositionTest is Test {
     ComposedCore core;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 7;
     address alice = makeAddr("alice"); // trader 1
     address bob = makeAddr("bob"); // trader 2
 
     function setUp() public {
         core = new ComposedCore();
-        core.createMarket(M, MAX_FILLS);
+        core.createMarket(MAX_FILLS);
     }
 
-    function _place(address who, Book.OrderType kind, bool isBuy, uint16 tick, uint96 size)
+    function _place(address who, IBookRiskHooks.OrderKind kind, bool isBuy, uint16 tick, uint64 size)
         internal
         returns (uint32)
     {
         vm.prank(who);
-        return core.placeOrder(M, Book.Place(kind, isBuy, false, tick, size, 8));
+        return core.placeOrder(Book.Place(kind, isBuy, false, tick, size, 8, 0));
     }
 
-    function test_TradeSettlesThroughClearingWithOneTakerWrite() public {
-        _place(alice, Book.OrderType.POST_ONLY, false, 600, 300);
-        _place(alice, Book.OrderType.POST_ONLY, false, 610, 300);
-        _place(bob, Book.OrderType.IOC, true, 610, 400);
+    function test_EachFillPostsBothLegsAtTheMakerPrice() public {
+        _place(alice, IBookRiskHooks.OrderKind.POST_ONLY, false, 600, 300);
+        _place(alice, IBookRiskHooks.OrderKind.POST_ONLY, false, 610, 300);
+        _place(bob, IBookRiskHooks.OrderKind.IOC, true, 610, 400);
 
-        assertEq(core.position(M, 2), 400);
-        assertEq(core.position(M, 1), -400);
-        assertEq(core.cash(M, 2), -(300 * 600 + 100 * 610));
-        assertEq(core.cash(M, 1), 300 * 600 + 100 * 610, "zero-sum cash");
-        assertEq(core.takerWrites(), 1, "taker written once for two fills");
-        assertEq(core.reserved(M, 1, false), 200);
+        assertEq(core.position(2), 400);
+        assertEq(core.position(1), -400);
+        assertEq(core.cash(2), -(300 * 600 + 100 * 610));
+        assertEq(core.cash(1), 300 * 600 + 100 * 610, "zero-sum cash");
+        assertEq(core.postings(), 2, "one posting per matched pair");
+        assertEq(core.reserved(1, false), 200);
     }
 
-    function test_MarketsStageGatesTheBook() public {
-        _place(alice, Book.OrderType.POST_ONLY, false, 600, 300);
-        core.setStage(M, MarketsModule.Stage.Halted);
-        vm.prank(bob);
-        vm.expectRevert(MarketsModule.MarketHalted.selector);
-        core.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 600, 1, 8));
+    function test_ClearingStageGatesTheBook() public {
+        _place(alice, IBookRiskHooks.OrderKind.POST_ONLY, false, 600, 300);
+        core.setStage(ClearingModule.Stage.Halted);
+        vm.expectEmit(address(core));
+        emit Book.OrderRejected(2, RejectCode.HALTED);
+        assertEq(_place(bob, IBookRiskHooks.OrderKind.IOC, true, 600, 1), 0);
 
-        core.setStage(M, MarketsModule.Stage.ReduceOnly);
-        vm.prank(bob);
-        vm.expectRevert(MarketsModule.ReduceOnlyStage.selector);
-        core.placeOrder(M, Book.Place(Book.OrderType.IOC, true, false, 600, 1, 8));
+        core.setStage(ClearingModule.Stage.ReduceOnly);
+        vm.expectEmit(address(core));
+        emit Book.OrderRejected(2, RejectCode.BAD_STAGE);
+        assertEq(_place(bob, IBookRiskHooks.OrderKind.IOC, true, 600, 1), 0);
+        assertEq(core.position(2), 0);
     }
 
     function test_PricingSeesDepthFilteredTouch() public {
-        _place(alice, Book.OrderType.POST_ONLY, true, 480, 249); // too thin
-        _place(alice, Book.OrderType.POST_ONLY, false, 520, 250);
-        (uint16 bid, uint16 ask) = core.filteredTouch(M);
+        _place(alice, IBookRiskHooks.OrderKind.POST_ONLY, true, 480, 249); // too thin
+        _place(alice, IBookRiskHooks.OrderKind.POST_ONLY, false, 520, 250);
+        (uint16 bid, uint16 ask) = core.filteredTouch();
         assertEq(bid, 0);
         assertEq(ask, 520);
-    }
-
-    function test_LiquidationPullsRestingOrders() public {
-        uint32 a = _place(alice, Book.OrderType.POST_ONLY, true, 480, 10);
-        uint32 b = _place(alice, Book.OrderType.POST_ONLY, false, 520, 10);
-        uint32[] memory ids = new uint32[](3);
-        (ids[0], ids[1], ids[2]) = (a, b, a); // a repeated: second pull is a no-op
-        vm.expectEmit(address(core));
-        emit Book.OrderCancelled(M, a, 10, Book.CancelReason.RISK);
-        assertEq(core.pullOrders(M, ids), 2);
-        assertEq(core.reserved(M, 1, true), 0);
-        assertEq(core.reserved(M, 1, false), 0);
     }
 }

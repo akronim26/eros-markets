@@ -76,8 +76,9 @@ contract AdapterGasTest is Test {
             e.cancelAll(100 + i);
         }
         e.mockSetAccount(1, int256(1000 * USDC), 0);
-        IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(1, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 100, 0, false, 64);
+        IBookRiskHooks.OrderRequest memory r = IBookRiskHooks.OrderRequest(
+            1, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 100, 0, false, 64
+        );
         uint256 g0 = gasleft();
         MockBookAdapter.PlaceResult memory res = e.place(r);
         uint256 used = g0 - gasleft();

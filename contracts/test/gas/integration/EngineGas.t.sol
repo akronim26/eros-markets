@@ -31,7 +31,9 @@ contract EngineGasTest is CombinedBase {
     function _market() internal {
         _deploy(5, 1_000_000);
         uint256[] memory u = new uint256[](64);
-        for (uint256 i; i < 64; ++i) u[i] = i < 32 ? 120 : 400;
+        for (uint256 i; i < 64; ++i) {
+            u[i] = i < 32 ? 120 : 400;
+        }
         _traders(u);
         ReserveVault rv = e.reserveVault();
         vm.prank(LP);
@@ -64,7 +66,9 @@ contract EngineGasTest is CombinedBase {
         g = gasleft();
         e.cancelAll(65);
         _g("cancel_all", g - gasleft());
-        for (uint256 k; k < 4; ++k) e.rest(65, SELL, uint16(601 + k), 100);
+        for (uint256 k; k < 4; ++k) {
+            e.rest(65, SELL, uint16(601 + k), 100);
+        }
         g = gasleft();
         e.place(_ioc(64, BUY, 601, 100));
         _g("taker_ioc_1_fill", g - gasleft());

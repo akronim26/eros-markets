@@ -165,8 +165,9 @@ contract B031Test is Test {
 
     function test_forcedModeNotUserSelectable() public {
         build(10_000_000);
-        IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(1, MathTypes.Side.SELL, IBookRiskHooks.OrderKind.IOC, 500, 10, 0, true, 8);
+        IBookRiskHooks.OrderRequest memory r = IBookRiskHooks.OrderRequest(
+            1, MathTypes.Side.SELL, IBookRiskHooks.OrderKind.IOC, 500, 10, 0, true, 8
+        );
         vm.expectRevert(BookRiskAdapter.ForcedReductionNotUserSelectable.selector);
         e.forcedAsUser(r);
     }

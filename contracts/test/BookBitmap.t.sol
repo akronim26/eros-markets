@@ -8,23 +8,22 @@ import {BookHarness} from "./BookHarness.sol";
 contract BookBitmapTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 1;
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
     }
 
     function _best() internal view returns (uint16 bid, uint16 ask) {
-        return book.bestBidAsk(M);
+        return book.bestBidAsk();
     }
 
     function test_InitSetsSentinelsAndNullSlot() public view {
         for (uint256 w; w < 4; ++w) {
-            assertEq(book.bitWord(M, true, w), 1 << 255);
-            assertEq(book.bitWord(M, false, w), 1 << 255);
+            assertEq(book.bitWord(true, w), 1 << 255);
+            assertEq(book.bitWord(false, w), 1 << 255);
         }
-        assertEq(book.orderSlots(M), 1);
+        assertEq(book.orderSlots(), 1);
     }
 
     function test_EmptyBookHasNoBestPrices() public view {
@@ -35,61 +34,62 @@ contract BookBitmapTest is Test {
 
     function test_RevertWhen_MarketCreatedTwice() public {
         vm.expectRevert(Book.MarketExists.selector);
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
     }
 
-    function test_RevertWhen_MarketUnknown() public {
+    function test_RevertWhen_BookNotOpened() public {
+        BookHarness fresh = new BookHarness();
         vm.expectRevert(Book.NoMarket.selector);
-        book.bestBidAsk(2);
+        fresh.bestBidAsk();
     }
 
     function test_BoundaryTicksMapToExpectedWordAndBit() public {
         uint16[8] memory ticks = [uint16(1), 250, 251, 500, 501, 750, 751, 999];
         for (uint256 i; i < ticks.length; ++i) {
             uint16 k = ticks[i];
-            book.setBit(M, true, k);
+            book.setBit(true, k);
             uint256 w = (k - 1) / 250;
-            assertEq(book.bitWord(M, true, w), (1 << 255) | (1 << ((k - 1) % 250)), "word");
+            assertEq(book.bitWord(true, w), (1 << 255) | (1 << ((k - 1) % 250)), "word");
             (uint16 bid,) = _best();
             assertEq(bid, k, "bid");
-            book.clearBit(M, true, k);
-            assertEq(book.bitWord(M, true, w), 1 << 255, "cleared");
+            book.clearBit(true, k);
+            assertEq(book.bitWord(true, w), 1 << 255, "cleared");
         }
     }
 
     function test_BestBidIsHighestAndBestAskIsLowest() public {
-        book.setBit(M, true, 1);
-        book.setBit(M, true, 251);
-        book.setBit(M, true, 499);
-        book.setBit(M, false, 999);
-        book.setBit(M, false, 750);
-        book.setBit(M, false, 501);
+        book.setBit(true, 1);
+        book.setBit(true, 251);
+        book.setBit(true, 499);
+        book.setBit(false, 999);
+        book.setBit(false, 750);
+        book.setBit(false, 501);
         (uint16 bid, uint16 ask) = _best();
         assertEq(bid, 499);
         assertEq(ask, 501);
     }
 
     function test_ExtremeTicks() public {
-        book.setBit(M, true, 999);
-        book.setBit(M, false, 1);
+        book.setBit(true, 999);
+        book.setBit(false, 1);
         (uint16 bid, uint16 ask) = _best();
         assertEq(bid, 999);
         assertEq(ask, 1);
     }
 
     function test_SentinelNeverReturnedAfterClear() public {
-        book.setBit(M, false, 250);
-        book.clearBit(M, false, 250);
-        book.setBit(M, true, 751);
-        book.clearBit(M, true, 751);
+        book.setBit(false, 250);
+        book.clearBit(false, 250);
+        book.setBit(true, 751);
+        book.clearBit(true, 751);
         (uint16 bid, uint16 ask) = _best();
         assertEq(bid, 0);
         assertEq(ask, 0);
-        assertEq(book.bitWord(M, false, 0), 1 << 255);
+        assertEq(book.bitWord(false, 0), 1 << 255);
     }
 
     function test_SidesAreIndependent() public {
-        book.setBit(M, true, 400);
+        book.setBit(true, 400);
         (uint16 bid, uint16 ask) = _best();
         assertEq(bid, 400);
         assertEq(ask, 0);
@@ -101,7 +101,7 @@ contract BookBitmapTest is Test {
         bool[1000] memory asks;
         for (uint256 i; i < raw.length; ++i) {
             uint16 k = uint16(bound(raw[i], 1, 999));
-            book.setBit(M, isBuy[i], k);
+            book.setBit(isBuy[i], k);
             if (isBuy[i]) bids[k] = true;
             else asks[k] = true;
         }
@@ -115,8 +115,8 @@ contract BookBitmapTest is Test {
         assertEq(bid, refBid);
         assertEq(ask, refAsk);
         for (uint256 w; w < 4; ++w) {
-            assertTrue(book.bitWord(M, true, w) & (1 << 255) != 0);
-            assertTrue(book.bitWord(M, false, w) & (1 << 255) != 0);
+            assertTrue(book.bitWord(true, w) & (1 << 255) != 0);
+            assertTrue(book.bitWord(false, w) & (1 << 255) != 0);
         }
     }
 }

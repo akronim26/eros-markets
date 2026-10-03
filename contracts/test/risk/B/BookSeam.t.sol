@@ -385,7 +385,8 @@ abstract contract BookSeamCases is Test {
     // Row 27
     function test_row27_packedSizeRange() public {
         e = build(5);
-        MockBookAdapter.PlaceResult memory r = e.place(req(1, MathTypes.Side.BUY, 600, uint64(type(uint32).max) + 1, 8));
+        MockBookAdapter.PlaceResult memory r =
+            e.place(req(1, MathTypes.Side.BUY, 600, uint64(type(uint32).max) + 1, 8));
         assertEq(uint8(r.rejection), uint8(RejectCode.INVALID_PRICE_OR_SIZE));
     }
 
