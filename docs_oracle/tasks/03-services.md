@@ -41,11 +41,12 @@ Plan §13: owner OB · 1.5 PD · depends OG1 · acceptance: mirrors match Solidi
 - Depends: O30.2
 - Plan: §9, §12.9, ADJ-16
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/packages/oracle-sdk/src/claim.ts, oracle/vectors/claim.json, oracle/test/vectors/ClaimVectors.t.sol
 - Build: A Foundry test writes `vectors/claim.json` (template, inputs, rendered bytes) from `renderClaim`; the TS mirror renders the same bytes. `oracle-cli` switches its claim preview to the mirror.
 - Done when: every claim vector matches byte for byte.
 - Check: cd oracle/packages/oracle-sdk && bun test
+- Notes: `test/vectors/ClaimVectors.t.sol` renders 27 cases through `ClaimRenderer` and compares the JSON with `vectors/claim.json` byte for byte (stale file fails; `WRITE_CLAIM_VECTORS=true forge test --mc ClaimVectorsTest` regenerates it; foundry.toml grants read-write on that one file). Each vector: template, fields, Layer 1 URL and value hash (evidence = `l1Evidence` when set), rendered bytes as hex, `worstCaseLength`, error. Cases: the example template for an L1 YES, URI NO and INVALID; UTF-8 multibyte and JSON-escaped text (tab, quotes, backslash, CR LF, a control byte); reordered and adjacent tokens; no TAU_UNIX and TAU_UNIX at the end; literal braces around tokens; tau at 0, leap days (2000, 2028), 9999-12-31 and uint64 max with a uint256-max chain id; leading-zero ids; empty strings; hex-looking text ("0xdeadbeef"); a 256-byte evidence URI; a long L1 URL that drives the bound; and InvalidTemplate for a missing, duplicated or unknown token, TAU_UNIX twice, a triple brace, trailing `{{`, a truncated token and InvalidTemplate winning over NoOutcome, plus NoOutcome. Found while building: `worstCaseLength` reverts only on a `{{` that is not a token, not on bad counts (mirrored). `oracle-sdk/src/claim.ts` mirrors `render`, `isValidTemplate`, `worstCaseLength`, `l1Evidence` and the UTC date (the civil-from-days algorithm in bigint) on UTF-8 bytes; text is encoded with `stringToBytes`, since viem's `toBytes` would decode a "0x…" question as hex. 28 tests (one per vector, coverage of the file, `utc` against the JS calendar); 13/13 non-equivalent mutations caught (3 equivalent ones noted: outcome branch order inside the range check, hex32 of a full hash, the JS bounds check). `oracle-cli list` now renders `claim.txt` with the mirror; `forge/RenderClaim.s.sol` and `renderClaim` in `forge.ts` are removed (ADJ-16 closed). SDK 54 tests, CLI 35 tests, both also with Foundry 1.8.3.
 
 ## O31 · Keeper
 Plan §13: owner OB · 2.5 PD · depends O30 · acceptance: every job idempotent; anvil fork scenario tests.

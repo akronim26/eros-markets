@@ -1,6 +1,5 @@
-// The Foundry side of `oracle-cli list`: the claim preview through ClaimRenderer (ADJ-16) and the createMarket
-// dry-run (forge/CheckPack.s.sol). Both run `forge script` in the oracle root without an RPC; nothing is sent.
-import { decodeAbiParameters, encodeAbiParameters, type Hex, parseAbiParameters } from 'viem'
+// The Foundry side of `oracle-cli list`: the createMarket dry-run (forge/CheckPack.s.sol), run with `forge script`
+// in the oracle root without an RPC; nothing is sent. The claim preview uses oracle-sdk's ClaimRenderer mirror (O30.3).
 
 export const ORACLE_ROOT = new URL('../../../', import.meta.url).pathname
 const FORGE_DIR = 'packages/oracle-cli/forge'
@@ -27,31 +26,6 @@ function failure(out: string): string {
   const failed = lines.find((l) => l.includes('script failed:'))
   if (failed) return failed.slice(failed.indexOf('script failed:') + 'script failed:'.length).trim()
   return lines.filter((l) => l.startsWith('Error')).pop() ?? 'forge script failed'
-}
-
-export type ClaimFields = {
-  marketId: Hex
-  chainId: bigint
-  oracle: Hex
-  question: string
-  rules: string
-  tau: bigint
-  outcome: number // Outcome: 1 YES, 2 NO, 3 INVALID
-  evidenceHash: Hex
-}
-
-/** Renders `template` with ClaimRenderer, with the Layer 1 evidence text for `valueHash` and `l1Url`. */
-export function renderClaim(template: string, f: ClaimFields, l1Url: string, valueHash: Hex): { claim: Uint8Array; worstCase: bigint } {
-  const args = encodeAbiParameters(
-    parseAbiParameters('string, (bytes32,uint256,address,string,string,uint64,uint8,string,bytes32), string, bytes32'),
-    [template, [f.marketId, f.chainId, f.oracle, f.question, f.rules, f.tau, f.outcome, '', f.evidenceHash], l1Url, valueHash],
-  )
-  const r = forge([`${FORGE_DIR}/RenderClaim.s.sol`, '--tc', 'RenderClaim', '--sig', 'run(bytes)', args, '--json'])
-  const line = r.out.split('\n').find((l) => l.startsWith('{') && l.includes('"returned"'))
-  if (r.code !== 0 || !line) throw new ForgeError(`claim render failed: ${failure(r.out)}`, r.out)
-  const returned = JSON.parse(line).returned as Hex
-  const [claim, worstCase] = decodeAbiParameters(parseAbiParameters('bytes, uint256'), returned)
-  return { claim: Buffer.from(claim.slice(2), 'hex'), worstCase }
 }
 
 export type CheckOptions = { params: string; now?: bigint; providers?: string[]; minBond?: bigint }

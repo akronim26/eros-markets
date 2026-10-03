@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      # oracle-cli's tests render claims and dry-run createMarket with `forge script` (O22.2)
+      # oracle-cli's tests dry-run createMarket with `forge script` (O22.2); claims render through oracle-sdk (O30.3)
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: v1.8.3
