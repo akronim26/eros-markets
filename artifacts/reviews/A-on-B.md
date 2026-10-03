@@ -100,6 +100,43 @@ integration tests (7), and new A-I01/B-D02 review tests (8), all passing on forg
 1.8.3, solc 0.8.30, Prague, optimizer 200, risk profile. Full-suite and gate results
 are recorded after merge validation, not inferred from this focused run.
 
+## Addendum: reviewed main reconciliation and real book
+
+Reviewed production merge: `13ca730150b42b7164c6fb5027d39ee2862e7eca` (main parent
+`a114d06a1cebdf107c47d75947b114b3dd94b60e`). Regression/source tip:
+`96cf262` (full SHA in the JSON record). The human authorized main into integration/risk,
+not the reverse. A reviewed the incoming book/risk delta and explicit resolutions;
+this is dependency/seam review, not an independent security audit of the CLOB.
+
+- Canonical type migration preserves enum ordinals/units and avoids restoring duplicate types.
+- `_snapAt` computes the same endpoints, mark equity and size-dependent MM as both prior helpers.
+  The stronger reviewed voluntary reduction predicate remains; duplicate main checks are removed.
+- Main's `e643b4c` rechecks health after pairing and skips book closure when the remainder is
+  healthy. A real-ledger regression creates two eligible opposing positions through trades at
+  different entry prices and verifies the pair restores health without using book liquidity.
+- Projected release balances, concentration-reduction exceptions, reservation consumption before
+  paired posting, and actually charged fee reporting remain intact. A's fee/funding/premium/vault
+  modules have no whitespace-insensitive delta in this merge.
+- All 17 `RealBookIntegration.t.sol` tests pass with actual Book, A accounting/custody and B risk.
+  They cover owner/registry identity, fills and fees, exact cancellation, stale epochs and slot
+  reuse, unsafe reductions, actual forced IOC/keeper posting, atomic rollback and settled claims.
+  Feed/oracle/token/listing inputs and the deployment adapter are explicitly test fixtures.
+
+**Open RB-I01 (integration liveness):** an authorized first fill increments A's position version
+but leaves the active reduce-only permit at its old version. Three tests characterize safe but
+incomplete multi-maker voluntary/forced reductions and an immediately stale LIMIT remainder.
+No guard was removed and no repair is self-approved. B/shared next turn must triage the intended
+semantics and throughput impact; detailed instructions are in
+`docs/requests/A-to-B-merge-followup.md`. Passing characterization tests do not close this item.
+
+The first real-book run had 16 passes and one invalid pair fixture: its proposed short partner
+was healthy and correctly skipped. The final fixture uses real trades to make both participants
+eligible; no production rule or expected pair-health-stop assertion was weakened.
+
+A043's refreshed hashes cover this reviewed source and all review regressions. Full-suite/gate
+results are in `artifacts/risk/merge-validation-2026-10-03.json`. G7 stays blocked for human
+acceptance, and B's earlier recommendation does not certify this later merge or a future repair.
+
 ## Reproduction
 
 Use Foundry 1.8.3 as documented in `docs/merge/toolchain-reproduction.md`.
