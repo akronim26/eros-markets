@@ -261,11 +261,12 @@ Plan §13: owner OB · 2.5 PD · depends O30 · acceptance: E2/E3 committee step
 - Depends: O34.3
 - Plan: §8.4, E2, E3
 - Cut: partial (CLI flow only)
-- Status: todo
+- Status: blocked
 - Files: docs_oracle/evidence/O34/
 - Build: Run the committee steps of E2 and E3 on testnet with the three committee keys.
 - Done when: both reviewed proposals are accepted on testnet.
 - Check: manual: tx hashes of both accepted ReviewedProposals in docs_oracle/evidence/O34/
+- Notes: Waits for the testnet deployment (X04), which needs the team's go-ahead; nothing is deployed. The committee steps are built and pass on a local deploy (O34.2, O34.3). On testnet: `bun run console` with the three committee keys from `testnet-keys.env` (ADJ-38) on the E2 and E3 markets.
 
 ## O35 · Watchdog
 Plan §13: owner OA · 3 PD · depends O30, O20 · acceptance: wrong-proposal drill disputes inside liveness.
@@ -313,13 +314,14 @@ Plan §13: owner OA · 3 PD · depends O30, O20 · acceptance: wrong-proposal dr
 - Owner: OA
 - PD: 0.75
 - Depends: O35.3
-- Plan: §9.2, §12.7
+- Plan: §9.2, §12.7, ADJ-44
 - Cut: no
-- Status: todo
+- Status: blocked
 - Files: docs_oracle/evidence/O35/
 - Build: Deploy on a separate cloud account with its own RPC, API keys, KMS key and model provider; run a wrong-proposal drill on testnet.
 - Done when: the drill's wrong proposal is disputed inside liveness.
 - Check: manual: drill tx hashes (proposal, dispute) in docs_oracle/evidence/O35/
+- Notes: Waits for the testnet deployment (X04), which needs the team's go-ahead; nothing is deployed. The separate cloud account, KMS key and own provider are out of hackathon scope (ADJ-44): the watchdog runs as its own process with its own key and RPC setting (`bun src/main.ts`). The drill market needs L1 liveness above the 10-minute margin (ADJ-44). The anvil drill passes (O35.3).
 
 ## O36 · Alerts
 Plan §13: owner OB · 1 PD · depends O31 · acceptance: each alert fired once in a drill.
