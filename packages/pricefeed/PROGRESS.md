@@ -823,7 +823,7 @@ outage receipt reconciliation. A new post-simulation headroom test and complete
 package verification are in progress. Monad operational adapters, full lifecycle,
 fee replacement/cancellation and production acceptance remain unfinished.
 
-## Pending campaign — real-source durable pipeline and journal restart (PF016/PF020/PF021)
+## Live-source campaign — durable pipeline and journal restart (PF016/PF020/PF021)
 
 Date: 2026-10-04. Observed HEAD:
 `06721884e31668affe0c5f669d269a42141dd11f`, committed by the user on
@@ -853,3 +853,127 @@ An unused-variable TypeScript error was fixed before the passing build/runs.
 Current `npm test` exited 0: 210 tests, zero failures/skips/cancellations/todo.
 The six-minute real-source run with restart at 180 seconds is IN PROGRESS;
 no full-window result or production readiness is claimed before it finishes.
+
+**Ten-second live campaigns completed.** The crypto run accepted 25 packets;
+its midway restart preserved 12 immutable packets and chain sequence advanced
+to 25. Independent full-window integration matched the real contract but only
+236 of 300 seconds were valid: the required-full-window command exited 1.
+Polymarket repeated a source timestamp until it was stale; unavailable samples
+were archived, never refreshed with receipt time. Retained report:
+`artifacts/pipeline/pipeline-1791058126551-8d2f22ef-a576-4dbc-b233-3d1874d4706f.json`.
+
+The separate politics run used the YES token for "Will Flávio Bolsonaro win
+the 2026 Brazilian presidential election?" (event 45915, market 601826).
+It accepted 35 packets; 17 immutable packets survived restart and acceptance
+advanced to sequence 35. Its strict final check exited 1 with 294/300 seconds
+of valid coverage. Report:
+`artifacts/pipeline/pipeline-1791058598817-15fa26af-16b0-4f30-a2e2-019799de5efe.json`.
+These are distinct configured demo markets, not a fallback price substitution.
+
+**Evidence hardening.** Each new run now retains a uniquely named report as well
+as latest pointers, preventing later runs from replacing its evidence. Final
+TWAP is checked at a named, ordinary final local block mined at the real clock;
+quiet-chain evaluation cannot hide a current gap. Packet/receipt records are
+saved even if the strict coverage assertion fails. Added an offline
+`scripts/review-pipeline.py` checker: closed-file archive hashes, authentic source
+time, independently derived Fraction VWAP/depth/rounding, receipt bindings,
+unique nonces/increasing sequences and independent 30-second-carry/300-second
+segment integration. Both failed-coverage archives passed this independent
+review. Four malformed report cases were rejected (false full coverage, wrong
+archive hash, wrong accepted count and external-chain claim). This validates
+recorded local evidence, not provider timestamp semantics or production finality.
+Review output: `artifacts/pipeline/live-review.json`.
+
+**Diagnostic cadence investigation.** A separate repeat uses a temporary disabled
+politics config at five-second polling. N/spread/mapping/policies and authentic
+timestamps remain unchanged. This investigates a six-second coverage gap; it
+does not select production Q07 cadence or weaken full-coverage requirements.
+The six-minute repeat and its 180-second journal restart are IN PROGRESS.
+README and the staged PF audit now distinguish the implemented local path from
+unfinished production adapters/lifecycle/acceptance. Wire/event-ABI and all
+144 independent reference vectors passed; external-chain transactions remain zero.
+
+## Commit 7d95587 — initial live journal restart checks (PF016-PF021)
+
+Full hash: `7d95587da17f2cc3f7084d45f04de7afc6fe1c4f`.
+Committed by the user: 2026-10-04 01:39:52 +05:30.
+Message: `test: add live pricefeed journal restart checks`.
+
+This commit contains the optional journal restart/full-window check and the
+initial preflight/smoke evidence, plus the preceding simulation/headroom/isolation
+fixes. It was detected during the longer campaigns. Later six-minute reports,
+independent checker, unique report retention and final block-labeled evaluation
+are follow-up work and are not attributed to that commit.
+
+## Pending follow-up — live coverage evidence and independent reconstruction
+
+Base: `7d95587da17f2cc3f7084d45f04de7afc6fe1c4f`.
+Suggested message: `test: record live pricefeed coverage and independent replay (PF020-PF021)`.
+The five-second diagnostic repeat is still running. Its result, exact coverage,
+archive hashes and restart verification will be recorded after completion.
+
+**Final real-source result — PASS.** The five-second politics repeat exited 0
+after 360,134 ms of actual polling time. It accepted 72 signed observations on
+the owned local engine, with no source-gap/invalid result during this run.
+The source archive contains 73 COLLECTING samples including the initial probe.
+The actual YES question was "Will Flávio Bolsonaro win the 2026 Brazilian
+presidential election?"; event 45915, market 601826. This is an explicitly
+disabled demo mapping, not a production listing approval.
+
+The 180-second restart reopened all four journals and reconstructed the worker,
+signer, relay and pipeline. All 36 pre-restart packet/digest/signature/raw
+transaction/nonce records stayed unchanged; source-state acceptance advanced
+from sequence 36 to 72. Unique transaction nonces, increasing sequences and
+nondecreasing original source milliseconds passed. The longest accepted source
+timestamp gap was 21,593 ms; sampled source ages ranged from 212 to 17,641 ms.
+Receiving/publishing/mining did not replace the source timestamp. This verifies
+graceful reconstruction; forced OS crashes and backup-restore drills remain
+separate work.
+
+The strict final engine view had **300/300 valid seconds**, with
+`twapWad=600060705566666666` (0.600060705566666666) and
+`integral=180018211670000000000`. Independent segment integration and the offline
+Python Fraction/raw-book review matched exactly. Evaluation block 74, timestamp
+1791059387, hash
+`0xe98eaaa13cbb907fbe8cc5fa6d92461787eda655dd0bdafa0973780d3422e550`.
+Pinned Forge/Anvil 1.8.3, solc 0.8.30, Node 24.21.0 and the package lockfile were
+used. No risk/CLOB/oracle/factory code was changed, no source/chain time warped,
+and external-chain transactions remained zero. The temporary owned chain was
+shut down by the runner after verification.
+
+**Retained evidence.** Successful immutable report:
+`artifacts/pipeline/pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039.json`.
+Latest pointers contain the same result. Report SHA-256:
+`25797feb07fb27eb047a5a21c184207fe87e76a5052041df810967198c1516f1`.
+Raw source/packet/signer/relay SQLite archives remain under
+`var/pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039`; these raw files
+are intentionally ignored by Git and must accompany an independent replay of
+the retained capture. Each closed-file hash is recorded in the report.
+`artifacts/pipeline/live-review.json` independently verifies all three live
+campaigns, including both unavailable windows; SHA-256:
+`e8429a31917de01e582835eaca6e32287563fe86f13bd24c17a2133d7f354940`.
+
+**Reproduce.** For the same diagnostic cadence, copy the disabled politics example
+to a local config and set only `poll.intervalMs` to 5000. The temporary config in
+this run was `var/politics-five-second.json`. Run:
+
+```bash
+PRICEFEED_FORGE=/tmp/eros-foundry-v1.8.3/forge PRICEFEED_ANVIL=/tmp/eros-foundry-v1.8.3/anvil PRICEFEED_SOLC=/home/mihir/.local/share/svm/0.8.30/solc-0.8.30 npm run demo:pipeline -- --source polymarket --config var/politics-five-second.json --duration-seconds 360 --restart-after-seconds 180 --require-full-window true
+python3 scripts/review-pipeline.py artifacts/pipeline/pipeline-1791058126551-8d2f22ef-a576-4dbc-b233-3d1874d4706f.json artifacts/pipeline/pipeline-1791058598817-15fa26af-16b0-4f30-a2e2-019799de5efe.json artifacts/pipeline/pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039.json
+```
+
+Run from this package with the pinned tools already installed. A later live run
+may have different prices/coverage; passing once does not guarantee availability.
+
+**Verification and remaining scope.** Current package suite: 210 passing tests,
+zero failures/skips/cancellations/todo; wire/event-ABI comparison and the 144
+Fraction vectors pass. Both failed coverage results and their exit-1 status are
+preserved; the five-second run alone passed the full-window gate. The offline
+checker passed all three archives and rejected the four malformed claims noted
+above. Diff whitespace and outside-package change checks passed. This completes
+the requested local real-data/full-window/graceful-restart campaign, not PF human
+acceptance or full pricefeed production release. Five seconds is measured demo
+evidence, not approved production cadence. Provider timestamp/quote semantics,
+canonical rules/mapping approval, calibrated N/spread, full lifecycle/24-hour
+recording, broader load/crash/restore/operations, production Monad/key/backend
+configuration and independent release acceptance remain open.

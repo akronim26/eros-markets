@@ -28,13 +28,16 @@ Fixture signatures use a public test-only key in a local test VM.
 
 Candidate rules manifests and durable packet/signing library mechanics now live
 in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and
-`src/local-test-signer.ts`. The builder recomputes a valid observation from raw
-book evidence and reviewed metadata. Packet/signature bytes remain immutable
+`src/local-test-signer.ts`. The builder recomputes observations from raw
+book evidence and reviewed metadata. A separately selected development failure
+policy emits fresh invalid-depth checkpoints with zero price/impacts and actual
+depth/time; unknown or stale source time remains unavailable. Packet/signature bytes remain immutable
 across retries; an independent signer journal detects a restored packet archive
 behind signing history. These entry points are restricted to local development,
 with disabled configs and the public fixture signer on chain 31337. They are not
-wired into the read-only CLI or enabled as production adapters. No transaction
-relay is supplied by these modules. See `docs/rules-hash-proposal.md` and
+wired into the read-only CLI or enabled as production adapters. `LocalPipeline`
+joins collection, durable preparation, signing and `LocalRelay`; `localRpcTransport`
+supplies the loopback-only adapter. See `docs/rules-hash-proposal.md` and
 `docs/risk-requirements-crosscheck.md` for the remaining policy boundaries.
 
 ## Live-data local demo
@@ -72,6 +75,39 @@ quote policy, and a hash of the local demo manifest. These are not Q02-Q10
 approvals or an approved Eros listing. The receiver demonstrates real ingress and
 index storage; it has no complete margin/funding/settlement engine, book or oracle.
 External-chain transactions remain zero. Operational admission is unchanged.
+
+## Durable pipeline and restart campaign
+
+The newer `demo:pipeline` runner exercises the actual packet/signer/relay journals
+and joined development pipeline against real ingress/store contracts on a fresh
+owned Anvil chain. Choose `--source polymarket` explicitly for real source data;
+the default is synthetic fixture data for controlled failures.
+
+```bash
+PRICEFEED_FORGE=/path/to/forge-1.8.3 PRICEFEED_SOLC=/path/to/solc-0.8.30 PRICEFEED_ANVIL=/path/to/anvil-1.8.3 npm run demo:pipeline -- --source polymarket --config config/crypto.example.json --duration-seconds 360 --restart-after-seconds 180 --require-full-window true
+```
+
+`--restart-after-seconds` closes/reopens all four journals and reconstructs every
+pipeline object while keeping the owned chain alive. It checks immutable bytes
+and resumed chain acceptance. This is a graceful in-process restart, not a forced
+OS-process crash or backup-restore drill. `--require-full-window true` fails if
+the final independently checked TWAP lacks genuine complete 300-second coverage.
+Running for six minutes alone does not guarantee coverage: source gaps, invalid
+books or repeated stale timestamps remain failures. Original timestamps and
+sequence reservations are preserved; no time acceleration or freshness rewrite
+is used. Reports under `artifacts/pipeline/` identify real versus synthetic source,
+receipts, restart results and archive hashes. Raw evidence stays in the reported
+ignored `var/pipeline-*` directory. Production admission remains closed.
+
+After the runner closes the archives, independently review a retained report:
+
+```bash
+python3 scripts/review-pipeline.py artifacts/pipeline/latest.json
+```
+
+This offline checker verifies archive hashes, original source times, prices and
+depths with Python Fraction, receipt bindings, ordering and the actual available
+or unavailable TWAP. It does not certify provider semantics or production finality.
 
 ## Risk output contract
 
@@ -164,13 +200,15 @@ separate Python virtual environment before regenerating it from this directory.
 The generator checks the retained evidence and fails if the demo has changed,
 requiring a review of the report narrative before regeneration.
 
-Q02-Q10 block dependent production behavior: impact/rounding/depth/fees, timestamp
-semantics, rules hash, units/quote, event equivalence, operating budget, invalid
-packet policy, environment/signer/relay/finality and release/calibration.
-Development packet/sequence/signing libraries and a local injected-transport
-nonce/receipt relay core are implemented and tested. Concrete RPC/key adapters,
-the integrated operational pipeline, invalid transitions and complete lifecycle
-recorder remain incomplete. The exact PF001–PF028 audit is in
+User-selected pricing/rounding/fees/depth and local invalid checkpoints are
+recorded decisions. Remaining production dependencies are provider timestamp
+semantics, canonical rules dossier, units/quote/precision, exact event equivalence,
+measured operating budgets, production invalid/lifecycle policy,
+environment/signer/relay/finality and release/calibration.
+The joined development pipeline and concrete loopback adapter are present.
+Operational RPC/key adapters, full lifecycle recording, broader recovery/load
+campaigns and reviewed production acceptance remain incomplete. The staged
+PF001–PF028 audit is in
 [`docs/plan-status.md`](docs/plan-status.md).
 No deployment or live transaction authority exists. See `PROGRESS.md` before
 continuing; update its pending entry before each manual user commit.

@@ -1,0 +1,80 @@
+[
+  {
+    "report": "artifacts/pipeline/pipeline-1791058126551-8d2f22ef-a576-4dbc-b233-3d1874d4706f.json",
+    "source": "polymarket",
+    "acceptedPackets": 25,
+    "archiveHashesVerified": true,
+    "authenticSourceTimesVerified": true,
+    "fractionPricesDepthVerified": true,
+    "receiptBindingsAndOrderingVerified": true,
+    "twap": {
+      "available": false,
+      "coveredSecs": "236",
+      "integral": "171966700000000000000",
+      "twapWad": "0"
+    },
+    "restart": {
+      "kind": "GRACEFUL_IN_PROCESS_JOURNAL_REOPEN",
+      "atMs": 1791058308108,
+      "resumedAtMs": 1791058308253,
+      "chainSequenceBefore": "12",
+      "preservedPackets": 12,
+      "immutableVerified": true,
+      "chainSequenceAfter": "25",
+      "verified": true
+    },
+    "productionApproved": false
+  },
+  {
+    "report": "artifacts/pipeline/pipeline-1791058598817-15fa26af-16b0-4f30-a2e2-019799de5efe.json",
+    "source": "polymarket",
+    "acceptedPackets": 35,
+    "archiveHashesVerified": true,
+    "authenticSourceTimesVerified": true,
+    "fractionPricesDepthVerified": true,
+    "receiptBindingsAndOrderingVerified": true,
+    "twap": {
+      "available": false,
+      "coveredSecs": "294",
+      "integral": "176998513445000000000",
+      "twapWad": "0"
+    },
+    "restart": {
+      "kind": "GRACEFUL_IN_PROCESS_JOURNAL_REOPEN",
+      "atMs": 1791058781022,
+      "resumedAtMs": 1791058781243,
+      "chainSequenceBefore": "17",
+      "preservedPackets": 17,
+      "immutableVerified": true,
+      "chainSequenceAfter": "35",
+      "verified": true
+    },
+    "productionApproved": false
+  },
+  {
+    "report": "artifacts/pipeline/pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039.json",
+    "source": "polymarket",
+    "acceptedPackets": 72,
+    "archiveHashesVerified": true,
+    "authenticSourceTimesVerified": true,
+    "fractionPricesDepthVerified": true,
+    "receiptBindingsAndOrderingVerified": true,
+    "twap": {
+      "available": true,
+      "coveredSecs": "300",
+      "integral": "180018211670000000000",
+      "twapWad": "600060705566666666"
+    },
+    "restart": {
+      "kind": "GRACEFUL_IN_PROCESS_JOURNAL_REOPEN",
+      "atMs": 1791059207823,
+      "resumedAtMs": 1791059208127,
+      "chainSequenceBefore": "36",
+      "preservedPackets": 36,
+      "immutableVerified": true,
+      "chainSequenceAfter": "72",
+      "verified": true
+    },
+    "productionApproved": false
+  }
+]
