@@ -991,8 +991,6 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IResolutionOracle {
         }
     }
 
-    /// @dev Calls `engine.halt()` (its revert bubbles up) and copies the snapshot; pins the active trust
-    ///      set and the current globals version. A snapshot that is not halted reverts `EngineCallFailed`.
     /// @dev Applies what the venue shows for the live assertion after a `trySettle` attempt.
     function _applyVenue(bytes32 id, Resolution storage r) internal returns (FinalizeStatus) {
         IAssertionVenue venue = IAssertionVenue(r.assertionVenue);
@@ -1076,6 +1074,8 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IResolutionOracle {
         t.releaseListing(id);
     }
 
+    /// @dev Calls `engine.halt()` (its revert bubbles up) and copies the snapshot; pins the active trust
+    ///      set and the current globals version. A snapshot that is not halted reverts `EngineCallFailed`.
     function _recordHalt(bytes32 id, Resolution storage r, MarketCore memory c) internal {
         uint32 setId = activeTrustSetId;
         if (setId == 0) revert IResolutionOracle.NoActiveTrustSet();
