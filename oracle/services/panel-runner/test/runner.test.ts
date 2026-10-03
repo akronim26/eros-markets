@@ -187,15 +187,19 @@ describe('runOnce', () => {
     expect(chain.simulated).toEqual([])
   })
 
-  test('a result that could auto-propose (validated category) is not sent: its gas is not measured yet', async () => {
+  test('a result that passes the auto gate (validated category) is sent with its own measured limit; without one, not sent', async () => {
     chain.validated = true
     labels = ['YES', 'YES', 'YES']
     deps.maps = [...MODELS, EXTRA].map((model) => ({ model, breakpoints: [[0, 0], [1, 1]] as [number, number][] }))
     chain.ai = { ...AI, calibratorHash: calibratorHash(deps.maps.slice(1).concat(deps.maps.slice(0, 1)).filter((m) => MODELS.includes(m.model)).sort((a, b) => MODELS.indexOf(a.model) - MODELS.indexOf(b.model))) }
     const r = (await runOnce(ID, deps))!
     expect(r.route).toBe('AutoPropose')
-    expect(r.skipped).toBe(`no gas.json limit for ${GAS_KEY_AUTO}`)
-    expect(chain.sent).toEqual([])
+    expect(r.sent).toBeDefined()
+    expect(chain.sent.map((x) => x.gas)).toEqual([420_000n]) // gas.json submitPanelResultAutoPropose (ADJ-47)
+    const { [GAS_KEY_AUTO]: _, ...calls } = deps.gas.calls
+    const r2 = (await runOnce(ID, { ...deps, gas: { ...deps.gas, calls } }))!
+    expect(r2.skipped).toBe(`no gas.json limit for ${GAS_KEY_AUTO}`)
+    expect(chain.sent).toHaveLength(1)
   })
 
   test('a market pinned to another model, prompt or calibrator: refused before any snapshot or model call', async () => {

@@ -7,6 +7,7 @@ import {
     Ledger,
     MarketInput,
     Outcome,
+    Path,
     Phase,
     PanelLabel,
     PanelResult,
@@ -126,6 +127,8 @@ contract OracleGasTest is RegistryFixture {
     bytes32 internal mReview; // no feed, halted at T, panel result accepted: Review
     bytes32 internal mEarlyReview; // feed, EarlyCheck then a confident panel: EarlyReview (before T)
     bytes32 internal mDispute; // no feed, asserted at T + 400 (live until T + 700)
+    bytes32 internal mAuto; // no feed, its category validated before the halt: L2Pending, the auto gate open
+    bytes32 internal constant AUTO_CATEGORY = keccak256("crypto-price");
 
     function setUp() public {
         vm.chainId(10143);
@@ -135,7 +138,7 @@ contract OracleGasTest is RegistryFixture {
         keystone = new MockKeystoneForwarderLite();
         noop = new Noop();
         gasJson = vm.readFile("deployments/gas.json");
-        seamFactory = new SeamFactory();
+        seamFactory = SeamFactory(deployCode("EngineHarness.sol:SeamFactory"));
         oov3 = _deployUma();
         address me = address(this);
         uint256 n = vm.getNonce(me);
@@ -148,8 +151,8 @@ contract OracleGasTest is RegistryFixture {
         reg = new MarketRegistry(oracleAddr, treasuryAddr, address(stubFactory), usdc, gov, lister);
         require(address(treasury) == treasuryAddr && address(ro) == oracleAddr && address(reg) == registryAddr);
         seamFactory.setRegistry(address(reg));
-        // UmaAdapter and KeeperRouter come from their artifacts: embedding their creation code would take this test
-        // contract past the 128 KiB code-size limit.
+        // SeamFactory (above), UmaAdapter and KeeperRouter come from their artifacts: embedding their creation code
+        // would take this test contract past the 128 KiB code-size limit.
         adapter =
             UmaAdapter(deployCode("UmaAdapter.sol:UmaAdapter", abi.encode(oov3, usdc, address(ro), address(treasury))));
 
@@ -185,12 +188,17 @@ contract OracleGasTest is RegistryFixture {
         mReview = _list("review", false, false, 0);
         mEarlyReview = _list("early-review", true, false, 0);
         mDispute = _list("dispute", false, false, 0);
+        mAuto = _list("auto", false, false, 0);
+        bytes32 autoGate = reg.getMarketCore(mAuto).gateHash;
+        vm.prank(gov); // before T: the gate needs validatedAt <= haltedAt (the scheduled time)
+        reg.setCategory(AUTO_CATEGORY, autoGate, 198, 150, true);
         _toEarlyCheck(mEarly);
         _toEarlyCheck(mEarlyReview);
         _submitPanelNow(mEarlyReview, Phase.EARLY);
 
         vm.warp(T);
         ro.haltScheduled(mOpen);
+        ro.haltScheduled(mAuto);
         _toProposed(mSync);
         assertTrue(ro.assertProposal(mSync));
         _disputeOnVenue(mSync);
@@ -448,6 +456,17 @@ contract OracleGasTest is RegistryFixture {
         assertEq(uint8(ro.getResolution(mEarly).state), uint8(RState.None));
     }
 
+    /// `submitPanelResult` on the auto-propose route (L2_AUTO): three identical YES labels above the market's θ_hi in
+    /// a category validated for its gateHash (ADJ-47), with a 256-byte evidence URI. Its own gas.json key: the runner
+    /// sends this route only with a measured limit.
+    function test_gas_submitPanelResult_autoPropose() public {
+        PanelResult memory p = _panel(mAuto, Phase.POST_T, [PanelLabel.YES, PanelLabel.YES, PanelLabel.YES]);
+        _checkLimit("submitPanelResultAutoPropose", address(ro), _submitPanel(mAuto, p));
+        Resolution memory r = ro.getResolution(mAuto);
+        assertEq(uint8(r.state), uint8(RState.Proposed));
+        assertEq(uint8(r.path), uint8(Path.L2_AUTO));
+    }
+
     /// `submitReviewedProposal` from Review with the whole committee signing (3 of 3, the most a
     /// 3-member committee can send) and a 256-byte evidence URI (O34.2).
     function test_gas_submitReviewedProposal_review() public {
@@ -608,6 +627,7 @@ contract OracleGasTest is RegistryFixture {
             reg.setFactory(address(seamFactory));
         }
         MarketInput memory m = _input(name, feed, rulesLen);
+        if (keccak256(bytes(name)) == keccak256("auto")) m.ai.categoryId = AUTO_CATEGORY; // validated alone
         id = m.marketId;
         vm.prank(lister);
         address engine = reg.createMarket(m, SeamFixture.pack(usdc, gov), abi.encode(OI));
