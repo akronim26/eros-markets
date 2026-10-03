@@ -4,3 +4,5 @@ var/
 artifacts/source-soak/raw/
 test/integration/out/
 test/integration/cache/
+test/demo/out/
+test/demo/cache/
