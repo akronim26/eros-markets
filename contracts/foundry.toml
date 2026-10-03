@@ -8,6 +8,10 @@ evm_version = "prague"
 optimizer = true
 optimizer_runs = 200
 remappings = ["solady/=lib/solady/src/"]
+# The target chain is Monad, whose code-size limit is 128 KiB (spec §11.1), not
+# Ethereum's 24 KiB (EIP-170). Every profile inherits this, so tests, `forge build
+# --sizes` and CI all check against the limit the contracts will actually face.
+code_size_limit = 131072
 
 [fuzz]
 runs = 1000

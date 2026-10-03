@@ -191,4 +191,46 @@ contract B024Test is TradeFixture {
         vm.expectRevert(MockBookAdapter.MockBookBadInput.selector);
         e.place(buy(1, 600, 1, 65, IBookRiskHooks.OrderKind.IOC));
     }
+
+    function sell(uint32 trader, uint16 limit, uint64 lots, bool reduceOnly)
+        internal
+        pure
+        returns (IBookRiskHooks.OrderRequest memory r)
+    {
+        r = IBookRiskHooks.OrderRequest(
+            trader, MathTypes.Side.SELL, IBookRiskHooks.OrderKind.IOC, limit, lots, 0, reduceOnly, 8
+        );
+    }
+
+    /// Audit F-02: a reduce-only taker fill must pass the spec §4.3 reduction predicate.
+    function test_reduceOnlyTakerCannotSellIntoNegativeEquity() public {
+        e.mockSetAccount(1, -int256(550 * USDC), 1_000_000); // long 1,000 claims, E +50 at 0.60
+        e.rest(2, MathTypes.Side.BUY, 1, 100_000, 0, false);
+        MockBookAdapter.PlaceResult memory r = e.place(sell(1, 1, 100_000, true));
+        // 100 claims at 0.001 would leave cash -549.9 and E -9.9 USDC
+        assertEq(r.filledLots, 0);
+        assertEq(e.mockAccount(1).lots, 1_000_000);
+        (, bool live) = e.mockOrder(1);
+        assertTrue(live, "valid maker kept on a taker stop");
+    }
+
+    /// Audit F-02, maker side: a resting reduce-only order is a voluntary reduction too.
+    function test_reduceOnlyMakerCannotSellIntoNegativeEquity() public {
+        e.mockSetAccount(5, -int256(550 * USDC), 1_000_000);
+        e.rest(5, MathTypes.Side.SELL, 1, 100_000, 0, true);
+        MockBookAdapter.PlaceResult memory r = e.place(buy(1, 1, 100_000, 8, IBookRiskHooks.OrderKind.IOC));
+        assertEq(r.filledLots, 0);
+        assertEq(e.mockAccount(5).lots, 1_000_000);
+        (, bool live) = e.mockOrder(1);
+        assertFalse(live, "maker pruned");
+    }
+
+    /// The same reduction at the mark keeps E = 50 and lowers MM, so it still fills.
+    function test_reduceOnlyAtMarkStillFills() public {
+        e.mockSetAccount(1, -int256(550 * USDC), 1_000_000);
+        e.rest(2, MathTypes.Side.BUY, 600, 100_000, 0, false);
+        MockBookAdapter.PlaceResult memory r = e.place(sell(1, 600, 100_000, true));
+        assertEq(r.filledLots, 100_000);
+        assertEq(e.mockAccount(1).cashQ, -int256(490 * USDC));
+    }
 }

@@ -23,7 +23,10 @@ contract CombinedEngine is RiskAccountingBridge, MockBookAdapter {
         IMarketConfig.Listing memory l,
         MarginMath.RiskParams memory p,
         uint256 premiumLoadWad
-    ) RiskStorage(vault, treasury_, l.scheduledT, false, l.fundingEnabled) RiskAccountingBridge(premiumLoadWad) {
+    )
+        RiskStorage(vault, treasury_, l.scheduledT, false, l.fundingEnabled)
+        RiskAccountingBridge(premiumLoadWad)
+    {
         _initMarket(l, p);
     }
 
@@ -42,7 +45,9 @@ contract CombinedEngine is RiskAccountingBridge, MockBookAdapter {
     }
 
     /// Index-only samples every `step` seconds (INVALID capture window after a halt).
-    function feedIndex(uint64 from, uint64 to, uint64 step, uint256 idx, uint64 gapFrom, uint64 gapTo) external {
+    function feedIndex(uint64 from, uint64 to, uint64 step, uint256 idx, uint64 gapFrom, uint64 gapTo)
+        external
+    {
         for (uint64 t = from; t <= to; t += step) {
             if (t > gapFrom && t < gapTo) continue;
             _onIndexObservation(t, idx, true);
@@ -115,9 +120,12 @@ contract CombinedEngineFault is CombinedEngine {
     uint256 public failAt;
     uint256 public posts;
 
-    constructor(CollateralVault vault, address treasury_, IMarketConfig.Listing memory l, MarginMath.RiskParams memory p)
-        CombinedEngine(vault, treasury_, l, p, 1e18)
-    {}
+    constructor(
+        CollateralVault vault,
+        address treasury_,
+        IMarketConfig.Listing memory l,
+        MarginMath.RiskParams memory p
+    ) CombinedEngine(vault, treasury_, l, p, 1e18) {}
 
     function setFailAt(uint256 k) external {
         (failAt, posts) = (k, 0);

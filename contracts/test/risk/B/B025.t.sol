@@ -192,7 +192,8 @@ contract B025Test is Test {
     }
 
     function test_widenedPermissionsReplace() public view {
-        OrderLifecycle.OrderTerms memory o = OrderLifecycle.OrderTerms(MathTypes.Side.SELL, 600, 10, 100, true);
+        OrderLifecycle.OrderTerms memory o =
+            OrderLifecycle.OrderTerms(MathTypes.Side.SELL, 600, 10, 100, true);
         assertEq(uint8(e.classify(o, OrderLifecycle.OrderTerms(MathTypes.Side.SELL, 600, 6, 100, true))), 0); // SIZE_DOWN
         assertEq(uint8(e.classify(o, OrderLifecycle.OrderTerms(MathTypes.Side.SELL, 600, 12, 100, true))), 1); // size up
         assertEq(uint8(e.classify(o, OrderLifecycle.OrderTerms(MathTypes.Side.SELL, 601, 6, 100, true))), 1); // new price

@@ -41,7 +41,9 @@ abstract contract RiskLiquidation is LiquidationBookAdapter {
         external
         returns (LiquidationResult memory r)
     {
-        if (maxLots == 0 || maxExaminations == 0 || maxExaminations > MAX_EXAMINED) revert BadWorkBudget();
+        if (maxLots == 0 || maxExaminations == 0 || maxExaminations > MAX_EXAMINED) {
+            revert BadWorkBudget();
+        }
         RiskSnapshot memory snap = _riskBeginAction();
         RiskContext memory c = _actionCtx;
         r.cutoff = snap.premiumCutoff;
@@ -62,13 +64,13 @@ abstract contract RiskLiquidation is LiquidationBookAdapter {
             r.pairedLots = pr.lots;
             budget -= pr.lots;
         }
-        r.result = budget == 0 ? _continuation(trader, c) : LM.Result.NEEDS_MORE_WORK;
-        if (budget != 0 && r.result != LM.Result.DONE) {
+        // A pair that restored health (or flattened the account) ends the call: spare budget
+        // never sells a healthy remainder.
+        r.result = r.pairedLots != 0 ? _continuation(trader, c) : LM.Result.NEEDS_MORE_WORK;
+        if (budget != 0 && r.result == LM.Result.NEEDS_MORE_WORK) {
             CloseOutcome memory o = _bookClose(trader, budget, maxExaminations, c, msg.sender);
             r.bookLots = o.closedLots;
             r.result = o.result;
-        } else if (r.pairedLots != 0) {
-            r.result = _continuation(trader, c);
         }
         if (r.result == LM.Result.TAKEOVER_AUTHORIZED) {
             // fresh mark equity reached <= 0 during the reduction: terminal takeover branch

@@ -117,10 +117,15 @@ contract ScriptedBook is MockBookAdapter {
         t = EpochTag(1, 1);
     }
 
-    function _riskOnUnrest(RiskSnapshot memory, uint32, EpochTag memory, MathTypes.Side, uint16, uint64 lots, uint256)
-        internal
-        override
-    {
+    function _riskOnUnrest(
+        RiskSnapshot memory,
+        uint32,
+        EpochTag memory,
+        MathTypes.Side,
+        uint16,
+        uint64 lots,
+        uint256
+    ) internal override {
         unrestCalls += 1;
         unrestLots += lots;
     }

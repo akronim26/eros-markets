@@ -44,9 +44,13 @@ abstract contract CombinedBase is Test {
         l.token = address(token);
         l.deploymentCapX = capX;
         T = l.scheduledT;
-        if (_variant == 1) e = new CombinedEngineFee(vault, TREASURY, l, RiskFixture.profile(capX, true), 1e15);
-        else if (_variant == 2) e = new CombinedEngineFault(vault, TREASURY, l, RiskFixture.profile(capX, true));
-        else e = new CombinedEngine(vault, TREASURY, l, RiskFixture.profile(capX, true), 1e18);
+        if (_variant == 1) {
+            e = new CombinedEngineFee(vault, TREASURY, l, RiskFixture.profile(capX, true), 1e15);
+        } else if (_variant == 2) {
+            e = new CombinedEngineFault(vault, TREASURY, l, RiskFixture.profile(capX, true));
+        } else {
+            e = new CombinedEngine(vault, TREASURY, l, RiskFixture.profile(capX, true), 1e18);
+        }
         vault.registerEngine(address(e));
         oracle.bind(e);
         if (seedUsdc != 0) _fund(LP, seedUsdc * 1e6, true);
@@ -68,7 +72,9 @@ abstract contract CombinedBase is Test {
 
     /// Register traders 1..n in order with the given USDC allocations.
     function _traders(uint256[] memory usdc) internal {
-        for (uint256 i; i < usdc.length; ++i) _fund(_who(uint32(i + 1)), usdc[i] * 1e6, false);
+        for (uint256 i; i < usdc.length; ++i) {
+            _fund(_who(uint32(i + 1)), usdc[i] * 1e6, false);
+        }
         for (uint256 i; i < usdc.length; ++i) {
             (uint32 id, address owner) = e.traderIdAt(i);
             assertEq(id, uint32(i + 1));
@@ -130,7 +136,11 @@ abstract contract CombinedBase is Test {
             "INV-02 ledger"
         );
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms(), "INV-03 custody");
-        assertEq((vault.marketAtoms(address(e)) * Q - vault.marketDebitQ(address(e))), e.allocationQ(), "market atoms");
+        assertEq(
+            (vault.marketAtoms(address(e)) * Q - vault.marketDebitQ(address(e))),
+            e.allocationQ(),
+            "market atoms"
+        );
         (int256 s0, int256 s1) = e.coverageSlacks();
         assertGe(s0, 0, "INV-04 NO");
         assertGe(s1, 0, "INV-04 YES");

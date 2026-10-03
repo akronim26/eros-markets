@@ -206,11 +206,8 @@ contract AuditSpecVectorsTest is Test {
     function testV16TakeoverSlackIdentity() public pure {
         C.Orders memory none;
         L.Value memory reserve = L.Value(0, 100_000_000_000e18);
-        L.Value[3] memory traders = [
-            L.Value(1_000_000, -480_000_000e18),
-            L.Value(0, 0),
-            L.Value(-1_000_000, 520_000_000e18)
-        ];
+        L.Value[3] memory traders =
+            [L.Value(1_000_000, -480_000_000e18), L.Value(0, 0), L.Value(-1_000_000, 520_000_000e18)];
         for (uint256 i; i < 3; i++) {
             (uint256 d0, uint256 d1) = C.deficits(traders[i], none);
             (int256 s0, int256 s1) = C.slacks(reserve, d0, d1, 0, 0);

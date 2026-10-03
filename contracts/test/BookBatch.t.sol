@@ -3,30 +3,30 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
 
 contract BookBatchTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 1;
     address mm = makeAddr("mm"); // trader 1
     address taker = makeAddr("taker"); // trader 2
 
-    Book.OrderType constant LIMIT = Book.OrderType.LIMIT;
-    Book.OrderType constant IOC = Book.OrderType.IOC;
-    Book.OrderType constant POST = Book.OrderType.POST_ONLY;
+    IBookRiskHooks.OrderKind constant LIMIT = IBookRiskHooks.OrderKind.LIMIT;
+    IBookRiskHooks.OrderKind constant IOC = IBookRiskHooks.OrderKind.IOC;
+    IBookRiskHooks.OrderKind constant POST = IBookRiskHooks.OrderKind.POST_ONLY;
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
     }
 
-    function _p(Book.OrderType kind, bool isBuy, uint16 tick, uint96 size)
+    function _p(IBookRiskHooks.OrderKind kind, bool isBuy, uint16 tick, uint64 size)
         internal
         pure
         returns (Book.Place memory)
     {
-        return Book.Place(kind, isBuy, false, tick, size, 8);
+        return Book.Place(kind, isBuy, false, tick, size, 8, 0);
     }
 
     function _batch(address who, uint32[] memory cancels, Book.Place[] memory places)
@@ -34,10 +34,10 @@ contract BookBatchTest is Test {
         returns (uint32[] memory)
     {
         vm.prank(who);
-        return book.batch(M, cancels, places);
+        return book.batch(cancels, places);
     }
 
-    function _quote(uint16 bid, uint16 ask, uint96 size) internal returns (uint32[] memory) {
+    function _quote(uint16 bid, uint16 ask, uint64 size) internal returns (uint32[] memory) {
         Book.Place[] memory ps = new Book.Place[](2);
         ps[0] = _p(POST, true, bid, size);
         ps[1] = _p(POST, false, ask, size);
@@ -49,8 +49,8 @@ contract BookBatchTest is Test {
         (x[0], x[1]) = (a, b);
     }
 
-    function _size(uint32 id) internal view returns (uint96) {
-        return book.getOrder(M, id).size;
+    function _size(uint32 id) internal view returns (uint64) {
+        return book.getOrder(id).size;
     }
 
     function test_InitialQuoteRestsBothSides() public {
@@ -58,7 +58,7 @@ contract BookBatchTest is Test {
         assertEq(ids.length, 2);
         assertEq(_size(ids[0]), 100);
         assertEq(_size(ids[1]), 100);
-        (uint16 bid, uint16 ask) = book.bestBidAsk(M);
+        (uint16 bid, uint16 ask) = book.bestBidAsk();
         assertEq(bid, 499);
         assertEq(ask, 501);
         assertEq(book.traderId(mm), 1);
@@ -75,12 +75,12 @@ contract BookBatchTest is Test {
         assertEq(_size(old[1]), 0);
         assertEq(_size(ids[0]), 50);
         assertEq(_size(ids[1]), 50);
-        (uint16 bid, uint16 ask) = book.bestBidAsk(M);
+        (uint16 bid, uint16 ask) = book.bestBidAsk();
         assertEq(bid, 500);
         assertEq(ask, 502);
-        assertEq(book.reserved(M, 1, true), 50);
-        assertEq(book.reserved(M, 1, false), 50);
-        assertEq(book.orderSlots(M), 3, "requote reuses the freed slots");
+        assertEq(book.reserved(1, true), 50);
+        assertEq(book.reserved(1, false), 50);
+        assertEq(book.orderSlots(), 3, "requote reuses the freed slots");
     }
 
     /// Cancels run before places: moving the bid up to the old ask only works in that order.
@@ -96,7 +96,7 @@ contract BookBatchTest is Test {
     function test_StaleCancelAfterFillDoesNotRevertRequote() public {
         uint32[] memory old = _quote(499, 501, 100);
         vm.prank(taker);
-        book.placeOrder(M, _p(IOC, true, 501, 100));
+        book.placeOrder(_p(IOC, true, 501, 100));
         assertEq(_size(old[1]), 0, "ask filled");
 
         Book.Place[] memory ps = new Book.Place[](2);
@@ -122,7 +122,7 @@ contract BookBatchTest is Test {
         uint32[] memory old = _quote(499, 501, 100);
         _batch(mm, _ids(old[0], old[1]), new Book.Place[](0));
         vm.prank(taker);
-        uint32 theirs = book.placeOrder(M, _p(POST, true, 400, 7));
+        uint32 theirs = book.placeOrder(_p(POST, true, 400, 7));
         assertEq(theirs & 0xFFFFFF, old[1] & 0xFFFFFF, "slot reused");
 
         _batch(mm, old, new Book.Place[](0));
@@ -131,7 +131,7 @@ contract BookBatchTest is Test {
 
     function test_RevertWhen_BatchCancelsSomeoneElsesLiveOrder() public {
         vm.prank(taker);
-        uint32 theirs = book.placeOrder(M, _p(POST, true, 400, 7));
+        uint32 theirs = book.placeOrder(_p(POST, true, 400, 7));
         uint32[] memory cancels = new uint32[](1);
         cancels[0] = theirs;
         vm.expectRevert(Book.NotOwner.selector);
@@ -140,7 +140,7 @@ contract BookBatchTest is Test {
 
     function test_CrossingPostOnlyIsSkippedWithIdZero() public {
         vm.prank(taker);
-        book.placeOrder(M, _p(POST, false, 501, 10));
+        book.placeOrder(_p(POST, false, 501, 10));
         Book.Place[] memory ps = new Book.Place[](3);
         ps[0] = _p(POST, true, 499, 10);
         ps[1] = _p(POST, true, 501, 10); // crosses the taker's ask
@@ -150,12 +150,12 @@ contract BookBatchTest is Test {
         assertTrue(ids[0] != 0);
         assertEq(ids[1], 0);
         assertTrue(ids[2] != 0);
-        assertEq(book.position(M, book.traderId(mm)), 0, "skipped order never traded");
+        assertEq(book.position(book.traderId(mm)), 0, "skipped order never traded");
     }
 
     function test_BatchCanTakeLiquidity() public {
         vm.prank(taker);
-        book.placeOrder(M, _p(POST, false, 501, 10));
+        book.placeOrder(_p(POST, false, 501, 10));
         Book.Place[] memory ps = new Book.Place[](2);
         ps[0] = _p(IOC, true, 501, 4);
         ps[1] = _p(LIMIT, true, 501, 10);
@@ -163,7 +163,7 @@ contract BookBatchTest is Test {
 
         assertEq(ids[0], 0);
         assertEq(_size(ids[1]), 4, "6 filled, 4 rest");
-        assertEq(book.position(M, book.traderId(mm)), 10);
+        assertEq(book.position(book.traderId(mm)), 10);
     }
 
     function test_RevertWhen_BatchHasBadOrder() public {
@@ -181,8 +181,9 @@ contract BookBatchTest is Test {
         assertEq(book.traderId(mm), 1);
     }
 
-    function test_RevertWhen_BatchUnknownMarket() public {
+    function test_RevertWhen_BatchBeforeBookOpened() public {
+        BookHarness fresh = new BookHarness();
         vm.expectRevert(Book.NoMarket.selector);
-        book.batch(9, new uint32[](0), new Book.Place[](0));
+        fresh.batch(new uint32[](0), new Book.Place[](0));
     }
 }

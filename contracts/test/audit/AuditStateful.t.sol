@@ -35,7 +35,9 @@ contract AuditStatefulTest is Test {
         token = new MockUSDC();
         vault = new CollateralVault(address(token), address(this));
         decision = new MockRiskDecision();
-        h = new AccountingHarness(vault, decision, treasury, uint64(block.timestamp + 10 days), recovery, funding);
+        h = new AccountingHarness(
+            vault, decision, treasury, uint64(block.timestamp + 10 days), recovery, funding
+        );
         vault.registerEngine(address(h));
         _fund(lp, seedAtoms, true);
         _fund(alice, 120e6, false);
@@ -60,7 +62,11 @@ contract AuditStatefulTest is Test {
         return P.Tariff(0, 0, 0);
     }
 
-    function _epoch() internal view returns (uint64 id, uint64 start, uint64 end, uint64 last, uint64 stop, int256 rate, bool stopped) {
+    function _epoch()
+        internal
+        view
+        returns (uint64 id, uint64 start, uint64 end, uint64 last, uint64 stop, int256 rate, bool stopped)
+    {
         return h.epoch();
     }
 
@@ -79,9 +85,17 @@ contract AuditStatefulTest is Test {
             cash += a.value.cashQ;
         }
         assertEq(n, 0, "INV-01");
-        assertEq(cash + int256(h.protocolFeeQ() + h.keeperPayableQ()) + h.fundingClearingQ(), int256(h.allocationQ()), "INV-02");
+        assertEq(
+            cash + int256(h.protocolFeeQ() + h.keeperPayableQ()) + h.fundingClearingQ(),
+            int256(h.allocationQ()),
+            "INV-02"
+        );
         assertGe(token.balanceOf(address(vault)), vault.recognizedAtoms(), "INV-03");
-        assertEq((vault.marketAtoms(address(h)) * Q - vault.marketDebitQ(address(h))), h.allocationQ(), "market atoms");
+        assertEq(
+            (vault.marketAtoms(address(h)) * Q - vault.marketDebitQ(address(h))),
+            h.allocationQ(),
+            "market atoms"
+        );
         (int256 s0, int256 s1) = h.coverageSlacks();
         assertGe(s0, 0, "INV-04 NO");
         assertGe(s1, 0, "INV-04 YES");
@@ -119,9 +133,14 @@ contract AuditStatefulTest is Test {
         while (!h.claimsEnabled()) h.prepareReserve(page);
     }
 
-    function _bilateral(uint256 price, uint8 page, bool aliceFirst, uint256 wantA, uint256 wantB, uint256 wantReserve)
-        internal
-    {
+    function _bilateral(
+        uint256 price,
+        uint8 page,
+        bool aliceFirst,
+        uint256 wantA,
+        uint256 wantB,
+        uint256 wantReserve
+    ) internal {
         _deploy(100_000e6, false, false, _zero());
         h.trade(alice, bob, 1_000_000, 600, 0, 0);
         assertEq(h.allocationQ(), 100_220e6 * Q);
@@ -209,7 +228,8 @@ contract AuditStatefulTest is Test {
         // Bob (short, YES deficit 300) also pays; the reserve receives exactly what traders paid.
         h.sync(bob);
         (, int256 rc) = h.reserve();
-        int256 paid = (-480_000_000e18 - _cash(alice)) + (700_000_000e18 - _cash(bob)) + (-480_000_000e18 - _cash(carol));
+        int256 paid = (-480_000_000e18 - _cash(alice)) + (700_000_000e18 - _cash(bob))
+            + (-480_000_000e18 - _cash(carol));
         assertGt(700_000_000e18 - _cash(bob), 0);
         assertEq(rc - int256(100_000e6 * Q), paid);
         _assertInvariants();
@@ -331,7 +351,9 @@ contract AuditStatefulTest is Test {
 
     function testRegistryCapAndBatchBound() public {
         _deploy(100_000e6, false, false, _zero());
-        for (uint160 i = 1; h.participantCount() < 1024; i++) h.registerOnly(address(i + 1000));
+        for (uint160 i = 1; h.participantCount() < 1024; i++) {
+            h.registerOnly(address(i + 1000));
+        }
         vm.expectRevert(RiskStorage.BadState.selector);
         h.registerOnly(address(0x123456));
         (,, uint64 end,,,,) = _epoch();

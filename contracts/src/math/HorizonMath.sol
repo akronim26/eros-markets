@@ -38,7 +38,8 @@ library HorizonMath {
         returns (uint256)
     {
         if (absorptionClaimsPerMin == 0) revert BadUnits();
-        return (h0Secs + queueSecs) * WAD + QMath.mulDivUp(absLots * 60 * WAD, 1, 1000 * absorptionClaimsPerMin);
+        return
+            (h0Secs + queueSecs) * WAD + QMath.mulDivUp(absLots * 60 * WAD, 1, 1000 * absorptionClaimsPerMin);
     }
 
     /// @notice sigmaTheoryUp with the horizon in wad-seconds.

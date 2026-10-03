@@ -320,13 +320,12 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
             return endpointNo >= 0 && endpointYes >= 0;
         }
         return LiquidationMath.allowedReduction(
-            _reductionSnapshot(accountBefore.cashQ, accountBefore.lots, context),
-            _reductionSnapshot(cashAfter, lotsAfter, context)
+            _snapAt(accountBefore.cashQ, accountBefore.lots, context), _snapAt(cashAfter, lotsAfter, context)
         );
     }
 
-    function _reductionSnapshot(int256 cashQ, int256 lots, RiskContext memory context)
-        private
+    function _snapAt(int256 cashQ, int256 lots, RiskContext memory context)
+        internal
         view
         returns (LiquidationMath.Snap memory snapshot)
     {
