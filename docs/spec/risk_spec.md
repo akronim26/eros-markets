@@ -196,9 +196,16 @@ At activation record seed reserve cashQ as `reserveCapBaseQ`. New exposure requi
 | TRADING | Before T−12h30m and no stronger flag | Risk-checked exposure, resting orders, releases; ordinary hourly risk epochs |
 | BACKING_GRACE | T−12h30m inclusive | New exposure must be fully backed; old deficient accounts have until T−12h to top up/reduce if not below MM |
 | BACKING_FLOOR | T−12h inclusive | Funding frozen; invalidate all old order epochs; only fully backed new commitments; legacy deficient accounts eligible for bounded takeover |
-| REDUCE_ONLY | T−1h inclusive or monitor restriction | No side flip / new absolute exposure; top-up and safe reduction only |
+| REDUCE_ONLY | T−1h inclusive or monitor restriction | No side flip / new absolute exposure; top-up, safe reduction and guarded excess-collateral release |
 | HALTED | Earliest accepted oracle halt or T | No new ledger economics; frozen preparation and deterministic INVALID capture only |
 | CLAIMS_READY | Finality + price + completed allocation | Independent once-only cash claims; no resumed trading |
+
+RB-I08 decision confirmed by the user on 2026-10-03: safe excess market-collateral release remains
+available during both monitor-triggered and scheduled REDUCE_ONLY, for flat accounts and accounts
+with positions. Release still requires accounting readiness, usable required prices, order-aware
+IM or the explicit fully backed bootstrap path, final-day backing and both-outcome market coverage.
+Preview and execution apply the same guards. This is not permission to use stale marks, release
+required collateral, restart funding or bypass a sweep/halt; free-vault withdrawal remains separate.
 
 An epoch rollover is an orthogonal accounting state. It pauses market ledger mutations until its bounded sweep finishes; it cannot postpone a more restrictive time stage or an oracle halt. Selected maximum batch is 32 traders per call, maximum 64 fills/examinations per match. Enforce a separate bound on examined stale/cancelled makers so adversarial orders cannot evade `maxFills`. Values are local-test defaults until gas is measured.
 
