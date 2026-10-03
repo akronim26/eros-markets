@@ -1,13 +1,15 @@
 # Risk + Book configuration and addresses
 
-Inventory date: 2026-10-03. This records actual script inputs and verified historical
-addresses; it does not authorize a transaction or manufacture a production configuration.
+Inventory date: 2026-10-04. This records actual script inputs and verified deployment
+addresses; it does not authorize another transaction or manufacture a production configuration.
 The [unified workflow](../merge/UNIFIED_WORKFLOW.md) governs non-oracle engineering.
 Oracle implementation/integration remains excluded. Historical review signatures are
 not prerequisites under that workflow, and technical validation is not an independent audit.
 
-**No current-source replacement deployment is recorded.** The only verified public-chain
-market listed below is an older, terminally settled controlled fixture. Do not copy its
+**Current-source foundation deployed and verified:** use root [addresses.md](../../addresses.md)
+for the new engine, vaults, test collateral and test authority. All six deployment transactions
+succeeded; the new market is unactivated, has no minted collateral and was not traded or settled.
+The address table below is an older, terminally settled controlled fixture. Do not copy its
 addresses into a new active-market configuration or claim newer fixes are deployed there.
 Use the [tracker](../integration/RISK_BOOK_TRACKER.md) and
 [fix ledger](../integration/NON_ORACLE_FIXES.md) for source-bound validation status.
@@ -147,20 +149,22 @@ The nested ReserveVault address was separately read from the historical engine's
 This confirms the getter/address and code presence, not an independent ReserveVault runtime
 comparison, current-source deployment, or new broadcast.
 
-## New-current and production configuration: intentionally blank
+## Current testnet and production configuration
 
-The following operator template fields remain empty until successful, separately authorized
-deployment and verification produce real values. **No replacement market is recorded here.**
+The separately authorized current-source testnet deployment is recorded in root
+[addresses.md](../../addresses.md), including receipts, runtime comparisons and immutable-oracle
+limitations. Root `.env.example` deliberately stays a blank reusable template; use the verified
+public inventory for local configuration. No production configuration has been selected.
 
 | Template field | New-current value | Required producer |
 |---|---|---|
-| `RISK_BOOK_ENGINE_ADDRESS` | | Successful engine creation receipt and runtime verification |
-| `RISK_BOOK_COLLATERAL_ADDRESS` | | Selected/deployed token, code/decimals/controller verification |
-| `RISK_BOOK_VAULT_ADDRESS` | | Vault receipt, token/governor getters and registration |
-| `RISK_BOOK_RESERVE_VAULT_ADDRESS` | | Actual engine getter, code and engine binding verification |
-| `RISK_BOOK_RESOLUTION_AUTHORITY_ADDRESS` | | Selected/deployed authority and authenticated binding |
-| `RISK_BOOK_SMOKE_ADDRESS` | | Authorized fixture setup receipt/event and coordinator getters |
-| `RISK_BOOK_BUYER_ADDRESS` / `RISK_BOOK_SELLER_ADDRESS` | | Coordinator getters and actor bindings |
+| `RISK_BOOK_ENGINE_ADDRESS` | See root inventory | Successful engine creation receipt and runtime verification |
+| `RISK_BOOK_COLLATERAL_ADDRESS` | See root inventory; test token | Token code/decimals/controller verification |
+| `RISK_BOOK_VAULT_ADDRESS` | See root inventory | Vault receipt, token/governor getters and registration |
+| `RISK_BOOK_RESERVE_VAULT_ADDRESS` | See root inventory | Engine getter, nested runtime and engine binding verified |
+| `RISK_BOOK_RESOLUTION_AUTHORITY_ADDRESS` | See root inventory; manual test authority | Authority and binding verified; not replaceable in this listing |
+| `RISK_BOOK_SMOKE_ADDRESS` | Not deployed | Would require separately authorized fixture setup |
+| `RISK_BOOK_BUYER_ADDRESS` / `RISK_BOOK_SELLER_ADDRESS` | Not deployed | No actor setup performed |
 
 No production deployment configuration has been selected. The controlled deployment script
 hardcodes fixture listing values; adding env names does not parameterize or approve them.

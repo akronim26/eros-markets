@@ -1,0 +1,119 @@
+{
+  "schema": "eros-monad-foundation-state/1",
+  "status": "verified_unactivated_testnet_foundation",
+  "session_date": "2026-10-04",
+  "observed_at_utc": "2026-10-03T19:42:09.830243+00:00",
+  "chain_id": 10143,
+  "source_sha": "162ac929d1b8bbb577ecc1fdcdb07816416b0e31",
+  "last_solidity_sha": "dcb6b0e9023f5dab297a233303e5762df8270d09",
+  "g7_accepted_candidate_sha": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+  "concrete_abi_source_digest": "40e05c0e8034dcdba2a14fc19a97f2323412e69f92dc2146cac913ef8695cbb3",
+  "foundation_evidence": "artifacts/risk/monad-testnet-deployment-2026-10-04.json",
+  "foundation_evidence_sha256": "d2b0462de68f315f199a499a3169efc2809d19d6497fbf9ce95f63d9195717d5",
+  "block": {
+    "number": 67915348,
+    "hash": "0x38cc4b6ab400bd9b8cccaf100c3076bd0c2da30e39f03883a33fb498a23f6f56",
+    "timestamp": 1791056511
+  },
+  "reserve_vault": {
+    "address": "0xb4a8ff669f119aa5cad85c767dcbb2bf55813f04",
+    "source": "contracts/src/vaults/ReserveVault.sol",
+    "artifact_sha256": "b30a130f1c362c662a3b8708bb155f578b79a476fb9fc8563a02153e7bc5b0a7",
+    "runtime_bytes": 2428,
+    "runtime_sha256": "ddbc56900d8d117fab300fc926ae34dae643734b90624395e9a2dc1c42bd143b",
+    "artifact_runtime_sha256": "55cbbef5602b7d50775c81699b036aa493fae60fc3a9c439ff5cb596a49028fe",
+    "unmasked_runtime_match": true,
+    "immutable_values_by_ast_id": {
+      "77229": {
+        "value": "0x00000000000000000000000058c63bfd94c13acb6f1da665406cc16cf80d1b69",
+        "references": [
+          {
+            "start": 644,
+            "length": 32
+          },
+          {
+            "start": 748,
+            "length": 32
+          },
+          {
+            "start": 1077,
+            "length": 32
+          },
+          {
+            "start": 1239,
+            "length": 32
+          },
+          {
+            "start": 1583,
+            "length": 32
+          },
+          {
+            "start": 1866,
+            "length": 32
+          }
+        ]
+      }
+    }
+  },
+  "views": {
+    "BookRiskEngine.reserveVault()": "0xb4a8ff669f119aa5cad85c767dcbb2bf55813f04",
+    "ReserveVault.engine()": "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69",
+    "BookRiskEngine.active()": false,
+    "BookRiskEngine.halted()": false,
+    "BookRiskEngine.claimsEnabled()": false,
+    "BookRiskEngine.priceReady()": false,
+    "BookRiskEngine.allocationQ()": 0,
+    "BookRiskEngine.maxFills()": 8,
+    "ReserveVault.active()": false,
+    "ReserveVault.prepared()": false,
+    "ReserveVault.totalShares()": 0,
+    "ReserveVault.holderCount()": 0,
+    "TestnetRiskCollateral.totalSupply()": 0,
+    "BookRiskEngine.listingHash()": "0x46a5cee0c75458e355018cde6e76ec94bb529c91489ed152c56ee2a4d597c95f",
+    "BookRiskEngine.getSettlementStatus()": {
+      "phase": 0,
+      "halted": false,
+      "finalOutcome": 0,
+      "oracleFinalityAccepted": false,
+      "invalidPriceReady": false,
+      "settlementPriceE18": 0,
+      "snapshotId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "snapshotCursor": 0,
+      "payoutCursor": 0,
+      "accountCount": 0,
+      "totalTraderPayoutAtoms": 0,
+      "totalDeficitQ": 0,
+      "claimsEnabled": false,
+      "accountingComplete": false,
+      "recoveryRequired": false
+    }
+  },
+  "receipt_count": 6,
+  "gas_limit_total": 32073366,
+  "gas_used_total": 32073366,
+  "fees_wei": "3271483332000000000",
+  "fee_budget_wei": "4000000000000000000",
+  "controller_balance_before_wei": "5776112680592266817",
+  "controller_balance_after_wei": "2504629348592266817",
+  "controller_nonce_after": 21,
+  "read_only_verification": true,
+  "validation": {
+    "targeted_monad_tests_passed": 45,
+    "targeted_suites": 4,
+    "targeted_exit_code": 0,
+    "abi_check_exit_code": 0,
+    "forge": "1.8.3",
+    "solc": "0.8.30",
+    "evm_version": "prague",
+    "optimizer_runs": 200
+  },
+  "scope": "Fresh foundation only. No token mint, activation, trade, halt, finality or settlement transactions; no smoke actors/coordinator deployed.",
+  "limitations": [
+    "Trusted RPC observation, not independent chain-finality authentication or security audit",
+    "Runtime comparison masks compiler immutable references; reserve engine getter is additionally checked",
+    "Controller-only test collateral and immutable manual resolution authority, not real oracle integration",
+    "A real resolution authority cannot be swapped into this immutable listing; create a separately configured market",
+    "Explorer source verification was not performed",
+    "G7 evidence and prior closed-market receipts remain historical, unmodified records"
+  ]
+}

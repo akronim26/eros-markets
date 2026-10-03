@@ -6,21 +6,28 @@ approval dependencies. RB-I11's strict INDEX-prefix seal is implemented in `dcb6
 tests pass. G7 migration `bee683b` plus guard `e05bbbb` passes 17 mocked runner regressions;
 full CI passes 832/130 suites. Ordered G0-G7 all exit 0 at metadata commit `c91acf7`. The user's
 authorized G7 acceptance is recorded for that source at **2026-10-03 17:39:11 UTC**, without
-peer signatures or a main merge/new deployment. See `docs/merge/UNIFIED_WORKFLOW.md`.
+peer signatures or a main merge. The later, separately authorized deployment is recorded below.
+See `docs/merge/UNIFIED_WORKFLOW.md`.
 
-Updated **2026-10-03** · branch `integration/risk` · spec **1.1** / economics **1.0**.
+Updated **2026-10-04** · branch `integration/risk` · spec **1.1** / economics **1.0**.
 This is the shared planning index, not a replacement for the spec, source-bound reviews or evidence.
 Update it when behavior, counterpart status, validation or deployed addresses change.
 
 ## 1. Current decision and boundaries
 
-- **Completed:** authorized controlled Monad testnet evaluation, chain **10143**. Foundation,
+- **Current deployment:** source `162ac92` / Solidity `dcb6b0e` foundation deployed on Monad
+  testnet **10143** under the user's new authorization. Six successful transactions, all five
+  runtime comparisons and bindings verified. New market **unactivated**, no mint/trade/settlement.
+  Root **[addresses.md](../../addresses.md)** is the current address/env handoff. Frontend/oracle
+  integration and demo setup are delegated to their integration team; the immutable manual test
+  authority cannot be swapped for the real oracle on this instance.
+- **Historical evaluation completed:** controlled Monad testnet evaluation, chain **10143**. Foundation,
   setup, direct real-book trade, manual YES settlement and cash exit verified; this test market is **closed**.
 - **Accepted:** non-oracle G7 integration at `c91acf7` after all required gates passed; recorded from the user's explicit conditional authorization, not invented peer approval.
-- **Not approved:** a main merge, new deployment, production/mainnet release, leverage or production feeds/oracle calibration.
+- **Not approved:** a main merge, further deployment beyond the recorded foundation, production/mainnet release, leverage or production feeds/oracle calibration.
 - Real Book + A accounting/custody + B risk are composed in `BookRiskEngine`; no unrestricted
   test feed or fault-injection helpers are exposed. The source retains **fully backed 1x** defaults;
-  a bounded book-derived PERP sampler is being validated and is not part of the old live deployment.
+  the bounded book-derived PERP sampler is included in the new foundation, but not the old closed deployment.
 - RB-I01 and RB-I02 repairs are implemented. Historical A043 fingerprints remain unchanged;
   migrated G7 must retain source-bound adversarial tests without inventing peer approval.
 - **RB-I11 implemented:** require a strictly newer authenticated INDEX checkpoint before
@@ -41,7 +48,7 @@ User order -> Book (matching, IDs, FIFO, cancel)
            -> RiskAccountingBridge -> A accounting (sole cash/position/reserve postings)
 CollateralVault <-> isolated engine allocation / settlement and fee escrows
 Signed INDEX -> PriceIngress -> ObservationStore -> risk pricing / bootstrap admission
-Actual bounded Book depth -> capture / later-block + sealed-INDEX promotion -> PERP and BASIS (not deployed)
+Actual bounded Book depth -> capture / later-block + sealed-INDEX promotion -> PERP and BASIS (deployed, not exercised on new instance)
 Pinned resolution authority -> halt/finality -> bounded snapshot/payout scans -> cash claims
 ```
 
@@ -66,7 +73,7 @@ Paths below are relative to the repository root.
 
 | Feature | Status | Remaining condition / limit |
 |---|---|---|
-| Real matching, IDs, FIFO, cancel, risk hooks | Implemented; full CI 832/130, Monad 99/11 and G0-G7 pass; G7 accepted at `c91acf7` | Integration acceptance is not production-counterpart acceptance or redeployment |
+| Real matching, IDs, FIFO, cancel, risk hooks | Implemented; full CI 832/130, Monad 99/11 and G0-G7 pass; G7 accepted at `c91acf7`; new foundation deployed | New instance is unactivated; no live trade or production-counterpart acceptance claimed |
 | Reduce-only / forced multi-maker taker | RB-I01 repaired `f2ebc61` | Refresh only active self-posting authorization; preserve unrelated stale versions |
 | Partial reduce-only maker remainder | RB-I02 repaired `857b5c0`; 11 regressions pass | Refresh only the exact surviving successfully posted node |
 | Canonical participant identity | RB-I03 mapping `bd9d5b9`; four new identity tests plus A016 pass | O(1) concrete consumer committed in `3942100` |
@@ -126,7 +133,8 @@ Paths below are relative to the repository root.
 | Focused validation bundles | Recorded 28-test targeted and 60-test real-book bundles overlap suites above; **do not sum them** |
 | Testnet exercise regressions | `contracts/test/integration/TestnetRiskSmoke.t.sol`: **8 passed under MonadTen**, `tmp/monad-smoke-tests.log`; included in the historical 727-test full suite at `5b82d9f` and rerun in the newer 92-test Monad bundle |
 | Monad deployment rehearsal | [preflight JSON](../../artifacts/risk/monad-testnet-preflight-2026-10-03.json): exit 0, `1077dfa`, chain 10143, MonadTen, no broadcast |
-| Live foundation deployment | [deployment JSON](../../artifacts/risk/monad-testnet-deployment.json): six successful receipts; four top-level runtime comparisons and role/binding checks; nested ReserveVault runtime not independently compared |
+| Current foundation deployment, 2026-10-04 | [deployment JSON](../../artifacts/risk/monad-testnet-deployment-2026-10-04.json): six successful receipts and top-level runtimes/bindings; [state supplement](../../artifacts/risk/monad-testnet-foundation-state-2026-10-04.json): nested ReserveVault runtime/binding, inactive state and fee reconciliation. Fresh targeted Monad tests **45/45**, ABI check exit **0** |
+| Historical foundation deployment | [deployment JSON](../../artifacts/risk/monad-testnet-deployment.json): six successful receipts; four top-level runtime comparisons and role/binding checks; nested ReserveVault runtime not independently compared in that run |
 | Live trade/settlement/cash exit | [smoke JSON](../../artifacts/risk/monad-testnet-smoke.json): nine successful phase receipts, seven runtime comparisons, exact actor payouts 150/50 test tokens, zero vault balances, all trader claims paid at block 67,852,827 |
 | Historical merged baseline | [merge-validation JSON](../../artifacts/risk/merge-validation-2026-10-03.json): 692 tests at earlier merged source, not current certification |
 | Previous gates at `5b82d9f` | G0-G6 **exit 0**, counts **68/152/117/78/77/63/55**; G7 **exit 2 after six tests** because A043 did not cover that source/review delta; retained historical result |
@@ -164,12 +172,24 @@ characterization tests do not close a finding; technical checks are not an indep
   (concrete constructor/public book), `engine-abi.json` **256** (abstract, not deployment), and
   `vault-abi.json` **35** in the same directory. This supersedes the baseline 285/254/35 counts;
   `forge fmt --check` also exits **0**. Current exports are regenerated and source-bound after RB-I11.
-- Actual env inputs, CLI-only arguments, safe blank current addresses and verified historical
-  addresses are centralized in [configuration inventory](../runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md).
+- Current verified addresses and public env values are in root [addresses.md](../../addresses.md).
+  Actual env consumers, CLI-only arguments and historical addresses remain in the
+  [configuration inventory](../runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md); `.env.example` stays blank.
 - Reference interfaces: `contracts/src/interfaces/{IBookRiskHooks,IResolutionIngress,IPriceSource,IMarketConfig}.sol`.
   Oracle enum is NONE/YES/NO/INVALID = 0/1/2/3; **Voided calls settleInvalid**, not enum 4.
 
 ## 6. Testnet deployment ledger
+
+**Current deployment (2026-10-04):** root [addresses.md](../../addresses.md) records source
+`162ac92`, engine `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69`, all five deployed contract
+addresses, six successful receipts and verification. Cost **3.271483332 test MON**; controller
+remaining **2.504629348592266817 test MON** at block **67,915,348**. Market is **unactivated**.
+Its scheduled halt is **2026-10-13 19:39:36 UTC**; real-oracle adoption needs a new listing.
+
+### Historical closed smoke market (2026-10-03)
+
+Everything in the following table belongs to the older deployment, not the new foundation.
+Balances and "no further broadcast" describe that historical observation only.
 
 | Item | Value / status |
 |---|---|
@@ -206,10 +226,12 @@ Chain constraints: [Monad differences](https://docs.monad.xyz/developer-essentia
 ## 7. Ownership, open work and acceptance
 
 Risk & Clearing and Order Book are now one unified team; resolution oracle remains excluded.
-Price collector, real factory integration and frontend ownership remain **TBD/coordinated**, not invented teams.
+The user delegates frontend/oracle integration and ongoing demo setup to their integration team.
+Real factory/collector inputs still require coordination; no additional teams or values are invented.
 
 | Next bounded item | Owner / acceptance evidence |
 |---|---|
+| Current-source foundation deployment | **Completed 2026-10-04:** five contract runtimes/bindings and six receipts verified; no activation, mint, trade, halt or settlement. Root `addresses.md` is the handoff |
 | Controlled testnet evaluation | **Completed:** receipts/code, real-book trade, manual YES finality, exact 150/50 actor cash exit and zero vault/claim liabilities recorded; no production approval |
 | Current-source technical evidence | Complete: full CI, Monad/reference/SDK/ABI/format, read-only fixture creation estimate and ordered G0-G7 pass; [aggregate evidence](../../artifacts/risk/unified-integration-2026-10-03.json) retains exact source scope |
 | G7 integration acceptance | Recorded at `c91acf7` under the user's explicit conditional authorization after all required checks passed; no peer signatures, main update or production deployment implied |
@@ -218,7 +240,7 @@ Price collector, real factory integration and frontend ownership remain **TBD/co
 | RB-I10 SDK tooling | Complete: `56787d2` pins TypeScript 5.9.3; three Python runner regressions, G0 and 220-test Python baseline recorded |
 | RB-I11 INDEX-prefix seal | Implemented `dcb6b0e`, 21 sampler tests pass; retain valid waiting captures and all invalidation guards, document below-30-second continuous feed cadence |
 | RB-I12 local smoke | Implemented `29c5f87`, two regressions and standalone offline script pass; local mocked dependencies only |
-| Join actual oracle branch | Oracle team + Risk: inspect `ccbdb50`, reconcile current interfaces and clocks, test halt/YES/NO/INVALID/Voided/conflicts/rollback on real engine; separately authorize integration |
+| Join actual oracle branch / frontend demo | Frontend/oracle integration team, delegated by user: reconcile interfaces/clocks and real listing inputs, use a new market for the real immutable authority, then validate activation/trade and terminal cases separately |
 | Wire actual registry/factory | Coordination TBD with existing teams: real MarketFactory, immutable listing hash/roles/registration and atomic deployment verified |
 | Production qualification | Unified team and authorized counterparts: actual sources/bounds, chain gas, production roles and security/release decision. Recorded G7 integration acceptance is not production/mainnet authorization |
 
