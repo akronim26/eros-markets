@@ -152,7 +152,7 @@ Plan §13: owner OB · 4 PD · depends O32 · acceptance: signed payload accepte
 - Owner: OB
 - PD: 1
 - Depends: O32.3
-- Plan: §8.3, ADJ-48
+- Plan: §8.3, ADJ-48, ADJ-49
 - Cut: no
 - Status: done
 - Files: oracle/services/panel-runner/src/models/*
