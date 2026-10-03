@@ -1,7 +1,7 @@
 {
  "kind": "testnet_evaluation_release_manifest",
  "production_approved": false,
- "deployment": "User-authorized Monad testnet foundation and controlled setup/trade/YES-settlement/cash-exit scenario completed and verified. This test market is closed. No production deployment approval.",
+ "deployment": "Historical controlled Monad testnet smoke remains verified and closed. This non-oracle repair delta has not been broadcast; the old immutable deployment does not contain it. No production approval.",
  "branch": "integration/risk",
  "spec_version": "1.1",
  "economic_baseline": "1.0",
@@ -19,13 +19,24 @@
  },
  "concrete_engine": {
   "composition": "contracts/src/engine/BookRiskEngine.sol:BookRiskEngine (real Book + RiskAccountingBridge + A accounting/custody)",
-  "source_commit": "1077dfa39c0a26324e02e0e3f3cdff9fd8957479",
-  "runtime_bytes": 114546,
-  "creation_bytes": 123665,
+  "source_commit": "be3db1e",
+  "validation_source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "runtime_bytes": 120253,
+  "creation_bytes": 129495,
   "constructor_argument_bytes": 928,
-  "initcode_bytes": 124593,
-  "scope": "Initial 1x, uncalibrated full-backing bootstrap only; funding and recovery disabled, zero trading fees, premium load 1. No unrestricted feed or failure-injection helpers. No production PERP depth sampler is wired.",
-  "deployment_abi": "artifacts/risk/book-risk-engine-abi.json (285 entries, export/check passed); compiler artifact contracts/out/BookRiskEngine.sol/BookRiskEngine.json. Abstract engine-abi.json remains a distinct 254-entry interface, not the deployment ABI."
+  "initcode_bytes": 130423,
+  "scope": "Initial 1x, uncalibrated full backing, funding/recovery/conversion disabled, zero trading fees and premium load 1. Authenticated independent INDEX plus bounded prior-block book PERP sampling; normal pricing does not enable leverage. Startup bootstrap trading remains available with a fresh covered INDEX.",
+  "deployment_abi": "artifacts/risk/book-risk-engine-abi.json (294 entries); abstract engine-abi.json 256; vault-abi.json 35; export/check passed.",
+  "source_sha256": "a5499d80b5e96fd6e06f2c04e0a14281ceebd3715e738e4a5b7890a3d3de7e58",
+  "max_examined_makers": 8,
+  "max_batch_actions": 8,
+  "max_declared_batch_examinations": 8,
+  "max_sampler_examinations": 64,
+  "gas_evidence": "artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json: read-only eth_estimateGas 27820847 at block67865259 using current initcode and historical public test dependencies/listing. Not a fresh deployment configuration or receipt.",
+  "deployed": false,
+  "open_findings": [
+   "RB-I11"
+  ]
  },
  "testnet_evaluation": {
   "authorization": "Explicit user authorization for Monad testnet evaluation, not production release",
@@ -80,7 +91,8 @@
    "recipient_scope": "Balances belong to the two controlled test actor contracts, not production collateral or a claim of real USDC payment"
   },
   "freshness_lesson": "The earlier fork-simulated trade window expired during estimation and was never broadcast. PrepareTestnetTrade now prepares calldata offline with 11 signed samples spaced 30 seconds across 300 seconds; submit promptly and preserve the on-chain freshness checks.",
-  "dependencies": "Controller-only test collateral and manual resolution-authority fixtures, controller-signed synthetic INDEX observations, and explicit test listing/role configuration; no production oracle, collector or calibration claim"
+  "dependencies": "Controller-only test collateral and manual resolution-authority fixtures, controller-signed synthetic INDEX observations, and explicit test listing/role configuration; no production oracle, collector or calibration claim",
+  "source_scope": "Historical source1077dfa/5b82d9f only; never compare these existing immutable addresses with the new sampler bytecode and claim current-source deployment."
  },
  "initial_defaults": {
   "leverage_caps": "1x (listing.deploymentCapX = 1; uncalibrated profile forces full backing)",
@@ -111,7 +123,8 @@
   "invalid_capture_grace_seconds": 3600,
   "invalid_fallback_wad": "500000000000000000",
   "min_listing_horizon_seconds": 86400,
-  "max_listing_horizon_seconds": 2588400
+  "max_listing_horizon_seconds": 2588400,
+  "scope": "Spec/abstract risk constants. Concrete matching/batch bounds are eight, recorded separately in concrete_engine; sampler examination cap remains64."
  },
  "missing_production_inputs": [
   "token/code hashes",
@@ -130,34 +143,50 @@
   "production approval of the immutable premium load (testnet evaluation uses 1e18)",
   "production deployed-code acceptance, nested ReserveVault runtime comparison and transaction-path gas benchmarks beyond the controlled testnet scenario",
   "production composition/size acceptance (the concrete testnet engine fits verified Monad limits; Ethereum EIP-170 does not)",
-  "pinned TypeScript dependency",
   "independent teammate review of RB-I01 repair f2ebc61",
-  "RB-I02 partially filled reduce-only maker remainder liveness disposition with the book team",
-  "bounded, stale-aware production PERP book-depth sampler and its reviewed integration"
+  "Independent source-bound review of RB-I02 through RB-I10; sampler policy is user-approved but not production manipulation-resistance qualification"
  ],
  "counterparts": "artifacts/risk/counterpart-status.json (real Book+A+B and concrete-engine focused tests pass; testnet dry run is separate from blocked production counterparts)",
- "gates": "At 5b82d9f, ordered G0-G6 exited 0 with counts 68/152/117/78/77/63/55. G7 exited 2 after six tests because A043 reports 'A review does not cover the current source and review regressions'. Downstream tasks were then verified separately: A044/B040/B041/B042/B043/B044 exited 0 with 44/2/2/3/1/1 tests, and direct test/gates/G7.t.sol passed six tests. These are separate technical results, not an ordered G7 pass or new peer review; B043 only checks its technical harness. Independent teammate review is pending; no self-refresh. G7 reviewed_by is empty and merge_sha null; acceptance remains human-only. Source-bound evidence: artifacts/risk/real-book-validation-2026-10-03.json (committed at 20330d8), docs/spec/gate_status.json and artifacts/gates.",
- "validation_evidence": "artifacts/risk/real-book-validation-2026-10-03.json (20330d8 evidence commit; validated source remains 5b82d9f)",
- "fresh_validation": "At 5b82d9f, the full risk suite passed 727 tests in 117 suites, zero failed/skipped (tmp/full-risk-final.log), including eight smoke tests. Those eight also passed separately under MonadTen (tmp/monad-smoke-tests.log). Python A/B/audit/integration passed 46/156/8/7. Focused counts overlap; do not add them to the full total. monad-testnet-deployment.json and monad-testnet-smoke.json verify the controlled live scenario. The prior 47149e5 result was 719/116; merge-validation-2026-10-03.json and review-validation.json remain older historical evidence.",
- "source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
+ "gates": "At 4a050df, ordered G0-G6 exit 0 with counts 71/152/117/78/77/63/55. G0 gained three SDK compiler-runner regressions. G7 exits 2 after six checks at A043 because historical review fingerprints do not cover the current source. Separate A044/B040/B041/B042/B043/B044 exit 0 with 44/2/2/3/1/1 checks; direct G7 Solidity suite passes six tests. These are technical results, not fresh peer review or human acceptance. Historical accepted G0-G6 SHAs remain; G7 reviewed_by stays empty and merge_sha null.",
+ "validation_evidence": "artifacts/risk/non-oracle-fixes-2026-10-03.json",
+ "fresh_validation": "Full CI at 4a050df: 825 tests / 129 suites, zero failed/skipped; 10,000 fuzz, 256 x 128 invariants, seed 0x45524f53 and strict book snapshots, exit 0. Earlier full risk at 1654b9f: 818 tests / 128 suites; seven added RB-I08 policy tests also pass separately. MonadTen targeted 92 tests / 10 suites; Python 49/156/8/7; SDK strict source/accounting and six Node tests; formatting and ABI checks all pass. Gates are recorded separately; RB-I11 remains an open policy finding.",
+ "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
  "toolchain": {
   "forge": "1.8.3",
   "solc": "0.8.30",
   "python": "3.12.10",
-  "typescript": "5.9.2",
+  "typescript": "5.9.3 (exact local package-lock pin; no global fallback)",
   "numpy_audit_only": "2.2.6",
-  "team_confirmation": "A and B agree forge1.8.3 + solc0.8.30 + Prague; local Python/TypeScript/NumPy versions differ from B's recorded environment."
+  "team_confirmation": "Forge1.8.3 + solc0.8.30 + Prague shared target. SDK now locks TypeScript5.9.3, matching B's recorded version; local Python/NumPy remain3.12.10/2.2.6."
  },
  "worktree_dirty": true,
  "historical_manifest_source_commit": "4a848c4ebf73019fd4fa6c1fdf6c8e7486c7820d",
  "historical_measurements": "gas-engine.json and invariant-campaign.json preserve earlier source/toolchain results; do not treat their numbers or CI campaign as measurements of the new implementation.",
  "retained_limitations": [
-  "RB-I01 taker-permit version repair f2ebc61 is implemented and locally tested, but independently unreviewed",
-  "RB-I02: a partially filled reduce-only maker remainder becomes stale; book-team seam follow-up remains open",
-  "Concrete BookRiskEngine has no PERP depth sampler: only fully backed 1x bootstrap evaluation is supported",
-  "Verified controlled testnet deployment and one successful fully backed trade/YES-settlement/cash-exit scenario are not production adapter approval or comprehensive live validation of funding, leverage, liquidation, LP exits or INVALID",
-  "Oracle and MarketRegistry implementations now exist on origin/feat/oracle ccbdb50 (OG0/OG1 recorded passed there), but are not merged or validated against this real engine; real MarketFactory remains absent (oracle branch has StubMarketFactory)",
-  "Price collector, real factory integration, indexer/frontend, calibration, production deployed-code acceptance and production release acceptance remain pending",
-  "B review at32d30ac applies to71576ed..3b11044, not blanket approval of this newer merge; G7 human acceptance pending"
- ]
+  "RB-I11 OPEN: later authenticated INDEX corrections can leave published BASIS inconsistent with corrected history. Strict prefix-seal proposal requires a feed-update delay and sub30-second cadence; user policy confirmation pending. See docs/questions/RB-I11-index-prefix-seal.md.",
+  "New source is locally implemented, not present at the historical closed Monad testnet address; no replacement broadcast this turn",
+  "Independent economic/interface review and current source fingerprints remain required; prior B review does not cover this delta; G7 human acceptance pending",
+  "Oracle implementation/integration explicitly excluded this turn; actual oracle/factory join is not merged or tested",
+  "Production INDEX collector, empirical calibration, governance/timelock roles and real registry/factory handshake require actual inputs and review",
+  "Funding, leverage beyond fully backed1x, recovery and conversion remain disabled in this concrete release profile",
+  "Book sampler deliberately excludes all reduce-only depth and may be unavailable in thin, stale or continuously changing books; prior-block confirmation is not a complete market-manipulation defense",
+  "Cold local MonadTen call benchmarks and state-specific RPC creation estimate do not certify every production path or future deployment receipt",
+  "Frontend/indexer remains absent; SDK compiler is pinned and read-model checks are separate from app integration"
+ ],
+ "historical_concrete_engine": {
+  "composition": "contracts/src/engine/BookRiskEngine.sol:BookRiskEngine (real Book + RiskAccountingBridge + A accounting/custody)",
+  "source_commit": "1077dfa39c0a26324e02e0e3f3cdff9fd8957479",
+  "runtime_bytes": 114546,
+  "creation_bytes": 123665,
+  "constructor_argument_bytes": 928,
+  "initcode_bytes": 124593,
+  "scope": "Initial 1x, uncalibrated full-backing bootstrap only; funding and recovery disabled, zero trading fees, premium load 1. No unrestricted feed or failure-injection helpers. No production PERP depth sampler is wired.",
+  "deployment_abi": "artifacts/risk/book-risk-engine-abi.json (285 entries, export/check passed); compiler artifact contracts/out/BookRiskEngine.sol/BookRiskEngine.json. Abstract engine-abi.json remains a distinct 254-entry interface, not the deployment ABI."
+ },
+ "historical_validation": {
+  "source_commit": "5b82d9f9d5e26e41019bf110f316b375cfc556fb",
+  "evidence": "artifacts/risk/real-book-validation-2026-10-03.json (20330d8 evidence commit; validated source remains 5b82d9f)",
+  "fresh_validation": "At 5b82d9f, the full risk suite passed 727 tests in 117 suites, zero failed/skipped (tmp/full-risk-final.log), including eight smoke tests. Those eight also passed separately under MonadTen (tmp/monad-smoke-tests.log). Python A/B/audit/integration passed 46/156/8/7. Focused counts overlap; do not add them to the full total. monad-testnet-deployment.json and monad-testnet-smoke.json verify the controlled live scenario. The prior 47149e5 result was 719/116; merge-validation-2026-10-03.json and review-validation.json remain older historical evidence.",
+  "gates": "At 5b82d9f, ordered G0-G6 exited 0 with counts 68/152/117/78/77/63/55. G7 exited 2 after six tests because A043 reports 'A review does not cover the current source and review regressions'. Downstream tasks were then verified separately: A044/B040/B041/B042/B043/B044 exited 0 with 44/2/2/3/1/1 tests, and direct test/gates/G7.t.sol passed six tests. These are separate technical results, not an ordered G7 pass or new peer review; B043 only checks its technical harness. Independent teammate review is pending; no self-refresh. G7 reviewed_by is empty and merge_sha null; acceptance remains human-only. Source-bound evidence: artifacts/risk/real-book-validation-2026-10-03.json (committed at 20330d8), docs/spec/gate_status.json and artifacts/gates."
+ }
 }

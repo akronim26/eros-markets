@@ -188,11 +188,12 @@
         "contracts/test/gates/G7.t.sol"
       ],
       "review_pending": [
-        "Independent teammate review of RB-I01 repair and concrete BookRiskEngine",
+        "Independent teammate review of RB-I01 through RB-I07 and RB-I09 source changes, including the concrete sampler and book bounds",
         "Source-bound review refresh after independent review"
       ],
-      "note": "Earlier A/B reviews apply to their recorded historical source. New RB-I01 economic repairs and concrete engine change source; no approval is carried forward or self-authored. G0-G6 accepted historical SHAs are retained. Current tests and testnet evidence are separate from peer review and human G7/release acceptance. RB-I02 and the production PERP sampler remain open.",
+      "note": "Earlier A/B reviews apply to their recorded historical source. RB-I01/RB-I02 reductions, concrete composition, participant lookup, bootstrap maker bands, PERP sampling, reduce-only makers, parameter domains and bounded matching/batching require independent source-bound review. No approval is carried forward or self-authored. G0-G6 accepted historical SHAs are retained. Technical checks and read-only Monad gas estimates are not peer review or human G7/release acceptance. New source does not upgrade the historical closed testnet market. The user confirmed RB-I08 safe excess-collateral release, with behavior unchanged and seven passing policy regressions.",
       "technical_status": "source_review_pending",
+      "open_policy_finding": "RB-I11: INDEX/BASIS correction coherence; strict prefix-seal proposal awaits user confirmation. No repair or reviewer approval claimed.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
