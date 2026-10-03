@@ -129,6 +129,9 @@ export class LocalRelay {
       if(identity.lastObservedAt>packet.packet.observation.observedAt)throw new Error('BACKWARDS_CHAIN_SOURCE_TIME');
       if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
       if(r?.state==='QUARANTINED')throw new Error('RELAY_RECOVERY_REQUIRED');
+      const data=submitCalldata(packet.packet.observation,packet.signature);
+      // A rejected simulation must not burn a shared-account nonce before signing.
+      await this.bounded(this.transport.simulate(d.engine,data));
       if(!r){r=this.tx(()=>{
         this.lease();
         for(const row of this.db.prepare('SELECT body,sha256 FROM deliveries WHERE ns=?').all(ns)){
@@ -144,8 +147,6 @@ export class LocalRelay {
         this.db.prepare('UPDATE relay_nonce SET next_nonce=? WHERE sender=?').run((nonce+1n).toString(),this.transport.sender.toLowerCase());return next;
       });}
       if(r.digest!==packet.digest)throw new Error('DELIVERY_PACKET_MISMATCH');
-      const data=submitCalldata(packet.packet.observation,packet.signature);
-      await this.bounded(this.transport.simulate(d.engine,data));
       if(!r.raw){
         try{
           const raw=await this.bounded(this.transport.prepare({to:d.engine,data,nonce:r.nonce,gas:this.policy.gasCap,maxFeePerGas:this.policy.maxFeePerGas,maxPriorityFeePerGas:this.policy.maxPriorityFeePerGas}));

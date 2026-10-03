@@ -31,7 +31,9 @@ export function localRpcTransport(rpcUrl:string,engineAbi:Abi):LocalRelayTranspo
       return {chainId:31337n,engineCodeHash:keccak256(code),abiHash,listing:record(listing),
         signer:state.signer,rulesHash:state.rulesHash,lastSequence:state.lastSequence,lastObservedAt:state.lastObservedAt};
     },
-    simulate:async(to,data)=>{await check();await client.call({account:account.address,to:to as Hex,data});},
+    // Simulate inclusion in the next block; a quiet local chain's latest timestamp
+    // can predate an authentic packet. The mined engine still enforces zero future tolerance.
+    simulate:async(to,data)=>{await check();await client.call({account:account.address,to:to as Hex,data,blockTag:'pending'});},
     prepare:async(req)=>{await check();if(req.nonce<0n||req.nonce>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('BAD_RELAY_NONCE');
       return account.signTransaction({type:'eip1559',chainId:31337,to:req.to as Hex,data:req.data,nonce:Number(req.nonce),
         gas:req.gas,maxFeePerGas:req.maxFeePerGas,maxPriorityFeePerGas:req.maxPriorityFeePerGas,value:0n});},

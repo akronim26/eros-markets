@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { parseConfig, verifyListing, type MarketConfig } from './config.js';
 import { json } from './math.js';
 import { PacketStore, packetNamespace, type PacketDomain, type StoredPacket } from './packet-store.js';
-import { prepareObservation, signPrepared, type RawSigner } from './publication.js';
+import { prepareObservation, permitsInvalidDepth, signPrepared, type RawSigner } from './publication.js';
 import { parseRules, rulesHash, type RulesManifest } from './rules.js';
 import { LocalRelay, type LocalRelayTransport, type RelayPolicy, type DeliveryRecord } from './local-relay.js';
 import { CollectionService, type ScheduledWorker } from './service.js';
@@ -139,15 +139,37 @@ export class LocalPipeline {
       });
       if(result.inspection.status==='QUARANTINED')throw new Error(`PIPELINE_SOURCE_QUARANTINED:${result.inspection.reason}`);
       if(recovered)return recovered;
-      if(result.inspection.status==='INVALID_DEPTH')return this.result(e,'SOURCE_UNAVAILABLE',`INVALID_DEPTH:${result.inspection.reason}`);
-      if(e.pending.length)return await this.publish(e,this.packets.get(e.domain,e.pending[0]!)!);
-      if(result.inspection.status!=='COLLECTING'||!result.book||!result.metadata||!result.event)
+      const invalid=result.inspection.status==='INVALID_DEPTH',allowInvalid=invalid&&permitsInvalidDepth(e.rules);
+      if(invalid&&!allowInvalid)return this.result(e,'SOURCE_UNAVAILABLE',`INVALID_DEPTH:${result.inspection.reason}`);
+      const complete=!!result.book&&!!result.metadata&&!!result.event;
+      const prepare=(seq:bigint)=>prepareObservation(e.config,e.rules,
+        {bookBody:result.book!.body,metadata:JSON.parse(result.metadata!.body),event:JSON.parse(result.event!.body),
+          bookReceivedAtMs:result.book!.receivedAtMs,metadataReceivedAtMs:result.metadata!.receivedAtMs,eventReceivedAtMs:result.event!.receivedAtMs},
+        seq,this.now(),this.policy.headroomMs);
+      if(e.pending.length){
+        const p=this.packets.get(e.domain,e.pending[0]!)!,seq=p.packet.observation.sequence;
+        if(!this.relay.get(e.domain,seq)&&!sourceTime(p.packet.sourceMs.toString(),this.now(),null,this.policy.headroomMs).hasHeadroom)
+          return await this.publish(e,p); // expire an unsent packet without signing or sending.
+        if(allowInvalid&&p.packet.observation.impactBidWad>0n){
+          if(this.relay.get(e.domain,seq))return this.result(e,'SOURCE_UNAVAILABLE','INVALID_TRANSITION_BLOCKED_BY_PENDING_DELIVERY',seq);
+          if(!complete)return this.result(e,'SOURCE_UNAVAILABLE','INCOMPLETE_INVALID_EVIDENCE');
+          // Validate fresh raw evidence before discarding an unsent valid candidate.
+          try{prepare(seq);}catch(error){
+            if(error instanceof Error&&/^(OBSERVATION_UNAVAILABLE:|INSUFFICIENT_PUBLICATION_HEADROOM)/.test(error.message))return this.result(e,'SOURCE_UNAVAILABLE',error.message);
+            throw error;
+          }
+          this.packets.expire(e.domain,this.owner,e.fence,this.now(),seq,'SUPERSEDED_BY_FRESH_INVALID_DEPTH');
+          e.pending=e.pending.filter(v=>v!==seq);
+        }else{
+          if(result.inspection.status!=='COLLECTING'&&!allowInvalid)return this.result(e,'SOURCE_UNAVAILABLE',result.inspection.reason??result.inspection.status);
+          return await this.publish(e,p);
+        }
+      }
+      if((result.inspection.status!=='COLLECTING'&&!allowInvalid)||!complete)
         return this.result(e,'SOURCE_UNAVAILABLE',result.inspection.reason??result.inspection.status);
       // Recompute from retained raw bodies, rather than trusting cached diagnostic summaries.
-      const evidence={bookBody:result.book.body,metadata:JSON.parse(result.metadata.body),event:JSON.parse(result.event.body),
-        bookReceivedAtMs:result.book.receivedAtMs,metadataReceivedAtMs:result.metadata.receivedAtMs,eventReceivedAtMs:result.event.receivedAtMs};
       let p;
-      try{p=this.packets.allocate(e.domain,this.owner,e.fence,this.now(),seq=>prepareObservation(e.config,e.rules,evidence,seq,this.now(),this.policy.headroomMs));}
+      try{p=this.packets.allocate(e.domain,this.owner,e.fence,this.now(),prepare);}
       catch(error){
         if(error instanceof Error&&/^(OBSERVATION_UNAVAILABLE:|INSUFFICIENT_PUBLICATION_HEADROOM)/.test(error.message))return this.result(e,'SOURCE_UNAVAILABLE',error.message);
         throw error;
