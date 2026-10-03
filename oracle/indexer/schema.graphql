@@ -76,6 +76,8 @@ type Assertion {
   asserter: String!
   assertedAt: BigInt!
   assertedTx: String!
+  assertedBlock: Int! @index
+  assertedLogIndex: Int!
   oov3Asserter: String
   currency: String
   identifier: String
@@ -105,7 +107,8 @@ type Proposal {
   observedAt: BigInt
   attempt: Int!
   proposer: String!
-  block: Int!
+  block: Int! @index
+  logIndex: Int!
   timestamp: BigInt!
   txHash: String!
 }

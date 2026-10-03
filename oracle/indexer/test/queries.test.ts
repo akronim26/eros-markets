@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { buildSchema, type GraphQLSchema, parse, validate } from 'graphql'
 import { describe, expect, it } from 'vitest'
-import { gql, IndexerError, QUERIES } from '../src/queries'
+import { gql, INDEXER_QUERIES as QUERIES, IndexerError } from '../../packages/oracle-sdk/src/indexer'
 
 type Field = { name: string; type: string; list: boolean; entity: boolean }
 
@@ -37,6 +37,10 @@ function hasuraSchema(sdl: string): GraphQLSchema {
     out.push(`input ${t}_order_by { ${[...plain.filter((f) => !f.list).map((f) => f.name), ...refs.map((f) => `${f.name}_id`)].map((n) => `${n}: order_by`).join(' ')} }`)
     query.push(`${t}${args}: [${t}!]!`, `${t}_by_pk(id: String!): ${t}`)
   }
+  // Envio's indexing status (docs: Observability, "Indexing status")
+  out.push('type _meta { chainId: Int! progressBlock: Int! eventsProcessed: Int! bufferBlock: Int! firstEventBlock: Int sourceBlock: Int! readyAt: String isReady: Boolean! startBlock: Int! endBlock: Int }')
+  out.push('input _meta_bool_exp { chainId: Int_comparison_exp }')
+  query.push('_meta(where: _meta_bool_exp): [_meta!]!')
   out.push(`type Query { ${query.join(' ')} }`)
   return buildSchema(out.join('\n'))
 }
@@ -65,5 +69,6 @@ describe('queries', () => {
     expect(calls[0]).toEqual({ url: 'http://x/v1/graphql', body: { query: QUERIES.LIVE_MARKETS, variables: { limit: 5 } } })
     await expect(gql('u', '{x}', {}, reply({ errors: [{ message: 'field "x" not found' }] }))).rejects.toThrow(IndexerError)
     await expect(gql('u', '{x}', {}, reply({}, 502))).rejects.toThrow(/HTTP 502/)
+    await expect(gql('u', '{x}', {}, reply({}))).rejects.toThrow(/no data/)
   })
 })
