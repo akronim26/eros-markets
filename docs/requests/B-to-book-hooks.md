@@ -2,13 +2,17 @@
 
 ## Status update — 2026-10-03
 
-The original request below describes the book that remains on `integration/risk` at `2506235`.
-The book team has since implemented the ten structural interface changes on `origin/main`
-through `a114d06`, including single-market lots/engine IDs, epoch metadata, paired risk hooks,
-cancel-all, expiry and forced reduction. Do not ask them to implement these again without
-reviewing those commits. Main's real-book/B test still uses `MockAccountingPort`; the remaining
-join is real Book + real A accounting + real B risk, followed by fresh integration evidence.
-The real-counterpart status remains blocked until that join is validated.
+The original request below describes the historical book at integration `2506235`. The ten
+structural interface changes shipped on main through `a114d06`, including single-market lots,
+engine IDs, epoch metadata, paired hooks, cancel-all, expiry and forced reduction. They were
+merged into `integration/risk` at `13ca730`; do not ask the book team to implement them again.
+
+Main's earlier real-book/B test uses `MockAccountingPort`. The new
+`contracts/test/integration/RealBookIntegration.t.sol` joins real Book + real A accounting/vault
+and real B risk: 17 local tests pass. This is local source integration, not deployment approval;
+oracle/feed/token/deployment inputs remain fixtures. An inherited reduction-version liveness
+limitation is open as RB-I01 in `docs/requests/A-to-B-merge-followup.md`. The book and risk teams
+should agree its semantics; production adapter wiring and release validation remain outstanding.
 
 ## Original request — historical baseline
 
