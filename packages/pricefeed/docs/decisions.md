@@ -23,10 +23,10 @@ risk/CLOB/oracle code. All temporary chain activity stays on chain ID 31337.
 | Decision | Status | Implementation consequence |
 |---|---|---|
 | Q01 separate scope and location | User authorized this workstream; individual owner/reviewer names unassigned | Only this package is implemented |
-| Q02 impact method/rounding/depth/fees | OPEN | Both mathematical branches available for explicit diagnostics; no approved operational method inferred |
+| Q02 impact method/rounding/depth/fees | USER-SELECTED on 03 October 2026: before-fee VWAP, directed price rounding, validated two-sided displayed depth and floor-total lots; named counterpart review pending | Existing calculator matches pricing-v1; bind the reviewed policy through Q04 and keep other admission dependencies closed until supplied |
 | Q03 source/publish timestamp meaning | OPEN | Preserve vendor milliseconds, diagnostic floor to Unix seconds; no local freshness substitution or operational signing |
 | Q04 canonical source-rules hash | OPEN | No guessed rules hash; engine pins must match approved manifest |
-| Q05 quote/quantity/minimum-size normalization | OPEN | Diagnostic claim-to-lot conversion explicit; no quote equivalence or fee model approved |
+| Q05 quote/quantity/minimum-size normalization | PARTIALLY SELECTED: exact fractional aggregation, floor-total lots and source constraints; quote equivalence/provider precision OPEN | Before-fee pricing does not approve collateral equivalence or imply arbitrary lot-sized trades meet provider precision |
 | Q06 event semantics and exact initial mapping | OPEN | Three real source examples remain disabled for operational output |
 | Q07 cadence/headroom/metadata age | OPEN | Every diagnostic run declares its own settings; no production cadence default |
 | Q08 invalid-packet representation/priority | OPEN | Report unavailability and preserve reasons; do not emit fabricated invalid observations |

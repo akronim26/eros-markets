@@ -48,10 +48,10 @@ margin/funding/settlement or enable operational admission.
 | Decision | Actual status / consequence |
 |---|---|
 | Q01 scope | User authorized this package and manual commits; named counterpart reviewers remain unassigned |
-| Q02 impact/depth/fees | OPEN; VWAP and marginal branches are explicit diagnostic choices, not production approval |
+| Q02 impact/depth/fees | USER-SELECTED on 03 October 2026: before-fee VWAP, directed price rounding, validated two-sided displayed depth and floor-total lots; named counterpart review and Q04 rules binding pending |
 | Q03 timestamps | OPEN; preserve vendor milliseconds and diagnostic floor; publish-time policy unapproved |
 | Q04 rules hash | OPEN; SHA-256 evidence digests are not the approved Eros rules hash |
-| Q05 quote/quantity | OPEN; diagnostic claim-to-lot conversion does not approve collateral or fee equivalence |
+| Q05 quote/quantity | PARTIALLY SELECTED: fractional aggregation and floor-total lots with source constraints; quote equivalence/provider precision remain OPEN |
 | Q06 event mapping | OPEN; example tokens are real, but outcome/deadline/exception equivalence is not approved |
 | Q07 operating budget | OPEN; cadence/headroom/metadata settings are illustrative |
 | Q08 invalid packets | OPEN; unavailability remains explicit and no operational invalid packet is fabricated |
@@ -347,7 +347,13 @@ sources are unchanged from the earlier checked baseline. The old scope checker
 still pins the original pre-merge protected hashes; its earlier pass must not be
 claimed as a current post-merge pass. No baseline was silently refreshed.
 
-## Pending commit — wire confirmation and Q02 decision review
+## Commit 72eef61 — wire confirmation and Q02 decision review
+
+Full hash: `72eef61d149e74c63e4839200518db6309ba21a1`
+
+Committed: 2026-10-03 15:01:19 +05:30
+
+Message: `test: record pricefeed wire and impact verification`
 
 Base commit: `08095a802ec503dfd24eea2e0acc253d11db7742`.
 Suggested message: `test: record pricefeed wire and impact verification (PF002-PF003)`.
@@ -369,3 +375,45 @@ demo was run. These checks do not re-certify full economic integration.
 **Decisions.** Wire engineering compatibility is confirmed; named acceptance
 remains separate. Q02 method/rounding/depth/fees remains OPEN until an explicit
 owner decision. Q03-Q10 remain OPEN. Only package documentation changed.
+
+## Pending commit — user-selected VWAP, fee and depth policies
+
+Base commit: `72eef61d149e74c63e4839200518db6309ba21a1`.
+Suggested message: `feat: select VWAP pricing, fee and depth policies (PF003)`.
+
+**Decision.** On 03 October 2026, the user accepted the recommendation to use
+VWAP at N with bid floored, ask ceiled and valid midpoint floored. Recorded the
+explicit selection in the impact decision and current decision summaries. This
+is a real user decision, not a manufactured named risk/factory review, approved
+source-rules hash, PF gate, production parameter or transaction authorization.
+
+**What changed.** Updated package decision documentation and recorded the actual
+`72eef61` commit. The existing VWAP arithmetic implements the selected method;
+no runtime code change was required. The current diagnostic fee-free book-price
+calculation and quantity/minimum-size treatment remain review inputs. Q02 is
+partially decided; executable-depth/fees remain OPEN. Q03-Q10 remain OPEN.
+
+**Verification.** Documentation-only change; no arithmetic, wire or live-source
+test was repeated. Existing passing arithmetic evidence is recorded above.
+`git diff --check` exited 0; the working diff is confined to package documentation.
+
+**Subsequent fee/depth decision.** The user accepted before-fee quoted-price VWAP
+and complete validated two-sided displayed depth, preserving fractional quantities
+and flooring total depth to lots. Added the selected pricing-v1 definition to
+`docs/impact-decision.md` and updated current summaries. This resolves the user's
+Q02 method/rounding/fee/depth choices; named counterpart review, canonical rules
+binding, provider quantity precision and calibrated N/spread remain separate.
+Source minimum size applies to the N-sized order, not a filter discarding every
+small residual resting level. No external execution is performed or promised.
+
+**Additional verification.** Added two package arithmetic tests: minimum-size
+equality and one-lot boundaries, and fractional residuals that cannot cover the
+next whole lot. `npm test` exited 0 with 172 tests and zero failed/skipped/
+cancelled/todo cases; `npm run test:reference` exited 0 with 144 independently
+derived vectors, seed 20261002; `npm run check:wire` exited 0. Vectors are included
+in the 172 package tests. No runtime calculator changes, live-source rerun or new
+engine-test run were made. All edits remain inside `packages/pricefeed/`.
+Final checks exited 0: `git diff --check` and
+`git diff --exit-code HEAD -- . ':!packages/pricefeed'`. The latter checks this
+turn's counterpart files against current HEAD; it does not refresh or certify
+the original pre-merge protected-hash baseline.
