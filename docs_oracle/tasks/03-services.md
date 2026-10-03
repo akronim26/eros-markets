@@ -274,13 +274,14 @@ Plan §13: owner OA · 3 PD · depends O30, O20 · acceptance: wrong-proposal dr
 - Owner: OA
 - PD: 0.75
 - Depends: O30.3, O20.2
-- Plan: §9.2
+- Plan: §9.2, ADJ-44
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/services/watchdog/src/{intake,l1}.ts
 - Build: Subscribe to every proposal from every path as soon as it is recorded; for L1 re-run the FeedSpec with `packages/feedspec` from the watchdog's own egress, plus the fallback source if listed.
 - Done when: tests flag a contradiction between a recorded L1 outcome and a re-run.
 - Check: cd oracle/services/watchdog && bun test
+- Notes: `services/watchdog/src/{intake,l1,verdict,types,chain}.ts`. Intake: every `ProposedL1` (Layer 1) and `ProposalRecorded` (L2_AUTO, REVIEWED, PERMISSIONLESS) log, read each tick in 100-block steps, each checked once per (market, attempt, path, evidence); `Asserted` logs track live assertions. Layer 1 re-run: the market's FeedSpec URL fetched from the watchdog's own egress (manual redirects, its own API key for an authRef, none means no answer) and evaluated by `packages/feedspec`'s `evaluateResponse`; then the fallback source when the watchdog's configuration lists one (ADJ-44). Verdict rule (`combine`): sources without an outcome (not final, HTTP or fetch error, no credentials) count neither way; AGREE if every answering source supports the proposal, CONTRADICT if every one is against it, UNSURE otherwise or when none answered. A changed value with the same outcome is noted. 15 tests (`test/l1.test.ts`): a recorded L1 YES contradicted by the feed now (home 1) is flagged, agreement, no answer is never a contradiction, fallback agreement and split, the verdict table, intake dedupe.
 
 ### O35.2 · Fourth model family
 - Owner: OA
