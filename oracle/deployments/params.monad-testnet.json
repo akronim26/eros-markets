@@ -39,7 +39,9 @@
   "authRefs": [
     "SPORTSDATA_V1"
   ],
-  "providers": [],
+  "providers": [
+    "statsapi.mlb.com"
+  ],
   "globals": {
     "minHorizonSecs": 600,
     "maxListingHorizon": 2588400,

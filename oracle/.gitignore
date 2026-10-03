@@ -15,3 +15,6 @@ validation/dataset/raw.tar.gz
 validation/dataset/rows.jsonl.gz
 __pycache__/
 deployments/testnet-keys.env
+validation/gate/runs/
+indexer/build/
+indexer/.envio/

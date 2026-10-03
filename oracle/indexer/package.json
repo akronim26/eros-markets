@@ -1,0 +1,27 @@
+{
+  "name": "eros-oracle-indexer",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "codegen": "envio codegen",
+    "dev": "envio dev",
+    "start": "envio start",
+    "test": "vitest run --test-timeout=20000",
+    "typecheck": "tsc --noEmit",
+    "record": "bun test scripts/record.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.2",
+    "graphql": "16.11.0",
+    "typescript": "6.0.3",
+    "viem": "2.57.2",
+    "vitest": "4.1.0",
+    "yaml": "2.9.1"
+  },
+  "dependencies": {
+    "envio": "3.12.1"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

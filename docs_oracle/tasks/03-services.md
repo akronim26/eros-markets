@@ -361,11 +361,12 @@ Plan §13: owner OB · 2 PD · depends OG1 · acceptance: Disputes Live queries 
 - Depends: OG1
 - Plan: §9.3, §6.8, V-E2
 - Cut: no
-- Status: todo
+- Status: blocked
 - Files: oracle/indexer/**
 - Build: `pnpx envio init` for Monad testnet; sources ResolutionOracle, MarketRegistry, BondTreasury, UmaAdapter, OOv3 (`AssertionMade`, `AssertionDisputed`, `AssertionSettled`), the KeystoneForwarder's `ReportProcessed` filtered to the oracle, ErosSandboxOracle; ABIs from `forge inspect`; start blocks from `deployments/<network>.json`.
 - Done when: the indexer syncs testnet events from the deploy blocks.
 - Check: cd oracle/indexer && pnpm envio codegen
+- Notes: Built and checked offline (4 Oct 2026): `oracle/indexer` from `envio init` (HyperIndex 3.12.1, pnpm); sources ResolutionOracle, MarketRegistry, BondTreasury and UmaAdapter with the `forge inspect` ABIs in oracle/abi, OOv3's three events, the sim and production KeystoneForwarders' `ReportProcessed` filtered to `receiver == oracle` (a `where` filter, repeated in the handler because simulate mode skips it), ErosSandboxOracle; addresses from deployments/monad-testnet.json, start blocks from its deployBlock (67,901,624) and the UMA sandbox's receipts (67,901,400 / 67,901,419); `pnpm envio codegen` exits 0; test/config.test.ts checks every address and start block against the deployment record. Blocked: (1) HyperSync needs an Envio API token (`An Envio API token is required for using HyperSync as a data-source`), a free account at envio.dev the team has to create (`ENVIO_API_TOKEN` in oracle/indexer/.env, git-ignored); (2) `envio dev` needs Docker running; (3) the testnet holds no indexed event yet: the trust set, globals, treasury funding and the first listing are the X04 Timelock steps still to run.
 
 ### O37.2 · Entities and handlers
 - Owner: OB
@@ -373,11 +374,12 @@ Plan §13: owner OB · 2 PD · depends OG1 · acceptance: Disputes Live queries 
 - Depends: O37.1
 - Plan: §9.3
 - Cut: no
-- Status: todo
+- Status: doing
 - Files: oracle/indexer/src/*
 - Build: Market, Resolution (state history), Assertion, Proposal, PanelResult, Dispute, TreasuryLedger, TrustSet, ReportAttempt.
 - Done when: handler tests populate every entity from recorded events.
 - Check: cd oracle/indexer && pnpm test
+- Notes: Complete except that O37.1 is blocked. Entities Market (current state, `live`, `deadline` for Disputes Live), Resolution (state history), Assertion, Proposal, PanelResult, Dispute, TreasuryLedger, TrustSet, ReportAttempt, plus Category, SandboxRequest and Watchdog. `scripts/record.test.ts` (bun, anvil) takes two markets through a real local deploy with the services' own code (L1 report through the sim forwarder, watchdog heartbeat and float dispute, sandbox DVM answer, rejection, void at voidDeadline; panel runner → Review → two committee members' REVIEWED proposal → Final) and records all 111 logs to test/fixtures/recorded/events.json; the tests replay the 57 indexed ones on the testnet addresses through Envio's test indexer and populate every entity (Category from a synthetic CategorySet: governance is not in the recording). 33 tests (handlers, deadline/live rule, config, queries), typecheck clean, 23/23 handler mutations caught. `indexer` CI job added.
 
 ### O37.3 · Queries and mainnet config
 - Owner: OB
@@ -385,11 +387,12 @@ Plan §13: owner OB · 2 PD · depends OG1 · acceptance: Disputes Live queries 
 - Depends: O37.2
 - Plan: §9.3, §9.5, DEP-5
 - Cut: no
-- Status: todo
+- Status: blocked
 - Files: oracle/indexer/**
 - Build: The queries Disputes Live and the keepers need (live markets by deadline, market detail, assertion history); a mainnet (143) config. Merge into the app team's indexer when it exists (DEP-5).
 - Done when: every Disputes Live query returns data on testnet.
 - Check: cd oracle/indexer && pnpm test
+- Notes: Queries in src/queries.ts: live markets by deadline (Disputes Live), market detail with history, proposals, panel results, assertions and disputes, assertion history, keeper due markets and open assertions, watchdog proposals since a block, refused CRE reports; each validated in test/queries.test.ts against the Hasura API shape generated from schema.graphql (the check rejects wrong fields, filters and orders). config.mainnet.yaml: chain 143, every address and the start block from ENVIO_* variables (nothing deployed on mainnet; the venue is open, X02), codegen and typecheck pass with them set. No app-team indexer exists to merge into (DEP-5). Blocked like O37.1: returning data on testnet needs the running indexer (Envio API token, Docker) and listed markets (X04).
 
 ## O38 · Disputes Live page
 Plan §13: owner OB · 3 PD · depends O37 · acceptance: dispute + propose flows on testnet.
