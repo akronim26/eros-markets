@@ -1,0 +1,104 @@
+{
+  "_note": "O33.4: PanelResults signed by the panel runner (local attestor key); checked by test/vectors/PanelSigVectors.t.sol",
+  "chainId": 10143,
+  "oracle": "0x837a41023CF81234f89F956C94D676918b4791c1",
+  "attestor": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+  "cases": [
+    {
+      "name": "post-T unanimous YES",
+      "marketId": "0x7b93462ab20ad959cbf5322617af620671b89dd2fb2bc1417dadf5414ad384cf",
+      "phase": 2,
+      "attempt": 0,
+      "labels": [
+        1,
+        1,
+        1
+      ],
+      "calibratedBps": [
+        9500,
+        9400,
+        9300
+      ],
+      "evidenceHash": "0xde77e793564bc5ba0713b610c743ab0d819d9580fcae7c67b4c6f835fb9ee500",
+      "evidenceURIHash": "0x5074202cbbb0e60f75be03d9163e4f3b5cbfb3e8f25d153bfeaec6a1a6429c35",
+      "gateHash": "0xe8905d90899652c3e8c6dcafbac24e798be1f1b7e6e4dad28b4cbf776d0b66e9",
+      "flags": 0,
+      "trustSetId": 1,
+      "deadline": "1800000000",
+      "digest": "0x38f4759a103c7c1c546314438475b8786c11497557ad04f8e1cd21df731763a2",
+      "signature": "0x012a28ee2765a002e0e917bf82adf79330f87885c909b528287a259c70ff39350023af3961eea1e15f8b1efacded4369422cc8280588718402f80305534debe91c"
+    },
+    {
+      "name": "early phase, mixed labels",
+      "marketId": "0x7b93462ab20ad959cbf5322617af620671b89dd2fb2bc1417dadf5414ad384cf",
+      "phase": 1,
+      "attempt": 0,
+      "labels": [
+        1,
+        2,
+        0
+      ],
+      "calibratedBps": [
+        4900,
+        4900,
+        0
+      ],
+      "evidenceHash": "0xde77e793564bc5ba0713b610c743ab0d819d9580fcae7c67b4c6f835fb9ee500",
+      "evidenceURIHash": "0x5074202cbbb0e60f75be03d9163e4f3b5cbfb3e8f25d153bfeaec6a1a6429c35",
+      "gateHash": "0xe8905d90899652c3e8c6dcafbac24e798be1f1b7e6e4dad28b4cbf776d0b66e9",
+      "flags": 0,
+      "trustSetId": 1,
+      "deadline": "1800000000",
+      "digest": "0x8acebb41b0b70e77dbffbace15566b4c52f08c71c5d41516767ca44bf6664423",
+      "signature": "0x4d3a7b723801258cd512c5d692708a302abf8451a932c3fabc4ad94ca2ba0c902d4ea7006cd2081dd49b22bf64fc1164649c04692b3c32090d64898753586e7a1c"
+    },
+    {
+      "name": "injection flag, NOT_YET majority",
+      "marketId": "0x7b93462ab20ad959cbf5322617af620671b89dd2fb2bc1417dadf5414ad384cf",
+      "phase": 2,
+      "attempt": 2,
+      "labels": [
+        4,
+        4,
+        1
+      ],
+      "calibratedBps": [
+        4900,
+        4900,
+        4900
+      ],
+      "evidenceHash": "0xde77e793564bc5ba0713b610c743ab0d819d9580fcae7c67b4c6f835fb9ee500",
+      "evidenceURIHash": "0x5074202cbbb0e60f75be03d9163e4f3b5cbfb3e8f25d153bfeaec6a1a6429c35",
+      "gateHash": "0xe8905d90899652c3e8c6dcafbac24e798be1f1b7e6e4dad28b4cbf776d0b66e9",
+      "flags": 1,
+      "trustSetId": 7,
+      "deadline": "1800000000",
+      "digest": "0xef22b7f061ae88fd10688d3001d3d0b5de06b884173a088dfd834ac598544417",
+      "signature": "0x1883348c68c6969bfb90a3ef3c7d68e1aa84b594521a06586c06ba2e0f3aa69c243b523c5ee39f81aec838b0746693de4d7f7c2d05b0085fddcd3e47f5219ee61b"
+    },
+    {
+      "name": "maximum fields",
+      "marketId": "0x7b93462ab20ad959cbf5322617af620671b89dd2fb2bc1417dadf5414ad384cf",
+      "phase": 2,
+      "attempt": 255,
+      "labels": [
+        3,
+        3,
+        3
+      ],
+      "calibratedBps": [
+        65535,
+        9900,
+        100
+      ],
+      "evidenceHash": "0xde77e793564bc5ba0713b610c743ab0d819d9580fcae7c67b4c6f835fb9ee500",
+      "evidenceURIHash": "0x5074202cbbb0e60f75be03d9163e4f3b5cbfb3e8f25d153bfeaec6a1a6429c35",
+      "gateHash": "0xe8905d90899652c3e8c6dcafbac24e798be1f1b7e6e4dad28b4cbf776d0b66e9",
+      "flags": 255,
+      "trustSetId": 4294967295,
+      "deadline": "18446744073709551615",
+      "digest": "0x4f4ffec69a3bebe41c18589ab84affb00f63716519650b22336b2aeec9d79ca6",
+      "signature": "0x0bd41c25662184c459173b971103b5a16c36895c8781c77a6568840ebd89fb2a5d248010a571beb61f8e7bf5f827a54370447e6578f1c9700b970a47f59d89741b"
+    }
+  ]
+}
