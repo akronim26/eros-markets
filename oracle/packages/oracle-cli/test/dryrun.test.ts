@@ -1,7 +1,5 @@
-// Task O22.3, steps 1 and 3: the burst test and the three dry-run simulations write dryrun.log and fail loudly.
-// The simulator double evaluates the config it is given against fixture responses with the evaluator, so the
-// configs oracle-cli writes (feed, allow-list, authRef table) are exercised; the real `cre` run is recorded in
-// the task notes. The parser is checked on the output of a real `cre workflow simulate dryrun` run.
+// The simulator double runs the real evaluator on the configs oracle-cli writes, against fixture responses. The
+// output parser is checked on a real `cre workflow simulate` run.
 import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'

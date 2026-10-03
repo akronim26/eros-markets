@@ -1,0 +1,122 @@
+{
+  "schema": "eros-validation-measure/1",
+  "gate": {
+    "highConfBps": 9900,
+    "calibratorHash": "0x3f6d1e70d1d4d85c4de733c056a7273475ad55ff7de3bcbff620867a51034942"
+  },
+  "data": {
+    "runsSha256": "29c171b1cca16ea4510f75c422c684ca14d2f5d19d10fa76dfc2beea4a2c0c5f",
+    "gateSha256": "b7399aad29569cb58a5767b3ccdf01801802e119583fa4c7d462123280cc396a",
+    "mapsSha256": "08e0b744a8275ab14d6ad16b8b0ed84ecb5d70a19bae54d94bf6f38787b3b618"
+  },
+  "holdout": {
+    "records": 11,
+    "ran": 6
+  },
+  "categories": {
+    "sports": {
+      "holdoutRecords": 0,
+      "ran": 0,
+      "bucketMarkets": 0,
+      "N": 0,
+      "k": 0,
+      "u95Bps": 10000,
+      "u95": "100.00%",
+      "passes": false
+    },
+    "macro": {
+      "holdoutRecords": 4,
+      "ran": 3,
+      "bucketMarkets": 0,
+      "N": 0,
+      "k": 0,
+      "u95Bps": 10000,
+      "u95": "100.00%",
+      "passes": false
+    },
+    "elections": {
+      "holdoutRecords": 7,
+      "ran": 3,
+      "bucketMarkets": 0,
+      "N": 0,
+      "k": 0,
+      "u95Bps": 10000,
+      "u95": "100.00%",
+      "passes": false
+    },
+    "politics": {
+      "holdoutRecords": 0,
+      "ran": 0,
+      "bucketMarkets": 0,
+      "N": 0,
+      "k": 0,
+      "u95Bps": 10000,
+      "u95": "100.00%",
+      "passes": false
+    },
+    "crypto": {
+      "holdoutRecords": 0,
+      "ran": 0,
+      "bucketMarkets": 0,
+      "N": 0,
+      "k": 0,
+      "u95Bps": 10000,
+      "u95": "100.00%",
+      "passes": false
+    },
+    "companies": {
+      "holdoutRecords": 0,
+      "ran": 0,
+      "bucketMarkets": 0,
+      "N": 0,
+      "k": 0,
+      "u95Bps": 10000,
+      "u95": "100.00%",
+      "passes": false
+    },
+    "other": {
+      "holdoutRecords": 0,
+      "ran": 0,
+      "bucketMarkets": 0,
+      "N": 0,
+      "k": 0,
+      "u95Bps": 10000,
+      "u95": "100.00%",
+      "passes": false
+    }
+  },
+  "errorCorrelation": [
+    {
+      "models": [
+        "groq:openai/gpt-oss-120b@2026-10-03",
+        "nvidia:moonshotai/kimi-k3@2026-10-03"
+      ],
+      "n": 0,
+      "phiSquared": null,
+      "sign": null
+    },
+    {
+      "models": [
+        "groq:openai/gpt-oss-120b@2026-10-03",
+        "aicredits:google/gemini-3.8-flash@2026-10-04"
+      ],
+      "n": 0,
+      "phiSquared": null,
+      "sign": null
+    },
+    {
+      "models": [
+        "nvidia:moonshotai/kimi-k3@2026-10-03",
+        "aicredits:google/gemini-3.8-flash@2026-10-04"
+      ],
+      "n": 0,
+      "phiSquared": null,
+      "sign": null
+    }
+  ],
+  "watchdog": {
+    "panelErrors": 0,
+    "misses": 0,
+    "f": null
+  }
+}

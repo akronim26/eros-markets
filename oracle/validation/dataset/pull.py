@@ -2,7 +2,8 @@
 
 Every API response is stored unchanged (gzip) under raw/<source>/ and listed in raw/MANIFEST.json with its URL,
 fetch time, byte count and sha256 of the uncompressed bytes, so build.py works from fixed inputs and anyone can
-check them. Public endpoints only; no keys.
+check them. Public endpoints only; no keys. A run is resumable: each page also gets a <file>.meta.json, and a
+rerun with the same arguments reuses every page already saved (same URL, same hash) instead of fetching it.
 
   python3 -m dataset.pull --since 2025-10-01 --until 2026-09-30
 
@@ -37,7 +38,7 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def fetch_json(url: str, tries: int = 8, pause: float = 2.0) -> tuple[bytes, object]:
+def fetch_json(url: str, tries: int = 6, pause: float = 2.0) -> tuple[bytes, object]:
     """GET a JSON document; empty or non-JSON answers and transport errors are retried with back-off."""
     last = ""
     for attempt in range(tries):
@@ -48,7 +49,7 @@ def fetch_json(url: str, tries: int = 8, pause: float = 2.0) -> tuple[bytes, obj
             return body, json.loads(body)
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ConnectionError) as e:
             last = f"{type(e).__name__}: {e}"
-            time.sleep(pause * 2**attempt)
+            time.sleep(min(pause * 2**attempt, 30.0))
     raise RuntimeError(f"GET {url} failed after {tries} tries ({last})")
 
 
@@ -60,16 +61,43 @@ class RawStore:
         self.entries: list[dict] = []
         self.failures: list[dict] = []
 
-    def save(self, source: str, name: str, url: str, body: bytes) -> str:
+    def save(self, source: str, name: str, url: str, body: bytes, fetched_at: str | None = None) -> str:
         rel = f"{source}/{name}.json.gz"
         path = self.root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(gzip.compress(body, mtime=0))
-        self.entries.append({
-            "file": rel, "url": url, "fetchedAt": now_iso(), "bytes": len(body),
-            "sha256": hashlib.sha256(body).hexdigest(),
-        })
+        entry = {"file": rel, "url": url, "fetchedAt": fetched_at or now_iso(), "bytes": len(body),
+                 "sha256": hashlib.sha256(body).hexdigest()}
+        (self.root / f"{rel}.meta.json").write_text(json.dumps(entry) + "\n")
+        self.entries.append(entry)
         return rel
+
+    def reuse(self, source: str, name: str, url: str) -> object | None:
+        """A page an earlier (interrupted) run already saved: its document, recorded again in this manifest.
+        A file saved before metadata existed is adopted with this URL (the same request) and its file time."""
+        rel = f"{source}/{name}.json.gz"
+        path, meta_path = self.root / rel, self.root / f"{rel}.meta.json"
+        if not path.exists():
+            return None
+        body = gzip.decompress(path.read_bytes())
+        if meta_path.exists():
+            entry = json.loads(meta_path.read_text())
+            if entry["url"] != url or entry["sha256"] != hashlib.sha256(body).hexdigest():
+                return None  # another request or a damaged file: fetch again
+            self.entries.append(entry)
+        else:
+            mtime = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            self.save(source, name, url, body, fetched_at=mtime)
+        return json.loads(body)
+
+    def fetch(self, source: str, name: str, url: str) -> object:
+        """The page from an earlier run when there is one, else fetched now and saved."""
+        doc = self.reuse(source, name, url)
+        if doc is not None:
+            return doc
+        body, doc = fetch_json(url)
+        self.save(source, name, url, body)
+        return doc
 
     def write_manifest(self, params: dict) -> Path:
         path = self.root / "MANIFEST.json"
@@ -88,7 +116,7 @@ def pull_polymarket(store: RawStore, since: str, until: str, events_per_pull: in
             }
             url = f"{PM_API}/events?{urllib.parse.urlencode(q)}"
             try:
-                body, events = fetch_json(url)
+                events = store.fetch("polymarket", f"{category}-{tag_id}-{page:03d}", url)
             except RuntimeError as e:  # a page the API keeps failing on (seen: HTTP 500) is skipped and recorded
                 store.failures.append({"url": url, "error": str(e), "at": now_iso()})
                 failed_in_a_row += 1
@@ -99,7 +127,6 @@ def pull_polymarket(store: RawStore, since: str, until: str, events_per_pull: in
                 page += 1
                 continue
             failed_in_a_row = 0
-            store.save("polymarket", f"{category}-{tag_id}-{page:03d}", url, body)
             fetched += len(events)
             print(f"polymarket {label}: page {page}, {len(events)} events ({fetched} total)", flush=True)
             if len(events) < 100:
@@ -116,8 +143,7 @@ def pull_kalshi(store: RawStore, since: str, until: str, max_pages: int) -> None
         if cursor:
             q["cursor"] = cursor
         url = f"{KS_API}/markets?{urllib.parse.urlencode(q)}"
-        body, doc = fetch_json(url)
-        store.save("kalshi", f"markets-{page:03d}", url, body)
+        doc = store.fetch("kalshi", f"markets-{page:03d}", url)
         markets = doc.get("markets", [])
         series.update(m["event_ticker"].split("-")[0] for m in markets)
         print(f"kalshi markets: page {page}, {len(markets)} markets, {len(series)} series", flush=True)
@@ -128,14 +154,13 @@ def pull_kalshi(store: RawStore, since: str, until: str, max_pages: int) -> None
     for i, s in enumerate(sorted(series)):
         url = f"{KS_API}/series/{urllib.parse.quote(s)}"
         try:
-            body, _ = fetch_json(url)
+            store.fetch("kalshi", f"series-{s}", url)
         except RuntimeError as e:  # its markets are left out (build.py counts them as kalshi:no_series)
             store.failures.append({"url": url, "error": str(e), "at": now_iso()})
             continue
-        store.save("kalshi", f"series-{s}", url, body)
         if i % 50 == 0:
             print(f"kalshi series: {i + 1}/{len(series)}", flush=True)
-        time.sleep(0.25)  # Kalshi resets connections under bursts
+        time.sleep(0.25)  # Kalshi resets connections under bursts (a reused page costs nothing)
 
 
 def main(argv: list[str] | None = None) -> None:

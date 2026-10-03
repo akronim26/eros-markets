@@ -1,0 +1,22 @@
+{
+  "name": "@eros-oracle/committee-console",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Layer 2 human review (plan 8.4): case view, ReviewedProposal signing and submission, reviewer CLI with source additions and service-level alerts.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "bun test --path-ignore-patterns='test/fork/**'",
+    "test:fork": "bun test test/fork",
+    "console": "bun src/ui/main.ts"
+  },
+  "dependencies": {
+    "@eros-oracle/feedspec": "workspace:*",
+    "@eros-oracle/oracle-sdk": "workspace:*",
+    "@eros-oracle/panel-runner": "workspace:*",
+    "@eros-oracle/snapshotter": "workspace:*",
+    "viem": "2.57.2",
+    "zod": "4.6.5"
+  }
+}

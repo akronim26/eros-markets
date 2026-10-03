@@ -134,13 +134,14 @@ Plan §13: owner OB · 2.5 PD · depends O21 · acceptance: produces a pack for 
 - Owner: OB
 - PD: 0.5
 - Depends: O22.3
-- Plan: §12.9
+- Plan: §12.9, ADJ-37
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/listings/<marketId>/*
 - Build: Run steps 1–6 of §12.9 for one real sports market, including the rules text with the DEC-08 INVALID disclosure.
 - Done when: the complete pack (`pack.json`, `reference.json`, `dryrun.log`, `ambiguity.log`, `claim.txt`) is committed with no open ambiguity.
 - Check: manual: oracle/listings/<marketId>/ holds all five files and dryrun.log shows the expected YES/NO, NOT_READY and ERROR
+- Notes: Pack listings/0xbb40e8e0…e5ea for MLB gamePk 849833 (2026 ALDS Game 3, Cleveland at the Chicago White Sox, 7 Oct 2026 20:00 UTC): YES if the White Sox score more than 3 runs; T 2026-10-08 01:00 UTC, voidSecs 6 days (fits the stub engine's gate for a listing any time before the game), liveness 1,800 / 1,800 / 3,600 s (watchdog margin, ADJ-44), allow-list statsapi.mlb.com (no auth), the panel's three models, sports prompt, the O39 calibratorHash and θ_hi 9,900; input in listings/inputs/mlb-849833.json. Reference: finished game 822678 (NO, value 1). Dry-run (`oracle-cli dryrun --nodes 16`, CRE CLI v1.36.0): burst 16× HTTP 200, finished → NO with the reference's value hash, live 849833 → NOT_READY, wrong path → ERROR; the watchdog's evaluator agrees. The ambiguity pass found a real feed bug: MLB marks postponed games `abstractGameState: "Final"` (30 of 2,402 games in 2025, code D, no score), so finality is `status.codedGameState == "F"` (Final and Completed Early only); a 2025 postponed game now evaluates NOT_READY. Four rules revisions closed the other real gaps (void deadline stated, home-team and replacement-game rules, source precedence, first Final score stands, early or late halt); the last pass: Gemini 0 cases, GPT-OSS 10, Kimi 5, all 15 given a disposition (12 decided by an exact clause, 3 immaterial) → PASS_TRIAGED, ambiguityLogHash 0xc2e3c93b…eb10 (triage prepared by the coding agent, to be confirmed by the team). Kimi K3 on NVIDIA intermittently returns an empty or `!!!!` answer, so `oracle-cli ambiguity` now retries an empty or malformed answer up to 3 times and logs each failed attempt (the panel runner's rule; 1 new test). Claim 3,876 bytes (≤ 16,384), reads standalone. createMarket dry-run ok. Listing it on testnet is X04.
 
 ## O23 · Testnet simulation bridge
 Plan §13: owner OB · 1 PD · depends O21, OG1 deploy · acceptance: E1 passes in sim mode.

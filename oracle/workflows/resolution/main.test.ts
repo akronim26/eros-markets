@@ -1,7 +1,3 @@
-// Task O21.3: the handler with the CRE SDK test runtime (plan §11.2, Appendix B.3). B.3's three tests as
-// given, then the cases §11.2 and O21.3 add: unknown authRef, specHash mismatch and state != L1Pending write
-// nothing (and fetch nothing), a NO report, a known authRef sends its secret header, a host not first on the
-// allow-list, 5xx and invalid JSON write nothing.
 import { expect } from 'bun:test'
 import { create } from '@bufbuild/protobuf'
 import { addContractMock, EvmMock, HttpActionsMock, newTestRuntime, test } from '@chainlink/cre-sdk/test'
@@ -77,7 +73,7 @@ test('HTTP 429 writes nothing', () => {
   expect(writes.length).toBe(0)
 })
 
-// ---------------------------------------------------------------- O21.3 additions
+// ---------------------------------------------------------------- failure and edge cases
 
 type Opts = {
   body?: string
@@ -90,7 +86,7 @@ type Opts = {
   secrets?: Map<string, Map<string, string>>
 }
 
-/** As B.3's `setup`, with every input of the read and the config settable, recording each HTTP request. */
+/** Like `setup`, with every read input and config field settable; records each HTTP request. */
 function setupWith(o: Opts) {
   const s = o.spec ?? spec
   const net = getNetwork({ chainFamily: 'evm', chainSelectorName: 'monad-testnet', isTestnet: true })!

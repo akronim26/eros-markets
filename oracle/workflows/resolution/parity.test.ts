@@ -1,7 +1,5 @@
-// Task O21.3: the workflow's chain constants equal the contracts' (plan §11.2 "event/enum parity", C.7).
-// The event topic is computed from the ABI snapshot `forge inspect` exported (oracle/abi, O02.2). An ABI
-// carries an enum only as uint8, so the RState order is read from the Solidity source it was compiled from
-// (src/types/OracleTypes.sol, also asserted in Foundry by test/vectors/Constants.t.sol).
+// The workflow's constants must equal the contracts'. An ABI carries enums only as uint8, so the RState order is read
+// from OracleTypes.sol.
 import { expect, test } from 'bun:test'
 import { type AbiEvent, toEventSelector } from 'viem'
 import { RESOLUTION_REQUESTED, STATE_L1_PENDING } from './main'
@@ -29,7 +27,7 @@ test('STATE_L1_PENDING is RState.L1Pending, 3', () => {
     .filter((m) => m.length > 0)
   expect(members.indexOf('L1Pending')).toBe(3)
   expect(STATE_L1_PENDING).toBe(members.indexOf('L1Pending'))
-  // getL1Job returns the state as its first output, a uint8 (C.6 declares `uint8 state`, the enum's value)
+  // getL1Job returns the state as its first output, a uint8
   const getL1Job = abi.find((x) => x.type === 'function' && x.name === 'getL1Job')
   expect(getL1Job.outputs[0].name).toBe('state')
   expect(getL1Job.outputs[0].type).toBe('uint8')

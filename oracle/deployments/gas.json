@@ -75,6 +75,94 @@
       "engine": "B's SettlementController (seam harness)",
       "note": "As finalizeMarket, on B's real engine."
     },
+    "requestResolution": {
+      "transaction": 107377,
+      "execution": 82075,
+      "limit": 130000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): a feed market in L1Pending past T + bufferSecs; emits ResolutionRequested. The keeper sends it only from L1Pending (halting is haltScheduled's job). No plan 6.9 budget."
+    },
+    "escalateToL2": {
+      "transaction": 104833,
+      "execution": 79531,
+      "limit": 130000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): L1Pending -> L2Pending at T + l1TimeoutSecs. No plan 6.9 budget."
+    },
+    "openAfterDeadline": {
+      "transaction": 72992,
+      "execution": 47690,
+      "limit": 90000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): L2Pending -> Open past l2StartedAt + l2DeadlineSecs. No plan 6.9 budget."
+    },
+    "expireEarly": {
+      "transaction": 77238,
+      "execution": 51936,
+      "limit": 100000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): EarlyCheck -> None after the early TTL. No plan 6.9 budget."
+    },
+    "syncAssertion": {
+      "transaction": 76321,
+      "execution": 51049,
+      "limit": 100000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): Proposed -> Disputed after a dispute on OOv3 (reads the venue). No plan 6.9 budget."
+    },
+    "voidMarket": {
+      "transaction": 141762,
+      "execution": 116460,
+      "limit": 180000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): void at voidDeadline with no live assertion. No plan 6.9 budget; the real engine's settleInvalid is not measured yet (as for haltScheduledRealEngine)."
+    },
+    "voidMarketStuck": {
+      "transaction": 225095,
+      "execution": 199823,
+      "limit": 280000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): void at voidDeadline with a live, disputed team assertion: the venue is read, the market voided and the bond written off (markStuck). The keeper uses it whenever assertionId != 0."
+    },
+    "finalizeMany1": {
+      "transaction": 259501,
+      "execution": 233486,
+      "limit": 320000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): KeeperRouter.finalizeMany with one market (router overhead about 4.7k over finalizeMarket)."
+    },
+    "finalizeMany4": {
+      "transaction": 815008,
+      "execution": 785136,
+      "limit": 980000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): finalizeMany with four markets, the keeper's largest batch. A batch of k markets is sent with finalizeMany1.limit + (k - 1) x perExtraMarket, the line through the two measured limits.",
+      "perExtraMarket": 220000,
+      "maxBatch": 4
+    },
+    "closeDispute": {
+      "transaction": 117878,
+      "execution": 92575,
+      "limit": 150000,
+      "status": "measured",
+      "note": "Keeper (O31.3): BondTreasury.closeDispute on its costlier path (venue never settled; the market is Final with VOID_DEADLINE, so the oracle's resolution is read too). No plan 6.9 budget."
+    },
+    "skim": {
+      "transaction": 49952,
+      "execution": 25936,
+      "limit": 60000,
+      "status": "measured",
+      "note": "Keeper (O31.3): BondTreasury.skim on the path that credits WATCHDOG_FLOAT (a donation larger than the bonds out at the venue); the zero-credit path costs less (45.7k). No plan 6.9 budget."
+    },
     "createMarket": {
       "transaction": 6863399,
       "execution": 6148251,
@@ -92,6 +180,43 @@
       "status": "met",
       "engine": "B's SettlementController (seam harness)",
       "note": "Deploying B's 78 KiB engine dominates; 73% of the 30M per-transaction ceiling. Watch it when the shared MarketFactory replaces the stub."
+    },
+    "submitPanelResult": {
+      "transaction": 154943,
+      "execution": 105907,
+      "limit": 190000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Panel runner (O33.5): the most expensive route it sends, after T to Review, with a 256-byte evidence URI (the contract's maximum); before T to EarlyReview 131,014 and to None 131,573. The auto-propose route has its own key, submitPanelResultAutoPropose. No plan 6.9 budget."
+    },
+    "submitReviewedProposal": {
+      "transaction": 507129,
+      "execution": 448111,
+      "limit": 610000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Committee console (O34.2): the costlier route, from EarlyReview before T (the proposal halts the engine at once, section 8.5); from Review 361,449. Both with all three members signing (EOAs) and a 256-byte evidence URI. A committee member that is a contract (a Safe, ERC-1271) is not measured: the console sends such a proposal only under the key submitReviewedProposalERC1271, which is absent. No plan 6.9 budget."
+    },
+    "disputeViaVenue": {
+      "transaction": 531374,
+      "execution": 506075,
+      "limit": 640000,
+      "status": "measured",
+      "note": "Watchdog (O35.3): BondTreasury.disputeViaVenue on a live team assertion on the real OOv3 with the sandbox DVM (the dispute pays the bond from WATCHDOG_FLOAT and OOv3 requests a price from the DVM). No plan 6.9 budget."
+    },
+    "watchdogHeartbeat": {
+      "transaction": 55172,
+      "execution": 31156,
+      "limit": 70000,
+      "status": "measured",
+      "note": "Watchdog (O35.3): ResolutionOracle.watchdogHeartbeat, the first one (a zero storage slot written); later ones cost less. No plan 6.9 budget."
+    },
+    "submitPanelResultAutoPropose": {
+      "transaction": 349958,
+      "limit": 420000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Panel runner's auto-propose route (L2_AUTO, ADJ-50): three identical YES labels above θ_hi in a category validated for the market's gateHash, recorded as an L2_AUTO proposal, with a 256-byte evidence URI. Measured by test_gas_submitPanelResult_autoPropose; limit 1.2 × the transaction. No plan 6.9 budget."
     }
   },
   "contractSizes": {

@@ -1,7 +1,8 @@
 """Normalized dataset from the raw pulls (plan §10 step 1, task O39.1).
 
 Reads raw/MANIFEST.json, checks every file's sha256, and writes
-  rows.jsonl.gz  one resolved binary market per line, with its parent and category (gzip, reproducible bytes)
+  rows.jsonl.gz  one resolved binary market per line, with its parent and category (gzip, reproducible bytes;
+                 local like raw/, ADJ-39: report.json pins its sha256)
   report.json    rows and unique parents per category and source, and what was left out and why
 
 A row's outcome is the market's official resolution: YES, NO or INVALID (a 50/50 resolution). Markets that are
@@ -201,6 +202,9 @@ def build(root: Path = RAW, out: Path = HERE) -> dict:
     text = "".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in rows)
     (out / ROWS).write_bytes(gzip.compress(text.encode(), mtime=0))
     rep = report(rows, excluded, manifest)
+    # The public pins (ADJ-39): rows and raw stay local; these hashes name exactly which data the gate used.
+    rep["rowsSha256"] = hashlib.sha256(text.encode()).hexdigest()  # of the JSONL text, independent of zlib
+    rep["manifestSha256"] = hashlib.sha256((root / "MANIFEST.json").read_bytes()).hexdigest()
     (out / "report.json").write_text(json.dumps(rep, indent=2) + "\n")
     return rep
 

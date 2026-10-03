@@ -30,6 +30,7 @@ jobs:
         run: forge build --sizes
       - name: Test (unit, fuzz, invariant, real UMA, seam, vectors)
         run: forge test -vvv
+      # The local-deploy suites (keeper O31.4, panel runner O33.5) run locally: bun run test:fork in each service.
 
   packages:
     runs-on: ubuntu-latest
@@ -40,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      # oracle-cli's tests render claims and dry-run createMarket with `forge script` (O22.2)
+      # oracle-cli's tests dry-run createMarket with `forge script` (O22.2); claims render through oracle-sdk (O30.3)
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: v1.8.3
@@ -87,3 +88,35 @@ jobs:
       - run: bun run build
       - name: No withDefault on the outcome path
         run: "! grep -rn --exclude-dir=node_modules '.withDefault(' --include='*.ts' . ../../packages"
+
+  indexer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle/indexer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm codegen
+      - run: pnpm typecheck
+      # handler tests replay the recorded local-deploy events (scripts/record.test.ts, run locally with anvil)
+      - run: pnpm test
+
+  validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle/validation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The dataset itself is local only (ADJ-39): here the fixture and pin tests run and the dataset tests skip.
+      - run: python3 -m unittest discover -s tests -t .
