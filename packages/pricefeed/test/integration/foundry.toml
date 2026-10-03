@@ -8,7 +8,7 @@ evm_version = "prague"
 optimizer = true
 optimizer_runs = 200
 libs = ["../../../../contracts/lib"]
-remappings = ["forge-std/=../../../../contracts/lib/forge-std/src/", "solady/=../../../../contracts/lib/solady/src/", "risk/=../../../../contracts/src/"]
+remappings = ["forge-std/=../../../../contracts/lib/forge-std/src/", "solady/=../../../../contracts/lib/solady/src/", "risk/=../../../../contracts/src/", "risk-test/=../../../../contracts/test/"]
 allow_paths = ["../../../../contracts"]
 fs_permissions = [{ access = "read", path = "../../fixtures/wire.json" }]
 

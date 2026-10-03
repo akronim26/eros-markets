@@ -17,13 +17,16 @@ import { prepareObservation } from '../src/publication.js';
 import { rulesHash } from '../src/rules.js';
 import { INGRESS_ABI, type Observation } from '../src/wire.js';
 import { localRpcTransport } from '../src/local-rpc.js';
+import { LocalLifecycle } from '../src/lifecycle.js';
 
 const sender=privateKeyToAccount(('0x'+'22'.repeat(32)) as Hex);
 const policy:RelayPolicy={gasCap:100000n,maxFeePerGas:100n,maxPriorityFeePerGas:1n,maxCostWei:10000000n,
   headroomMs:1000n,confirmations:1n,timeoutMs:100,maxAttempts:3,leaseMs:1000n};
-async function setup(invalidPolicy=false){
-  const cfg=invalidPolicy?invalidConfig:config,rules=invalidPolicy?invalidReviewed:reviewed;
-  const dir=mkdtempSync(join(tmpdir(),'pricefeed-pipeline-'));let now=1000100n,chainSeq=0n,chainTime=0n,failSend=false;
+async function setup(invalidPolicy=false,lifecycleEnabled=false){
+  const relayPolicy=lifecycleEnabled?{...policy,leaseMs:120000n}:policy;
+  const base=invalidPolicy?invalidConfig:config,rules=invalidPolicy?invalidReviewed:reviewed;
+  const cfg=lifecycleEnabled?{...base,requiredFeedUntil:base.destination!.scheduledT}:base;
+  const dir=mkdtempSync(join(tmpdir(),'pricefeed-pipeline-'));let now=1000100n,chainSeq=0n,chainTime=0n,failSend=false,halted=false;
   const packets=new PacketStore(join(dir,'packets.sqlite')),journal=new Journal(join(dir,'source.sqlite'));
   const domain={...candidate(1n).domain,rulesHash:cfg.destination!.sourceRulesHash};
   const signer=new LocalTestSigner(join(dir,'signer.sqlite'),domain,packets,()=>now);
@@ -49,12 +52,79 @@ async function setup(invalidPolicy=false){
         data:encodeAbiParameters(parseAbiParameters('uint64,uint64,uint64,uint64,uint256,bool,bytes32'),
           [o.sequence,o.observedAt,o.publishedAt,blockTime,o.priceWad,o.impactBidWad>0n,packet.digest])}]});return tx;},
     receipt:async(hash)=>receipts.get(hash)??null,block:async(n)=>({number:n,hash:h('aa') as Hex,timestamp:blockTime}),head:async()=>10n};
-  const relay=new LocalRelay(join(dir,'relay.sqlite'),packets,transport,policy,()=>now);
-  const pipeline=new LocalPipeline([{worker,rules,signer}],packets,relay,transport,policy,()=>now);
-  return {dir,domain,packets,journal,signer,relay,pipeline,worker,provider,transport,sent,
+  const relay=new LocalRelay(join(dir,'relay.sqlite'),packets,transport,relayPolicy,()=>now);
+  const lifecycle=lifecycleEnabled?new LocalLifecycle(cfg,journal,'lifecycle-fixture',async()=>({
+    chainId:31337n,engine:domain.engine,marketId:domain.marketId,sourceId:domain.sourceId,
+    engineCodeHash:cfg.destination!.engineCodeHash,rulesHash:domain.rulesHash,scheduledT:BigInt(cfg.destination!.scheduledT),
+    halted,blockNumber:now/1000n,blockTimestamp:now/1000n,blockHash:'0x'+(now/1000n).toString(16).padStart(64,'0'),canonical:true}),30000n,()=>now):undefined;
+  const pipeline=new LocalPipeline([{worker,rules,signer,...(lifecycle?{lifecycle}:{})}],packets,relay,transport,relayPolicy,()=>now);
+  return {dir,domain,packets,journal,signer,relay,pipeline,worker,provider,transport,sent,lifecycle,
+    halt:()=>{halted=true;},
     setNow:(n:bigint)=>{now=n;},setFail:(v:boolean)=>{failSend=v;},setChain:(s:bigint)=>{chainSeq=s;chainTime=s===0n?0n:1000n;},
     close:()=>{pipeline.close();relay.close();signer.close();packets.close();journal.close();rmSync(dir,{recursive:true,force:true});}};
 }
+test('joined early-halt recorder sends fresh packets, archives closure as a gap, and never invents a final price',async()=>{
+  const s=await setup(true,true);try{
+    await s.pipeline.start();assert.equal((await s.pipeline.process(await s.worker.poll())).lifecycle?.mode,'COLLECTING');
+    s.setNow(1001100n);s.pipeline.renew();s.halt();
+    const recorded=await s.pipeline.process(await s.worker.poll());
+    assert.equal(recorded.state,'FINALIZED');assert.equal(recorded.lifecycle?.mode,'RECORD_ONLY');
+    assert.equal(s.packets.list(s.domain).length,2);assert.equal(s.sent.length,2);
+    s.setNow(1051100n);s.pipeline.renew();
+    s.provider.metadata=async()=>({url:'https://fixture.invalid',receivedAtMs:1051100n,latencyMs:0n,attempts:1,
+      headers:{},body:JSON.stringify({...metadata,closed:true}),data:{...metadata,closed:true}});
+    s.provider.book=async()=>({url:'https://fixture.invalid',receivedAtMs:1051100n,latencyMs:0n,attempts:1,
+      headers:{},body:JSON.stringify({...JSON.parse(body),timestamp:'1051000'}),data:{...JSON.parse(body),timestamp:'1051000'}});
+    const closed=await s.pipeline.process(await s.worker.poll());
+    assert.equal(closed.lifecycle?.mode,'RECORD_ONLY');assert.equal(closed.state,'SOURCE_UNAVAILABLE');
+    assert.equal(closed.reason,'SOURCE_NOT_TRADEABLE');assert.equal(s.packets.list(s.domain).length,2);
+    assert.equal(s.journal.read(s.worker.namespace).at(-1)!.payload.inspection!==null,true);
+    for(const raw of s.sent)assert.equal(decodeFunctionData({abi:INGRESS_ABI,data:parseTransaction(raw).data!}).functionName,'submitObservation');
+  }finally{s.close();}
+});
+test('deadline crossing during signing preserves immutable packet but reserves no nonce and broadcasts nothing',async()=>{
+  const s=await setup(false,true);try{
+    s.setNow(100000100n);
+    s.provider.book=async()=>({url:'https://fixture.invalid',receivedAtMs:100000050n,latencyMs:0n,attempts:1,
+      headers:{},body:JSON.stringify({...JSON.parse(body),timestamp:'100000000'}),data:{...JSON.parse(body),timestamp:'100000000'}});
+    const original=s.signer.signDigest.bind(s.signer);
+    s.signer.signDigest=async request=>{const signature=await original(request);s.setNow(100001000n);return signature;};
+    await s.pipeline.start();const stopped=await s.pipeline.process(await s.worker.poll());
+    assert.equal(stopped.state,'STOPPED');assert.equal(stopped.lifecycle?.checkpoint?.blockTimestamp,100001n);
+    assert.equal(s.packets.list(s.domain).length,1);assert.equal(s.packets.get(s.domain,1n)!.state,'SIGNED');
+    assert.equal(s.sent.length,0);assert.equal(s.relay.get(s.domain,1n),null);
+  }finally{s.close();}
+});
+test('joined scheduler exits a completed recorder without another venue read or new packet',async()=>{
+  const s=await setup(false,true);try{
+    s.setNow(100001000n);let reads=0;s.provider.book=async()=>{reads++;throw new Error('must not fetch');};
+    await s.pipeline.run(new AbortController().signal,()=>{throw new Error('must not publish');});
+    assert.equal(reads,0);assert.equal(s.packets.list(s.domain).length,0);assert.equal(s.sent.length,0);
+    assert.equal((await s.lifecycle!.check()).mode,'STOPPED');
+  }finally{s.close();}
+});
+test('slow relay simulation or transaction signing cannot broadcast across the recording deadline',async()=>{
+  for(const phase of ['simulate','prepare'] as const){
+    const s=await setup(false,true);try{
+      s.setNow(100000100n);
+      s.provider.book=async()=>({url:'https://fixture.invalid',receivedAtMs:100000050n,latencyMs:0n,attempts:1,
+        headers:{},body:JSON.stringify({...JSON.parse(body),timestamp:'100000000'}),data:{...JSON.parse(body),timestamp:'100000000'}});
+      if(phase==='simulate')s.transport.simulate=async()=>{s.setNow(100001000n);};
+      else {
+        const original=s.transport.prepare;
+        s.transport.prepare=async request=>{const raw=await original(request);s.setNow(100001000n);return raw;};
+      }
+      await s.pipeline.start();assert.equal((await s.pipeline.process(await s.worker.poll())).state,'STOPPED');
+      assert.equal(s.sent.length,0);assert.equal(s.packets.get(s.domain,1n)!.state,'SIGNED');
+      const delivery=s.relay.get(s.domain,1n);
+      if(phase==='simulate')assert.equal(delivery,null);
+      else {
+        assert.equal(delivery!.state,'QUARANTINED');assert.ok(delivery!.raw);
+        assert.equal(delivery!.attempts,0);assert.match(delivery!.reason!,/LIFECYCLE_BLOCKED:STOPPED/);
+      }
+    }finally{s.close();}
+  }
+});
 test('joined pipeline archives, builds, signs, sends and validates acceptance; degraded input creates no packet',async()=>{
   const s=await setup();try{
     await s.pipeline.start();const result=await s.pipeline.process(await s.worker.poll());

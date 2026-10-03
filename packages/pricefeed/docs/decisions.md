@@ -33,7 +33,7 @@ risk/CLOB/oracle code. All temporary chain activity stays on chain ID 31337.
 | Q05 quote/quantity/minimum-size normalization | Engine WAD/lot units FIXED; exact fractional aggregation, floor-total lots and source constraints SELECTED; provider quote equivalence/precision OPEN | Before-fee pricing does not approve collateral equivalence or imply arbitrary lot-sized trades meet provider precision |
 | Q06 event semantics and exact initial mapping | OPEN | Three real source examples remain disabled for operational output |
 | Q07 cadence/headroom/metadata age | Engine 30-second carry and full 300-second index coverage FIXED; producer budgets OPEN | Every diagnostic run declares its own settings; 30 seconds is not a production polling interval |
-| Q08 invalid-packet representation/priority | Engine invalid-depth acceptance and zero coverage FIXED; producer representation/priority OPEN | Engine computes depthValid; preserve failure reasons and do not fabricate timestamps for unavailable source data |
+| Q08 invalid-packet representation/priority | Engine invalid-depth acceptance and zero coverage FIXED; local fresh zero-price/impact invalid-depth representation implemented; production policy/review OPEN | Preserve actual depths/times and failure reasons; no fabricated samples for missing/closed/stale source; closure/coalescing and operational priorities require review |
 | Q09 live chain/engine/key/relay/finality | OPEN; user reports obtaining an Alchemy Monad RPC, endpoint not supplied/validated | A provider candidate does not supply a deployed engine, signing backend, finality/spend policy or transaction authority; local chain-31337 development only |
 | Q10 calibration/soak/retention/release | OPEN | Read-only measurements cannot approve production parameters or release |
 
@@ -118,15 +118,40 @@ actual listing needs Q06 review; the existing real-token examples stay disabled
 for operational admission. The actual event is selected by approved IDs/rules,
 not by the category name.
 
-### Failure handling — risk facts fixed, Q08 producer policy still open
+### Failure handling — risk facts fixed, local Q08 policy explicit
 
 Archive failure/gap evidence and never fabricate a fresh price or source time.
 Risk can accept authenticated ordered invalid-depth checkpoints with zero usable
 coverage; that is not an oracle INVALID outcome. Silence and an invalid
-checkpoint affect carry differently. The current valid-only development builder
-does not approve the exact invalid tuple, delivery priority, coalescing or
-closure policy. Those remain Q08 decisions. See
+checkpoint affect carry differently. The explicitly opted-in development builder
+now emits zero price/bid/ask for fresh verified invalid depth while preserving
+actual depths and original times. Valid-only development rules remain available.
+Neither path approves production delivery priority, coalescing or closure policy.
+Those remain Q08 decisions. See
 [risk-requirements-crosscheck.md](risk-requirements-crosscheck.md).
+
+### Lifecycle — existing risk rule, explicit development implementation
+
+The scheduled `[T-24h,T]` history stays fixed after an early halt. Continue the
+independent source recorder through the explicit requiredFeedUntil, which must
+be at least T. RECORD_ONLY is a bot mode; it does not change engine enums or
+resume trading/funding. Only pinned engine facts at a canonical named block can
+report a halt; source closure and oracle proposals cannot substitute for them.
+A closed source produces a truthful archived gap, not a manufactured final price.
+
+The local controller persists decisions before granting output. It includes the
+deadline itself and stops after a fresh verified block passes it. Stale/future
+checkpoints or RPC failure block output; inconsistent pins/blocks, reorgs and
+disappearing halts quarantine the worker. Signing and relay boundaries recheck
+lifecycle. A signed reserved nonce blocked before broadcast is quarantined for
+operator recovery, never reused or silently skipped. These are development
+fail-closed choices, not approved production finality/closure/nonce policies.
+
+Full signed 24-hour fixtures use accelerated VM time and scripted counterparts;
+they verify complete/gapped/legacy/thin history and no economic resume against
+real risk imports. They do not certify an actual elapsed 24-hour Polymarket soak
+or authentic oracle integration. Concrete production lifecycle reads, closure
+procedure and named review remain open. See [lifecycle.md](lifecycle.md).
 
 ### Operating settings, hosting and RPC — examples and candidates only
 

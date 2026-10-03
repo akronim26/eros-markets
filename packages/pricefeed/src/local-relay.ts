@@ -109,7 +109,7 @@ export class LocalRelay {
   private fresh(packet:StoredPacket):boolean {
     return this.now()/1000n>=packet.packet.observation.publishedAt&&sourceTime(packet.packet.sourceMs.toString(),this.now(),null,this.policy.headroomMs).hasHeadroom;
   }
-  async deliver(cfg:MarketConfig,owner:string,fence:bigint,seq:bigint):Promise<DeliveryRecord>{
+  async deliver(cfg:MarketConfig,owner:string,fence:bigint,seq:bigint,beforeSend?:()=>Promise<void>):Promise<DeliveryRecord>{
     if(this.active)throw new Error('RELAY_BUSY');this.active=true;
     try{
       if(!this.ready)throw new Error('RELAY_START_REQUIRED');this.lease();
@@ -132,6 +132,10 @@ export class LocalRelay {
       const data=submitCalldata(packet.packet.observation,packet.signature);
       // A rejected simulation must not burn a shared-account nonce before signing.
       await this.bounded(this.transport.simulate(d.engine,data));
+      this.packets.assertWriter(d,owner,fence,this.now());
+      if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
+      // A slow simulation may cross the recording deadline. Check before reserving a nonce.
+      if(beforeSend)await beforeSend();
       this.packets.assertWriter(d,owner,fence,this.now());
       if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
       if(!r){r=this.tx(()=>{
@@ -164,6 +168,17 @@ export class LocalRelay {
       this.packets.assertWriter(d,owner,fence,this.now());
       if(!this.fresh(packet)){this.save(d,{...r,state:'QUARANTINED',reason:'RESERVED_NONCE_HEADROOM_EXPIRED'});throw new Error('RELAY_HEADROOM_EXPIRED');}
       if(r.attempts>=this.policy.maxAttempts)throw new Error('RELAY_ATTEMPTS_EXHAUSTED');
+      if(beforeSend){
+        try{
+          await beforeSend();
+          this.packets.assertWriter(d,owner,fence,this.now());
+          if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
+        }
+        catch(error){
+          // A reserved, signed nonce cannot be silently reused or skipped after a stop.
+          this.save(d,{...r,state:'QUARANTINED',reason:error instanceof Error?error.message:String(error)});throw error;
+        }
+      }
       r={...r,state:'UNKNOWN',attempts:r.attempts+1,reason:'BROADCAST_RESULT_PENDING'};this.save(d,r); // before network I/O
       try{
         const returned=await this.bounded(this.transport.broadcast(r.raw!));

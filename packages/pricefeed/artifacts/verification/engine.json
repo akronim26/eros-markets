@@ -6,16 +6,28 @@
     "test/integration",
     "--use",
     "/home/mihir/.local/share/svm/0.8.30/solc-0.8.30",
+    "--match-contract",
+    "^(PricefeedIngressTest|PricefeedLifecycleTest)$",
     "--json"
   ],
   "exitCode": 0,
-  "tests": 4,
+  "tests": 8,
   "toolVersions": {
     "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:46:16.519267388Z (1789469176)\nBuild Profile: dist",
     "solc": "solc, the solidity compiler commandline interface\nVersion: 0.8.30+commit.73712a01.Linux.g++"
   },
   "environment": "local test VM only",
-  "riskImplementation": "real PriceIngress and ObservationStore imports; test-only initialization harness",
+  "riskImplementation": "real PriceIngress, ObservationStore and InvalidPrice imports; package-owned test compositions",
+  "testGroups": {
+    "wireAndShortWindow": 4,
+    "signed24HourLifecycle": 4
+  },
+  "scriptedCounterparts": [
+    "MockResolutionAuthority",
+    "MockAccountingPort",
+    "MockBookAdapter"
+  ],
+  "clock": "accelerated Foundry VM, not live-source elapsed time",
   "wireFixtureSha256": "5b2cccfbafbccbabe1c13395ca355295727d92d9b3fea1c6971b6500ea83a489",
   "liveTransactions": 0,
   "humanGatesAccepted": false

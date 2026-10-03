@@ -1,8 +1,8 @@
 # Pricefeed plan status — 04 October 2026
 
 Source of requirements: `docs/requests/polymarket-event-price-feed-implementation-plan.pdf`,
-v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 0672188 and the
-current local recovery/live-campaign additions. This is an implementation/evidence audit, not human gate
+v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 849576c and the
+current local lifecycle additions. This is an implementation/evidence audit, not human gate
 acceptance. No PF-G0–PF-G7 acceptance is claimed.
 
 “Built” below describes local code/evidence only. A task with approvals, missing
@@ -23,16 +23,16 @@ tests or deployment inputs remains partial even when its core code is present.
 | PF011 Source time | Vendor ms retained, seconds floored, skew/headroom/repetition checks and timestamp evidence | Provider timestamp-generation interpretation and measured/approved end-to-end budget |
 | PF012 Scheduler/stream | Global limiter/backoff, independent polling loops, continuous serve, non-overlap and shutdown/failure tests | Stream subscription/heartbeat/reconnect generations; approved cadence and many-market fairness/load evidence |
 | PF013 Storage | Raw valid/invalid/gap archive; fenced WAL/FULL packet journal; atomic sequence allocation, checksums and local delivery journal | Approved retention/migrations and broader permission/storage-failure drills; independent transaction-signer backup/restore controls |
-| PF014 Builder | Raw-book/metadata recomputation, rule/domain binding, frozen times/headroom; joined local builder; selected local fresh invalid-depth checkpoints preserve depths/times with zero price/impacts | Production invalid-policy approval and coalescing/lifecycle semantics; operational admission; unknown time remains unavailable |
+| PF014 Builder | Raw-book/metadata recomputation, rule/domain binding, frozen times/headroom; joined local builder; selected local fresh invalid-depth checkpoints preserve depths/times with zero price/impacts; explicit development lifecycle gates | Production invalid/closure/coalescing/lifecycle policy and concrete lifecycle reader; operational admission; unknown time remains unavailable |
 | PF015 Signer | Raw digest, recovery, low-s/v/serialization checks; independent durable public local-test signer journal | Approved production key backend, identity policy and risk/security review; test key is not an operational signer |
 | PF016 Recovery | Per-engine/source sequences, leases/fences, immutable retry, skipped/exhausted sequence, corrupt archive and lagging restore tests; actual four-journal reopen/resume on owned local chain | Forced OS-kill-at-every-boundary campaign, independent transaction-signing backup reservations/restore checks, production supervisor startup reconciliation |
 | PF017 CLI | validate-config, inspect-book, capture, serve, verify-digest, health and verify-evidence; read-only default | build-observation CLI and comprehensive CLI misuse/redaction tests; library builder is not yet exposed as that command |
 | PF018 Relay | Joined local pipeline and concrete loopback RPC/test-transaction signer; durable nonces, ordered stream, exact call checks, simulation before nonce reservation, age/spend bounds, unknown sends; two-worker nonce/isolation tests | Production RPC/key adapters, broader measured cross-market campaign, fee replacement/cancellation recovery and approved environment/budgets |
 | PF019 Receipts/reorg | Exact raw event/block/digest validation; invalid-depth success distinguished; mined/finalized/orphaned states; local journal/reorg fixtures | Block-labeled authoritative sourceState reconciliation, persistent quarantine of unknown higher state, production finality policy and wider reorg/RPC-disagreement campaign |
-| PF020 Real ingress | Four real ingress/store tests; earlier 36-packet live demo; new durable pipeline exercised real local ingress/store, including invalid/gap/recovery fixtures and real crypto source with restart | Full economic/guard composition and expanded negative vectors; see campaign evidence for actual source coverage, not a blanket availability claim |
+| PF020 Real ingress | Four wire/short-window tests plus four signed 24-hour lifecycle tests importing real ingress/store/INVALID/risk context with scripted counterparts; earlier live-source campaigns remain separate | Full real counterpart economic/guard composition and expanded negative vectors; fixtures are not authentic oracle or live availability evidence |
 | PF021 Live soak | Existing category captures and source-time review; new six-minute durable real-data campaigns with actual journal restarts: crypto 236/300, politics at 10 s 294/300, politics at 5 s 300/300 (72 accepted); independent archive/Fraction replay | Approved duration/availability/load targets, longer quiet/active periods and selected-listing soak; one successful diagnostic window is not an availability guarantee |
 | PF022 Calibration | Exact arithmetic and capture evidence available | Candidate N/spread comparisons, measured cadence/headroom report and signed risk-owner production calibration |
-| PF023 Lifecycle | Engine owns INVALID recorder; config includes requiredFeedUntil; collector detects source closure | Bot record-only lifecycle, early-halt-through-T operation, closure/gap policy and full 24-hour complete/missing cases |
+| PF023 Lifecycle | Durable local block-labeled record-only/deadline controller joined to scheduler/pipeline; source-closure gap and delayed signing/simulation/transaction guards; restart/quarantine tests; four signed accelerated full-24-hour complete/gapped/legacy/thin cases against real risk modules | Approved concrete engine lifecycle RPC reader and production checkpoint/finality/closure/operating policy; authentic oracle join, selected-listing elapsed soak and named risk/oracle review |
 | PF024 Load/chaos | Focused unit tests for source failure, timeouts, slow signing, writer takeover, corruption and reorg decisions | Declared throughput/load targets, integrated slow-RPC/clock/DB/source campaign and measured queue/nonce/headroom limits |
 | PF025 Monitoring/runbooks | Read-only per-worker health recalculates freshness; diagnostic states retained | Block-labeled engine health, assigned alerts/metrics dashboard and operational restore/expiry/closure/key-failure runbooks/drills |
 | PF026 Security/release | Dependencies pinned, scope guarded, local test keys and production restrictions explicit | Complete reviewed release manifest, real identities, data-terms/security/least-privilege review and all approved inputs |
@@ -41,8 +41,10 @@ tests or deployment inputs remains partial even when its core code is present.
 
 ## Current verification and practical boundary
 
-- Latest package suite in this campaign: **210 tests pass**, zero failed/skipped/cancelled/todo.
+- Latest package suite: **223 tests pass**, zero failed/skipped/cancelled/todo.
   This includes **144 Fraction vectors**, seed 20261002; do not add them again.
+- Separately, **8 owned Solidity tests** pass: 4 wire/short-window and 4 signed
+  24-hour lifecycle fixtures. Counterpart accounting/book/oracle roles are scripted.
 - `npm run check:wire` passes against current risk sources, including accepted
   event ABI; `npm run test:reference` passes. Build passes.
 - Current source edits stay within `packages/pricefeed/`. The old protected-hash
@@ -65,7 +67,6 @@ tests or deployment inputs remains partial even when its core code is present.
   This adds real-source evidence to PF016/PF020/PF021 without approving cadence,
   a production listing, provider semantics or human gates.
 
-Next implementation work: complete lifecycle behavior under explicit policy,
-operator CLI, broader
+Next implementation work: operator CLI, broader
 recovery/load evidence and runbooks. Production mapping, calibration, backend,
-environment and independent acceptance must come from the named owners.
+environment, concrete lifecycle reader/policy and independent acceptance must come from the named owners.

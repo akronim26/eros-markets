@@ -977,3 +977,102 @@ evidence, not approved production cadence. Provider timestamp/quote semantics,
 canonical rules/mapping approval, calibrated N/spread, full lifecycle/24-hour
 recording, broader load/crash/restore/operations, production Monad/key/backend
 configuration and independent release acceptance remain open.
+
+## Commit 849576c — live coverage evidence and independent reconstruction
+
+Full hash: `849576c71c3ac70da696a59c31d75c71059af284`.
+Committed by the user: 2026-10-04 02:08:32 +05:30.
+Message: `test: record live pricefeed coverage and independent replay`.
+The preceding pending real-source campaign, independent reviewer, retained
+success/failure reports and final coverage documentation are now committed.
+This is observed Git history; no agent commit or human gate acceptance is claimed.
+
+## Pending — durable recorder lifecycle and signed 24-hour fixtures (PF023)
+
+Base: `849576c71c3ac70da696a59c31d75c71059af284`.
+Suggested message: `feat: add durable record-only pricefeed lifecycle (PF023)`.
+Authorization: user requested the next step; all changes stay in this package.
+Requirements read: plan pages 16/26, current oracle interface's fixed INVALID
+window and existing risk ingress/store/capture/context code. No risk, CLOB,
+oracle, factory, shared STATUS, fingerprint or approval files were modified.
+
+**Implemented.** LocalLifecycle persists pinned, canonical block-labeled engine
+decisions in a fenced checksum-protected journal before permitting output.
+Disabled configs on chain 31337 only; explicit requiredFeedUntil >= scheduledT
+and listing horizon checks. Early engine halt enters RECORD_ONLY, continuing
+the same independently sourced observation path. The exact deadline is included;
+a verified fresh block beyond it enters persistent STOPPED. RPC/stale/future
+checkpoint failures block output. Wrong pins, backwards/inconsistent blocks,
+reorgs and disappearing halts persist QUARANTINED. Config or checkpoint-age policy
+changes require review; corrupt/fenced archives cannot grant output. Returned
+checkpoint objects cannot mutate internal trusted state; overlapping checks coalesce.
+
+The scheduler checks lifecycle before fetching and lets each stopped worker
+exit independently. LocalPipeline requires a controller when a config declares
+requiredFeedUntil and verifies the exact config digest. It gates allocation/
+observation signing and rechecks after signing. Relay checks after simulation
+before nonce reservation and after transaction preparation before broadcast.
+Deadline crossings produce no broadcast. If a nonce was already reserved,
+retain the exact raw transaction in QUARANTINED state: never reuse/skip it.
+Approved cancellation/replacement and operational nonce recovery remain PF018.
+Receipt reconciliation in process() remains read-only before publication gating;
+completion retains unresolved evidence rather than reporting delivery success.
+Existing deadline-free diagnostic demos are preserved.
+
+Source lifecycle stays separate: closed/untradeable metadata creates archived
+unavailable/gap diagnostics while recording is required. No new final-result
+0/1/0.5 sample, fresh timestamp or oracle callback is invented. The bot exposes
+no halt, settle or INVALID-capture actions. Read-only health now recognizes
+lifecycle records alongside source captures and rechecks block freshness.
+
+**Decisions/boundaries.** The fixed [T-86400,T] window and no post-halt economic
+resume come from existing risk docs, not a newly selected payoff rule. The
+reader in this step is injected fixture data, explicitly distinct from venue
+status. A concrete approved engine lifecycle RPC reader remains open; the
+existing localRpcTransport reads listing/sourceState but not halt state.
+Checkpoint-age bounds, exact-deadline inclusion and persistent conservative
+reorg quarantine are explicit local development behavior, not production
+finality/closure/operating approval. A new archive writer respects the existing
+lease; no forced takeover or OS-kill certification is claimed. Q08 documentation
+was corrected to describe the already implemented local fresh invalid-depth
+tuple while leaving production priority/coalescing/closure approval open.
+
+**Verification.** npm test exits 0: 223 tests, no failures/skips/cancellations/todo;
+this includes 144 Fraction vectors (seed 20261002); do not add them again.
+Wire/event ABI check and test:reference both exit 0. Build passes.
+The focused controller/pipeline/service suite (27 tests) and four signed lifecycle
+tests pass under npm run test:lifecycle with pinned Forge 1.8.3/solc 0.8.30.
+Eight package-owned Solidity tests pass under npm run test:engine, filtered to
+the two owned test contracts so imported risk tests do not inflate the count.
+Four are existing wire/short-window cases; four are the new lifecycle cases.
+
+The signed 24-hour fixtures use accelerated Foundry VM time, real PriceIngress,
+ObservationStore, InvalidPrice and risk context, with existing scripted
+accounting/book/oracle counterparts imported read-only. Only the test actor
+drives the mock oracle. Independent expectations: 4,321 samples at 20-second
+fixture cadence provide 86,400 seconds and TWAP 0.52 from equal 0.42/0.62
+half-windows; capture/provenance stay immutable after live-ring wrap and later
+samples. A 100-second inter-sample gap gives exactly 86,330 seconds (30-second
+carry, 70 missing); 4,317 packets remain, and only the engine applies its listed
+fallback at T+3600. Legacy missing history remains BLOCKED. An authenticated
+thin checkpoint yields 86,380 seconds with no fabricated coverage. All four
+retain HALTED/no-admission, original funding cutoff and once-only freeze.
+Machine evidence: artifacts/verification/lifecycle.json, lifecycle-unit.json and
+engine.json. The unit summary parses the actual final 223-test TAP log and binds
+the tested package sources by SHA-256; it does not claim a future commit hash.
+
+Full suite regressions cover truthful closure gaps, stop/quarantine restoration,
+clock rollback/skew, corrupt/expired archives, policy changes, worker isolation,
+and slow observation signer/relay simulation/transaction preparation crossing
+the deadline. Slow awaited lifecycle guards also recheck source headroom/writer ownership
+before nonce reservation and broadcast; both expiry boundaries are tested.
+Outside-package diff and whitespace checks pass. External-chain
+transactions: zero. These are fixtures, not an elapsed 24-hour live-source soak
+or an authentic oracle join. PF023 remains partial for its prerequisite owner
+decisions, concrete production reader, approved closure/operating policy,
+selected-listing availability and named risk/oracle review. README, decisions,
+plan-status and docs/lifecycle.md record this distinction.
+
+Next independent work: operator build-observation CLI and broader process-crash,
+restore/load evidence/runbooks. Production RPC/key/listing/calibration and
+independent acceptance remain owner inputs; this work does not authorize launch.
