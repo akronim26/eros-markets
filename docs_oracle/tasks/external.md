@@ -32,13 +32,14 @@ tracked here so nothing waits on them unnoticed. Format and rules: header of
 - Owner: both
 - PD: -
 - Depends: O01.2
-- Plan: §12.1
+- Plan: §12.1, ADJ-38
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/deployments/params.monad-testnet.json
 - Build: Every §12.1 role: hardware-wallet deployer; team Safe (2-of-3) and guardian Safe (2-of-3) on app.safe.global; three committee wallets; KMS secp256k1 runner attestor; watchdog key in a separate cloud account; two keeper/relayer EOAs; the sim relayer EOA (testnet only); fund each with testnet MON. The testnet bond token is the team TestUSDC (`seam-decisions.md` S-13).
 - Done when: every address is in `params.monad-testnet.json` and no private key is in git.
 - Check: manual: every §12.1 role has an address in oracle/deployments/params.monad-testnet.json
+- Notes: Testnet custody per ADJ-38: every role is a hot key from `oracle/script/testnet_keys.py` in the git-ignored deployments/testnet-keys.env (no key in git: checked with `git ls-files` and grep). params.monad-testnet.json holds every §12.1 role address: deployer 0x676c…f49e, the lister standing in for the team Safe 0xcE81…95b1 (Timelock proposer, lister, sandbox owner), the guardian 0xbdB0…071d, committee 0x068e…, 0x179D…, 0xED10…, runner attestor 0xAdB4…86B0, watchdog 0x89F4…264C, keepers 0xCbf7…A85c and 0xB5E7…70eb, sim relayer 0x0f27…24C5 (each checked against the key file). Funded with testnet MON from the team's funded key (3-4 Oct 2026; keeper 2: 1 MON, tx 0xd838517c…4c19). The CRE org owner stays 0 until X01. Mainnet custody (hardware wallets, Safes, KMS, a separate watchdog account) is still required before OG4.
 
 ### X04 · Testnet deployment
 - Owner: OA
