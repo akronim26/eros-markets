@@ -98,7 +98,7 @@ export const hashText = (s: string): Hex => keccak256(toBytes(s))
 
 export function domainSeparator(domain: OracleDomain): Hex {
   return hashStruct({
-    data: domain,
+    data: { ...domain, chainId: BigInt(domain.chainId) },
     primaryType: 'EIP712Domain',
     types: {
       EIP712Domain: [
