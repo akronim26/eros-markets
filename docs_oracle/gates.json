@@ -28,10 +28,15 @@
       "owners": "both",
       "entry": ["O10", "O11", "O12", "O13", "O14", "O15", "O16", "O17", "O18", "O19"],
       "exit_criteria": "Oracle CI green (FOUNDRY_PROFILE=ci: fmt, build with sizes, unit, fuzz, invariant ORC-1..15, real UMA, seam, vectors); internal review of the contracts diff by OB recorded.",
-      "evidence_dir": null,
-      "status": "not_started",
-      "merge_sha": null,
-      "evidence": []
+      "evidence_dir": "docs_oracle/evidence/OG1",
+      "status": "passed",
+      "merge_sha": "7119c72e0d8cbdb57ecb4a1d0b1db81100741656",
+      "evidence": [
+        "O10-O19: all 34 entry tasks done (check_tasks.py)",
+        "Internal review of oracle/src at 46991be/7119c72: docs_oracle/evidence/OG1/review.md; no critical/high/medium findings, L-1 fixed in 7119c72, I-1..I-5 dispositioned; accepted by xipharis 3 Oct 2026 (ADJ-35: team review)",
+        "CI FOUNDRY_PROFILE=ci green at 46991be: https://github.com/xipharis/eros-markets/actions/runs/37105657314 (forge, packages, workflow, dryrun)",
+        "CI FOUNDRY_PROFILE=ci green at 7119c72: https://github.com/xipharis/eros-markets/actions/runs/37105877808 (forge, packages, workflow, dryrun)"
+      ]
     },
     {
       "id": "OG2",

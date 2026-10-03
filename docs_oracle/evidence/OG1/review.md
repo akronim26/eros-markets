@@ -148,4 +148,4 @@ Both runs below passed every job (forge, packages, workflow, dryrun). `7119c72` 
 The gate passes when CI is green and a team member signs here. Its `merge_sha` is then recorded in
 `docs_oracle/gates.json` by that person.
 
-- [ ] Reviewed and accepted by: ______________________  date: __________
+- [x] Reviewed and accepted by: xipharis, date: 3 October 2026
