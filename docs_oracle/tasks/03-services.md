@@ -330,25 +330,27 @@ Plan §13: owner OB · 1 PD · depends O31 · acceptance: each alert fired once 
 - Owner: OB
 - PD: 0.5
 - Depends: O31.4
-- Plan: §9.4
+- Plan: §9.4, ADJ-45
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: oracle/services/alerts/src/rules/*
 - Build: Every §9.4 rule: `ReportProcessed(result=false)` for the oracle; L1Pending after two retry intervals; escalations per provider; panel failures; review past T_r; L2 deadline and `retryOpensAt` approaching; every dispute and DVM roll; markets within 72 h of `voidDeadline`; ASSERTION below the next bond or the open-market cap total; float below Σ live bonds; reward IOUs; stale heartbeat; guardian revocations; queued trust-set activations; Final but `claimsEnabled` false for > 6 h.
 - Done when: each rule has a unit test with a firing and a quiet fixture.
 - Check: cd oracle/services/alerts && bun test
+- Notes: Skipped for the hackathon (team decision 4 Oct 2026, ADJ-45): the team watches the testnet demo live; the committee console (O34.3) and the watchdog (O35.3) keep their own pages. Must be built before mainnet.
 
 ### O36.2 · Routing and drill
 - Owner: OB
 - PD: 0.5
 - Depends: O36.1
-- Plan: §9.4
+- Plan: §9.4, ADJ-45
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: oracle/services/alerts/src/routes/*, docs_oracle/evidence/O36/
 - Build: Route to PagerDuty, Slack and Telegram; run a drill that triggers every rule once.
 - Done when: every rule fired exactly once in the drill and reached its route.
 - Check: manual: drill log listing every rule with its delivery in docs_oracle/evidence/O36/
+- Notes: Skipped for the hackathon (team decision 4 Oct 2026, ADJ-45): the team watches the testnet demo live; the committee console (O34.3) and the watchdog (O35.3) keep their own pages. Must be built before mainnet.
 
 ## O37 · Envio indexer
 Plan §13: owner OB · 2 PD · depends OG1 · acceptance: Disputes Live queries served.
