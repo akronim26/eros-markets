@@ -5,6 +5,7 @@ import {AccountingState, AdmissionMode, StepStatus, RejectCode} from "../math/Ri
 import {MathTypes} from "../math/MathTypes.sol";
 import {IBookRiskHooks} from "../interfaces/IBookRiskHooks.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
+import {LifecycleMath} from "../math/LifecycleMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
 import {OrderAdmission} from "./OrderAdmission.sol";
 
@@ -176,6 +177,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             revert BadProposal();
         }
         _touch(maker.owner);
+        if (
+            !_actionCtx.markOk && _actionCtx.admission == LifecycleMath.Admission.BACKED_ONLY
+                && !_inBand(_actionCtx, maker.tick)
+        ) return _prune(maker, false, RejectCode.OUTSIDE_BAND);
         MakerDecision memory md = _makerDecision(
             _actionCtx,
             MakerInput(
