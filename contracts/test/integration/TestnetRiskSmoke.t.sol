@@ -2,6 +2,7 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {TestnetRiskSmoke, TestnetRiskTrader} from "../../script/ExerciseTestnetRiskBook.s.sol";
+import {PrepareTestnetTrade} from "../../script/PrepareTestnetTrade.s.sol";
 import {BookRiskEngine} from "../../src/engine/BookRiskEngine.sol";
 import {IMarketConfig} from "../../src/interfaces/IMarketConfig.sol";
 import {IPriceSource} from "../../src/interfaces/IPriceSource.sol";
@@ -205,6 +206,51 @@ contract TestnetRiskSmokeTest is Test {
         vm.expectRevert(TestnetRiskSmoke.InvalidWindow.selector);
         smoke.relayWindow(observations, signatures);
         vm.stopPrank();
+    }
+
+    function testOfflinePreparedCalldataMatchesCanonicalDigestAndTradesWithElevenSamples() public {
+        _fundAndActivate();
+        vm.rememberKey(CONTROLLER_KEY);
+        vm.setEnv("TESTNET_DEPLOYER", vm.toString(controller));
+        PrepareTestnetTrade preparer = new PrepareTestnetTrade();
+        bytes memory callData = preparer.prepare(
+            address(engine),
+            configuration.marketId,
+            configuration.indexSourceId,
+            configuration.indexRulesHash,
+            1,
+            uint64(block.timestamp)
+        );
+        assertEq(bytes4(callData), TestnetRiskSmoke.executeTrade.selector);
+        (IPriceSource.Observation[] memory observations, bytes[] memory signatures) =
+            this.decodePreparedTrade(callData);
+        assertEq(observations.length, 11);
+        assertEq(signatures.length, 11);
+        for (uint64 index; index < 11; ++index) {
+            assertEq(observations[index].sequence, index + 1);
+            assertEq(observations[index].observedAt, block.timestamp - 300 + index * 30);
+            assertEq(observations[index].bidDepthLots, 500);
+            assertEq(observations[index].askDepthLots, 500);
+            bytes32 expectedDigest = engine.observationDigest(observations[index]);
+            assertEq(preparer.digest(address(engine), observations[index]), expectedDigest);
+            (uint8 recovery, bytes32 signatureR, bytes32 signatureS) = vm.sign(CONTROLLER_KEY, expectedDigest);
+            assertEq(signatures[index], abi.encodePacked(signatureR, signatureS, recovery));
+        }
+        assertEq(callData, abi.encodeCall(TestnetRiskSmoke.executeTrade, (observations, signatures)));
+        vm.prank(controller);
+        (bool success,) = address(smoke).call(callData);
+        assertTrue(success);
+        assertTrue(smoke.traded());
+        assertEq(engine.sourceState(configuration.indexSourceId).lastSequence, 11);
+        assertEq(engine.oiAllLots(), 100_000);
+    }
+
+    function decodePreparedTrade(bytes calldata callData)
+        external
+        pure
+        returns (IPriceSource.Observation[] memory observations, bytes[] memory signatures)
+    {
+        return abi.decode(callData[4:], (IPriceSource.Observation[], bytes[]));
     }
 
     function testWrongOutcomeCannotBeMisreportedAsExpectedCashSettlement() public {

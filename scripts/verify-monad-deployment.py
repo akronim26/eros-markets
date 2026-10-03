@@ -314,7 +314,7 @@ def main(argv=None):
         parser.error("--output must not overwrite a script, broadcast, or artifact input")
     report = {"schema": "eros-monad-deployment-verification/1", "status": "failed",
               "observed_at_utc": datetime.now(timezone.utc).isoformat(),
-              "rpc_env": arguments.rpc_env, "broadcast": False, "limits": LIMITS,
+              "rpc_env": arguments.rpc_env, "broadcast_by_verifier": False, "limits": LIMITS,
               "limitations": [
                   "Read-only RPC observation; does not grant deployment, release, gate acceptance, or peer review",
                   "Chain ID and RPC responses do not independently authenticate public testnet or finality",
