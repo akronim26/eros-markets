@@ -24,12 +24,12 @@ risk/CLOB/oracle code. All temporary chain activity stays on chain ID 31337.
 |---|---|---|
 | Q01 separate scope and location | User authorized this workstream; individual owner/reviewer names unassigned | Only this package is implemented |
 | Q02 impact method/rounding/depth/fees | USER-SELECTED on 03 October 2026: before-fee VWAP, directed price rounding, validated two-sided displayed depth and floor-total lots; named counterpart review pending | Existing calculator matches pricing-v1; bind the reviewed policy through Q04 and keep other admission dependencies closed until supplied |
-| Q03 source/publish timestamp meaning | OPEN | Preserve vendor milliseconds, diagnostic floor to Unix seconds; no local freshness substitution or operational signing |
-| Q04 canonical source-rules hash | OPEN | No guessed rules hash; engine pins must match approved manifest |
-| Q05 quote/quantity/minimum-size normalization | PARTIALLY SELECTED: exact fractional aggregation, floor-total lots and source constraints; quote equivalence/provider precision OPEN | Before-fee pricing does not approve collateral equivalence or imply arbitrary lot-sized trades meet provider precision |
+| Q03 source/publish timestamp meaning | Conservative handling selected on 03 October 2026; provider timestamp semantics remain OPEN | Preserve vendor time as observedAt; freeze publishedAt before signing; recheck freshness before signing/sending; retries cannot refresh timestamps. Delivery margin remains Q07; production admission remains blocked |
+| Q04 canonical source-rules hash | Risk consumer contract IMPLEMENTED; canonical listing/pricefeed dossier and encoding OPEN | Engine pins the supplied bytes32 and rejects mismatches; package-only manifest work can proceed, with the production hash requiring the agreed dossier |
+| Q05 quote/quantity/minimum-size normalization | Engine WAD/lot units FIXED; exact fractional aggregation, floor-total lots and source constraints SELECTED; provider quote equivalence/precision OPEN | Before-fee pricing does not approve collateral equivalence or imply arbitrary lot-sized trades meet provider precision |
 | Q06 event semantics and exact initial mapping | OPEN | Three real source examples remain disabled for operational output |
-| Q07 cadence/headroom/metadata age | OPEN | Every diagnostic run declares its own settings; no production cadence default |
-| Q08 invalid-packet representation/priority | OPEN | Report unavailability and preserve reasons; do not emit fabricated invalid observations |
+| Q07 cadence/headroom/metadata age | Engine 30-second carry and full 300-second index coverage FIXED; producer budgets OPEN | Every diagnostic run declares its own settings; 30 seconds is not a production polling interval |
+| Q08 invalid-packet representation/priority | Engine invalid-depth acceptance and zero coverage FIXED; producer representation/priority OPEN | Engine computes depthValid; preserve failure reasons and do not fabricate timestamps for unavailable source data |
 | Q09 live chain/engine/key/relay/finality | OPEN | No live transactions or deployment |
 | Q10 calibration/soak/retention/release | OPEN | Read-only measurements cannot approve production parameters or release |
 

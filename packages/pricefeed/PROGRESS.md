@@ -49,8 +49,8 @@ margin/funding/settlement or enable operational admission.
 |---|---|
 | Q01 scope | User authorized this package and manual commits; named counterpart reviewers remain unassigned |
 | Q02 impact/depth/fees | USER-SELECTED on 03 October 2026: before-fee VWAP, directed price rounding, validated two-sided displayed depth and floor-total lots; named counterpart review and Q04 rules binding pending |
-| Q03 timestamps | OPEN; preserve vendor milliseconds and diagnostic floor; publish-time policy unapproved |
-| Q04 rules hash | OPEN; SHA-256 evidence digests are not the approved Eros rules hash |
+| Q03 timestamps | Conservative handling selected; preserve vendor time, freeze publish time and recheck freshness; provider semantics and Q07 delivery budget remain OPEN |
+| Q04 rules hash | Risk consumer contract IMPLEMENTED; canonical listing/pricefeed dossier and encoding OPEN; SHA-256 evidence digests are not the approved Eros rules hash |
 | Q05 quote/quantity | PARTIALLY SELECTED: fractional aggregation and floor-total lots with source constraints; quote equivalence/provider precision remain OPEN |
 | Q06 event mapping | OPEN; example tokens are real, but outcome/deadline/exception equivalence is not approved |
 | Q07 operating budget | OPEN; cadence/headroom/metadata settings are illustrative |
@@ -376,7 +376,13 @@ demo was run. These checks do not re-certify full economic integration.
 remains separate. Q02 method/rounding/depth/fees remains OPEN until an explicit
 owner decision. Q03-Q10 remain OPEN. Only package documentation changed.
 
-## Pending commit — user-selected VWAP, fee and depth policies
+## Commit 52ad9f2 — user-selected VWAP, fee and depth policies
+
+Full hash: `52ad9f2cc0a15f8439242b1bbfed9e420adf2b4f`
+
+Committed: 2026-10-03 15:24:33 +05:30
+
+Message: `feat: select VWAP pricing, fee and depth policies`
 
 Base commit: `72eef61d149e74c63e4839200518db6309ba21a1`.
 Suggested message: `feat: select VWAP pricing, fee and depth policies (PF003)`.
@@ -417,3 +423,64 @@ Final checks exited 0: `git diff --check` and
 `git diff --exit-code HEAD -- . ':!packages/pricefeed'`. The latter checks this
 turn's counterpart files against current HEAD; it does not refresh or certify
 the original pre-merge protected-hash baseline.
+
+
+## Pending commit — timestamp policy and retained evidence (PF011)
+
+Base commit: `52ad9f2cc0a15f8439242b1bbfed9e420adf2b4f`.
+Suggested message: `test: record timestamp policy and evidence (PF011)`.
+
+**Decision.** On 03 October 2026, the user agreed to move to the next requirement
+following the conservative timestamp recommendation. Preserve vendor milliseconds
+and derive observedAt by flooring to Unix seconds. Finalize publishedAt before
+signing and freeze the signed packet across retries. Recheck freshness before
+signing and sending, leaving delivery headroom within the engine's 30-second carry
+window; the exact operational budget remains Q07. Repeated source timestamps do
+not renew freshness. Missing, future, backwards or expired timestamps prevent
+valid-price publication. This selects handling, not a claim that Polymarket's
+precise timestamp-generation semantics have been confirmed. That external fact
+remains open for production; no operational admission or human gate is approved.
+
+**Evidence.** Retained `artifacts/timestamps/review-20261003.json` from the preceding
+investigation: 45 existing captures, payload integrity checked, no new source
+requests. Repeated timestamps and unchanged displayed fields with advancing
+timestamps were observed. Neither proves the provider's timestamp semantics.
+The preceding targeted config-time/demo test run passed 9 tests (a subset of the
+172 previously passing package tests). No runtime changes or new test run in this
+documentation turn. Durable signing/retry enforcement remains future work.
+
+**Next requirement.** Q04: agree the canonical rules/mapping document and exact
+hash encoding, and distinguish sourceHash, rulesHash and indexRulesHash. The
+signed sourceRulesHash must match the engine's configured indexRulesHash. A raw
+capture's SHA-256 evidence digest is not a substitute for that agreement.
+
+**Q04 documentation review.** Checked the implementation-plan PDF's hash/change
+policy and Q04, CP-PRICE-to-risk, counterpart contracts, risk specification,
+IMarketConfig, RiskContextPort and PriceIngress. The index hash equality is
+specified and enforced, but no canonical document/field encoding was found.
+Listing.sourceHash and Listing.rulesHash remain distinct from indexRulesHash;
+sourceState.rulesHash is the index ingress pin. Added
+`docs/rules-hash-proposal.md` proposing a versioned typed ABI/Keccak manifest,
+following existing listing/profile hash conventions, with owner agreement and
+remaining policy inputs explicitly pending. Demo/test placeholder hashes do
+not establish production rules. No runtime change or new test run was needed
+for this documentation review.
+
+**Risk responsibility recheck.** At the user's request, reread the risk handoff,
+B016/B019 task definitions, implementations and tests, B assumptions, and release
+and counterpart-status records. Risk already pins the supplied indexRulesHash
+and signs/checks sourceRulesHash as part of its fixed observation digest. B016
+contains a wrong-rules-hash rejection test. Q04 must not be represented as a
+missing risk hashing implementation or a blocker to package-only development;
+the open part is defining the shared dossier producing the supplied hash.
+Current compiled wire comparison exited 0 after this recheck. No new Solidity
+tests were run; the existing risk tests were inspected, not re-certified.
+
+**Broader requirements cross-check.** Added `docs/risk-requirements-crosscheck.md`
+covering Q02-Q10 and wire/authentication. Corrected current decision summaries:
+engine units, carry/TWAP coverage and invalid-depth handling are fixed already.
+Remaining producer/provider/deployment inputs are distinguished from risk code.
+Clarified delayed-history acceptance, same-second replacement and the difference
+between invalid depth and oracle INVALID. No runtime changes or additional test
+run; this is source/doc review. Current diff whitespace and package-only scope
+checks passed.
