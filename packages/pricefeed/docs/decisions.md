@@ -11,6 +11,13 @@ This is the permitted implementation location, not a reviewer approval or a
 production authorization. No risk-side fingerprints, gate records, shared STATUS,
 counterpart code, existing documents or deployment configuration may be edited.
 
+On 2 October 2026 the user additionally authorized a demo using actual Polymarket
+data with a demo market. That permits the separate local-demo runner to create an
+owned localhost Anvil chain, instantiate a test composition of real ingress/store,
+use public test keys and submit local observations. It does not approve Q02-Q10,
+an operational event mapping, deployment to an external network or changes to
+risk/CLOB/oracle code. All temporary chain activity stays on chain ID 31337.
+
 | Decision | Status | Implementation consequence |
 |---|---|---|
 | Q01 separate scope and location | User authorized this workstream; individual owner/reviewer names unassigned | Only this package is implemented |

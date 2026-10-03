@@ -26,6 +26,42 @@ inputs only. Enabling a config fails closed until approved runtime policy adapte
 exist. No operational observations, signatures or transactions are produced.
 Fixture signatures use a public test-only key in a local test VM.
 
+## Live-data local demo
+
+The separately authorized demo connects real Polymarket data to an owned local
+Anvil chain. It creates a demo market using the existing real `PriceIngress` and
+`ObservationStore`, polls the chosen source, signs valid depth summaries with a
+public test key and sends local transactions through `submitObservation`.
+It checks the digest, receipt, accepted event, sequence and index TWAP against
+independent time-segment integration after each acceptance.
+
+From this package, with the pinned tools already installed:
+
+```bash
+PRICEFEED_FORGE=/path/to/forge-1.8.3 PRICEFEED_SOLC=/path/to/solc-0.8.30 PRICEFEED_ANVIL=/path/to/anvil-1.8.3 npm run demo:live -- --config config/crypto.example.json --duration-seconds 360
+```
+
+`--config` selects the real source event/token; the destination is always a fresh
+owned localhost chain, ID 31337. The command accepts no RPC, engine or private-key
+argument. It requires a disabled source config without an operational destination.
+The chain is shut down after the run. A successful source/ingress demo exits 0,
+no accepted packet exits 2, and a setup/integrity failure exits 1.
+
+Results and signed packets/receipts are in `artifacts/demo/latest.json`; the first
+real book is in `artifacts/demo/source-example.json`. Full event/metadata/book
+captures live in the ignored SQLite archive named in the report. Source failures
+are retained; they never produce a fabricated observation. A 300-second index
+is available only with genuine contiguous source coverage, and the report shows
+coverage even when unavailable. No accelerated/repeated timestamp is used to
+manufacture a five-minute window.
+
+Demo choices are explicit: the source config's diagnostic impact method/N/spread,
+vendor-millisecond flooring, local packet-freeze publication time, unapproved
+quote policy, and a hash of the local demo manifest. These are not Q02-Q10
+approvals or an approved Eros listing. The receiver demonstrates real ingress and
+index storage; it has no complete margin/funding/settlement engine, book or oracle.
+External-chain transactions remain zero. Operational admission is unchanged.
+
 ## Risk output contract
 
 The eventual output is one signed depth-N observation through
@@ -98,6 +134,14 @@ code nor certifies a live counterpart join. Machine reports describe a working
 tree and must not be interpreted as human PF gate acceptance.
 
 ## Remaining implementation
+
+The [implementation status report](output/pdf/pricefeed-implementation-status-report.pdf)
+summarizes the goal, recorded tests, real-source local demo, risk output contract
+and remaining work as of 03 October 2026. Its generator is
+`scripts/build-status-report.py`; install `scripts/pdf-requirements.txt` in a
+separate Python virtual environment before regenerating it from this directory.
+The generator checks the retained evidence and fails if the demo has changed,
+requiring a review of the report narrative before regeneration.
 
 Q02-Q10 block dependent production behavior: impact/rounding/depth/fees, timestamp
 semantics, rules hash, units/quote, event equivalence, operating budget, invalid

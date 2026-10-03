@@ -37,6 +37,12 @@ validation, isolated workers, diagnostic archive, restart/quarantine handling an
 inspection/health CLI are implemented and locally tested. Operational admission
 fails closed, including when arbitrary approval strings are supplied.
 
+The separately authorized local demo now fetches actual Polymarket books, signs
+valid summaries with a public test key and submits them to real ingress/store on
+an owned local chain. Its 36-packet run produced genuinely covered 300-second
+index results matching independent integration. It does not implement full
+margin/funding/settlement or enable operational admission.
+
 | Decision | Actual status / consequence |
 |---|---|
 | Q01 scope | User authorized this package and manual commits; named counterpart reviewers remain unassigned |
@@ -63,7 +69,7 @@ accept any PF gate. I-3 still needs counterpart confirmation.
 | PF013-PF016 | Diagnostic archive, writer fencing and worker restore; production sequence/outbox, approved builder/signer and crash-boundary campaign incomplete |
 | PF017 | Read-only validate/inspect/capture/health/evidence/digest commands; approved build-observation command incomplete |
 | PF018-PF019 | Relay and receipt/reorg reconciliation unimplemented |
-| PF020 | Four local real-ingress/store tests; broader differential guards/timing vectors, prerequisites and live counterpart join incomplete |
+| PF020 | Four local real-ingress/store tests plus 36 live-source packets accepted on an owned local chain with independently verified 300-second index; broader guards/timing vectors, prerequisites and production counterpart join incomplete |
 | PF021-PF022 | Limited source diagnostics retained; approved soak and calibration incomplete |
 | PF023-PF028 | Complete lifecycle, load/security/operations/release and authorized live join/review incomplete; no acceptance claimed |
 
@@ -214,11 +220,13 @@ release, human gate, production address or production parameters were invented.
 Continue only isolated preparatory/read-only work until dependent decisions are
 actually supplied.
 
-## Pending commit — freshness fixes and completed commit accounting
+## Commit cd18c91 — metadata age and health timestamps
 
-Base commit: `1e7246730d4da3425d8d3bfe0f736e4e01cbee53`. This entry describes
-uncommitted work only. Suggested message:
-`fix(pricefeed): check event metadata age and future health timestamps (PF011, PF025)`.
+Full hash: `cd18c919e77b7be72d720fa8c41b14aa75c5f8ae`
+
+Committed: 2026-10-02 21:40:34 +05:30
+
+Message: `fix(pricefeed): check event metadata age and future health timestamps`
 
 **What changed.** Check metadata freshness against the older of the event and
 market captures so a new market response cannot disguise an expired event
@@ -240,3 +248,78 @@ is in `artifacts/verification/checks.json`; no live source run was repeated afte
 these final two fixes. The preceding source capture remains limited evidence of
 the earlier read-only code, not a claim of a continuously operating production
 service. Q02-Q10, I-3 confirmation and all human gates remain open.
+
+## Pending commit — actual Polymarket data into a local demo market
+
+Base commit: `cd18c919e77b7be72d720fa8c41b14aa75c5f8ae`. Suggested message:
+`feat(pricefeed): add live-data local demo and status report (PF020)`.
+
+**Authorization and decisions.** The user requested a demo event/market using
+actual Polymarket data. Keep the real source but create only a fresh, owned local
+test chain. Start with the existing Bitcoin October outcome; its config remains
+disabled for operational output. Demo policies are explicit diagnostic choices,
+not production approvals: config N/spread/impact method, preserved vendor time,
+local packet-freeze publication time, unapproved quote convention and a hash of
+the demo manifest. Use public Anvil/source test keys only. No external RPC,
+engine-address or key argument is accepted. Q02-Q10 remain OPEN.
+
+**What changed.** Added `demo:live`, pinned local compile/start runner, a
+constructor-only test composition importing real ingress/store, demo observation
+builder and independent TWAP integration. The command polls real complete books,
+preserves raw evidence, signs only trustworthy valid summaries, freezes each
+packet before local sending, matches the actual accepted event/digest/sequence
+and checks genuine 300-second coverage. Invalid/stale/missing/changed sources are
+recorded without fabricated packets. No accelerated source time or repeated old
+timestamp is used to create coverage. The local chain is stopped after the run.
+The demo receiver has no complete margin/funding/settlement, book or oracle.
+
+**Verification so far.** TypeScript build and 170 tests passed, including five
+demo builder/TWAP regression tests. Wrong global Forge 1.5.1 was correctly rejected;
+the verified temporary Forge/Anvil 1.8.3 and Solidity 0.8.30 are used instead.
+Local-chain compilation passed. Sandbox localhost binding failed with EPERM;
+the authorized demo was repeated with localhost/network permission. A bounded
+360-second real-source/local-ingress run completed with exit 0: **36 of 36**
+real-source observations accepted, no unavailable attempts. The last observation
+had impact bid 0.76, impact ask 0.77, midpoint 0.765, bid depth 397,038,460 lots,
+ask depth 158,155,350 lots, source time 1790960232, publication/acceptance time
+1790960233 and sequence 36. Actual engine index reached full 300-second coverage;
+the final TWAP was exactly 0.765. Every digest, receipt/event, sequence and TWAP
+comparison passed; the archive integrity check passed. No external-chain
+transactions were sent, and the owned local chain shut down after the run.
+
+`artifacts/demo/latest.json` retains the exact signed observations, local receipt
+events, raw-body hashes, policies and engine/reference index results.
+`source-example.json` preserves the first actual complete book. Full raw captures
+are in ignored `var/live-demo-1790959881522.sqlite`. The summary generator exited
+0 and wrote `artifacts/demo/REPORT.md`. The captured source question was
+"Will Bitcoin reach $87,500 in October?", selected outcome Yes. It is an event
+claim price, not raw BTC/USD, a bot prediction or a final outcome.
+
+The complete local verification command exited 0: 170 package tests, 144
+independent Fraction vectors (seed 20261002), four existing real-ingress/store
+tests, exact wire comparison and all 1,156 protected-file hashes unchanged.
+`git diff --check` also exited 0. The summary script was added after that test
+run and checked separately against the completed archive/report; no repeated
+network run or additional production readiness is implied.
+
+**Status report added 03 October 2026.** The user requested a PDF explaining the
+intended work, achievements with tests, and remaining implementation. Added the
+five-page `output/pdf/pricefeed-implementation-status-report.pdf` and reproducible
+`scripts/build-status-report.py` with pinned `scripts/pdf-requirements.txt`.
+The report reads the retained demo and verification evidence, checks their
+integrity, distinguishes 170 package tests from the included 144 arithmetic
+vectors and four separate ingress/store tests, and documents the exact risk
+observation contract and local-only readiness boundary. It also records the
+earlier category captures and failures without implying continuous availability.
+Report libraries were installed in an isolated temporary virtual environment;
+project runtime dependencies were not changed. Generation exited 0. All five
+rendered pages were visually inspected; text, page bounds, page count and footers
+were checked. The PDF SHA-256 is
+`55541c5c2b50f8d4ca77594f6b5975b7df7951cff01ffbd826299ba6e4e3328e`.
+No package test or live network demo was repeated for this documentation change.
+Final documentation checks passed: `git diff --check` exited 0 and
+`npm run check:scope` confirmed all 1,156 protected hashes unchanged with the
+working diff confined to `packages/pricefeed/`.
+
+**Remaining.** Production builder/signing/relay/recovery, approved mapping and release remain
+incomplete; this demo is local integration evidence only, not PF acceptance.
