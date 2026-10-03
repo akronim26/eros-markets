@@ -16,7 +16,7 @@
         "contracts/test/gates/G0.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "note": "Historical accepted commit and A/B reviews retained for provenance. Current unified-team technical checks pass at c91acf7; this is not a new peer signature or production approval. G7 acceptance is recorded separately below.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
@@ -25,7 +25,10 @@
         "date": "2026-10-02",
         "result": "agreed; no Critical/High/Medium finding",
         "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
-      }
+      },
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 88,
+      "current_technical_evidence": "artifacts/gates/G0.json"
     },
     {
       "id": "G1",
@@ -41,7 +44,7 @@
         "contracts/test/gates/G1.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "note": "Historical accepted commit and A/B reviews retained for provenance. Current unified-team technical checks pass at c91acf7; this is not a new peer signature or production approval. G7 acceptance is recorded separately below.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
@@ -50,7 +53,10 @@
         "date": "2026-10-02",
         "result": "agreed; no Critical/High/Medium finding",
         "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
-      }
+      },
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 152,
+      "current_technical_evidence": "artifacts/gates/G1.json"
     },
     {
       "id": "G2",
@@ -66,7 +72,7 @@
         "contracts/test/gates/G2.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "note": "Historical accepted commit and A/B reviews retained for provenance. Current unified-team technical checks pass at c91acf7; this is not a new peer signature or production approval. G7 acceptance is recorded separately below.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
@@ -75,7 +81,10 @@
         "date": "2026-10-02",
         "result": "agreed; no Critical/High/Medium finding",
         "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
-      }
+      },
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 117,
+      "current_technical_evidence": "artifacts/gates/G2.json"
     },
     {
       "id": "G3",
@@ -91,7 +100,7 @@
         "contracts/test/gates/G3.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "note": "Historical accepted commit and A/B reviews retained for provenance. Current unified-team technical checks pass at c91acf7; this is not a new peer signature or production approval. G7 acceptance is recorded separately below.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
@@ -100,7 +109,10 @@
         "date": "2026-10-02",
         "result": "agreed; no Critical/High/Medium finding",
         "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
-      }
+      },
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 78,
+      "current_technical_evidence": "artifacts/gates/G3.json"
     },
     {
       "id": "G4",
@@ -116,7 +128,7 @@
         "contracts/test/gates/G4.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "note": "Historical accepted commit and A/B reviews retained for provenance. Current unified-team technical checks pass at c91acf7; this is not a new peer signature or production approval. G7 acceptance is recorded separately below.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
@@ -125,7 +137,10 @@
         "date": "2026-10-02",
         "result": "agreed; no Critical/High/Medium finding",
         "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
-      }
+      },
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 77,
+      "current_technical_evidence": "artifacts/gates/G4.json"
     },
     {
       "id": "G5",
@@ -141,7 +156,7 @@
         "contracts/test/gates/G5.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "note": "Historical accepted commit and A/B reviews retained for provenance. Current unified-team technical checks pass at c91acf7; this is not a new peer signature or production approval. G7 acceptance is recorded separately below.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
@@ -150,7 +165,10 @@
         "date": "2026-10-02",
         "result": "agreed; no Critical/High/Medium finding",
         "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
-      }
+      },
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 63,
+      "current_technical_evidence": "artifacts/gates/G5.json"
     },
     {
       "id": "G6",
@@ -166,7 +184,7 @@
         "contracts/test/gates/G6.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "note": "Historical accepted commit and A/B reviews retained for provenance. Current unified-team technical checks pass at c91acf7; this is not a new peer signature or production approval. G7 acceptance is recorded separately below.",
       "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
@@ -175,31 +193,59 @@
         "date": "2026-10-02",
         "result": "agreed; no Critical/High/Medium finding",
         "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
-      }
+      },
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 55,
+      "current_technical_evidence": "artifacts/gates/G6.json"
     },
     {
       "id": "G7",
-      "status": "blocked",
-      "merge_sha": null,
+      "status": "passed",
+      "merge_sha": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
       "reviewed_by": [],
       "evidence": [
         "artifacts/gates/G7.json",
         "docs/contracts/G7.json",
-        "contracts/test/gates/G7.t.sol"
+        "contracts/test/gates/G7.t.sol",
+        "artifacts/validation/A043.json",
+        "artifacts/validation/B043.json",
+        "artifacts/risk/unified-integration-2026-10-03.json"
       ],
       "review_pending": [],
-      "workflow": "GOV-01: unified Risk and Order Book; user retired mandatory A/B peer review on 2026-10-03. See docs/merge/UNIFIED_WORKFLOW.md.",
-      "note": "Historical A/B reviews remain limited to their recorded source. No new peer review is claimed or required by the unified development workflow. The recorded G7 exit-2 run still reflects the old A043 enforcement; migrate that enforcement without dropping regression suites, then rerun technical checks. G0-G6 accepted historical SHAs are retained. G7 human acceptance, a main merge and a new deployment are not granted by this workflow change.",
-      "technical_status": "legacy_review_runner_migration_pending",
-      "open_policy_finding": "RB-I11: strict INDEX-prefix seal selected under delegated unified-team authority; implementation and regression validation pending. Not waiting for user or A/B approval.",
-      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
-      "a_review_worktree_dirty": true,
-      "b_delta_review": {
-        "range": "71576ed..3b11044",
-        "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
-        "date": "2026-10-02",
-        "result": "agreed; recommends coordinator acceptance",
-        "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+      "workflow": "GOV-01/GOV-02: unified ownership and source-bound technical validation; no mandatory A/B signatures and no independent review claimed",
+      "note": "G0-G7 ran in order at the actual candidate SHA and all exited 0 with zero skipped checks. Counts: 88/152/117/78/77/63/55/156; overlapping reported checks, not additional unique tests. CI832/130, Monad99/11, Python237, SDK, format, ABI and read-only size/gas validation also pass. Runtime, tests, runners and release inputs are committed in the candidate; later commits only record evidence, acceptance and documentation. The legacy merge_sha field names the accepted integration candidate, not a merge into main. The technical runner itself still records accepted=false and merge_sha=null.",
+      "technical_status": "checks_passed",
+      "open_policy_finding": null,
+      "current_technical_source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+      "current_technical_checks": 156,
+      "current_technical_evidence": "artifacts/gates/G7.json",
+      "accepted": true,
+      "accepted_at_utc": "2026-10-03 17:39:11 UTC",
+      "accepted_by": "User, via explicit conditional authorization on 2026-10-03",
+      "recorded_by": "Codex, after verifying the required checks passed",
+      "authorization": {
+        "response": "Yes—record G7 acceptance after passing checks",
+        "condition": "All required unified technical checks pass",
+        "excludes": [
+          "production deployment",
+          "merge into main"
+        ]
+      },
+      "acceptance_scope": "Unified non-oracle Risk, Clearing and real Order Book integration candidate; local technical handoff, not production or live-counterpart approval",
+      "technical_evidence_sha256_lf": "91d1edf5f92c225f9f28f9901f55af93b7079816b6b868ce905523fba96ae0b9",
+      "resolved_policy_finding": "RB-I11 implemented in dcb6b0e; authenticated strictly newer INDEX seals the capture prefix, with 21 passing sampler regressions",
+      "production_approved": false,
+      "new_source_deployed": false,
+      "historical_reviews": {
+        "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
+        "a_review_worktree_dirty": true,
+        "b_delta_review": {
+          "range": "71576ed..3b11044",
+          "source_commit": "3b11044ae2895139570afa8f908e5c932205f7b9",
+          "date": "2026-10-02",
+          "result": "agreed; recommends coordinator acceptance",
+          "record": "artifacts/reviews/B-on-A.md (Addendum 2026-10-02)"
+        }
       }
     }
   ]

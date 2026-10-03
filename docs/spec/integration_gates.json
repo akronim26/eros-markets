@@ -290,7 +290,9 @@
       "docs/contracts/G7.json",
       "artifacts/gates/G7.json"
     ],
-    "status": "not_started",
-    "merge_sha": null
+    "status": "passed",
+    "merge_sha": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+    "acceptance_record": "docs/spec/gate_status.json",
+    "acceptance_scope": "User-authorized unified non-oracle integration candidate, not a main merge or production deployment"
   }
 ]

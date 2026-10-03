@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:11:09.675373+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:31:16.195601+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,7 +133,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "contracts/test/risk/B/B021.t.sol": "9a0bea4dcfa9a145c15db872e56d3c1711634b6329806099bc258d1f011bc2a7"
   },
@@ -154,7 +154,7 @@
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/risk/B/B021.t.sol:B021Test\": {\"duration\": \"28ms 64\\u00c2\\u00b5s 500ns\", \"test_results\": {\"test_hazardRaiseReduceOnlyNowProfileNextEpoch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 854609}}, \"duration\": \"2ms 727\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_invalidSampleEndsCoverage()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2922831}}, \"duration\": \"5ms 840\\u00c2\\u00b5s 100ns\", \"gas_snapshots\": {}}, \"test_lateFreshObservationCannotEraseGap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 20767984}}, \"duration\": \"25ms 675\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}, \"test_missingCalibrationForcesOneX()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 7938109}}, \"duration\": \"3ms 222\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_monitorAuthenticatedReduceOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 111948}}, \"duration\": \"1ms 822\\u00c2\\u00b5s 400ns\", \"gas_snapshots\": {}}, \"test_monitorCannotHaltSettleOrLowerHazards()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 130424}}, \"duration\": \"1ms 521\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_movementTriggersReduceOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 7543176}}, \"duration\": \"10ms 316\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"test_staleThreshold30s()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 333505}}, \"duration\": \"967\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
+      "output": "{\"test/risk/B/B021.t.sol:B021Test\": {\"duration\": \"29ms 274\\u00c2\\u00b5s 300ns\", \"test_results\": {\"test_hazardRaiseReduceOnlyNowProfileNextEpoch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 854609}}, \"duration\": \"3ms 14\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}, \"test_invalidSampleEndsCoverage()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 2922831}}, \"duration\": \"4ms 556\\u00c2\\u00b5s 300ns\", \"gas_snapshots\": {}}, \"test_lateFreshObservationCannotEraseGap()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 20767984}}, \"duration\": \"26ms 863\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_missingCalibrationForcesOneX()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 7938109}}, \"duration\": \"3ms 526\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}, \"test_monitorAuthenticatedReduceOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 111948}}, \"duration\": \"2ms 291\\u00c2\\u00b5s 800ns\", \"gas_snapshots\": {}}, \"test_monitorCannotHaltSettleOrLowerHazards()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 130424}}, \"duration\": \"1ms 806\\u00c2\\u00b5s 700ns\", \"gas_snapshots\": {}}, \"test_movementTriggersReduceOnly()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 7543176}}, \"duration\": \"9ms 286\\u00c2\\u00b5s 900ns\", \"gas_snapshots\": {}}, \"test_staleThreshold30s()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 333505}}, \"duration\": \"1ms 767\\u00c2\\u00b5s\", \"gas_snapshots\": {}}}, \"warnings\": []}}",
       "raw_evm_logs_omitted": true
     }
   ],

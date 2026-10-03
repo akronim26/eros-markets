@@ -1,9 +1,12 @@
 {
-  "status": "A_LOCAL_HANDOFF_READY_PEER_MERGE_PENDING",
+  "status": "UNIFIED_TECHNICAL_HANDOFF",
   "economic_baseline": "1.0",
   "plan_version": "1.1",
-  "scope": "A only; all combined gates and B review pending merge",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "scope": "Historical A task checks and current adversarial regressions; human gate acceptance recorded separately",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+  "validation_mode": "unified_team_technical_validation",
+  "technical_evidence": "artifacts/validation/A043.json",
+  "gates": "docs/spec/gate_status.json",
   "local_tasks": {
     "A001": {
       "status": "passed",
@@ -12,7 +15,7 @@
     },
     "A002": {
       "status": "passed",
-      "tests": 22,
+      "tests": 39,
       "evidence": "artifacts/tasks/A002.json"
     },
     "A003": {
@@ -216,14 +219,14 @@
       "evidence": "artifacts/tasks/A042.json"
     },
     "A043": {
-      "status": "blocked",
-      "tests": 0,
+      "status": "passed",
+      "tests": 68,
       "evidence": "artifacts/tasks/A043.json"
     }
   },
   "module_hashes": {
     "contracts/src/Book.sol": "e91f7e46ad398319ac5c8feff3f7121da6cd4b9038404aa6aeae1a330fffc53d",
-    "contracts/src/engine/BookRiskEngine.sol": "e43d8f07be667b668c685e27a8504f8e4ea66295106dd1a476a31c7b1a0c3c2a",
+    "contracts/src/engine/BookRiskEngine.sol": "31305bcf37e321e969dc25ebfedf03a154d34b3e65b5ace521eb419833bb9db1",
     "contracts/src/engine/RiskAccountingBridge.sol": "55581f641907ee44f403ab247d67dca66edcf82b5010244a3e0d154408c369dd",
     "contracts/src/interfaces/IAccountingPort.sol": "9589f1d508d0f05460e2c5966421146f7a67e2c5d94a2bb7b054ca027a9862f1",
     "contracts/src/interfaces/IBookRiskHooks.sol": "a802bbc0a75872c7ebcb8e078d8563bab004beacfbbe610aced424ab884b565c",
@@ -308,11 +311,11 @@
   },
   "components": {
     "A": "real",
-    "B": "scripted_mock",
-    "book": "not_integrated; unchanged",
-    "price_source": "scripted_context",
-    "oracle": "scripted_internal_calls",
-    "token": "MockUSDC"
+    "B": "real in integration/review tests; scripted decisions in legacy A unit tests",
+    "book": "real in applicable review regressions; legacy tests retain mocks",
+    "price_source": "test observations",
+    "oracle": "scripted fixtures; live integration not certified",
+    "token": "test fixtures; production collateral not certified"
   },
   "release_defaults": {
     "funding_enabled": false,
@@ -321,8 +324,9 @@
     "B_leverage_caps_required": 1
   },
   "production_approved": false,
+  "independent_review": false,
   "independent_audit": false,
-  "live_counterpart_status": "PENDING_MERGE",
+  "live_counterpart_status": "NOT_ASSESSED_BY_THIS_RUNNER",
   "gas": "artifacts/risk/gas-accounting.json",
   "custody": "artifacts/risk/custody-reconciliation.json",
   "runbook": "docs/runbooks/accounting.md"

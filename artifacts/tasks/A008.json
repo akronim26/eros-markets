@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:09:13.457423+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:29:13.763653+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,7 +133,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "reference/tests/a/test_a008.py": "9296dc834cc508703ab96dcd4d9f6c5f836596bb72d2a97fc8c61aa5c7c5d546"
   },
@@ -157,7 +157,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "in_process_unittest_discovery",
-      "output": "test_fragmented_fee_and_recovery (test_a008.SettlementTests.test_fragmented_fee_and_recovery) ... ok\ntest_payouts_and_fractional_escrow (test_a008.SettlementTests.test_payouts_and_fractional_escrow) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nOK\n"
+      "output": "test_fragmented_fee_and_recovery (test_a008.SettlementTests.test_fragmented_fee_and_recovery) ... ok\ntest_payouts_and_fractional_escrow (test_a008.SettlementTests.test_payouts_and_fractional_escrow) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n"
     }
   ],
   "test_count": 2,

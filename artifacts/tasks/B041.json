@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:14:40.477615+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:36:28.076968+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,7 +133,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "artifacts/risk/gas-adapters.json": "e6e7324adb885952f7d8c6218d892c71a1729c02328f204eb0113d82ad1ba8bc",
     "artifacts/risk/gas-engine.json": "aa0ad9577bde20ccf93dbc39561eed8d8f45b61a24a8fb109b7a8dd5ef4dab41"
@@ -149,27 +149,29 @@
         "forge",
         "test",
         "--match-path",
-        "test/gas/B/AdapterGas.t.sol"
+        "test/gas/B/AdapterGas.t.sol",
+        "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 5 tests for test/gas/B/AdapterGas.t.sol:AdapterGasTest\n[PASS] test_dirtyBook64Examined() (gas: 126627488)\n[PASS] test_liquidationContinuation() (gas: 5527356)\n[PASS] test_observationUpdateConstantWithFullRing() (gas: 505191715)\n[PASS] test_oracleCallbackIndependentOfParticipants() (gas: 103914517)\n[PASS] test_settlementControllerChunk() (gas: 6050626)\nSuite result: ok. 5 passed; 0 failed; 0 skipped; finished in 3.57s (4.08s CPU time)\n\nRan 1 test suite in 3.57s (3.57s CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)\n"
+      "output": "{\"status\": \"passed\", \"checks_run\": 5, \"skipped_count\": 0, \"command\": [\"forge\", \"test\", \"--match-path\", \"test/gas/B/AdapterGas.t.sol\", \"--json\"], \"exit_code\": 0, \"forge_exit_code\": 0, \"suite_results\": {\"test/gas/B/AdapterGas.t.sol:AdapterGasTest\": {\"test_dirtyBook64Examined()\": \"Success\", \"test_liquidationContinuation()\": \"Success\", \"test_observationUpdateConstantWithFullRing()\": \"Success\", \"test_oracleCallbackIndependentOfParticipants()\": \"Success\", \"test_settlementControllerChunk()\": \"Success\"}}, \"failure_output\": \"\", \"reason\": \"All selected regressions passed\"}"
     },
     {
       "argv": [
         "forge",
         "test",
         "--match-path",
-        "test/gas/integration/EngineGas.t.sol"
+        "test/gas/integration/EngineGas.t.sol",
+        "--json"
       ],
       "cwd": "contracts",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "No files changed, compilation skipped\n\nRan 6 tests for test/gas/integration/EngineGas.t.sol:EngineGasTest\n[PASS] test_gasFloorSweep() (gas: 236552806)\n[PASS] test_gasHaltPreparationClaims() (gas: 205075032)\n[PASS] test_gasInvalidCapture() (gas: 467935250)\n[PASS] test_gasLiquidation() (gas: 384181612)\n[PASS] test_gasRolloverPages() (gas: 224438557)\n[PASS] test_gasTradingAndCustody() (gas: 203928615)\nSuite result: ok. 6 passed; 0 failed; 0 skipped; finished in 2.11s (7.35s CPU time)\n\nRan 1 test suite in 2.11s (2.11s CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)\n"
+      "output": "{\"status\": \"passed\", \"checks_run\": 6, \"skipped_count\": 0, \"command\": [\"forge\", \"test\", \"--match-path\", \"test/gas/integration/EngineGas.t.sol\", \"--json\"], \"exit_code\": 0, \"forge_exit_code\": 0, \"suite_results\": {\"test/gas/integration/EngineGas.t.sol:EngineGasTest\": {\"test_gasFloorSweep()\": \"Success\", \"test_gasHaltPreparationClaims()\": \"Success\", \"test_gasInvalidCapture()\": \"Success\", \"test_gasLiquidation()\": \"Success\", \"test_gasRolloverPages()\": \"Success\", \"test_gasTradingAndCustody()\": \"Success\"}}, \"failure_output\": \"\", \"reason\": \"All selected regressions passed\"}"
     }
   ],
-  "test_count": 2,
+  "test_count": 11,
   "skipped_count": 0,
   "status": "passed",
   "exit_code": 0,

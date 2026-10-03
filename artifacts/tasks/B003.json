@@ -6,8 +6,8 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-03T16:09:17.966320+00:00",
-  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "recorded_at": "2026-10-03T17:29:17.978842+00:00",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
@@ -133,7 +133,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "a650d18e8dce73a3721487022d980b6f8d3cebdb0bc5a38369464fafd3874439",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
-    "scripts/check-task.sh": "03fb99deea5c63dcee3a9ad754ed894f53900709688a0706b53bb73d836b7ad4",
+    "scripts/check-task.sh": "ad9192976ea238398a2af392d2931c5907bf50eb61ad7fd0412f2a9826abddc8",
     ".gitmodules": "f14f04d65239d6f4ae5d3ff2fa77cb71a7f6bc73665efed765abd5af5a7025a7",
     "reference/tests/b/test_b003.py": "546bde4beaa3c15dccbf5254d48de0b442fb4748ff5db108a3613706bae0c79b"
   },
@@ -157,7 +157,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "in_process_unittest_discovery",
-      "output": "test_conservative_conversion_is_running_max (test_b003.Envelope.test_conservative_conversion_is_running_max) ... ok\ntest_missing_or_expired_calibration_unavailable (test_b003.Envelope.test_missing_or_expired_calibration_unavailable) ... ok\ntest_noisy_decreasing_bins_rejected (test_b003.Envelope.test_noisy_decreasing_bins_rejected) ... ok\ntest_sigma_upper (test_b003.Envelope.test_sigma_upper) ... ok\ntest_step_up_never_interpolates_down (test_b003.Envelope.test_step_up_never_interpolates_down) ... ok\ntest_bad_units (test_b003.Horizon.test_bad_units) ... ok\ntest_fixture_horizon (test_b003.Horizon.test_fixture_horizon) ... ok\ntest_large_size_and_rounding_up (test_b003.Horizon.test_large_size_and_rounding_up) ... ok\ntest_monotone_in_size (test_b003.Horizon.test_monotone_in_size) ... ok\ntest_queue_delay_adds (test_b003.Horizon.test_queue_delay_adds) ... ok\ntest_zero_size (test_b003.Horizon.test_zero_size) ... ok\ntest_endpoint_price_unavailable (test_b003.Sigma.test_endpoint_price_unavailable) ... ok\ntest_fixture_sigma_brackets (test_b003.Sigma.test_fixture_sigma_brackets) ... ok\ntest_near_t_uses_one_second_floor_and_caps_at_one (test_b003.Sigma.test_near_t_uses_one_second_floor_and_caps_at_one) ... ok\ntest_brackets (test_b003.SqrtBounds.test_brackets) ... ok\n\n----------------------------------------------------------------------\nRan 15 tests in 0.019s\n\nOK\n"
+      "output": "test_conservative_conversion_is_running_max (test_b003.Envelope.test_conservative_conversion_is_running_max) ... ok\ntest_missing_or_expired_calibration_unavailable (test_b003.Envelope.test_missing_or_expired_calibration_unavailable) ... ok\ntest_noisy_decreasing_bins_rejected (test_b003.Envelope.test_noisy_decreasing_bins_rejected) ... ok\ntest_sigma_upper (test_b003.Envelope.test_sigma_upper) ... ok\ntest_step_up_never_interpolates_down (test_b003.Envelope.test_step_up_never_interpolates_down) ... ok\ntest_bad_units (test_b003.Horizon.test_bad_units) ... ok\ntest_fixture_horizon (test_b003.Horizon.test_fixture_horizon) ... ok\ntest_large_size_and_rounding_up (test_b003.Horizon.test_large_size_and_rounding_up) ... ok\ntest_monotone_in_size (test_b003.Horizon.test_monotone_in_size) ... ok\ntest_queue_delay_adds (test_b003.Horizon.test_queue_delay_adds) ... ok\ntest_zero_size (test_b003.Horizon.test_zero_size) ... ok\ntest_endpoint_price_unavailable (test_b003.Sigma.test_endpoint_price_unavailable) ... ok\ntest_fixture_sigma_brackets (test_b003.Sigma.test_fixture_sigma_brackets) ... ok\ntest_near_t_uses_one_second_floor_and_caps_at_one (test_b003.Sigma.test_near_t_uses_one_second_floor_and_caps_at_one) ... ok\ntest_brackets (test_b003.SqrtBounds.test_brackets) ... ok\n\n----------------------------------------------------------------------\nRan 15 tests in 0.015s\n\nOK\n"
     }
   ],
   "test_count": 15,
