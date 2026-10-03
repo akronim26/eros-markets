@@ -1,0 +1,18 @@
+{
+  "name": "@eros-oracle/panel-runner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Layer 2 model panel (plan 8.3): three independent model families judge an evidence snapshot; signed PanelResult.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "record": "bun scripts/record.ts"
+  },
+  "dependencies": {
+    "@eros-oracle/oracle-sdk": "workspace:*",
+    "@eros-oracle/snapshotter": "workspace:*",
+    "viem": "2.57.2"
+  }
+}
