@@ -1,7 +1,15 @@
 // Task O31.1: the Chain the keeper uses, over viem (plan §9): reads at `latest`, eth_call before sending, an
 // explicit gas limit on every transaction, and no waiting on receipts (Monad executes asynchronously; the next
 // tick re-reads instead).
-import { BondTreasuryAbi, type Deployments, KeeperRouterAbi, ResolutionOracleAbi, contractAddress } from '@eros-oracle/oracle-sdk'
+import {
+  BondTreasuryAbi,
+  contractAddress,
+  type Deployments,
+  IAssertionVenueAbi,
+  KeeperRouterAbi,
+  MarketRegistryAbi,
+  ResolutionOracleAbi,
+} from '@eros-oracle/oracle-sdk'
 import {
   type Abi,
   type Hex,
@@ -33,6 +41,8 @@ export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: 
   const pc = createPublicClient({ chain, transport })
   const wc = createWalletClient({ chain, transport, account })
   const oracle = contractAddress(d, 'ResolutionOracle')
+  const registry = contractAddress(d, 'MarketRegistry')
+  const treasury = contractAddress(d, 'BondTreasury')
   const call = (job: Job) => ({
     address: contractAddress(d, job.target),
     abi: ABIS[job.target],
@@ -52,6 +62,37 @@ export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: 
         args: [id],
         blockTag: 'latest',
       })) as Resolution
+    },
+    async marketInfo(id) {
+      const c = await pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [id], blockTag: 'latest' })
+      const f = c.hasFeed
+        ? await pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: 'getFeedSpec', args: [id], blockTag: 'latest' })
+        : undefined
+      return {
+        tau: c.tau,
+        hasFeed: c.hasFeed,
+        bufferSecs: BigInt(f?.bufferSecs ?? 0),
+        l1TimeoutSecs: BigInt(f?.l1TimeoutSecs ?? 0),
+        l2DeadlineSecs: BigInt(c.l2DeadlineSecs),
+        earlyTtlSecs: BigInt(c.earlyTtlSecs),
+      }
+    },
+    async globalsMinRequestIntervalSecs(version) {
+      const v = version !== 0
+        ? version
+        : await pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: 'globalsVersion', blockTag: 'latest' })
+      const g = await pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: 'globalsAt', args: [v], blockTag: 'latest' })
+      return BigInt(g.minRequestIntervalSecs)
+    },
+    async assertionStatus(venue, assertionId) {
+      const st = await pc.readContract({ address: venue, abi: IAssertionVenueAbi, functionName: 'statusOf', args: [assertionId], blockTag: 'latest' })
+      return { exists: st.exists, disputed: st.disputed, settled: st.settled, truthful: st.truthful, expiresAt: st.expiresAt }
+    },
+    async assertionLedger() {
+      return pc.readContract({ address: treasury, abi: BondTreasuryAbi, functionName: 'balanceOf', args: [0], blockTag: 'latest' }) // Ledger.ASSERTION
+    },
+    async bondFor(id) {
+      return pc.readContract({ address: oracle, abi: ResolutionOracleAbi, functionName: 'bondFor', args: [id], blockTag: 'latest' })
     },
     async simulate(job) {
       const { result } = await pc.simulateContract({ ...call(job), account, blockTag: 'latest' })

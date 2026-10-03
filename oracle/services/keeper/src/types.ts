@@ -1,8 +1,7 @@
 // Task O31.1: the keeper's moving parts (plan §9, §9.1). The core (keeper.ts) only knows these interfaces, so unit
 // tests drive it with an in-memory chain and the jobs of O31.2/O31.3 plug in as planners.
-import type { Hex } from 'viem'
-import type { ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
-import type { ContractFunctionReturnType } from 'viem'
+import type { GasTable, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
+import type { ContractFunctionReturnType, Hex } from 'viem'
 
 /** `getResolution`'s return value as viem decodes it. */
 export type Resolution = ContractFunctionReturnType<typeof ResolutionOracleAbi, 'view', 'getResolution'>
@@ -25,10 +24,53 @@ export type Job = {
   gasKey: string
   /** From the simulated return value: true when sending would change nothing (default: the call returned false). */
   isNoop?: (result: unknown) => boolean
+  /** Jobs with the same batch key that pass their checks in one tick are sent together (O31.2: finalizeMany). */
+  batch?: Batch
 }
 
-/** What a planner sees of one market: the state read this tick, its version and the chain's clock. */
-export type MarketView = { id: Hex; resolution: Resolution; stateVersion: Hex; now: bigint }
+export type Batch = {
+  key: string
+  max: number
+  /** The one call that does the whole batch. */
+  call(ids: Hex[]): Pick<Job, 'target' | 'functionName' | 'args'>
+  /** Its gas limit for `k` markets, from gas.json; throws when gas.json has none (the batch is not sent). */
+  gas(table: GasTable, k: number): bigint
+}
+
+/** What a market fixed at listing (registry): never changes, so the keeper reads it once. */
+export type MarketInfo = {
+  tau: bigint
+  hasFeed: boolean
+  bufferSecs: bigint // feed markets only (0 otherwise)
+  l1TimeoutSecs: bigint // feed markets only (0 otherwise)
+  l2DeadlineSecs: bigint
+  earlyTtlSecs: bigint
+}
+
+export type AssertionStatus = { exists: boolean; disputed: boolean; settled: boolean; truthful: boolean; expiresAt: bigint }
+
+/** Reads a planner may need beyond the resolution, made only when asked. */
+export interface MarketReads {
+  assertionStatus(): Promise<AssertionStatus>
+  /** BondTreasury's ASSERTION ledger. */
+  assertionLedger(): Promise<bigint>
+  /** The bond `assertProposal` would post now. */
+  bondFor(): Promise<bigint>
+  /** `minRequestIntervalSecs` of the globals version the market pinned. */
+  minRequestIntervalSecs(): Promise<bigint>
+}
+
+/** What a planner sees of one market: the state read this tick, its version, its listing and the chain's clock. */
+export type MarketView = {
+  id: Hex
+  resolution: Resolution
+  stateVersion: Hex
+  now: bigint
+  info: MarketInfo
+  reads: MarketReads
+  /** Pages a human (logged at error level with `alert: true`; the alerts service picks these up). */
+  alert(msg: string, data?: Record<string, unknown>): void
+}
 
 /** Turns one market's state into the jobs that are due, most urgent first. */
 export type Planner = (m: MarketView) => Job[] | Promise<Job[]>
@@ -43,6 +85,11 @@ export interface Chain {
   /** The latest block's timestamp. */
   now(): Promise<bigint>
   getResolution(id: Hex): Promise<Resolution>
+  marketInfo(id: Hex): Promise<MarketInfo>
+  globalsMinRequestIntervalSecs(version: number): Promise<bigint>
+  assertionStatus(venue: Hex, assertionId: Hex): Promise<AssertionStatus>
+  assertionLedger(): Promise<bigint>
+  bondFor(id: Hex): Promise<bigint>
   /** eth_call of the job from the keeper's account at `latest`; throws when it would revert. */
   simulate(job: Job): Promise<unknown>
   /** Signs and broadcasts with exactly `gas` as the limit; returns the hash without waiting for a receipt. */
