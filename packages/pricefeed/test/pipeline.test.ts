@@ -130,6 +130,11 @@ test('two market workers sign independent sequences while one relay serializes t
     assert.deepEqual(outputs.map(r=>[r.state,r.sequence]),[['FINALIZED',1n],['FINALIZED',1n]]);
     assert.deepEqual(s.sent.map(raw=>parseTransaction(raw).nonce),[0,1]);
     assert.equal(s.signer.reservations().length,1);assert.equal(secondSigner.reservations().length,1);
+    // A quarantined source must not stop independent markets or release its old packet.
+    const quarantined=await s.worker.poll();quarantined.inspection={...quarantined.inspection,status:'QUARANTINED',reason:'SOURCE_RULES_CHANGED'};
+    assert.equal((await joined.process(quarantined)).state,'QUARANTINED');
+    const healthy=await joined.process(await second.poll());assert.equal(healthy.state,'FINALIZED');assert.equal(healthy.sequence,2n);
+    assert.equal((await joined.process(await s.worker.poll())).state,'QUARANTINED');
   }finally{joined?.close();secondSigner?.close();s.close();}
 });
 test('continuous joined service shuts down cleanly and source quarantine cannot resume an unknown send',async()=>{
@@ -142,7 +147,7 @@ test('continuous joined service shuts down cleanly and source quarantine cannot 
   const q=await setup();try{
     await q.pipeline.start();q.setFail(true);await q.pipeline.process(await q.worker.poll());
     const result=await q.worker.poll();result.inspection={...result.inspection,status:'QUARANTINED',reason:'SOURCE_RULES_CHANGED'};
-    const sends=q.sent.length;await assert.rejects(q.pipeline.process(result),/SOURCE_QUARANTINED/);assert.equal(q.sent.length,sends);
+    const sends=q.sent.length;assert.equal((await q.pipeline.process(result)).state,'QUARANTINED');assert.equal(q.sent.length,sends);
   }finally{q.close();}
 });
 test('concrete RPC adapter rejects external destinations and missing listing ABI before any request',()=>{
@@ -236,5 +241,19 @@ test('invalid transition cannot skip an unknown valid transaction or mutate its 
     const invalid=await s.pipeline.process(await s.worker.poll());
     assert.equal(invalid.sequence,2n);assert.equal(invalid.depthValid,false);
     assert.deepEqual(s.sent.map(raw=>parseTransaction(raw).nonce),[0,0,1]);
+  }finally{s.close();}
+});
+
+test('source outage suppresses rebroadcast while retaining immutable unresolved delivery',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();s.setFail(true);await s.pipeline.process(await s.worker.poll());
+    const raw=s.sent[0],frozen=s.packets.get(s.domain,1n),sends=s.sent.length;
+    s.provider.book=async()=>{throw new Error('SOURCE_TIMEOUT');};
+    const gap=await s.pipeline.process(await s.worker.poll());assert.equal(gap.state,'SOURCE_UNAVAILABLE');
+    assert.equal(gap.reason,'SOURCE_TIMEOUT');assert.equal(s.sent.length,sends);
+    assert.deepEqual(s.packets.get(s.domain,1n),frozen);
+    s.setFail(false);await s.transport.broadcast(raw!);
+    assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
+    assert.equal(s.packets.list(s.domain).length,1);
   }finally{s.close();}
 });

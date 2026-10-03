@@ -1,0 +1,148 @@
+{
+  "mode": "LIVE_SOURCE_REAL_LOCAL_INGRESS",
+  "source": "polymarket",
+  "scenario": "valid",
+  "chainId": 31337,
+  "startedAt": 1791058126551,
+  "archive": "var/pipeline-1791058126551-8d2f22ef-a576-4dbc-b233-3d1874d4706f",
+  "results": [
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "1",
+      "transactionHash": "0x55250ed71e160646d73a16a252ca6257122ce9ad2dbe2368ca2f30a05547ec08",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "2",
+      "transactionHash": "0x366b53c0e5a15af50b309d30455f774637c8da99dbf8bef5e0c2a35499303749",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "3",
+      "transactionHash": "0xaae8a4c1aa76c29fd32046e7f67d623a8bdf09a7b1c661cfd93fbe22d6bd8026",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "4",
+      "transactionHash": "0x98e1cb5db6c4334d3ab00f87679223b7a45c10af942ff338d6544416a4501ef0",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "SOURCE_UNAVAILABLE",
+      "reason": "STALE_OR_FUTURE_SOURCE_TIME",
+      "sequence": null,
+      "transactionHash": null,
+      "depthValid": null
+    },
+    {
+      "worker": "crypto-example",
+      "state": "SOURCE_UNAVAILABLE",
+      "reason": "STALE_OR_FUTURE_SOURCE_TIME",
+      "sequence": null,
+      "transactionHash": null,
+      "depthValid": null
+    }
+  ],
+  "externalChainTransactions": 0,
+  "productionApproved": false,
+  "toolVersions": {
+    "PRICEFEED_FORGE": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:46:16.519267388Z (1789469176)\nBuild Profile: dist",
+    "PRICEFEED_SOLC": "solc, the solidity compiler commandline interface\nVersion: 0.8.30+commit.73712a01.Linux.g++",
+    "PRICEFEED_ANVIL": "anvil Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:46:16.519267388Z (1789469176)\nBuild Profile: dist"
+  },
+  "fullEconomicEngine": false,
+  "completed": false,
+  "config": {
+    "schemaVersion": "1",
+    "configVersion": "diagnostic-1",
+    "key": "crypto-example",
+    "category": "crypto",
+    "enabled": false,
+    "destination": {
+      "chainId": "31337",
+      "engineAddress": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "engineCodeHash": "0x01cdd184ab1e00de3aedb33dc70ff0ac77bfe9e665f79e6637b3bddad822dc68",
+      "abiHash": "0x5e555afca0a7da4c3161fdb9073b652d4b8e0b483be8ddaf668ea962b11629f0",
+      "marketId": "0x5860cc2490a8ce1c69555ee0990ef4366d761b96f140ab1fcd438c0e5f2d7f5f",
+      "sourceId": "0x70078780ce500ba54552de59b3c9886e3da6301b7821c12a4504e1396a2e28be",
+      "sourceRulesHash": "0x160ae43baae630309abddbf1cc54ff5d30179e6d6b20f90d7f613b50521b2c07",
+      "signerAddress": "0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A",
+      "listedAt": "1791058127",
+      "scheduledT": "1791230927",
+      "invalidRule": {
+        "fallbackListed": true,
+        "captureGraceSecs": "3600",
+        "voidSecs": "2592000",
+        "fallbackPriceWad": "500000000000000000"
+      }
+    },
+    "mapping": {
+      "eventId": "1112205",
+      "externalMarketId": "5170735",
+      "conditionId": "0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb",
+      "outcomeTokenId": "60853708478456543766262549859214991255573301006704578370875039498477095018713",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "vendor-ms-floor-diagnostic-only",
+      "quantityPolicyId": "claims-to-lots-floor-total-diagnostic-only",
+      "quotePolicyId": "vendor-quote-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": null,
+    "poll": {
+      "intervalMs": 10000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 1000000
+    }
+  },
+  "rules": {
+    "schemaVersion": "1",
+    "venue": "polymarket",
+    "eventId": "1112205",
+    "externalMarketId": "5170735",
+    "conditionId": "0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb",
+    "outcomeTokenId": "60853708478456543766262549859214991255573301006704578370875039498477095018713",
+    "outcomeLabel": "Yes",
+    "marketId": "0x5860cc2490a8ce1c69555ee0990ef4366d761b96f140ab1fcd438c0e5f2d7f5f",
+    "sourceId": "0x70078780ce500ba54552de59b3c9886e3da6301b7821c12a4504e1396a2e28be",
+    "erosRulesHash": "0xe5bd77d9b026361e3151316946f99158650c53bc59cff432a5df66370317010d",
+    "externalRulesDigest": "0x3a6c4fc9ace41d636d53965902efad2bedfc0ab9f1e51b4de5b652cccbfe0dc0",
+    "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+    "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+    "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+    "failurePolicyHash": "0x0fa1db1edbc336046ff5259520ba63997b7a0493671fbb3b9047d6dbe755ac0d",
+    "scheduledT": "1791230927",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+  },
+  "receiver": "0x5fbdb2315678afecb367f032d93f642f64180aa3"
+}

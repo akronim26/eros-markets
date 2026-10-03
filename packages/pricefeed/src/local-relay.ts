@@ -132,6 +132,8 @@ export class LocalRelay {
       const data=submitCalldata(packet.packet.observation,packet.signature);
       // A rejected simulation must not burn a shared-account nonce before signing.
       await this.bounded(this.transport.simulate(d.engine,data));
+      this.packets.assertWriter(d,owner,fence,this.now());
+      if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
       if(!r){r=this.tx(()=>{
         this.lease();
         for(const row of this.db.prepare('SELECT body,sha256 FROM deliveries WHERE ns=?').all(ns)){
