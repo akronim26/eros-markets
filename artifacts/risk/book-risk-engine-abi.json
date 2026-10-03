@@ -1,10 +1,10 @@
 {
- "note": "Concrete initial-1x BookRiskEngine deployment and public book ABI. Composes the real Book with RiskAccountingBridge; authenticated independent INDEX and bounded book-derived PERP sampling with later-block confirmation. Fully backed bootstrap remains available before normal pricing windows are ready. Funding, recovery and conversion disabled; no test feed or failure injection.",
+ "note": "Concrete initial-1x BookRiskEngine deployment and public book ABI. Composes the real Book with RiskAccountingBridge; authenticated independent INDEX and bounded book-derived PERP sampling with later-block confirmation and a sealed INDEX prefix. Fully backed bootstrap remains available before normal pricing windows are ready. Funding, recovery and conversion disabled; no test feed or failure injection.",
  "source": {
   "src/engine/BookRiskEngine.sol": "BookRiskEngine"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "a5499d80b5e96fd6e06f2c04e0a14281ceebd3715e738e4a5b7890a3d3de7e58",
+ "source_sha256": "40e05c0e8034dcdba2a14fc19a97f2323412e69f92dc2146cac913ef8695cbb3",
  "abi": [
   {
    "type": "constructor",

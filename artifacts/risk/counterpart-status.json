@@ -2,15 +2,20 @@
  "schema": "eros-counterpart-status/1",
  "task": "B040",
  "spec_version": "1.1",
- "note": "Non-oracle repair delta implemented on integration/risk; original controlled live testnet smoke is historical and closed, not upgraded. RB-I02 maker repair and bounded PERP sampler implemented; independent review and production wiring remain required. RB-I11 INDEX/BASIS coherence remains open, awaiting a policy decision; not every non-oracle issue is closed.",
- "gate_validation": "At 4a050df, ordered G0-G6 exit 0 with counts 71/152/117/78/77/63/55. G0 gained three SDK compiler-runner regressions. G7 exits 2 after six checks at A043 because historical review fingerprints do not cover the current source. Separate A044/B040/B041/B042/B043/B044 exit 0 with 44/2/2/3/1/1 checks; direct G7 Solidity suite passes six tests. These are technical results, not fresh peer review or human acceptance. Historical accepted G0-G6 SHAs remain; G7 reviewed_by stays empty and merge_sha null.",
+ "note": "Unified non-oracle Risk and Order Book repairs are implemented on integration/risk, including RB-I11 sealed-prefix publication and RB-I12 local smoke compatibility. Full CI, targeted real-book/Monad, reference, SDK, format, ABI and current read-only fixture-dependency creation estimate pass. Gate outcomes and conditional G7 acceptance use their authoritative records. Production counterpart wiring remains blocked; the original controlled live testnet smoke is historical and closed, not upgraded.",
+ "gate_validation": "Current source-bound technical outcomes are artifacts/gates/G0.json through G7.json; human-authorized acceptance is recorded only in docs/spec/gate_status.json. Runners never self-accept. GOV-01 retires mandatory A/B signatures while retaining adversarial suites and fail-closed checks. User authorization is conditional on required checks passing and grants no main merge/deployment; historical results remain historical.",
+ "validation_evidence": "Current aggregate: artifacts/risk/unified-integration-2026-10-03.json; artifacts/risk/non-oracle-fixes-2026-10-03.json is historical only",
+ "workflow": "docs/merge/UNIFIED_WORKFLOW.md",
+ "configuration_inventory": "docs/runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md and root .env.example; current/new deployment addresses intentionally blank, historical addresses explicitly closed-market only",
+ "release_candidate_commit": "e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4",
+ "release_candidate_status": "Unified technical candidate, not production approval. Source-bound gate outcomes are artifacts/gates/G0.json through G7.json; user-authorized acceptance is only docs/spec/gate_status.json, never inferred or set by runners",
  "counterparts": [
   {
    "id": "CP-BOOK",
    "local_double": "contracts/test/mocks/B/MockBookAdapter.sol",
    "mock_status": "PASS on real A+B: contracts/test/gates/G4.t.sol, G5.t.sol, test/integration/EndToEnd.t.sol (MockBookAdapter)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "Real Book+A+B composition, maker/taker continuation, bootstrap bands, reduce-only maker admission, numeric domains and bounded PERP sampling are implemented. Concrete matching/batch cap8 is measured; sampler cap64 is separate. Local integration passes, but independent review and production oracle/feed/factory/calibration wiring remain unaccepted. No new source has been broadcast.",
+   "reason": "Real Book+A+B composition, maker/taker continuation, bootstrap bands, reduce-only maker admission, numeric domains and bounded sealed-prefix PERP sampling are implemented. Concrete matching/batch cap 8 is measured; sampler cap 64 is separate. Full CI and local real-book/Monad integration pass; production oracle/feed/factory/calibration wiring is absent. Mandatory A/B signatures are retired. No new source has been broadcast.",
    "counterpart_source_commit": "a114d06a1cebdf107c47d75947b114b3dd94b60e",
    "inspection_date": "2026-10-03",
    "local_real_integration_status": "FOCUSED_PASS_WITH_OPEN_PRODUCTION_BLOCKERS",
@@ -36,11 +41,14 @@
     "evidence_scope": "Historical 17-test merge result; the RB-I01 characterization predates repair f2ebc61"
    },
    "current_source_integration": {
-    "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+    "source_commit": "e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4",
+    "solidity_source_commit": "dcb6b0e9023f5dab297a233303e5762df8270d09",
     "composition": "contracts/src/engine/BookRiskEngine.sol:BookRiskEngine",
-    "full_risk_suite": "Full CI at 4a050df: 825 tests / 129 suites, zero failed/skipped; 10,000 fuzz, 256 x 128 invariants, seed 0x45524f53 and strict book snapshots, exit 0. Earlier full risk at 1654b9f: 818 tests / 128 suites; seven added RB-I08 policy tests also pass separately. MonadTen targeted 92 tests / 10 suites; Python 49/156/8/7; SDK strict source/accounting and six Node tests; formatting and ABI checks all pass. Gates are recorded separately; RB-I11 remains an open policy finding.",
-    "monad_targeted": "92 tests /10 suites, zero failed/skipped; local MonadTen, not public-chain receipts",
-    "rb_i01": "IMPLEMENTED f2ebc61; independent review pending",
+    "full_risk_suite": "Full CI 832 tests / 130 suites, zero failed/skipped, unchanged Solidity dcb6b0e; 10000 fuzz, seed 0x45524f53, 256 x 128 invariants, strict snapshots, exit 0 in 1461.88 seconds (tmp/unified-full-ci.log). Historical 825/129 at 4a050df and 818/128 at 1654b9f remain separate source/profile records",
+    "monad_targeted": "Final candidate e05bbbb: 99 tests / 11 suites pass in 3.04 seconds, tmp/unified-monad-final.log; local MonadTen affected bundle, not public-chain receipts",
+    "reference_and_sdk": "Python A/B/audit/integration 66/156/8/7 pass, total 237; A includes 17 mocked GOV runner regressions. SDK strict build/accounting reader and six Node tests pass",
+    "format_and_abi": "Format check and current ABI export/check exit 0; concrete/abstract/vault entries 294/256/35. Concrete source SHA256 40e05c0e8034dcdba2a14fc19a97f2323412e69f92dc2146cac913ef8695cbb3",
+    "rb_i01": "IMPLEMENTED f2ebc61; active taker continuation, current remainder admission and restored-health stop; historical reviews remain unchanged under unified workflow",
     "implemented_delta": [
      "RB-I02",
      "RB-I03",
@@ -49,22 +57,24 @@
      "RB-I06",
      "RB-I07",
      "RB-I09",
-     "RB-I10"
+     "RB-I10",
+     "RB-I11",
+     "RB-I12"
     ],
     "rb_i08": "User confirmed existing guarded excess-collateral release during REDUCE_ONLY; seven policy tests pass; no production predicate change",
-    "open_findings": [
-     "RB-I11"
-    ],
-    "review_status": "INDEPENDENT_REVIEW_PENDING",
+    "open_findings": [],
+    "review_status": "UNIFIED_TECHNICAL_EVIDENCE; gate outcomes and acceptance use authoritative records, no mandatory A/B signatures or independent-audit claim",
     "bounds": {
      "matching": 8,
      "batch_actions": 8,
      "batch_declared_matching_steps": 8,
      "sampler_examinations": 64
     },
-    "gas_estimate_evidence": "artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json",
+    "gas_estimate_evidence": "artifacts/risk/unified-deployment-estimate-2026-10-03.json: chain 10143 block 67886057, current Solidity dcb6b0e, estimate 27853253 gas with 2146747 headroom; runtime/creation/args/initcode 120402/129644/928/130572 bytes. Historical public fixture dependencies/listing, no broadcast or fresh deployment configuration",
     "new_broadcast": false,
-    "rb_i11": "POLICY_CONFIRMATION_PENDING: strict INDEX-prefix sealing proposed, not implemented; see docs/questions/RB-I11-index-prefix-seal.md"
+    "rb_i11": "IMPLEMENTED dcb6b0e: strict newer authenticated INDEX seals capture prefix before publication; valid waiting captures preserve original age and invalidation guards. Sampler 21/21 pass; see docs/questions/RB-I11-index-prefix-seal.md",
+    "rb_i12": "IMPLEMENTED 29c5f87: local smoke reads actual maxFills and completes bounded two-phase payout preparation. Two regressions pass; standalone offline chain 31337 script exits 0 without RPC/broadcast. Aggregate 45478303 gas spans multiple virtual transactions, not one Monad transaction",
+    "acceptance_status": "Authoritative user-conditional G7 acceptance is docs/spec/gate_status.json after required checks pass. This local-integration status does not self-accept a gate, authorize main changes or claim a new deployment"
    },
    "testnet_evaluation": {
     "authorization": "Explicit user authorization; not production approval",
@@ -90,7 +100,7 @@
    "local_double": "test signer keys in contracts/test/risk/B/B016.t.sol; direct store feeds in other suites",
    "mock_status": "PASS (B016-B018, B021)",
    "live_status": "BLOCKED_BY_COUNTERPART",
-   "reason": "Production independent INDEX collector/signing service and envelope I-3 confirmation remain absent. Concrete bounded book-derived PERP sampler is implemented and locally tested, pending independent review; it does not replace authenticated INDEX collection. RB-I11 remains open: later authenticated INDEX corrections can change historical INDEX after BASIS publication. Proposed prefix sealing is not implemented.",
+   "reason": "Production independent INDEX collector/signing service and envelope I-3 confirmation remain absent. Concrete bounded book-derived PERP sampler includes implemented RB-I11 strict prefix sealing in dcb6b0e, with 21 sampler tests passing. It does not replace authenticated INDEX collection or certify production source behavior. Continuous normal pricing requires feed cadence comfortably below 30 seconds; fixture cadence is not a production service guarantee.",
    "testnet_evaluation": "Controller-signed synthetic INDEX observations exercise authenticated ingress only; this is not a live price-feed service or production source calibration"
   },
   {
@@ -126,5 +136,11 @@
    "reason": "no indexer/frontend consumer in this repository"
   }
  ],
- "person_a": "real accounting and custody in both historical integration fixtures and the current concrete BookRiskEngine; production approval remains false"
+ "person_a": "Historical lane name: real accounting and custody in integration fixtures and current concrete BookRiskEngine; now unified Risk and Order Book ownership, production approval remains false",
+ "historical_non_oracle_validation": {
+  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "evidence": "artifacts/risk/non-oracle-fixes-2026-10-03.json",
+  "validation": "Full CI 825 tests / 129 suites at 4a050df, zero failed/skipped; 10000 fuzz, 256 x 128 invariants, seed 0x45524f53. Earlier risk 818/128 at 1654b9f; Monad 92/10; Python 49/156/8/7; SDK, formatting and ABI checks passed. RB-I11 was then open, not a current status claim.",
+  "gate_validation": "Ordered G0-G6 exit 0 with counts 71/152/117/78/77/63/55. G7 exit 2 after six tests at stale A043 under old review rules. Separate A044/B040/B041/B042/B043/B044 exit 0 with 44/2/2/3/1/1 tests; direct G7 Solidity six pass. Historical outcome retained, not retroactively changed by GOV-01."
+ }
 }
