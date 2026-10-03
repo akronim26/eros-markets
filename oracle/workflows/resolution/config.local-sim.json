@@ -1,0 +1,10 @@
+{
+  "chainSelectorName": "monad-testnet",
+  "isTestnet": true,
+  "oracle": "0x0000000000000000000000000000000000000000",
+  "writeGasLimit": "400000",
+  "httpTimeout": "8s",
+  "authSecrets": [
+    { "authRef": "0xd2dfd34a52e4c022ea2fbfeceb8230b10f417532e39a8fc2c41d28da9deff21e", "secretId": "SPORTSDATA_API_KEY", "header": "x-api-key", "prefix": "" }
+  ]
+}

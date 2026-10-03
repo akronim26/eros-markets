@@ -1,0 +1,14 @@
+{
+  "source": "plan section 6.5 and Appendix C.7",
+  "formula": "max(minBond, venueMinimumBond, ceil(oiHaltLots * 1000 * bondBps / 10000))",
+  "vectors": [
+    {
+      "name": "C.7",
+      "oiHaltLots": 2000000,
+      "bondBps": 1112,
+      "minBond": 2000000,
+      "venueMinimumBond": 2000000,
+      "expectedAtoms": 222400000
+    }
+  ]
+}

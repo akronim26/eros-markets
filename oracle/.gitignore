@@ -1,0 +1,16 @@
+out/
+cache/
+node_modules/
+.env
+deployments/dryrun/
+deployments/anvil.json
+broadcast/**/dry-run/
+broadcast/*/31337/
+workflows/**/out.wasm
+workflows/**/out.js
+workflows/**/.cre_build_tmp.js
+validation/dataset/raw/**
+!validation/dataset/raw/MANIFEST.json
+validation/dataset/raw.tar.gz
+__pycache__/
+deployments/testnet-keys.env
