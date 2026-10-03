@@ -191,13 +191,14 @@ Plan §13: owner OB · 4 PD · depends O32 · acceptance: signed payload accepte
 - Owner: OB
 - PD: 0.75
 - Depends: O33.3
-- Plan: §8.3, V-A1
+- Plan: §8.3, V-A1, ADJ-42
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/services/panel-runner/src/signer.ts
 - Build: Sign the EIP-712 `PanelResult` (oracle-sdk types) with a KMS `ECC_SECG_P256K1` key; convert DER to (r, s, v) with low-s and `v ∈ {27, 28}`.
 - Done when: a unit test with a KMS test key produces signatures the oracle's `hashPanelResult` + `ecrecover` accept (V-A1).
 - Check: cd oracle/services/panel-runner && bun test
+- Notes: Hackathon scope per ADJ-42: no KMS. `src/signer.ts`: `DigestSigner` interface; `localSigner(key)` and `signerFromEnv()` (ATTESTOR_PRIVATE_KEY, a testnet-only key); each signature is checked low-s, v ∈ {27, 28} and recovering the attestor before it is returned; `signPanelResult(signer, chainId, oracle, result)` returns the digest (oracle-sdk `panelResultDigest`) and the 65-byte r‖s‖v. `vectors/panel-sig.json` (4 cases: post-T unanimous, early mixed labels, injection flag with NOT_YET majority, every field at its maximum) is written by the TS test and checked by `test/vectors/PanelSigVectors.t.sol` with the oracle's own `SigLib.domainSeparator`, `hashPanelResult`, `digest` and `isValidAttestorSig`: digests equal, the attestor's signature accepted, another attestor, the high-s twin and v 0/1 refused (Foundry 1.8.3). V-A1's KMS normalisation is not exercised (ADJ-42). A KMS signer was written first and removed at the team's request.
 
 ### O33.5 · Routing, re-runs and testnet acceptance
 - Owner: OB
