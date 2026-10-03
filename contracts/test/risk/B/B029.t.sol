@@ -99,8 +99,9 @@ contract B029Test is Test {
         floorTime();
         e.sweep(1);
         assertEq(e.mockAccount(1).lots, 0);
-        IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(1, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 10, 0, false, 8);
+        IBookRiskHooks.OrderRequest memory r = IBookRiskHooks.OrderRequest(
+            1, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 10, 0, false, 8
+        );
         MockBookAdapter.PlaceResult memory res = e.place(r);
         assertEq(uint8(res.rejection), uint8(RejectCode.BAD_STAGE));
     }

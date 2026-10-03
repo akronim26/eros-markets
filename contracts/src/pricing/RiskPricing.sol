@@ -98,10 +98,11 @@ abstract contract RiskPricing is ObservationStore {
         c.listedAt = _listedAt;
         c.secsToT = _scheduledT > nowTs ? _scheduledT - nowTs : 0;
         c.monitorRestricted = _monitorRestricted();
-        LifecycleMath.StageView memory v =
-            LifecycleMath.deriveStage(nowTs, _scheduledT, _earlyHaltAt(), c.monitorRestricted, _claimsReady());
+        LifecycleMath.StageView memory v = LifecycleMath.deriveStage(
+            nowTs, _scheduledT, _earlyHaltAt(), c.monitorRestricted, _claimsReady()
+        );
         (c.stage, c.fullBackingByTime, c.fundingFrozen, c.legacyTakeoverWindow, c.halted) =
-            (v.stage, v.fullBackingByTime, v.fundingFrozen, v.legacyTakeoverWindow, v.halted);
+        (v.stage, v.fullBackingByTime, v.fundingFrozen, v.legacyTakeoverWindow, v.halted);
         c.pricingMode = _pricingMode;
         c.riskVersion = _riskVersion;
         c.profileHash = _profileHash;

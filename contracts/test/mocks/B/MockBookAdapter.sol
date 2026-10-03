@@ -255,10 +255,14 @@ abstract contract MockBookAdapter is IBookRiskHooks {
     }
 
     /// @notice Rest directly (post-only path without matching).
-    function _mockRest(uint32 owner, MathTypes.Side side, uint16 tick, uint64 lots, uint32 expiry, bool reduceOnly)
-        internal
-        returns (uint32 slot)
-    {
+    function _mockRest(
+        uint32 owner,
+        MathTypes.Side side,
+        uint16 tick,
+        uint64 lots,
+        uint32 expiry,
+        bool reduceOnly
+    ) internal returns (uint32 slot) {
         RiskSnapshot memory snap = _riskBeginAction();
         (EpochTag memory tag, uint64 rv, uint256 fee) =
             _riskAdmitRest(snap, owner, side, tick, lots, expiry, reduceOnly);

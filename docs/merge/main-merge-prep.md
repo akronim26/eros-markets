@@ -1,5 +1,38 @@
 # Merge prep: `origin/main` into `integration/risk` (dry run; nothing merged into main)
 
+## Actual reconciliation — 2026-10-03
+
+The human authorized merging `origin/main` **into `integration/risk`**, not updating main.
+Merge commit: `13ca730150b42b7164c6fb5027d39ee2862e7eca`; parents `a9d8ae7` and
+`a114d06a1cebdf107c47d75947b114b3dd94b60e`. No deployment or G7 acceptance is implied.
+
+| Conflict / hazard | Resolution |
+| --- | --- |
+| `CLAUDE.md` | Retained the newer shared, turn-by-turn workflow and independent economic review rule. |
+| `foundry.toml` | Retained main's default 131072-byte setting and the risk/ci 1000000-byte fixture allowance. The target-chain limit remains independently unverified. |
+| `OrderAdmission.sol` | Retained the stronger reviewed voluntary-reduction predicate; shared its identical snapshot calculation as `_snapAt` for liquidation callers. |
+| `TradePreview.sol` | Retained projected post-accrual balances for release decisions, not stale booked cash. |
+| `MockBookAdapter.sol` | Retained canonical types and the current integration behavior, then formatted with forge 1.8.3. |
+| Auto-merged `BookRiskAdapter` | Removed duplicate main `_reductionOk` checks; retained the stronger integration predicate, including stale-mark full backing and no flip. |
+| Main liquidation repair | Retained `e643b4c`: recheck health after pairing, and do not sell a healthy remainder merely because caller budget remains. |
+| Provisional types | Migrated imports and enum references in Book, four book fixtures and appended B024/B032 tests to the existing canonical `MathTypes.Side` / `RiskTypes`; did not restore duplicate types. |
+| Formatting | Applied pinned forge 1.8.3 formatting. The merge does not change A's custody/funding/premium behavior; those modules have no whitespace-insensitive delta. |
+
+Book's matching algorithm is taken from main; the local Book change is type/import compatibility.
+The initial merged `test/Book*.t.sol` run passed 123 tests. Full real-A+B+Book, gate and full-suite
+evidence is recorded in `artifacts/risk/merge-validation-2026-10-03.json` after validation.
+
+## Historical current-head warning
+
+The rehearsal below is historical: it used main `c5db208`, not current `a114d06`.
+The new main includes book-hook implementation and economic risk fixes. A read-only merge-tree
+against integration `2506235` finds five conflicts (adds `CLAUDE.md` and `OrderAdmission.sol`
+to the three below), plus provisional-type imports and snapshot-helper/reduction-check hazards
+in automatically merged files. See `history-review-2026-10-03.md` for the current assessment.
+Do not reuse the three-file resolution as evidence that the current merge is safe or tested.
+
+## Historical rehearsal
+
 - Prepared 2026-10-02 by 0xr10t (with Claude agent).
 - Branch: local `scratch/main-merge-prep`, never pushed.
 - No merge into `main` was made and none is authorized. A human decides when to merge.

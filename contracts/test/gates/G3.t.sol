@@ -83,8 +83,9 @@ contract G3Test is CombinedBase {
         e.release(usable);
         assertEq(_cash(4), int256(1000 * USDC) - int256(usable * Q));
         // Margin from the stored values matches B's kernel on the same account.
-        MarginMath.Margin memory m =
-            MarginMath.sideMargin(1_000_000, false, 6e17, T - uint64(block.timestamp), block.timestamp, RiskFixture.profile(5, true));
+        MarginMath.Margin memory m = MarginMath.sideMargin(
+            1_000_000, false, 6e17, T - uint64(block.timestamp), block.timestamp, RiskFixture.profile(5, true)
+        );
         TradePreview.AccountPreview memory after_ = e.previewAccount(4);
         assertEq(after_.imQ, m.imQ);
         assertGe(after_.markEquityQ, int256(m.imQ));

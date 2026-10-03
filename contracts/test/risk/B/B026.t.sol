@@ -113,7 +113,10 @@ contract B026Test is Test {
         TradePreview.OrderPreview memory p = e.previewOrder(1, MathTypes.Side.BUY, 600, 10, false);
         assertEq(uint8(p.rejection), uint8(RejectCode.INVALID_PRICE_OR_SIZE));
         assertFalse(p.id.indexAvailable);
-        assertEq(uint8(e.place(ioc(1, MathTypes.Side.BUY, 600, 10)).rejection), uint8(RejectCode.INVALID_PRICE_OR_SIZE));
+        assertEq(
+            uint8(e.place(ioc(1, MathTypes.Side.BUY, 600, 10)).rejection),
+            uint8(RejectCode.INVALID_PRICE_OR_SIZE)
+        );
     }
 
     function test_projectionsLabelledNotApplied() public {

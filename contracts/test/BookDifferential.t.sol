@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test, Vm} from "forge-std/Test.sol";
 import {Book} from "../src/Book.sol";
+import {IBookRiskHooks} from "../src/interfaces/IBookRiskHooks.sol";
 import {BookHarness} from "./BookHarness.sol";
 
 /// @notice Feeds identical random operations to Book and to a naive price-time reference that
@@ -11,7 +12,6 @@ import {BookHarness} from "./BookHarness.sol";
 contract BookDifferentialTest is Test {
     BookHarness book;
     uint8 constant MAX_FILLS = 64; // test fixture: per-market bound used by these tests
-    uint256 constant M = 1;
     uint32 constant FAILING = 3; // this trader's maker fills always fail the Clearing check
     address[4] actors;
 
@@ -21,7 +21,7 @@ contract BookDifferentialTest is Test {
         bool isBuy;
         bool reduceOnly;
         uint16 tick;
-        uint96 size;
+        uint64 size;
     }
 
     struct Fill {
@@ -29,7 +29,7 @@ contract BookDifferentialTest is Test {
         uint32 maker;
         uint32 taker;
         uint16 tick;
-        uint96 size;
+        uint64 size;
     }
 
     RefOrder[] ref; // time order = array order; size 0 = dead
@@ -38,21 +38,21 @@ contract BookDifferentialTest is Test {
 
     function setUp() public {
         book = new BookHarness();
-        book.createMarket(M, MAX_FILLS);
+        book.createMarket(MAX_FILLS);
         for (uint256 i; i < 4; ++i) {
             actors[i] = makeAddr(string.concat("t", vm.toString(i)));
             vm.prank(actors[i]);
-            book.batch(M, new uint32[](0), new Book.Place[](0)); // ids 1..4
+            book.batch(new uint32[](0), new Book.Place[](0)); // ids 1..4
         }
         book.setFailMaker(FAILING, true);
     }
 
     // ------------------------------------------------------------------ reference book
 
-    function _reducible(uint32 t, bool isBuy) internal view returns (uint96) {
+    function _reducible(uint32 t, bool isBuy) internal view returns (uint64) {
         int256 p = refPos[t];
-        if (isBuy) return p < 0 ? uint96(uint256(-p)) : 0;
-        return p > 0 ? uint96(uint256(p)) : 0;
+        if (isBuy) return p < 0 ? uint64(uint256(-p)) : 0;
+        return p > 0 ? uint64(uint256(p)) : 0;
     }
 
     function _crossesRef(bool isBuy, uint16 tick) internal view returns (bool) {
@@ -78,18 +78,24 @@ contract BookDifferentialTest is Test {
 
     function _refPlace(uint32 taker, Book.Place memory p, bool inBatch)
         internal
-        returns (bool rests, uint96 restSize)
+        returns (bool rests, uint64 restSize)
     {
-        if (p.kind == Book.OrderType.POST_ONLY) {
+        if (p.kind == IBookRiskHooks.OrderKind.POST_ONLY) {
             if (_crossesRef(p.isBuy, p.tick)) {
                 require(inBatch, "standalone crossing post-only not generated");
                 return (false, 0);
             }
-            return (true, p.size);
+            // Admitted like every order: a reduce-only one is clipped to the position.
+            uint64 size = p.size;
+            if (p.reduceOnly) {
+                uint64 r = _reducible(taker, p.isBuy);
+                if (r < size) size = r;
+            }
+            return (size != 0, size);
         }
-        uint96 want = p.size;
+        uint64 want = p.size;
         if (p.reduceOnly) {
-            uint96 r = _reducible(taker, p.isBuy);
+            uint64 r = _reducible(taker, p.isBuy);
             if (r < want) want = r;
         }
         uint256 steps;
@@ -102,10 +108,10 @@ contract BookDifferentialTest is Test {
                 o.size = 0;
                 continue;
             }
-            uint96 req = want < o.size ? want : o.size;
-            uint96 f = req;
+            uint64 req = want < o.size ? want : o.size;
+            uint64 f = req;
             if (o.reduceOnly) {
-                uint96 r = _reducible(o.owner, o.isBuy);
+                uint64 r = _reducible(o.owner, o.isBuy);
                 if (r < f) f = r;
             }
             if (f == 0) {
@@ -120,7 +126,7 @@ contract BookDifferentialTest is Test {
             o.size -= f;
             if (f < req) o.size = 0; // reduce-only clip cancels the rest
         }
-        if (p.kind == Book.OrderType.LIMIT && want != 0 && !_crossesRef(p.isBuy, p.tick)) {
+        if (p.kind == IBookRiskHooks.OrderKind.LIMIT && want != 0 && !_crossesRef(p.isBuy, p.tick)) {
             return (true, want);
         }
         return (false, 0);
@@ -135,11 +141,11 @@ contract BookDifferentialTest is Test {
     // ------------------------------------------------------------------ driver
 
     function _decode(uint256 seed) internal pure returns (Book.Place memory p) {
-        p.kind = Book.OrderType(seed % 3);
+        p.kind = IBookRiskHooks.OrderKind(seed % 3);
         p.isBuy = (seed >> 8) % 2 == 0;
         p.reduceOnly = (seed >> 16) % 6 == 0;
         p.tick = uint16(496 + (seed >> 24) % 9);
-        p.size = uint96(1 + (seed >> 40) % 40);
+        p.size = uint64(1 + (seed >> 40) % 40);
         p.maxFills = uint8((seed >> 56) % 7);
     }
 
@@ -153,9 +159,9 @@ contract BookDifferentialTest is Test {
         n = 0;
         for (uint256 i; i < logs.length; ++i) {
             if (logs[i].topics[0] != Book.Fill.selector) continue;
-            (uint32 maker, uint32 taker, uint16 tick, uint96 size) =
-                abi.decode(logs[i].data, (uint32, uint32, uint16, uint96));
-            out[n++] = Fill(uint32(uint256(logs[i].topics[2])), maker, taker, tick, size);
+            (uint32 maker, uint32 taker, uint16 tick, uint64 size,,) =
+                abi.decode(logs[i].data, (uint32, uint32, uint16, uint64, uint256, uint256));
+            out[n++] = Fill(uint32(uint256(logs[i].topics[1])), maker, taker, tick, size);
         }
     }
 
@@ -171,27 +177,27 @@ contract BookDifferentialTest is Test {
             uint32[] memory c = new uint32[](1);
             c[0] = o.id;
             vm.prank(actors[o.owner - 1]);
-            book.batch(M, c, new Book.Place[](0));
+            book.batch(c, new Book.Place[](0));
             _refCancel(o.id);
         } else {
             Book.Place memory p = _decode(seed >> 8);
             bool inBatch = action != 1;
-            if (!inBatch && p.kind == Book.OrderType.POST_ONLY && _crossesRef(p.isBuy, p.tick)) {
-                p.kind = Book.OrderType.LIMIT;
+            if (!inBatch && p.kind == IBookRiskHooks.OrderKind.POST_ONLY && _crossesRef(p.isBuy, p.tick)) {
+                p.kind = IBookRiskHooks.OrderKind.LIMIT;
             }
-            (bool rests, uint96 restSize) = _refPlace(trader, p, inBatch);
+            (bool rests, uint64 restSize) = _refPlace(trader, p, inBatch);
             uint32 id;
             vm.prank(actors[trader - 1]);
             if (inBatch) {
                 Book.Place[] memory ps = new Book.Place[](1);
                 ps[0] = p;
-                id = book.batch(M, new uint32[](0), ps)[0];
+                id = book.batch(new uint32[](0), ps)[0];
             } else {
-                id = book.placeOrder(M, p);
+                id = book.placeOrder(p);
             }
             assertEq(id != 0, rests, "rests");
             if (rests) {
-                assertEq(book.getOrder(M, id).size, restSize, "rest size");
+                assertEq(book.getOrder(id).size, restSize, "rest size");
                 ref.push(RefOrder(id, trader, p.isBuy, p.reduceOnly, p.tick, restSize));
             }
         }
@@ -213,16 +219,16 @@ contract BookDifferentialTest is Test {
         uint16 bestAsk;
         for (uint256 i; i < ref.length; ++i) {
             RefOrder storage o = ref[i];
-            assertEq(book.getOrder(M, o.id).size, o.size, "order size");
+            assertEq(book.getOrder(o.id).size, o.size, "order size");
             if (o.size == 0) continue;
             if (o.isBuy && o.tick > bestBid) bestBid = o.tick;
             if (!o.isBuy && (bestAsk == 0 || o.tick < bestAsk)) bestAsk = o.tick;
         }
-        (uint16 bid, uint16 ask) = book.bestBidAsk(M);
+        (uint16 bid, uint16 ask) = book.bestBidAsk();
         assertEq(bid, bestBid, "best bid");
         assertEq(ask, bestAsk, "best ask");
         for (uint32 t = 1; t <= 4; ++t) {
-            assertEq(book.position(M, t), refPos[t], "position");
+            assertEq(book.position(t), refPos[t], "position");
         }
     }
 
