@@ -1,0 +1,115 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
+import { once } from 'node:events';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { createPublicClient, createWalletClient, defineChain, http, keccak256, parseAbi, stringToHex, type Abi, type Hex } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { parseConfig, type MarketConfig } from '../src/config.js';
+import { metadataIdentity, verifyEventMembership } from '../src/collector.js';
+import { Journal } from '../src/journal.js';
+import { PacketStore, type PacketDomain } from '../src/packet-store.js';
+import { LocalTestSigner } from '../src/local-test-signer.js';
+import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
+import { localRpcTransport } from '../src/local-rpc.js';
+import { LocalPipeline, type PipelineResult } from '../src/pipeline.js';
+import { DEVELOPMENT_POLICIES } from '../src/publication.js';
+import { PRICING_POLICY, rulesHash, type RulesManifest } from '../src/rules.js';
+import { PublicPolymarket, RequestLimiter } from '../src/polymarket.js';
+import { Worker, type Provider } from '../src/worker.js';
+import { json } from '../src/math.js';
+import { expectedDemoTwap } from './demo-packet.js';
+
+const pause=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
+const hash=(s:string)=>keccak256(stringToHex(s));
+async function main(){
+  const options=new Map<string,string>(),args=process.argv.slice(2);
+  for(let i=0;i<args.length;i+=2){const key=args[i],value=args[i+1];
+    if(!key||!['--source','--config','--duration-seconds'].includes(key)||!value||options.has(key))throw new Error('BAD_PIPELINE_ARGUMENTS');options.set(key,value);}
+  const mode=options.get('--source')??'fixture',seconds=options.get('--duration-seconds')??'3';
+  if(!['fixture','polymarket'].includes(mode)||!/^\d+$/.test(seconds)||BigInt(seconds)<1n||BigInt(seconds)>900n)throw new Error('SOURCE_FIXTURE_OR_POLYMARKET_DURATION_1_TO_900');
+  const base=parseConfig(JSON.parse(readFileSync(options.get('--config')??'config/crypto.example.json','utf8')));
+  if(base.enabled||base.destination)throw new Error('DISABLED_SOURCE_CONFIG_WITHOUT_DESTINATION_REQUIRED');
+  const listener=createServer();listener.listen(0,'127.0.0.1');await once(listener,'listening');
+  const address=listener.address();if(!address||typeof address==='string')throw new Error('NO_LOCAL_PORT');
+  const port=address.port;await new Promise<void>((resolve,reject)=>listener.close(e=>e?reject(e):resolve()));
+  const endpoint=`http://127.0.0.1:${port}`;
+  const anvil=spawn(process.env.PRICEFEED_ANVIL??'anvil',['--host','127.0.0.1','--port',String(port),'--chain-id','31337','--silent'],{stdio:['ignore','ignore','pipe']});
+  let spawnError:Error|undefined;anvil.on('error',error=>{spawnError=error;});anvil.stderr.resume();
+  const chain=defineChain({id:31337,name:'Owned pipeline smoke chain',nativeCurrency:{name:'Test Ether',symbol:'TEST',decimals:18},rpcUrls:{default:{http:[endpoint]}}});
+  const client=createPublicClient({chain,transport:http(endpoint,{timeout:1000,retryCount:0})});
+  const deployer=privateKeyToAccount('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80');
+  const wallet=createWalletClient({account:deployer,chain,transport:http(endpoint,{retryCount:0})});
+  const startedAt=Date.now(),directory=`var/pipeline-${startedAt}-${randomUUID()}`;mkdirSync(directory,{recursive:true});
+  const journal=new Journal(`${directory}/source.sqlite`),packets=new PacketStore(`${directory}/packets.sqlite`);
+  let signer:LocalTestSigner|undefined,relay:LocalRelay|undefined,pipeline:LocalPipeline|undefined;
+  const results:PipelineResult[]=[],report:Record<string,unknown>={mode:mode==='fixture'?'FIXTURE_SOURCE_REAL_LOCAL_INGRESS':'LIVE_SOURCE_REAL_LOCAL_INGRESS',
+    source:mode,chainId:31337,startedAt,archive:directory,results,externalChainTransactions:0,productionApproved:false,
+    fullEconomicEngine:false,completed:false};
+  const save=()=>{mkdirSync('artifacts/pipeline',{recursive:true});writeFileSync('artifacts/pipeline/latest.json',json(report)+'\n');};
+  const stop=new AbortController(),shutdown=()=>stop.abort();process.once('SIGINT',shutdown);process.once('SIGTERM',shutdown);
+  try{
+    let ready=false;
+    for(let i=0;i<60;i++){if(spawnError||anvil.exitCode!==null)throw new Error(`ANVIL_FAILED:${spawnError?.message??anvil.exitCode}`);
+      try{if(await client.getChainId()===31337){ready=true;break;}}catch{}await pause(100);}
+    if(!ready)throw new Error('LOCAL_CHAIN_NOT_READY');assert.equal(await client.getBlockNumber(),0n);
+    const cfgSource=mode==='fixture'?{...base,poll:{...base.poll,intervalMs:100}}:base;
+    const metadata={id:base.mapping.externalMarketId,conditionId:base.mapping.conditionId,outcomes:[base.mapping.outcomeLabel,'Other fixture outcome'],
+      clobTokenIds:[base.mapping.outcomeTokenId,'2'],question:'Synthetic pipeline test question',description:'Fixture only; not an approved Eros market',
+      active:true,closed:false,enableOrderBook:true,acceptingOrders:true};
+    const event={id:base.mapping.eventId,markets:[{id:base.mapping.externalMarketId}],active:true,closed:false};
+    const capture=(data:Record<string,unknown>)=>({url:'fixture://pipeline',receivedAtMs:BigInt(Date.now()),latencyMs:0n,headers:{},data,body:JSON.stringify(data),attempts:1});
+    const provider:Provider=mode==='polymarket'?new PublicPolymarket(base.poll,new RequestLimiter(100,20)):{
+      event:async()=>capture(event),metadata:async()=>capture(metadata),book:async()=>capture({market:base.mapping.conditionId,
+        asset_id:base.mapping.outcomeTokenId,timestamp:String(Date.now()),hash:'synthetic-test-book',tick_size:'0.01',min_order_size:'5',
+        bids:[{price:'0.59',size:'10000'}],asks:[{price:'0.61',size:'10000'}]})};
+    const probe=await new Worker(cfgSource,provider,journal,randomUUID()).poll();
+    if(probe.inspection.status!=='COLLECTING'||!probe.metadata||!probe.event)throw new Error(`SOURCE_UNAVAILABLE:${probe.inspection.reason}`);
+    const externalRulesDigest='0x'+createHash('sha256').update(`${verifyEventMembership(base,probe.event.data).rulesDigest}:${metadataIdentity(base,probe.metadata.data).rulesDigest}`).digest('hex');
+    const listedAt=BigInt(Date.now())/1000n,T=listedAt+172800n;
+    const rules:RulesManifest={schemaVersion:'1',venue:'polymarket',...base.mapping,marketId:hash(`LOCAL_PIPELINE:${base.key}`),
+      sourceId:hash(`LOCAL_PIPELINE_SOURCE:${base.mapping.outcomeTokenId}`),erosRulesHash:hash('LOCAL_TEST_RULES'),externalRulesDigest,
+      ...DEVELOPMENT_POLICIES,scheduledT:String(T),depthNLots:base.pricing.depthNLots,maxSpreadWad:base.pricing.maxSpreadWad,pricingPolicy:PRICING_POLICY};
+    const fixtureSigner=privateKeyToAccount(('0x'+'11'.repeat(32)) as Hex);
+    const artifact=JSON.parse(readFileSync('test/demo/out/PipelineDemoMarket.sol/PipelineDemoMarket.json','utf8')) as {abi:Abi;bytecode:{object:Hex}};
+    const deployment=await wallet.deployContract({abi:artifact.abi,bytecode:artifact.bytecode.object,args:[rules.marketId,rules.sourceId,
+      fixtureSigner.address,rulesHash(rules),BigInt(rules.depthNLots),BigInt(rules.maxSpreadWad),listedAt,T]});
+    const receipt=await client.waitForTransactionReceipt({hash:deployment,timeout:10000,pollingInterval:100});
+    if(receipt.status!=='success'||!receipt.contractAddress)throw new Error('LOCAL_RECEIVER_CREATION_FAILED');
+    const engine=receipt.contractAddress,code=await client.getBytecode({address:engine});if(!code)throw new Error('MISSING_ENGINE_CODE');
+    const config:MarketConfig={...cfgSource,destination:{chainId:'31337',engineAddress:engine,engineCodeHash:keccak256(code),
+      abiHash:keccak256(stringToHex(JSON.stringify(artifact.abi))),marketId:rules.marketId,sourceId:rules.sourceId,sourceRulesHash:rulesHash(rules),
+      signerAddress:fixtureSigner.address,listedAt:String(listedAt),scheduledT:String(T),invalidRule:{fallbackListed:true,captureGraceSecs:'3600',voidSecs:'2592000',fallbackPriceWad:'500000000000000000'}}};
+    const domain:PacketDomain={chainId:31337n,engine,marketId:rules.marketId,sourceId:rules.sourceId,rulesHash:rulesHash(rules),signer:fixtureSigner.address};
+    const transport=localRpcTransport(endpoint,artifact.abi);
+    // Only fund the public fixture relay on the fresh owned chain.
+    await client.request({method:'anvil_setBalance' as never,params:[transport.sender,'0x56BC75E2D63100000'] as never});
+    const policy:RelayPolicy={gasCap:1000000n,maxFeePerGas:2000000000n,maxPriorityFeePerGas:1000000000n,maxCostWei:2000000000000000n,
+      headroomMs:1000n,confirmations:1n,timeoutMs:5000,maxAttempts:3,leaseMs:60000n};
+    signer=new LocalTestSigner(`${directory}/signer.sqlite`,domain,packets,()=>BigInt(Date.now()));
+    relay=new LocalRelay(`${directory}/relay.sqlite`,packets,transport,policy);
+    const worker=new Worker(config,provider,journal,randomUUID());
+    pipeline=new LocalPipeline([{worker,rules,signer}],packets,relay,transport,policy);
+    report.config=config;report.rules=rules;report.receiver=engine;save();
+    const timer=setTimeout(shutdown,Number(seconds)*1000);
+    try{await pipeline.run(stop.signal,result=>{results.push(result);save();console.log(json(result));});}finally{clearTimeout(timer);}
+    const accepted=packets.list(domain).filter(p=>relay!.get(domain,p.packet.observation.sequence)?.accepted);
+    assert.ok(accepted.length>0,'no matching accepted observation');
+    const block=await client.getBlock({blockTag:'latest'});
+    const twap=await client.readContract({address:engine,abi:parseAbi(['function indexTwap300(uint64) view returns ((bool available,int256 twapWad,uint256 coveredSecs,int256 integral))']),
+      functionName:'indexTwap300',args:[block.timestamp]});
+    const expected=expectedDemoTwap(accepted.map(p=>({t:p.packet.observation.observedAt,price:p.packet.observation.priceWad,valid:true})),block.timestamp);
+    for(const field of ['available','twapWad','coveredSecs','integral'] as const)assert.equal(twap[field],expected[field]);
+    assert.equal(journal.verify(),true);assert.equal(packets.verify(),true);
+    report.acceptedPackets=accepted.length;report.twap={actual:twap,expected,verified:true};report.completed=true;
+  }catch(error){report.error=error instanceof Error?error.message:String(error);throw error;}
+  finally{
+    pipeline?.close();relay?.close();signer?.close();packets.close();journal.close();
+    process.removeListener('SIGINT',shutdown);process.removeListener('SIGTERM',shutdown);
+    const closed=once(anvil,'close');anvil.kill('SIGTERM');await Promise.race([closed,pause(2000)]);
+    if(anvil.exitCode===null&&anvil.signalCode===null)anvil.kill('SIGKILL');report.finishedAt=Date.now();save();
+  }
+  console.log(json({completed:report.completed,source:mode,acceptedPackets:report.acceptedPackets,report:'artifacts/pipeline/latest.json',externalChainTransactions:0}));
+}
+main().catch(error=>{console.error(error instanceof Error?error.message:String(error));process.exitCode=1;});

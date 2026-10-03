@@ -9,6 +9,7 @@ import { PublicPolymarket, RequestLimiter } from './polymarket.js';
 import { Worker, ensureUniqueWorkers } from './worker.js';
 import { observationDigest, parseObservation } from './wire.js';
 import { healthView } from './health.js';
+import { CollectionService } from './service.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -21,7 +22,7 @@ const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 
 async function main():Promise<void> {
   const {command,options}=args(process.argv.slice(2));
-  const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine']};
+  const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'serve':['--configs','--db'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine']};
   if(!allowed[command])throw new Error('UNKNOWN_COMMAND: only read-only inspection is implemented');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error(`UNSUPPORTED_OPTION_${key}`);
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
@@ -31,12 +32,18 @@ async function main():Promise<void> {
   try{
     if(command==='verify-evidence'){if(!journal.verify())throw new Error('EVIDENCE_INTEGRITY_FAILURE');console.log(json({valid:true,workers:journal.workers()}));return;}
     if(command==='health'){console.log(json(journal.workers().map(worker=>healthView(journal.latest(worker)!.payload,BigInt(Date.now())))));return;}
-    const raw=command==='capture'?read(need('--configs')):[read(need('--config'))];
+    const raw=command==='capture'||command==='serve'?read(need('--configs')):[read(need('--config'))];
     if(!Array.isArray(raw)||raw.length===0||raw.length>100)throw new Error('CONFIG_ARRAY_REQUIRED_1_TO_100');
     const configs=raw.map(parseConfig);ensureUniqueWorkers(configs);
     const limiter=new RequestLimiter(100,200),owner=randomUUID();
     const workers=configs.map(c=>new Worker(c,new PublicPolymarket(c.poll,limiter),journal,owner));
     if(command==='inspect-book'){const result=await workers[0]!.poll();console.log(json({...result,event:result.event?{url:result.event.url,receivedAtMs:result.event.receivedAtMs,attempts:result.event.attempts}:null,metadata:result.metadata?{url:result.metadata.url,receivedAtMs:result.metadata.receivedAtMs,attempts:result.metadata.attempts}:null,book:result.book?{url:result.book.url,receivedAtMs:result.book.receivedAtMs,latencyMs:result.book.latencyMs,attempts:result.book.attempts,sha256:createHash('sha256').update(result.book.body).digest('hex')}:null}));if(result.inspection.status!=='COLLECTING')process.exitCode=2;return;}
+    if(command==='serve'){
+      const controller=new AbortController(),stop=()=>controller.abort();process.once('SIGINT',stop);process.once('SIGTERM',stop);
+      try{await new CollectionService(workers).run(controller.signal,result=>{console.log(json({worker:result.worker,category:result.category,atMs:result.atMs,inspection:result.inspection}));});}
+      finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}
+      console.log(json({completed:true,signaturesProduced:0,transactionsSent:0,evidenceValid:journal.verify()}));return;
+    }
     const seconds=need('--duration-seconds');if(!/^[1-9]\d*$/.test(seconds)||BigInt(seconds)>86400n)throw new Error('DURATION_REQUIRED_1_TO_86400_SECONDS');
     const durationMs=BigInt(seconds)*1000n,start=process.hrtime.bigint();let stopped=false;
     const stop=()=>{stopped=true;};process.once('SIGINT',stop);process.once('SIGTERM',stop);

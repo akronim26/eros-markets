@@ -501,7 +501,13 @@ manifest is not the owners' approved Q04 format; builder/signing are restricted
 to disabled development configurations / chain 31337. This entry was finalized
 after detecting the user's actual commit, rather than fabricating its hash.
 
-## Pending commit — signing retries and restore protection (PF013-PF016)
+## Commit 86b5431 — signing retries and restore protection (PF013-PF016)
+
+Full hash: `86b5431e5f8177ec99c5bd40d6b3a74da4f672e4`
+
+Committed: 2026-10-03 16:07:24 +05:30
+
+Message: `fix: protect pricefeed signing retries and archive recovery`
 
 Base commit: `a728b4f8cb0d98f7a0deb6186f5167e78a2eae88`.
 Suggested message: `fix: protect pricefeed signing retries and archive recovery (PF015-PF016)`.
@@ -528,3 +534,150 @@ budgets, receipt/reorg/finality reconciliation, continuous pipeline/lifecycle an
 operational evidence remain. The valid-only development builder does not resolve
 Q08's invalid-transition delivery policy, provider quote/time semantics, canonical
 Q04 approval or Q09 production key/environment inputs. PF gates remain unaccepted.
+
+
+**Additional verified boundaries.** Added uint64 sequence-exhaustion and signature
+serialization tests plus explicit refusal of the prior candidate packet schema,
+requiring review/migration rather than silent archive mutation. The complete
+package suite passed 184 tests after these changes (12 publication tests plus
+172 earlier tests); Fraction vectors (144, seed 20261002, included in the suite)
+and wire compatibility also passed. No new Solidity test or source request ran.
+
+## Pending commit — continuous read-only collection (PF012/PF017)
+
+Base commit: `86b5431e5f8177ec99c5bd40d6b3a74da4f672e4`.
+Suggested message: `feat: add continuous pricefeed collection service (PF012-PF017)`.
+
+**What changed.** Added CollectionService and the `serve --configs --db` CLI
+command. Independent periodic complete-book loops run until SIGINT/SIGTERM,
+without overlapping a worker's polls. The existing global provider limiter still
+bounds requests. Shutdown wakes interval timers, drains in-flight bounded
+provider calls, and then closes the archive. A journal/callback failure stops
+collection instead of returning false success. No WebSocket/incremental-book
+logic, operational signer or transaction output was enabled.
+
+**Verification.** Two service tests cover slow-worker isolation, no overlapping
+polls, long-timer shutdown, duplicate run rejection, writer failure and draining.
+`npm test` exited 0 with 186 tests, zero failures/skips/cancellations/todo cases.
+Full package count includes the 144 Fraction vectors. Documentation updated and
+actual user commits a728b4f and 86b5431 recorded. Scope/diff checks are confined
+to packages/pricefeed; no new live-network or engine test is claimed.
+
+**Remaining.** Continuous source availability and lifecycle behavior still need
+the plan's soak/operating-budget evidence. This service runs read-only collection,
+not the integrated signer/relay pipeline. PF018-PF019 relay/receipt/reorg mechanics,
+Q08 invalid transitions, production inputs, reviewed rules/mapping/calibration and
+release acceptance remain incomplete.
+
+
+**Receipt-verification addition (PF019 partial).** Added raw-log verification
+against the exact engine event: transaction/block identity, source, sequence,
+original times, digest, depth flag and emitted midpoint must match. Reverted,
+missing, duplicated, removed or mismatched acceptance logs cannot report mined
+success. Explicit confirmation policy distinguishes MINED/FINALIZED/ORPHANED;
+missing canonical block data establishes neither orphaning nor finality. Valid
+and invalid-depth accepted samples are distinguished from TWAP/mark readiness.
+The wire checker now compares the accepted-event ABI with IPriceSource too.
+
+**Latest verification.** Build and full suite passed 189 tests (3 new receipt
+cases plus 186 earlier tests), with no failures/skips/cancellations/todo cases.
+The accepted-event/wire comparison passed. A TypeScript event-input union typing
+error was corrected before the passing run; no risk source changes were needed.
+These are pure local receipt fixtures, not new chain receipts or a complete
+receipt/reorg polling worker. Suggested message for the combined current batch:
+`feat: add continuous collection and receipt verification (PF012-PF019)`.
+
+
+**Local relay mechanics (PF018/PF019 partial).** Added a local-chain-only relay
+core with injected transport: serialized durable shared nonce allocation,
+per-stream ordering, identity/listing preflight, exact transaction to/data/nonce/
+chain/sender validation, gas/fee/age bounds, immutable signed raw transaction
+storage before broadcast, bounded attempts, unknown-send receipt reconciliation
+and mined/finalized/orphaned journal states. No concrete network adapter is
+constructed and no actual RPC broadcast ran. Reserved-nonce failures require
+recovery rather than nonce reuse. Fee replacement/cancellation and independent
+transaction-signing restore controls remain incomplete.
+
+**Verification.** Four relay tests cover timeout/identical retry, stream ordering,
+restart nonce preservation, wrong-call rejection, spending-policy admission,
+expired signing headroom and receipt/finality/orphan transitions. Reused an
+explicit test fixture module instead of importing a test suite. Full package
+suite exited 0 with 193 tests, zero failed/skipped/cancelled/todo cases; current
+wire/event-ABI check and 144-vector Fraction reference check exited 0. This is
+injected-transport evidence, not a new real-chain integration test.
+
+**Plan audit.** At the user's request, reread PDF backlog PF001–PF028 and added
+`docs/plan-status.md`, enumerating code, evidence and remaining acceptance for
+every task. Updated README's obsolete 'unimplemented' wording to distinguish
+new local mechanics from absent concrete adapters/integrated operational
+pipeline. No human gates or counterpart files changed. Suggested combined
+current-batch message:
+`feat: add continuous collection and local relay verification (PF012-PF019)`.
+
+## Progress update — 2026-10-04: operations and RPC clarification (uncommitted)
+
+**Git status.** The current branch remains `pricefeed`; reading project-wide
+documentation did not switch branches. HEAD is still
+`86b5431e5f8177ec99c5bd40d6b3a74da4f672e4`. The continuous collection,
+receipt-verification, local relay and plan-audit batch above remains uncommitted.
+No new commit hash is assigned to this update. Other existing workspace changes
+outside this package were observed and left untouched.
+
+**Hosting and project boundaries.** Reviewed CLAUDE.md, the project implementation
+plan, counterpart contracts, risk handoff, keeper runbook, oracle interface and
+the pricefeed PDF. No hosting provider, specific server or production capacity
+was selected in the reviewed documents. Book/risk/accounting/settlement belong
+to onchain market contracts; Monad is referenced by project/interface documents.
+The pricefeed is an offchain service. Keepers submit bounded maintenance
+transactions; oracle infrastructure and frontend/indexer consumers belong to
+their respective owners. Their interfaces/jobs do not constitute a hosting
+decision. AWS EC2 and DigitalOcean were explanatory examples, not approved
+infrastructure or deployments. No continuously running production bot or server
+was configured. The plan proposes one service with isolated market workers,
+single-active-writer operation, durable storage, monitoring and tested recovery.
+Hosting and RPC are separate: an RPC provider does not run the bot process.
+
+**Polymarket rate limits and request accounting.** Checked the official
+[rate-limit documentation](https://docs.polymarket.com/api-reference/rate-limits)
+on 2026-10-03: `/book` allows 1,500 requests per sliding 10-second window,
+Gamma `/markets` listings 300 and `/events` listings 500. These are IP-based
+Cloudflare limits; excess requests may be delayed/queued. Listing limits must
+not be silently treated as separately documented limits for individual-ID routes.
+Small live tests below these limits establish connectivity at the recorded
+workload, not production throughput. Most unit tests use injected responses.
+
+The current CLI shares `RequestLimiter(100, 200)` across workers: request starts
+are spaced 100 ms apart, with a bounded pending queue. This coordinates one
+process, not all processes sharing a public IP. Provider calls use timeouts and
+bounded exponential retries; `Retry-After` handling and coordination across
+processes remain production work. Each successful first poll makes three calls
+(event, market metadata, complete book). Cached-metadata polls make one book
+call; refreshing metadata adds two calls. Example settings poll every 10 seconds
+and refresh after half the 90-second metadata-age bound, normally around
+50 seconds. A normal five-cycle pattern is 3 + 1 + 1 + 1 + 1 = 7 requests,
+approximately 1.4 per poll, excluding retries, errors and timing variation.
+One complete-book response contains all returned bid/ask levels and quantities.
+Authentic source time must still be checked after any throttling or delay.
+
+**Monad RPC requirement (Q09).** The user reported obtaining an Alchemy Monad RPC
+through Monad Metropolis; no actual endpoint or credentials were supplied or
+validated. Alchemy's official
+[supported-network documentation](https://www.alchemy.com/docs/reference/node-supported-chains)
+lists Monad testnet and mainnet. An endpoint is a candidate only after checking
+the network matches the approved engine deployment, supported methods, quotas
+and the reviewed relay/finality policy. Polymarket collection alone needs no
+Monad RPC. A live connection uses RPC to verify engine/listing state, send signed
+observations and reconcile receipts. RPC does not supply the observation signer
+or replace the deployed engine/configuration. Current signing/relay mechanics
+remain development-only on local chain 31337; plugging in an Alchemy URL does
+not activate them. Concrete RPC/key adapters, the integrated pipeline and Q09
+approved inputs/transaction authority remain incomplete. No external send,
+funding, deployment or production approval occurred.
+
+**Verification for this update.** Read-only Git/source/document checks and official
+provider-documentation review; only this progress file was edited. No tests were
+rerun for this documentation-only change. The last recorded full package result
+remains 193 passing tests, with wire/event-ABI and 144-vector Fraction checks
+passing as documented above; those are historical results, not a new campaign.
+Suggested message for the combined pending implementation batch remains
+`feat: add continuous collection and local relay verification (PF012-PF019)`.

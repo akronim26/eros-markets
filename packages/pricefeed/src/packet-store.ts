@@ -107,6 +107,17 @@ export class PacketStore {
     if(json(canonicalDomain(packet.domain))!==json(canonicalDomain(d))||digest!==row.digest||packet.observation.sequence!==sequence)throw new Error('PACKET_JOURNAL_INTEGRITY');
     return {packet,digest,signature:row.signature as Hex|null,state:row.state as PacketState,reason:row.reason as string|null};
   }
+  /** Bounded local-pilot recovery inventory, ordered without narrowing uint64 sequences. */
+  list(d:PacketDomain):StoredPacket[] {
+    const rows=this.db.prepare('SELECT sequence FROM packets WHERE ns=? ORDER BY length(sequence),sequence LIMIT 10001').all(packetNamespace(d));
+    if(rows.length>10000)throw new Error('PACKET_RECOVERY_LIMIT: archival review required');
+    return rows.map(row=>this.get(d,BigInt(String(row.sequence)))!);
+  }
+  release(d:PacketDomain,owner:string,fence:bigint):void {
+    this.db.prepare("UPDATE packet_workers SET until_ms='0' WHERE ns=? AND owner=? AND fence=?").run(packetNamespace(d),owner,fence);
+    const ns=packetNamespace(d);
+    if(this.reconciled.get(ns)?.startsWith(`${owner}:${fence}:`))this.reconciled.delete(ns);
+  }
   beginSign(d:PacketDomain,owner:string,fence:bigint,now:bigint,seq:bigint):StoredPacket {
     return this.tx(()=>{
       this.lease(d,owner,fence,now);

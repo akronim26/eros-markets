@@ -111,6 +111,7 @@ npm test
 npm run cli -- validate-config --config config/crypto.example.json
 npm run cli -- inspect-book --config config/crypto.example.json --db var/crypto.sqlite
 npm run cli -- capture --configs config/collection.example.json --duration-seconds 600 --db var/capture.sqlite
+npm run cli -- serve --configs config/collection.example.json --db var/service.sqlite
 npm run cli -- health --db var/capture.sqlite
 npm run cli -- verify-evidence --db var/capture.sqlite
 ```
@@ -121,6 +122,15 @@ exit 1 means a command/storage failure. `capture` polls all configured workers f
 the requested duration; its successful exit means collection completed, not that
 every sample was healthy. Inspect sample statuses and `health` separately.
 Full raw bodies live in the archive, while stdout contains summaries.
+
+`serve` collects complete snapshots continuously until SIGINT/SIGTERM (Ctrl+C).
+Each worker follows its configured interval without overlapping its own polls;
+slow workers do not impose a global poll barrier. A journal or output-consumer
+failure stops the service and drains in-flight bounded requests before closing
+the database. Timer waits wake on shutdown. The service remains read-only and
+does not sign or send observations. Source freshness is evaluated from vendor
+time; a running process is not evidence of fresh prices. Shutdown waits for any
+already-running bounded provider request.
 
 Examples are configuration templates for real source tokens, not approved Eros
 listings. API access does not establish eligible event semantics. Short-horizon
@@ -157,7 +167,10 @@ requiring a review of the report narrative before regeneration.
 Q02-Q10 block dependent production behavior: impact/rounding/depth/fees, timestamp
 semantics, rules hash, units/quote, event equivalence, operating budget, invalid
 packet policy, environment/signer/relay/finality and release/calibration.
-The production builder, signed sequence/outbox, signer backend, nonce relay,
-receipt/reorg recovery and complete lifecycle recorder remain unimplemented.
+Development packet/sequence/signing libraries and a local injected-transport
+nonce/receipt relay core are implemented and tested. Concrete RPC/key adapters,
+the integrated operational pipeline, invalid transitions and complete lifecycle
+recorder remain incomplete. The exact PF001–PF028 audit is in
+[`docs/plan-status.md`](docs/plan-status.md).
 No deployment or live transaction authority exists. See `PROGRESS.md` before
 continuing; update its pending entry before each manual user commit.

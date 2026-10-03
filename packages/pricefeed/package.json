@@ -10,6 +10,7 @@
     "test": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/*.test.js",
     "test:engine": "python3 scripts/test-engine.py",
     "demo:live": "npm run build && python3 scripts/demo-live.py",
+    "demo:pipeline": "npm run build && python3 scripts/demo-live.py --pipeline",
     "test:reference": "python3 reference/vectors.py --check",
     "check:wire": "node dist/scripts/check-wire.js",
     "check:scope": "python3 scripts/check-scope.py",
