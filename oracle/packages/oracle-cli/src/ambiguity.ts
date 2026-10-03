@@ -21,7 +21,19 @@ export type AmbiguityOptions = {
 }
 
 export type Undecided = { case: string; why: string }
-export type ModelRun = { model: string; modelIdHash: Hex; temperature: number; response?: string; undecided?: Undecided[]; error?: string }
+export type ModelRun = {
+  model: string
+  modelIdHash: Hex
+  temperature: number
+  response?: string
+  undecided?: Undecided[]
+  error?: string
+  /** Earlier attempts whose answer was empty, cut off or not the required JSON (each retried, like the panel's). */
+  failedAttempts?: { error: string; response?: string }[]
+}
+
+/** An empty, cut-off or malformed answer is retried this many times (the panel runner's rule, O33.1). */
+export const ANSWER_RETRIES = 3
 export type AmbiguityResult = {
   dir: string
   pass: boolean
@@ -105,11 +117,19 @@ export async function ambiguity(o: AmbiguityOptions): Promise<AmbiguityResult> {
   const runs: ModelRun[] = await Promise.all(
     models.map(async (model, i): Promise<ModelRun> => {
       const run: ModelRun = { model, modelIdHash: hashes[i] as Hex, temperature: temperatureFor(model) }
-      try {
-        run.response = await callModel(model, call)
-        run.undecided = parseUndecided(run.response)
-      } catch (e) {
-        run.error = e instanceof Error ? e.message : String(e)
+      for (let attempt = 0; attempt <= ANSWER_RETRIES; attempt++) {
+        let response: string | undefined
+        try {
+          response = await callModel(model, call)
+          run.undecided = parseUndecided(response)
+          run.response = response
+          delete run.error
+          break
+        } catch (e) {
+          run.error = e instanceof Error ? e.message : String(e)
+          if (attempt < ANSWER_RETRIES) (run.failedAttempts ??= []).push({ error: run.error, ...(response !== undefined ? { response } : {}) })
+          else if (response !== undefined) run.response = response
+        }
       }
       return run
     }),

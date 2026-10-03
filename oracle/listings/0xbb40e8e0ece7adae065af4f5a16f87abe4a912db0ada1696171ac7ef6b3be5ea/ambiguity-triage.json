@@ -1,0 +1,122 @@
+{
+  "triagedBy": "Claude Code (coding agent) for the oracle team, 4 Oct 2026; to be confirmed by the team",
+  "ranAt": "2026-10-03T21:21:29.555Z",
+  "items": [
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 0,
+      "case": "Stats API returns status code \"F\" with a home score that is non\u2011numeric (e.g., empty string, \"-\", or contains extra characters).",
+      "disposition": "decided",
+      "clause": "The official MLB box score on mlb.com is used only if the Stats API gives no numeric final score for this game (it is down, returns an error or empty entry, or shows Final without a numeric home score) when the market is resolved",
+      "reason": "A non-numeric home score with status F is \"Final without a numeric home score\": the mlb.com box score decides."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 1,
+      "case": "Stats API initially shows status \"F\" with a numeric home score (e.g., 4), then later updates the home score to a different number before the void deadline.",
+      "disposition": "decided",
+      "clause": "that score stands, and any later correction, status change or protest is ignored.",
+      "reason": "The first numeric score shown with status F stands; a later change to the same entry is ignored."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 2,
+      "case": "Stats API is down or returns an error at the scheduled resolution time, but the mlb.com box score is also unavailable or delayed past the void deadline.",
+      "disposition": "decided",
+      "clause": "If no official source shows the game as Final with a numeric White Sox score before the void deadline, for any reason (postponement, suspension, cancellation, a removed or replaced entry, or a source failure), the market resolves INVALID.",
+      "reason": "If neither source shows a numeric final score before the void deadline the market is INVALID."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 3,
+      "case": "The game is postponed and later completed under a different gamePk, and the mlb.com box score shows a different home team designation (e.g., the White Sox listed as the away team due to a venue change).",
+      "disposition": "decided",
+      "clause": "in every case the game must be between these two teams with the Chicago White Sox as the home team; otherwise the market resolves INVALID.",
+      "reason": "A replacement game with the White Sox as the away team voids the market."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 4,
+      "case": "MLB records the game as \"Final\" with status code other than \"F\" (e.g., \"O\" for over) in the Stats API entry.",
+      "disposition": "decided",
+      "clause": "In these rules \"Final\" means that status code \"F\".",
+      "reason": "Only status code F counts as Final; another code is not Final."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 5,
+      "case": "A trading halt occurs after the scheduled resolution time T but before the original six\u2011day void deadline, and the exact time of the halt is not publicly documented.",
+      "disposition": "immaterial",
+      "reason": "The halt time is public onchain: the oracle records haltedAt and voidDeadline (HaltRecorded, getResolution), so the void deadline is never unknown."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 6,
+      "case": "The game is suspended, resumed, and reaches Final status after the void deadline, while the original gamePk never showed Final before the deadline.",
+      "disposition": "decided",
+      "clause": "Only what the official sources show before the void deadline counts.",
+      "reason": "A Final reached after the void deadline does not count; the INVALID clause applies."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 7,
+      "case": "The Stats API shows a numeric home score at Final, but the mlb.com box score later shows a different final home score due to a protest or correction.",
+      "disposition": "decided",
+      "clause": "the Stats API entry decides whenever it shows Final with a numeric home score, even if mlb.com shows something else.",
+      "reason": "The Stats API score decides when it is numeric; a later mlb.com correction is ignored."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 8,
+      "case": "The game ends with the White Sox scoring exactly 3 runs, but the Stats API records the home score as \"3 \" (with trailing whitespace) or as a string that may be parsed differently by different systems.",
+      "disposition": "immaterial",
+      "reason": "The Stats API returns the score as a JSON integer, and the Layer 1 evaluator reads it with valueType INT (a string or padded value fails as VALUE_MISSING and the market goes to Layer 2, where the fallback clause applies)."
+    },
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "index": 9,
+      "case": "The game is declared a tie due to an extraordinary circumstance (e.g., weather cancellation after both teams have completed the same number of runs) and the Stats API shows status \"F\" with a home score equal to the away score.",
+      "disposition": "decided",
+      "clause": "Who wins does not matter: only the White Sox's runs count.",
+      "reason": "Only the White Sox run total matters, so a tied Final still resolves on their runs (3 or fewer: NO; 4 or more: YES)."
+    },
+    {
+      "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "index": 0,
+      "case": "Stats API first shows status 'F' with no numeric home score, then later (still before the void deadline) the same entry shows 'F' with a numeric home score",
+      "disposition": "decided",
+      "clause": "The runs counted are the first numeric home score (dates[0].games[0].teams.home.score) the entry shows together with that status",
+      "reason": "The first numeric score shown together with status F is the one that counts, whenever it appears before the void deadline."
+    },
+    {
+      "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "index": 1,
+      "case": "The game is completed under another gamePk, but there is more than one completed game between the Guardians (away) and White Sox (home) around that time (e.g., a rescheduled doubleheader or repeated postponements)",
+      "disposition": "immaterial",
+      "reason": "Each MLB game has its own gamePk; a game completed in place of this one is identified from MLB's official schedule by the committee (Layer 2), and if it cannot be identified as this game before the void deadline the INVALID clause applies."
+    },
+    {
+      "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "index": 2,
+      "case": "The Stats API entry shows Final with a numeric home score, but the entry is for a different game or teams than gamePk 849833's stated matchup (data corruption or mis-tagged feed)",
+      "disposition": "decided",
+      "clause": "in every case the game must be between these two teams with the Chicago White Sox as the home team; otherwise the market resolves INVALID.",
+      "reason": "An entry that is not this matchup with the White Sox at home voids the market."
+    },
+    {
+      "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "index": 3,
+      "case": "The home score is present but ambiguously 'numeric' (e.g., null that some parsers coerce to 0, a string like '3', or a placeholder)",
+      "disposition": "decided",
+      "clause": "The official MLB box score on mlb.com is used only if the Stats API gives no numeric final score for this game (it is down, returns an error or empty entry, or shows Final without a numeric home score) when the market is resolved",
+      "reason": "A null, placeholder or non-integer score is not a numeric home score: the mlb.com fallback applies, else INVALID."
+    },
+    {
+      "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "index": 4,
+      "case": "INVALID settlement: the '24-hour TWAP of the market's index' is undefined or contested",
+      "disposition": "immaterial",
+      "reason": "The INVALID settlement price is the engine's (DEC-08), fixed by the engine's index rules (indexRulesHash in the listing); this clause only discloses it and does not affect which outcome the oracle reports."
+    }
+  ]
+}
