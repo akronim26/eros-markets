@@ -103,8 +103,11 @@ export async function rpc(url: string, method: string, params: unknown[] = []): 
 }
 
 /** Starts anvil on `port` and deploys, configures and funds the stack; the chain is left at the deploy. */
-/** Deploy options: the trust set's runner attestor (default a placeholder no one holds; the panel test passes its key's address). */
-export type StackOptions = { attestor?: Address }
+/**
+ * Deploy options: the trust set's runner attestor, committee and watchdog (default placeholders no one holds; the
+ * panel, committee and watchdog tests pass their keys' addresses).
+ */
+export type StackOptions = { attestor?: Address; committee?: readonly Address[]; watchdog?: Address }
 
 export async function deployStack(port: number, opts: StackOptions = {}): Promise<Stack> {
   const rpcUrl = `http://127.0.0.1:${port}`
@@ -127,10 +130,10 @@ export async function deployStack(port: number, opts: StackOptions = {}): Promis
       GUARDIAN_SAFE: addr('guardian'),
       SANDBOX_OWNER: addr('safe'),
       SIM_RELAYERS: addr('relayer'),
-      // trust-set members the scenarios never act as (no panel or committee path is exercised here)
+      // trust-set members the keeper scenarios never act as (no panel, committee or watchdog path is exercised there)
       ATTESTOR: opts.attestor ?? '0x00000000000000000000000000000000000A77E5',
-      WATCHDOG: '0x000000000000000000000000000000000000DA7C',
-      COMMITTEE: '0x0000000000000000000000000000000000000C01,0x0000000000000000000000000000000000000C02,0x0000000000000000000000000000000000000C03',
+      WATCHDOG: opts.watchdog ?? '0x000000000000000000000000000000000000DA7C',
+      COMMITTEE: (opts.committee ?? ['0x0000000000000000000000000000000000000C01', '0x0000000000000000000000000000000000000C02', '0x0000000000000000000000000000000000000C03']).join(','),
     }
     const script = (name: string, extra: Record<string, string> = {}, broadcast = false) =>
       forge(['script', `script/${name}.s.sol`, '--rpc-url', rpcUrl, ...(broadcast ? ['--broadcast', '--private-key', KEYS.deployer, '--code-size-limit', '131072', '--non-interactive'] : [])], { ...env, ...extra })

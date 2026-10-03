@@ -155,6 +155,12 @@ describe('runOnce', () => {
     expect(asked[0].user).toContain('Question: Will the home team score more than 2 goals?')
     // the snapshot is kept under its hash, as its canonical bytes (ADJ-41)
     expect(Buffer.compare(readFileSync(join(deps.snapshotDir, `${ev}.json`)), Buffer.from(canonicalBytes(snapshots[0])))).toBe(0)
+    // and the run's record beside it, for the committee console (O34.1)
+    const rec = JSON.parse(readFileSync(join(deps.snapshotDir, `${ev}.panel.json`), 'utf8'))
+    expect(rec).toMatchObject({ version: 1, marketId: ID, phase: 2, evidenceHash: ev, evidenceURI: uri, calibratedBps: [4900, 4900, 4900], flags: 0 })
+    expect(rec.outcomes.map((o: any) => [o.model, o.label, o.labelCode])).toEqual(MODELS.map((m, i) => [m, ['NO', 'NO', 'YES'][i], [2, 2, 1][i]]))
+    expect(typeof rec.outcomes[0].rationale).toBe('string')
+    expect(rec.candidate.nEff).toBe(3)
   })
 
   test('EARLY: the active trust set, phase 1; mixed labels return to None, a flagged snapshot goes to EarlyReview', async () => {
