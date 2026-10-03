@@ -1,46 +1,19 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { keccak256, stringToHex, type Hex } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { encodeRules, parseRules, rulesHash, RULES_FIELDS, type RulesManifest } from '../src/rules.js';
+import { encodeRules, parseRules, rulesHash, RULES_FIELDS } from '../src/rules.js';
 import { PacketStore } from '../src/packet-store.js';
-import { prepareObservation, signPrepared, DEVELOPMENT_POLICIES, type RawSigner } from '../src/publication.js';
-import { parseConfig, type MarketConfig } from '../src/config.js';
-import { metadataIdentity, verifyEventMembership } from '../src/collector.js';
+import { prepareObservation, signPrepared, type RawSigner } from '../src/publication.js';
 import { createHash } from 'node:crypto';
 import { observationDigest } from '../src/wire.js';
 import { DatabaseSync } from 'node:sqlite';
 import { LocalTestSigner } from '../src/local-test-signer.js';
 import { copyFileSync } from 'node:fs';
 
-const h=(byte:string)=>'0x'+byte.repeat(32);
-const key=('0x'+'11'.repeat(32)) as Hex; // Public deterministic fixture only.
-const account=privateKeyToAccount(key);
-const base=parseConfig(JSON.parse(readFileSync(new URL('../../config/crypto.example.json',import.meta.url),'utf8')));
-const manifest:RulesManifest={schemaVersion:'1',venue:'polymarket',marketId:h('01'),sourceId:h('02'),
-  eventId:base.mapping.eventId,externalMarketId:base.mapping.externalMarketId,conditionId:base.mapping.conditionId,
-  outcomeTokenId:base.mapping.outcomeTokenId,outcomeLabel:'Yes',erosRulesHash:h('03'),externalRulesDigest:h('04'),
-  quotePolicyHash:h('05'),quantityPolicyHash:h('06'),timestampPolicyHash:h('07'),failurePolicyHash:h('08'),
-  scheduledT:'100000',depthNLots:'5000',maxSpreadWad:'50000000000000000',pricingPolicy:'before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1'};
-const cfg:MarketConfig={...base,pricing:{depthNLots:'5000',maxSpreadWad:manifest.maxSpreadWad,impactMethod:'vwap'},
-  destination:{chainId:'31337',engineAddress:'0x1111111111111111111111111111111111111111',engineCodeHash:h('aa'),abiHash:h('bb'),
-    marketId:manifest.marketId,sourceId:manifest.sourceId,sourceRulesHash:rulesHash(manifest),signerAddress:account.address,
-    listedAt:'0',scheduledT:manifest.scheduledT,invalidRule:{fallbackListed:true,captureGraceSecs:'3600',voidSecs:'2592000',fallbackPriceWad:'500000000000000000'}}};
-const metadata={id:base.mapping.externalMarketId,conditionId:base.mapping.conditionId,outcomes:['Yes','No'],
-  clobTokenIds:[base.mapping.outcomeTokenId,'2'],question:'Fixture question',description:'Fixture rules',active:true,closed:false,enableOrderBook:true,acceptingOrders:true};
-const event={id:base.mapping.eventId,markets:[{id:base.mapping.externalMarketId}],active:true,closed:false};
-const body=JSON.stringify({market:base.mapping.conditionId,asset_id:base.mapping.outcomeTokenId,timestamp:'1000000',hash:'vendor',
-  tick_size:'0.01',min_order_size:'5',bids:[{price:'0.59',size:'6'}],asks:[{price:'0.61',size:'6'}]});
-const marketIdentity=metadataIdentity(cfg,metadata),eventIdentity=verifyEventMembership(cfg,event);
-const rulesDigest=createHash('sha256').update(`${eventIdentity.rulesDigest}:${marketIdentity.rulesDigest}`).digest('hex');
-const reviewed={...manifest,...DEVELOPMENT_POLICIES,externalRulesDigest:'0x'+rulesDigest};
-const config={...cfg,destination:{...cfg.destination!,sourceRulesHash:rulesHash(reviewed)}};
-const candidate=(sequence:bigint,now=1000100n)=>prepareObservation(config,reviewed,{bookBody:body,metadata,event,
-  bookReceivedAtMs:1000050n,metadataReceivedAtMs:1000000n,eventReceivedAtMs:1000000n},sequence,now,1000n);
-const signer:RawSigner={address:account.address,signDigest:async(request)=>account.sign({hash:request.digest})};
+import { h, account, manifest, reviewed, config, metadata, event, body, candidate, signer } from './publication-fixture.js';
 
 test('candidate rules encoding agrees with independently assembled ABI words and is presentation independent',()=>{
   const word=(n:bigint)=>n.toString(16).padStart(64,'0');

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { OBSERVATION_FIELDS, OBSERVATION_TYPE } from '../src/wire.js';
+import { ACCEPTED_ABI } from '../src/receipts.js';
 
 const root=new URL('../../../../',import.meta.url);
 const iface=readFileSync(new URL('contracts/src/interfaces/IPriceSource.sol',root),'utf8');
@@ -17,4 +18,10 @@ if(start<0||depth!==0)throw new Error('MISSING_RAW_DIGEST_ENCODING');
 const encoding=source.slice(start+'abi.encode('.length,end-1).replace(/\s+/g,'');
 const expected=['OBSERVATION_TYPEHASH',...OBSERVATION_FIELDS.map(([name])=>`o.${name}`),'block.chainid','address(this)'].join(',');
 if(encoding!==expected)throw new Error('RAW_DIGEST_FIELD_ORDER_DRIFT');
-console.log('PASS: exact eleven-field ABI, type string and raw abi.encode order match existing risk code (read-only)');
+const eventBody=iface.match(/event ObservationAccepted\s*\(([\s\S]*?)\);/)?.[1];
+if(!eventBody)throw new Error('MISSING_ACCEPTED_EVENT');
+const eventFields=[...eventBody.matchAll(/\b(bytes32|uint64|uint256|bool)\s+(indexed\s+)?(\w+)/g)]
+  .map(m=>({name:m[3],type:m[1],indexed:!!m[2]}));
+const event=ACCEPTED_ABI.find(item=>item.type==='event'&&item.name==='ObservationAccepted');
+if(!event||JSON.stringify(eventFields)!==JSON.stringify(event.inputs.map(input=>({name:input.name,type:input.type,indexed:'indexed' in input&&input.indexed}))))throw new Error('ACCEPTED_EVENT_ABI_DRIFT');
+console.log('PASS: exact eleven-field ABI, raw digest and accepted-event ABI match existing risk code (read-only)');

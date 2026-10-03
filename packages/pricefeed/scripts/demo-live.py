@@ -13,4 +13,9 @@ for variable, fallback, pattern in [('PRICEFEED_FORGE','forge',r'Version: 1\.8\.
     if not re.search(pattern,result.stdout): raise SystemExit(f'UNVERIFIED: incorrect {variable} version: {result.stdout.strip()}')
 subprocess.run([os.environ.get('PRICEFEED_FORGE','forge'),'build','--root','test/demo',
     '--use',os.environ.get('PRICEFEED_SOLC','solc')],cwd=package,check=True)
-raise SystemExit(subprocess.run(['node','dist/scripts/demo-live.js',*sys.argv[1:]],cwd=package).returncode)
+arguments = sys.argv[1:]
+runner = 'demo-live'
+if arguments and arguments[0] == '--pipeline':
+    runner = 'pipeline-local'
+    arguments = arguments[1:]
+raise SystemExit(subprocess.run(['node',f'dist/scripts/{runner}.js',*arguments],cwd=package).returncode)
