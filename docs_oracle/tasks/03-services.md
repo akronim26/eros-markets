@@ -401,58 +401,63 @@ Plan §13: owner OB · 3 PD · depends O37 · acceptance: dispute + propose flow
 - Owner: OB
 - PD: 0.75
 - Depends: O37.3
-- Plan: §9.5, ADJ-13
+- Plan: §9.5, ADJ-13, ADJ-47
 - Cut: partial (one page of live assertions with an explorer link)
-- Status: todo
+- Status: skipped
 - Files: oracle/apps/disputes-live/**
 - Build: Every market in Proposed, Disputed, Review or Open, soonest deadline first.
 - Done when: the page lists the testnet markets in the right order.
 - Check: cd oracle/apps/disputes-live && bun test
+- Notes: Skipped (team decision 4 Oct 2026, ADJ-47): no oracle frontend ships; a throwaway page was built, its list, detail, dispute and permissionless-propose flows verified on a local deploy and reviewed, then removed. Rebuilt in the app's frontend (DEP-5) on the indexer queries before mainnet.
 
 ### O38.2 · Market detail
 - Owner: OB
 - PD: 0.75
 - Depends: O38.1
-- Plan: §9.5
+- Plan: §9.5, ADJ-47
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: oracle/apps/disputes-live/**
 - Build: Question; rules; proposed outcome and path; evidence link and hash (or L1 value hash and source URL); panel labels and candidate; bond; assertion expiry; `voidDeadline`; attempt and rejected outcomes; payout state only from `claimsEnabled` and the risk-sdk `settlement.ts` states.
 - Done when: component tests render each field and never show "paid" from oracle Final alone.
 - Check: cd oracle/apps/disputes-live && bun test
+- Notes: Skipped (team decision 4 Oct 2026, ADJ-47): no oracle frontend ships; a throwaway page was built, its list, detail, dispute and permissionless-propose flows verified on a local deploy and reviewed, then removed. Rebuilt in the app's frontend (DEP-5) on the indexer queries before mainnet.
 
 ### O38.3 · Dispute button
 - Owner: OB
 - PD: 0.5
 - Depends: O38.2
-- Plan: §9.5
+- Plan: §9.5, ADJ-47
 - Cut: partial (dispute button)
-- Status: todo
+- Status: skipped
 - Files: oracle/apps/disputes-live/**
 - Build: `usdc.approve(OOv3, bond)` then `OOv3.disputeAssertion(assertionId, user)` with the exact bond and a liveness countdown; pending → final via Monad `latest` → `finalized`.
 - Done when: the flow works against anvil.
 - Check: cd oracle/apps/disputes-live && bun test
+- Notes: Skipped (team decision 4 Oct 2026, ADJ-47): no oracle frontend ships; a throwaway page was built, its list, detail, dispute and permissionless-propose flows verified on a local deploy and reviewed, then removed. Rebuilt in the app's frontend (DEP-5) on the indexer queries before mainnet.
 
 ### O38.4 · Propose button and testnet banners
 - Owner: OB
 - PD: 0.5
 - Depends: O38.3
-- Plan: §9.5, §17
+- Plan: §9.5, §17, ADJ-47
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: oracle/apps/disputes-live/**
 - Build: In Open: `usdc.approve(UmaAdapter, B)` then `proposePermissionless(id, outcome, uri, hash)`, rejected outcomes disabled; testnet banners for the sandbox DVM and the single-node `--listen` simulator.
 - Done when: the flow works against anvil and both banners show on testnet builds.
 - Check: cd oracle/apps/disputes-live && bun test
+- Notes: Skipped (team decision 4 Oct 2026, ADJ-47): no oracle frontend ships; a throwaway page was built, its list, detail, dispute and permissionless-propose flows verified on a local deploy and reviewed, then removed. Rebuilt in the app's frontend (DEP-5) on the indexer queries before mainnet.
 
 ### O38.5 · Testnet flows
 - Owner: OB
 - PD: 0.5
 - Depends: O38.4
-- Plan: §9.5
+- Plan: §9.5, ADJ-47
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: docs_oracle/evidence/O38/
 - Build: Run a dispute and a permissionless proposal from the page on testnet.
 - Done when: both transactions confirm and the page shows the new states.
 - Check: manual: tx hashes of the page's dispute and proposal in docs_oracle/evidence/O38/
+- Notes: Skipped (team decision 4 Oct 2026, ADJ-47): no oracle frontend ships; a throwaway page was built, its list, detail, dispute and permissionless-propose flows verified on a local deploy and reviewed, then removed. Rebuilt in the app's frontend (DEP-5) on the indexer queries before mainnet.
