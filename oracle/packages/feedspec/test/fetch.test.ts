@@ -1,4 +1,4 @@
-// ADJ-36: the node-mode fetch both workflows share. A scripted requester stands in for the CRE SDK's.
+// A scripted requester stands in for the CRE SDK's.
 import { expect, test } from 'bun:test'
 import { keccak256, toBytes } from 'viem'
 import { type NodeHttpRequest, nodeFetch, ZERO32 } from '../src/fetch'

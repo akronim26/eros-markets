@@ -9,7 +9,12 @@
   },
   "roles": {
     "teamSafe": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
-    "guardianSafe": "0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d"
+    "guardianSafe": "0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d",
+    "deployer": "0x676c3Dfd23c742bb6F0CFFd7a108d69ae674f49e",
+    "keepers": [
+      "0xCbf737ea4D798a74a2988fC3294910d5a581A85c",
+      "0xB5E7E230Cf6a7C2479aA68f01Cd68795f1a270eb"
+    ]
   },
   "timelockDelaySecs": 300,
   "cre": {
@@ -39,7 +44,9 @@
   "authRefs": [
     "SPORTSDATA_V1"
   ],
-  "providers": [],
+  "providers": [
+    "statsapi.mlb.com"
+  ],
   "globals": {
     "minHorizonSecs": 600,
     "maxListingHorizon": 2588400,

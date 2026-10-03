@@ -1,6 +1,5 @@
-// Task O30.1: the ABI copy cannot drift. Three links are checked: the Solidity sources against the snapshot
-// (`forge inspect`, byte for byte; the output is identical on Foundry 1.5.1 and 1.8.3), the snapshot against
-// oracle/abi/SHA256SUMS, and the SDK's src/abi modules against the snapshot (stamped hash and parsed content).
+// Sources vs snapshot (`forge inspect`, same output on Foundry 1.5.1 and 1.8.3), snapshot vs SHA256SUMS, and
+// src/abi vs snapshot must all agree.
 import { describe, expect, test } from 'bun:test'
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync } from 'node:fs'

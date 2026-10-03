@@ -1,0 +1,19 @@
+{
+  "name": "@eros-oracle/keeper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Permissionless, idempotent keeper jobs for the resolution oracle (plan 9.1).",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "bun test --path-ignore-patterns='test/fork/**'",
+    "test:fork": "bun test test/fork",
+    "start": "bun src/main.ts"
+  },
+  "dependencies": {
+    "@eros-oracle/oracle-sdk": "workspace:*",
+    "viem": "2.57.2",
+    "zod": "4.6.5"
+  }
+}

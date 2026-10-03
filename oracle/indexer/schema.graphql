@@ -1,0 +1,209 @@
+# Task O37.2: the oracle's entities (plan §9.3). Enum fields keep the contracts' numbers (OracleTypes.sol: RState,
+# Outcome, Path, PanelLabel, Phase, FinalReason, Ledger) with a name beside the ones a page shows. Hashes, ids and
+# addresses are lowercase-or-checksummed hex strings as Envio delivers them; times are unix seconds.
+
+# One listed market and where its resolution stands now.
+type Market {
+  id: ID! # marketId
+  engine: String!
+  tau: BigInt!
+  hasFeed: Boolean!
+  groupId: String!
+  rulesHash: String!
+  specHash: String!
+  gateHash: String!
+  listedAt: BigInt!
+  listedTx: String!
+  state: Int! @index
+  stateName: String!
+  # Proposed, Disputed, Review or Open: what Disputes Live lists (plan §9.5)
+  live: Boolean! @index
+  # the soonest deadline that applies now: a live undisputed assertion's expiry, the retry window's opening in
+  # Review, else voidDeadline once halted, else tau
+  deadline: BigInt! @index
+  haltedAt: BigInt
+  voidDeadline: BigInt
+  oiHaltLots: BigInt
+  trustSetId: Int
+  requestCount: Int!
+  attempts: Int!
+  proposedOutcome: Int!
+  proposedPath: Int!
+  evidenceHash: String
+  evidenceURI: String
+  valueHash: String
+  observedAt: BigInt
+  assertion: Assertion
+  rejectedMask: Int!
+  retryOpensAt: BigInt
+  panelNotYet: Int!
+  finalOutcome: Int!
+  finalReason: Int
+  voidReason: Int
+  updatedAt: BigInt!
+  resolutions: [Resolution!]! @derivedFrom(field: "market")
+  proposals: [Proposal!]! @derivedFrom(field: "market")
+  panelResults: [PanelResult!]! @derivedFrom(field: "market")
+  assertions: [Assertion!]! @derivedFrom(field: "market")
+  disputes: [Dispute!]! @derivedFrom(field: "market")
+  ledger: [TreasuryLedger!]! @derivedFrom(field: "market")
+}
+
+# The resolution's state history: one row per StateChanged.
+type Resolution {
+  id: ID! # chainId-block-logIndex
+  market: Market!
+  from: Int!
+  to: Int!
+  fromName: String!
+  toName: String!
+  block: Int!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+# One assertion on the venue (UMA OOv3 through the UmaAdapter), from the oracle's, the adapter's and OOv3's events.
+type Assertion {
+  id: ID! # assertionId
+  market: Market!
+  attempt: Int!
+  venue: String!
+  outcome: Int!
+  path: Int!
+  bond: BigInt!
+  liveness: BigInt!
+  expiresAt: BigInt! @index
+  asserter: String!
+  assertedAt: BigInt!
+  assertedTx: String!
+  assertedBlock: Int! @index
+  assertedLogIndex: Int!
+  oov3Asserter: String
+  currency: String
+  identifier: String
+  domainId: String
+  disputed: Boolean!
+  disputer: String
+  disputedAt: BigInt
+  settled: Boolean!
+  truthful: Boolean
+  bondRecipient: String
+  settledAt: BigInt
+  rejected: Boolean!
+  rejectedMask: Int
+  retryOpensAt: BigInt
+}
+
+# Every proposal, from every path: ProposedL1 (Layer 1) and ProposalRecorded (the others).
+type Proposal {
+  id: ID! # chainId-block-logIndex
+  market: Market!
+  outcome: Int!
+  path: Int!
+  pathName: String!
+  evidenceHash: String!
+  evidenceURI: String
+  valueHash: String
+  observedAt: BigInt
+  attempt: Int!
+  proposer: String!
+  block: Int! @index
+  logIndex: Int!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+# An accepted PanelResult (Layer 2).
+type PanelResult {
+  id: ID! # chainId-block-logIndex
+  market: Market!
+  phase: Int!
+  labels: [Int!]!
+  calibratedBps: [Int!]!
+  evidenceHash: String!
+  evidenceURI: String!
+  routedTo: Int!
+  routedToName: String!
+  block: Int!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+# A dispute of an assertion: OOv3's AssertionDisputed, the oracle's Disputed sync and, when the watchdog's float paid
+# the bond, the treasury's DisputeFunded and DisputeClosed.
+type Dispute {
+  id: ID! # assertionId
+  market: Market
+  disputer: String
+  caller: String
+  viaTreasury: Boolean!
+  treasuryBond: BigInt
+  closed: Boolean!
+  syncedByOracle: Boolean!
+  disputedAt: BigInt
+  txHash: String
+}
+
+# One BondTreasury movement. ledger: 0 ASSERTION, 1 WATCHDOG_FLOAT, 2 PROPOSER_REWARD (null when the event names none).
+type TreasuryLedger {
+  id: ID! # chainId-block-logIndex
+  kind: String! @index
+  ledger: Int
+  market: Market
+  attempt: Int
+  account: String
+  assertionId: String
+  amount: BigInt!
+  block: Int!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type TrustSet {
+  id: ID! # setId
+  production: Boolean!
+  createdAt: BigInt!
+  active: Boolean! @index
+  activatedAt: BigInt
+  revocations: [String!]! # "what:detail"
+}
+
+# A KeystoneForwarder report to the oracle; result false is a misconfiguration or a forged report.
+type ReportAttempt {
+  id: ID! # chainId-block-logIndex
+  forwarder: String!
+  receiver: String!
+  workflowExecutionId: String!
+  reportId: String!
+  result: Boolean!
+  relayer: String
+  block: Int!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type Category {
+  id: ID! # categoryId
+  gateHash: String!
+  u95Bps: Int!
+  sampleN: BigInt!
+  validated: Boolean!
+  updatedAt: BigInt!
+}
+
+# A price request to the testnet DVM stand-in and the team's answer.
+type SandboxRequest {
+  id: ID! # requestId
+  identifier: String!
+  time: BigInt!
+  ancillaryData: String!
+  requestedAt: BigInt!
+  price: BigInt
+  pushedAt: BigInt
+}
+
+type Watchdog {
+  id: ID! # address
+  lastHeartbeat: BigInt!
+  beats: Int!
+}

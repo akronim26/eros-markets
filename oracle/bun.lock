@@ -20,6 +20,7 @@
       },
       "dependencies": {
         "@eros-oracle/feedspec": "workspace:*",
+        "@eros-oracle/oracle-sdk": "workspace:*",
         "viem": "2.57.2",
         "zod": "4.6.5",
       },
@@ -32,15 +33,79 @@
         "zod": "4.6.5",
       },
     },
+    "services/committee-console": {
+      "name": "@eros-oracle/committee-console",
+      "version": "0.1.0",
+      "bin": {
+        "committee": "src/ui/main.ts",
+      },
+      "dependencies": {
+        "@eros-oracle/feedspec": "workspace:*",
+        "@eros-oracle/oracle-sdk": "workspace:*",
+        "@eros-oracle/panel-runner": "workspace:*",
+        "@eros-oracle/snapshotter": "workspace:*",
+        "viem": "2.57.2",
+        "zod": "4.6.5",
+      },
+    },
+    "services/keeper": {
+      "name": "@eros-oracle/keeper",
+      "version": "0.1.0",
+      "dependencies": {
+        "@eros-oracle/oracle-sdk": "workspace:*",
+        "viem": "2.57.2",
+        "zod": "4.6.5",
+      },
+    },
+    "services/panel-runner": {
+      "name": "@eros-oracle/panel-runner",
+      "version": "0.1.0",
+      "dependencies": {
+        "@eros-oracle/feedspec": "workspace:*",
+        "@eros-oracle/oracle-sdk": "workspace:*",
+        "@eros-oracle/snapshotter": "workspace:*",
+        "viem": "2.57.2",
+        "zod": "4.6.5",
+      },
+    },
+    "services/snapshotter": {
+      "name": "@eros-oracle/snapshotter",
+      "version": "0.1.0",
+      "dependencies": {
+        "@eros-oracle/feedspec": "workspace:*",
+        "viem": "2.57.2",
+      },
+    },
+    "services/watchdog": {
+      "name": "@eros-oracle/watchdog",
+      "version": "0.1.0",
+      "dependencies": {
+        "@eros-oracle/feedspec": "workspace:*",
+        "@eros-oracle/oracle-sdk": "workspace:*",
+        "@eros-oracle/snapshotter": "workspace:*",
+        "viem": "2.57.2",
+        "zod": "4.6.5",
+      },
+    },
   },
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
 
+    "@eros-oracle/committee-console": ["@eros-oracle/committee-console@workspace:services/committee-console"],
+
     "@eros-oracle/feedspec": ["@eros-oracle/feedspec@workspace:packages/feedspec"],
+
+    "@eros-oracle/keeper": ["@eros-oracle/keeper@workspace:services/keeper"],
 
     "@eros-oracle/oracle-cli": ["@eros-oracle/oracle-cli@workspace:packages/oracle-cli"],
 
     "@eros-oracle/oracle-sdk": ["@eros-oracle/oracle-sdk@workspace:packages/oracle-sdk"],
+
+    "@eros-oracle/panel-runner": ["@eros-oracle/panel-runner@workspace:services/panel-runner"],
+
+    "@eros-oracle/snapshotter": ["@eros-oracle/snapshotter@workspace:services/snapshotter"],
+
+    "@eros-oracle/watchdog": ["@eros-oracle/watchdog@workspace:services/watchdog"],
 
     "@noble/ciphers": ["@noble/ciphers@1.3.0", "", {}, "sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw=="],
 

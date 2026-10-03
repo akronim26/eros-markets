@@ -1,8 +1,6 @@
-// `oracle-cli ambiguity` (plan §12.9 step 5, O22.3): gives the question and rules alone to the three panel
-// models (the ones the pack's ai.modelIdHashes name) with "list outcomes these rules do not decide", writes
-// listings/<marketId>/ambiguity.log and, when every model lists nothing, sets pack.json's ambiguityLogHash to
-// keccak256 of the log. A model failure or invalid answer fails the pass; listed cases need a rules fix (re-run
-// `list` and the pass) or the team's triage (`applyTriage`, ADJ-37). The hash stays zero until the pass succeeds.
+// `oracle-cli ambiguity`: asks each panel model which outcomes the question and rules leave undecided, and writes
+// ambiguity.log. ambiguityLogHash is set only when no model lists a case or the team triages every listed case;
+// otherwise it stays zero.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { type Hex, keccak256, toBytes } from 'viem'
@@ -21,7 +19,19 @@ export type AmbiguityOptions = {
 }
 
 export type Undecided = { case: string; why: string }
-export type ModelRun = { model: string; modelIdHash: Hex; temperature: number; response?: string; undecided?: Undecided[]; error?: string }
+export type ModelRun = {
+  model: string
+  modelIdHash: Hex
+  temperature: number
+  response?: string
+  undecided?: Undecided[]
+  error?: string
+  /** Retried attempts: empty, cut off or not the required JSON. */
+  failedAttempts?: { error: string; response?: string }[]
+}
+
+/** Retries for an empty, cut-off or malformed answer (the panel runner's rule). */
+export const ANSWER_RETRIES = 3
 export type AmbiguityResult = {
   dir: string
   pass: boolean
@@ -30,14 +40,14 @@ export type AmbiguityResult = {
   runs: ModelRun[]
 }
 
-/** The pinned prompt split into its SYSTEM and USER parts, with the market text substituted. */
+/** The pinned prompt's SYSTEM and USER parts, with the market text substituted. */
 export function ambiguityPrompt(template: string, question: string, rules: string): ModelCall {
   const m = /^SYSTEM\n([\s\S]*?)\n\nUSER\n([\s\S]*)$/.exec(template)
   if (!m) throw new ListError('prompts/ambiguity.txt must be "SYSTEM\\n...\\n\\nUSER\\n..."')
   return { system: m[1].trim(), user: m[2].replace('{{QUESTION}}', () => question).replace('{{RULES}}', () => rules).trim() }
 }
 
-/** The model's answer as a list of undecided cases; throws on anything but the requested JSON. */
+/** Throws on anything but the requested JSON. */
 export function parseUndecided(text: string): Undecided[] {
   const body = text.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```$/, '$1')
   let v: any
@@ -56,7 +66,7 @@ export function parseUndecided(text: string): Undecided[] {
 
 type Ctx = { input: Listing; dir: string; packPath: string; packText: string; marketId: Hex }
 
-/** The listing input and its pack, checked: models match ai.modelIdHashes, the pack has the input's text. */
+/** Checks that the models match ai.modelIdHashes and the pack has the input's text. */
 function context(inputPath: string, out?: string): Ctx {
   const input = readListing(inputPath)
   if (!input.ambiguity) throw new ListError('the listing input has no ambiguity.models (the three panel models)')
@@ -70,7 +80,7 @@ function context(inputPath: string, out?: string): Ctx {
   const packPath = join(dir, 'pack.json')
   if (!existsSync(packPath)) throw new ListError(`${packPath} is missing: run oracle-cli list first`)
   const packText = readFileSync(packPath, 'utf8')
-  const pack = JSON.parse(packText) // only strings are read: no precision concern
+  const pack = JSON.parse(packText) // only strings are read, so number precision does not matter
   const { question, rules } = input.marketInput
   if (pack.marketInput.question !== question || pack.marketInput.rules !== rules) {
     throw new ListError('pack.json has another question or rules than the input: re-run oracle-cli list')
@@ -78,7 +88,7 @@ function context(inputPath: string, out?: string): Ctx {
   return { input, dir, packPath, packText, marketId: pack.marketInput.marketId }
 }
 
-/** Writes ambiguity.log and pack.json's ambiguityLogHash: keccak256 of the log on a pass, zero otherwise. */
+/** Sets ambiguityLogHash to keccak256 of the log on a pass, zero otherwise. */
 function writeLog(c: Ctx, log: object, pass: boolean): Hex {
   const text = JSON.stringify(log, null, 2) + '\n'
   writeFileSync(join(c.dir, 'ambiguity.log'), text)
@@ -105,11 +115,19 @@ export async function ambiguity(o: AmbiguityOptions): Promise<AmbiguityResult> {
   const runs: ModelRun[] = await Promise.all(
     models.map(async (model, i): Promise<ModelRun> => {
       const run: ModelRun = { model, modelIdHash: hashes[i] as Hex, temperature: temperatureFor(model) }
-      try {
-        run.response = await callModel(model, call)
-        run.undecided = parseUndecided(run.response)
-      } catch (e) {
-        run.error = e instanceof Error ? e.message : String(e)
+      for (let attempt = 0; attempt <= ANSWER_RETRIES; attempt++) {
+        let response: string | undefined
+        try {
+          response = await callModel(model, call)
+          run.undecided = parseUndecided(response)
+          run.response = response
+          delete run.error
+          break
+        } catch (e) {
+          run.error = e instanceof Error ? e.message : String(e)
+          if (attempt < ANSWER_RETRIES) (run.failedAttempts ??= []).push({ error: run.error, ...(response !== undefined ? { response } : {}) })
+          else if (response !== undefined) run.response = response
+        }
       }
       return run
     }),
@@ -130,7 +148,7 @@ export async function ambiguity(o: AmbiguityOptions): Promise<AmbiguityResult> {
   }
   const ambiguityLogHash = writeLog(c, log, pass)
   if (result === 'NEEDS_TRIAGE') {
-    // A template for the team: one entry per listed case, to be given a disposition (ADJ-37).
+    // One entry per listed case for the team to fill in.
     const items = runs.flatMap((r) => r.undecided!.map((u, index) => ({
       model: r.model, index, case: u.case, disposition: '', clause: '', reason: '',
     })))
@@ -143,10 +161,8 @@ export type TriageItem = { model: string; index: number; case: string; dispositi
 export type Triage = { triagedBy: string; ranAt: string; items: TriageItem[] }
 
 /**
- * Applies the team's triage to the last pass (ADJ-37, plan §12.9 step 5): every case the models listed must have
- * one disposition, "decided" with a clause quoted exactly from the rules, or "immaterial" with a reason. The log
- * then records the triage and the pass succeeds; ambiguityLogHash commits to the models' answers and the triage.
- * A case that needs a rules fix is not triaged: fix the rules, re-run list and the pass.
+ * Applies the team's triage (ADJ-37): every listed case is "decided" with an exact quote from the rules, or
+ * "immaterial" with a reason. A case that needs a rules fix is not triaged; fix the rules and re-run instead.
  */
 export function applyTriage(o: { input: string; out?: string; triage?: string; now?: () => Date }): AmbiguityResult {
   const c = context(o.input, o.out)

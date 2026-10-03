@@ -1,5 +1,5 @@
-// Eros Markets — Layer 1 resolution workflow (Oracle spec §5). One generic workflow for all
-// Layer 1 markets; per-market data is read from chain. Writes only YES/NO reports.
+// Layer 1 resolution workflow: one workflow for all Layer 1 markets, reading per-market data from chain. Writes only
+// YES/NO reports.
 import {
   bytesToHex,
   consensusIdenticalAggregation,
@@ -54,10 +54,8 @@ const ORACLE_ABI = parseAbi([
 const FEEDSPEC_PARAMS = parseAbiParameters(
   '(string,string,bytes32,string,string,string,uint8,uint8,uint8,string,uint32,uint32)',
 )
-export const STATE_L1_PENDING = 3 // RState.L1Pending (see OracleTypes.sol)
+export const STATE_L1_PENDING = 3 // RState.L1Pending
 
-// Node mode: each DON node fetches and evaluates independently. Returns "STATUS|valueHash|code".
-// The function is shared with workflows/dryrun (packages/feedspec/src/fetch.ts, ADJ-36).
 type HTTPResponse = ReturnType<ReturnType<HTTPSendRequester['sendRequest']>['result']>
 export const fetchAndEvaluate = nodeFetch<HTTPResponse>({ text: (r) => text(r), hashLexeme: (l) => keccak256(toBytes(l)) })
 
@@ -127,7 +125,7 @@ export const onResolutionRequested = (runtime: Runtime<Config>, log: EVMLog): st
   const [status, valueHash, code] = agreed.split('|')
   if (status !== 'YES' && status !== 'NO') return `nowrite:${marketId}:${status}:${code}`
 
-  // 5) Report v1 (Oracle spec §5.4 + valueHash/specHash): chain + oracle bound, observedAt = log time.
+  // 5) Report v1, bound to chain and oracle; observedAt = log time.
   const payload = encodeAbiParameters(
     parseAbiParameters('uint8, uint64, address, bytes32, uint8, uint64, bytes32, bytes32'),
     [1, network.chainSelector.selector, cfg.oracle as Address, marketId, status === 'YES' ? 1 : 2,

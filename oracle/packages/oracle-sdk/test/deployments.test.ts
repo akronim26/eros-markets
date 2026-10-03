@@ -1,6 +1,4 @@
-// Task O30.1: the deployments loader parses the testnet file DeployOracle writes, and refuses a malformed one.
-// The fixture is DeployOracle's real output from the O19.3 dry run on a fork of Monad testnet (fork-local
-// addresses); the live file appears at X04 in the same schema.
+// The fixture is DeployOracle's output from a dry run on a Monad testnet fork.
 import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'

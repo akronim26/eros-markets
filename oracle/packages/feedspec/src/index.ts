@@ -1,10 +1,5 @@
-// FeedSpec evaluator (Oracle spec §5.2; plan §7.3, Appendix B.2; task O20.1). Pure TypeScript, no Node or
-// browser APIs, no runtime dependency, no floats on numeric values. Shared by the CRE workflow, the watchdog
-// and the listing dry-run CLI.
-//
-// O20.1 change to B.2: `buildUrl` first checks the template exactly as the registry's `HostLib.checkTemplate`
-// does (https, host, then `{id}` at most once and after the first '/' that follows the host), then the
-// urlParam, so a FeedSpec the registry refuses is refused here too and in the same order (ADJ-12).
+// FeedSpec evaluator shared by the CRE workflow, the watchdog and the listing CLI. No runtime dependencies, no
+// Node or browser APIs, and no floats: numbers stay exact lexemes. URL checks match the registry's, in its order.
 
 export enum ValueType { STRING = 0, INT = 1, DECIMAL = 2 }
 export enum Op { EQ = 0, NEQ = 1, GT = 2, GTE = 3, LT = 4, LTE = 5 }
@@ -40,9 +35,9 @@ export class EvalError extends Error {
   constructor(public code: string) { super(code) }
 }
 
-// ---------------------------------------------------------------- URL + host (steps 1-2)
+// ---------------------------------------------------------------- URL and host
 
-/** The request URL: the template checked as the registry checks it, then `{id}` replaced by urlParam. */
+/** Checks the template as the registry does, then substitutes urlParam for `{id}`. */
 export function buildUrl(spec: FeedSpec): string {
   checkTemplate(spec.urlTemplate)
   if (!URL_PARAM_RE.test(spec.urlParam)) throw new EvalError('BAD_URL_PARAM')
@@ -51,12 +46,9 @@ export function buildUrl(spec: FeedSpec): string {
   return url
 }
 
-/**
- * The registry's template rules (`HostLib.checkTemplate`, BadFeed codes 1-3, in that order): https,
- * host, then `{id}` at most once and, if present, after the first '/' at or after the end of the host.
- */
+/** `HostLib.checkTemplate`, in order: https, host, then `{id}` at most once and only after the host's first '/'. */
 export function checkTemplate(template: string): void {
-  hostOf(template) // NOT_HTTPS, BAD_HOST
+  hostOf(template)
   const id = template.indexOf(ID)
   if (id < 0) return
   if (template.indexOf(ID, id + 1) >= 0) throw new EvalError('MULTIPLE_ID_PLACEHOLDERS')
@@ -71,7 +63,7 @@ export function hostOf(url: string): string {
   return host
 }
 
-/** Index of the first '/', '?' or '#' after the scheme, else the length (the host's end). */
+/** End of the host: the first '/', '?' or '#' after the scheme, else the length. */
 function hostEnd(url: string): number {
   for (let i = SCHEME.length; i < url.length; i++) {
     const c = url[i]
@@ -131,7 +123,7 @@ export function parseJson(text: string): JNode {
     return { k: 'num', v: m![0] }
   }
   const str = (): string => {
-    i++ // opening quote
+    i++
     let out = ''
     for (;;) {
       if (i >= text.length) fail()
@@ -196,7 +188,7 @@ function scalarText(n: JNode): string | undefined {
   }
 }
 
-// ---------------------------------------------------------------- typed parse (step 7)
+// ---------------------------------------------------------------- typed parse
 
 export function parseTyped(raw: string, t: ValueType, decimals: number): bigint | string {
   if (t === ValueType.STRING) return raw
@@ -218,7 +210,7 @@ function lexemeOf(n: JNode, t: ValueType): string {
     if (n.k !== 'str') throw new EvalError('VALUE_NOT_STRING')
     return n.v
   }
-  if (n.k === 'num' || n.k === 'str') return n.v // number or numeric string
+  if (n.k === 'num' || n.k === 'str') return n.v
   throw new EvalError('VALUE_NOT_NUMERIC')
 }
 
@@ -238,7 +230,7 @@ export function compare(a: bigint | string, op: Op, b: bigint | string): boolean
   }
 }
 
-// ---------------------------------------------------------------- full evaluation (steps 4-8)
+// ---------------------------------------------------------------- evaluation
 
 export function evaluateResponse(spec: FeedSpec, statusCode: number, body: string, bodyBytes: number): Evaluation {
   try {
@@ -261,7 +253,7 @@ export function evaluateResponse(spec: FeedSpec, statusCode: number, body: strin
 
 // ---------------------------------------------------------------- listing validation (registry parity)
 
-/** Globals bounds for `bufferSecs` and `l1TimeoutSecs` (the registry's pinned globals version). */
+/** The registry's bounds for `bufferSecs` and `l1TimeoutSecs`. */
 export type TimingBounds = { bufferMinSecs: number; bufferMaxSecs: number; l1TimeoutMinSecs: number; l1TimeoutMaxSecs: number }
 
 /** `IMarketRegistry.BadFeed` codes, as `FeedSpecLib.validate` returns them. */
@@ -273,10 +265,8 @@ export const BadFeed = {
 const MAX_DECIMALS = 18
 
 /**
- * The registry's listing check of a Layer 1 FeedSpec (`FeedSpecLib.validate`, plan §6.3 rule 3, O20.2): the
- * first failing BadFeed code in code order 1..12, or 0. `l1Host` is `allowList[0]`; `authRefKnown` is
- * `spec.authRef == 0 || registry.authRefKnown(spec.authRef)`. The listing CLI runs it before a pack goes on
- * chain; `vectors/feedspec.json` pins it to the Solidity code.
+ * `FeedSpecLib.validate`: the first failing BadFeed code (1..12), or 0. `authRefKnown` is
+ * `spec.authRef == 0 || registry.authRefKnown(spec.authRef)`.
  */
 export function validateSpec(spec: FeedSpec, l1Host: string, authRefKnown: boolean, b: TimingBounds): number {
   const url = codeOfThrow(() => checkTemplate(spec.urlTemplate))
@@ -305,7 +295,7 @@ function isValidOpForType(t: number, op: number): boolean {
   return t !== ValueType.STRING || op === Op.EQ || op === Op.NEQ
 }
 
-/** STRING: non-empty; INT and DECIMAL: the evaluator's own typed parse (no rounding). */
+/** STRING must be non-empty; INT and DECIMAL must pass the typed parse. */
 function isValidTarget(target: string, t: ValueType, decimals: number): boolean {
   if (t === ValueType.STRING) return target.length > 0
   return codeOfThrow(() => parseTyped(target, t, decimals)) === undefined
@@ -325,7 +315,7 @@ function codeOfThrow(f: () => unknown): string | undefined {
 export function allowListed(url: string, allowList: string[]): boolean {
   try {
     const h = hostOf(url)
-    return allowList.length > 0 && allowList[0] === h // Layer 1 host is listed first
+    return allowList.length > 0 && allowList[0] === h // the Layer 1 host is listed first
   } catch {
     return false
   }

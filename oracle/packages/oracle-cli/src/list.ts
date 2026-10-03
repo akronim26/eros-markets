@@ -1,15 +1,13 @@
-// `oracle-cli list` (plan §12.9 steps 2 and 6, O22.2): from a listing input, writes listings/<marketId>/ with
-// pack.json (the createMarket arguments in ListMarket's schema), reference.json (the captured response of a
-// finished event; its keccak256 is dryRunHash) and claim.txt (rendered by ClaimRenderer). Before writing, it
-// checks the FeedSpec with the evaluator package, that the reference evaluates to YES or NO, the claim length
-// against maxClaimBytes, and createMarket itself in a Foundry dry-run (CheckPack). Any failure throws and
-// writes nothing.
+// `oracle-cli list`: writes listings/<marketId>/ with pack.json (ListMarket's input), reference.json (a finished
+// event's response; its keccak256 is dryRunHash) and claim.txt. Writes nothing unless the FeedSpec, the reference
+// outcome, the claim length and a createMarket dry-run all pass.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { buildUrl, evaluateResponse, type FeedSpec, MAX_BODY_BYTES, validateSpec } from '@eros-oracle/feedspec'
 import { BadFeed } from '@eros-oracle/feedspec'
-import { getAddress, type Hex, keccak256, toBytes } from 'viem'
-import { checkPack, ORACLE_ROOT, renderClaim } from './forge'
+import { InvalidTemplate, l1Evidence, NoOutcome, renderClaim, worstCaseLength } from '@eros-oracle/oracle-sdk'
+import { getAddress, type Hex, keccak256, stringToBytes, toBytes } from 'viem'
+import { checkPack, ORACLE_ROOT } from './forge'
 import { type Listing, listingSchema, stringify } from './schema'
 
 export const ZERO32 = `0x${'00'.repeat(32)}` as Hex
@@ -17,15 +15,15 @@ export const ZERO32 = `0x${'00'.repeat(32)}` as Hex
 export class ListError extends Error {}
 
 export type ListOptions = {
-  input: string // path of the listing input (schema.ts)
-  network?: string // params.<network>.json and deployments/<network>.json; default monad-testnet
-  referenceFile?: string // a captured response to use instead of fetching the reference URL
+  input: string
+  network?: string // default monad-testnet
+  referenceFile?: string // used instead of fetching the reference URL
   out?: string // default <oracle>/listings
-  oracle?: string // claim binding; default deployments/<network>.json
-  chainId?: bigint // claim binding; default params.<network>.json
-  check?: boolean // run the createMarket dry-run (default true)
-  now?: bigint // listing time for the dry-run; default the wall clock
-  providers?: string[] // hosts assumed on the global provider list in the dry-run (params.providers is empty until X03/X04)
+  oracle?: string // default deployments/<network>.json
+  chainId?: bigint // default params.<network>.json
+  check?: boolean // createMarket dry-run, default true
+  now?: bigint // listing time for the dry-run, default now
+  providers?: string[] // hosts assumed on the global provider list in the dry-run
   force?: boolean // replace an existing pack directory
   fetchImpl?: typeof fetch
   env?: Record<string, string | undefined>
@@ -44,7 +42,7 @@ export type ListResult = {
 
 export const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'))
 
-/** The listing input, validated against the schema (ListError on any issue). */
+/** Throws ListError on any schema issue. */
 export function readListing(path: string): Listing {
   const parsed = listingSchema.safeParse(readJson(path))
   if (!parsed.success) throw new ListError(`bad listing input: ${parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`)
@@ -65,7 +63,7 @@ export async function list(o: ListOptions): Promise<ListResult> {
   const m = input.marketInput
   const feed: FeedSpec = { ...m.feed }
 
-  // Rule 3 offline first (the evaluator package's mirror of FeedSpecLib), for a readable error.
+  // Check the FeedSpec offline first, for a readable error.
   const authRefKnown = feed.authRef === ZERO32 || (params.authRefs as string[]).some((r) => keccak256(toBytes(r)) === feed.authRef.toLowerCase())
   const code = validateSpec(feed, m.allowList[0], authRefKnown, g)
   if (code !== BadFeed.OK) {
@@ -73,7 +71,7 @@ export async function list(o: ListOptions): Promise<ListResult> {
     throw new ListError(`BadFeed(${code}) ${name}: the FeedSpec fails createMarket rule 3`)
   }
 
-  // Step 2: the reference response, which must be a finished event (YES or NO).
+  // The reference must be a finished event (YES or NO).
   const refSpec = { ...feed, urlParam: input.reference.urlParam }
   const refUrl = buildUrl(refSpec)
   const body = o.referenceFile ? new Uint8Array(readFileSync(o.referenceFile)) : await fetchReference(refUrl, feed.authRef, network, o)
@@ -115,21 +113,26 @@ export async function list(o: ListOptions): Promise<ListResult> {
   }
   const packJson = stringify(pack)
 
-  // Step 6: the claim a Layer 1 YES proposal would assert, and the registry's length bound.
-  const { claim, worstCase } = renderClaim(
-    m.claimTemplate,
-    {
-      marketId, chainId: o.chainId ?? BigInt(params.chainId), oracle: claimOracle(network, o), question: m.question,
-      rules: m.rules, tau: m.tau, outcome: 1, evidenceHash: ZERO32, // the report's hash exists only once the report does
-    },
-    buildUrl(feed),
-    valueHash,
-  )
+  // The claim a Layer 1 YES proposal would assert, and the registry's length bound.
+  const l1Url = buildUrl(feed)
+  const fields = {
+    marketId, chainId: o.chainId ?? BigInt(params.chainId), oracle: claimOracle(network, o), question: m.question,
+    rules: m.rules, tau: m.tau, outcome: 1, evidence: l1Evidence(valueHash, l1Url),
+    evidenceHash: ZERO32, // unknown until the report exists
+  }
+  let claim: Uint8Array
+  let worstCase: bigint
+  try {
+    claim = renderClaim(m.claimTemplate, fields)
+    worstCase = worstCaseLength(m.claimTemplate, byteLength(m.question), byteLength(m.rules), byteLength(l1Url))
+  } catch (e) {
+    if (e instanceof InvalidTemplate || e instanceof NoOutcome) throw new ListError(`claim render failed: ${e.message}`)
+    throw e
+  }
   const maxClaimBytes = Number(g.maxClaimBytes)
   if (worstCase > BigInt(maxClaimBytes)) throw new ListError(`ClaimTooLong: worst case ${worstCase} bytes > maxClaimBytes ${maxClaimBytes} (rule 6)`)
   if (claim.length > maxClaimBytes) throw new ListError(`ClaimTooLong: ${claim.length} bytes > maxClaimBytes ${maxClaimBytes}`)
 
-  // createMarket in a Foundry dry-run: every registry rule, applied by the contracts.
   const check = o.check === false ? undefined : checkPack(packJson, { params: paramsPath, now: o.now, providers: o.providers })
 
   const dir = packDir(input, o.out)
@@ -144,7 +147,9 @@ export async function list(o: ListOptions): Promise<ListResult> {
   }
 }
 
-/** The oracle address the claim names: --oracle, else the deployment of the network. */
+const byteLength = (s: string) => stringToBytes(s).length
+
+/** --oracle, else the network's deployment. */
 function claimOracle(network: string, o: ListOptions): Hex {
   if (o.oracle) return getAddress(o.oracle)
   const path = join(ORACLE_ROOT, 'deployments', `${network}.json`)
@@ -152,7 +157,7 @@ function claimOracle(network: string, o: ListOptions): Hex {
   return getAddress(readJson(path).contracts.ResolutionOracle.address)
 }
 
-/** The headers a DON node sends: accept, plus the authRef's secret from the workflow config (§7.4). */
+/** Accept, plus the authRef's secret from the workflow config, as a DON node sends. */
 export function nodeHeaders(authRef: string, network: string, env: Record<string, string | undefined> = process.env): Record<string, string> {
   const headers: Record<string, string> = { accept: 'application/json' }
   if (authRef === ZERO32) return headers
@@ -170,11 +175,10 @@ export function nodeHeaders(authRef: string, network: string, env: Record<string
 
 export type AuthSecret = { authRef: string; secretId: string; header: string; prefix: string }
 const workflowConfigName = (network: string) => `config.${network === 'monad-mainnet' ? 'production' : 'staging'}.json`
-/** The resolution workflow's authRef table for the network (the dry-run workflow uses the same one). */
+
 export const authSecretsFor = (network: string): AuthSecret[] =>
   readJson(join(ORACLE_ROOT, 'workflows', 'resolution', workflowConfigName(network))).authSecrets
 
-/** GET the reference URL as a DON node would. */
 async function fetchReference(url: string, authRef: string, network: string, o: ListOptions): Promise<Uint8Array> {
   const headers = nodeHeaders(authRef, network, o.env)
   const resp = await (o.fetchImpl ?? fetch)(url, { headers, signal: AbortSignal.timeout(10_000) })
