@@ -1,0 +1,231 @@
+{
+  "mode": "FIXTURE_SOURCE_REAL_LOCAL_INGRESS",
+  "source": "fixture",
+  "chainId": 31337,
+  "startedAt": 1791055883028,
+  "archive": "var/pipeline-1791055883028-4ee309f1-5169-4537-8e02-408a10622149",
+  "results": [
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "1",
+      "transactionHash": "0x8ab4053b2ccf75ab7ef79fa0b93647dfceab11e168d78788d9952cd9337d6e24",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "2",
+      "transactionHash": "0x141b11bb946a7ff96c90170ed9fa9ccc1383d2f65158851de524c983f0cb568a",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "3",
+      "transactionHash": "0xea29c087deb818758be5783ad8663cac218973ceb2f62791f7de3af6aa96bbc2",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "4",
+      "transactionHash": "0x8803d1f6fc2abd8d9db83d6365cd4058d564e51688ff056310a7496a7a12b8f8",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "5",
+      "transactionHash": "0x58e0c3d8bbaaed425e4accee2ec29b4dd0a277aa4daeb3d6193f565b4df76935",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "6",
+      "transactionHash": "0x37067c645890d8efadf72da368350888d6ff491e54f3cfe4ce44b8e2d3410d7a",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "7",
+      "transactionHash": "0xedc5bdefbbad1c41f6774b2c0566eb0a0f4f587f45c602dc4cba78d6cc4b51a4",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "8",
+      "transactionHash": "0x136165a35fe3ed3529e25468e9c35261c1818a30b9bfdc385be3eea9cd4f615a",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "9",
+      "transactionHash": "0xb031cbcca9ffec360cbf0296acf89d3b79cb3c4c528703067fb731154af2fec7",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "10",
+      "transactionHash": "0x23e82ea036920ccfc5c91dd5f56107831e2921b61c1745888409f956b78d1713",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "11",
+      "transactionHash": "0xbc2e835ca52c556f475cde40a1032e63452cabb276b4bf9d41b4b2e0474c1f1d",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "12",
+      "transactionHash": "0x8cd64742f3e9bb712961b25bde2ae51685ed253fc0c44a4a899ac237357e6297",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "13",
+      "transactionHash": "0x931f63d6b9ab0cca4aa357f01b5fe2168e60f644cef8b78d7ff132cf28854f2f",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "14",
+      "transactionHash": "0x132be17ba38f879b5513b5cdf77983a1ba140656217d9341109f26165fd1a2f5",
+      "depthValid": true
+    },
+    {
+      "worker": "crypto-example",
+      "state": "FINALIZED",
+      "reason": null,
+      "sequence": "15",
+      "transactionHash": "0x85f69bb769011dade8f0472f46f5414bb418570bb878cfd574cea3b7c564f77a",
+      "depthValid": true
+    }
+  ],
+  "externalChainTransactions": 0,
+  "productionApproved": false,
+  "fullEconomicEngine": false,
+  "completed": true,
+  "config": {
+    "schemaVersion": "1",
+    "configVersion": "diagnostic-1",
+    "key": "crypto-example",
+    "category": "crypto",
+    "enabled": false,
+    "destination": {
+      "chainId": "31337",
+      "engineAddress": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "engineCodeHash": "0x01cdd184ab1e00de3aedb33dc70ff0ac77bfe9e665f79e6637b3bddad822dc68",
+      "abiHash": "0x5e555afca0a7da4c3161fdb9073b652d4b8e0b483be8ddaf668ea962b11629f0",
+      "marketId": "0x5860cc2490a8ce1c69555ee0990ef4366d761b96f140ab1fcd438c0e5f2d7f5f",
+      "sourceId": "0x70078780ce500ba54552de59b3c9886e3da6301b7821c12a4504e1396a2e28be",
+      "sourceRulesHash": "0x52a3594fcdd0ff4c232e4b594043d1d313844ee8096b236de87dc09cbe954ae7",
+      "signerAddress": "0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A",
+      "listedAt": "1791055883",
+      "scheduledT": "1791228683",
+      "invalidRule": {
+        "fallbackListed": true,
+        "captureGraceSecs": "3600",
+        "voidSecs": "2592000",
+        "fallbackPriceWad": "500000000000000000"
+      }
+    },
+    "mapping": {
+      "eventId": "1112205",
+      "externalMarketId": "5170735",
+      "conditionId": "0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb",
+      "outcomeTokenId": "60853708478456543766262549859214991255573301006704578370875039498477095018713",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "vendor-ms-floor-diagnostic-only",
+      "quantityPolicyId": "claims-to-lots-floor-total-diagnostic-only",
+      "quotePolicyId": "vendor-quote-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": null,
+    "poll": {
+      "intervalMs": 100,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 1000000
+    }
+  },
+  "rules": {
+    "schemaVersion": "1",
+    "venue": "polymarket",
+    "eventId": "1112205",
+    "externalMarketId": "5170735",
+    "conditionId": "0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb",
+    "outcomeTokenId": "60853708478456543766262549859214991255573301006704578370875039498477095018713",
+    "outcomeLabel": "Yes",
+    "marketId": "0x5860cc2490a8ce1c69555ee0990ef4366d761b96f140ab1fcd438c0e5f2d7f5f",
+    "sourceId": "0x70078780ce500ba54552de59b3c9886e3da6301b7821c12a4504e1396a2e28be",
+    "erosRulesHash": "0xe5bd77d9b026361e3151316946f99158650c53bc59cff432a5df66370317010d",
+    "externalRulesDigest": "0x600e12b83bbef00485c6379a8ee1d55d4d9857bab96dc5243f79a29360dd2e0e",
+    "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+    "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+    "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+    "failurePolicyHash": "0xe160765701c8fe77ea7c9d0a15d548275b92e0cd0f4147091bd0f01dd25725b6",
+    "scheduledT": "1791228683",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+  },
+  "receiver": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+  "acceptedPackets": 15,
+  "twap": {
+    "actual": {
+      "available": false,
+      "twapWad": "0",
+      "coveredSecs": "3",
+      "integral": "1800000000000000000"
+    },
+    "expected": {
+      "available": false,
+      "twapWad": "0",
+      "coveredSecs": "3",
+      "integral": "1800000000000000000"
+    },
+    "verified": true
+  },
+  "finishedAt": 1791055886696
+}
