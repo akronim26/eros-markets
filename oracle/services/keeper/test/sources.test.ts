@@ -77,7 +77,7 @@ describe('RegistryLogSource', () => {
           throw new Error('rpc: range too large')
         }
         ranges.push([fromBlock, toBlock])
-        return [...listed].filter(([b]) => b >= fromBlock && b <= toBlock).map(([, i]) => ({ args: { id: i } }))
+        return [...listed].filter(([b]) => b >= fromBlock && b <= toBlock).map(([, i]) => ({ args: { id: i } as Record<string, unknown> }))
       },
     }
     return { c, ranges }

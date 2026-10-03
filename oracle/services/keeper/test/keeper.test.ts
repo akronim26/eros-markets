@@ -232,6 +232,15 @@ describe('isolation', () => {
   })
 })
 
+describe('options', () => {
+  test('an option passed as undefined keeps its default', async () => {
+    const chain = new FakeChain()
+    chain.failSend = 1
+    const k = new Keeper({ chain, source: new StaticSource([id(1)]), planners: [bumpPlanner()], gas: GAS, log: undefined, sleep: undefined })
+    expect(outcomes(await k.tick())).toEqual(['failed']) // the failure path logs: the default logger is there
+  })
+})
+
 describe('job keys', () => {
   test('the key is case-insensitive in the ids and distinct per action', () => {
     const base = { marketId: id(1), stateVersion: stateVersion(resolution()), action: 'request' }

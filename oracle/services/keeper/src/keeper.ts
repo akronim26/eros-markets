@@ -11,11 +11,15 @@
 // unconfirmed past `resendAfterMs`, so a lost transaction is retried.
 // O31.2: planners also see the market's listing (read once, it never changes), lazy reads (venue status, treasury,
 // globals) and an `alert`; jobs sharing a batch key that pass their checks are sent as one call (finalizeMany).
+// O31.3: a planner may return fallbacks: the jobs are tried in order and the first that would revert or change
+// nothing gives way to the next (engine follow-up). A job may carry its own state version (`freshVersion`: engine
+// progress, a treasury dispute). Global planners plan jobs that belong to no market (treasury) or only alert.
 import { type GasTable, gasLimit } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { jobKey, stateVersion } from './version'
 import type {
   Chain,
+  GlobalPlanner,
   Job,
   JobResult,
   Logger,
@@ -33,6 +37,8 @@ export type KeeperOptions = {
   chain: Chain
   source: MarketSource
   planners: Planner[]
+  /** Treasury jobs and checks, after the market jobs (O31.3). */
+  globalPlanners?: GlobalPlanner[]
   gas: GasTable
   /** Wait between planning and sending; the second instance runs with an offset so it sees the first's effects. */
   delayMs?: number
@@ -47,7 +53,9 @@ export type KeeperOptions = {
 
 export type TickReport = { markets: number; unreadable: number; results: JobResult[] }
 
-type Sent = { hash: Hex | null; at: number } // hash null while the send is in flight
+// hash null while the send is in flight; `oracle` when the key's version is the market's resolution (pruned when it
+// changes), otherwise a job-specific version (pruned some time after its transaction succeeded)
+type Sent = { hash: Hex | null; at: number; oracle: boolean }
 type Checked = { job: Job; key: string; gas: bigint }
 
 const defaultNoop = (result: unknown) => result === false
@@ -72,7 +80,7 @@ export class Keeper {
   private readonly sent = new Map<string, Sent>()
   private readonly infos = new Map<Hex, MarketInfo>()
   private readonly intervals = new Map<number, bigint>()
-  private readonly o: Required<Omit<KeeperOptions, 'chain' | 'source' | 'planners' | 'gas'>> & KeeperOptions
+  private readonly o: Required<Omit<KeeperOptions, 'chain' | 'source' | 'planners' | 'gas' | 'globalPlanners'>> & KeeperOptions
 
   constructor(opts: KeeperOptions) {
     this.o = {
@@ -82,7 +90,7 @@ export class Keeper {
       log: silentLogger,
       sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
       clock: () => Date.now(),
-      ...opts,
+      ...(Object.fromEntries(Object.entries(opts).filter(([, v]) => v !== undefined)) as KeeperOptions), // undefined keeps the default
     }
   }
 
@@ -99,7 +107,8 @@ export class Keeper {
     const views = await mapLimit(ids, this.o.concurrency, async (id): Promise<MarketView | null> => {
       try {
         const resolution = await chain.getResolution(id)
-        return { id, resolution, stateVersion: stateVersion(resolution), now, info: await this.info(id), reads: this.reads(id, resolution), alert: this.alert(id) }
+        const info = await this.info(id)
+        return { id, resolution, stateVersion: stateVersion(resolution), now, info, reads: this.reads(id, resolution, info), alert: this.alert(id) }
       } catch (e) {
         log.warn('market unreadable', { marketId: id, error: String(e) })
         return null
@@ -108,18 +117,29 @@ export class Keeper {
     const readable = views.filter((v): v is MarketView => v !== null)
     this.forgetOlderVersions(readable)
 
-    const jobs: Job[] = []
+    const lists: Job[][] = []
     for (const v of readable) {
-      const job = await this.plan(v)
-      if (job) jobs.push(job)
+      const jobs = await this.plan(v)
+      if (jobs.length) lists.push(jobs)
     }
-    if (jobs.length && this.o.delayMs > 0) await this.o.sleep(this.o.delayMs)
+    const globals: Job[] = []
+    for (const g of this.o.globalPlanners ?? []) {
+      try {
+        const reads = { treasury: () => chain.treasuryState(), dispute: (a: Hex) => chain.treasuryDispute(a) }
+        globals.push(...(await g({ now, markets: readable, reads, alert: (msg, data = {}) => log.error(msg, { alert: true, ...data }) })))
+      } catch (e) {
+        log.error('global planner failed', { error: String(e) })
+      }
+    }
+    if ((lists.length || globals.length) && this.o.delayMs > 0) await this.o.sleep(this.o.delayMs)
 
-    const single = jobs.filter((j) => !j.batch)
+    // A batchable first job joins its batch; otherwise the market's jobs are tried in order.
+    const single = lists.filter((l) => !l[0].batch)
     const batched = new Map<string, Job[]>()
-    for (const j of jobs) if (j.batch) batched.set(j.batch.key, [...(batched.get(j.batch.key) ?? []), j])
-    const results = await mapLimit(single, this.o.concurrency, (j) => this.execute(j))
+    for (const [j] of lists.filter((l) => l[0].batch)) batched.set(j.batch!.key, [...(batched.get(j.batch!.key) ?? []), j])
+    const results = (await mapLimit(single, this.o.concurrency, (l) => this.executeInOrder(l))).flat()
     for (const group of batched.values()) results.push(...(await this.executeBatch(group)))
+    for (const j of globals) results.push(await this.execute(j)) // in planned order: closeDispute before skim
     return { markets: ids.length, unreadable: views.length - readable.length, results }
   }
 
@@ -132,9 +152,10 @@ export class Keeper {
     return i
   }
 
-  private reads(id: Hex, r: Resolution): MarketReads {
+  private reads(id: Hex, r: Resolution, info: MarketInfo): MarketReads {
     const { chain } = this.o
     return {
+      settlementStatus: () => chain.settlementStatus(info.engine),
       assertionStatus: () => chain.assertionStatus(r.assertionVenue as Hex, r.assertionId as Hex),
       assertionLedger: () => chain.assertionLedger(),
       bondFor: () => chain.bondFor(id),
@@ -154,27 +175,42 @@ export class Keeper {
     return (msg: string, data: Record<string, unknown> = {}) => this.o.log.error(msg, { alert: true, marketId: id, ...data })
   }
 
-  /** The first job the planners give for this market; a planner that throws is logged and skipped. */
-  private async plan(v: MarketView): Promise<Job | null> {
+  /**
+   * The jobs of the first planner that has any for this market (in its order: the first that can be sent wins);
+   * a planner that throws is logged and skipped. A job must be for this market, and at its state version unless it
+   * carries its own (`freshVersion`).
+   */
+  private async plan(v: MarketView): Promise<Job[]> {
     for (const planner of this.o.planners) {
       try {
         const jobs = await planner(v)
         for (const j of jobs) {
-          if (j.marketId.toLowerCase() !== v.id || j.stateVersion !== v.stateVersion) {
+          if (j.marketId.toLowerCase() !== v.id || (!j.freshVersion && j.stateVersion !== v.stateVersion)) {
             throw new Error(`planner returned a job for ${j.marketId}@${j.stateVersion}, not the market it was given`)
           }
         }
-        if (jobs.length) return jobs[0]
+        if (jobs.length) return jobs
       } catch (e) {
         this.o.log.error('planner failed', { marketId: v.id, error: String(e) })
       }
     }
-    return null
+    return []
   }
 
-  /** Sends one job if all four checks pass; never throws. */
-  async execute(job: Job): Promise<JobResult> {
-    const c = await this.check(job)
+  /** Tries a market's jobs in order: one that would revert or change nothing gives way to the next. */
+  private async executeInOrder(jobs: Job[]): Promise<JobResult[]> {
+    const results: JobResult[] = []
+    for (let i = 0; i < jobs.length; i++) {
+      const r = await this.execute(jobs[i], i < jobs.length - 1)
+      results.push(r)
+      if (r.outcome !== 'reverts' && r.outcome !== 'noop') break
+    }
+    return results
+  }
+
+  /** Sends one job if all four checks pass; never throws. `fallback`: another job follows if this one gives way. */
+  async execute(job: Job, fallback = false): Promise<JobResult> {
+    const c = await this.check(job, fallback)
     if (!('gas' in c)) return c
     return (await this.send(c.job, [c], c.gas))[0]
   }
@@ -209,7 +245,7 @@ export class Keeper {
   }
 
   /** Checks 1-4 for one job; claims its key on success (released again on any failure). */
-  private async check(job: Job): Promise<Checked | JobResult> {
+  private async check(job: Job, fallback = false): Promise<Checked | JobResult> {
     const { chain, log } = this.o
     const key = jobKey(job)
     const result = (outcome: JobResult['outcome'], extra: Partial<JobResult> = {}): JobResult => ({ key, job, outcome, ...extra })
@@ -222,9 +258,9 @@ export class Keeper {
       log.error('no measured gas limit: job not sent', { key, gasKey: job.gasKey })
       return result('no-gas-limit', { error: String(e) })
     }
-    this.sent.set(key, { hash: null, at: this.o.clock() }) // claimed before any await: a concurrent duplicate stops at the check above
+    this.sent.set(key, { hash: null, at: this.o.clock(), oracle: !job.freshVersion }) // claimed before any await: a concurrent duplicate stops at the check above
     try {
-      const fresh = stateVersion(await chain.getResolution(job.marketId))
+      const fresh = job.freshVersion ? await job.freshVersion() : stateVersion(await chain.getResolution(job.marketId))
       if (fresh !== job.stateVersion) {
         this.sent.delete(key)
         log.info('stale job dropped', { key, now: fresh })
@@ -235,7 +271,7 @@ export class Keeper {
         simulated = await chain.simulate(job)
       } catch (e) {
         this.sent.delete(key)
-        log.warn('job would revert: not sent', { key, error: String(e) })
+        log[fallback ? 'info' : 'warn']('job would revert: not sent', { key, error: String(e) })
         return result('reverts', { error: String(e) })
       }
       if ((job.isNoop ?? defaultNoop)(simulated)) {
@@ -254,7 +290,7 @@ export class Keeper {
   private async send(call: Job, members: Checked[], gas: bigint): Promise<JobResult[]> {
     try {
       const hash = await this.o.chain.send(call, gas)
-      for (const m of members) this.sent.set(m.key, { hash, at: this.o.clock() })
+      for (const m of members) this.sent.set(m.key, { hash, at: this.o.clock(), oracle: !m.job.freshVersion })
       this.o.log.info('sent', { keys: members.map((m) => m.key), hash, gas: gas.toString() })
       return members.map((m) => ({ key: m.key, job: m.job, outcome: 'sent' as const, hash }))
     } catch (e) {
@@ -267,7 +303,8 @@ export class Keeper {
   /** Keys of a market whose state version has changed can never be sent again; drop them. */
   private forgetOlderVersions(views: MarketView[]) {
     const current = new Map(views.map((v) => [v.id, v.stateVersion.toLowerCase()]))
-    for (const key of this.sent.keys()) {
+    for (const [key, s] of this.sent) {
+      if (!s.oracle) continue
       const [id, version] = key.split(':')
       const now = current.get(id as Hex)
       if (now !== undefined && now !== version) this.sent.delete(key)
@@ -291,6 +328,8 @@ export class Keeper {
       } else if (status === 'pending' && t - s.at > this.o.resendAfterMs) {
         this.sent.delete(key)
         this.o.log.warn('no receipt: job may be resent', { key, hash: s.hash })
+      } else if (status === 'success' && !s.oracle && t - s.at > this.o.resendAfterMs) {
+        this.sent.delete(key) // its own version has moved on; nothing would match this key again
       }
     }
   }

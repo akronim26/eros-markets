@@ -149,6 +149,20 @@
       "perExtraMarket": 220000,
       "maxBatch": 4
     },
+    "closeDispute": {
+      "transaction": 117878,
+      "execution": 92575,
+      "limit": 150000,
+      "status": "measured",
+      "note": "Keeper (O31.3): BondTreasury.closeDispute on its costlier path (venue never settled; the market is Final with VOID_DEADLINE, so the oracle's resolution is read too). No plan 6.9 budget."
+    },
+    "skim": {
+      "transaction": 49952,
+      "execution": 25936,
+      "limit": 60000,
+      "status": "measured",
+      "note": "Keeper (O31.3): BondTreasury.skim on the path that credits WATCHDOG_FLOAT (a donation larger than the bonds out at the venue); the zero-credit path costs less (45.7k). No plan 6.9 budget."
+    },
     "createMarket": {
       "transaction": 6863399,
       "execution": 6148251,
