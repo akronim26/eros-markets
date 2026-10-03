@@ -6,7 +6,9 @@ what actually changed, why, verification, failures and remaining decisions. Afte
 the user commits, record the real hash, message and timestamp from Git, then start
 a new pending entry. Never invent a commit, approval, passing check or resolved
 decision. The user makes commits; reminders are every five minutes during active
-work. Entries for the first three commits were reconstructed on 2 October 2026
+work. From 03 October 2026, suggested messages must start with `feat:`, `test:`
+or `fix:` as explicitly requested by the user. Entries for the first three commits
+were reconstructed on 2 October 2026
 from Git and retained evidence; unavailable historical results are stated below.
 
 ## Scope and fixed contract
@@ -249,7 +251,13 @@ these final two fixes. The preceding source capture remains limited evidence of
 the earlier read-only code, not a claim of a continuously operating production
 service. Q02-Q10, I-3 confirmation and all human gates remain open.
 
-## Pending commit — actual Polymarket data into a local demo market
+## Commit c6f8e12 — actual Polymarket data into a local demo market
+
+Full hash: `c6f8e12d1c141638fa59b98d31562caa8c480adb`
+
+Committed: 2026-10-03 12:58:33 +05:30
+
+Message: `feat(pricefeed): add live-data local demo and status report`
 
 Base commit: `cd18c919e77b7be72d720fa8c41b14aa75c5f8ae`. Suggested message:
 `feat(pricefeed): add live-data local demo and status report (PF020)`.
@@ -323,3 +331,41 @@ working diff confined to `packages/pricefeed/`.
 
 **Remaining.** Production builder/signing/relay/recovery, approved mapping and release remain
 incomplete; this demo is local integration evidence only, not PF acceptance.
+
+## Imported merge 08095a8 — updated risk integration baseline
+
+Full hash: `08095a802ec503dfd24eea2e0acc253d11db7742`
+
+Committed: 2026-10-03 12:59:12 +05:30
+
+Message: `Merge remote-tracking branch 'origin/integration/risk' into pricefeed`
+
+The user merged risk commit `16f0d90` and its Book/A/B integration changes.
+Those counterpart changes were imported by this pre-existing merge, not edited by
+the pricefeed agent. The exact `IPriceSource`, `PriceIngress` and `ObservationStore`
+sources are unchanged from the earlier checked baseline. The old scope checker
+still pins the original pre-merge protected hashes; its earlier pass must not be
+claimed as a current post-merge pass. No baseline was silently refreshed.
+
+## Pending commit — wire confirmation and Q02 decision review
+
+Base commit: `08095a802ec503dfd24eea2e0acc253d11db7742`.
+Suggested message: `test: record pricefeed wire and impact verification (PF002-PF003)`.
+
+**What happened.** The user requested sequential resolution of requirements.
+Added `docs/wire-contract.md` recording the existing eleven-field/raw-signature
+contract and current technical compatibility, and `docs/impact-decision.md`
+explaining the next unresolved VWAP/marginal choice using the plan's multi-level
+example. Neither record invents human acceptance or production policy approval.
+Recorded the actual demo commit and imported merge above.
+
+**Verification.** Current wire comparison exited 0. `npm run test:reference`
+exited 0 with 144 Fraction vectors, seed 20261002. The existing compiled math
+suite exited 0: 147 tests, zero failed/skipped/cancelled/todo cases. Independent
+Fraction arithmetic confirmed VWAP 0.592/0.628 and marginal 0.58/0.64, with
+spreads 0.036 and 0.06 respectively. No runtime code changed or new chain/network
+demo was run. These checks do not re-certify full economic integration.
+
+**Decisions.** Wire engineering compatibility is confirmed; named acceptance
+remains separate. Q02 method/rounding/depth/fees remains OPEN until an explicit
+owner decision. Q03-Q10 remain OPEN. Only package documentation changed.
