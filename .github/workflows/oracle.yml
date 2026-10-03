@@ -100,4 +100,4 @@ jobs:
         with:
           python-version: "3.12"
       # The dataset itself is local only (ADJ-39): here the fixture and pin tests run and the dataset tests skip.
-      - run: python3 -m unittest tests/test_dataset.py
+      - run: python3 -m unittest discover -s tests -t .
