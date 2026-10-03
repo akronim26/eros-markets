@@ -1,0 +1,42 @@
+{
+  "model": "groq:qwen/qwen3.8-27b@2026-10-03",
+  "scenario": "home-1-1",
+  "recordedAt": "2026-10-03T16:12:22.433Z",
+  "httpStatus": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "id": "chatcmpl-de8f3b50-8ee4-44fc-ba71-9d0754936579",
+    "object": "chat.completion",
+    "created": 1791043942,
+    "model": "qwen/qwen3.8-27b",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"outcome\": \"NO\", \"confidence\": 1.0, \"sources\": [1, 2], \"reason\": \"Both listed sources confirm the match was played and finished with a final score of 1-1. The home team scored 1 goal, which is not above 2. Therefore, the condition for YES is not met.\"}"
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "queue_time": 0.05093319,
+      "prompt_tokens": 410,
+      "prompt_time": 0.029834619,
+      "completion_tokens": 74,
+      "completion_time": 0.142792359,
+      "total_tokens": 484,
+      "total_time": 0.172626978
+    },
+    "usage_breakdown": null,
+    "system_fingerprint": "fp_a1293f40b5",
+    "x_groq": {
+      "id": "req_01m418kdw8eh9r7h3ak4as3p2m",
+      "seed": 0
+    },
+    "service_tier": "on_demand"
+  }
+}
