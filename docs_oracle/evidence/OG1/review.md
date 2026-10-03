@@ -136,12 +136,12 @@ The existing evidence was taken into account:
 Oracle CI runs `FOUNDRY_PROFILE=ci` (fmt check, build with sizes, unit, fuzz, the 15 invariants at 256 × 128, real
 UMA, seam, vectors), plus the packages, workflow and dryrun jobs.
 
-- **Run for `46991be`:** run 37105657314 (filled in below when it completes).
-- **This review's change** (L-1, a comment move) is pushed in a follow-up commit; that run is recorded too.
+Both runs below passed every job (forge, packages, workflow, dryrun). `7119c72` includes this review's L-1 fix.
 
 | Commit | Run | Result |
 |---|---|---|
-| `46991be` | 37105657314 | _pending_ |
+| `46991be` | 37105657314 | success |
+| `7119c72` | 37105877808 | success |
 
 ## Sign-off
 
