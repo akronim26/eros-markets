@@ -264,6 +264,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         permit.remainingFeeCapQ -= f.takerPermitFeeUsedQ;
         _recheck(f.taker, _combined(f.taker));
         _recheck(f.maker, _resSums(f.maker));
+        if (permit.reduceOnly) permit.reduceVersion = _acctAccount(f.taker).positionVersion;
     }
 
     /// @dev Post-fill recheck with updated mutable aggregates; failure after a proven preflight is
@@ -322,8 +323,15 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         if (lotsToRest == 0 || lotsToRest > permit.remainingLots) {
             revert RestRejected(RejectCode.INVALID_PRICE_OR_SIZE);
         }
-        feeCapQ = permit.remainingFeeCapQ * lotsToRest / permit.remainingLots;
         bool isBid = permit.side == MathTypes.Side.BUY;
+        if (permit.reduceOnly) {
+            AccountView memory currentAccount = _acctAccount(permit.trader);
+            if (
+                currentAccount.positionVersion != permit.reduceVersion
+                    || OA.reduceOnlyCap(currentAccount.lots, isBid, lotsToRest) != lotsToRest
+            ) revert RestRejected(RejectCode.NO_REDUCIBLE_POSITION);
+        }
+        feeCapQ = permit.remainingFeeCapQ * lotsToRest / permit.remainingLots;
         _permitConsume(permit.trader, isBid, permit.limitTick, lotsToRest, feeCapQ);
         (tag.marketOrderEpoch, tag.accountOrderEpoch) =
             _resAdd(permit.trader, isBid, permit.limitTick, lotsToRest, feeCapQ);
