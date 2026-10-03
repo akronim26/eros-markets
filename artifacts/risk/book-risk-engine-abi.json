@@ -1,10 +1,10 @@
 {
- "note": "Concrete initial-1x BookRiskEngine deployment and public book ABI. Composes the real Book with RiskAccountingBridge; authenticated INDEX only. Fully backed bootstrap mode until a reviewed PERP depth adapter exists. Funding, recovery and conversion disabled; no test feed or failure injection.",
+ "note": "Concrete initial-1x BookRiskEngine deployment and public book ABI. Composes the real Book with RiskAccountingBridge; authenticated independent INDEX and bounded book-derived PERP sampling with later-block confirmation. Fully backed bootstrap remains available before normal pricing windows are ready. Funding, recovery and conversion disabled; no test feed or failure injection.",
  "source": {
   "src/engine/BookRiskEngine.sol": "BookRiskEngine"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "ee8735d710203df5f1f4aea37e1860010729a9782623e33be8b8f266fc26614d",
+ "source_sha256": "a5499d80b5e96fd6e06f2c04e0a14281ceebd3715e738e4a5b7890a3d3de7e58",
  "abi": [
   {
    "type": "constructor",
@@ -934,6 +934,51 @@
      "name": "ask",
      "type": "uint16",
      "internalType": "uint16"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "bookDepth",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "tuple",
+     "internalType": "struct BookDepthSampler.BookDepthQuote",
+     "components": [
+      {
+       "name": "bidWad",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "askWad",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "bidDepthLots",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "askDepthLots",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "examined",
+       "type": "uint16",
+       "internalType": "uint16"
+      },
+      {
+       "name": "fingerprint",
+       "type": "bytes32",
+       "internalType": "bytes32"
+      }
+     ]
     }
    ],
    "stateMutability": "view"
@@ -2544,6 +2589,19 @@
   },
   {
    "type": "function",
+   "name": "maxBatchActions",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "maxFills",
    "inputs": [],
    "outputs": [
@@ -2746,6 +2804,25 @@
      "name": "",
      "type": "uint256",
      "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "participantId",
+   "inputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint32",
+     "internalType": "uint32"
     }
    ],
    "stateMutability": "view"
@@ -3967,6 +4044,19 @@
   },
   {
    "type": "function",
+   "name": "samplePerp",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "published",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
    "name": "scheduledT",
    "inputs": [],
    "outputs": [
@@ -4932,6 +5022,37 @@
      "type": "uint8",
      "indexed": false,
      "internalType": "enum LiquidationMath.Result"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "BookDepthCaptured",
+   "inputs": [
+    {
+     "name": "observedAt",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    },
+    {
+     "name": "observedBlock",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "examined",
+     "type": "uint16",
+     "indexed": false,
+     "internalType": "uint16"
+    },
+    {
+     "name": "fingerprint",
+     "type": "bytes32",
+     "indexed": false,
+     "internalType": "bytes32"
     }
    ],
    "anonymous": false
@@ -6380,6 +6501,16 @@
   },
   {
    "type": "error",
+   "name": "BatchActionLimit",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "BatchStepLimit",
+   "inputs": []
+  },
+  {
+   "type": "error",
    "name": "BookFull",
    "inputs": []
   },
@@ -6531,6 +6662,11 @@
   },
   {
    "type": "error",
+   "name": "ProfileHazardBounds",
+   "inputs": []
+  },
+  {
+   "type": "error",
    "name": "ProfileListingMismatch",
    "inputs": []
   },
@@ -6558,6 +6694,11 @@
   {
    "type": "error",
    "name": "RiskUnauthorized",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "SameBlockBookSample",
    "inputs": []
   },
   {

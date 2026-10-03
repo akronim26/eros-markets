@@ -19,8 +19,9 @@ EXPORTS = (
         "BookRiskEngine.sol/BookRiskEngine.json",
         "book-risk-engine-abi.json",
         "Concrete initial-1x BookRiskEngine deployment and public book ABI. "
-        "Composes the real Book with RiskAccountingBridge; authenticated INDEX only. "
-        "Fully backed bootstrap mode until a reviewed PERP depth adapter exists. "
+        "Composes the real Book with RiskAccountingBridge; authenticated independent INDEX "
+        "and bounded book-derived PERP sampling with later-block confirmation. "
+        "Fully backed bootstrap remains available before normal pricing windows are ready. "
         "Funding, recovery and conversion disabled; no test feed or failure injection.",
         (),
     ),

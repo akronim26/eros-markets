@@ -4,7 +4,7 @@
   "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "16683169a7e7fc0132c8a98302a1be20606355b69fae893a22a8a712e60f6c9d",
+ "source_sha256": "560de62041057523879f4a1545688b49afca84c8c01dad8c44ba22fc6ee7c42e",
  "abi": [
   {
    "type": "function",
@@ -2303,6 +2303,25 @@
      "name": "",
      "type": "uint256",
      "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "participantId",
+   "inputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint32",
+     "internalType": "uint32"
     }
    ],
    "stateMutability": "view"
@@ -5771,6 +5790,11 @@
   {
    "type": "error",
    "name": "ProfileHashMismatch",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "ProfileHazardBounds",
    "inputs": []
   },
   {
