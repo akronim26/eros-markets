@@ -77,6 +77,29 @@ escrow, with floor-atom withdrawals to the configured immutable treasury.
 - B's historical review must be supplemented by review of these new A/B fixes,
   then a real accepted commit. Automated technical checks do not grant that approval.
 
+## Addendum: 2026-10-03 review of B's newer work
+
+Reviewer: Person A / YASH-ai-bit's Codex agent. Reviewed source tip:
+`250623536768101511999fd2223ba4ce38a6bdd3`; changes after `32d30ac`, especially
+`39205c1` (B-D03), `fe4c4f7` (B-D02), and `a073104` (A-I01). B implemented these
+changes; A reviewed them. No new Critical, High or Medium finding was identified.
+This addendum supersedes the historical retained limitations above for A-I01 and
+B's review of A's earlier fixes. Main's newer book join is a separate validation step.
+
+| Item | A disposition |
+| --- | --- |
+| B-D01 | Acknowledged. The later shared-ownership rules supersede per-file lane ownership; independent peer review of economic changes remains mandatory. B reviewed the earlier A fixes at `32d30ac`. |
+| B-D02 | Accepted. Execution and preview share `_fundingStep`, `_projectedTouch`, `_fundingPayment`, and `_premiumTotalAt`; stopped funding cannot restart through a view. Four new independent tests cover negative funding with each reserve role, exact budget exhaustion with a fractional-second remainder, epoch end and repeated timestamps. |
+| B-D03 | Accepted. The crossing endpoint is less than 2^112 Q, its square less than 2^224, and the accumulated denominator/remainders fit the stated domain. The former overflow concern is not reachable within that domain. Both B's domain tests pass. |
+| B-D04 | Accepted for conversion-disabled v1. LP/reserve-treasury claims still select CASH conservatively. A-I01 changes protocol/keeper fee withdrawals to global fee/free balances, so they no longer use the engine cash-claim fence. |
+| B-D05 | Accepted. Without a normal mark, voluntary reductions must leave full backing; no stale-mark deleveraging exception is introduced. |
+| A-I01 | Accepted, all six choices in `docs/questions/A-I01.md`. Exact fee Q leaves market allocation before residual assessment; separate global vault liabilities and floor withdrawals retain every fraction. Independent tests cover actual scan/recovery/backstop paths and cross-engine aggregation. |
+
+Validation before the main merge: B-D02/B-D03 audit tests (3), existing A-I01
+integration tests (7), and new A-I01/B-D02 review tests (8), all passing on forge
+1.8.3, solc 0.8.30, Prague, optimizer 200, risk profile. Full-suite and gate results
+are recorded after merge validation, not inferred from this focused run.
+
 ## Reproduction
 
 Use Foundry 1.8.3 as documented in `docs/merge/toolchain-reproduction.md`.
