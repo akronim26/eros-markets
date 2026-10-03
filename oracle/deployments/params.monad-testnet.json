@@ -8,8 +8,8 @@
     "oov3": "0x0000000000000000000000000000000000000000"
   },
   "roles": {
-    "teamSafe": "0x0000000000000000000000000000000000000000",
-    "guardianSafe": "0x0000000000000000000000000000000000000000"
+    "teamSafe": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+    "guardianSafe": "0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d"
   },
   "timelockDelaySecs": 300,
   "cre": {
@@ -18,19 +18,27 @@
     "orgOwner": "0x0000000000000000000000000000000000000000",
     "workflowName": "eros-resolution-stg",
     "workflowIds": [],
-    "simRelayers": []
+    "simRelayers": [
+      "0x0f27bf7D22A563475c62Ef68Bd41c72f359124C5"
+    ]
   },
   "trustSet": {
-    "runnerAttestor": "0x0000000000000000000000000000000000000000",
-    "committee": [],
+    "runnerAttestor": "0xAdB4aB1A632fad6D41d49bcD9DEf374084B286B0",
+    "committee": [
+      "0x068eD0017f2d18f5BcbDfF2157DA00Dd877Cd71b",
+      "0x179D2025d3afB902598dbB1F0e8234e99088139F",
+      "0xED10ce281361Baf48c617a0B19d8217f23a20593"
+    ],
     "threshold": 2,
-    "watchdog": "0x0000000000000000000000000000000000000000"
+    "watchdog": "0x89F4b643a05915918c2459d04Da494598985264C"
   },
   "treasuryLimits": {
     "maxPerMarketAtoms": 100000000,
     "maxOpenDisputes": 20
   },
-  "authRefs": ["SPORTSDATA_V1"],
+  "authRefs": [
+    "SPORTSDATA_V1"
+  ],
   "providers": [],
   "globals": {
     "minHorizonSecs": 600,
