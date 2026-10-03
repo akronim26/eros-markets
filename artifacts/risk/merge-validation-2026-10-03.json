@@ -1,0 +1,591 @@
+{
+  "schema": "eros-merge-validation/1",
+  "date": "2026-10-03",
+  "branch": "integration/risk",
+  "reviewed_b_source_commit": "250623536768101511999fd2223ba4ce38a6bdd3",
+  "main_source_commit": "a114d06a1cebdf107c47d75947b114b3dd94b60e",
+  "merge_commit": "13ca730150b42b7164c6fb5027d39ee2862e7eca",
+  "solidity_and_test_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
+  "review_evidence_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+  "source_evidence": "artifacts/reviews/A-on-B.json",
+  "execution_note": "Final full Forge run started at 96cf262; no Solidity sources/tests changed during it. Review/docs/ABI metadata committed during the run. Gates subsequently ran in order at ad85941 with documentation/untracked worktree state explicitly recorded. Raw logs stay in ignored tmp; summaries and hashes are committed.",
+  "toolchain": {
+    "forge": "1.8.3",
+    "forge_commit": "cae51ad458f6abb64852b7709eb784352429825d",
+    "solc": "0.8.30",
+    "evm": "prague",
+    "optimizer_runs": 200,
+    "full_test_profile": "risk",
+    "fuzz_runs": 1000,
+    "invariant_runs": 48,
+    "invariant_depth": 64,
+    "python": "3.12.10",
+    "typescript": "5.9.2",
+    "numpy_audit_only": "2.2.6"
+  },
+  "forge": {
+    "command": "FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --json",
+    "cwd": "contracts",
+    "exit_code": 0,
+    "passed": 692,
+    "failed": 0,
+    "skipped": 0,
+    "raw_log_local_only": "tmp/2026-10-03-full-forge.json",
+    "raw_log_sha256": "8b5cbba514f04d507fe23f5a137046f739a122319dbc729faf9a39d4194898af",
+    "suites": 113,
+    "results": {
+      "Success": 692
+    },
+    "suite_results": {
+      "test/BookBatch.t.sol:BookBatchTest": {
+        "Success": 12
+      },
+      "test/BookBitmap.t.sol:BookBitmapTest": {
+        "Success": 10
+      },
+      "test/BookComposition.t.sol:BookCompositionTest": {
+        "Success": 3
+      },
+      "test/BookDifferential.t.sol:BookDifferentialTest": {
+        "Success": 2
+      },
+      "test/BookGas.t.sol:BookGasTest": {
+        "Success": 8
+      },
+      "test/BookInvariant.t.sol:BookInvariantTest": {
+        "Success": 1
+      },
+      "test/BookMatch.t.sol:BookMatchTest": {
+        "Success": 38
+      },
+      "test/BookRest.t.sol:BookRestTest": {
+        "Success": 20
+      },
+      "test/BookRiskEngine.t.sol:BookRiskEngineTest": {
+        "Success": 7
+      },
+      "test/BookSeam.t.sol:BookSeamTest": {
+        "Success": 22
+      },
+      "test/audit/AuditSpecVectors.t.sol:AuditSpecVectorsTest": {
+        "Success": 21
+      },
+      "test/audit/AuditStateful.t.sol:AuditStatefulTest": {
+        "Success": 20
+      },
+      "test/audit/BD02PreviewParity.t.sol:BD02PreviewParityTest": {
+        "Success": 1
+      },
+      "test/audit/BD03PremiumBounds.t.sol:BD03PremiumBoundsTest": {
+        "Success": 2
+      },
+      "test/audit/DeltaReviewB.t.sol:DeltaReviewBTest": {
+        "Success": 2
+      },
+      "test/audit/findings/AF01PreActivationLock.t.sol:FindingAF01PreActivationLockTest": {
+        "Success": 1
+      },
+      "test/audit/findings/AF02PremiumRounding.t.sol:FindingAF02PremiumRoundingTest": {
+        "Success": 1
+      },
+      "test/audit/findings/AF03ProtocolFeeEscrow.t.sol:FindingAF03ProtocolFeeEscrowTest": {
+        "Success": 1
+      },
+      "test/gas/A/AccountingGas.t.sol:AccountingGasTest": {
+        "Success": 2
+      },
+      "test/gas/B/AdapterGas.t.sol:AdapterGasTest": {
+        "Success": 5
+      },
+      "test/gas/integration/EngineGas.t.sol:EngineGasTest": {
+        "Success": 6
+      },
+      "test/gates/G0.t.sol:G0Test": {
+        "Success": 7
+      },
+      "test/gates/G1.t.sol:G1Test": {
+        "Success": 4
+      },
+      "test/gates/G2.t.sol:G2Test": {
+        "Success": 7
+      },
+      "test/gates/G3.t.sol:G3Test": {
+        "Success": 5
+      },
+      "test/gates/G4.t.sol:G4Test": {
+        "Success": 6
+      },
+      "test/gates/G5.t.sol:G5Test": {
+        "Success": 8
+      },
+      "test/gates/G6.t.sol:G6Test": {
+        "Success": 6
+      },
+      "test/gates/G7.t.sol:G7EndToEndTest": {
+        "Success": 5
+      },
+      "test/gates/G7.t.sol:G7ReleaseDefaultsTest": {
+        "Success": 1
+      },
+      "test/integration/A/CustodyExit.t.sol:CustodyExitTest": {
+        "Success": 2
+      },
+      "test/integration/AI01FeeEscrow.t.sol:AI01CombinedFeeEscrowTest": {
+        "Success": 2
+      },
+      "test/integration/AI01FeeEscrow.t.sol:AI01VaultFeeEscrowTest": {
+        "Success": 5
+      },
+      "test/integration/B/FullLifecycle.t.sol:FullLifecycleTest": {
+        "Success": 4
+      },
+      "test/integration/CombinedSmoke.t.sol:CombinedSmokeTest": {
+        "Success": 1
+      },
+      "test/integration/EndToEnd.t.sol:EndToEndTest": {
+        "Success": 5
+      },
+      "test/integration/RealBookIntegration.t.sol:RealBookIntegrationTest": {
+        "Success": 17
+      },
+      "test/integration/ReleaseDefaults.t.sol:ReleaseDefaultsTest": {
+        "Success": 1
+      },
+      "test/invariant/A/AccountingInvariants.t.sol:AccountingInvariantsTest": {
+        "Success": 1
+      },
+      "test/invariant/A/AccountingInvariants.t.sol:IndependentAccountingTraceTest": {
+        "Success": 1
+      },
+      "test/invariant/integration/CombinedInvariants.t.sol:CombinedCampaignTest": {
+        "Success": 9
+      },
+      "test/invariant/integration/CombinedInvariants.t.sol:CombinedInvariantsTest": {
+        "Success": 1
+      },
+      "test/math/A/A010.t.sol:A010Test": {
+        "Success": 3
+      },
+      "test/math/A/A011.t.sol:A011Test": {
+        "Success": 2
+      },
+      "test/math/A/A012.t.sol:A012Test": {
+        "Success": 2
+      },
+      "test/math/A/A013.t.sol:A013Test": {
+        "Success": 1
+      },
+      "test/math/A/A014.t.sol:A014Test": {
+        "Success": 1
+      },
+      "test/math/A/A015.t.sol:A015Test": {
+        "Success": 2
+      },
+      "test/math/A/AccountingDifferential.t.sol:AccountingDifferential": {
+        "Success": 2
+      },
+      "test/math/A/PremiumExact.t.sol:PremiumExactTest": {
+        "Success": 5
+      },
+      "test/math/B/B010.t.sol:B010Test": {
+        "Success": 19
+      },
+      "test/math/B/B011.t.sol:B011Test": {
+        "Success": 12
+      },
+      "test/math/B/B012.t.sol:B012Test": {
+        "Success": 14
+      },
+      "test/math/B/B013.t.sol:B013Test": {
+        "Success": 20
+      },
+      "test/math/B/B014.t.sol:B014Test": {
+        "Success": 21
+      },
+      "test/math/B/B015.t.sol:B015Test": {
+        "Success": 13
+      },
+      "test/reviews/A043BReview.t.sol:A043BReviewTest": {
+        "Success": 7
+      },
+      "test/reviews/A043ConfigReview.t.sol:A043ConfigReviewTest": {
+        "Success": 5
+      },
+      "test/reviews/A043IntegrationReview.t.sol:A043IntegrationReviewTest": {
+        "Success": 8
+      },
+      "test/reviews/AClaimIntegrationReview.t.sol:AClaimIntegrationReviewTest": {
+        "Success": 7
+      },
+      "test/reviews/AI01DeltaReview.t.sol:AI01DeltaReviewTest": {
+        "Success": 4
+      },
+      "test/reviews/B043Review.t.sol:B043ReviewTest": {
+        "Success": 3
+      },
+      "test/reviews/BD02DeltaReview.t.sol:BD02DeltaReviewTest": {
+        "Success": 4
+      },
+      "test/reviews/PreActivationExit.t.sol:PreActivationExitTest": {
+        "Success": 7
+      },
+      "test/risk/A/A016.t.sol:A016Test": {
+        "Success": 1
+      },
+      "test/risk/A/A017.t.sol:A017Test": {
+        "Success": 2
+      },
+      "test/risk/A/A018.t.sol:A018Test": {
+        "Success": 1
+      },
+      "test/risk/A/A019.t.sol:A019Test": {
+        "Success": 1
+      },
+      "test/risk/A/A020.t.sol:A020Test": {
+        "Success": 3
+      },
+      "test/risk/A/A021.t.sol:A021Test": {
+        "Success": 1
+      },
+      "test/risk/A/A022.t.sol:A022Test": {
+        "Success": 2
+      },
+      "test/risk/A/A023.t.sol:A023Test": {
+        "Success": 1
+      },
+      "test/risk/A/A024.t.sol:A024Test": {
+        "Success": 1
+      },
+      "test/risk/A/A025.t.sol:A025Test": {
+        "Success": 1
+      },
+      "test/risk/A/A026.t.sol:A026Test": {
+        "Success": 1
+      },
+      "test/risk/A/A027.t.sol:A027Test": {
+        "Success": 2
+      },
+      "test/risk/A/A028.t.sol:A028Test": {
+        "Success": 2
+      },
+      "test/risk/A/A029.t.sol:A029Test": {
+        "Success": 1
+      },
+      "test/risk/A/A030.t.sol:A030Test": {
+        "Success": 2
+      },
+      "test/risk/A/A031.t.sol:A031Test": {
+        "Success": 1
+      },
+      "test/risk/A/A032.t.sol:A032Test": {
+        "Success": 1
+      },
+      "test/risk/A/A033.t.sol:A033Test": {
+        "Success": 2
+      },
+      "test/risk/A/A034.t.sol:A034Test": {
+        "Success": 1
+      },
+      "test/risk/A/A035.t.sol:A035Test": {
+        "Success": 2
+      },
+      "test/risk/A/A036.t.sol:A036Test": {
+        "Success": 2
+      },
+      "test/risk/A/A037.t.sol:A037Test": {
+        "Success": 1
+      },
+      "test/risk/A/A038.t.sol:A038Test": {
+        "Success": 1
+      },
+      "test/risk/A/A039.t.sol:A039Test": {
+        "Success": 1
+      },
+      "test/risk/B/B016.t.sol:B016Test": {
+        "Success": 12
+      },
+      "test/risk/B/B017.t.sol:B017Test": {
+        "Success": 11
+      },
+      "test/risk/B/B018.t.sol:B018Test": {
+        "Success": 8
+      },
+      "test/risk/B/B019.t.sol:B019Test": {
+        "Success": 11
+      },
+      "test/risk/B/B020.t.sol:B020Test": {
+        "Success": 14
+      },
+      "test/risk/B/B021.t.sol:B021Test": {
+        "Success": 8
+      },
+      "test/risk/B/B022.t.sol:B022Test": {
+        "Success": 7
+      },
+      "test/risk/B/B023.t.sol:B023BootstrapTest": {
+        "Success": 2
+      },
+      "test/risk/B/B023.t.sol:B023Test": {
+        "Success": 9
+      },
+      "test/risk/B/B024.t.sol:B024Test": {
+        "Success": 12
+      },
+      "test/risk/B/B025.t.sol:B025Test": {
+        "Success": 8
+      },
+      "test/risk/B/B026.t.sol:B026Test": {
+        "Success": 7
+      },
+      "test/risk/B/B027.t.sol:B027Test": {
+        "Success": 18
+      },
+      "test/risk/B/B028.t.sol:B028Test": {
+        "Success": 7
+      },
+      "test/risk/B/B029.t.sol:B029Test": {
+        "Success": 6
+      },
+      "test/risk/B/B030.t.sol:B030Test": {
+        "Success": 8
+      },
+      "test/risk/B/B031.t.sol:B031Test": {
+        "Success": 8
+      },
+      "test/risk/B/B032.t.sol:B032Test": {
+        "Success": 9
+      },
+      "test/risk/B/B033.t.sol:B033Test": {
+        "Success": 7
+      },
+      "test/risk/B/B034.t.sol:B034Test": {
+        "Success": 9
+      },
+      "test/risk/B/B035.t.sol:B035Test": {
+        "Success": 6
+      },
+      "test/risk/B/B036.t.sol:B036Test": {
+        "Success": 6
+      },
+      "test/risk/B/B037.t.sol:B037Test": {
+        "Success": 7
+      },
+      "test/risk/B/B038.t.sol:B038Test": {
+        "Success": 6
+      },
+      "test/risk/B/B039.t.sol:B039Test": {
+        "Success": 7
+      }
+    }
+  },
+  "real_book": {
+    "command": "FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path test/integration/RealBookIntegration.t.sol --json",
+    "cwd": "contracts",
+    "exit_code": 0,
+    "raw_log_local_only": "tmp/2026-10-03-real-book-final.json",
+    "raw_log_sha256": "7aca5ae6195192ddfff3dd37deb261be6650db896c270509efe9193f7cabea3f",
+    "suites": 1,
+    "results": {
+      "Success": 17
+    },
+    "suite_results": {
+      "test/integration/RealBookIntegration.t.sol:RealBookIntegrationTest": {
+        "Success": 17
+      }
+    },
+    "real": [
+      "Book",
+      "Person A accounting",
+      "CollateralVault",
+      "Person B controllers"
+    ],
+    "test_doubles": [
+      "token",
+      "price observations",
+      "resolution authority",
+      "listing/deployment configuration"
+    ],
+    "open_finding": "RB-I01; three characterization passes do not mean this liveness issue is repaired"
+  },
+  "initial_real_book_run": {
+    "exit_code": 1,
+    "passed": 16,
+    "failed": 1,
+    "reason": "Pair fixture supplied a healthy short as partner, which was correctly skipped. Corrected only the fixture: real trades at different prices establish both accounts' BELOW_MM status. Final test still requires pairing, restored health and untouched book liquidity.",
+    "raw_log_local_only": "tmp/2026-10-03-real-book.json"
+  },
+  "python": {
+    "a": {
+      "passed": 46,
+      "exit_code": 0,
+      "raw_log_local_only": "tmp/2026-10-03-python-a.log",
+      "raw_log_sha256": "277d635a45bfd09a3921edddac2d2f9644f1a8a85ed78c7fbbafbd2e641ab7f2"
+    },
+    "b": {
+      "passed": 156,
+      "exit_code": 0,
+      "raw_log_local_only": "tmp/2026-10-03-python-b.log",
+      "raw_log_sha256": "5cecde77c14fbc6a5446acc528c2bc145f7f375f148377bc0edb74a5724e3828"
+    },
+    "audit": {
+      "passed": 8,
+      "exit_code": 0,
+      "raw_log_local_only": "tmp/2026-10-03-python-audit.log",
+      "raw_log_sha256": "b7a4a124f0345e3d0b09abe8ae048d5825a75ea8aaba8dcdee8d9f62f27d5b7a"
+    },
+    "integration": {
+      "passed": 7,
+      "exit_code": 0,
+      "raw_log_local_only": "tmp/2026-10-03-python-integration.log",
+      "raw_log_sha256": "e5c3e3d5ce2dc32441a76d433a40cc1349b2f23ef2099b89177b61a27bf33dce"
+    }
+  },
+  "ordered_gates": {
+    "G0": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 68,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    },
+    "G1": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 152,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    },
+    "G2": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 117,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    },
+    "G3": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 78,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    },
+    "G4": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 77,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    },
+    "G5": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 63,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    },
+    "G6": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 55,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    },
+    "G7": {
+      "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+      "worktree_dirty": true,
+      "test_count": 110,
+      "exit_code": 0,
+      "status": "checks_passed",
+      "accepted": false
+    }
+  },
+  "gate_count_deltas": {
+    "G0": "68, includes existing line-ending review regression",
+    "G4": "74 -> 77: three incoming B024 voluntary-reduction checks",
+    "G5": "62 -> 63: incoming B032 post-pair health check",
+    "G7": "102 -> 110: eight independent A-I01/B-D02 review tests"
+  },
+  "test_count_delta_from_b_653": {
+    "new_review_tests": 8,
+    "incoming_main_tests": 14,
+    "new_real_book_tests": 17,
+    "total": 692
+  },
+  "a043": {
+    "exit_code": 0,
+    "review_tests": 45,
+    "reviewed_files": 85,
+    "hash_normalization": "SHA-256 over canonical LF bytes"
+  },
+  "abi": {
+    "command": "python scripts/export-risk-abis.py --forge tmp/foundry-v1.8.3/forge.exe --check",
+    "exit_code": 0,
+    "engine": {
+      "entries": 254,
+      "source_sha256": "89077ea8220e8f9c1de6de58089f8436187d3874dc3fddc78d291b1b517a444b"
+    },
+    "vault": {
+      "entries": 35,
+      "source_sha256": "b657d07bd8b7e4fd98010ed1d63b5334b0d8da3be1fd471aed55f61aea539582"
+    }
+  },
+  "book_gas": {
+    "command": "FOUNDRY_PROFILE=ci FORGE_SNAPSHOT_EMIT=false FORGE_SNAPSHOT_CHECK=true forge test --mc BookGasTest --json",
+    "cwd": "contracts",
+    "exit_code": 0,
+    "snapshots_rewritten": false,
+    "raw_log_local_only": "tmp/2026-10-03-book-gas.json",
+    "raw_log_sha256": "e994ddb804e98120abecef7bd734f03f55afb6a07c9fa86efa991fad95097e03",
+    "suites": 1,
+    "results": {
+      "Success": 8
+    },
+    "suite_results": {
+      "test/BookGas.t.sol:BookGasTest": {
+        "Success": 8
+      }
+    }
+  },
+  "format": {
+    "command": "forge fmt --check",
+    "cwd": "contracts",
+    "exit_code": 0,
+    "raw_log_local_only": "tmp/2026-10-03-fmt-checked.log"
+  },
+  "build": {
+    "command": "FOUNDRY_PROFILE=ci forge build --sizes",
+    "cwd": "contracts",
+    "exit_code": 0,
+    "raw_log_local_only": "tmp/2026-10-03-build-sizes.log",
+    "note": "Non-fatal lint warnings remain; fixture limits are not deployment approval."
+  },
+  "test_fixture_sizes": {
+    "CombinedEngine": {
+      "runtime_bytes": 112723,
+      "creation_bytes": 121505
+    },
+    "RealBookEngine": {
+      "runtime_bytes": 114737,
+      "creation_bytes": 123964
+    },
+    "note": "Test-only compositions, not production artifacts; target-chain runtime/initcode limits and deployment adapter remain unverified."
+  },
+  "not_claimed": [
+    "G7 human acceptance",
+    "merge into main",
+    "new B approval of this merge",
+    "deployment or production readiness",
+    "RB-I01 repair",
+    "full CI-profile fuzz/invariant campaign",
+    "fresh Monad gas or remeasurement of historical gas-engine/invariant-campaign artifacts",
+    "live oracle/feed/factory/app joins"
+  ],
+  "next_instructions": "docs/requests/A-to-B-merge-followup.md"
+}

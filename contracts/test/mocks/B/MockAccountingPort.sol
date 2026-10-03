@@ -274,7 +274,12 @@ abstract contract MockAccountingPort is IAccountingPort {
         return allowedFeeQ;
     }
 
-    function _acctPostPairLiquidation(FillDelta memory d, address) internal virtual override returns (uint256) {
+    function _acctPostPairLiquidation(FillDelta memory d, address)
+        internal
+        virtual
+        override
+        returns (uint256)
+    {
         uint256 fee = d.takerFeeQ + d.makerFeeQ;
         _acctPostFill(d);
         mockKeeperFeesQ += fee;

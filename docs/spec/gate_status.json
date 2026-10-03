@@ -16,8 +16,8 @@
         "contracts/test/gates/G0.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",
@@ -41,8 +41,8 @@
         "contracts/test/gates/G1.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",
@@ -66,8 +66,8 @@
         "contracts/test/gates/G2.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",
@@ -91,8 +91,8 @@
         "contracts/test/gates/G3.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",
@@ -116,8 +116,8 @@
         "contracts/test/gates/G4.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",
@@ -141,8 +141,8 @@
         "contracts/test/gates/G5.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",
@@ -166,8 +166,8 @@
         "contracts/test/gates/G6.t.sol"
       ],
       "review_pending": [],
-      "note": "A reviewed on 2026-10-02 after repairing the recorded objections; ordered technical checks passed. Historical B-reviewed merge SHA retained. New implementation commits require B delta review before final merge acceptance; see docs/merge/A-integration-review.md.",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",
@@ -191,9 +191,9 @@
         "contracts/test/gates/G7.t.sol"
       ],
       "review_pending": [],
-      "note": "A043 complete (A). B delta review of 71576ed..3b11044 complete on 2026-10-02 under forge 1.8.3: all G0-G7 runner checks exit 0, full forge 641/641, Python 46/156/8/7. Acceptance status stays blocked with null merge_sha until the coordinator records a real accepted commit. Live counterparts remain BLOCKED_BY_COUNTERPART.",
+      "note": "A reviewed B-D02/B-D03/A-I01 and main reconciliation on 2026-10-03. Historical accepted G0-G6 SHA retained; current technical results recorded separately in artifacts/gates. G7 human acceptance is not granted. Real-book local evidence has open RB-I01 liveness; production counterpart wiring remains blocked.",
       "technical_status": "checks_passed",
-      "a_review_source_commit": "74b9f162d053b412e7d865ec064c48b27364999e",
+      "a_review_source_commit": "96cf262928e745c07b06cf4ae6df510ace4076ca",
       "a_review_worktree_dirty": true,
       "b_delta_review": {
         "range": "71576ed..3b11044",

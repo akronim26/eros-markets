@@ -45,7 +45,7 @@ if peer_reviewed:
                     worktree_dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=root,text=True)),
                     live_counterpart_status='BLOCKED_BY_COUNTERPART', gates='docs/spec/gate_status.json')
     manifest['components'].update(B='real in combined tests; A unit decisions remain scripted',
-                                  book='MockBookAdapter; real book not integrated', price_source='test observations',
+                                  book='MockBookAdapter in legacy suites; real A+B+Book local evidence in artifacts/risk/merge-validation-2026-10-03.json; no live deployment', price_source='test observations',
                                   oracle='MockResolutionAuthority')
 out.write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
 print(json.dumps({'status':'passed','checks_run':len(records)+1,'reason':'Local A evidence assembled; review, gate and counterpart status retained.'}))

@@ -156,11 +156,7 @@ abstract contract OrderRisk is IAccountingPort {
         s.feeCapQ = feeCapQ;
     }
 
-    function reservation(uint32 trader)
-        external
-        view
-        returns (OA.OrderSums memory sums, uint64 m, uint64 a)
-    {
+    function reservation(uint32 trader) external view returns (OA.OrderSums memory sums, uint64 m, uint64 a) {
         Reservation storage r = _res[trader];
         return (r.sums, r.marketEpoch, r.accountEpoch);
     }

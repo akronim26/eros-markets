@@ -126,8 +126,9 @@ contract B028Test is Test {
         e.mockSetAccount(3, int256(1000 * USDC), 0);
         uint32 slot = e.rest(2, MathTypes.Side.SELL, 600, 1_000_000); // leveraged short commitment
         keepFresh(T - 43_200); // floor
-        IBookRiskHooks.OrderRequest memory r =
-            IBookRiskHooks.OrderRequest(3, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 1000, 0, false, 8);
+        IBookRiskHooks.OrderRequest memory r = IBookRiskHooks.OrderRequest(
+            3, MathTypes.Side.BUY, IBookRiskHooks.OrderKind.IOC, 600, 1000, 0, false, 8
+        );
         MockBookAdapter.PlaceResult memory res = e.place(r);
         assertEq(res.filledLots, 0, "old epoch order cannot execute at the floor");
         (, bool live) = e.mockOrder(slot);

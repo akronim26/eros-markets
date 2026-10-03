@@ -19,7 +19,9 @@ contract CombinedSmokeTest is CombinedBase {
         MockBookAdapter.PlaceResult memory r = e.place(_ioc(3, MathTypes.Side.BUY, 600, 1000));
         assertEq(r.filledLots, 1000, "bootstrap fill");
         assertEq(_cash(3), int256(USDC) - int256(600_000 * Q));
-        assertEq(e.place(_ioc(1, MathTypes.Side.BUY, 600, 1_000_000)).filledLots, 0, "no leverage in bootstrap");
+        assertEq(
+            e.place(_ioc(1, MathTypes.Side.BUY, 600, 1_000_000)).filledLots, 0, "no leverage in bootstrap"
+        );
         _assertInvariants();
         // Perp depth history, then an epoch opening switches to NORMAL_PRICING.
         _keep(L0 + 12 hours, 6e17, true);

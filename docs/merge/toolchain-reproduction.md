@@ -15,7 +15,9 @@ The Forge commit is `cae51ad458f6abb64852b7709eb784352429825d`.
 three engine deployment variants, and v1.8.3 enforces their creation limits.
 This does not assert that a production engine may exceed the target chain's
 limit. Main's Monad 131,072-byte setting remains a separate production concern;
-the real book composition and target-chain gas still need measurement.
+the test-only real-book composition is measured in `artifacts/risk/release-manifest.json`, but
+production wiring, target-chain limits and gas remain unverified. B explicitly agreed to
+forge 1.8.3 + solc 0.8.30 + Prague in the 2026-10-02 review; that agreement is no longer pending.
 
 This review uses Python 3.12.10 and TypeScript 5.9.2. The historical specification
 vector script additionally imports NumPy; this review uses NumPy 2.2.6 installed

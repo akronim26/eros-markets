@@ -1,5 +1,21 @@
 # Request to the order-book team: risk hook seam (CP-BOOK)
 
+## Status update — 2026-10-03
+
+The original request below describes the historical book at integration `2506235`. The ten
+structural interface changes shipped on main through `a114d06`, including single-market lots,
+engine IDs, epoch metadata, paired hooks, cancel-all, expiry and forced reduction. They were
+merged into `integration/risk` at `13ca730`; do not ask the book team to implement them again.
+
+Main's earlier real-book/B test uses `MockAccountingPort`. The new
+`contracts/test/integration/RealBookIntegration.t.sol` joins real Book + real A accounting/vault
+and real B risk: 17 local tests pass. This is local source integration, not deployment approval;
+oracle/feed/token/deployment inputs remain fixtures. An inherited reduction-version liveness
+limitation is open as RB-I01 in `docs/requests/A-to-B-merge-followup.md`. The book and risk teams
+should agree its semantics; production adapter wiring and release validation remain outstanding.
+
+## Original request — historical baseline
+
 From: Risk & Clearing (integration/risk). Status: **BLOCKED_BY_COUNTERPART**. The published hook
 fixtures (contracts/test/risk/B/BookSeam.t.sol, contracts/test/gates/G4.t.sol) could not be run
 against `contracts/src/Book.sol`, because no adapter can map its hooks onto the risk seam in

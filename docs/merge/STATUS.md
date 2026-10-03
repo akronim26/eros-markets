@@ -1,153 +1,102 @@
 # Risk & Clearing — STATUS
 
-- Shared branch: `integration/risk` (remote `origin/integration/risk`)
-- First snapshot taken at `32d30ac`. Last updated by the 2026-10-02 0xr10t turn (see Turn log); the
-  current HEAD is whatever `git log -1 origin/integration/risk` shows.
-- Working model: shared ownership, turn by turn (rules in `CLAUDE.md`, section "CURRENT MODE").
-- Verification marks: facts were checked against the repo on 2026-10-02. **UNVERIFIED** = could not be
-  confirmed from the repo; **MISMATCH** = the repo differs from the stated fact (what was found is given).
+- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-03.
+- Shared, turn-by-turn ownership and independent economic review: `CLAUDE.md`.
+- Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
-## Summary
+## Current summary
 
-Risk & Clearing code is done and tested. **Changed 2026-10-02 (second turn):** B-D02 and A-I01 changed
-`contracts/src`, so G0–G6 pass their technical checks at `ba633ed` but the G7 check now stops at A043
-until the teammate reviews those changes and refreshes the A043 fingerprints (`artifacts/gates/G7.json`,
-exit 2, reason "reviewed source changed"). At `3b11044` G0–G7 all passed on forge 1.8.3. Both reviews are complete (verified: `artifacts/reviews/A-on-B.md`
-and `artifacts/reviews/B-on-A.md` incl. the 2026-10-02 addendum). Every audit finding is fixed
-(verified: the three reproducers in `contracts/test/audit/findings/` pass under forge 1.8.3).
-Remaining work: sign-off, the merge to main, other teams' work, production inputs. From now on the
-two of us share ownership of everything and work turn by turn.
+A reviewed B's newer work at `2506235`: **B-D02, B-D03 and A-I01 accepted**. All six fee-escrow
+choices are confirmed in `docs/questions/A-I01.md`; B-D01 through B-D05 have A dispositions.
+B's `32d30ac` review of A's earlier seven commits remains recorded for that historical range.
 
-Gate record (`docs/spec/gate_status.json`, verified):
+At the human's explicit request, main `a114d06` was merged **into integration/risk** at `13ca730`.
+Main was not changed. The old three-conflict rehearsal is superseded: this merge reconciled five
+conflicts and silent canonical-type/helper hazards while retaining the reviewed accounting and
+stronger risk predicates. See `docs/merge/main-merge-prep.md`.
 
-| Gate | Status | merge_sha | reviewed_by |
-|---|---|---|---|
-| G0 | passed | `966444d` | B, A |
-| G1 | passed | `9c55836` | B, A |
-| G2 | passed | `c190774` | B, A |
-| G3 | passed | `c1d241c` | B, A |
-| G4 | passed | `d01f0ee` | B, A |
-| G5 | passed | `c236e5e` | B, A |
-| G6 | passed | `ec5a22b` | B, A |
-| G7 | blocked | null | A, B (acceptance pending, human only) |
+Validation: **692 Forge tests, 217 Python tests and all ordered G0–G7 technical checks pass**.
+The real-book suite contributes 17 tests; A043's review suite contributes 45. G7 human acceptance
+is still blocked, and RB-I01 remains open rather than being hidden by characterization passes.
 
-## 1. Close the current handoff
+The real book now has a test-only composition with real A accounting/vault and real B controllers:
+`contracts/test/integration/RealBookIntegration.t.sol`. The book is no longer missing its ten
+structural hooks. Main's earlier `BookRiskEngine` fixture still uses mocked A and is not the new
+end-to-end evidence. Final validation is recorded in `artifacts/risk/merge-validation-2026-10-03.json`.
 
-- G7 acceptance must be recorded by a human at a real commit. `3b11044` + `32d30ac` were acceptable
-  before this turn; since B-D02/A-I01 changed `contracts/src`, the natural point is now the commit where
-  the teammate's review and fingerprint refresh land and G7's check passes again. G7 stays "blocked" in
-  `gate_status.json` (unchanged this turn).
-- Open: the teammate's reply to the review checklist, including whether the info notes B-D01 to B-D05
-  are accepted. **UNVERIFIED** — no reply is recorded in the repo; the notes are in
-  `artifacts/reviews/B-on-A.md` (Addendum 2026-10-02).
+## Review and gates
 
-## 2. Optional cleanups (not blocking; either of us)
+- G0–G6: historical accepted records remain in `docs/spec/gate_status.json`; current technical
+  reruns are separate evidence in `artifacts/gates/`.
+- A043 fingerprints are refreshed over 85 reviewed source/dependency files and match the final
+  reviewed merge and regressions. No other person's approval is authored by this agent.
+- **G7 remains blocked for human acceptance; merge_sha stays null**, regardless of technical passes.
+- B's acceptance recommendation at `3b11044 + 32d30ac` is historical, not a blanket approval of
+  later source. B should inspect this merge and any subsequent repair on the next turn.
+- No deployment, merge into main, calibration approval or target-chain size approval is authorized.
 
-- B-D02: **implemented, pending teammate review** (`fe4c4f7`). `FundingAccounting._fundingStep`,
-  `AccountSync._projectedTouch` and `PremiumAccounting._premiumTotalAt` are now shared by execution and
-  the bridge preview. Parity fuzz `contracts/test/audit/BD02PreviewParity.t.sol` passes before and after.
-- B-D03: **done** (`39205c1`, comment + tests only). The bound is tighter than first noted: the
-  sign-crossing endpoint is below 2^112 Q, so the square cannot overflow anywhere in `cumulative`'s
-  domain (`contracts/test/audit/BD03PremiumBounds.t.sol`).
-- B-D04, B-D05: conservative choices. Revisit only if conversion is enabled, or if users need to
-  reduce positions while the mark is stale.
-- Any source change needs a fingerprint refresh by the teammate who reviews it (checker:
-  `scripts/check_a_review.py`; evidence `artifacts/reviews/A-on-B.json`).
+## Completed review items
 
-## 3. Fee classification (A-I01)
+| Item | Status |
+| --- | --- |
+| A-B01–A-B08 / A-F01–A-F03 | Earlier repairs retained; B delta review complete at `32d30ac`. |
+| B-D01 | Acknowledged; later shared ownership supersedes per-file lanes, not peer review. |
+| B-D02 | Accepted shared execution/preview funding and premium helpers; four independent edge regressions added. |
+| B-D03 | Accepted domain-bound explanation and both existing bound tests. |
+| B-D04 | Accepted cash-only policy; global protocol/keeper fee withdrawals now bypass engine cash-claim fencing. |
+| B-D05 | Accepted fully backed result requirement when normal mark is unavailable. |
+| A-I01 | Accepted exact global-vault fee classification, all six choices, plus four independent custody/recovery regressions. |
+| Main reconciliation | Merged at `13ca730`; main's healthy-after-pair liquidation stop retained. |
 
-- **Implemented, pending teammate review** (`a073104`). At payout-scan completion the engine moves exact
-  `protocolFeeQ` and `keeperPayableQ` into global per-beneficiary `CollateralVault` fee escrows and
-  reduces `allocationQ` by exactly that Q; floor-atom withdrawals keep fractions.
-- Six implementation choices the spec leaves open are listed for the reviewer to confirm or reject in
-  `docs/questions/A-I01.md`. API change: engine `protocolFeeEscrowQ()` / `withdrawProtocolFees()` removed;
-  vault `withdrawFees()` etc. added; ABIs and `docs/risk/HANDOFF.md` updated.
+## Open integration finding: RB-I01
 
-## 4. Merge into main (us, plus the book developer)
+Real A increments a position version after a fill, but the active reduce-only permit retains its
+admission version. Characterization tests show voluntary and forced IOC reductions stop after
+their first maker; a partially filled reduce-only LIMIT rests with an immediately stale version.
+This is conservative under-execution, not an unauthorized fill. It limits liquidation throughput
+and remainder liveness. **Not repaired or waived.**
 
-- **Prep done 2026-10-02** on local branch `scratch/main-merge-prep` (`8b71ed7`, not pushed):
-  `docs/merge/main-merge-prep.md` has the resolutions and results (fmt clean, 653 forge tests, G0–G6
-  pass, G7 stops at A043 for the fingerprint reason above). The real merge is still human-only.
-- **UNVERIFIED:** main's `foundry.toml` sets Monad's 128 KiB limit citing "spec §11.1"; our spec has no
-  such section. A human should confirm the target-chain limit.
+Next owner: B/shared team's next turn; coordinate intended semantics with the book developer,
+write intended-behavior tests, then repair without weakening genuine stale-order, no-flip or
+per-fill health checks. A independently reviews any economic repair afterwards.
+Exact reproductions and instructions: `docs/requests/A-to-B-merge-followup.md`.
 
-- The dry run (`git merge-tree --write-tree HEAD origin/main`, run 2026-10-02 against `origin/main` =
-  `c5db208`) shows 3 conflicts: `contracts/foundry.toml`, `contracts/src/risk/TradePreview.sol`,
-  `contracts/test/mocks/B/MockBookAdapter.sol`. Verified.
-- main carries the book developer's earlier reformat of our files (`253ebd5`). **MISMATCH**: the
-  stated fact was "it merges automatically except in TradePreview.sol"; found that `253ebd5` also
-  reformatted `contracts/test/mocks/B/MockBookAdapter.sol`, which conflicts too. The other reformatted
-  files merge automatically. `foundry.toml` conflicts with `2db4e08` / `c5db208` (Monad size limit).
-- After the merge: rerun the formatter with forge 1.8.3, rerun all gates, refresh review fingerprints.
+An inherited informational keeper observation is also recorded in `docs/questions/A-I01.md`:
+earned fees can be withdrawn after wall-clock T before stored halt is materialized. No custody
+failure or new A-I01 regression was found; lifecycle-policy changes require separate review.
 
-## 5. Real counterpart integration (all live connections still blocked)
+## Counterparts and production
 
-Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY_COUNTERPART; verified).
+- **Book:** real modules are composed locally, not deployed. Fresh real-book evidence replaces the
+  obsolete request to implement ten structural hooks. RB-I01 and production adapter wiring remain open.
+- **Oracle:** branch `origin/feat/oracle` still has only a plan at `0e7a2af`; implementation and
+  terminal enum confirmation (including VOIDED = 4) remain BLOCKED_BY_COUNTERPART.
+- **Price collector/signing service, factory/registry, frontend/indexer:** BLOCKED_BY_COUNTERPART.
+  SDK and deterministic fixtures are not live consumers.
+- **Conversion:** disabled, NOT_IN_RELEASE.
+- Toolchain agreed by both teammates: forge 1.8.3, solc 0.8.30, Prague, optimizer 200. This machine:
+  Python 3.12.10, TypeScript 5.9.2, audit NumPy 2.2.6. B used different Python/TS/NumPy versions.
+- Main's default code-size setting is 131072; risk/ci fixture limits are 1000000. These settings do
+  not certify a target-chain limit. Fixture sizes and limitations are in the release manifest.
+- Production configuration, empirical calibration, dependency/code hashes, real-chain gas,
+  independent audit and an explicit release decision remain required. Launch defaults remain
+  1x leverage with funding/recovery/conversion off.
 
-- Order book: `contracts/src/Book.sol` cannot host our risk hooks. The book team must fix 10
-  mismatches (`docs/requests/B-to-book-hooks.md`, verified 10 rows): lots vs claims units, trader
-  IDs, per-order epoch tags, atomic per-fill posting, cancel-all, and a forced-reduction order type,
-  among others. After that, rerun G4, G5 and the end-to-end tests on the real book.
-- Oracle: `origin/feat/oracle` has only a plan document (verified: commit `0e7a2af`, single file
-  `docs_oracle/eros-oracle-implementation-plan.md`). When code ships, run G6 and the oracle
-  compatibility tests (`contracts/test/risk/B/OracleCompatibility.t.sol`). VOIDED = 4 is our guess
-  (verified: `ORACLE_VOIDED = 4` in `contracts/src/interfaces/IResolutionIngress.sol`) and needs their
-  confirmation.
-- Price feed: needs a real collector and signing service, plus agreement on the signed observation
-  format (`contracts/src/interfaces/IPriceSource.sol`).
-- Factory/registry and frontend/indexer: wire to our listing config, views and events per
-  `docs/risk/HANDOFF.md`.
+## Next turn
 
-## 6. Production readiness (no deployment authorized)
+1. B: read `docs/requests/A-to-B-merge-followup.md`, review the merge and triage RB-I01.
+2. Counterpart owners: real oracle/feed/factory/app joins and production adapter wiring.
+3. Humans: G7 acceptance at a real reviewed commit; eventual main update; chain-size/release decisions.
+4. Never relabel mock or local-fixture evidence as a deployed production pass.
 
-- Contract size: `CombinedEngine` runtime 112,924 B, initcode 121,706 B at `a073104` (forge 1.8.3).
-  Above Ethereum's 24,576 B; below 131,072 B if main's Monad limit is right (UNVERIFIED, see section 4).
-  Needs a human decision on the target-chain limit, and a measurement of the real production
-  composition once the book seam exists.
-- Gas: measured only with Ethereum pricing on a mock book (verified: `artifacts/risk/gas-engine.json`
-  `gas_model`). Re-measure with the real book on Monad.
-- Invariant campaigns and gas table **rerun at `a073104`** on forge 1.8.3 (`ba633ed`): random 48×64
-  and 256×128 pass 9/9 with 0 reverts; 24 seeds pass. Gas figures under forge 1.8.3 are about
-  1.2–2.8× the old forge 1.3.5 table for the same source (cause not diagnosed); the comparison is in
-  `artifacts/risk/gas-engine.json`. Still Ethereum pricing on a mock book, not Monad.
-- Missing production inputs (`artifacts/risk/release-manifest.json`, verified): token/code hashes,
-  price signer details and depth N, volatility envelopes, stressed spread, absorption/queue bounds,
-  OI and liquidation limits, hazard evidence, governance delay, dependency hashes, premium load as a
-  manifest field.
-- Then: calibration, an external audit, and an explicit release decision. Launch defaults: 1x leverage;
-  funding, recovery and conversion off (verified: `release-manifest.json` `initial_defaults`,
-  test `contracts/test/integration/ReleaseDefaults.t.sol`).
+## Current records
 
-## Who does what next
-
-- Teammate (next turn): review B-D02 (`fe4c4f7`) and A-I01 (`a073104`, choices in
-  `docs/questions/A-I01.md`); if accepted, refresh the A043 fingerprints (`scripts/check_a_review.py`,
-  `artifacts/reviews/A-on-B.json`) and rerun G7; answer B-D01…B-D05.
-- Us (either, turn by turn): counterpart reruns when they ship; the real merge once a human asks.
-- Humans only: G7 acceptance; the merge into main; confirming the target-chain code-size limit.
-- Book team: the 10 hook fixes. Oracle team: code, plus confirming VOIDED = 4.
-
-## Referenced documents
-
-| Document | Path |
-|---|---|
-| Team rules | `CLAUDE.md` |
-| Spec | `docs/spec/risk_spec.md` |
-| Gates and status | `docs/spec/integration_gates.json`, `docs/spec/gate_status.json`, `artifacts/gates/G0.json`…`G7.json`, `docs/contracts/G0.json`…`G7.json`, `contracts/test/gates/G0.t.sol`…`G7.t.sol` |
-| Reviews | `artifacts/reviews/A-on-B.md`, `artifacts/reviews/A-on-B.json`, `artifacts/reviews/B-on-A.md` |
-| A's integration review / handoff record | `docs/merge/A-integration-review.md` |
-| Audit of A's lane | `docs/merge/A-audit.md` |
-| Interface reconciliation (R-01…R-21) | `docs/merge/interface-reconciliation.md` |
-| Integration log (history) | `docs/merge/integration-progress.md` |
-| Toolchain reproduction | `docs/merge/toolchain-reproduction.md` |
-| A-I01 choices to confirm | `docs/questions/A-I01.md` |
-| Main merge prep (dry run) | `docs/merge/main-merge-prep.md` |
-| B-D02/B-D03 checks | `contracts/test/audit/BD02PreviewParity.t.sol`, `contracts/test/audit/BD03PremiumBounds.t.sol` |
-| A-I01 tests | `contracts/test/integration/AI01FeeEscrow.t.sol` |
-| Handoff for other teams | `docs/risk/HANDOFF.md`, `artifacts/risk/engine-abi.json`, `artifacts/risk/vault-abi.json` |
-| Requests | `docs/requests/B-to-book-hooks.md`, `docs/requests/B-to-A-integration.md` (historical) |
-| Counterparts / release / campaigns / gas | `artifacts/risk/counterpart-status.json`, `artifacts/risk/release-manifest.json`, `artifacts/risk/invariant-campaign.json`, `artifacts/risk/gas-engine.json` |
-| Historical per-person lanes | `docs/spec/tasks_A.json`, `docs/spec/tasks_B.json`, `docs/ownership.json`, `RISK_PROGRESS.md`, `docs/merge/B-*.md` |
+- Initial history report: `docs/merge/history-review-2026-10-03.md`.
+- Reviews: `artifacts/reviews/A-on-B.md`, `A-on-B.json`, `B-on-A.md`.
+- Current validation: `artifacts/risk/merge-validation-2026-10-03.json`; old `review-validation.json`
+  remains historical evidence for the previous 641-test source.
+- Counterparts/release: `artifacts/risk/counterpart-status.json`, `release-manifest.json`.
+- Merge resolution: `docs/merge/main-merge-prep.md`; six fee choices: `docs/questions/A-I01.md`.
 
 ## Turn log
 
@@ -220,3 +169,40 @@ Status file: `artifacts/risk/counterpart-status.json` (all live joins BLOCKED_BY
   measurement jump (not diagnosed).
 - Next turn: teammate (YASH-ai-bit) — review B-D02 and A-I01, refresh A043 fingerprints if accepted,
   rerun G7.
+
+### 2026-10-03 — YASH-ai-bit (with Codex agent) — turn complete
+
+- Started at `2506235`, equal to the fetched shared branch; tracked source is clean. Existing
+  untracked A-to-B handoff and Python caches are preserved, not incorporated as new evidence.
+- Reported branch history to the human before changes. `origin/main` is now `a114d06`: the old
+  `c5db208` merge rehearsal and the claim that no book-hook implementation exists are stale.
+  Main has a real-book/real-B fixture, but its A accounting is still scripted.
+- Scope: cross-review B-D02, B-D03 and A-I01; answer B-D01 through B-D05; add independent
+  regression evidence as needed; refresh A043 only after review and rerun the gates.
+- The human explicitly requested merging current `origin/main` into `integration/risk` and
+  validating the real-book integration. No merge into main, G7 acceptance or deployment is authorized.
+- Completed B-D02/B-D03/A-I01 review; accepted all six fee choices and answered B-D01 through B-D05.
+  No economic rewrite of B's newer work was required. Eight independent review regressions added.
+- Main reconciled with canonical types, the common snapshot helper and reviewed reduction/preview
+  semantics. Retained main's fix stopping liquidation after a pair restores health.
+- Added 17 real A+B+Book integration tests. Initial run: 16 pass, one failed because the proposed
+  pair partner was healthy and correctly skipped. Corrected the fixture using actual trades at
+  different entry prices; all 17 pass without changing production behavior or weakening assertions.
+- Found RB-I01 (three passing characterization tests): first-fill position-version changes stop
+  further reduce-only/forced fills and invalidate partial LIMIT remainders. Open, not repaired.
+- Task commits: `0a70b55` history/scope; `a9d8ae7` independent B-delta review; `13ca730` main merge;
+  `96cf262` real-book tests; `ad85941` source-bound A043 and ABI/metadata refresh. Final evidence
+  and handoff commits follow these; no new branch, force-push or main update is part of this turn.
+- Validation (forge 1.8.3 / solc 0.8.30 / Prague / optimizer 200): full risk-profile Forge 692/692,
+  0 failed or skipped (113 suites); Python A/B/audit/integration 46/156/8/7, all exit 0.
+  G0–G7 ordered exits all 0. ABI check: engine 254 / vault 35 entries, exit 0. Review directory:
+  45/45. CI-profile BookGas snapshot check, formatter check and build-with-sizes exit 0;
+  snapshots not rewritten. The build still emits non-fatal lint warnings.
+  The full CI-profile fuzz/invariant campaign was not rerun; do not relabel the older campaign.
+- Solidity sources/tests stayed unchanged during the final full run; review/docs metadata was
+  committed during it. Gate runners retain their actual `ad85941` starting HEAD and dirty flags.
+- Sizes of test fixtures: CombinedEngine runtime/initcode 112723/121505 bytes; RealBookEngine
+  114737/123964. No target-chain or production deployment approval follows from fixture sizes.
+- Structured next-turn instructions: `docs/requests/A-to-B-merge-followup.md`. Next owner B/shared
+  turn: review the merge, triage/repair RB-I01 with intended-behavior tests; A reviews any economic
+  repair independently. Humans retain G7 acceptance; oracle/feed/factory/app owners retain their joins.

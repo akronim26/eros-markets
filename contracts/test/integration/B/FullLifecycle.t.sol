@@ -121,8 +121,14 @@ contract FullLifecycleTest is Test {
         keep(L0 + 6 hours, 6e17, false);
         assertEq(uint8(e.riskContext().pricingMode), uint8(PricingMode.BOOTSTRAP));
         e.rest(2, MathTypes.Side.SELL, 600, 1000);
-        assertEq(e.place(ioc(3, MathTypes.Side.BUY, 600, 1000)).filledLots, 1000, "exactly backed bootstrap fill");
-        assertEq(e.place(ioc(1, MathTypes.Side.BUY, 600, 1_000_000)).filledLots, 0, "no leverage before normal pricing");
+        assertEq(
+            e.place(ioc(3, MathTypes.Side.BUY, 600, 1000)).filledLots, 1000, "exactly backed bootstrap fill"
+        );
+        assertEq(
+            e.place(ioc(1, MathTypes.Side.BUY, 600, 1_000_000)).filledLots,
+            0,
+            "no leverage before normal pricing"
+        );
 
         // 2. Perp depth accumulates; NORMAL_PRICING only at a completed epoch opening.
         keep(L0 + 12 hours, 6e17, true);

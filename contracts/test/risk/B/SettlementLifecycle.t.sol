@@ -123,7 +123,9 @@ abstract contract SettlementLifecycleCases is SettleFixture {
         vm.expectRevert(abi.encodeWithSelector(MockAccountingPort.MockSequence.selector, "interrupted chunk"));
         e.prepareSnapshotChunk(32);
         assertEq(
-            uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.YES), "transient failure does not touch finality"
+            uint8(e.finalOutcome()),
+            uint8(MathTypes.FinalOutcome.YES),
+            "transient failure does not touch finality"
         );
         assertEq(uint8(status()), uint8(LifecycleMath.ClaimsStatus.ORACLE_FINAL_PREPARING));
         vm.roll(block.number + 1);

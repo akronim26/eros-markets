@@ -6,15 +6,15 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-02T07:48:11.664181+00:00",
-  "source_commit": "ba633ed9066fe8d3a0d870bd2bd92c1d5ddbf80e",
+  "recorded_at": "2026-10-03T04:27:31.651376+00:00",
+  "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
   "worktree_dirty": true,
   "toolchain": {
-    "python": "3.13.13",
-    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:34:23.361078000Z (1789468463)\nBuild Profile: dist",
+    "python": "3.12.10",
+    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",
     "solc_declared": "0.8.30",
     "foundry_profile": "risk",
-    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69)"
+    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)"
   },
   "seed": "0x45524f53",
   "python_hash_seed": "0",
@@ -23,18 +23,18 @@
     "reference/common/result_schema.json": "5c0fd4ad7d0c415ac08bd01d7dcbf4bf2eb7b5d8ad5090964d8bf5a982d87106",
     "contracts/src/math/MathTypes.sol": "f34d68b5e0331ea13f521c80c520ce1c58e9db91a74b26c2d1eb853b69ef0575",
     "docs/math/units.md": "3526acb48f00f31936c2fb6f5335a945ce04870a60d653d27c3708844a50b338",
-    "docs/math/risk-function-contracts.json": "5656cee2c6f1147e7f19eb09dea338afd2945a8ef407ac11c28476decbcda494",
-    "docs/ownership.json": "258dae5d3f096fcdb75f49b5edf05d4efa1f4e5fbefc20b3d9debf5ebd0fba49",
-    "docs/counterpart-contracts.md": "0a5eaca153a4684e6c5cce069e78f3fc8c6bd9796a4682f52b743931d76af8b6",
-    "reference/fixtures/golden_cases.json": "077ef4666238f5d8bfc3270b902cf0e381a418ff0475515ad4d83a16f7445fca",
-    "docs/math/golden-case-rationale.md": "5ddba240f9137e283d91621ff3d8185122a4c70d22cf351f9f87de9bfb88fd91",
-    "docs/contracts/G7.json": "513ae108340e161438aaa0090dd33f0183d73be1c5ff94c03fc181dacbe06836",
+    "docs/math/risk-function-contracts.json": "e992f92a1ca9057196b83d74cae71f2c68b3bffe9c019a71bea23c8aeaa621dd",
+    "docs/ownership.json": "f2236eccd36babaaf1f8281188af4933beeb9a2bee80b987389588fba69d7e78",
+    "docs/counterpart-contracts.md": "2065d0df36702fc0a72c811dbfa77512508f900edbe121f90f167c7fc6d59f52",
+    "reference/fixtures/golden_cases.json": "68ce2f302fa7f2cac181185ed9fbb18ae454e4c28c4020d56b4df28860ee988d",
+    "docs/math/golden-case-rationale.md": "ca6a5f65666f964f28d9a1d18155d26132480ac4c7c5261f5db1ddf6b6bc4736",
+    "docs/contracts/G7.json": "01a7f7273e2f04f7ec9a9a0500e259e5fbbe312f9b2c1629573c55b71d4f1f7f",
     "contracts/test/gates/G7.t.sol": "a28adc6679727ffb53b78a242be27052f2955991c24f7cf341c5204a1dd03585"
   },
   "components": {
-    "lane_a": "not_exercised",
-    "lane_b": "not_exercised",
-    "combined": "not_exercised",
+    "lane_a": "real",
+    "lane_b": "real",
+    "combined": "real",
     "external_counterparts": "not_exercised"
   },
   "commands": [
@@ -53,54 +53,133 @@
     },
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "A040"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/invariant/A/AccountingInvariants.t.sol:AccountingInvariantsTest\": {\"duration\": \"862ms 717\\u00b5s 792ns\", \"test_results\": {\"invariantConservationCoverageAndCustody()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Invariant\": {\"runs\": 48, \"calls\": 3072, \"reverts\": 0, \"workers\": 1, \"metrics\": {\"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.rollover\": {\"calls\": 641, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.allocation\": {\"calls\": 580, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.paired\": {\"calls\": 611, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.liquidation\": {\"calls\": 633, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.sync\": {\"calls\": 607, \"reverts\": 0, \"discards\": 0}}, \"failed_corpus_replays\": 0, \"optimization_best_value\": null}}, \"duration\": \"860ms 338\\u00b5s 417ns\", \"gas_snapshots\": {}}}, \"warnings\": []}, \"test/invariant/A/AccountingInvariants.t.sol:IndependentAccountingTraceTest\": {\"duration\": \"14ms 484\\u00b5s 209ns\", \"test_results\": {\"testIndependentIntegratedTrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35681827}}, \"duration\": \"13ms 507\\u00b5s 458ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA040: passed; 2 tests; artifacts/tasks/A040.json\n"
+      "output": "{\"test/invariant/A/AccountingInvariants.t.sol:AccountingInvariantsTest\": {\"duration\": \"6s 244ms 383\\u00c2\\u00b5s 300ns\", \"test_results\": {\"invariantConservationCoverageAndCustody()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Invariant\": {\"runs\": 48, \"calls\": 3072, \"reverts\": 0, \"workers\": 1, \"metrics\": {\"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.allocation\": {\"calls\": 580, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.paired\": {\"calls\": 611, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.rollover\": {\"calls\": 641, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.liquidation\": {\"calls\": 633, \"reverts\": 0, \"discards\": 0}, \"test/invariant/A/AccountingInvariants.t.sol:AccountingHandler.sync\": {\"calls\": 607, \"reverts\": 0, \"discards\": 0}}, \"failed_corpus_replays\": 0, \"optimization_best_value\": null}}, \"duration\": \"6s 215ms 455\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}}, \"warnings\": []}, \"test/invariant/A/AccountingInvariants.t.sol:IndependentAccountingTraceTest\": {\"duration\": \"62ms 365\\u00c2\\u00b5s 700ns\", \"test_results\": {\"testIndependentIntegratedTrace()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 35681827}}, \"duration\": \"58ms 866\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA040: passed; 2 tests; artifacts/tasks/A040.json\n"
     },
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "A041"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/gas/A/AccountingGas.t.sol:AccountingGasTest\": {\"duration\": \"1s 427ms 359\\u00b5s 42ns\", \"test_results\": {\"testGasBounded1024AccountJobs()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"roll_begin_gas: 192708\", \"roll_32_account_max_gas: 4669926\", \"halt_1024_gas: 124277\", \"snapshot_32_account_max_gas: 3599473\", \"trader_claim_gas: 183369\", \"participant_count: 1024\"], \"kind\": {\"Unit\": {\"gas\": 346629248}}, \"duration\": \"155ms 290\\u00b5s 83ns\", \"gas_snapshots\": {}}, \"testGasMathAndActivePremiumTouch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"premium_math_gas: 15057\", \"funding_premium_touch_gas: 311225\"], \"kind\": {\"Unit\": {\"gas\": 69234131}}, \"duration\": \"46ms 636\\u00b5s 750ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA041: passed; 2 tests; artifacts/tasks/A041.json\n"
+      "output": "{\"test/gas/A/AccountingGas.t.sol:AccountingGasTest\": {\"duration\": \"33s 921ms 681\\u00c2\\u00b5s 200ns\", \"test_results\": {\"testGasBounded1024AccountJobs()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"roll_begin_gas: 192708\", \"roll_32_account_max_gas: 4669926\", \"halt_1024_gas: 124277\", \"snapshot_32_account_max_gas: 3599473\", \"trader_claim_gas: 183369\", \"participant_count: 1024\"], \"kind\": {\"Unit\": {\"gas\": 346629248}}, \"duration\": \"2s 248ms 710\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"testGasMathAndActivePremiumTouch()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [\"premium_math_gas: 15057\", \"funding_premium_touch_gas: 311225\"], \"kind\": {\"Unit\": {\"gas\": 69234131}}, \"duration\": \"582ms 552\\u00c2\\u00b5s 600ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA041: passed; 2 tests; artifacts/tasks/A041.json\n"
     },
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "A042"
       ],
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"test/integration/A/CustodyExit.t.sol:CustodyExitTest\": {\"duration\": \"2ms 57\\u00b5s 291ns\", \"test_results\": {\"testAllEntitlementsExitWithoutBorrowingOtherMarket()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 12168833}}, \"duration\": \"1ms 73\\u00b5s 417ns\", \"gas_snapshots\": {}}, \"testKeeperWithdrawalKeepsFractionAndOtherMarketLiability()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3065725}}, \"duration\": \"783\\u00b5s 458ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA042: passed; 2 tests; artifacts/tasks/A042.json\n"
+      "output": "{\"test/integration/A/CustodyExit.t.sol:CustodyExitTest\": {\"duration\": \"9ms 127\\u00c2\\u00b5s 500ns\", \"test_results\": {\"testAllEntitlementsExitWithoutBorrowingOtherMarket()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 12168833}}, \"duration\": \"5ms 372\\u00c2\\u00b5s\", \"gas_snapshots\": {}}, \"testKeeperWithdrawalKeepsFractionAndOtherMarketLiability()\": {\"status\": \"Success\", \"reason\": null, \"counterexample\": null, \"decoded_logs\": [], \"kind\": {\"Unit\": {\"gas\": 3065725}}, \"duration\": \"3ms 974\\u00c2\\u00b5s 500ns\", \"gas_snapshots\": {}}}, \"warnings\": []}}\nA042: passed; 2 tests; artifacts/tasks/A042.json\n"
     },
     {
       "argv": [
-        "/bin/bash",
+        "C:/Program Files/Git/usr/bin/bash",
         "scripts/check-task.sh",
         "A043"
       ],
       "cwd": ".",
-      "exit_code": 2,
+      "exit_code": 0,
       "execution": "subprocess",
-      "output": "{\"status\": \"pending_peer_review\", \"checks_run\": 0, \"reason\": \"reviewed source changed: contracts/src/engine/RiskAccountingBridge.sol\"}\nA043: blocked; 0 tests; artifacts/tasks/A043.json\n"
+      "output": "{\"status\": \"passed\", \"checks_run\": 45, \"reason\": \"Source-bound A review and regression checks\", \"reviewed_files\": 85, \"command\": [\"forge\", \"test\", \"--match-path\", \"test/reviews/*.t.sol\", \"--json\"], \"exit_code\": 0, \"failure_output\": \"\"}\nA043: passed; 45 tests; artifacts/tasks/A043.json\n"
+    },
+    {
+      "argv": [
+        "C:/Program Files/Git/usr/bin/bash",
+        "scripts/check-task.sh",
+        "A044"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "subprocess",
+      "output": "{\"status\": \"passed\", \"checks_run\": 44, \"reason\": \"Local A evidence assembled; review, gate and counterpart status retained.\"}\nA044: passed; 44 tests; artifacts/tasks/A044.json\n"
+    },
+    {
+      "argv": [
+        "C:/Program Files/Git/usr/bin/bash",
+        "scripts/check-task.sh",
+        "B040"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "subprocess",
+      "output": "No files changed, compilation skipped\n\nRan 4 tests for test/integration/B/FullLifecycle.t.sol:FullLifecycleTest\n[PASS] test_campaignBootstrapToClaims() (gas: 94331751)\n[PASS] test_conversionStaysDisabled() (gas: 447745)\n[PASS] test_earlyHaltNoPath() (gas: 34272368)\n[PASS] test_earlyInvalidPendingThenCapture() (gas: 709632657)\nSuite result: ok. 4 passed; 0 failed; 0 skipped; finished in 9.52s (9.74s CPU time)\n\nRan 1 test suite in 9.57s (9.52s CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)\nNo files changed, compilation skipped\n\nRan 5 tests for test/integration/EndToEnd.t.sol:EndToEndTest\n[PASS] test_e2e_NO_haltMidRollover_pages1_reverseClaims() (gas: 142347750)\n[PASS] test_e2e_YES_haltAtT_pages32() (gas: 144586869)\n[PASS] test_e2e_earlyINVALID_fallback_pages3_reverseClaims() (gas: 406032173)\n[PASS] test_e2e_earlyINVALID_twap_pages7() (gas: 406038712)\n[PASS] test_e2e_step6_shortfallFixtures() (gas: 338406710)\nSuite result: ok. 5 passed; 0 failed; 0 skipped; finished in 1.68s (4.92s CPU time)\n\nRan 1 test suite in 1.69s (1.68s CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)\nB040: passed; 2 tests; artifacts/tasks/B040.json\n"
+    },
+    {
+      "argv": [
+        "C:/Program Files/Git/usr/bin/bash",
+        "scripts/check-task.sh",
+        "B041"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "subprocess",
+      "output": "No files changed, compilation skipped\n\nRan 5 tests for test/gas/B/AdapterGas.t.sol:AdapterGasTest\n[PASS] test_dirtyBook64Examined() (gas: 126590800)\n[PASS] test_liquidationContinuation() (gas: 5476649)\n[PASS] test_observationUpdateConstantWithFullRing() (gas: 505191715)\n[PASS] test_oracleCallbackIndependentOfParticipants() (gas: 103489066)\n[PASS] test_settlementControllerChunk() (gas: 6050626)\nSuite result: ok. 5 passed; 0 failed; 0 skipped; finished in 4.79s (5.34s CPU time)\n\nRan 1 test suite in 4.80s (4.79s CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)\nNo files changed, compilation skipped\n\nRan 6 tests for test/gas/integration/EngineGas.t.sol:EngineGasTest\n[PASS] test_gasFloorSweep() (gas: 234662489)\n[PASS] test_gasHaltPreparationClaims() (gas: 203184994)\n[PASS] test_gasInvalidCapture() (gas: 466045376)\n[PASS] test_gasLiquidation() (gas: 382213730)\n[PASS] test_gasRolloverPages() (gas: 222548590)\n[PASS] test_gasTradingAndCustody() (gas: 202014456)\nSuite result: ok. 6 passed; 0 failed; 0 skipped; finished in 2.82s (10.20s CPU time)\n\nRan 1 test suite in 2.83s (2.82s CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)\nB041: passed; 2 tests; artifacts/tasks/B041.json\n"
+    },
+    {
+      "argv": [
+        "C:/Program Files/Git/usr/bin/bash",
+        "scripts/check-task.sh",
+        "B042"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "subprocess",
+      "output": "TAP version 13\n# Subtest: accounts decode with units, identity and labelled projections\nok 1 - accounts decode with units, identity and labelled projections\n  ---\n  duration_ms: 5.7767\n  type: 'test'\n  ...\n# Subtest: projection does not change the withdrawable amount\nok 2 - projection does not change the withdrawable amount\n  ---\n  duration_ms: 0.4619\n  type: 'test'\n  ...\n# Subtest: markets decode stage, pricing and pending work\nok 3 - markets decode stage, pricing and pending work\n  ---\n  duration_ms: 3.8579\n  type: 'test'\n  ...\n# Subtest: every settlement state is distinct and claimable only with claimsEnabled\nok 4 - every settlement state is distinct and claimable only with claimsEnabled\n  ---\n  duration_ms: 1.0835\n  type: 'test'\n  ...\n# Subtest: oracle finality alone is never claimable\nok 5 - oracle finality alone is never claimable\n  ---\n  duration_ms: 0.4088\n  type: 'test'\n  ...\n# Subtest: unit helpers floor Q to atoms toward negative infinity\nok 6 - unit helpers floor Q to atoms toward negative infinity\n  ---\n  duration_ms: 0.2894\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 308.8207\nB042: passed; 3 tests; artifacts/tasks/B042.json\n"
+    },
+    {
+      "argv": [
+        "C:/Program Files/Git/usr/bin/bash",
+        "scripts/check-task.sh",
+        "B043"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "subprocess",
+      "output": "No files changed, compilation skipped\n\nRan 3 tests for test/reviews/B043Review.t.sol:B043ReviewTest\n[PASS] test_route13_oiAtHaltIncludesReserve() (gas: 222896854)\n[PASS] test_route2_missingMarkReleaseOnlyIfExactlyBacked() (gas: 46096551)\n[PASS] test_route6_freshnessGapStopsFundingNoRestart() (gas: 93338824)\nSuite result: ok. 3 passed; 0 failed; 0 skipped; finished in 381.51ms (495.04ms CPU time)\n\nRan 1 test suite in 383.99ms (381.51ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)\nB043: passed; 1 tests; artifacts/tasks/B043.json\n"
+    },
+    {
+      "argv": [
+        "C:/Program Files/Git/usr/bin/bash",
+        "scripts/check-task.sh",
+        "B044"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "execution": "subprocess",
+      "output": "No files changed, compilation skipped\n\nRan 1 test for test/integration/ReleaseDefaults.t.sol:ReleaseDefaultsTest\n[PASS] test_initialDeploymentDefaults() (gas: 71515354)\nSuite result: ok. 1 passed; 0 failed; 0 skipped; finished in 136.79ms (125.95ms CPU time)\n\nRan 1 test suite in 149.01ms (136.79ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)\nB044: passed; 1 tests; artifacts/tasks/B044.json\n"
+    },
+    {
+      "argv": [
+        "forge",
+        "test",
+        "--match-path",
+        "test/gates/G7.t.sol",
+        "--json"
+      ],
+      "cwd": "contracts",
+      "exit_code": 0,
+      "execution": "subprocess",
+      "output": "{\"test/gates/G7.t.sol:G7EndToEndTest\":{\"duration\":\"1s 712ms 833\u00c2\u00b5s 200ns\",\"test_results\":{\"test_e2e_NO_haltMidRollover_pages1_reverseClaims()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":142347750}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"289ms 816\u00c2\u00b5s 700ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_YES_haltAtT_pages32()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":144586869}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"296ms 387\u00c2\u00b5s 300ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_earlyINVALID_fallback_pages3_reverseClaims()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":406032173}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"1s 706ms 569\u00c2\u00b5s 400ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_earlyINVALID_twap_pages7()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":406038712}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"1s 695ms 746\u00c2\u00b5s 400ns\",\"breakpoints\":{},\"gas_snapshots\":{}},\"test_e2e_step6_shortfallFixtures()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":338406710}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"777ms 991\u00c2\u00b5s 300ns\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]},\"test/gates/G7.t.sol:G7ReleaseDefaultsTest\":{\"duration\":\"65ms 973\u00c2\u00b5s\",\"test_results\":{\"test_initialDeploymentDefaults()\":{\"status\":\"Success\",\"reason\":null,\"counterexample\":null,\"logs\":[],\"decoded_logs\":[],\"kind\":{\"Unit\":{\"gas\":71515354}},\"traces\":[],\"labeled_addresses\":{},\"duration\":\"63ms 896\u00c2\u00b5s 600ns\",\"breakpoints\":{},\"gas_snapshots\":{}}},\"warnings\":[]}}\n"
     }
   ],
-  "test_count": 6,
+  "test_count": 110,
   "skipped_count": 0,
-  "status": "failed",
-  "exit_code": 2,
-  "reason": "A043 acceptance failed (exit 2)",
+  "status": "checks_passed",
+  "exit_code": 0,
+  "reason": "Technical checks passed; coordinator review and accepted merge are still required.",
   "checks": [],
   "artifacts": [
     "artifacts/gates/G7.json"
