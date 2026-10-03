@@ -14,7 +14,7 @@ import { LocalTestSigner } from '../src/local-test-signer.js';
 import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
 import { localRpcTransport } from '../src/local-rpc.js';
 import { LocalPipeline, type PipelineResult } from '../src/pipeline.js';
-import { DEVELOPMENT_POLICIES } from '../src/publication.js';
+import { DEVELOPMENT_POLICIES, DEVELOPMENT_INVALID_POLICIES } from '../src/publication.js';
 import { PRICING_POLICY, rulesHash, type RulesManifest } from '../src/rules.js';
 import { PublicPolymarket, RequestLimiter } from '../src/polymarket.js';
 import { Worker, type Provider } from '../src/worker.js';
@@ -26,9 +26,10 @@ const hash=(s:string)=>keccak256(stringToHex(s));
 async function main(){
   const options=new Map<string,string>(),args=process.argv.slice(2);
   for(let i=0;i<args.length;i+=2){const key=args[i],value=args[i+1];
-    if(!key||!['--source','--config','--duration-seconds'].includes(key)||!value||options.has(key))throw new Error('BAD_PIPELINE_ARGUMENTS');options.set(key,value);}
-  const mode=options.get('--source')??'fixture',seconds=options.get('--duration-seconds')??'3';
+    if(!key||!['--source','--config','--duration-seconds','--scenario'].includes(key)||!value||options.has(key))throw new Error('BAD_PIPELINE_ARGUMENTS');options.set(key,value);}
+  const mode=options.get('--source')??'fixture',seconds=options.get('--duration-seconds')??'3',scenario=options.get('--scenario')??'valid';
   if(!['fixture','polymarket'].includes(mode)||!/^\d+$/.test(seconds)||BigInt(seconds)<1n||BigInt(seconds)>900n)throw new Error('SOURCE_FIXTURE_OR_POLYMARKET_DURATION_1_TO_900');
+  if(!['valid','transitions'].includes(scenario)||scenario==='transitions'&&(mode!=='fixture'||BigInt(seconds)<6n))throw new Error('TRANSITIONS_REQUIRE_FIXTURE_SOURCE_AND_AT_LEAST_6_SECONDS');
   const base=parseConfig(JSON.parse(readFileSync(options.get('--config')??'config/crypto.example.json','utf8')));
   if(base.enabled||base.destination)throw new Error('DISABLED_SOURCE_CONFIG_WITHOUT_DESTINATION_REQUIRED');
   const listener=createServer();listener.listen(0,'127.0.0.1');await once(listener,'listening');
@@ -45,7 +46,8 @@ async function main(){
   const journal=new Journal(`${directory}/source.sqlite`),packets=new PacketStore(`${directory}/packets.sqlite`);
   let signer:LocalTestSigner|undefined,relay:LocalRelay|undefined,pipeline:LocalPipeline|undefined;
   const results:PipelineResult[]=[],report:Record<string,unknown>={mode:mode==='fixture'?'FIXTURE_SOURCE_REAL_LOCAL_INGRESS':'LIVE_SOURCE_REAL_LOCAL_INGRESS',
-    source:mode,chainId:31337,startedAt,archive:directory,results,externalChainTransactions:0,productionApproved:false,
+    source:mode,scenario,chainId:31337,startedAt,archive:directory,results,externalChainTransactions:0,productionApproved:false,
+    toolVersions:process.env.PRICEFEED_TOOL_VERSIONS?JSON.parse(process.env.PRICEFEED_TOOL_VERSIONS):null,
     fullEconomicEngine:false,completed:false};
   const save=()=>{mkdirSync('artifacts/pipeline',{recursive:true});writeFileSync('artifacts/pipeline/latest.json',json(report)+'\n');};
   const stop=new AbortController(),shutdown=()=>stop.abort();process.once('SIGINT',shutdown);process.once('SIGTERM',shutdown);
@@ -60,17 +62,22 @@ async function main(){
       active:true,closed:false,enableOrderBook:true,acceptingOrders:true};
     const event={id:base.mapping.eventId,markets:[{id:base.mapping.externalMarketId}],active:true,closed:false};
     const capture=(data:Record<string,unknown>)=>({url:'fixture://pipeline',receivedAtMs:BigInt(Date.now()),latencyMs:0n,headers:{},data,body:JSON.stringify(data),attempts:1});
+    let scenarioStartedAt:number|undefined;
     const provider:Provider=mode==='polymarket'?new PublicPolymarket(base.poll,new RequestLimiter(100,20)):{
-      event:async()=>capture(event),metadata:async()=>capture(metadata),book:async()=>capture({market:base.mapping.conditionId,
-        asset_id:base.mapping.outcomeTokenId,timestamp:String(Date.now()),hash:'synthetic-test-book',tick_size:'0.01',min_order_size:'5',
-        bids:[{price:'0.59',size:'10000'}],asks:[{price:'0.61',size:'10000'}]})};
+      event:async()=>capture(event),metadata:async()=>capture(metadata),book:async()=>{
+        const stage=scenario==='transitions'&&scenarioStartedAt!==undefined?Math.floor((Date.now()-scenarioStartedAt)/1000):0;
+        return capture({market:base.mapping.conditionId,asset_id:base.mapping.outcomeTokenId,
+          ...(stage===2?{}:{timestamp:String(Date.now())}),hash:`synthetic-test-book-stage-${stage}`,tick_size:'0.01',min_order_size:'5',
+          bids:[{price:stage>=4?'0.62':'0.59',size:stage===3?'1':'10000'}],
+          asks:[{price:stage===1?'0.90':stage>=4?'0.64':'0.61',size:'10000'}]});}};
     const probe=await new Worker(cfgSource,provider,journal,randomUUID()).poll();
     if(probe.inspection.status!=='COLLECTING'||!probe.metadata||!probe.event)throw new Error(`SOURCE_UNAVAILABLE:${probe.inspection.reason}`);
     const externalRulesDigest='0x'+createHash('sha256').update(`${verifyEventMembership(base,probe.event.data).rulesDigest}:${metadataIdentity(base,probe.metadata.data).rulesDigest}`).digest('hex');
     const listedAt=BigInt(Date.now())/1000n,T=listedAt+172800n;
     const rules:RulesManifest={schemaVersion:'1',venue:'polymarket',...base.mapping,marketId:hash(`LOCAL_PIPELINE:${base.key}`),
       sourceId:hash(`LOCAL_PIPELINE_SOURCE:${base.mapping.outcomeTokenId}`),erosRulesHash:hash('LOCAL_TEST_RULES'),externalRulesDigest,
-      ...DEVELOPMENT_POLICIES,scheduledT:String(T),depthNLots:base.pricing.depthNLots,maxSpreadWad:base.pricing.maxSpreadWad,pricingPolicy:PRICING_POLICY};
+      ...(scenario==='transitions'?DEVELOPMENT_INVALID_POLICIES:DEVELOPMENT_POLICIES),scheduledT:String(T),
+      depthNLots:base.pricing.depthNLots,maxSpreadWad:base.pricing.maxSpreadWad,pricingPolicy:PRICING_POLICY};
     const fixtureSigner=privateKeyToAccount(('0x'+'11'.repeat(32)) as Hex);
     const artifact=JSON.parse(readFileSync('test/demo/out/PipelineDemoMarket.sol/PipelineDemoMarket.json','utf8')) as {abi:Abi;bytecode:{object:Hex}};
     const deployment=await wallet.deployContract({abi:artifact.abi,bytecode:artifact.bytecode.object,args:[rules.marketId,rules.sourceId,
@@ -92,6 +99,7 @@ async function main(){
     const worker=new Worker(config,provider,journal,randomUUID());
     pipeline=new LocalPipeline([{worker,rules,signer}],packets,relay,transport,policy);
     report.config=config;report.rules=rules;report.receiver=engine;save();
+    scenarioStartedAt=Date.now();
     const timer=setTimeout(shutdown,Number(seconds)*1000);
     try{await pipeline.run(stop.signal,result=>{results.push(result);save();console.log(json(result));});}finally{clearTimeout(timer);}
     const accepted=packets.list(domain).filter(p=>relay!.get(domain,p.packet.observation.sequence)?.accepted);
@@ -99,13 +107,25 @@ async function main(){
     const block=await client.getBlock({blockTag:'latest'});
     const twap=await client.readContract({address:engine,abi:parseAbi(['function indexTwap300(uint64) view returns ((bool available,int256 twapWad,uint256 coveredSecs,int256 integral))']),
       functionName:'indexTwap300',args:[block.timestamp]});
-    const expected=expectedDemoTwap(accepted.map(p=>({t:p.packet.observation.observedAt,price:p.packet.observation.priceWad,valid:true})),block.timestamp);
+    const expected=expectedDemoTwap(accepted.map(p=>{const receipt=relay!.get(domain,p.packet.observation.sequence)!.accepted!;
+      return {t:p.packet.observation.observedAt,price:receipt.priceWad,valid:receipt.depthValid};}),block.timestamp);
     for(const field of ['available','twapWad','coveredSecs','integral'] as const)assert.equal(twap[field],expected[field]);
     assert.equal(journal.verify(),true);assert.equal(packets.verify(),true);
+    report.packets=accepted.map(p=>({packet:p.packet,digest:p.digest,signature:p.signature,delivery:relay!.get(domain,p.packet.observation.sequence)}));
+    if(scenario==='transitions'){
+      const invalid=results.filter(r=>r.depthValid===false),valid=results.filter(r=>r.depthValid===true),gaps=results.filter(r=>r.state==='SOURCE_UNAVAILABLE');
+      assert.ok(invalid.length>0,'invalid checkpoint not accepted');assert.ok(gaps.some(r=>r.reason==='MISSING_OR_BAD_SOURCE_TIME'),'missing-time gap not retained');
+      assert.ok(valid.some(r=>r.sequence!>invalid.at(-1)!.sequence!),'no valid recovery after invalid checkpoint');
+      assert.ok(accepted.some(p=>p.packet.observation.priceWad===630000000000000000n),'recovery price does not match independent fixture value');
+      report.transitionChecks={verified:true,invalidPackets:invalid.length,validPackets:valid.length,sourceGaps:gaps.length};
+    }
     report.acceptedPackets=accepted.length;report.twap={actual:twap,expected,verified:true};report.completed=true;
   }catch(error){report.error=error instanceof Error?error.message:String(error);throw error;}
   finally{
     pipeline?.close();relay?.close();signer?.close();packets.close();journal.close();
+    report.archiveSha256=Object.fromEntries(['source.sqlite','packets.sqlite','signer.sqlite','relay.sqlite']
+      .filter(name=>{try{readFileSync(`${directory}/${name}`);return true;}catch{return false;}})
+      .map(name=>[name,createHash('sha256').update(readFileSync(`${directory}/${name}`)).digest('hex')]));
     process.removeListener('SIGINT',shutdown);process.removeListener('SIGTERM',shutdown);
     const closed=once(anvil,'close');anvil.kill('SIGTERM');await Promise.race([closed,pause(2000)]);
     if(anvil.exitCode===null&&anvil.signalCode===null)anvil.kill('SIGKILL');report.finishedAt=Date.now();save();

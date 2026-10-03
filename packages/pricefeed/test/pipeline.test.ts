@@ -12,7 +12,8 @@ import { LocalTestSigner } from '../src/local-test-signer.js';
 import { ACCEPTED_ABI, type DeliveryReceipt } from '../src/receipts.js';
 import { Journal } from '../src/journal.js';
 import { Worker, type Provider } from '../src/worker.js';
-import { config, reviewed, body, metadata, event, candidate, h } from './publication-fixture.js';
+import { config, reviewed, invalidConfig, invalidReviewed, body, metadata, event, candidate, h } from './publication-fixture.js';
+import { prepareObservation } from '../src/publication.js';
 import { rulesHash } from '../src/rules.js';
 import { INGRESS_ABI, type Observation } from '../src/wire.js';
 import { localRpcTransport } from '../src/local-rpc.js';
@@ -20,21 +21,22 @@ import { localRpcTransport } from '../src/local-rpc.js';
 const sender=privateKeyToAccount(('0x'+'22'.repeat(32)) as Hex);
 const policy:RelayPolicy={gasCap:100000n,maxFeePerGas:100n,maxPriorityFeePerGas:1n,maxCostWei:10000000n,
   headroomMs:1000n,confirmations:1n,timeoutMs:100,maxAttempts:3,leaseMs:1000n};
-async function setup(){
+async function setup(invalidPolicy=false){
+  const cfg=invalidPolicy?invalidConfig:config,rules=invalidPolicy?invalidReviewed:reviewed;
   const dir=mkdtempSync(join(tmpdir(),'pricefeed-pipeline-'));let now=1000100n,chainSeq=0n,chainTime=0n,failSend=false;
   const packets=new PacketStore(join(dir,'packets.sqlite')),journal=new Journal(join(dir,'source.sqlite'));
-  const domain=candidate(1n).domain;
+  const domain={...candidate(1n).domain,rulesHash:cfg.destination!.sourceRulesHash};
   const signer=new LocalTestSigner(join(dir,'signer.sqlite'),domain,packets,()=>now);
   const sent:Hex[]=[],receipts=new Map<Hex,DeliveryReceipt>();let blockTime=1001n;
   const provider:Provider={event:async()=>capture(event),metadata:async()=>capture(metadata),book:async()=>capture(JSON.parse(body))};
   function capture(data:Record<string,unknown>){return {url:'https://fixture.invalid',receivedAtMs:now-50n,
     latencyMs:1n,body:JSON.stringify(data),headers:{},data,attempts:1};}
-  const worker=new Worker(config,provider,journal,'collector',()=>now);
+  const worker=new Worker(cfg,provider,journal,'collector',()=>now);
   const transport:LocalRelayTransport={rpcUrl:'http://127.0.0.1:8545',sender:sender.address,pendingNonce:async()=>BigInt(receipts.size),
-    identity:async()=>({chainId:31337n,engineCodeHash:config.destination!.engineCodeHash,abiHash:config.destination!.abiHash,
+    identity:async()=>({chainId:31337n,engineCodeHash:cfg.destination!.engineCodeHash,abiHash:cfg.destination!.abiHash,
       signer:domain.signer,rulesHash:domain.rulesHash,lastSequence:chainSeq,lastObservedAt:chainTime,
-      listing:{...config.destination,indexSourceId:domain.sourceId,indexSigner:domain.signer,indexRulesHash:domain.rulesHash,
-        depthNLots:config.pricing.depthNLots,maxSpreadWad:config.pricing.maxSpreadWad}}),
+      listing:{...cfg.destination,indexSourceId:domain.sourceId,indexSigner:domain.signer,indexRulesHash:domain.rulesHash,
+        depthNLots:cfg.pricing.depthNLots,maxSpreadWad:cfg.pricing.maxSpreadWad}}),
     simulate:async()=>{},prepare:async(req)=>sender.signTransaction({type:'eip1559',chainId:31337,
       to:req.to as Hex,data:req.data,nonce:Number(req.nonce),gas:req.gas,maxFeePerGas:req.maxFeePerGas,maxPriorityFeePerGas:req.maxPriorityFeePerGas,value:0n}),
     broadcast:async(raw)=>{sent.push(raw);if(failSend)throw new Error('UNKNOWN_SEND');
@@ -48,7 +50,7 @@ async function setup(){
           [o.sequence,o.observedAt,o.publishedAt,blockTime,o.priceWad,o.impactBidWad>0n,packet.digest])}]});return tx;},
     receipt:async(hash)=>receipts.get(hash)??null,block:async(n)=>({number:n,hash:h('aa') as Hex,timestamp:blockTime}),head:async()=>10n};
   const relay=new LocalRelay(join(dir,'relay.sqlite'),packets,transport,policy,()=>now);
-  const pipeline=new LocalPipeline([{worker,rules:reviewed,signer}],packets,relay,transport,policy,()=>now);
+  const pipeline=new LocalPipeline([{worker,rules,signer}],packets,relay,transport,policy,()=>now);
   return {dir,domain,packets,journal,signer,relay,pipeline,worker,provider,transport,sent,
     setNow:(n:bigint)=>{now=n;},setFail:(v:boolean)=>{failSend=v;},setChain:(s:bigint)=>{chainSeq=s;chainTime=s===0n?0n:1000n;},
     close:()=>{pipeline.close();relay.close();signer.close();packets.close();journal.close();rmSync(dir,{recursive:true,force:true});}};
@@ -185,5 +187,54 @@ test('restart expires an unsent allocation and burns its sequence before publish
     const next=await s.pipeline.process(await s.worker.poll());
     assert.equal(next.state,'FINALIZED');assert.equal(next.sequence,2n);
     assert.equal(parseTransaction(s.sent[0]!).nonce,0);assert.equal(s.packets.get(s.domain,1n)!.state,'EXPIRED');
+  }finally{s.close();}
+});
+
+function wideProvider(s:Awaited<ReturnType<typeof setup>>):void {
+  const data={...JSON.parse(body),asks:[{price:'0.90',size:'6'}]};
+  s.provider.book=async()=>({url:'fixture://wide',receivedAtMs:1000050n,latencyMs:1n,
+    body:JSON.stringify(data),headers:{},data,attempts:1});
+}
+test('opted-in joined pipeline delivers invalid checkpoints and archives original calculated impacts',async()=>{
+  const s=await setup(true);try{
+    await s.pipeline.start();assert.equal((await s.pipeline.process(await s.worker.poll())).depthValid,true);
+    wideProvider(s);const output=await s.pipeline.process(await s.worker.poll());
+    assert.equal(output.state,'FINALIZED');assert.equal(output.depthValid,false);assert.equal(output.sequence,2n);
+    const o=s.packets.get(s.domain,2n)!.packet.observation;
+    assert.deepEqual([o.priceWad,o.impactBidWad,o.impactAskWad,o.bidDepthLots,o.askDepthLots],[0n,0n,0n,6000n,6000n]);
+    const inspection=s.journal.latest(s.worker.namespace)!.payload.inspection as Record<string,unknown>;
+    const summary=inspection.summary as Record<string,unknown>;
+    assert.equal(inspection.reason,'EXCESSIVE_SPREAD');assert.equal(summary.impactAskWad,'900000000000000000');
+    assert.equal(s.journal.verify(),true);assert.equal(s.packets.verify(),true);
+  }finally{s.close();}
+});
+test('fresh invalid checkpoint supersedes an unsent valid allocation without reusing its sequence',async()=>{
+  const s=await setup(true);try{
+    const fence=s.packets.acquire(s.domain,'crashed',1000100n,1000n);
+    s.packets.reconcile(s.domain,'crashed',fence,1000100n,{lastSequence:0n,lastObservedAt:0n});
+    s.packets.allocate(s.domain,'crashed',fence,1000100n,seq=>prepareObservation(invalidConfig,invalidReviewed,
+      {bookBody:body,metadata,event,bookReceivedAtMs:1000050n,metadataReceivedAtMs:1000000n,eventReceivedAtMs:1000000n},seq,1000100n,1000n));
+    s.packets.release(s.domain,'crashed',fence);wideProvider(s);await s.pipeline.start();
+    const output=await s.pipeline.process(await s.worker.poll());
+    assert.equal(output.sequence,2n);assert.equal(output.depthValid,false);assert.equal(s.sent.length,1);
+    assert.equal(parseTransaction(s.sent[0]!).nonce,0);
+    assert.equal(s.packets.get(s.domain,1n)!.state,'EXPIRED');
+    assert.equal(s.packets.get(s.domain,1n)!.reason,'SUPERSEDED_BY_FRESH_INVALID_DEPTH');
+    assert.equal(s.packets.get(s.domain,1n)!.packet.observation.priceWad,600000000000000000n);
+  }finally{s.close();}
+});
+test('invalid transition cannot skip an unknown valid transaction or mutate its frozen packet',async()=>{
+  const s=await setup(true);try{
+    await s.pipeline.start();s.setFail(true);await s.pipeline.process(await s.worker.poll());
+    const frozen=s.packets.get(s.domain,1n),sends=s.sent.length;wideProvider(s);
+    const blocked=await s.pipeline.process(await s.worker.poll());
+    assert.equal(blocked.state,'SOURCE_UNAVAILABLE');assert.equal(blocked.reason,'INVALID_TRANSITION_BLOCKED_BY_PENDING_DELIVERY');
+    assert.equal(s.sent.length,sends);assert.equal(s.packets.list(s.domain).length,1);
+    assert.deepEqual(s.packets.get(s.domain,1n),frozen);
+    s.setFail(false);await s.transport.broadcast(s.sent[0]!);
+    assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
+    const invalid=await s.pipeline.process(await s.worker.poll());
+    assert.equal(invalid.sequence,2n);assert.equal(invalid.depthValid,false);
+    assert.deepEqual(s.sent.map(raw=>parseTransaction(raw).nonce),[0,0,1]);
   }finally{s.close();}
 });
