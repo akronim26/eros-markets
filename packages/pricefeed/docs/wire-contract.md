@@ -53,5 +53,7 @@ confirmation record.
 
 I-3 requests CP-PRICE confirmation of this already-defined envelope. This document
 provides its technical basis. Named counterpart acceptance is separate and is not
-invented here. Impact method, provider-time meaning, quote normalization, canonical
-rules hash and operational invalid policy remain open under Q02-Q10.
+invented here. The user subsequently selected before-fee VWAP, directed price
+rounding and validated two-sided displayed depth with floor-total lots. See
+`impact-decision.md`. Provider-time meaning, quote normalization/provider precision,
+canonical rules hash and operational invalid policy remain open under Q03-Q10.

@@ -44,3 +44,35 @@ test('off-grid, malformed, out-of-domain and empty-sided books fail explicitly',
     assert.throws(() => normalizeBook({...raw,bids:[row]}));
   assert.throws(() => normalizeBook({...raw,bids:[]}));
 });
+
+test('selected book-price VWAP respects source minimum at one-lot boundaries', () => {
+  const book=normalizeBook({bids:[{price:'0.60',size:'6'}],asks:[{price:'0.62',size:'6'}],
+    tick_size:'0.01',min_order_size:'5'});
+  const below=summarizeBook(book,4999n,50000000000000000n,'vwap');
+  assert.equal(below.valid,false);
+  assert.equal(below.reason,'BELOW_SOURCE_MINIMUM');
+  assert.equal(below.priceWad,null);
+  for(const n of [5000n,5001n]){
+    const summary=summarizeBook(book,n,50000000000000000n,'vwap');
+    assert.equal(summary.valid,true);
+    assert.equal(summary.impactBidWad,600000000000000000n);
+    assert.equal(summary.impactAskWad,620000000000000000n);
+    assert.equal(summary.priceWad,610000000000000000n);
+    assert.equal(summary.bidDepthLots,6000n);
+    assert.equal(summary.askDepthLots,6000n);
+  }
+});
+
+test('selected depth policy preserves residual quantity without rounding depth up', () => {
+  const book=normalizeBook({bids:[{price:'0.60',size:'5'},{price:'0.58',size:'0.0008'}],
+    asks:[{price:'0.62',size:'5'},{price:'0.64',size:'0.0008'}],tick_size:'0.01',min_order_size:'5'});
+  const atN=summarizeBook(book,5000n,50000000000000000n,'vwap');
+  assert.equal(atN.valid,true);
+  assert.equal(atN.bidDepthLots,5000n);
+  assert.equal(atN.askDepthLots,5000n);
+  assert.equal(atN.priceWad,610000000000000000n);
+  const oneLotMore=summarizeBook(book,5001n,50000000000000000n,'vwap');
+  assert.equal(oneLotMore.valid,false);
+  assert.equal(oneLotMore.reason,'INSUFFICIENT_DEPTH');
+  assert.equal(oneLotMore.priceWad,null);
+});
