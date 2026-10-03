@@ -1,0 +1,5 @@
+[
+  {"breakpoints":[[0,0.49],[1,0.49]],"model":"groq:openai/gpt-oss-120b@2026-10-03"},
+  {"breakpoints":[[0,0.49],[1,0.49]],"model":"nvidia:moonshotai/kimi-k3@2026-10-03"},
+  {"breakpoints":[[0,0.49],[1,0.49]],"model":"aicredits:google/gemini-3.8-flash@2026-10-04"}
+]

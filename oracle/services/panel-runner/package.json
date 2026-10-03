@@ -11,7 +11,8 @@
     "record": "bun scripts/record.ts",
     "record:classifier": "bun scripts/record-classifier.ts",
     "start": "bun src/main.ts",
-    "test:fork": "bun test test/fork"
+    "test:fork": "bun test test/fork",
+    "validate": "bun --env-file=../../../.env scripts/validate.ts"
   },
   "dependencies": {
     "@eros-oracle/feedspec": "workspace:*",
