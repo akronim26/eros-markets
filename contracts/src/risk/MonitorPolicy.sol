@@ -48,6 +48,7 @@ abstract contract MonitorPolicy is RiskContextPort, SourceGuards {
         }
         p.hazard0WadPerDay = hazard0WadPerDay;
         p.hazard1WadPerDay = hazard1WadPerDay;
+        _validateRiskProfile(_listing, p);
         _stagedParams = p;
         _stageRiskProfile(profileHashOf(p));
         _monitorFlag = true;
