@@ -42,6 +42,13 @@
         "zod": "4.6.5",
       },
     },
+    "services/snapshotter": {
+      "name": "@eros-oracle/snapshotter",
+      "version": "0.1.0",
+      "dependencies": {
+        "@eros-oracle/feedspec": "workspace:*",
+      },
+    },
   },
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
@@ -53,6 +60,8 @@
     "@eros-oracle/oracle-cli": ["@eros-oracle/oracle-cli@workspace:packages/oracle-cli"],
 
     "@eros-oracle/oracle-sdk": ["@eros-oracle/oracle-sdk@workspace:packages/oracle-sdk"],
+
+    "@eros-oracle/snapshotter": ["@eros-oracle/snapshotter@workspace:services/snapshotter"],
 
     "@noble/ciphers": ["@noble/ciphers@1.3.0", "", {}, "sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw=="],
 
