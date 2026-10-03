@@ -15,6 +15,7 @@ import {
   MarketRegistryAbi,
   ResolutionOracleAbi,
   WATCHDOG_EVENTS,
+  WATCHDOG_RANGE_BLOCKS,
 } from '@eros-oracle/oracle-sdk'
 import { type Address, createNonceManager, createPublicClient, createWalletClient, defineChain, type Hex, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -80,7 +81,8 @@ export class IntakeReader {
       const fresh = await freshProgress(idx.client, head, idx.maxLagBlocks)
       if (fresh.ok) {
         const progress = BigInt(fresh.progress.progressBlock)
-        const to = progress < head ? progress : head
+        const upTo = progress < head ? progress : head
+        const to = upTo < this.next + WATCHDOG_RANGE_BLOCKS - 1n ? upTo : this.next + WATCHDOG_RANGE_BLOCKS - 1n // the rest next tick
         if (to < this.next) return { proposals: [], asserted: [] }
         try {
           const out = fromIndexer(await idx.client.query(WATCHDOG_EVENTS, { from: Number(this.next) - 1, to: Number(to) }))
