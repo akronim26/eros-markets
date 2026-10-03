@@ -6,6 +6,8 @@ tests, reference fixtures and documentation live only in `packages/pricefeed/`.
 The existing `pricefeed` branch is preserved. The user performs commits; the agent
 supplies reminders every five minutes during active work and suggested messages.
 This overrides the risk-team commit/STATUS workflow for this separate workstream.
+From 03 October 2026, the user requires suggested commit messages to start with
+`feat:`, `test:` or `fix:`. Reminders apply during active work; commits remain manual.
 
 This is the permitted implementation location, not a reviewer approval or a
 production authorization. No risk-side fingerprints, gate records, shared STATUS,
