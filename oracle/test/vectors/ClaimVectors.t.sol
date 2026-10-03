@@ -84,11 +84,7 @@ contract ClaimVectorsTest is Test {
             _base()
         );
         cs[n++] = _c("bare-no-tau-unix", BARE, _base());
-        cs[n++] = _c(
-            "literal-braces",
-            string.concat("{x} }} { |", BARE, "}}}{ }"),
-            _base()
-        );
+        cs[n++] = _c("literal-braces", string.concat("{x} }} { |", BARE, "}}}{ }"), _base());
         cs[n++] = _c("token-at-end-tau-unix", string.concat(BARE, " {{TAU_UNIX}}"), _base());
 
         f = _base();
@@ -225,7 +221,9 @@ contract ClaimVectorsTest is Test {
         string memory worst = "null";
         try this.worstCaseExt(
             c.template, bytes(f.question).length, bytes(f.rules).length, bytes(c.l1Url).length
-        ) returns (uint256 w) {
+        ) returns (
+            uint256 w
+        ) {
             worst = vm.toString(w);
         } catch (bytes memory e) {
             assertEq(_errorName(e), "InvalidTemplate");
@@ -244,9 +242,8 @@ contract ClaimVectorsTest is Test {
             ', "valueHash": ',
             _q(vm.toString(c.valueHash))
         );
-        return string.concat(
-            a, ',\n     "rendered": ', rendered, ',\n     "worstCase": ', worst, ', "error": ', err, "}"
-        );
+        return
+            string.concat(a, ',\n     "rendered": ', rendered, ',\n     "worstCase": ', worst, ', "error": ', err, "}");
     }
 
     function _json() internal view returns (string memory j) {
