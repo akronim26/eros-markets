@@ -125,11 +125,12 @@ Plan §13: owner OB · 2 PD · depends O30 · acceptance: hash reproducible from
 - Depends: O32.1
 - Plan: §8.2
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/services/snapshotter/src/jcs.ts
 - Build: RFC 8785 JCS canonical JSON; `evidenceHash = keccak256(canonicalBytes)`.
 - Done when: the RFC 8785 test vectors pass and the same snapshot always gives the same hash.
 - Check: cd oracle/services/snapshotter && bun test
+- Notes: `src/jcs.ts`: `canonicalize(value)` (RFC 8785: properties sorted by UTF-16 code units at every level, arrays in order, strings with the five short escapes and other controls as lowercase `\u00hh`, numbers as ECMAScript `Number::toString`, no whitespace), `canonicalBytes` (UTF-8) and `evidenceHash(snapshot) = keccak256(canonicalBytes)` (viem). Anything JSON cannot carry is a `JcsError`, never dropped or rewritten: undefined (also as a property or array element, which `JSON.stringify` would silently drop), NaN and ±Infinity, bigint, functions, symbols, non-plain objects (Date, typed arrays, Map), cycles (the same object twice is fine), and lone surrogates in values or keys (RFC 8785 §3.2.2.2). Vectors (`test/vectors/jcs/`, README with sources): the RFC's §3.2.2 sample, §3.2.3 canonical form and sorting data extracted verbatim from rfc-editor.org's RFC 8785 text, the §3.2.4 bytes and all 24 Appendix B number samples (with NaN and Infinity refused) written into the test; the six input/output pairs of the RFC author's reference implementation (cyberphone/json-canonicalization at 19d51d7, Apache-2.0) compared byte for byte; the first 10,000 lines of its ES6 number file (sha256 b9f7a8e7…), and locally the first 1,000,000 lines with 0 mismatches (not committed: the file is 2 GB). Same snapshot, same hash: a snapshot taken from the O32.1 fixture hashes identically after pretty JSON round trip, canonical round trip, every object's keys reversed and `structuredClone`, canonicalization is idempotent, and the hash moves when items are reordered, one stored byte flips, `takenAt`, `omitted` or an `allowListed` mark changes; a hand-written snapshot and its hand-written canonical text give `keccak256` of that text. 28 new tests (46 in the package); 17/18 mutations caught, the survivor equivalent (`JSON.stringify` of a finite number is `Number::toString`).
 
 ### O32.3 · Dual pinning and verification
 - Owner: OB
