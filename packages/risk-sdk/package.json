@@ -1,0 +1,14 @@
+{
+  "name": "@eros/risk-sdk",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit --strict --target es2020 --module commonjs --moduleResolution node src/index.ts",
+    "test:accounting": "node node_modules/typescript/bin/tsc --target es2020 --module commonjs --strict --outDir ../../tmp/risk-sdk src/accounting.ts test/accounting.test.ts && node ../../tmp/risk-sdk/test/accounting.test.js",
+    "test:read-model": "node node_modules/typescript/bin/tsc --noCheck --esModuleInterop --target es2020 --module commonjs --outDir ../../tmp/risk-sdk-b src/index.ts test/read-model.test.ts && node --test ../../tmp/risk-sdk-b/test/read-model.test.js",
+    "test": "npm run typecheck && npm run test:accounting && npm run test:read-model"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
