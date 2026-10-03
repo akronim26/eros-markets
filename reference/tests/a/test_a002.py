@@ -652,6 +652,23 @@ class UnifiedValidationTest(unittest.TestCase):
             self.reference_stderr = "Ran 1 test in 0.001s\n\n" + summary + "\n"
             self.assertNotEqual(self.execute_script("check-gate.sh", [str(self.root), "bash", "G1"]), 0)
 
+    def test_unified_forge_rejects_global_config_without_reading_or_changing_it(self):
+        homes = [self.root / name for name in ("python-home", "shell-home", "windows-home")]
+        with patch.object(Path, "home", return_value=homes[0]), \
+                patch.dict(os.environ, {"HOME": str(homes[1]), "USERPROFILE": str(homes[2])}):
+            self.assertEqual(check_a_review.forge_environment()["FOUNDRY_PROFILE"], "risk")
+            for home in homes:
+                config = home / ".foundry/foundry.toml"
+                config.parent.mkdir(parents=True, exist_ok=True)
+                config.write_text("private-fixture-contents\n", encoding="utf-8")
+                with patch.object(Path, "read_text", side_effect=AssertionError("Must not read user settings")), \
+                        patch.object(Path, "read_bytes", side_effect=AssertionError("Must not read user settings")):
+                    with self.assertRaisesRegex(ValueError, "Global Foundry configuration") as raised:
+                        check_a_review.forge_environment()
+                self.assertNotIn(str(home), str(raised.exception))
+                self.assertEqual(config.read_text(encoding="utf-8"), "private-fixture-contents\n")
+                config.unlink()
+
 
 if __name__ == "__main__":
     unittest.main()

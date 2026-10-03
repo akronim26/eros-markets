@@ -13,6 +13,20 @@ TECHNICAL_SUITES = {"A043": "test/reviews/*.t.sol", "B043": "test/reviews/B043Re
 
 
 def forge_environment():
+    homes = {Path.home()}
+    homes.update(Path(os.environ[name]) for name in ("HOME", "USERPROFILE") if os.environ.get(name))
+    if os.name == "nt":
+        import ctypes
+        native_home = ctypes.create_unicode_buffer(32768)
+        if ctypes.windll.shell32.SHGetFolderPathW(None, 0x28, None, 0, native_home) or not native_home.value:
+            raise ValueError("Unable to check native global Foundry configuration")
+        homes.add(Path(native_home.value))
+    try:
+        configured = any((home / ".foundry/foundry.toml").exists() for home in homes)
+    except OSError:
+        raise ValueError("Unable to check global Foundry configuration") from None
+    if configured:
+        raise ValueError("Global Foundry configuration must be absent for unified technical validation")
     environment = {name: value for name, value in os.environ.items()
                    if not name.upper().startswith(("FOUNDRY_", "DAPP_"))}
     environment.update(FOUNDRY_PROFILE="risk", FOUNDRY_FUZZ_SEED="0x45524f53", FORGE_SNAPSHOT_EMIT="false")
