@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@eros-oracle/feedspec": "workspace:*",
+    "@eros-oracle/oracle-sdk": "workspace:*",
     "viem": "2.57.2",
     "zod": "4.6.5"
   }

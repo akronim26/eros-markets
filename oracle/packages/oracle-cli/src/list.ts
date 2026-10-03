@@ -1,6 +1,6 @@
 // `oracle-cli list` (plan §12.9 steps 2 and 6, O22.2): from a listing input, writes listings/<marketId>/ with
 // pack.json (the createMarket arguments in ListMarket's schema), reference.json (the captured response of a
-// finished event; its keccak256 is dryRunHash) and claim.txt (rendered by ClaimRenderer). Before writing, it
+// finished event; its keccak256 is dryRunHash) and claim.txt (rendered by oracle-sdk's mirror of ClaimRenderer, O30.3). Before writing, it
 // checks the FeedSpec with the evaluator package, that the reference evaluates to YES or NO, the claim length
 // against maxClaimBytes, and createMarket itself in a Foundry dry-run (CheckPack). Any failure throws and
 // writes nothing.
@@ -8,8 +8,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { buildUrl, evaluateResponse, type FeedSpec, MAX_BODY_BYTES, validateSpec } from '@eros-oracle/feedspec'
 import { BadFeed } from '@eros-oracle/feedspec'
-import { getAddress, type Hex, keccak256, toBytes } from 'viem'
-import { checkPack, ORACLE_ROOT, renderClaim } from './forge'
+import { InvalidTemplate, l1Evidence, NoOutcome, renderClaim, worstCaseLength } from '@eros-oracle/oracle-sdk'
+import { getAddress, type Hex, keccak256, stringToBytes, toBytes } from 'viem'
+import { checkPack, ORACLE_ROOT } from './forge'
 import { type Listing, listingSchema, stringify } from './schema'
 
 export const ZERO32 = `0x${'00'.repeat(32)}` as Hex
@@ -116,15 +117,21 @@ export async function list(o: ListOptions): Promise<ListResult> {
   const packJson = stringify(pack)
 
   // Step 6: the claim a Layer 1 YES proposal would assert, and the registry's length bound.
-  const { claim, worstCase } = renderClaim(
-    m.claimTemplate,
-    {
-      marketId, chainId: o.chainId ?? BigInt(params.chainId), oracle: claimOracle(network, o), question: m.question,
-      rules: m.rules, tau: m.tau, outcome: 1, evidenceHash: ZERO32, // the report's hash exists only once the report does
-    },
-    buildUrl(feed),
-    valueHash,
-  )
+  const l1Url = buildUrl(feed)
+  const fields = {
+    marketId, chainId: o.chainId ?? BigInt(params.chainId), oracle: claimOracle(network, o), question: m.question,
+    rules: m.rules, tau: m.tau, outcome: 1, evidence: l1Evidence(valueHash, l1Url),
+    evidenceHash: ZERO32, // the report's hash exists only once the report does
+  }
+  let claim: Uint8Array
+  let worstCase: bigint
+  try {
+    claim = renderClaim(m.claimTemplate, fields)
+    worstCase = worstCaseLength(m.claimTemplate, byteLength(m.question), byteLength(m.rules), byteLength(l1Url))
+  } catch (e) {
+    if (e instanceof InvalidTemplate || e instanceof NoOutcome) throw new ListError(`claim render failed: ${e.message}`)
+    throw e
+  }
   const maxClaimBytes = Number(g.maxClaimBytes)
   if (worstCase > BigInt(maxClaimBytes)) throw new ListError(`ClaimTooLong: worst case ${worstCase} bytes > maxClaimBytes ${maxClaimBytes} (rule 6)`)
   if (claim.length > maxClaimBytes) throw new ListError(`ClaimTooLong: ${claim.length} bytes > maxClaimBytes ${maxClaimBytes}`)
@@ -143,6 +150,8 @@ export async function list(o: ListOptions): Promise<ListResult> {
     claimBytes: claim.length, worstCase, maxClaimBytes, check,
   }
 }
+
+const byteLength = (s: string) => stringToBytes(s).length
 
 /** The oracle address the claim names: --oracle, else the deployment of the network. */
 function claimOracle(network: string, o: ListOptions): Hex {
