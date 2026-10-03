@@ -4,8 +4,8 @@
 //   RPC_URL              the runner's RPC endpoint
 //   RELAYER_PRIVATE_KEY  sends submitPanelResult (pays gas, trusted for nothing)
 //   ATTESTOR_PRIVATE_KEY the trust set's runner attestor, which signs PanelResults
-//   PANEL_MODELS         "provider:model-id@version", comma-separated; the panel (ADJ-48):
-//                        groq:openai/gpt-oss-120b@2026-10-03,nvidia:moonshotai/kimi-k3@2026-10-03,aicredits:qwen/qwen3.8-flash@2026-10-04
+//   PANEL_MODELS         "provider:model-id@version", comma-separated; the panel (ADJ-49):
+//                        groq:openai/gpt-oss-120b@2026-10-03,nvidia:moonshotai/kimi-k3@2026-10-03,aicredits:anthropic/claude-sonnet-5.5@2026-10-04
 //   <PROVIDER>_API_KEY   one per provider (oracle-sdk KEYS); GROQ_API_KEY also runs the injection classifier
 //   CALIBRATION          JSON file of calibration maps (default: the placeholder maps)
 //   SOURCES              optional JSON file {marketId: [page URLs]}
