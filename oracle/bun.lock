@@ -47,6 +47,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@eros-oracle/feedspec": "workspace:*",
+        "viem": "2.57.2",
       },
     },
   },

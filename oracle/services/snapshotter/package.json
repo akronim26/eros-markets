@@ -10,6 +10,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@eros-oracle/feedspec": "workspace:*"
+    "@eros-oracle/feedspec": "workspace:*",
+    "viem": "2.57.2"
   }
 }
