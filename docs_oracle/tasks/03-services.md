@@ -136,13 +136,14 @@ Plan §13: owner OB · 2 PD · depends O30 · acceptance: hash reproducible from
 - Owner: OB
 - PD: 0.75
 - Depends: O32.2
-- Plan: §8.2
+- Plan: §8.2, ADJ-41
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: oracle/services/snapshotter/src/pin.ts
 - Build: Pin to two providers; `evidenceURI = ipfs://<CIDv1>`; verify both pins and a gateway fetch hash before anything is submitted; reviewer additions create a new snapshot, hash and URI.
 - Done when: a snapshot pinned on testnet infrastructure re-fetches from its CID with the same `evidenceHash`.
 - Check: cd oracle/services/snapshotter && bun test
+- Notes: Skipped for the hackathon (team decision 3 Oct 2026, ADJ-41): no pinning-provider accounts; snapshots stay with the service that took them and `evidenceURI` is `eros-snapshot:<evidenceHash>`. Must be built before mainnet (the public-snapshot rule, spec §6.2).
 
 ## O33 · Panel runner
 Plan §13: owner OB · 4 PD · depends O32 · acceptance: signed payload accepted on testnet; flagged snapshot → Review.
@@ -238,7 +239,7 @@ Plan §13: owner OB · 2.5 PD · depends O30 · acceptance: E2/E3 committee step
 - Owner: OB
 - PD: 0.5
 - Depends: O34.2, O32.3
-- Plan: §8.4, ADJ-22
+- Plan: §8.4, ADJ-22, ADJ-41
 - Cut: no
 - Status: todo
 - Files: oracle/services/committee-console/src/ui/*
