@@ -87,3 +87,16 @@ jobs:
       - run: bun run build
       - name: No withDefault on the outcome path
         run: "! grep -rn --exclude-dir=node_modules '.withDefault(' --include='*.ts' . ../../packages"
+
+  validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle/validation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The dataset itself is local only (ADJ-39): here the fixture and pin tests run and the dataset tests skip.
+      - run: python3 -m unittest tests/test_dataset.py

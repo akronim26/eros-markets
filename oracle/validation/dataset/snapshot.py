@@ -1,12 +1,12 @@
-"""The raw store as one immutable release asset (task O39.1).
+"""The raw store as one reproducible tarball (task O39.1).
 
-The raw pulls are too large for git, and the APIs cannot reproduce them later, so they are published once as a
-GitHub Release asset. The repository keeps raw/MANIFEST.json (every file's sha256) and snapshot.json (the asset's
-name, URL and sha256); `fetch` downloads the asset, checks it and every file in it.
+The raw pulls are third-party API responses that the APIs cannot reproduce later. They stay local and git-ignored
+(ADJ-39): the repository goes public and is not the place to re-host the providers' data. The repository keeps
+raw/MANIFEST.json (every URL and file sha256), snapshot.json (the tarball's sha256) and report.json (the rows'
+sha256), so the data the gate used is pinned without being published.
 
   python3 -m dataset.snapshot pack                 # raw/ -> raw.tar.gz and snapshot.json
-  python3 -m dataset.snapshot fetch                # download raw.tar.gz from snapshot.json's URL, verify, unpack
-  python3 -m dataset.snapshot unpack raw.tar.gz    # verify and unpack a local copy
+  python3 -m dataset.snapshot unpack raw.tar.gz    # verify and unpack a copy into raw/
 
 The tarball is byte-reproducible: files in manifest order, fixed mode, owner and time, gzip without a time stamp.
 """
@@ -19,7 +19,6 @@ import hashlib
 import io
 import json
 import tarfile
-import urllib.request
 from pathlib import Path
 
 from .build import load_raw
@@ -27,8 +26,6 @@ from .build import load_raw
 HERE = Path(__file__).resolve().parent
 RAW = HERE / "raw"
 ASSET = "raw.tar.gz"
-RELEASE_TAG = "validation-dataset-v1"
-REPO = "xipharis/eros-markets"
 
 
 def sha256(b: bytes) -> str:
@@ -70,8 +67,7 @@ def write_snapshot(blob: bytes, out: Path = HERE, root: Path = RAW) -> dict:
     snap = {
         "schema": "eros-validation-snapshot/1",
         "asset": ASSET,
-        "release": RELEASE_TAG,
-        "url": f"https://github.com/{REPO}/releases/download/{RELEASE_TAG}/{ASSET}",
+        "stored": "local only, not published (ADJ-39)",
         "bytes": len(blob),
         "sha256": sha256(blob),
         "manifestSha256": sha256((root / "MANIFEST.json").read_bytes()),
@@ -84,7 +80,6 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("pack")
-    sub.add_parser("fetch")
     u = sub.add_parser("unpack")
     u.add_argument("file")
     a = ap.parse_args(argv)
@@ -95,11 +90,7 @@ def main(argv: list[str] | None = None) -> None:
         print(f"wrote {HERE / ASSET} ({snap['bytes']} bytes, sha256 {snap['sha256']}) and snapshot.json")
         return
     snap = json.loads((HERE / "snapshot.json").read_text())
-    if a.cmd == "fetch":
-        with urllib.request.urlopen(snap["url"], timeout=300) as r:
-            blob = r.read()
-    else:
-        blob = Path(a.file).read_bytes()
+    blob = Path(a.file).read_bytes()
     manifest = unpack(blob, RAW, snap["sha256"])
     print(f"verified and unpacked {len(manifest['files'])} files into {RAW}")
 
