@@ -1,4 +1,4 @@
-// Replays real Qwen 3.8 27B answers (Groq, 3 Oct 2026) on the snapshots in test/fixtures: 3-1 gives YES, 1-1 gives NO.
+// Replays real Gemini 3.8 Flash answers (Google, 4 Oct 2026) on the snapshots in test/fixtures: 3-1 gives YES, 1-1 gives NO.
 import type { Snapshot } from '@eros-oracle/snapshotter'
 import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
@@ -22,16 +22,17 @@ import { event, FakeChain, ID, L1_URL, MARKET, tableFetch } from './fake'
 const FIX = new URL('./fixtures/', import.meta.url).pathname
 const snapBytes = (name: string) => readFileSync(join(FIX, 'snapshots', `${name}.json`))
 const snap = (name: string): Snapshot => JSON.parse(snapBytes(name).toString('utf8'))
-const recorded = (name: string) => JSON.parse(readFileSync(join(FIX, 'recorded', `groq__qwen_qwen3.8-27b__${name}.json`), 'utf8'))
-const GROQ = 'https://api.groq.com/openai/v1/chat/completions'
-const ENV = { GROQ_API_KEY: 'test-key' }
+const recorded = (name: string) => JSON.parse(readFileSync(join(FIX, 'recorded', `google__gemini-3.8-flash__${name}.json`), 'utf8'))
+const GOOGLE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent'
+const ENV = { GEMINI_API_KEY: 'test-key' }
+const text = (body: any) => body.candidates[0].content.parts.map((p: any) => p.text ?? '').join('')
 
 /** Replays a recording and records what it was sent. */
 function replay(name: string) {
   const rec = recorded(name)
   const sent: any[] = []
   const fn = (async (url: string, init: RequestInit) => {
-    expect(url).toBe(GROQ)
+    expect(url).toBe(GOOGLE)
     sent.push(JSON.parse(init.body as string))
     return new Response(JSON.stringify(rec.body), { status: rec.httpStatus, headers: { 'content-type': 'application/json' } })
   }) as unknown as typeof fetch
@@ -49,8 +50,8 @@ describe('recorded answers', () => {
   test('the recordings are real 200s with the answers the snapshots call for', () => {
     expect(recorded('home-3-1').httpStatus).toBe(200)
     expect(recorded('home-3-1').model).toBe(WATCHDOG_MODEL)
-    const yes = parseWatchdogAnswer(recorded('home-3-1').body.choices[0].message.content)
-    const no = parseWatchdogAnswer(recorded('home-1-1').body.choices[0].message.content)
+    const yes = parseWatchdogAnswer(text(recorded('home-3-1').body))
+    const no = parseWatchdogAnswer(text(recorded('home-1-1').body))
     expect([yes.outcome, yes.sources]).toEqual(['YES', [1, 2]])
     expect([no.outcome, no.sources]).toEqual(['NO', [1, 2]])
   })
@@ -65,9 +66,9 @@ describe('recorded answers', () => {
     expect(v.signals).toHaveLength(1)
     expect(v.signals[0]).toMatchObject({ source: 'MODEL', outcome: 'YES' })
     // the request: the watchdog's model and prompt, temperature 0, nothing about the proposal
-    expect(sent[0].model).toBe('qwen/qwen3.8-27b')
-    expect(sent[0].temperature).toBe(0)
-    expect(sent[0].messages[1].content).toBe(watchdogCall(chain.text, snap('home-3-1')).user)
+    expect(sent[0].generationConfig.temperature).toBe(0)
+    expect(sent[0].systemInstruction.parts[0].text).toBe(watchdogCall(chain.text, snap('home-3-1')).system)
+    expect(sent[0].contents[0].parts[0].text).toBe(watchdogCall(chain.text, snap('home-3-1')).user)
   })
 
   test('contradiction: a NO proposal on the 3-1 snapshot, a YES proposal on the 1-1 snapshot', async () => {
@@ -149,14 +150,14 @@ describe('answers', () => {
     expect(r.answer).toBeUndefined()
     expect(r.httpStatuses).toEqual([503, 503, 503, 503])
     n = 0
-    const garbled = (async () => (n++, Response.json({ choices: [{ finish_reason: 'stop', message: { content: 'I think YES' } }] }))) as unknown as typeof fetch
+    const garbled = (async () => (n++, Response.json({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'I think YES' }] } }] }))) as unknown as typeof fetch
     expect((await askWatchdogModel(WATCHDOG_MODEL, call, { env: ENV, fetchFn: garbled, sleep: async () => {} })).error).toContain('no JSON object')
     expect(n).toBe(4)
     n = 0
     const denied = (async () => (n++, new Response('{}', { status: 401 }))) as unknown as typeof fetch
     expect((await askWatchdogModel(WATCHDOG_MODEL, call, { env: ENV, fetchFn: denied, sleep: async () => {} })).error).toBe('HTTP 401')
     expect(n).toBe(1)
-    expect((await askWatchdogModel(WATCHDOG_MODEL, call, { env: {}, fetchFn: denied })).error).toBe('no GROQ_API_KEY key')
+    expect((await askWatchdogModel(WATCHDOG_MODEL, call, { env: {}, fetchFn: denied })).error).toBe('no GEMINI_API_KEY key')
   })
 })
 

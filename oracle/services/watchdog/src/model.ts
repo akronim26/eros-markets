@@ -11,7 +11,7 @@ import { feedSignals, type L1Deps } from './l1'
 import { combine } from './verdict'
 import { type MarketText, OUTCOME_NAME, type OutcomeName, type Proposal, type Signal, type Verdict, type WatchdogChain } from './types'
 
-export const WATCHDOG_MODEL = 'groq:qwen/qwen3.8-27b@2026-10-03'
+export const WATCHDOG_MODEL = 'google:gemini-3.8-flash@2026-10-03'
 /** Uncalibrated, so the bar is high. */
 export const MIN_CONFIDENCE = 0.9
 export const SOURCE_CHARS = 6000

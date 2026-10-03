@@ -10,7 +10,7 @@
     "models": [
       "groq:openai/gpt-oss-120b@2026-10-03",
       "nvidia:moonshotai/kimi-k3@2026-10-03",
-      "aicredits:google/gemini-3.8-flash@2026-10-04"
+      "aicredits:qwen/qwen3.8-flash@2026-10-04"
     ]
   },
   "marketInput": {
@@ -44,10 +44,10 @@
       "modelIdHashes": [
         "0x0f88999d7b3d12fabb30fc17ed3deaae4dea955b3c47c97a3b2937fe3f4ff0e6",
         "0xde231ad8fec520538ddf8df926723c8f873e7880e1021e668b2544f8c6d5b994",
-        "0xe60fedebae9f2662e68f00284c15c87f049fbfb1c603e834b40942b6b35fa721"
+        "0x79ae83e0e3d8b90a589bd7b45b3c1aa1ebe23a2d39d3837f0265f13a2eb3344a"
       ],
       "promptHash": "0xd4e1459eb8c085de75bcd5bb4c97008561bdc896745e62eba6c28bb3fac70d82",
-      "calibratorHash": "0x3f6d1e70d1d4d85c4de733c056a7273475ad55ff7de3bcbff620867a51034942",
+      "calibratorHash": "0xfda4940b748c05dcc392eed89af5289522e323166651617fab7e0f4fb546d06c",
       "categoryId": "0xecf68b55a3148ada593e183bf15435fbd3f76364946ed2169f5e36e27bc9eafd",
       "highConfBps": 9900
     },
