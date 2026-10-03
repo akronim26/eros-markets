@@ -1,0 +1,63 @@
+{
+  "schema": "eros-monad-preflight/1",
+  "observed_at_utc": "2026-10-03T17:14:25.126382+00:00",
+  "mode": "deployment_estimate",
+  "status": "estimate_ok",
+  "broadcast": false,
+  "limits": {
+    "runtime_bytes": 131072,
+    "initcode_bytes": 262144,
+    "transaction_gas": 30000000
+  },
+  "limitations": [
+    "Read-only checks do not deploy, fund, activate, authorize a release, or grant peer review",
+    "Chain ID alone does not distinguish public testnet from a local fork using the same ID",
+    "Rebuild the pinned source: artifact metadata and hashes alone do not prove build freshness",
+    "Estimation requires constructor dependencies at this RPC state and is not a deployment receipt",
+    "Monad charges the transaction gas limit; do not use an unnecessarily large broadcast limit"
+  ],
+  "sources": [
+    "https://docs.monad.xyz/developer-essentials/testnet",
+    "https://docs.monad.xyz/developer-essentials/differences",
+    "https://docs.monad.xyz/developer-essentials/summary",
+    "https://docs.monad.xyz/tooling-and-infra/toolkits/foundry"
+  ],
+  "rpc_origin": "https://orbital-twilight-bush.monad-testnet.quiknode.pro",
+  "rpc_endpoint_sha256": "0220809bdb7e762c1fa7dec0d7d38f98e25b3687997a958e48119fdf1cd3eee9",
+  "chain_id": 10143,
+  "network_scope": "testnet-chain-id",
+  "client_version": "Monad/0.16.3",
+  "block": {
+    "number": 67886057,
+    "hash": "0x85b3b709658ab091e02b40b1111f575970bb7675977339f0a61c5a91b26696f6",
+    "timestamp": 1791047665,
+    "gas_limit": 150000000,
+    "base_fee_per_gas_wei": 100000000000
+  },
+  "suggested_gas_price_wei": 102000000000,
+  "artifact": {
+    "path": "C:\\Users\\gujja\\eros-markets\\contracts\\out\\BookRiskEngine.sol\\BookRiskEngine.json",
+    "artifact_sha256": "70a3030968561ac9997448b48eab1506cfaeafe8f3f9c45bd2a2f696d0149c44",
+    "compiler": "0.8.30+commit.73712a01",
+    "evm_version": "prague",
+    "optimizer_runs": 200,
+    "compilation_target": {
+      "src/engine/BookRiskEngine.sol": "BookRiskEngine"
+    },
+    "runtime_template_bytes": 120402,
+    "runtime_template_sha256": "ca2103587a82bcccd6df12abec607e81fc76330c55445cb712f71ef6d8adb5ec",
+    "creation_bytes": 129644,
+    "constructor_argument_bytes": 928,
+    "initcode_bytes": 130572,
+    "initcode_sha256": "b5413ccec898fb314d3f4b8f19c2a1cf268c5fe1330874742ef497936b155d35",
+    "runtime_note": "Artifact immutable placeholders are not the final deployed runtime code hash"
+  },
+  "estimate_request": {
+    "from": "0x76765dc99c2C9aeD0b2C23b39960f0de0aC5DA46",
+    "block_number": 67886057,
+    "gas_allowance": 30000000
+  },
+  "estimated_gas": 27853253,
+  "remaining_gas_headroom": 2146747,
+  "estimated_cost_at_quoted_gas_price_wei": 2841031806000000000
+}

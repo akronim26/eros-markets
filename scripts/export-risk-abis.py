@@ -20,7 +20,7 @@ EXPORTS = (
         "book-risk-engine-abi.json",
         "Concrete initial-1x BookRiskEngine deployment and public book ABI. "
         "Composes the real Book with RiskAccountingBridge; authenticated independent INDEX "
-        "and bounded book-derived PERP sampling with later-block confirmation. "
+        "and bounded book-derived PERP sampling with later-block confirmation and a sealed INDEX prefix. "
         "Fully backed bootstrap remains available before normal pricing windows are ready. "
         "Funding, recovery and conversion disabled; no test feed or failure injection.",
         (),
