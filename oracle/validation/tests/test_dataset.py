@@ -18,7 +18,7 @@ import unittest
 from collections import defaultdict
 from pathlib import Path
 
-from dataset import build, snapshot
+from dataset import build, pull, snapshot
 from dataset.categories import CATEGORIES, kalshi_category
 
 HERE = Path(__file__).resolve().parent.parent / "dataset"
@@ -135,6 +135,46 @@ class FixtureBuild(unittest.TestCase):
                          ["sports", "macro", "macro", "elections", "politics", "crypto", "companies", "other", "other"])
 
 
+class ResumablePull(unittest.TestCase):
+    """An interrupted pull is rerun without fetching what it already saved (task O39.1)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.calls = []
+        self.real = pull.fetch_json
+        pull.fetch_json = lambda url: (self.calls.append(url) or (json.dumps({"url": url}).encode(), {"url": url}))
+
+    def tearDown(self):
+        pull.fetch_json = self.real
+        self.tmp.cleanup()
+
+    def test_a_saved_page_is_reused_and_recorded_again(self):
+        first = pull.RawStore(self.root)
+        self.assertEqual(first.fetch("kalshi", "markets-000", "https://x/1"), {"url": "https://x/1"})
+        again = pull.RawStore(self.root)
+        self.assertEqual(again.fetch("kalshi", "markets-000", "https://x/1"), {"url": "https://x/1"})
+        self.assertEqual(self.calls, ["https://x/1"])  # fetched once
+        self.assertEqual(again.entries, first.entries)
+
+    def test_a_page_saved_without_metadata_is_adopted_with_its_file_time(self):
+        (self.root / "kalshi").mkdir(parents=True)
+        (self.root / "kalshi" / "series-KXA.json.gz").write_bytes(gzip.compress(b'{"series": {}}'))
+        store = pull.RawStore(self.root)
+        self.assertEqual(store.fetch("kalshi", "series-KXA", "https://x/s"), {"series": {}})
+        self.assertEqual(self.calls, [])
+        self.assertEqual(store.entries[0]["url"], "https://x/s")
+        self.assertEqual(store.entries[0]["sha256"], hashlib.sha256(b'{"series": {}}').hexdigest())
+        self.assertTrue((self.root / "kalshi" / "series-KXA.json.gz.meta.json").exists())
+
+    def test_another_url_or_a_damaged_file_is_fetched_again(self):
+        pull.RawStore(self.root).fetch("kalshi", "markets-000", "https://x/1")
+        pull.RawStore(self.root).fetch("kalshi", "markets-000", "https://x/2")  # another request, same name
+        (self.root / "kalshi" / "markets-000.json.gz").write_bytes(gzip.compress(b'{"tampered": 1}'))
+        pull.RawStore(self.root).fetch("kalshi", "markets-000", "https://x/2")
+        self.assertEqual(self.calls, ["https://x/1", "https://x/2", "https://x/2"])
+
+
 class Snapshot(unittest.TestCase):
     """The raw store as one release asset: byte-reproducible, and refused if the asset or any file changed."""
 
@@ -171,16 +211,51 @@ class Snapshot(unittest.TestCase):
         snap = snapshot.write_snapshot(blob, self.root, self.root / "raw")
         self.assertEqual(snap["sha256"], hashlib.sha256(blob).hexdigest())
         self.assertEqual(snap["bytes"], len(blob))
-        self.assertEqual(snap["url"], "https://github.com/xipharis/eros-markets/releases/download/validation-dataset-v1/raw.tar.gz")
+        self.assertEqual(snap["stored"], "local only, not published (ADJ-39)")
         self.assertEqual(json.loads((self.root / "snapshot.json").read_text()), snap)
 
 
 @unittest.skipUnless((HERE / build.ROWS).exists(), "no built dataset (run python3 -m dataset.build)")
+class PublicPins(unittest.TestCase):
+    """What the public repository holds about the local dataset (ADJ-39): the hashes agree with each other."""
+
+    def setUp(self):
+        self.rep = json.loads((HERE / "report.json").read_text())
+        self.snap = json.loads((HERE / "snapshot.json").read_text())
+        self.manifest_bytes = (HERE / "raw" / "MANIFEST.json").read_bytes()
+
+    def test_report_and_snapshot_pin_the_committed_manifest(self):
+        h = hashlib.sha256(self.manifest_bytes).hexdigest()
+        self.assertEqual(self.rep["manifestSha256"], h)
+        self.assertEqual(self.snap["manifestSha256"], h)
+        self.assertRegex(self.rep["rowsSha256"], r"^[0-9a-f]{64}$")
+        self.assertRegex(self.snap["sha256"], r"^[0-9a-f]{64}$")
+
+    def test_the_snapshot_is_not_published(self):
+        self.assertNotIn("url", self.snap)
+        self.assertNotIn("repo", self.snap)
+
+    def test_the_manifest_lists_failures_and_the_pull_parameters(self):
+        manifest = json.loads(self.manifest_bytes)
+        self.assertEqual(manifest["params"], self.rep["params"])
+        self.assertIsInstance(manifest["failures"], list)
+        for f in manifest["files"]:
+            self.assertRegex(f["sha256"], r"^[0-9a-f]{64}$")
+
+
 class CommittedDataset(unittest.TestCase):
+    """Runs where the local dataset is present (pull or unpack, then build); skipped elsewhere, e.g. CI."""
+
     @classmethod
     def setUpClass(cls):
+        if not (HERE / build.ROWS).exists():
+            raise unittest.SkipTest("dataset not present: python3 -m dataset.pull (or snapshot unpack) && python3 -m dataset.build")
         cls.rows = build.read_rows(HERE / build.ROWS)
         cls.rep = json.loads((HERE / "report.json").read_text())
+
+    def test_rows_are_the_pinned_rows(self):
+        text = gzip.decompress((HERE / build.ROWS).read_bytes())
+        self.assertEqual(hashlib.sha256(text).hexdigest(), self.rep["rowsSha256"])
 
     def test_every_row_has_a_parent_and_a_category(self):
         self.assertGreater(len(self.rows), 0)

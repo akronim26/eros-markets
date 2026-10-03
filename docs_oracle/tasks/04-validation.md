@@ -14,11 +14,12 @@ Plan §13: owner OA · 6+ PD · depends — · acceptance: report + `setCategory
 - Depends: -
 - Plan: §10
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/validation/dataset/*, oracle/validation/tests/test_dataset.py
 - Build: Resolved Polymarket and Kalshi markets with their official resolution, grouped by parent market, labelled by category (sports, macro releases, elections, crypto, companies, …). Store raw pulls with their hashes.
 - Done when: tests check that every row has a parent and a category and that parent counts are reported per category.
 - Check: cd oracle/validation && python3 -m unittest tests/test_dataset.py
+- Notes: `dataset/pull.py` pulls closed Polymarket events (Gamma API, by tag in precedence order: elections, economy, Fed, earnings, business, crypto, sports, politics; recurring tag 101757 excluded; up to 600 events per pull) and settled Kalshi markets (v2, `mve_filter=exclude`, 40 cursor pages, categories from `/series/{ticker}`) for 2025-10-01 to 2026-10-01 into `raw/` (each response gzipped with its URL, fetch time and sha256 in a sidecar; resumable, a failing page is skipped and recorded, a category stops after 3 failures in a row); `MANIFEST.json` lists 378 files and 3 failures (Polymarket Crypto offsets 300-500 answer HTTP 500, also on retry). `dataset/build.py` checks every hash and writes one row per resolved binary market (outcome YES, NO or INVALID from the official resolution; 680 unclosed Polymarket and 57 scalar Kalshi markets excluded and counted) grouped by parent event and labelled with one of seven categories: 63,951 rows, 5,462 parents (sports 1,394, crypto 922, macro 860, companies 707, elections 608, other 493, politics 478). Storage per ADJ-39: `raw/` (as a byte-reproducible `raw.tar.gz`, sha256 4c4b518c…) and `rows.jsonl.gz` stay local and git-ignored; the repository holds MANIFEST.json, snapshot.json and report.json (rows sha256 ee3feffc…), and a rebuild reproduces the rows byte for byte. 18 tests: fixture build (outcomes, exclusions, grouping), resumable pull, snapshot pack/unpack and tamper checks, the public pins agreeing with each other, and on the real dataset every row has a parent and a category, one category per parent, unique market ids, parent counts per category equal the report, rows point at manifest files and match the pinned hash (these skip where the dataset is absent). `validation` CI job added (ADJ-11).
 
 ### O39.2 · Frozen holdout split
 - Owner: OA
