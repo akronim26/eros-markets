@@ -130,9 +130,16 @@ struct StepResult {
     uint256 makerFeeQ;
     uint256 takerFeeQ;
     uint64 makerRemainingLots;
+    uint64 makerPostFillVersion;
     bool removeMakerRemainder;
 }
 ```
+
+**Accepted maker version (RB-I02).** For a successful reduce-only maker fill, Risk returns
+`makerPostFillVersion` only after paired accounting and both post-fill coverage checks succeed.
+Book may copy it only into that exact slot/generation's surviving, non-clipped remainder.
+Never refresh another resting order or a pruned/deleted node; current position-version and
+market/account-epoch checks remain mandatory before every later fill.
 
 **Selected sidecar and width contract.** The Risk/Book ABI uses `uint64` account epochs and `uint64` order lot quantities. B's original 256-bit packed slot has only `uint32 accountEpoch`, `uint48 size`, and no market epoch; it does not implement this ABI by itself. Use a dense slot-indexed sidecar carrying the full `uint64 accountOrderEpoch`, `uint64 marketOrderEpoch`, `uint64 reduceVersion`, and future-fee attribution. The original packed epoch field may be a non-authoritative cache only: validity always compares the complete sidecar values. At the book boundary, selected adapter behavior is to enforce `configuredMaxOrderLots <= type(uint48).max` and reject any incoming uint64 size exceeding that configured/packed maximum **before** a checked cast. Widen uint48→uint64 on reads. Never truncate a size or epoch. If the book team later revises packing, the external/internal Risk ABI remains uint64 and the revised range needs explicit tests.
 

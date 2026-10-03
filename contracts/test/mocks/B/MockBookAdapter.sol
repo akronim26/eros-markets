@@ -209,6 +209,8 @@ abstract contract MockBookAdapter is IBookRiskHooks {
                 );
             } else if (res.removeMakerRemainder) {
                 _remove(snap, i, RemovalReason.REDUCE_ONLY_EXHAUSTED);
+            } else if (o.v.reduceOnly) {
+                o.v.reduceVersion = res.makerPostFillVersion;
             }
         }
         lastExamined = steps;

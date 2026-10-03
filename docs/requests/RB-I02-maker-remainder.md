@@ -1,7 +1,8 @@
 # RB-I02: preserve a reduce-only maker's own partial remainder
 
-Status: open, Low, conservative liveness limitation. Owner: order-book team, coordinated
-with Risk & Clearing. Work on the integration branch first; do not silently change main.
+Status: implemented on `integration/risk`, pending independent teammate review. Severity: Low,
+conservative liveness limitation. Order-book and Risk & Clearing changes were explicitly authorized
+for this turn; no main merge, production release or review approval is implied.
 
 ## Observed mechanism
 
@@ -19,7 +20,7 @@ Example: a trader long 1,000,000 lots rests a reduce-only sale of 500,000. One b
 takes 250,000. A second buyer cannot consume the remaining 250,000 because the first
 posting advanced the seller's position version. The seller is still long 750,000.
 
-## Proposed coordinated repair
+## Implemented coordinated repair
 
 1. Extend the internal matched-fill result with the accepted maker post-fill version.
 2. Risk returns it only after successful real accounting and post-fill checks.
@@ -30,6 +31,20 @@ posting advanced the seller's position version. The seller is still long 750,000
 5. Test repeated partial maker fills, exhausted reductions, unrelated intervening
    trades, a close/reopen lifecycle, stale epochs, fees, and second-fill rollback.
 6. Obtain independent economic review and rerun the real-book and gate suites.
+
+`StepResult.makerPostFillVersion` now carries the accepted version after actual paired accounting
+and both post-fill rechecks. Book updates only the same surviving, non-clipped reduce-only node;
+the mock adapter mirrors that handoff. No position-version or epoch guard was removed, and the
+book storage layout did not change.
+
+Tests-first evidence: `contracts/test/integration/MakerRemainder.t.sol` produced eight failures
+and three passing controls before the repair (`tmp/rb-i02-red.log`), then all eleven passed with
+pinned Forge 1.8.3 (`tmp/maker-policy-domain-red.log`; that combined run's remaining failures are
+the separate RB-I07 domain regressions). Coverage includes long/short partial makers across
+independent takers, unrelated stale orders and trades, close/reopen, account and halt epochs,
+fee-cap conservation/cancel, no flip at flat, slot generation reuse and second-post rollback.
+The independent review and broader gates remain separate acceptance steps; these local logs
+are reproduction breadcrumbs, not checked-in release evidence or teammate approval.
 
 An alternative separate sign-lifecycle nonce would affect A accounting and liquidation
 fee bookkeeping more broadly. Do not change that counter casually as a shortcut.

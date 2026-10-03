@@ -229,6 +229,7 @@ contract BookHarness is TraderIds {
         doneCost += uint256(lots) * maker.tick;
         r.filledLots = lots;
         r.makerRemainingLots = maker.remainingLots - lots;
+        r.makerPostFillVersion = maker.reduceVersion;
         r.removeMakerRemainder = lots < proposedLots;
     }
 

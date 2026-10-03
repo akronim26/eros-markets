@@ -87,6 +87,7 @@ abstract contract IBookRiskHooks {
         uint256 makerFeeQ;
         uint256 takerFeeQ;
         uint64 makerRemainingLots;
+        uint64 makerPostFillVersion;
         bool removeMakerRemainder;
     }
 
