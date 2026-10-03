@@ -27,11 +27,12 @@ Plan §13: owner OA · 6+ PD · depends — · acceptance: report + `setCategory
 - Depends: O39.1
 - Plan: §10
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/validation/split/*, oracle/validation/tests/test_split.py
 - Build: Split by parent (never by row) into train, calibration and holdout before any tuning; record the split and data hashes.
 - Done when: tests show no parent appears in two splits and the recorded hashes reproduce.
 - Check: cd oracle/validation && python3 -m unittest tests/test_split.py
+- Notes: `split/split.py` assigns each parent from its id alone: `u = int(sha256("eros-validation-split/1:" + parent_id)[:16 hex]) / 2^64` as an exact Fraction, train below 3/10, calibration below 1/2, holdout the rest (half the parents, because the gate needs ≥ 150 parents per category in its bucket). Frozen 4 Oct 2026 before any tuning on rows sha256 ee3feffc…: train 1,671 parents, calibration 1,076, holdout 2,715; every category in every split (holdout: sports 670, crypto 463, macro 423, companies 350, elections 297, other 269, politics 243). `split/split.json` records the rule, the rows hash and, per split, parent and row counts per category and the sha256 of its sorted parent ids (no ids published, ADJ-39). 10 tests: the rule recomputed independently, half-open bounds, whole parents and counts on fixture rows; on the real rows no parent in two splits and split.json reproduces exactly (these skip in CI); the pins add up to report.json. CI now runs every validation test file.
 
 ### O39.3 · Freeze the gate
 - Owner: OA
