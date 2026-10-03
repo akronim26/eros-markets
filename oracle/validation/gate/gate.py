@@ -19,6 +19,7 @@ committed and pinned by its sha256.
 
   python3 -m gate.gate --import   # panel.jsonl → panel-runs.json
   python3 -m gate.gate            # writes calibration/maps.json and gate/gate.json
+  python3 -m gate.gate --run crypto-price [--import]   # the crypto-price run (ADJ-47): gate/crypto-price/, calibration/crypto-price.json
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+from dataclasses import dataclass
 from fractions import Fraction
 from itertools import combinations
 from pathlib import Path
@@ -43,6 +45,9 @@ MAPS_FILE = ROOT / "calibration" / "maps.json"
 TEMPLATES = ROOT.parent / "services" / "panel-runner" / "src" / "prompts" / "templates"
 CATEGORIES = ("sports", "macro", "elections", "politics", "crypto", "companies", "other")  # the panel runner's order
 MODELS = ("groq:openai/gpt-oss-120b@2026-10-03", "nvidia:moonshotai/kimi-k3@2026-10-03", "aicredits:google/gemini-3.8-flash@2026-10-04")
+# The crypto-price run (ADJ-47): the same two free models, and Gemini 3.5 Flash-Lite through AICredits, the Gemini
+# that fits the remaining budget (3.8 Flash's hidden reasoning cost ₹0.2-0.6 a call).
+CRYPTO_MODELS = ("groq:openai/gpt-oss-120b@2026-10-03", "nvidia:moonshotai/kimi-k3@2026-10-03", "aicredits:google/gemini-3.5-flash-lite@2026-10-04")
 THETA_GRID = tuple(range(9000, 10000, 100))
 THETA_FALLBACK = 9900
 BINARY = ("YES", "NO")
@@ -52,11 +57,34 @@ def sha256_file(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
+@dataclass(frozen=True)
+class Run:
+    """One validation run: its panel, its categories and its committed files."""
+
+    name: str
+    models: tuple[str, ...]
+    categories: tuple[str, ...]
+    runs_file: Path
+    gate_file: Path
+    maps_file: Path
+    dataset_report: Path  # the dataset report pinning the rows (rowsSha256, manifestSha256)
+
+    def dataset(self) -> dict:
+        rep = json.loads(self.dataset_report.read_text())
+        return {"rowsSha256": rep["rowsSha256"], "manifestSha256": rep["manifestSha256"]}
+
+
+PILOT = Run("pilot", MODELS, CATEGORIES, RUNS_FILE, GATE_FILE, MAPS_FILE, ROOT / "dataset" / "report.json")
+CRYPTO = Run("crypto-price", CRYPTO_MODELS, ("crypto-price",), HERE / "crypto-price" / "runs.json", HERE / "crypto-price" / "gate.json",
+             ROOT / "calibration" / "crypto-price.json", ROOT / "dataset" / "crypto-price" / "report.json")
+RUNS = {r.name: r for r in (PILOT, CRYPTO)}
+
+
 def load_runs(path: Path = RUNS_FILE) -> list[dict]:
     return json.loads(path.read_text(), parse_float=Fraction)["records"]
 
 
-def import_runs(src: Path = HERE / "runs" / "panel.jsonl", dst: Path = RUNS_FILE) -> None:
+def import_runs(src: Path = HERE / "runs" / "panel.jsonl", dst: Path = RUNS_FILE, run: Run = PILOT) -> None:
     keep = ("split", "category", "rank", "parent_id", "market_id", "truth", "status", "evidenceHash", "promptHash")
     records = []
     for line in src.read_text().splitlines():
@@ -68,8 +96,9 @@ def import_runs(src: Path = HERE / "runs" / "panel.jsonl", dst: Path = RUNS_FILE
         if "watchdog" in r:
             out["watchdog"] = {"model": r["watchdog"]["model"], "outcome": r["watchdog"]["signal"]["outcome"]}
         records.append(out)
-    records.sort(key=lambda x: (CATEGORIES.index(x["category"]), ("train", "calibration", "holdout").index(x["split"]), x["rank"]))
-    dst.write_text(json.dumps({"schema": "eros-validation-runs/1", "models": list(MODELS), "records": records}, indent=1) + "\n")
+    records.sort(key=lambda x: (run.categories.index(x["category"]), ("train", "calibration", "holdout").index(x["split"]), x["rank"]))
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_text(json.dumps({"schema": "eros-validation-runs/1", "models": list(run.models), "records": records}, indent=1) + "\n")
 
 
 def ran(records: list[dict], *splits: str) -> list[dict]:
@@ -135,47 +164,56 @@ def gate_hash(model_id_hashes: list[str], prompt: str, calibrator: str, high_con
     return hex32(keccak256(b"".join(word(h) for h in model_id_hashes) + word(prompt) + word(calibrator) + word(high_conf_bps)))
 
 
-def freeze(records: list[dict]) -> tuple[dict, list[dict]]:
+def freeze(records: list[dict], run: Run = PILOT) -> tuple[dict, list[dict]]:
     """The gate and the calibration maps, from the train and calibration records only."""
     records = [r for r in records if r["split"] in ("train", "calibration")]  # the holdout never enters
     train, cal = ran(records, "train"), ran(records, "calibration")
-    maps = [calibrate.fit(cal, m) for m in MODELS]
+    maps = [calibrate.fit(cal, m) for m in run.models]
     theta, rule = choose_theta(train, maps)
-    ids = [k(m) for m in MODELS]
+    ids = [k(m) for m in run.models]
     chash = calibrate.calibrator_hash(maps)
     both = train + cal
     gate = {
         "schema": "eros-validation-gate/1",
         "derivedFrom": ["train", "calibration"],
         "data": {
-            "rowsSha256": json.loads(SPLIT_FILE.read_text())["rowsSha256"],
+            **({"run": run.name} if run is not PILOT else {}),
+            "rowsSha256": run.dataset()["rowsSha256"],
+            **({"manifestSha256": run.dataset()["manifestSha256"]} if run is not PILOT else {}),
             "splitSha256": sha256_file(SPLIT_FILE),
-            "runsSha256": sha256_file(RUNS_FILE),
+            "runsSha256": sha256_file(run.runs_file),
             "records": {"train": len([r for r in records if r["split"] == "train"]), "calibration": len([r for r in records if r["split"] == "calibration"]), "ran": len(both)},
         },
-        "models": list(MODELS),
+        "models": list(run.models),
         "modelIdHashes": ids,
-        "modelStats": {m: model_stats(both, m) for m in MODELS},
-        "errorCorrelation": [error_correlation(both, a, b) for a, b in combinations(MODELS, 2)],
-        "calibration": {"file": "calibration/maps.json", "minParents": calibrate.MIN_PARENTS, "calibratorHash": chash, "placeholder": [m["model"] for m in maps if m["breakpoints"] == [[Fraction(0), calibrate.PLACEHOLDER], [Fraction(1), calibrate.PLACEHOLDER]]]},
+        "modelStats": {m: model_stats(both, m) for m in run.models},
+        "errorCorrelation": [error_correlation(both, a, b) for a, b in combinations(run.models, 2)],
+        "calibration": {"file": str(run.maps_file.relative_to(ROOT)), "minParents": calibrate.MIN_PARENTS, "calibratorHash": chash, "placeholder": [m["model"] for m in maps if m["breakpoints"] == [[Fraction(0), calibrate.PLACEHOLDER], [Fraction(1), calibrate.PLACEHOLDER]]]},
         "highConfBps": theta,
         "highConfRule": rule,
         "categories": {
-            c: {"categoryId": k(c), "promptHash": prompt_hash(c), "gateHash": gate_hash(ids, prompt_hash(c), chash, theta)} for c in CATEGORIES
+            c: {"categoryId": k(c), "promptHash": prompt_hash(c), "gateHash": gate_hash(ids, prompt_hash(c), chash, theta)} for c in run.categories
         },
     }
     return gate, maps
 
 
+def run_arg() -> Run:
+    """--run <name> (default the pilot)."""
+    return RUNS[sys.argv[sys.argv.index("--run") + 1]] if "--run" in sys.argv else PILOT
+
+
 def main() -> None:
+    run = run_arg()
     if "--import" in sys.argv:
-        import_runs()
-        print(f"wrote {RUNS_FILE}")
+        src = HERE / "runs" / ("panel.jsonl" if run is PILOT else f"{run.name}.jsonl")
+        import_runs(src, run.runs_file, run)
+        print(f"wrote {run.runs_file}")
         return
-    gate, maps = freeze(load_runs())
-    MAPS_FILE.write_text(calibrate.dumps_maps(maps))
-    GATE_FILE.write_text(json.dumps(gate, indent=2) + "\n")
-    print(f"wrote {MAPS_FILE} and {GATE_FILE}: highConfBps {gate['highConfBps']}, calibratorHash {gate['calibration']['calibratorHash']}")
+    gate, maps = freeze(load_runs(run.runs_file), run)
+    run.maps_file.write_text(calibrate.dumps_maps(maps))
+    run.gate_file.write_text(json.dumps(gate, indent=2) + "\n")
+    print(f"wrote {run.maps_file} and {run.gate_file}: highConfBps {gate['highConfBps']}, calibratorHash {gate['calibration']['calibratorHash']}")
 
 
 if __name__ == "__main__":

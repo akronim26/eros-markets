@@ -9,6 +9,7 @@ watchdog's miss rate f on the panel's own errors: of the holdout markets whose m
 other than the official one, the share where the watchdog model did not answer the official outcome.
 
   python3 -m measure.measure      # writes measure/measure.json
+  python3 -m measure.measure --run crypto-price   # writes measure/crypto-price.json
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from itertools import combinations
 from pathlib import Path
 
 from gate import calibrate
-from gate.gate import CATEGORIES, GATE_FILE, MAPS_FILE, RUNS_FILE, bucket, error_correlation, load_runs, sha256_file
+from gate.gate import CATEGORIES, PILOT, Run, bucket, error_correlation, load_runs, run_arg, sha256_file
 
 from .bound import passes, percent, u95_bps
 
@@ -28,9 +29,13 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "measure.json"
 
 
-def per_category(holdout: list[dict], maps: list[dict], theta: int) -> dict:
+def out_file(run: Run) -> Path:
+    return OUT if run is PILOT else HERE / f"{run.name}.json"
+
+
+def per_category(holdout: list[dict], maps: list[dict], theta: int, categories: tuple[str, ...] = CATEGORIES) -> dict:
     out = {}
-    for c in CATEGORIES:
+    for c in categories:
         recs = [r for r in holdout if r["category"] == c]
         ran = [r for r in recs if r["status"] == "RUN"]
         b = bucket(ran, maps, theta)
@@ -56,25 +61,26 @@ def watchdog_miss(holdout: list[dict]) -> dict:
     return {"panelErrors": len(errors), "misses": misses, "f": str(Fraction(misses, len(errors))) if errors else None}
 
 
-def measure(records: list[dict], gate: dict, maps: list[dict]) -> dict:
+def measure(records: list[dict], gate: dict, maps: list[dict], run: Run = PILOT) -> dict:
     holdout = [r for r in records if r["split"] == "holdout"]
     ran = [r for r in holdout if r["status"] == "RUN"]
     return {
         "schema": "eros-validation-measure/1",
         "gate": {"highConfBps": gate["highConfBps"], "calibratorHash": gate["calibration"]["calibratorHash"]},
-        "data": {"runsSha256": sha256_file(RUNS_FILE), "gateSha256": sha256_file(GATE_FILE), "mapsSha256": sha256_file(MAPS_FILE)},
+        "data": {"runsSha256": sha256_file(run.runs_file), "gateSha256": sha256_file(run.gate_file), "mapsSha256": sha256_file(run.maps_file)},
         "holdout": {"records": len(holdout), "ran": len(ran)},
-        "categories": per_category(holdout, maps, gate["highConfBps"]),
+        "categories": per_category(holdout, maps, gate["highConfBps"], run.categories),
         "errorCorrelation": [error_correlation(ran, a, b) for a, b in combinations(gate["models"], 2)],
         "watchdog": watchdog_miss(holdout),
     }
 
 
 def main() -> None:
-    gate = json.loads(GATE_FILE.read_text())
-    maps = calibrate.loads_maps(MAPS_FILE.read_text())
-    OUT.write_text(json.dumps(measure(load_runs(), gate, maps), indent=2) + "\n")
-    print(f"wrote {OUT}")
+    run = run_arg()
+    gate = json.loads(run.gate_file.read_text())
+    maps = calibrate.loads_maps(run.maps_file.read_text())
+    out_file(run).write_text(json.dumps(measure(load_runs(run.runs_file), gate, maps, run), indent=2) + "\n")
+    print(f"wrote {out_file(run)}")
 
 
 if __name__ == "__main__":

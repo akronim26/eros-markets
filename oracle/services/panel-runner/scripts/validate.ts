@@ -15,13 +15,22 @@ import { askWatchdogModel, modelSignal, WATCHDOG_MODEL, watchdogCall } from '../
 import { canonicalBytes, evidenceHash, type Snapshot, takeSnapshot } from '@eros-oracle/snapshotter'
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { askPanel, buildCall, type Category, loadPrompts } from '../src'
+import { askModel, askPanel, buildCall, type Category, loadPrompts, type ModelOutcome } from '../src'
 
-export const PANEL = ['groq:openai/gpt-oss-120b@2026-10-03', 'nvidia:moonshotai/kimi-k3@2026-10-03', 'aicredits:google/gemini-3.8-flash@2026-10-04']
-const QUOTA: Record<string, number> = { train: 2, calibration: 3, holdout: 3 }
+// VALIDATION_RUN=crypto-price (ADJ-47): its own sample, panel and quotas, and a cascade. A market counts for the gate
+// only when all three labels are the same YES or NO, so on the train and holdout splits the two free models answer
+// first and Gemini (paid) is asked only when they agree on YES or NO; otherwise its outcome is recorded as SKIPPED,
+// which keeps the market out of the bucket exactly as any answer of Gemini's would. The calibration split always asks
+// all three (calibration needs every model's answers).
+const CRYPTO = process.env.VALIDATION_RUN === 'crypto-price'
+export const PANEL = CRYPTO
+  ? ['groq:openai/gpt-oss-120b@2026-10-03', 'nvidia:moonshotai/kimi-k3@2026-10-03', 'aicredits:google/gemini-3.5-flash-lite@2026-10-04']
+  : ['groq:openai/gpt-oss-120b@2026-10-03', 'nvidia:moonshotai/kimi-k3@2026-10-03', 'aicredits:google/gemini-3.8-flash@2026-10-04']
+const QUOTA: Record<string, number> = CRYPTO ? { train: 15, calibration: 30, holdout: 123 } : { train: 2, calibration: 3, holdout: 3 }
 
 const RUNS = new URL('../../../validation/gate/runs/', import.meta.url).pathname
-const OUT = join(RUNS, 'panel.jsonl')
+const OUT = join(RUNS, CRYPTO ? 'crypto-price.jsonl' : 'panel.jsonl')
+const SAMPLE = join(RUNS, CRYPTO ? 'crypto-price-sample.jsonl' : 'sample.jsonl')
 const SNAPSHOTS = join(RUNS, 'snapshots')
 const budget = Number(process.env.VALIDATION_BUDGET_INR ?? '20')
 
@@ -42,10 +51,20 @@ const metered: typeof fetch = (async (input: RequestInfo | URL, init?: RequestIn
   return res
 }) as typeof fetch
 
+/** The two free models, then Gemini only when they agree on YES or NO. */
+async function cascade(call: ReturnType<typeof buildCall>, snapshot: Snapshot): Promise<ModelOutcome[]> {
+  const [a, b] = await Promise.all(PANEL.slice(0, 2).map((m) => askModel(m, call, snapshot.items, { fetchFn: metered })))
+  const agree = a.label === b.label && (a.label === 'YES' || a.label === 'NO')
+  const g: ModelOutcome = agree
+    ? await askModel(PANEL[2], call, snapshot.items, { fetchFn: metered })
+    : { ...a, model: PANEL[2], label: 'SKIPPED' as never, labelCode: -1, confidence: null, cited: [], rationale: '', attempts: [], answer: undefined, abstainReason: undefined }
+  return [a, b, g]
+}
+
 const usable = (s: Snapshot) => s.items.some((it) => it.allowListed && it.httpStatus >= 200 && it.httpStatus < 300)
 const tau = (closedAt: string) => Math.floor(Date.parse(closedAt.replace(' ', 'T').replace(/\+00$/, 'Z')) / 1000)
 
-const sample: Candidate[] = readFileSync(join(RUNS, 'sample.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l))
+const sample: Candidate[] = readFileSync(SAMPLE, 'utf8').trim().split('\n').map((l) => JSON.parse(l))
 const done = new Map<string, { split: string; category: string; status: string }>()
 if (existsSync(OUT)) for (const l of readFileSync(OUT, 'utf8').trim().split('\n').filter(Boolean)) { const r = JSON.parse(l); done.set(r.market_id, r); spent += r.costInr ?? 0 }
 mkdirSync(SNAPSHOTS, { recursive: true })
@@ -75,7 +94,7 @@ for (const c of sample) {
   const prompt = prompts.find((p) => p.category === c.category)!
   const before = spent
   const call = buildCall(prompt, { question: c.question, rules: c.rules, tau: tau(c.closed_at) }, snapshot)
-  const outcomes = await askPanel(PANEL, call, snapshot.items, { fetchFn: metered })
+  const outcomes = CRYPTO && c.split !== 'calibration' ? await cascade(call, snapshot) : await askPanel(PANEL, call, snapshot.items, { fetchFn: metered })
   const labels = outcomes.map((o) => o.label)
   const majority = labels.find((l) => labels.filter((x) => x === l).length >= 2)
   let watchdog: unknown

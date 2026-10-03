@@ -1,0 +1,1455 @@
+{
+ "files": [
+  {
+   "file": "kalshi/KXBTCD-p200-000.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800",
+   "fetchedAt": "2026-10-03T21:20:01Z",
+   "bytes": 393500,
+   "sha256": "d73cbdcb5deebe57343e22f68f5987567a0b4666252350b25d7d8cb2ffc24b5c"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-001.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Kj21QYSGktYQlRDRC0yNlNFUDMwMTktVDkxNjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:04Z",
+   "bytes": 393493,
+   "sha256": "4a46095c48669f6b3ef4d16f0c4b80f949aaf36bd38ae31b26be8de44739a7e2"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-002.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Iz21QYSGktYQlRDRC0yNlNFUDMwMTgtVDkwNDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:22Z",
+   "bytes": 393632,
+   "sha256": "f26fef87e3e9eafaa3450230e82da078ca0e3f4078a349b88a4e872f10974c38"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-003.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0PD11QYSGktYQlRDRC0yNlNFUDMwMTctVDg0NDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:26Z",
+   "bytes": 393719,
+   "sha256": "781985d4044afcd5be5c9d0b9380f02b7edcff7c18809da5b4550e5682ecbb0f"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-004.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwNT11QYSGktYQlRDRC0yNlNFUDMwMTYtVDc3Mjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:29Z",
+   "bytes": 393545,
+   "sha256": "12cdbcec51d21868dfd74f4d59c4a7834169dd2205abd51ce073756e774c5bd6"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-005.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsLj11QYSGktYQlRDRC0yNlNFUDMwMTUtVDc2MDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:35Z",
+   "bytes": 393547,
+   "sha256": "a6446d26ecb83e0aa0d82ec16327a6b0094d2e45ae1782eca40af1a0fd4be67d"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-006.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJz11QYSGktYQlRDRC0yNlNFUDMwMTQtVDc0ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:37Z",
+   "bytes": 393369,
+   "sha256": "c41337131cc6aaac786a7bc778ac709de3974826b083898259017f5da465f679"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-007.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgOT01QYSGktYQlRDRC0yNlNFUDMwMTItVDkyNDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:55Z",
+   "bytes": 393828,
+   "sha256": "3f73f4c6523d6b78e18113383d1b3b008307465dc8c165ed7ab5d1c15910c095"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-008.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Mf01QYSGktYQlRDRC0yNlNFUDMwMTEtVDkxMjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:20:58Z",
+   "bytes": 394027,
+   "sha256": "3af571ec1638aac76b7f00e129f432fc08a141e39c756a0966d5dd7142c2a34f"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-009.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Kv01QYSGktYQlRDRC0yNlNFUDMwMTAtVDkwMDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:21:01Z",
+   "bytes": 393968,
+   "sha256": "997f71e056447939009b5dfa05f031454c4866eb64a9a60c9b42b57c73b0891b"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-010.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0I_01QYSGktYQlRDRC0yNlNFUDMwMDktVDg4ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:21:07Z",
+   "bytes": 393531,
+   "sha256": "7b54539c14f08381269d04f5542fc1103898fe42d79ab58d42d846c8208c3ade"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-011.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwPPz1QYSGktYQlRDRC0yNlNFUDMwMDgtVDg3Njk5Ljk5",
+   "fetchedAt": "2026-10-03T21:21:41Z",
+   "bytes": 393515,
+   "sha256": "79f8452a26a37c355ccc252cc2f5b45be7d479e9feceb79eb84f0432a1cbdff9"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-012.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsNfz1QYSGktYQlRDRC0yNlNFUDMwMDctVDg2NDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:21:51Z",
+   "bytes": 393438,
+   "sha256": "e7a7a774174a7170ac0ce500b5ec663664935a0251d00447908964087d50c2a4"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-013.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLvz1QYSGktYQlRDRC0yNlNFUDMwMDYtVDg1Mjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:21:54Z",
+   "bytes": 393424,
+   "sha256": "5897ca5697e88e8c864c4abe6e1c132b97a39d22b744460c755c8dd89f9c73b9"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-014.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkJ_z1QYSGktYQlRDRC0yNlNFUDMwMDUtVDg0MDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:21:57Z",
+   "bytes": 393494,
+   "sha256": "8232dcbd2d76dbd3e5c1c7af39fd9ddc3b27ad85558677843e1b8b7ce32a1e65"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-015.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgIPz1QYSGktYQlRDRC0yNlNFUDMwMDQtVDgyODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:03Z",
+   "bytes": 393473,
+   "sha256": "2565b8bfd29f1335db59fdd2b5ed3ad5087022b9616588be42f69b1971ae3b41"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-016.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Oby1QYSGktYQlRDRC0yNlNFUDMwMDMtVDgxNjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:21Z",
+   "bytes": 393504,
+   "sha256": "18570e41efe74f05553754c2c6faec05e561be44a698aac6e31b1cc73d6ca119"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-017.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Mry1QYSGktYQlRDRC0yNlNFUDMwMDItVDgwNDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:24Z",
+   "bytes": 393485,
+   "sha256": "0d4c4e195161cd5126396f1840c7ead4b22ea15fc2c111fefb5331bbe58303c9"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-018.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0K7y1QYSGktYQlRDRC0yNlNFUDMwMDEtVDc5Mjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:33Z",
+   "bytes": 393811,
+   "sha256": "272d256815ccce779a0a11fda751f0bd48a695011be6b800ec15fd4aae63f4c4"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-019.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwJLy1QYSGktYQlRDRC0yNlNFUDMwMDAtVDc3MDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:37Z",
+   "bytes": 393947,
+   "sha256": "b4723cd5506c0e1ae0f02e1896fd4609454398228bc802816836703b100d983a"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-020.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsPbx1QYSGktYQlRDRC0yNlNFUDI5MjMtVDc1ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:43Z",
+   "bytes": 393786,
+   "sha256": "a10b8e7fcb81a88d03f4c3be3c79af533bfe3f41e079466c634bea68514d1388"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-021.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoNrx1QYSGktYQlRDRC0yNlNFUDI5MjItVDc0Njk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:45Z",
+   "bytes": 393366,
+   "sha256": "4ea15fc4fa9682a5e4564c357dc5a8592dd67656637c0974d2e46a3ae10122fe"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-022.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkL7x1QYSGktYQlRDRC0yNlNFUDI5MjEtVDczNDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:48Z",
+   "bytes": 393496,
+   "sha256": "eaaf7ca4154d1db31c0eb68355b6ba5c1173fa203c667b288750dc1b3b1a9eab"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-023.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8IXx1QYSGktYQlRDRC0yNlNFUDI5MTktVDkxMDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:53Z",
+   "bytes": 393313,
+   "sha256": "1527057f195cd4ebd9c78d854f2ee1cdb5afcc948deb22867ea89cbb6a071ec6"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-024.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Onw1QYSGktYQlRDRC0yNlNFUDI5MTgtVDg5ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:22:57Z",
+   "bytes": 393643,
+   "sha256": "4fe9898a8dee1f0e16911040f5dd016830ddc0a3e140bca399ca7d66cd9c1c7f"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-025.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0M3w1QYSGktYQlRDRC0yNlNFUDI5MTctVDg0NDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:23:03Z",
+   "bytes": 393715,
+   "sha256": "d6fc99d6cf154c567880d27f9a70ee6c6cabb71ebb5c14d89342e87b49ca3a62"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-026.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwLHw1QYSGktYQlRDRC0yNlNFUDI5MTYtVDc2Njk5Ljk5",
+   "fetchedAt": "2026-10-03T21:23:38Z",
+   "bytes": 393234,
+   "sha256": "ccd9c88b373f479516db6b8f458020a5bc990d9ebde947bcddb08938ab79ad83"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-027.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsJXw1QYSGktYQlRDRC0yNlNFUDI5MTUtVDc1NDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:23:40Z",
+   "bytes": 393477,
+   "sha256": "87df8216a0fec6c4dddccaebfb1eb8716fea93e4a6a4f3c56914eb5ec43311f3"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-028.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoPnv1QYSGktYQlRDRC0yNlNFUDI5MTQtVDc0Mjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:23:43Z",
+   "bytes": 393381,
+   "sha256": "336865223b21f732fcbd2e45bd3f3359a6e4ce9b65ed1039ce5b5efa7cfb4aa7"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-029.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkN3v1QYSGktYQlRDRC0yNlNFUDI5MTMtVDczMDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:23:49Z",
+   "bytes": 393812,
+   "sha256": "48473bdb3cf194b740431cd8abae6a942ab44395e4f9bc91458688d6ba361ae1"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-030.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8KTv1QYSGktYQlRDRC0yNlNFUDI5MTEtVDkwNjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:23:51Z",
+   "bytes": 393983,
+   "sha256": "b4b3ad413fcc91e9773974973ed86a4e8fd0b1fcfef47e43b85bc4ba1e7f2790"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-031.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Ijv1QYSGktYQlRDRC0yNlNFUDI5MTAtVDg5NDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:23:54Z",
+   "bytes": 393971,
+   "sha256": "9184da925aada84ea1235407a0f025ac67fbd230d456ba1238576c287b1f71d6"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-032.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Ozu1QYSGktYQlRDRC0yNlNFUDI5MDktVDg4Mjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:00Z",
+   "bytes": 393390,
+   "sha256": "4ac17ae2f43dc7a49559e7d01393a2036bbdbf3af13a44e2aba030c6bae022ce"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-033.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwNDu1QYSGktYQlRDRC0yNlNFUDI5MDgtVDg3MDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:03Z",
+   "bytes": 393547,
+   "sha256": "835be4700b2e8a80ce4a4db72561b9cb29649ca1fa6aa1549229ff13fe0b0177"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-034.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsLTu1QYSGktYQlRDRC0yNlNFUDI5MDctVDg1ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:12Z",
+   "bytes": 393534,
+   "sha256": "52ec0d493638076bb27f38ba0e5e993dfc7c4a10a4dd7666ab311cd18eb13e45"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-035.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJju1QYSGktYQlRDRC0yNlNFUDI5MDYtVDg0Njk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:15Z",
+   "bytes": 393624,
+   "sha256": "deae165dae0547755ec4b1ce349cb5222946d460aa45552d2f73eff5c4046d6c"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-036.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkPzt1QYSGktYQlRDRC0yNlNFUDI5MDUtVDgzNDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:25Z",
+   "bytes": 393563,
+   "sha256": "1bf0362887d397af67ad28998214efd9b7a8130d2954061b70dc9b4210bb3b0d"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-037.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgODt1QYSGktYQlRDRC0yNlNFUDI5MDQtVDgyMjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:43Z",
+   "bytes": 393583,
+   "sha256": "1317502970bfced088cef131ae6e85ff0285bcde1a0f674e304a958a3fcb9a9b"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-038.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8MPt1QYSGktYQlRDRC0yNlNFUDI5MDMtVDgxMDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:49Z",
+   "bytes": 393509,
+   "sha256": "a7b2b766658079cbe7f4a26f232137e689489ddabbd7d00b4301b9424a551838"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-039.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Kft1QYSGktYQlRDRC0yNlNFUDI5MDItVDc5ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:54Z",
+   "bytes": 393518,
+   "sha256": "daaeaa98f03a1b706b861c340b507356491e15478ffb797679f71768b00c5d13"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-040.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Ivt1QYSGktYQlRDRC0yNlNFUDI5MDEtVDc4Njk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:57Z",
+   "bytes": 393803,
+   "sha256": "7387e177f3730f9930f242878774947097dd0323b452d20712b1c851fa4f345e"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-041.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwO_s1QYSGktYQlRDRC0yNlNFUDI5MDAtVDc5NDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:24:59Z",
+   "bytes": 393915,
+   "sha256": "b65d207ad4c625200bf405eaae0ff96242ca78670d2f139567a018c50b82410e"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-042.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsNPs1QYSGktYQlRDRC0yNlNFUDI4MjMtVDc4Mjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:03Z",
+   "bytes": 393938,
+   "sha256": "4f843c7efd37baa1a26760e098047292b893c5f19f0458e5b70d1da3591e78ee"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-043.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLfs1QYSGktYQlRDRC0yNlNFUDI4MjItVDc3MDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:13Z",
+   "bytes": 393539,
+   "sha256": "29e918f39e63a397a2ac8d0d5a530b6a989270f9ed8a13140bab2dc27844fda3"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-044.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkJvs1QYSGktYQlRDRC0yNlNFUDI4MjEtVDc1ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:15Z",
+   "bytes": 393476,
+   "sha256": "2fc19cf43e02acdb520df0f32e2f9ece1aa54151c844faf57a140c1e34427f3c"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-045.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8OLr1QYSGktYQlRDRC0yNlNFUDI4MTktVDkzNDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:19Z",
+   "bytes": 393513,
+   "sha256": "b888d91fc691bb5fe1dd62fbed8d912f355b147b60484f2db52df94c891fd858"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-046.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Mbr1QYSGktYQlRDRC0yNlNFUDI4MTgtVDkyMjk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:29Z",
+   "bytes": 393499,
+   "sha256": "e548742331a1371fa0115d5c6477cf66dd996f75fda3ede500ef8d4879a4b2ad"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-047.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Krr1QYSGktYQlRDRC0yNlNFUDI4MTctVDg3NDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:31Z",
+   "bytes": 393737,
+   "sha256": "c89ea16e90b12ad709c39f559c7a34d1b85d36a9fa805ce659d65956f463c2c7"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-048.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwI7r1QYSGktYQlRDRC0yNlNFUDI4MTYtVDc5MDk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:34Z",
+   "bytes": 393513,
+   "sha256": "5ec65e48aa5e14afa6e71a6bde0d6fb8e0e0240e2b61d0d40c0ec6cc3c9a512a"
+  },
+  {
+   "file": "kalshi/KXBTCD-p200-049.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXBTCD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsPLq1QYSGktYQlRDRC0yNlNFUDI4MTUtVDc3ODk5Ljk5",
+   "fetchedAt": "2026-10-03T21:25:36Z",
+   "bytes": 393579,
+   "sha256": "f579766ca72dc198099a09c5199ed68fa5e317a418999b0c04ac2137b6fb0a14"
+  },
+  {
+   "file": "kalshi/KXDOGED-p200-000.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXDOGED&status=settled&limit=200&max_close_ts=1790812800",
+   "fetchedAt": "2026-10-03T21:51:57Z",
+   "bytes": 374171,
+   "sha256": "2b4ed90e905d24a87dbf3f7e1f87a01ee33d6c4778263e4001eca9534a577168"
+  },
+  {
+   "file": "kalshi/KXDOGED-p200-001.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXDOGED&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0PD11QYSHEtYRE9HRUQtMjZTRVAzMDE3LVQwLjAxNDk5OTk",
+   "fetchedAt": "2026-10-03T21:52:03Z",
+   "bytes": 374139,
+   "sha256": "336a47fa85f7797a21e0be1c1af2a342b7ae31eb723a6724214c60a5c3fad4c8"
+  },
+  {
+   "file": "kalshi/KXDOGED-p200-002.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXDOGED&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkID11QYSHEtYRE9HRUQtMjZTRVAzMDEzLVQwLjExNDk5OTk",
+   "fetchedAt": "2026-10-03T21:52:38Z",
+   "bytes": 374469,
+   "sha256": "7faa030af1720b89397dace5bf4b009a18a1054c676c1819834288ae3475f9cd"
+  },
+  {
+   "file": "kalshi/KXDOGED-p200-003.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXDOGED&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0I_01QYSHEtYRE9HRUQtMjZTRVAzMDA5LVQwLjIxNDk5OTk",
+   "fetchedAt": "2026-10-03T21:52:41Z",
+   "bytes": 374075,
+   "sha256": "b315f60c2b3da47d1e3d775fc487a4cec594a238deab6e488cea41e24c5a3d63"
+  },
+  {
+   "file": "kalshi/KXDOGED-p200-004.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXDOGED&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLvz1QYSHEtYRE9HRUQtMjZTRVAzMDA2LVQwLjAzOTk5OTk",
+   "fetchedAt": "2026-10-03T21:52:45Z",
+   "bytes": 374113,
+   "sha256": "b5f127a1ff377c1510dccd81be4762b36860444d4f1e29b72f201018f1f4d358"
+  },
+  {
+   "file": "kalshi/KXDOGED-p200-005.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXDOGED&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Mry1QYSHEtYRE9HRUQtMjZTRVAzMDAyLVQwLjEzOTk5OTk",
+   "fetchedAt": "2026-10-03T21:52:47Z",
+   "bytes": 374382,
+   "sha256": "b049d0d8c3042ee06aedea7149d68be5576818db59e443e5d05ffc3af10b612d"
+  },
+  {
+   "file": "kalshi/KXDOGED-p200-006.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXDOGED&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoNrx1QYSHEtYRE9HRUQtMjZTRVAyOTIyLVQwLjIzOTk5OTk",
+   "fetchedAt": "2026-10-03T21:52:57Z",
+   "bytes": 374221,
+   "sha256": "bb2451cf32d53e3913901c718f50c8071a396d9f439f31aad57acbeb5c348bab"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-000.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800",
+   "fetchedAt": "2026-10-03T21:25:40Z",
+   "bytes": 394363,
+   "sha256": "e957e70209d2a41ff3ec01c7245769855e443c6d1e5bb2d071fe8e6caa7efcac"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-001.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgMX21QYSGUtYRVRIRC0yNlNFUDMwMjAtVDI0NDkuOTk",
+   "fetchedAt": "2026-10-03T21:25:50Z",
+   "bytes": 394373,
+   "sha256": "6170f8d095b275f2a580f1e0c6e975623a3b5151b17af9caef32e5a1c76c590d"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-002.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Kj21QYSGUtYRVRIRC0yNlNFUDMwMTktVDI5NDkuOTk",
+   "fetchedAt": "2026-10-03T21:25:55Z",
+   "bytes": 394461,
+   "sha256": "5ef3cf4fb1a3605978d7630623bc1c7b06dcfc247ab400689a11cf57bb0e96ee"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-003.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Kj21QYSGUtYRVRIRC0yNlNFUDMwMTktVDE5NDkuOTk",
+   "fetchedAt": "2026-10-03T21:25:59Z",
+   "bytes": 394559,
+   "sha256": "71338559255586ceb806b29312532062e196dc8a1cff2d13169bcbea7ef9b5d3"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-004.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Iz21QYSGUtYRVRIRC0yNlNFUDMwMTgtVDI0NDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:02Z",
+   "bytes": 394727,
+   "sha256": "8988fc25ff6b83263eb8fd5aaf1402698a62d9e947bf9cad26eb7dfc4e6c9b38"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-005.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwNT11QYSGUtYRVRIRC0yNlNFUDMwMTYtVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:06Z",
+   "bytes": 394676,
+   "sha256": "32ebdd949b47110f222c9a2089bd630aafe652e21e3634fe8157b0d8783ddf05"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-006.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwNT11QYSGUtYRVRIRC0yNlNFUDMwMTYtVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:10Z",
+   "bytes": 394565,
+   "sha256": "a286abaefc0e1719d096a9852ff1cfa7c17fa796f91e6a817a1d99fa23d1795e"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-007.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsLj11QYSGUtYRVRIRC0yNlNFUDMwMTUtVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:12Z",
+   "bytes": 394613,
+   "sha256": "9646970483501854c618f5e794b8d3ab0eac27da7ac0a02c359b71bde7abeaf7"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-008.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJz11QYSGUtYRVRIRC0yNlNFUDMwMTQtVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:14Z",
+   "bytes": 394689,
+   "sha256": "fe078c888685f0751eaed7cf067281b832561bf39213770e6906b9242684304d"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-009.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJz11QYSGUtYRVRIRC0yNlNFUDMwMTQtVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:16Z",
+   "bytes": 394570,
+   "sha256": "12ca7f580d15deb4f72b06d4077d53551f212cedd53e6302cb748976c5e37f81"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-010.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkID11QYSGUtYRVRIRC0yNlNFUDMwMTMtVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:20Z",
+   "bytes": 394793,
+   "sha256": "901ee7dedfc6c9c6b30a21e26fbf3b373d62b31e180ac3353e68b80d334b33f3"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-011.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgOT01QYSGUtYRVRIRC0yNlNFUDMwMTItVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:30Z",
+   "bytes": 395244,
+   "sha256": "b9a31505fb96f40964be720dd5038408b6ef2aff47c5e71f5b4dd2752e0697b5"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-012.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgOT01QYSGUtYRVRIRC0yNlNFUDMwMTItVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:34Z",
+   "bytes": 395234,
+   "sha256": "3a125f891425cb8ca50e857b72809fc17fd7f7858a02c9c3035844c8b77e2e7e"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-013.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Mf01QYSGUtYRVRIRC0yNlNFUDMwMTEtVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:36Z",
+   "bytes": 395157,
+   "sha256": "22b241986d053d70fd851ab611baca294a6c7f534ee144039b6bc941778f3d9b"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-014.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Kv01QYSGUtYRVRIRC0yNlNFUDMwMTAtVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:46Z",
+   "bytes": 395113,
+   "sha256": "c9dba612641c174220cf5d89b1cb00ff8c9bb833c7e318b123e974148abb6e07"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-015.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Kv01QYSGUtYRVRIRC0yNlNFUDMwMTAtVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:26:50Z",
+   "bytes": 394714,
+   "sha256": "80c38774c753fed9516f168e24867718e096900bfec9eb1f8dba28dc98489355"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-016.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0I_01QYSGUtYRVRIRC0yNlNFUDMwMDktVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:27:25Z",
+   "bytes": 394627,
+   "sha256": "38e380cc7efbd1cbccc0117a6b8e431dcc7b84007bb1ebed89dc0d20e8b6e3d6"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-017.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwPPz1QYSGUtYRVRIRC0yNlNFUDMwMDgtVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:27:28Z",
+   "bytes": 394622,
+   "sha256": "1a169bcbaa09303a6641fca1ddbad268ae653e33f591790fd23042d8a7a8ba20"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-018.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwPPz1QYSGUtYRVRIRC0yNlNFUDMwMDgtVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:27:46Z",
+   "bytes": 394400,
+   "sha256": "be836ef0033ab270b6a0375c899c8e5a00866a39c5848da46d39ff9e71fe2453"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-019.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsNfz1QYSGUtYRVRIRC0yNlNFUDMwMDctVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:27:52Z",
+   "bytes": 394473,
+   "sha256": "855ede245d343141747f85b0180d052e7dced207d46b5586cc86cd53833a4491"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-020.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLvz1QYSGUtYRVRIRC0yNlNFUDMwMDYtVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:29Z",
+   "bytes": 394629,
+   "sha256": "f1aa3dee37f744a921c9fa4c7ababd180b3b7f91809c32156c32d5dba2e4f09f"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-021.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLvz1QYSGUtYRVRIRC0yNlNFUDMwMDYtVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:39Z",
+   "bytes": 394545,
+   "sha256": "9817dcda58070189f52b2bf71d9a4bd47f8f2d8b7cd4c41dd235230e6ae1b6dd"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-022.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkJ_z1QYSGUtYRVRIRC0yNlNFUDMwMDUtVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:42Z",
+   "bytes": 394613,
+   "sha256": "007ccb68c4040a3968c5f655cb141f1b26ee2f48bbd7b91d494a082f90a1ac64"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-023.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgIPz1QYSGUtYRVRIRC0yNlNFUDMwMDQtVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:44Z",
+   "bytes": 394614,
+   "sha256": "4fbd376c120c422926de6d5763c47f495fa88ecf448f45f85e78ba8a78f3c44d"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-024.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgIPz1QYSGUtYRVRIRC0yNlNFUDMwMDQtVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:46Z",
+   "bytes": 394546,
+   "sha256": "a18e33c50e99c2cbfded9e7a5cee628cbdfda0bc7a8e604a516960dbd9f8db31"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-025.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Oby1QYSGUtYRVRIRC0yNlNFUDMwMDMtVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:50Z",
+   "bytes": 394613,
+   "sha256": "8e33cd3c45c3d0d565c3d2e09bc3d90caa5789633bc268167b39bfccc1a98216"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-026.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Mry1QYSGUtYRVRIRC0yNlNFUDMwMDItVDMxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:53Z",
+   "bytes": 394615,
+   "sha256": "1348577590b2495eddc4aec0244394a2c0c4ee8517fa4b1eaa1cb2000d3c80a9"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-027.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Mry1QYSGUtYRVRIRC0yNlNFUDMwMDItVDIxNDkuOTk",
+   "fetchedAt": "2026-10-03T21:32:56Z",
+   "bytes": 394561,
+   "sha256": "ea2db633c262107f774042a558d822279402f418f211b13261485a5a58ee5105"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-028.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0K7y1QYSGUtYRVRIRC0yNlNFUDMwMDEtVDI2NDkuOTk",
+   "fetchedAt": "2026-10-03T21:33:06Z",
+   "bytes": 394793,
+   "sha256": "4301c11bc4e2e336e988da5c64edddb9026cc3148955138b55b876b1677d166b"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-029.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwJLy1QYSGUtYRVRIRC0yNlNFUDMwMDAtVDMwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:11Z",
+   "bytes": 395233,
+   "sha256": "dbb42029c5cda173799e3619784f6a094d466d5dc42de1d93bb114dc719fd037"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-030.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwJLy1QYSGUtYRVRIRC0yNlNFUDMwMDAtVDIwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:21Z",
+   "bytes": 395036,
+   "sha256": "24459f445f551bf4d9f7b7d6095c0fac1e62074b0390bb987f71ce5258980113"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-031.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsPbx1QYSGUtYRVRIRC0yNlNFUDI5MjMtVDI1OTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:24Z",
+   "bytes": 395073,
+   "sha256": "6432f09bc8a7f3dfacf03d83151564e5dc43430aae001a9c8c90c668425660fc"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-032.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoNrx1QYSGUtYRVRIRC0yNlNFUDI5MjItVDMwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:27Z",
+   "bytes": 395265,
+   "sha256": "d189587e065605b0b379f053cce9ad7e6a603945b49797a4e6f1604e6b163b2b"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-033.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoNrx1QYSGUtYRVRIRC0yNlNFUDI5MjItVDIwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:29Z",
+   "bytes": 394531,
+   "sha256": "163ef90b64b913988965221a69f62a46a85741bb9e1a11ddcff56e879f983d29"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-034.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkL7x1QYSGUtYRVRIRC0yNlNFUDI5MjEtVDI1OTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:32Z",
+   "bytes": 394473,
+   "sha256": "9c7b2d3caf93015e135cd8adda124b8665cd6127c40a3c22849d94d124795541"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-035.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgKLx1QYSGUtYRVRIRC0yNlNFUDI5MjAtVDMwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:34Z",
+   "bytes": 394622,
+   "sha256": "b876ff357fb05c30203f2d310ad1e8df08df5a24c57356d4e07235fae7104873"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-036.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgKLx1QYSGUtYRVRIRC0yNlNFUDI5MjAtVDIwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:44Z",
+   "bytes": 394571,
+   "sha256": "c4fb7355164a234ee54f272ee0ca255f324a9f88e3fb7aef9a1ab78381f6f70b"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-037.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8IXx1QYSGUtYRVRIRC0yNlNFUDI5MTktVDI1OTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:48Z",
+   "bytes": 394553,
+   "sha256": "26b825e3e573f0f349097b5774f642ec6ec639154cac6b0ad35d60d83ec6d0a1"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-038.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Onw1QYSGUtYRVRIRC0yNlNFUDI5MTgtVDMwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:33:50Z",
+   "bytes": 394435,
+   "sha256": "e32934db1fc3d2d465f2d7cb041f18409f0c492e8bae613b20c1fc4bd6a4c902"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-039.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Onw1QYSGUtYRVRIRC0yNlNFUDI5MTgtVDIwOTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:00Z",
+   "bytes": 394443,
+   "sha256": "2687618943991b785c9db1dd570156a212b579dd92329f1debc126816719c6c7"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-040.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwLHw1QYSGUtYRVRIRC0yNlNFUDI5MTYtVDI3OTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:10Z",
+   "bytes": 394511,
+   "sha256": "b87095b20febfabca63adf7aa0515fa3d2143ba35d84884af7559e4e3fb7eab0"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-041.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsJXw1QYSGUtYRVRIRC0yNlNFUDI5MTUtVDMyOTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:28Z",
+   "bytes": 394605,
+   "sha256": "026e90099155d13e32d27027432d10db290baead606ed88d22ee7f07fbe8d415"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-042.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsJXw1QYSGUtYRVRIRC0yNlNFUDI5MTUtVDIyOTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:32Z",
+   "bytes": 394433,
+   "sha256": "c5bacbe7d4b412da2a639d1fdb9f04362e60ae91ab9f5ab9c78df04c608df268"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-043.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoPnv1QYSGUtYRVRIRC0yNlNFUDI5MTQtVDI3OTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:34Z",
+   "bytes": 394503,
+   "sha256": "81cb16541850ada8da865aff5f23d36dd9e717f2897ff63744eeab03a58fafbe"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-044.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkN3v1QYSGUtYRVRIRC0yNlNFUDI5MTMtVDMyOTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:36Z",
+   "bytes": 394618,
+   "sha256": "f1f55bde6fffc75114b324e321fcc78fc7484b65b021256d29574f5d15473beb"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-045.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkN3v1QYSGUtYRVRIRC0yNlNFUDI5MTMtVDIyOTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:40Z",
+   "bytes": 394913,
+   "sha256": "87c799fffe4cc9f8e1e2c549e99242771ddeabfc216ff57d5e913b0dccee4306"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-046.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgMHv1QYSGUtYRVRIRC0yNlNFUDI5MTItVDI3OTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:49Z",
+   "bytes": 395305,
+   "sha256": "9f1b9c7be5d3a094c8c8f0d093ccd2b88da66eb1c661a8a963831d2ca7c3bdb9"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-047.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8KTv1QYSGUtYRVRIRC0yNlNFUDI5MTEtVDMyOTkuOTk",
+   "fetchedAt": "2026-10-03T21:34:59Z",
+   "bytes": 395042,
+   "sha256": "f29f8e82a669a9e1e9b4af7030f9456cf9de3894e8acad96c0ddff4ee0004a53"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-048.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8KTv1QYSGUtYRVRIRC0yNlNFUDI5MTEtVDIyOTkuOTk",
+   "fetchedAt": "2026-10-03T21:35:02Z",
+   "bytes": 395001,
+   "sha256": "80ba7921fbb203bc2850357abd2fae147b097ab1017243e7c35a38ebca60d1b6"
+  },
+  {
+   "file": "kalshi/KXETHD-p200-049.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXETHD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Ijv1QYSGUtYRVRIRC0yNlNFUDI5MTAtVDI3OTkuOTk",
+   "fetchedAt": "2026-10-03T21:35:04Z",
+   "bytes": 395105,
+   "sha256": "77eafe40333f0bc57208e9e49665df6197184e8a7007ed4475344129addcd031"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-000.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800",
+   "fetchedAt": "2026-10-03T21:35:10Z",
+   "bytes": 381912,
+   "sha256": "94d9e96cfcf4cd2c81efc49aa4bf19be7bee7e0e6547dac54ee7f7d41023fd2a"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-001.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgMX21QYSGktYU09MRC0yNlNFUDMwMjAtVDEyNS4yNDk5",
+   "fetchedAt": "2026-10-03T21:35:15Z",
+   "bytes": 382012,
+   "sha256": "0663dfd0f2893826f9516822d2d9c0c66a1a437e9150d441f6639008d2fc0041"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-002.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Kj21QYSGktYU09MRC0yNlNFUDMwMTktVDE1MC4yNDk5",
+   "fetchedAt": "2026-10-03T21:35:34Z",
+   "bytes": 382369,
+   "sha256": "a7b8d39687effc44b7d6f40298744c1734f24f63a62ec01b711da7a9a1a146c1"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-003.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Kj21QYSGktYU09MRC0yNlNFUDMwMTktVDEwMC4yNDk5",
+   "fetchedAt": "2026-10-03T21:36:38Z",
+   "bytes": 381912,
+   "sha256": "76f27f24a71c405ebba41e6b605f70f3ec7d77b2dfde319d25695e0fcb5220bf"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-004.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Iz21QYSGktYU09MRC0yNlNFUDMwMTgtVDEyNS4yNDk5",
+   "fetchedAt": "2026-10-03T21:36:44Z",
+   "bytes": 381906,
+   "sha256": "c69da13226dceec31084092eea99587f590da61dea411e452fa1a31dc30905f0"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-005.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwNT11QYSGUtYU09MRC0yNlNFUDMwMTYtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:37:19Z",
+   "bytes": 381614,
+   "sha256": "16e13fcb49afddc9b689ad26342ea2a9e12d8fde1d17e675147d4cbc407264a1"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-006.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwNT11QYSGktYU09MRC0yNlNFUDMwMTYtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:37:22Z",
+   "bytes": 381612,
+   "sha256": "a723625dd0136784b978bd8b10b4ca32abc6a9e8b6d5c030236026ce73473513"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-007.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsLj11QYSGktYU09MRC0yNlNFUDMwMTUtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:37:56Z",
+   "bytes": 381930,
+   "sha256": "4ce8ed094f7feed9b75c3476d2a9b582448359fa4175b9ccde1e80c49cd10bf2"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-008.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJz11QYSGUtYU09MRC0yNlNFUDMwMTQtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:38:00Z",
+   "bytes": 382046,
+   "sha256": "8bc9e8b3ec92f8459e9cd804075018688b1d6d54faa9bdba9426b899bf2cdcba"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-009.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJz11QYSGktYU09MRC0yNlNFUDMwMTQtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:38:35Z",
+   "bytes": 381865,
+   "sha256": "7e81255b9a05d066194e3643c3fa4379ca9e0bd4e5b56e21423c1a078f245a43"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-010.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkID11QYSGktYU09MRC0yNlNFUDMwMTMtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:38:40Z",
+   "bytes": 382161,
+   "sha256": "c3581a5a539e8bb3edb8967dec014ebe8a1128b3363b98bd9418faffe4574c00"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-011.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgOT01QYSGUtYU09MRC0yNlNFUDMwMTItVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:38:43Z",
+   "bytes": 382434,
+   "sha256": "0506d69369681a879f6efee33ff1a168f654ae1ea2371093596cc1b5b201ab56"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-012.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgOT01QYSGktYU09MRC0yNlNFUDMwMTItVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:38:45Z",
+   "bytes": 382025,
+   "sha256": "5e5d65d5b33ca5fa0cd0418beeab3542d7a60f314d3bf5a1036d16eafcf64168"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-013.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Mf01QYSGktYU09MRC0yNlNFUDMwMTEtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:38:48Z",
+   "bytes": 382162,
+   "sha256": "f1f1e7d429ff7e7ffecbffaf80abe048c0df91f4ffa360e3c20a05494a2f3a82"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-014.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Kv01QYSGUtYU09MRC0yNlNFUDMwMTAtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:38:51Z",
+   "bytes": 382466,
+   "sha256": "05b6245dd3634063f033e46a5fba10198e0a282a64277786eac70138c687e629"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-015.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Kv01QYSGktYU09MRC0yNlNFUDMwMTAtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:38:54Z",
+   "bytes": 382137,
+   "sha256": "ea8a1e65cd49a7935ab72e93874d19ddfdc7140f80780c3170d83dac228df948"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-016.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0I_01QYSGktYU09MRC0yNlNFUDMwMDktVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:40:29Z",
+   "bytes": 382319,
+   "sha256": "59056ea51fb499c3593cd7232e1abb33a5b41002b5b9e9877107957842946320"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-017.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwPPz1QYSGUtYU09MRC0yNlNFUDMwMDgtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:40:32Z",
+   "bytes": 382035,
+   "sha256": "b9bc24e8d747e6658f09b385094c959381e6f9e9ef455a34aeae07370a99e951"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-018.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwPPz1QYSGktYU09MRC0yNlNFUDMwMDgtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:40:38Z",
+   "bytes": 381862,
+   "sha256": "a302bc96dcd39c57808e06e4ba1501aee9a703f8b8a2ff604cc7b7e506ebae7e"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-019.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsNfz1QYSGktYU09MRC0yNlNFUDMwMDctVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:40:44Z",
+   "bytes": 382108,
+   "sha256": "0828984986275a34b294592532365d062f8e24ecfeaca54bdd4610429449f1b6"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-020.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLvz1QYSGUtYU09MRC0yNlNFUDMwMDYtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:40:47Z",
+   "bytes": 382022,
+   "sha256": "ee4b3a45e3dc7635dd4499e12652ad55558607fca04ceaefe5c478b936e89438"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-021.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLvz1QYSGktYU09MRC0yNlNFUDMwMDYtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:40:50Z",
+   "bytes": 381999,
+   "sha256": "be196adb6fce48b667c4ca703fb8ccdd5b2fb586f877d4eba599a16fd5bc3b9a"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-022.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkJ_z1QYSGktYU09MRC0yNlNFUDMwMDUtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:40:56Z",
+   "bytes": 382268,
+   "sha256": "021b7e0479a2efa76b403cf49930367f39714165fe40bd93770d31a050fec0da"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-023.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgIPz1QYSGUtYU09MRC0yNlNFUDMwMDQtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:40:58Z",
+   "bytes": 382015,
+   "sha256": "972653067462ee2ab2ad63aeb2a24ea58beb2c5bc9eb14f30a4a104f21418a11"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-024.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgIPz1QYSGktYU09MRC0yNlNFUDMwMDQtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:41:01Z",
+   "bytes": 382003,
+   "sha256": "6e1b1e6eb1638376989026658cce62b4b8661287c0b7a63794d42e3e5f229ba8"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-025.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Oby1QYSGktYU09MRC0yNlNFUDMwMDMtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:41:05Z",
+   "bytes": 382266,
+   "sha256": "986f1e790293b6c6bcbb11ec3b8231986547ada36279526fd8cce6f00d1d1645"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-026.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Mry1QYSGUtYU09MRC0yNlNFUDMwMDItVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:41:07Z",
+   "bytes": 382028,
+   "sha256": "78d83d26ad931ac741dbcfb94017c4077aa861410f01af5bdda90dd7a4e68b26"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-027.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Mry1QYSGktYU09MRC0yNlNFUDMwMDItVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:41:10Z",
+   "bytes": 381998,
+   "sha256": "7845b87cc6e3c0955152fefec05fc9a2be7a6a1c81d2d39d91285617019e0b7b"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-028.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0K7y1QYSGktYU09MRC0yNlNFUDMwMDEtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:41:12Z",
+   "bytes": 382324,
+   "sha256": "080e7f19ff3343932debbb1c88fd51025b11900b2d276abd6d4700db58f8b379"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-029.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwJLy1QYSGUtYU09MRC0yNlNFUDMwMDAtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:41:14Z",
+   "bytes": 382430,
+   "sha256": "18c25e0b2166a892684faf5347eb52d8741efc1c03c42b3d8142e14a9874216a"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-030.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwJLy1QYSGktYU09MRC0yNlNFUDMwMDAtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:41:18Z",
+   "bytes": 382389,
+   "sha256": "f1881528b4efc3af0a6f610fd9c5b5c3a8b331080dcceb74deac48f27f5fdd42"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-031.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsPbx1QYSGktYU09MRC0yNlNFUDI5MjMtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:41:22Z",
+   "bytes": 382701,
+   "sha256": "9dd94e6b702a4a372e4c845f6d80b1e69da47032050c8d68d6d3c019d722dc71"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-032.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoNrx1QYSGUtYU09MRC0yNlNFUDI5MjItVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:41:24Z",
+   "bytes": 382445,
+   "sha256": "51cc0de9435f0cbb5c1626422523826f6109bb8e0fdb3fdb93b4136b4795d42b"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-033.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoNrx1QYSGktYU09MRC0yNlNFUDI5MjItVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:41:29Z",
+   "bytes": 382155,
+   "sha256": "1b07368cc26c24297945ad451d198534e51d38c5203e6f61b2f23a7373a37e52"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-034.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkL7x1QYSGktYU09MRC0yNlNFUDI5MjEtVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:41:39Z",
+   "bytes": 382253,
+   "sha256": "ae05518e2ce90d267e6a432e426d719fc6684f20533823cf7aab216713ef1938"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-035.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgKLx1QYSGUtYU09MRC0yNlNFUDI5MjAtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:41:43Z",
+   "bytes": 381834,
+   "sha256": "489f4b851d785b371c7abe3a48dfcd3fdf9c6a9a3cf908aa6ad3f498d34de595"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-036.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgKLx1QYSGktYU09MRC0yNlNFUDI5MjAtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:41:45Z",
+   "bytes": 381919,
+   "sha256": "ff7ba6115d134a744a1ce08f1751d205bf5a3b30e5ae3b9d020a998cc8d03471"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-037.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8IXx1QYSGktYU09MRC0yNlNFUDI5MTktVDE0My45OTk5",
+   "fetchedAt": "2026-10-03T21:41:47Z",
+   "bytes": 382255,
+   "sha256": "3584802dc99b50b40c0c442f87cccf4bf357cb4fae05fc877bb03f3ceb40a3b8"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-038.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Onw1QYSGUtYU09MRC0yNlNFUDI5MTgtVDkzLjk5OTk",
+   "fetchedAt": "2026-10-03T21:41:49Z",
+   "bytes": 381826,
+   "sha256": "081b5b0d7a4d656307f7ba3dafc818da6e3a1f40ea424fd04775802f64ae8c17"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-039.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Onw1QYSGktYU09MRC0yNlNFUDI5MTgtVDExOC45OTk5",
+   "fetchedAt": "2026-10-03T21:42:08Z",
+   "bytes": 381679,
+   "sha256": "7f74a0433f7573cf37476d7b3f214982b0719ddcd737e963518d4983dda541ed"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-040.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwLHw1QYSGUtYU09MRC0yNlNFUDI5MTYtVDg3Ljc0OTk",
+   "fetchedAt": "2026-10-03T21:42:13Z",
+   "bytes": 381767,
+   "sha256": "b2fad4091559ecfe1e2c0a1463cc318340deedcebb5ca81a56b803e7b641efa5"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-041.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwLHw1QYSGktYU09MRC0yNlNFUDI5MTYtVDExMi43NDk5",
+   "fetchedAt": "2026-10-03T21:42:23Z",
+   "bytes": 381562,
+   "sha256": "b778177a5ee98468dc3196b0e8ce532635c898d5f357f5e13c5c30578d56e3e0"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-042.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsJXw1QYSGktYU09MRC0yNlNFUDI5MTUtVDEzNy43NDk5",
+   "fetchedAt": "2026-10-03T21:42:57Z",
+   "bytes": 381887,
+   "sha256": "7bdd49ab2b31e51b18ade6f0ac473d49b1a9b87860f87ceda476e7df9ca3797d"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-043.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoPnv1QYSGUtYU09MRC0yNlNFUDI5MTQtVDg3Ljc0OTk",
+   "fetchedAt": "2026-10-03T21:43:32Z",
+   "bytes": 382157,
+   "sha256": "fe4cdd47961bbcb60a5e4c88860fdd669ff8189a3a64d1de7869bfc93986d13c"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-044.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoPnv1QYSGktYU09MRC0yNlNFUDI5MTQtVDExMi43NDk5",
+   "fetchedAt": "2026-10-03T21:43:34Z",
+   "bytes": 381962,
+   "sha256": "33fc5873716d5b37ebb0d5904e16945d06bdaaf5ed63b7a690b088f25e50cf89"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-045.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkN3v1QYSGktYU09MRC0yNlNFUDI5MTMtVDEzNy43NDk5",
+   "fetchedAt": "2026-10-03T21:46:10Z",
+   "bytes": 382279,
+   "sha256": "7ad1a62fc44d4d3c7b27eb44862f99e609036573d0a81b982273c7d9ead147ae"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-046.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgMHv1QYSGUtYU09MRC0yNlNFUDI5MTItVDg3Ljc0OTk",
+   "fetchedAt": "2026-10-03T21:46:20Z",
+   "bytes": 382578,
+   "sha256": "70610da2c786f25026bea6a34a87c1307f409da7b03373b1f8b45f4002d1bcdc"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-047.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgMHv1QYSGktYU09MRC0yNlNFUDI5MTItVDExMi43NDk5",
+   "fetchedAt": "2026-10-03T21:46:24Z",
+   "bytes": 382212,
+   "sha256": "364e204e3ea3f3e4fb2104aa1a753138af45f3e2061a69c167ad90ac41ce7963"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-048.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8KTv1QYSGktYU09MRC0yNlNFUDI5MTEtVDEzNy43NDk5",
+   "fetchedAt": "2026-10-03T21:46:27Z",
+   "bytes": 382392,
+   "sha256": "e98b23798e1c70316c488308efcdf4ee9dc5d19bc0c8d4c06b03f91a6178c2ff"
+  },
+  {
+   "file": "kalshi/KXSOLD-p200-049.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXSOLD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Ijv1QYSGUtYU09MRC0yNlNFUDI5MTAtVDg3Ljc0OTk",
+   "fetchedAt": "2026-10-03T21:46:29Z",
+   "bytes": 382381,
+   "sha256": "b02de2e7692b1037a1b0869f3f03ed3d1fca8eb1c3ddd339857c4beccabe2738"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-000.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800",
+   "fetchedAt": "2026-10-03T21:46:35Z",
+   "bytes": 420722,
+   "sha256": "0d197f9d64926634548452dea521e439914b14c6467bbbd65811e69b7f6180ae"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-001.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4Iz21QYSGEtYWFJQRC0yNlNFUDMwMTgtVDEuMTU5OQ",
+   "fetchedAt": "2026-10-03T21:46:37Z",
+   "bytes": 420982,
+   "sha256": "9d5b2de6592b48cbce08e6b8bee2180d6ae52538d5ea11f7b34b66f45b950791"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-002.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsLj11QYSGEtYWFJQRC0yNlNFUDMwMTUtVDAuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:46:39Z",
+   "bytes": 421100,
+   "sha256": "a384db88b33aee7d0613da905885abeda3755848147cbe16f5328794736e6bd8"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-003.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgOT01QYSGEtYWFJQRC0yNlNFUDMwMTItVDEuNDU5OQ",
+   "fetchedAt": "2026-10-03T21:46:42Z",
+   "bytes": 421446,
+   "sha256": "fbea480569c58dfea2c07d350c86f11e7bce99b47463d1ab6c78e0651cb6aa6e"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-004.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0I_01QYSGEtYWFJQRC0yNlNFUDMwMDktVDEuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:46:44Z",
+   "bytes": 420897,
+   "sha256": "4479fef495d47c1cd4e4f8f1984d0003b329baf9ad0867a4ec0a45a6eee05e01"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-005.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsNfz1QYSGEtYWFJQRC0yNlNFUDMwMDctVDAuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:46:47Z",
+   "bytes": 420997,
+   "sha256": "f4672466d424b392870dc6a73ebef8d732653cb05cf8eae32db0e3c5054b5059"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-006.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgIPz1QYSGEtYWFJQRC0yNlNFUDMwMDQtVDEuNDU5OQ",
+   "fetchedAt": "2026-10-03T21:46:50Z",
+   "bytes": 421020,
+   "sha256": "512617d80654492bc997c34c90762fb026cd13c1e6717abb5713a5e9f0b019f6"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-007.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0K7y1QYSGEtYWFJQRC0yNlNFUDMwMDEtVDEuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:46:52Z",
+   "bytes": 421376,
+   "sha256": "640387386af62d85d404709a8ead9153a60114165e432b22868c09415828198d"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-008.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsPbx1QYSGEtYWFJQRC0yNlNFUDI5MjMtVDAuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:47:02Z",
+   "bytes": 421271,
+   "sha256": "ad600934c4159dfd13433f65d1f0f1791d103428d9927e89c892f22bb6e23a8b"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-009.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgKLx1QYSGEtYWFJQRC0yNlNFUDI5MjAtVDEuNDU5OQ",
+   "fetchedAt": "2026-10-03T21:47:04Z",
+   "bytes": 420940,
+   "sha256": "fda5949d730c1858a98dade02e6bfa1628532ff9b02c7b714deca437c96a3ff5"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-010.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0M3w1QYSGEtYWFJQRC0yNlNFUDI5MTctVDEuNzk5OQ",
+   "fetchedAt": "2026-10-03T21:47:08Z",
+   "bytes": 421094,
+   "sha256": "d10bf531a45567667e7ccc60d05ec0b14d8265ea0bf96d567743c874544f7659"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-011.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoPnv1QYSGEtYWFJQRC0yNlNFUDI5MTQtVDEuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:47:43Z",
+   "bytes": 421149,
+   "sha256": "27c874fbe2057285463c496b1d39333e8c9b2e72e8e265e80286d64428106cbe"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-012.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgMHv1QYSGEtYWFJQRC0yNlNFUDI5MTItVDAuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:47:45Z",
+   "bytes": 421412,
+   "sha256": "7e4608a563d2264d546d7abda45995c3ee0116798c7fe39410f4a8814d200866"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-013.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Ozu1QYSGEtYWFJQRC0yNlNFUDI5MDktVDEuNDU5OQ",
+   "fetchedAt": "2026-10-03T21:47:49Z",
+   "bytes": 420819,
+   "sha256": "e94f19a261dd91615356887cb495f97f7501aec2e402c19c070a9ebeb15c6d70"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-014.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJju1QYSGEtYWFJQRC0yNlNFUDI5MDYtVDEuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:47:54Z",
+   "bytes": 420957,
+   "sha256": "e1e8c0d65fdbb556211fcbd9eefd528d5a3a9e7c1e8f4ac0404d42adc0fffc8f"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-015.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgODt1QYSGEtYWFJQRC0yNlNFUDI5MDQtVDAuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:48:00Z",
+   "bytes": 421015,
+   "sha256": "803f0709ca07a30a631fd5bd9d5e723e84a3759f7b4e7ac796c3292395d595cb"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-016.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Ivt1QYSGEtYWFJQRC0yNlNFUDI5MDEtVDEuNDU5OQ",
+   "fetchedAt": "2026-10-03T21:48:02Z",
+   "bytes": 421415,
+   "sha256": "1a55b9981701005c6131d8d519399fc6334ead310d49a1078ac4d9d38391e9c1"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-017.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoLfs1QYSGEtYWFJQRC0yNlNFUDI4MjItVDIuMDU5OQ",
+   "fetchedAt": "2026-10-03T21:48:05Z",
+   "bytes": 421148,
+   "sha256": "9582a6b30b06c5f3e6db56c36eaacb8c4ee689d98457815654fa86c988b2c15d"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-018.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIgP_r1QYSGEtYWFJQRC0yNlNFUDI4MjAtVDEuMDU5OQ",
+   "fetchedAt": "2026-10-03T21:48:08Z",
+   "bytes": 421101,
+   "sha256": "2b3322f411c2938f40f3857173f7f75499387fec0d9ee67e645d57f883af3ed7"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-019.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Krr1QYSGEtYWFJQRC0yNlNFUDI4MTctVDEuMTk5OQ",
+   "fetchedAt": "2026-10-03T21:48:10Z",
+   "bytes": 420963,
+   "sha256": "0a54ababf3db34f78ae459cdfdd022dfd1ef4b8b97309d33503b42f888d51d5d"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-020.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoNbq1QYSGEtYWFJQRC0yNlNFUDI4MTQtVDEuMzU5OQ",
+   "fetchedAt": "2026-10-03T21:48:14Z",
+   "bytes": 421262,
+   "sha256": "765bfa2ba276b75e42761bfd92b0d796222abe279e0e717c939ba148620492f7"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-021.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8IHq1QYSGEtYWFJQRC0yNlNFUDI4MTEtVDEuODU5OQ",
+   "fetchedAt": "2026-10-03T21:48:17Z",
+   "bytes": 421417,
+   "sha256": "fc82e17c0377b1f85598a891c0e2466bc381ca8b225bd74eeeb4a54fe668bb5e"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-022.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Mnp1QYSGEtYWFJQRC0yNlNFUDI4MDktVDAuODU5OQ",
+   "fetchedAt": "2026-10-03T21:48:20Z",
+   "bytes": 420916,
+   "sha256": "5193e72772a019187d857a135406bd73897e4f17d4a7de7d12406661c49fcb13"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-023.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoPXo1QYSGEtYWFJQRC0yNlNFUDI4MDYtVDEuMzU5OQ",
+   "fetchedAt": "2026-10-03T21:48:30Z",
+   "bytes": 420991,
+   "sha256": "5e55db10b6852c66edc0f1b8cb1cfd23beb2b8a5e1ae10a798a4f7b27200e609"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-024.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8KDo1QYSGEtYWFJQRC0yNlNFUDI4MDMtVDEuODU5OQ",
+   "fetchedAt": "2026-10-03T21:49:04Z",
+   "bytes": 420942,
+   "sha256": "adea58392cfe711539670f0d8837ec3f92aa16075c5ecc09ab81722b711ff0c3"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-025.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI0Ojn1QYSGEtYWFJQRC0yNlNFUDI4MDEtVDAuODU5OQ",
+   "fetchedAt": "2026-10-03T21:49:06Z",
+   "bytes": 421591,
+   "sha256": "5c3fc1f3023c0c37bd6a2210ca0465d18cf053bcf566dabc666d59336a557572"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-026.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIoJTn1QYSGEtYWFJQRC0yNlNFUDI3MjItVDEuMzU5OQ",
+   "fetchedAt": "2026-10-03T21:49:10Z",
+   "bytes": 421025,
+   "sha256": "b78b2d6c7657edc8209dc9c0073d5f1d460acbf550d8d478ed0aa81c27be69d8"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-027.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8L_m1QYSGEtYWFJQRC0yNlNFUDI3MTktVDEuODU5OQ",
+   "fetchedAt": "2026-10-03T21:49:12Z",
+   "bytes": 421053,
+   "sha256": "9082db623825006abe5ca1f0edbb50df60abc0773197a7cb82f11ca83b87e561"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-028.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwOvl1QYSGEtYWFJQRC0yNlNFUDI3MTYtVDEuNjU5OQ",
+   "fetchedAt": "2026-10-03T21:49:15Z",
+   "bytes": 420978,
+   "sha256": "916d65c2593ba1fbd97232d66c9fa1a7a47ac804e2c5c5c611aa21d3e21cc3eb"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-029.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkJfl1QYSGEtYWFJQRC0yNlNFUDI3MTMtVDIuMTU5OQ",
+   "fetchedAt": "2026-10-03T21:49:18Z",
+   "bytes": 421192,
+   "sha256": "18b5e69ca0f5d0ef1183f7472b3dbf31e37a9627934770a5535eba8a5a6fc50d"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-030.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8N7k1QYSGEtYWFJQRC0yNlNFUDI3MTEtVDEuMTU5OQ",
+   "fetchedAt": "2026-10-03T21:49:20Z",
+   "bytes": 421259,
+   "sha256": "c256806fec84c0c4f6dd1d49ef002d80393e126d33af3cb4533634a816f76d95"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-031.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwIrk1QYSGEtYWFJQRC0yNlNFUDI3MDgtVDEuNjU5OQ",
+   "fetchedAt": "2026-10-03T21:49:23Z",
+   "bytes": 420948,
+   "sha256": "55c6315f900701215de69885168b8571c9bfb2f2755730dcf2e9e5c9bde55e54"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-032.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkLbj1QYSGEtYWFJQRC0yNlNFUDI3MDUtVDIuMTU5OQ",
+   "fetchedAt": "2026-10-03T21:50:27Z",
+   "bytes": 420895,
+   "sha256": "2f3ad8709175b619ea3675ef2854f32e5e2bcbd9b40f737b514e4297f5a5c325"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-033.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8P3i1QYSGEtYWFJQRC0yNlNFUDI3MDMtVDEuMTU5OQ",
+   "fetchedAt": "2026-10-03T21:50:31Z",
+   "bytes": 421044,
+   "sha256": "88f2d8193429e6619f9c6f9b184571850f5ce758b3d84fadaf18458b0f7ae924"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-034.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwKni1QYSGEtYWFJQRC0yNlNFUDI3MDAtVDEuNjU5OQ",
+   "fetchedAt": "2026-10-03T21:50:35Z",
+   "bytes": 421536,
+   "sha256": "ab3e1ff211ec0a55c084588ad088a522b89470717d62bb51a8134327455412b2"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-035.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkNXh1QYSGEtYWFJQRC0yNlNFUDI2MjEtVDIuMTU5OQ",
+   "fetchedAt": "2026-10-03T21:50:40Z",
+   "bytes": 420943,
+   "sha256": "e2d9574318102cda7aac5d4773be059a5fcdd24182309e5f3942bf214090c5f1"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-036.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI8Jzh1QYSGEtYWFJQRC0yNlNFUDI2MTktVDEuMTU5OQ",
+   "fetchedAt": "2026-10-03T21:50:46Z",
+   "bytes": 421032,
+   "sha256": "a41ba71e5f6c3e0d010325f374ce968ab370d6b2f756386a7170df717cdfbc3c"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-037.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwMjg1QYSGEtYWFJQRC0yNlNFUDI2MTYtVDAuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:50:48Z",
+   "bytes": 420930,
+   "sha256": "125a67fa2a66ec034563c3eed149e14ac22aeddbb3c2952b98aeb1e506ab6214"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-038.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkPTf1QYSGEtYWFJQRC0yNlNFUDI2MTMtVDEuNDU5OQ",
+   "fetchedAt": "2026-10-03T21:50:51Z",
+   "bytes": 421279,
+   "sha256": "14a2fb800105b885dfda0a93cffa724e0e649499616b3011c7bd5a663c895482"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-039.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4J_f1QYSGEtYWFJQRC0yNlNFUDI2MTAtVDEuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:50:57Z",
+   "bytes": 421129,
+   "sha256": "088c87297d82a2caf330a97b57c94c1e828fbf397b62e76248c56bc0b4280583"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-040.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwOfe1QYSGEtYWFJQRC0yNlNFUDI2MDgtVDAuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:50:59Z",
+   "bytes": 420983,
+   "sha256": "d9eb04e346265fbbceeb182145e1f3cdd6903c5a8af6568223cd81a30d4576dd"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-041.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkJPe1QYSGEtYWFJQRC0yNlNFUDI2MDUtVDEuNDU5OQ",
+   "fetchedAt": "2026-10-03T21:51:02Z",
+   "bytes": 420763,
+   "sha256": "6326cb4ea810f977e75b36882d6d36f16fcaf3f680b822595edb17b60be30f45"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-042.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4L7d1QYSGEtYWFJQRC0yNlNFUDI2MDItVDEuOTU5OQ",
+   "fetchedAt": "2026-10-03T21:51:05Z",
+   "bytes": 421165,
+   "sha256": "9098432cdec8c37ec48eb736e2546b550c22c5d093003901a0b6bde398245d70"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-043.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIwIbd1QYSGEtYWFJQRC0yNlNFUDI2MDAtVDAuODU5OQ",
+   "fetchedAt": "2026-10-03T21:51:15Z",
+   "bytes": 421503,
+   "sha256": "03f91c062658ba95aa1a4f6ad681be997843d568dc290331079e85f758e1ae1d"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-044.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkLLc1QYSGEtYWFJQRC0yNlNFUDI1MjEtVDEuMzU5OQ",
+   "fetchedAt": "2026-10-03T21:51:17Z",
+   "bytes": 421023,
+   "sha256": "616a12ecd789b6c1d0e6b5092323660e4c94e49a6fb0173b7ea457450aa8e8d5"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-045.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4N3b1QYSGEtYWFJQRC0yNlNFUDI1MTgtVDEuODU5OQ",
+   "fetchedAt": "2026-10-03T21:51:21Z",
+   "bytes": 421139,
+   "sha256": "02676eba409797309dfa6c11ce3efb6449def3ad77646779bd5a7288795efde6"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-046.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsInb1QYSGEtYWFJQRC0yNlNFUDI1MTUtVDEuODU5OQ",
+   "fetchedAt": "2026-10-03T21:51:39Z",
+   "bytes": 420978,
+   "sha256": "c001e3d7a1c39f6ec94eea4c702aad06bfe50076692bb09933f513858b0e16e7"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-047.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIkNHa1QYSGEtYWFJQRC0yNlNFUDI1MTMtVDAuODU5OQ",
+   "fetchedAt": "2026-10-03T21:51:49Z",
+   "bytes": 421499,
+   "sha256": "8dedd7d9389461720c7f2ede0718217bcb75c0c350e87ce523a98b3d73b72cdb"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-048.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYI4PzZ1QYSGEtYWFJQRC0yNlNFUDI1MTAtVDEuMzU5OQ",
+   "fetchedAt": "2026-10-03T21:51:53Z",
+   "bytes": 421105,
+   "sha256": "b77f9f19358197c99f7e9165b73988aed6b31bbeefef3c02e0c60d10d54ed8b2"
+  },
+  {
+   "file": "kalshi/KXXRPD-p200-049.json.gz",
+   "url": "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXXRPD&status=settled&limit=200&max_close_ts=1790812800&cursor=CgYIsKjZ1QYSGEtYWFJQRC0yNlNFUDI1MDctVDEuODU5OQ",
+   "fetchedAt": "2026-10-03T21:51:55Z",
+   "bytes": 420978,
+   "sha256": "12faaa21d19d4bdc65a51b769be71286bf0818d2f8ae2d8efe9b9ef8cf4c2681"
+  }
+ ],
+ "failures": [],
+ "note": "pull stopped by the team after these pages (budget, ADJ-47)"
+}

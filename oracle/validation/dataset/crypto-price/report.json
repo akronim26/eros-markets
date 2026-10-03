@@ -1,0 +1,32 @@
+{
+  "schema": "eros-validation-crypto-price/1",
+  "until": "2026-10-01T00:00:00Z",
+  "series": {
+    "KXBTCD": "BTCUSDT",
+    "KXETHD": "ETHUSDT",
+    "KXSOLD": "SOLUSDT",
+    "KXXRPD": "XRPUSDT",
+    "KXDOGED": "DOGEUSDT",
+    "KXBNBD": "BNBUSDT",
+    "KXHYPED": "HYPEUSDT",
+    "KXSHIBAD": "SHIBUSDT"
+  },
+  "rows": 39137,
+  "parents": 258,
+  "parentsBySymbol": {
+    "BTCUSDT": 54,
+    "ETHUSDT": 35,
+    "SOLUSDT": 34,
+    "XRPUSDT": 135
+  },
+  "outcomes": {
+    "YES": 20797,
+    "NO": 18340
+  },
+  "skipped": {
+    "after_window": 863,
+    "not_above_strike": 1400
+  },
+  "rowsSha256": "12e82f7263399fe3032eeebddc76bf2e56792229f41a7589f13ee47a2b68752b",
+  "manifestSha256": "0bec18acd934fbc3e1047cc87f730127de1a0c443fb4f471f78f6c6264f50a41"
+}
