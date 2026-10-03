@@ -233,13 +233,14 @@ Plan §13: owner OB · 2.5 PD · depends O30 · acceptance: E2/E3 committee step
 - Owner: OB
 - PD: 0.75
 - Depends: O34.1
-- Plan: §8.4, D7, D17
+- Plan: §8.4, D7, D17, ADJ-43
 - Cut: partial (as a CLI)
-- Status: todo
+- Status: doing
 - Files: oracle/services/committee-console/src/sign/*
 - Build: `ReviewedProposal` signed with `eth_signTypedData_v4`; collect signatures, sort by signer ascending, check threshold locally; anyone submits `submitReviewedProposal`; Safe members via ERC-1271.
 - Done when: a 2-of-3 proposal built by the console is accepted by the oracle on anvil.
 - Check: cd oracle/services/committee-console && bun test
+- Notes: `services/committee-console/src/sign/`. `newBundle(case, …)` builds the `ReviewedProposal` from the case: attempt, rejectedMask, early, the trust set, `evidenceURIHash`, `noteHash`, and a deadline of now + 6 h (an early one is capped before T and the early TTL). It refuses a case that is not reviewable, a rejected outcome, and a URI outside 1..256 bytes. The bundle (JSON) carries the proposal, its URI and the signatures. `signBundle` signs with `eth_signTypedData_v4` semantics (viem `signTypedData` over oracle-sdk's types); `typedData` gives the payload for a wallet. `collect` checks each signature as the contract will: a member of the proposal's trust set and not revoked; an EOA's signature is 65 bytes, low s, v 27/28, and recovers the member; a contract member's passes ERC-1271 `isValidSignature`. It sorts by signer ascending and checks the threshold. `staleness` names each payload check the contract would fail now. `submitBundle` eth_calls, then sends the first `threshold` signatures with gas.json's `submitReviewedProposal` limit. A bundle needing an ERC-1271 signature is not sent, because `submitReviewedProposalERC1271` is not measured (ADJ-43). Gas (Foundry 1.8.3, 3-of-3 EOA signatures, 256-byte URI): from Review 361,449, from EarlyReview 507,129 (that route halts the engine); limit 610,000. `disputeViaVenue` and `watchdogHeartbeat` were measured in the same change for O35.3. The gas test now deploys UmaAdapter and KeeperRouter from their artifacts, because the extra tests took the test contract 179 bytes past the 128 KiB code-size limit. 13 unit tests (`test/sign.test.ts`). The anvil acceptance (a 2-of-3 proposal accepted by the oracle) drives the reviewer CLI, so it lands with O34.3.
 
 ### O34.3 · Reviewer UI, source additions and service level
 - Owner: OB
