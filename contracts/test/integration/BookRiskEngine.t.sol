@@ -15,7 +15,7 @@ import {MockUSDC} from "../mocks/A/MockUSDC.sol";
 import {MockResolutionAuthority} from "../mocks/B/MockResolutionAuthority.sol";
 import {ListingFixture} from "../risk/B/B019.t.sol";
 
-contract BookRiskEngineTest is Test {
+abstract contract BookRiskEngineFixture is Test {
     uint256 constant SIGNER_KEY = 0x516;
     address constant GOVERNOR = address(0x6007);
     address constant BUYER = address(0x101);
@@ -99,7 +99,9 @@ contract BookRiskEngineTest is Test {
         vm.prank(owner);
         return engine.placeOrder(Book.Place(kind, isBuy, false, 500, lots, 64, 0));
     }
+}
 
+contract BookRiskEngineTest is BookRiskEngineFixture {
     function testInitialReleaseDefaultsCannotEnableLeverageOrFunding() public {
         assertEq(engine.listing().deploymentCapX, 1);
         assertFalse(engine.fundingFeatureEnabled());
