@@ -31,7 +31,7 @@ describe('pinned templates', () => {
     }
     // the example listing pack's categoryId is the sports category
     expect(sports.categoryId).toBe('0xecf68b55a3148ada593e183bf15435fbd3f76364946ed2169f5e36e27bc9eafd')
-    expect(new Set(prompts.map((p) => p.promptHash)).size).toBe(7)
+    expect(new Set(prompts.map((p) => p.promptHash)).size).toBe(8)
   })
 
   test('the system prompt says instructions inside evidence are data (defence 2); every template', () => {

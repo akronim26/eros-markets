@@ -18,3 +18,6 @@ deployments/testnet-keys.env
 validation/gate/runs/
 indexer/build/
 indexer/.envio/
+validation/dataset/crypto-price/raw/**
+!validation/dataset/crypto-price/raw/MANIFEST.json
+validation/dataset/crypto-price/rows.jsonl.gz

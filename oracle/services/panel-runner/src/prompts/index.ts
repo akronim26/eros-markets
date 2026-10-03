@@ -12,7 +12,7 @@ import { promptText, type Snapshot } from '@eros-oracle/snapshotter'
 import { readFileSync } from 'node:fs'
 import { type Hex, keccak256, stringToBytes } from 'viem'
 
-export const CATEGORIES = ['sports', 'macro', 'elections', 'politics', 'crypto', 'companies', 'other'] as const
+export const CATEGORIES = ['sports', 'macro', 'elections', 'politics', 'crypto', 'companies', 'other', 'crypto-price'] as const
 export type Category = (typeof CATEGORIES)[number]
 
 export class PromptError extends Error {}
@@ -113,6 +113,7 @@ export function buildCall(p: PinnedPrompt, market: MarketText, snapshot: Snapsho
     QUESTION: market.question,
     RULES: market.rules,
     TAU_UTC: iso(market.tau),
+    TAU_MS: String(BigInt(market.tau) * 1000n), // T as epoch milliseconds, for evidence timestamped that way (crypto-price)
     TAKEN_AT_UTC: iso(snapshot.takenAt),
     EVIDENCE: evidenceBlocks(snapshot, p),
   }

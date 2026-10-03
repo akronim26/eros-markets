@@ -58,6 +58,8 @@ export type Stack = {
   pc: PublicClient
   /** The example pack's market id. */
   marketId: Hex
+  /** Runs a governance script (script/<name>.s.sol) and applies its operations through the Timelock. */
+  governance(name: string, env?: Record<string, string>): Promise<void>
   stop(): Promise<void>
 }
 
@@ -107,11 +109,19 @@ export async function rpc(url: string, method: string, params: unknown[] = []): 
  * Deploy options: the trust set's runner attestor, committee and watchdog (default placeholders no one holds; the
  * panel, committee and watchdog tests pass their keys' addresses).
  */
-export type StackOptions = { attestor?: Address; committee?: readonly Address[]; watchdog?: Address }
+export type StackOptions = {
+  attestor?: Address
+  committee?: readonly Address[]
+  watchdog?: Address
+  /** Hosts allowed besides the example pack's (e.g. a real evidence host). */
+  providers?: readonly string[]
+  /** anvil's first block time (unix s): in the past, so a market's T can be a real minute with real data. */
+  startTimestamp?: number
+}
 
 export async function deployStack(port: number, opts: StackOptions = {}): Promise<Stack> {
   const rpcUrl = `http://127.0.0.1:${port}`
-  const anvil = Bun.spawn(['anvil', '--port', String(port), '--code-size-limit', '131072', '--silent'], { stdout: 'ignore', stderr: 'ignore' })
+  const anvil = Bun.spawn(['anvil', '--port', String(port), '--code-size-limit', '131072', '--silent', ...(opts.startTimestamp ? ['--timestamp', String(opts.startTimestamp)] : [])], { stdout: 'ignore', stderr: 'ignore' })
   const dir = `deployments/dryrun/keeper-fork-${port}` // gitignored; scripts may write under ./deployments
   const abs = join(ORACLE_ROOT, dir)
   try {
@@ -120,7 +130,7 @@ export async function deployStack(port: number, opts: StackOptions = {}): Promis
     mkdirSync(abs, { recursive: true })
 
     const params = JSON.parse(readFileSync(join(ORACLE_ROOT, 'deployments/params.monad-testnet.json'), 'utf8'))
-    params.providers = ['api.example-sports.com', 'stats.example-data.org'] // the example pack's hosts
+    params.providers = ['api.example-sports.com', 'stats.example-data.org', ...(opts.providers ?? [])] // the example pack's hosts
     writeFileSync(join(abs, 'params.json'), JSON.stringify(params, null, 2))
     const env: Record<string, string> = {
       DEPLOYMENTS_DIR: dir,
@@ -176,6 +186,7 @@ export async function deployStack(port: number, opts: StackOptions = {}): Promis
       deployments,
       pc,
       marketId: pack.marketInput.marketId as Hex,
+      governance: async (name: string, extra: Record<string, string> = {}) => throughTimelock(script(name, extra)),
       async stop() {
         anvil.kill()
         await anvil.exited

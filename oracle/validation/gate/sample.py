@@ -8,6 +8,7 @@ hash). Candidates beyond the quota are listed as spares: the runner moves to the
 fetchable allow-listed page, without calling any model.
 
   python3 -m gate.sample      # writes gate/runs/sample.jsonl (local, git-ignored: it holds the rules text, ADJ-39)
+  python3 -m gate.sample --run crypto-price   # gate/runs/crypto-price-sample.jsonl (ADJ-47)
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -70,11 +72,53 @@ def build(rows: list[dict]) -> list[dict]:
     return picked
 
 
+# ---- the crypto-price run (ADJ-47)
+
+CRYPTO_QUOTA = {"train": 15, "calibration": 30, "holdout": 123}  # option B (₹10 cap, ADJ-47): calibration needs 30 parents for real maps
+CRYPTO_SPARES = 5
+CRYPTO_ORDER = ("calibration", "train", "holdout")  # what the cap reaches first: maps, then θ, then the holdout
+BINANCE = "https://api.binance.com/api/v3/klines"
+CANDLES = 5  # the 1-minute candles ending at the close: the last opens one minute before it
+
+
+def klines_url(symbol: str, close_iso: str) -> str:
+    from datetime import datetime
+
+    end = int(datetime.fromisoformat(close_iso.replace("Z", "+00:00")).timestamp()) * 1000
+    return f"{BINANCE}?symbol={symbol}&interval=1m&startTime={end - CANDLES * 60_000}&endTime={end - 1}"
+
+
+def build_crypto(rows: list[dict]) -> list[dict]:
+    """Per split, parents in a hash-fixed order, one strike per parent (also by hash), the evidence a Binance klines URL."""
+    by_parent: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_parent[r["parent_id"]].append(r)
+    picked: list[dict] = []
+    for s in CRYPTO_ORDER:
+        parents = sorted((p for p in by_parent if split_of(p) == s), key=lambda p: order_key("crypto-price", s, p))
+        for rank, p in enumerate(parents[: CRYPTO_QUOTA[s] + CRYPTO_SPARES]):
+            m = min(by_parent[p], key=lambda r: order_key(p, r["market_id"]))
+            url = klines_url(m["symbol"], m["closed_at"])
+            picked.append({
+                "split": s, "category": "crypto-price", "rank": rank, "spare": rank >= CRYPTO_QUOTA[s], "parent_id": p, "market_id": m["market_id"],
+                "question": m["question"], "rules": m["rules"], "closed_at": m["closed_at"], "outcome": m["outcome"],
+                "pages": [url], "allowList": ["api.binance.com"],
+            })
+    return picked
+
+
 def main() -> None:
     RUNS.mkdir(exist_ok=True)
-    sample = build(read_rows(DATASET / ROWS))
-    (RUNS / "sample.jsonl").write_text("".join(json.dumps(x, sort_keys=True) + "\n" for x in sample))
-    print(f"wrote {len(sample)} candidates to {RUNS / 'sample.jsonl'}")
+    if "--run" in sys.argv and sys.argv[sys.argv.index("--run") + 1] == "crypto-price":
+        from dataset.crypto_price import ROWS as CRYPTO_ROWS
+
+        sample = build_crypto(read_rows(CRYPTO_ROWS))
+        out = RUNS / "crypto-price-sample.jsonl"
+    else:
+        sample = build(read_rows(DATASET / ROWS))
+        out = RUNS / "sample.jsonl"
+    out.write_text("".join(json.dumps(x, sort_keys=True) + "\n" for x in sample))
+    print(f"wrote {len(sample)} candidates to {out}")
 
 
 if __name__ == "__main__":
