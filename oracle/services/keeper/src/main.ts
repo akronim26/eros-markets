@@ -5,17 +5,19 @@
 //   NETWORK            deployments/<NETWORK>.json (default monad-testnet)
 //   RPC_URL            the instance's own RPC endpoint
 //   KEEPER_PRIVATE_KEY the instance's sending key
-//   INDEXER_URL        Envio GraphQL; without it the registry's MarketListed logs are scanned
+//   INDEXER_URL        Envio GraphQL (oracle/indexer); markets and treasury disputes come from it, and the registry's
+//                      and treasury's logs are scanned only when it is down or behind. Without it, logs only.
+//   INDEXER_MAX_LAG_BLOCKS  how far the indexer may trail the chain head before the logs are read (default 300)
 //   POLL_MS            tick interval (default 15000)
 //   DELAY_MS           offset of the second instance between planning and sending (default 0)
-import { loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
+import { IndexerClient, loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
 import { createPublicClient, http, type Hex } from 'viem'
 import { z } from 'zod'
 import { viemChain } from './chain'
 import { globalPlanners, planners } from './jobs'
 import { Keeper } from './keeper'
-import { IndexerSource, RegistryLogSource, TreasuryDisputeSource } from './sources'
-import type { Logger, MarketSource } from './types'
+import { indexedDisputes, indexedMarkets, RegistryLogSource, TreasuryDisputeSource } from './sources'
+import type { DisputeSource, Logger, MarketSource } from './types'
 
 const env = z
   .object({
@@ -23,6 +25,7 @@ const env = z
     RPC_URL: z.url(),
     KEEPER_PRIVATE_KEY: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
     INDEXER_URL: z.url().optional(),
+    INDEXER_MAX_LAG_BLOCKS: z.coerce.bigint().default(300n),
     POLL_MS: z.coerce.number().int().positive().default(15_000),
     DELAY_MS: z.coerce.number().int().nonnegative().default(0),
   })
@@ -39,10 +42,12 @@ const chain = viemChain({ rpcUrl: env.RPC_URL, privateKey: env.KEEPER_PRIVATE_KE
 const registry = deployments.contracts.MarketRegistry
 const treasury = deployments.contracts.BondTreasury
 const logs = createPublicClient({ transport: http(env.RPC_URL) })
-const source: MarketSource = env.INDEXER_URL
-  ? new IndexerSource(env.INDEXER_URL)
-  : new RegistryLogSource(logs, registry.address, BigInt(registry.deployBlock))
-const disputes = new TreasuryDisputeSource(logs, treasury.address, BigInt(treasury.deployBlock))
+const marketLogs = new RegistryLogSource(logs, registry.address, BigInt(registry.deployBlock))
+const disputeLogs = new TreasuryDisputeSource(logs, treasury.address, BigInt(treasury.deployBlock))
+const indexer = env.INDEXER_URL ? new IndexerClient(env.INDEXER_URL, deployments.chainId) : null
+const head = () => logs.getBlockNumber()
+const source: MarketSource = indexer ? indexedMarkets(indexer, marketLogs, head, env.INDEXER_MAX_LAG_BLOCKS, log) : marketLogs
+const disputes: DisputeSource = indexer ? indexedDisputes(indexer, disputeLogs, head, env.INDEXER_MAX_LAG_BLOCKS, log) : disputeLogs
 
 // Testnet markets run on ResolutionEngineStub (StubMarketFactory is deployed only there); mainnet on the real engine.
 const realEngine = !('StubMarketFactory' in deployments.contracts)

@@ -1,7 +1,8 @@
 // Task O31.1: market sources and the state version.
 import { describe, expect, test } from 'bun:test'
 import { encodeAbiParameters, type Hex, keccak256, parseAbiParameters } from 'viem'
-import { IndexerSource, type LogClient, RegistryLogSource } from '../src/sources'
+import { IndexerClient } from '@eros-oracle/oracle-sdk'
+import { indexedDisputes, indexedMarkets, IndexerDisputeSource, IndexerSource, type LogClient, RegistryLogSource, TreasuryDisputeSource } from '../src/sources'
 import { stateVersion } from '../src/version'
 import { id, resolution } from './fake'
 
@@ -49,18 +50,26 @@ describe('IndexerSource', () => {
 
   test('pages through every Market id', async () => {
     const calls: unknown[] = []
-    const src = new IndexerSource('http://indexer/v1/graphql', 2, fake([
+    const src = new IndexerSource(new IndexerClient('http://indexer/v1/graphql', 10143, fake([
       { data: { Market: [{ id: id(1) }, { id: id(2) }] } },
       { data: { Market: [{ id: id(3) }] } },
-    ], calls))
+    ], calls)), 2)
     expect(await src.marketIds()).toEqual([id(1), id(2), id(3)])
     expect(calls).toEqual([{ limit: 2, offset: 0 }, { limit: 2, offset: 2 }])
   })
 
   test('an HTTP error, GraphQL errors or a malformed answer throw', async () => {
-    await expect(new IndexerSource('u', 2, fake([new Response('x', { status: 502 })])).marketIds()).rejects.toThrow(/HTTP 502/)
-    await expect(new IndexerSource('u', 2, fake([{ errors: [{ message: 'field "Market" not found' }] }])).marketIds()).rejects.toThrow(/not found/)
-    await expect(new IndexerSource('u', 2, fake([{ data: {} }])).marketIds()).rejects.toThrow(/no Market list/)
+    const src = (pages: unknown[]) => new IndexerSource(new IndexerClient('u', 10143, fake(pages)), 2)
+    await expect(src([new Response('x', { status: 502 })]).marketIds()).rejects.toThrow(/HTTP 502/)
+    await expect(src([{ errors: [{ message: 'field "Market" not found' }] }]).marketIds()).rejects.toThrow(/not found/)
+    await expect(src([{ data: {} }]).marketIds()).rejects.toThrow(/no Market list/)
+  })
+
+  test('treasury disputes: the Dispute rows funded by the float', async () => {
+    const calls: unknown[] = []
+    const src = new IndexerDisputeSource(new IndexerClient('u', 10143, fake([{ data: { Dispute: [{ id: id(7) }] } }], calls)), 5)
+    expect(await src.assertionIds()).toEqual([id(7)])
+    expect(calls).toEqual([{ limit: 5, offset: 0 }])
   })
 })
 
@@ -106,5 +115,81 @@ describe('RegistryLogSource', () => {
     await expect(src.marketIds()).rejects.toThrow(/range too large/)
     expect(await src.marketIds()).toEqual([id(1)])
     expect(ranges).toEqual([[1000n, 1099n], [1100n, 1150n]])
+  })
+})
+
+describe('the indexer first, RPC logs as the fallback', () => {
+  const REGISTRY = '0x00000000000000000000000000000000000000CC'
+  const TREASURY = '0x00000000000000000000000000000000000000DD'
+  type Mode = { up: boolean; progress: number; markets: Hex[]; disputes: Hex[]; marketsFail?: boolean }
+  const indexer = (m: Mode) =>
+    new IndexerClient('http://indexer/v1/graphql', 10143, (async (_u: string, init: RequestInit) => {
+      if (!m.up) throw new TypeError('connect ECONNREFUSED')
+      const q = JSON.parse(init.body as string).query as string
+      if (q.includes('_meta')) return Response.json({ data: { _meta: [{ chainId: 10143, progressBlock: m.progress, sourceBlock: m.progress, isReady: true }] } })
+      if (q.includes('Dispute(')) return Response.json({ data: { Dispute: m.disputes.map((x) => ({ id: x })) } })
+      if (m.marketsFail) return Response.json({ errors: [{ message: 'database is starting' }] })
+      return Response.json({ data: { Market: m.markets.map((x) => ({ id: x })) } })
+    }) as unknown as typeof fetch)
+  function chainLogs(head: { n: bigint }, listed: Map<bigint, Hex>, disputed: Map<bigint, Hex>) {
+    const ranges: [string, bigint, bigint][] = []
+    const c: LogClient = {
+      getBlockNumber: async () => head.n,
+      getLogs: async ({ fromBlock, toBlock, address }) => {
+        ranges.push([address, fromBlock, toBlock])
+        const src = address === REGISTRY ? listed : disputed
+        return [...src].filter(([b]) => b >= fromBlock && b <= toBlock).map(([, i]) => ({ args: address === REGISTRY ? { id: i } : { assertionId: i } }))
+      },
+    }
+    return { c, ranges }
+  }
+  const logger = () => {
+    const lines: string[] = []
+    return { lines, log: { info: (m: string) => void lines.push(`info ${m}`), warn: (m: string) => void lines.push(`warn ${m}`), error: (m: string) => void lines.push(`error ${m}`) } }
+  }
+
+  test('a fresh indexer is used and no log is read; its progress moves the log cursor', async () => {
+    const head = { n: 5_000n }
+    const m: Mode = { up: true, progress: 4_990, markets: [id(1), id(2)], disputes: [id(9)] }
+    const { c, ranges } = chainLogs(head, new Map([[1_500n, id(1)], [4_000n, id(2)], [4_995n, id(3)]]), new Map([[4_996n, id(8)]]))
+    const { lines, log } = logger()
+    const markets = indexedMarkets(indexer(m), new RegistryLogSource(c, REGISTRY, 1_000n), c.getBlockNumber, 300n, log)
+    const disputes = indexedDisputes(indexer(m), new TreasuryDisputeSource(c, TREASURY, 1_000n), c.getBlockNumber, 300n, log)
+    expect(await markets.marketIds()).toEqual([id(1), id(2)])
+    expect(await disputes.assertionIds()).toEqual([id(9)])
+    expect(ranges).toEqual([])
+    // the indexer goes down: only the blocks after its progress (4,990) are scanned, and its ids are kept
+    m.up = false
+    expect(await markets.marketIds()).toEqual([id(1), id(2), id(3)])
+    expect(await disputes.assertionIds()).toEqual([id(9), id(8)])
+    expect(ranges).toEqual([[REGISTRY, 4_991n, 5_000n], [TREASURY, 4_991n, 5_000n]])
+    expect(lines).toEqual(['info markets: reading the indexer', 'info treasury disputes: reading the indexer', 'warn markets: indexer not usable, reading RPC logs', 'warn treasury disputes: indexer not usable, reading RPC logs'])
+    // back up: the indexer again, logged once
+    m.up = true
+    m.progress = 5_000
+    m.markets = [id(1), id(2), id(3)]
+    expect(await markets.marketIds()).toEqual([id(1), id(2), id(3)])
+    expect(lines.at(-1)).toBe('info markets: reading the indexer')
+  })
+
+  test('an indexer more than the allowed lag behind the head is not used', async () => {
+    const head = { n: 5_000n }
+    const m: Mode = { up: true, progress: 4_699, markets: [id(1)], disputes: [] }
+    const { c, ranges } = chainLogs(head, new Map([[1_000n, id(1)], [4_800n, id(2)]]), new Map())
+    const { lines, log } = logger()
+    const markets = indexedMarkets(indexer(m), new RegistryLogSource(c, REGISTRY, 1_000n), c.getBlockNumber, 300n, log)
+    expect(await markets.marketIds()).toEqual([id(1), id(2)]) // 301 blocks behind: the logs, from the deploy block
+    expect(ranges[0]).toEqual([REGISTRY, 1_000n, 1_099n])
+    expect(lines).toEqual(['warn markets: indexer not usable, reading RPC logs'])
+    m.progress = 4_700 // exactly 300 behind: usable
+    expect(await markets.marketIds()).toEqual([id(1)])
+  })
+
+  test('an indexer that answers _meta but fails the list query falls back too', async () => {
+    const head = { n: 2_000n }
+    const m: Mode = { up: true, progress: 2_000, markets: [], disputes: [], marketsFail: true }
+    const { c } = chainLogs(head, new Map([[1_200n, id(4)]]), new Map())
+    const markets = indexedMarkets(indexer(m), new RegistryLogSource(c, REGISTRY, 1_000n), c.getBlockNumber, 300n)
+    expect(await markets.marketIds()).toEqual([id(4)])
   })
 })

@@ -6,7 +6,7 @@ import { OWN } from '../addresses'
 import { lc, ts } from '../lib'
 
 const blank = (id: string): Assertion => ({
-  id, market_id: '', attempt: 0, venue: '', outcome: 0, path: 0, bond: 0n, liveness: 0n, expiresAt: 0n, asserter: '', assertedAt: 0n, assertedTx: '',
+  id, market_id: '', attempt: 0, venue: '', outcome: 0, path: 0, bond: 0n, liveness: 0n, expiresAt: 0n, asserter: '', assertedAt: 0n, assertedTx: '', assertedBlock: 0, assertedLogIndex: 0,
   oov3Asserter: undefined, currency: undefined, identifier: undefined, domainId: undefined, disputed: false, disputer: undefined, disputedAt: undefined,
   settled: false, truthful: undefined, bondRecipient: undefined, settledAt: undefined, rejected: false, rejectedMask: undefined, retryOpensAt: undefined,
 })

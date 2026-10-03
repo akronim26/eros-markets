@@ -44,7 +44,7 @@ indexer.onEvent({ contract: 'ResolutionOracle', event: 'ProposedL1' }, async ({ 
   context.Proposal.set({
     id: logId(event), market_id: m.id, outcome: num(p.outcome), path: 1, pathName: PATH[1], evidenceHash: p.evidenceHash, evidenceURI: undefined,
     valueHash: p.valueHash, observedAt: p.observedAt, attempt: m.attempts, proposer: event.transaction.from ?? '',
-    block: event.block.number, timestamp: ts(event), txHash: event.transaction.hash,
+    block: event.block.number, logIndex: event.logIndex, timestamp: ts(event), txHash: event.transaction.hash,
   })
   await save(context, { ...m, proposedOutcome: num(p.outcome), proposedPath: 1, evidenceHash: p.evidenceHash, evidenceURI: undefined, valueHash: p.valueHash, observedAt: p.observedAt }, event)
 })
@@ -56,7 +56,7 @@ indexer.onEvent({ contract: 'ResolutionOracle', event: 'ProposalRecorded' }, asy
   context.Proposal.set({
     id: logId(event), market_id: m.id, outcome: num(p.outcome), path, pathName: PATH[path] ?? String(path), evidenceHash: p.evidenceHash,
     evidenceURI: p.evidenceURI, valueHash: undefined, observedAt: undefined, attempt: num(p.attempt), proposer: event.transaction.from ?? '',
-    block: event.block.number, timestamp: ts(event), txHash: event.transaction.hash,
+    block: event.block.number, logIndex: event.logIndex, timestamp: ts(event), txHash: event.transaction.hash,
   })
   await save(context, { ...m, proposedOutcome: num(p.outcome), proposedPath: path, evidenceHash: p.evidenceHash, evidenceURI: p.evidenceURI, valueHash: undefined, observedAt: undefined }, event)
 })
@@ -86,7 +86,7 @@ indexer.onEvent({ contract: 'ResolutionOracle', event: 'Asserted' }, async ({ ev
   const prior = await context.Assertion.get(id) // OOv3's AssertionMade comes first in the same transaction
   const a = {
     id, market_id: m.id, attempt: m.attempts, venue: p.venue, outcome: num(p.outcome), path: num(p.path), bond: p.bond, liveness: p.liveness,
-    expiresAt: p.expiresAt, asserter: p.asserter, assertedAt: ts(event), assertedTx: event.transaction.hash,
+    expiresAt: p.expiresAt, asserter: p.asserter, assertedAt: ts(event), assertedTx: event.transaction.hash, assertedBlock: event.block.number, assertedLogIndex: event.logIndex,
     oov3Asserter: prior?.oov3Asserter, currency: prior?.currency, identifier: prior?.identifier, domainId: prior?.domainId,
     disputed: prior?.disputed ?? false, disputer: prior?.disputer, disputedAt: prior?.disputedAt, settled: prior?.settled ?? false,
     truthful: prior?.truthful, bondRecipient: prior?.bondRecipient, settledAt: prior?.settledAt, rejected: false, rejectedMask: undefined, retryOpensAt: undefined,

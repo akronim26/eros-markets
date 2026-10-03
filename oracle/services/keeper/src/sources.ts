@@ -1,10 +1,10 @@
-// Task O31.1: where the keeper learns which markets exist (plan §9.1, §9.3). The indexer is the normal source;
-// until it runs (O37) the registry's MarketListed logs are read directly, 100 blocks per call because Monad's
-// public RPC caps log ranges there (§9.3). A fixed list serves tests and one-off runs. O31.3: the treasury's
-// DisputeFunded logs, read the same way, list the disputes the keeper closes.
-import { BondTreasuryAbi, MarketRegistryAbi } from '@eros-oracle/oracle-sdk'
+// Task O31.1: where the keeper learns which markets exist (plan §9.1, §9.3), and O31.3 which disputes the treasury
+// funded. The Envio indexer (O37) is the normal source; the registry's MarketListed and the treasury's DisputeFunded
+// logs, read 100 blocks per call because Monad's public RPC caps log ranges there (§9.3), are the fallback whenever the
+// indexer does not answer or is too far behind the chain head. A fixed list serves tests and one-off runs.
+import { BondTreasuryAbi, freshProgress, type IndexerClient, KEEPER_MARKETS, MarketRegistryAbi, TREASURY_DISPUTES } from '@eros-oracle/oracle-sdk'
 import type { Address, Hex } from 'viem'
-import type { DisputeSource, MarketSource } from './types'
+import { type DisputeSource, type Logger, type MarketSource, silentLogger } from './types'
 
 export class StaticSource implements MarketSource {
   constructor(private readonly ids: Hex[]) {}
@@ -13,36 +13,27 @@ export class StaticSource implements MarketSource {
   }
 }
 
-/**
- * Envio HyperIndex GraphQL (§9.3): every `Market` entity's id, paged by id. The entity name and its `id` field are
- * the plan's; O37 defines the schema and this query is checked against it there.
- */
+/** Envio HyperIndex (§9.3): every `Market` entity's id, a page at a time. */
 export class IndexerSource implements MarketSource {
   constructor(
-    private readonly url: string,
+    private readonly indexer: IndexerClient,
     private readonly pageSize = 1000,
-    private readonly fetchFn: typeof fetch = fetch,
   ) {}
 
   async marketIds(): Promise<Hex[]> {
-    const ids: Hex[] = []
-    for (let offset = 0; ; offset += this.pageSize) {
-      const res = await this.fetchFn(this.url, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          query: 'query ($limit: Int!, $offset: Int!) { Market(order_by: {id: asc}, limit: $limit, offset: $offset) { id } }',
-          variables: { limit: this.pageSize, offset },
-        }),
-      })
-      if (!res.ok) throw new Error(`indexer ${this.url}: HTTP ${res.status}`)
-      const body = (await res.json()) as { data?: { Market?: { id: string }[] }; errors?: { message: string }[] }
-      if (body.errors?.length) throw new Error(`indexer ${this.url}: ${body.errors.map((e) => e.message).join('; ')}`)
-      const page = body.data?.Market
-      if (!Array.isArray(page)) throw new Error(`indexer ${this.url}: no Market list in the response`)
-      ids.push(...page.map((m) => m.id as Hex))
-      if (page.length < this.pageSize) return ids
-    }
+    return (await this.indexer.all<{ id: string }>(KEEPER_MARKETS, 'Market', this.pageSize)).map((m) => m.id.toLowerCase() as Hex)
+  }
+}
+
+/** Envio HyperIndex: every assertion the treasury disputed with the watchdog float (`Dispute.viaTreasury`). */
+export class IndexerDisputeSource implements DisputeSource {
+  constructor(
+    private readonly indexer: IndexerClient,
+    private readonly pageSize = 1000,
+  ) {}
+
+  async assertionIds(): Promise<Hex[]> {
+    return (await this.indexer.all<{ id: string }>(TREASURY_DISPUTES, 'Dispute', this.pageSize)).map((d) => d.id.toLowerCase() as Hex)
   }
 }
 
@@ -78,6 +69,12 @@ export class LogIdSource {
     this.next = fromBlock
   }
 
+  /** Takes ids already known up to `block` (from the indexer): a later read() starts after it. */
+  advance(ids: Hex[], block: bigint): void {
+    for (const id of ids) this.ids.add(id.toLowerCase() as Hex)
+    if (block + 1n > this.next) this.next = block + 1n
+  }
+
   async read(): Promise<Hex[]> {
     const head = await this.client.getBlockNumber()
     while (this.next <= head) {
@@ -102,6 +99,9 @@ export class RegistryLogSource implements MarketSource {
   marketIds() {
     return this.logs.read()
   }
+  advance(ids: Hex[], block: bigint) {
+    this.logs.advance(ids, block)
+  }
 }
 
 /** DisputeFunded logs of BondTreasury from its deploy block: every assertion the treasury disputed (O31.3). */
@@ -113,4 +113,66 @@ export class TreasuryDisputeSource implements DisputeSource {
   assertionIds() {
     return this.logs.read()
   }
+  advance(ids: Hex[], block: bigint) {
+    this.logs.advance(ids, block)
+  }
+}
+
+/** A list of ids the indexer serves and a log scan can rebuild (RegistryLogSource, TreasuryDisputeSource). */
+type Scanned = { advance(ids: Hex[], block: bigint): void }
+
+/**
+ * The indexer first, the log scan when it is not usable: down, erroring, or more than `maxLagBlocks` behind the chain
+ * head. While the indexer is used, the log scan's cursor follows its progress, so a fallback reads only the blocks
+ * the indexer had not covered. Switches are logged once each way.
+ */
+export class IndexedIds {
+  private usingIndexer: boolean | null = null
+
+  constructor(
+    private readonly o: {
+      name: string
+      indexer: IndexerClient
+      fromIndexer: () => Promise<Hex[]>
+      fromLogs: () => Promise<Hex[]>
+      logs: Scanned
+      head: () => Promise<bigint>
+      maxLagBlocks: bigint
+      log?: Logger
+    },
+  ) {}
+
+  async ids(): Promise<Hex[]> {
+    const log = this.o.log ?? silentLogger
+    const fresh = await freshProgress(this.o.indexer, await this.o.head(), this.o.maxLagBlocks)
+    let reason = fresh.ok ? '' : fresh.reason
+    if (fresh.ok) {
+      try {
+        const ids = await this.o.fromIndexer()
+        this.o.logs.advance(ids, BigInt(fresh.progress.progressBlock))
+        if (this.usingIndexer !== true) log.info(`${this.o.name}: reading the indexer`, { progressBlock: fresh.progress.progressBlock })
+        this.usingIndexer = true
+        return ids
+      } catch (e) {
+        reason = e instanceof Error ? e.message : String(e)
+      }
+    }
+    if (this.usingIndexer !== false) log.warn(`${this.o.name}: indexer not usable, reading RPC logs`, { reason })
+    this.usingIndexer = false
+    return this.o.fromLogs()
+  }
+}
+
+/** Markets from the indexer, with the registry's logs as the fallback. */
+export function indexedMarkets(indexer: IndexerClient, logs: RegistryLogSource, head: () => Promise<bigint>, maxLagBlocks: bigint, log?: Logger): MarketSource {
+  const src = new IndexerSource(indexer)
+  const ids = new IndexedIds({ name: 'markets', indexer, fromIndexer: () => src.marketIds(), fromLogs: () => logs.marketIds(), logs, head, maxLagBlocks, log })
+  return { marketIds: () => ids.ids() }
+}
+
+/** Treasury disputes from the indexer, with the treasury's logs as the fallback. */
+export function indexedDisputes(indexer: IndexerClient, logs: TreasuryDisputeSource, head: () => Promise<bigint>, maxLagBlocks: bigint, log?: Logger): DisputeSource {
+  const src = new IndexerDisputeSource(indexer)
+  const ids = new IndexedIds({ name: 'treasury disputes', indexer, fromIndexer: () => src.assertionIds(), fromLogs: () => logs.assertionIds(), logs, head, maxLagBlocks, log })
+  return { assertionIds: () => ids.ids() }
 }

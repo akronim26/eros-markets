@@ -72,6 +72,11 @@ describe('Assertion, Dispute, Proposal, PanelResult', () => {
     expect(ps.map((p) => [p.market_id, p.pathName, p.outcome, p.attempt])).toEqual([[A, 'L1', 1, 0], [B, 'REVIEWED', 1, 0]])
     expect(ps[0]!.valueHash).toBe('0x2a80e1ef1d7842f27f2e6be0972bb708b9a135c38860dbe73c27c3486c34f4de') // keccak256("3"), the reported value
     expect(ps[0]!.evidenceURI).toBeUndefined()
+    // ordering fields the watchdog's intake reads: the log's own block and index
+    for (const p of ps) expect(p.id).toBe(`10143-${p.block}-${p.logIndex}`)
+    const asserted = sorted((await indexer.Assertion.getAll()).map((a) => ({ ...a, block: a.assertedBlock, id: `x-x-${a.assertedLogIndex}` })))
+    expect(asserted.map((a) => a.market_id)).toEqual([A, B])
+    expect(asserted.every((a) => a.assertedBlock > ps[0]!.block)).toBe(true) // asserted after the first proposal
     expect(ps[1]!.evidenceURI).toMatch(/^eros-snapshot:0x[0-9a-f]{64}$/)
   })
 
