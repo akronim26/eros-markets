@@ -20,12 +20,12 @@ Task block format (parsed strictly):
   - Depends: O14.1, OG0 (tasks, X items, gates, DEP-n; - for none)
   - Plan: §5.4, D3, ORC-11, E1, B.1, C.2, V-C12, R-2, DEP-1, ADJ-07
   - Cut: yes | no | partial (optional note)    (plan section 13.1 hackathon cut)
-  - Status: todo | doing | done | blocked
+  - Status: todo | doing | done | blocked | skipped
   - Files: optional, the paths the task writes
   - Build: what to write
   - Done when: the observable result
   - Check: a command that must exit 0, or "manual: ..."
-  - Notes: optional (required reason when Status is blocked)
+  - Notes: optional (required reason when Status is blocked; when skipped, the ADJ entry that cuts it)
 
 Workflow for one task: take a ready task (--next), read its plan references, set Status: doing,
 tests first, run its Check, set Status: done, append a row to progress.md, run this script, commit.
@@ -120,7 +120,8 @@ SECTION_EXCLUDES = {"0", "1", "2", "3.1", "13.1", "16.1"}
 REQUIRED_FIELDS = ["Owner", "PD", "Depends", "Plan", "Cut", "Status", "Build", "Done when", "Check"]
 OPTIONAL_FIELDS = ["Files", "Notes"]
 OWNERS = {"OA", "OB", "both", "lead"}
-STATUSES = {"todo", "doing", "done", "blocked"}
+STATUSES = {"todo", "doing", "done", "blocked", "skipped"}
+SETTLED = {"done", "skipped"}  # a skipped task (cut by an ADJ entry) no longer holds its dependents back
 GATE_STATUSES = {"not_started", "in_progress", "passed"}
 
 TASK_ID = re.compile(r"^(O\d\d\.\d+|X\d\d)$")
@@ -265,6 +266,8 @@ def check(tasks: dict, parents: dict, gates: dict, refs: dict, adjs: set, p: Pro
             p.add(f"{tid}: bad status {t['Status']}")
         if t.get("Status") == "blocked" and not t.get("Notes"):
             p.add(f"{tid}: blocked without a Notes reason")
+        if t.get("Status") == "skipped" and not re.search(r"ADJ-\d+", t.get("Notes", "")):
+            p.add(f"{tid}: skipped without the ADJ entry that cuts it in Notes")
         if t.get("Cut") and not CUT.match(t["Cut"]):
             p.add(f"{tid}: bad Cut value {t['Cut']}")
         if t.get("PD") and t["PD"] != "-":
@@ -445,7 +448,7 @@ def check(tasks: dict, parents: dict, gates: dict, refs: dict, adjs: set, p: Pro
         if not re.search(rf"^\| [^|]* \| {re.escape(tid)} \|", progress, re.M):
             p.add(f"{tid}: done but has no row in progress.md")
         for d in graph.get(tid, []):
-            if d in tasks and tasks[d].get("Status") != "done":
+            if d in tasks and tasks[d].get("Status") not in SETTLED:
                 p.add(f"{tid}: done but dependency {d} is {tasks[d].get('Status')}")
             if d in gates and gates[d].get("status") != "passed":
                 p.add(f"{tid}: done but gate {d} has not passed")
@@ -507,7 +510,7 @@ def trace_text(tasks: dict, refs: dict) -> str:
 
 def deps_met(t: dict, tasks: dict, gates: dict) -> bool:
     for d in split_list(t.get("Depends", "-")):
-        if d in tasks and tasks[d].get("Status") != "done":
+        if d in tasks and tasks[d].get("Status") not in SETTLED:
             return False
         if d in gates and gates[d].get("status") != "passed":
             return False
