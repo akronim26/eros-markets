@@ -154,7 +154,7 @@ def section(rep: dict, gate: dict, runs: list[dict], title: str, about: str) -> 
 
 
 CRYPTO_ABOUT = (
-    "Run for ADJ-47: Kalshi's crypto price-threshold markets (\"<asset> price at <time>: <strike> or above\"), from their own hashed pull, "
+    "Run for ADJ-50: Kalshi's crypto price-threshold markets (\"<asset> price at <time>: <strike> or above\"), from their own hashed pull, "
     "judged on Binance's 1-minute candles for the resolution minute (fetched now, but historical candles do not change). "
     "Gemini is Gemini 3.5 Flash-Lite through AICredits, asked only when the two free models agree on YES or NO outside the calibration split. "
     "{sampled} sampled markets, {ran} put to the panel, {asked} paid Gemini calls, {spent} spent. "
@@ -189,7 +189,7 @@ def markdown(reports: list[tuple[dict, dict, list[dict], str, str]]) -> str:
 
 
 CRYPTO_ATTEMPT = [
-    "## Crypto-price attempt (ADJ-47): stopped after two trial markets",
+    "## Crypto-price attempt (ADJ-50): stopped after two trial markets",
     "",
     "A separate run tried to validate a `crypto-price` category on Kalshi's settled \"<asset> price at <time>: <strike> or above\" markets "
     "(their own hashed pull: 258 parents, 123 in the holdout, below the 150 the gate needs) with Binance's 1-minute candles as evidence and "
@@ -206,7 +206,7 @@ CRYPTO_ATTEMPT = [
 ]
 
 
-RUN_TEXT = {"crypto-price": ("Run 2: crypto-price (ADJ-47)", CRYPTO_ABOUT), "pilot": ("Run 1: seven-category pilot (ADJ-46)", PILOT_ABOUT)}
+RUN_TEXT = {"crypto-price": ("Run 2: crypto-price (ADJ-50)", CRYPTO_ABOUT), "pilot": ("Run 1: seven-category pilot (ADJ-46)", PILOT_ABOUT)}
 
 
 def main() -> None:

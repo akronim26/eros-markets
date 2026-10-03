@@ -457,7 +457,7 @@ contract OracleGasTest is RegistryFixture {
     }
 
     /// `submitPanelResult` on the auto-propose route (L2_AUTO): three identical YES labels above the market's θ_hi in
-    /// a category validated for its gateHash (ADJ-47), with a 256-byte evidence URI. Its own gas.json key: the runner
+    /// a category validated for its gateHash (ADJ-50), with a 256-byte evidence URI. Its own gas.json key: the runner
     /// sends this route only with a measured limit.
     function test_gas_submitPanelResult_autoPropose() public {
         PanelResult memory p = _panel(mAuto, Phase.POST_T, [PanelLabel.YES, PanelLabel.YES, PanelLabel.YES]);

@@ -17,7 +17,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { join } from 'node:path'
 import { askModel, askPanel, buildCall, type Category, loadPrompts, type ModelOutcome } from '../src'
 
-// VALIDATION_RUN=crypto-price (ADJ-47): its own sample, panel and quotas, and a cascade. A market counts for the gate
+// VALIDATION_RUN=crypto-price (ADJ-50): its own sample, panel and quotas, and a cascade. A market counts for the gate
 // only when all three labels are the same YES or NO, so on the train and holdout splits the two free models answer
 // first and Gemini (paid) is asked only when they agree on YES or NO; otherwise its outcome is recorded as SKIPPED,
 // which keeps the market out of the bucket exactly as any answer of Gemini's would. The calibration split always asks

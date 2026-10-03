@@ -1,4 +1,4 @@
-"""ADJ-47: the crypto-price pull, rows and sample.
+"""ADJ-50: the crypto-price pull, rows and sample.
 
 Fixture tests build a raw store by hand (pages the way the Kalshi API returns them) and check the rows against values
 derived here; the sample's evidence URL is checked against Binance's kline parameters computed by hand. Dataset tests
