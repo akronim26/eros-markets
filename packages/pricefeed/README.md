@@ -26,6 +26,17 @@ inputs only. Enabling a config fails closed until approved runtime policy adapte
 exist. No operational observations, signatures or transactions are produced.
 Fixture signatures use a public test-only key in a local test VM.
 
+Candidate rules manifests and durable packet/signing library mechanics now live
+in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and
+`src/local-test-signer.ts`. The builder recomputes a valid observation from raw
+book evidence and reviewed metadata. Packet/signature bytes remain immutable
+across retries; an independent signer journal detects a restored packet archive
+behind signing history. These entry points are restricted to local development,
+with disabled configs and the public fixture signer on chain 31337. They are not
+wired into the read-only CLI or enabled as production adapters. No transaction
+relay is supplied by these modules. See `docs/rules-hash-proposal.md` and
+`docs/risk-requirements-crosscheck.md` for the remaining policy boundaries.
+
 ## Live-data local demo
 
 The separately authorized demo connects real Polymarket data to an owned local

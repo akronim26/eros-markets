@@ -3,6 +3,7 @@ import { record } from './book.js';
 import { uint, WAD } from './math.js';
 
 export const PRICING_POLICY='before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1';
+export const RULES_DOMAIN=keccak256(stringToHex('EROS_POLYMARKET_INDEX_RULES_V1'));
 // Candidate v1 schema. These bytes do not constitute factory/risk approval.
 export const RULES_FIELDS=[['schemaVersion','uint64'],['venue','bytes32'],['marketId','bytes32'],['sourceId','bytes32'],
   ['eventId','uint256'],['externalMarketId','uint256'],['conditionId','bytes32'],['outcomeTokenId','uint256'],
@@ -33,6 +34,6 @@ export function encodeRules(value:RulesManifest):Hex {
   const manifest=parseRules(value);
   const values=RULES_FIELDS.map(([name,type])=>type!=='bytes32'?BigInt(manifest[name])
     :['venue','outcomeLabel','pricingPolicy'].includes(name)?keccak256(stringToHex(manifest[name])):manifest[name] as Hex);
-  return encodeAbiParameters(RULES_FIELDS.map(([,type])=>({type})),values);
+  return encodeAbiParameters([{type:'bytes32'},...RULES_FIELDS.map(([,type])=>({type}))],[RULES_DOMAIN,...values]);
 }
 export function rulesHash(value:RulesManifest):Hex {return keccak256(encodeRules(value));}

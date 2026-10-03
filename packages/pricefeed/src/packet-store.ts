@@ -36,9 +36,13 @@ export class PacketStore {
   private readonly reconciled=new Map<string,string>();
   constructor(path:string){
     this.db=new DatabaseSync(path,{timeout:1000});
+    const existing=this.db.prepare('PRAGMA table_info(packets)').all();
+    if(existing.length>0&&!existing.some(column=>column.name==='signature_sha256')){
+      this.db.close();throw new Error('PACKET_SCHEMA_REVIEW_REQUIRED: preserve old journal; explicit migration needed');
+    }
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
       CREATE TABLE IF NOT EXISTS packet_workers(ns TEXT PRIMARY KEY,domain TEXT NOT NULL,next_seq TEXT NOT NULL,last_ms TEXT NOT NULL,owner TEXT NOT NULL,fence INTEGER NOT NULL,until_ms TEXT NOT NULL) STRICT;
-      CREATE TABLE IF NOT EXISTS packets(ns TEXT NOT NULL,sequence TEXT NOT NULL,body TEXT NOT NULL,sha256 TEXT NOT NULL,digest TEXT NOT NULL,signature TEXT,state TEXT NOT NULL,reason TEXT,PRIMARY KEY(ns,sequence)) STRICT;`);
+      CREATE TABLE IF NOT EXISTS packets(ns TEXT NOT NULL,sequence TEXT NOT NULL,body TEXT NOT NULL,sha256 TEXT NOT NULL,digest TEXT NOT NULL,signature TEXT,signature_sha256 TEXT,state TEXT NOT NULL,reason TEXT,PRIMARY KEY(ns,sequence)) STRICT;`);
     if(!this.verify()){this.db.close();throw new Error('PACKET_JOURNAL_INTEGRITY');}
   }
   private tx<T>(fn:()=>T):T {this.db.exec('BEGIN IMMEDIATE');try{const r=fn();this.db.exec('COMMIT');return r;}catch(e){this.db.exec('ROLLBACK');throw e;}}
@@ -61,7 +65,7 @@ export class PacketStore {
       return fence;
     });
   }
-  reconcile(d:PacketDomain,owner:string,fence:bigint,now:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void {
+  reconcile(d:PacketDomain,owner:string,fence:bigint,now:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint},signerReservations:readonly {sequence:bigint;digest:Hex}[]=[]):void {
     const ns=packetNamespace(d);this.reconciled.delete(ns);
     this.lease(d,owner,fence,now);
     if(chain.lastSequence<0n||chain.lastSequence>UINT64_MAX||chain.lastObservedAt<0n||chain.lastObservedAt>UINT64_MAX)throw new Error('BAD_CHAIN_STATE');
@@ -70,7 +74,15 @@ export class PacketStore {
       if(!known?.signature)throw new Error('UNKNOWN_CHAIN_SEQUENCE');
       if(known.packet.observation.observedAt!==chain.lastObservedAt)throw new Error('CHAIN_TIME_MISMATCH');
     }else if(chain.lastObservedAt!==0n)throw new Error('CHAIN_TIME_MISMATCH');
+    for(const reserved of signerReservations){
+      const known=this.get(d,reserved.sequence);
+      if(!known||known.digest!==reserved.digest)throw new Error('SIGNER_JOURNAL_AHEAD_OR_MISMATCH');
+    }
     this.reconciled.set(ns,`${owner}:${fence}:${chain.lastObservedAt}`);
+  }
+  assertWriter(d:PacketDomain,owner:string,fence:bigint,now:bigint):void {
+    this.lease(d,owner,fence,now);
+    if(!this.reconciled.get(packetNamespace(d))?.startsWith(`${owner}:${fence}:`))throw new Error('RECONCILE_REQUIRED');
   }
   allocate(d:PacketDomain,owner:string,fence:bigint,now:bigint,build:(sequence:bigint)=>PreparedPacket):PreparedPacket {
     return this.tx(()=>{
@@ -81,7 +93,7 @@ export class PacketStore {
       if(json(canonicalDomain(packet.domain))!==json(canonicalDomain(d))||packet.observation.sequence!==sequence)throw new Error('PACKET_DOMAIN_CHANGED');
       if(packet.sourceMs<BigInt(String(row.last_ms))||packet.observation.observedAt<BigInt(check.split(':').at(-1)!))throw new Error('BACKWARDS_SOURCE_TIME');
       const body=json(packet),digest=observationDigest(packet.observation,d.chainId,d.engine);
-      this.db.prepare('INSERT INTO packets VALUES(?,?,?,?,?,NULL,\'ALLOCATED\',NULL)').run(ns,sequence.toString(),body,hash(body),digest);
+      this.db.prepare('INSERT INTO packets VALUES(?,?,?,?,?,NULL,NULL,\'ALLOCATED\',NULL)').run(ns,sequence.toString(),body,hash(body),digest);
       this.db.prepare('UPDATE packet_workers SET next_seq=?,last_ms=? WHERE ns=?').run((sequence+1n).toString(),packet.sourceMs.toString(),ns);
       // Return a parsed copy: caller mutation cannot alter the archived bytes.
       return parsePacket(body);
@@ -90,7 +102,7 @@ export class PacketStore {
   get(d:PacketDomain,sequence:bigint):StoredPacket|null {
     const row=this.db.prepare('SELECT * FROM packets WHERE ns=? AND sequence=?').get(packetNamespace(d),sequence.toString());
     if(!row)return null;
-    if(hash(String(row.body))!==row.sha256)throw new Error('PACKET_JOURNAL_INTEGRITY');
+    if(hash(String(row.body))!==row.sha256||(row.signature!==null&&hash(String(row.signature))!==row.signature_sha256))throw new Error('PACKET_JOURNAL_INTEGRITY');
     const packet=parsePacket(String(row.body)),digest=observationDigest(packet.observation,d.chainId,d.engine);
     if(json(canonicalDomain(packet.domain))!==json(canonicalDomain(d))||digest!==row.digest||packet.observation.sequence!==sequence)throw new Error('PACKET_JOURNAL_INTEGRITY');
     return {packet,digest,signature:row.signature as Hex|null,state:row.state as PacketState,reason:row.reason as string|null};
@@ -108,7 +120,7 @@ export class PacketStore {
     return this.tx(()=>{
       this.lease(d,owner,fence,now);const stored=this.get(d,seq);
       if(!stored||stored.state!=='SIGNING'||!/^0x[0-9a-fA-F]{130}$/.test(signature))throw new Error('BAD_SIGNATURE_STATE');
-      this.db.prepare('UPDATE packets SET signature=?,state=?,reason=? WHERE ns=? AND sequence=?').run(signature,expired?'EXPIRED':'SIGNED',expired?'SIGNING_HEADROOM_EXPIRED':null,packetNamespace(d),seq.toString());
+      this.db.prepare('UPDATE packets SET signature=?,signature_sha256=?,state=?,reason=? WHERE ns=? AND sequence=?').run(signature,hash(signature),expired?'EXPIRED':'SIGNED',expired?'SIGNING_HEADROOM_EXPIRED':null,packetNamespace(d),seq.toString());
       return this.get(d,seq)!;
     });
   }
@@ -126,7 +138,7 @@ export class PacketStore {
         if(packetNamespace(p.domain)!==row.ns||p.observation.sequence.toString()!==row.sequence
           ||observationDigest(p.observation,p.domain.chainId,p.domain.engine)!==row.digest)return false;
         if(!['ALLOCATED','SIGNING','SIGNED','EXPIRED'].includes(String(row.state)))return false;
-        if(row.signature!==null&&!/^0x[0-9a-fA-F]{130}$/.test(String(row.signature)))return false;
+        if(row.signature!==null&&(!/^0x[0-9a-fA-F]{130}$/.test(String(row.signature))||hash(String(row.signature))!==row.signature_sha256))return false;
         if(row.state==='SIGNED'&&row.signature===null)return false;
       }
       for(const row of this.db.prepare('SELECT * FROM packet_workers').all()){

@@ -425,7 +425,13 @@ turn's counterpart files against current HEAD; it does not refresh or certify
 the original pre-merge protected-hash baseline.
 
 
-## Pending commit — timestamp policy and retained evidence (PF011)
+## Commit a728b4f — timestamp review, candidate manifest and durable packet signing
+
+Full hash: `a728b4f8cb0d98f7a0deb6186f5167e78a2eae88`
+
+Committed: 2026-10-03 15:59:27 +05:30
+
+Message: `feat: add pricefeed rules manifest and durable packet signing`
 
 Base commit: `52ad9f2cc0a15f8439242b1bbfed9e420adf2b4f`.
 Suggested message: `test: record timestamp policy and evidence (PF011)`.
@@ -484,3 +490,41 @@ Clarified delayed-history acceptance, same-second replacement and the difference
 between invalid depth and oracle INVALID. No runtime changes or additional test
 run; this is source/doc review. Current diff whitespace and package-only scope
 checks passed.
+
+**Code included in this user commit.** Added candidate typed rules-manifest
+encoding, development-only observation preparation from raw book and reviewed
+metadata, packet sequence/fencing journal, and raw signer interface with recovery,
+canonical signature and freshness checks. The first five targeted publication
+tests and build passed. These additions are isolated library mechanics: no
+collector CLI change, production signer or relay was enabled. The candidate
+manifest is not the owners' approved Q04 format; builder/signing are restricted
+to disabled development configurations / chain 31337. This entry was finalized
+after detecting the user's actual commit, rather than fabricating its hash.
+
+## Pending commit — signing retries and restore protection (PF013-PF016)
+
+Base commit: `a728b4f8cb0d98f7a0deb6186f5167e78a2eae88`.
+Suggested message: `fix: protect pricefeed signing retries and archive recovery (PF015-PF016)`.
+
+**What changed.** Added a separate durable local-test signer journal, with the
+public fixture key only and chain-31337 restriction. A reservation fixes one
+identity/digest before signing; retries reproduce the same signature. Startup
+reconciliation checks independent signer reservations against the packet archive
+and rejects a restored archive behind the signer. Writer fences are enforced
+before and after signing. Added signature checksums to packet integrity checks
+and an explicit version-domain word to candidate rules encoding. Production
+approval and transaction paths remain disabled.
+
+**Verification so far.** Build exited 0 and targeted publication tests exited 0
+with 10 cases. Cases cover raw-body recomputation, changed rules, fresh/headroom
+bounds, restart/skipped sequences, independent domains, immutable packet copies,
+signing timeout/retry, overlapping calls, wrong personal-message signing, writer
+takeover, source-state mismatch, corrupt archive/counter rejection, and restoration
+behind an independent signer journal. These are local deterministic tests; no
+new source capture, external transaction or Solidity test run is claimed.
+
+**Remaining.** Ordered transaction outbox/nonce allocation, simulation/spend
+budgets, receipt/reorg/finality reconciliation, continuous pipeline/lifecycle and
+operational evidence remain. The valid-only development builder does not resolve
+Q08's invalid-transition delivery policy, provider quote/time semantics, canonical
+Q04 approval or Q09 production key/environment inputs. PF gates remain unaccepted.
