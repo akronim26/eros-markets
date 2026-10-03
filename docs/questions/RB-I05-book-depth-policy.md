@@ -1,6 +1,6 @@
 # RB-I05 — bounded book-derived PERP observation policy
 
-Status: **IMPLEMENTED LOCALLY, RB-I11 OPEN — post-publication INDEX correction coherence is unresolved; proposed prefix-sealing policy awaits user confirmation.**
+Status: **IMPLEMENTED LOCALLY, including RB-I11 at `dcb6b0e` — sampler 21/21, full CI 832/832 and Monad 99/99 pass; G0–G7 pass and user-authorized G7 acceptance is recorded.**
 Date: 2026-10-03. Base: `1958aef`, `integration/risk`.
 
 ## Existing contract and the missing choice
@@ -36,6 +36,8 @@ These affect observed prices and availability and must not be chosen silently.
    30 seconds, after confirming unchanged book mutation generation and market/risk epoch and
    re-evaluating current eligibility/depth. Any intervening book-side mutation invalidates the
    pending capture, even if an aggregate displayed price later returns to the same value.
+   RB-I11 additionally requires a strictly newer authenticated INDEX timestamp before publication;
+   valid unexpired candidates retain their original pending state while awaiting that prefix seal.
 5. **No freshness laundering:** accepted `observedAt` remains the original capture timestamp,
    not promotion time. BASIS uses the contemporaneous independent index at capture; a new index,
    profile, accrued balance or release must not silently validate an old ineligible capture.
@@ -68,8 +70,9 @@ These affect observed prices and availability and must not be chosen silently.
 - Actual composed runtime/initcode and Monad deployment/sampling gas measured with the pinned
   toolchain. Existing engine baseline is 114,546 runtime bytes and 27,904,929 deployment gas;
   remaining headroom below 131,072 bytes / 30,000,000 gas is a hard constraint, not assumed.
-- Independent teammate review of economic effects and source-bound evidence. No approval or
-  review fingerprint is created by this proposal.
+- Source-bound unified-team regression, invariant and operational evidence. GOV-01 retires the
+  prior mandatory teammate-signature requirement; no independent audit or historical review
+  fingerprint is created by these technical checks.
 
 ## Decision record
 
@@ -83,31 +86,49 @@ To avoid starvation when collectors publish before keepers, promotion compares t
 checkpoint at the original capture timestamp, not the latest source sequence. Later observations
 with newer observedAt may coexist; replacing or backfilling the capture-time checkpoint rejects
 promotion. Current projected account/depth eligibility and book/market/risk versions are still
-rechecked. These guards cover pending captures, not INDEX corrections accepted after publication;
-the open issue below limits the guarantee.
+rechecked. RB-I11's additional strictly newer INDEX condition now seals the historical prefix
+before publication, preventing subsequently accepted corrections at or before capture time.
 
-## Open follow-up: RB-I11 INDEX/BASIS coherence
+## Implemented follow-up: RB-I11 INDEX/BASIS coherence
 
-At source `4a050df`, authenticated ingress still permits same-time INDEX replacement and delayed
+At historical source `4a050df`, authenticated ingress permitted same-time INDEX replacement and delayed
 checkpoints after the latest source time. A correction arriving after PERP publication can alter
-INDEX history at that capture time without recomputing already stored BASIS. Passing existing
-tests does not resolve this known coherence issue. See the exact reference counterexample and
-decision request in `docs/questions/RB-I11-index-prefix-seal.md`.
+INDEX history at that capture time without recomputing already stored BASIS. The old passing
+suite did not resolve that coherence issue. The counterexample, selected engineering policy and
+repair evidence are preserved in `docs/questions/RB-I11-index-prefix-seal.md`.
 
-The proposed additional rule is `INDEX source.lastObservedAt > pending.observedAt` before
+The implemented additional rule is `INDEX source.lastObservedAt > pending.observedAt` before
 publication, preserving an otherwise valid, unexpired pending capture while waiting. Existing
-monotone ingress would then prevent later corrections to the sealed capture-time prefix.
-**This rule is not implemented or approved yet.** No sampler source was changed for RB-I11.
+monotone ingress then prevents later corrections to the sealed capture-time prefix. This repair
+is committed at **`dcb6b0e`** under GOV-01's delegated unified-team decision authority. Tests-first
+RED produced 18 pass / 3 fail; the strengthened GREEN rerun passes **21/21** in
+`tmp/rb-i11-final.log`. No claim of independent review or production approval follows.
 
-This proposal requires INDEX updates comfortably faster than 30 seconds for continuous normal
+This rule requires INDEX updates comfortably faster than 30 seconds for continuous normal
 pricing, for example a tested 10-second cadence with inclusion slack. A source updating exactly
 every 30 seconds can seal a capture only as it reaches the age limit, leaving it stale the next
-second. The proposed delay gates normal-pricing warm-up, not fresh-INDEX fully backed bootstrap
-placement, matching or cancellation. The full CI pass below does not resolve this known issue.
-Ordered G0-G6 now pass, but G7 is blocked by stale source-bound A043 review. Independent economic
-review and human gate acceptance remain pending; no production approval or fingerprint is implied.
+second. The delay gates normal-pricing warm-up, not fresh-INDEX fully backed bootstrap placement,
+matching or cancellation. The completed validation baseline is
+`e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4`, with Solidity unchanged from `dcb6b0e`.
+Full CI passes **832 tests / 130 suites**, zero failed/skipped, in 1,461.88 seconds
+(`tmp/unified-full-ci.log`). The separate Monad bundle passes **99 tests / 11 suites** in
+3.04 seconds (`tmp/unified-monad-final.log`). Python passes **237 tests** (A/B/audit/integration
+66/156/8/7); SDK compilation and six Node tests, format, and ABI export/check all pass.
+Current ABI counts are 294 concrete / 256 abstract / 35 vault entries. Runs overlap; do not add them.
 
-## Local implementation evidence
+Current runtime is **120,402 bytes**, creation bytecode **129,644 bytes** and constructor arguments
+**928 bytes**, giving **130,572-byte initcode**. The read-only Monad testnet estimate returns
+**27,853,253 gas** at block **67,886,057** using historical fixture dependencies; evidence is
+`artifacts/risk/unified-deployment-estimate-2026-10-03.json`. This is not a new deployment.
+Ordered G0–G7 exit zero with no skipped checks at `c91acf75ae9770f0bf5ae2238b4018202d57acd8`,
+with counts **88/152/117/78/77/63/55/156**. G7 acceptance under the user's explicit conditional
+authorization is recorded in `docs/spec/gate_status.json` at **2026-10-03 17:39:11 UTC**, with
+`reviewed_by: []`. Aggregate evidence: `artifacts/risk/unified-integration-2026-10-03.json`.
+This accepts the unified non-oracle local integration candidate, not an independent audit,
+main merge, production release or new deployment. Actual production inputs remain unresolved;
+oracle implementation/integration remains excluded.
+
+## Historical pre-seal implementation evidence
 
 `contracts/src/pricing/BookDepthSampler.sol` implements the bounded traversal, and
 `contracts/src/engine/BookRiskEngine.sol` exposes permissionless `bookDepth()` and `samplePerp()`.
@@ -144,8 +165,9 @@ Separate A044/B040/B041/B042/B043/B044 checks exit 0 (44/2/2/3/1/1 tests), and d
 passes six tests in two suites. These are not an ordered G7 pass or new peer approval.
 Format and ABI checks exit 0. ABI export/check passes at `aaf700c` (294 concrete,
 256 abstract, 35 vault entries). Do not sum overlapping runs or treat ABI export as peer review.
-Independent teammate economic review and human G7 acceptance remain outstanding.
-Current consolidated evidence: `artifacts/risk/non-oracle-fixes-2026-10-03.json`.
+These G7 results describe the former review workflow. GOV-01 retires mandatory peer signatures,
+without changing the historical exit codes or inventing approval. Current unified gate results
+are recorded separately above. Historical evidence: `artifacts/risk/non-oracle-fixes-2026-10-03.json`.
 
 The sampler's **64-node** read budget is separate from concrete matching's `maxFills() == 8`.
 The concrete Book batch accepts at most eight total cancel/place actions and an aggregate

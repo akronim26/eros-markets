@@ -2,24 +2,30 @@
 
 **Current ownership:** Risk and Order Book are merged under GOV-01. The user retired mandatory
 A/B peer review and delegated implementation decisions; old review/owner dependencies below
-are historical. Follow `docs/merge/UNIFIED_WORKFLOW.md`. RB-I11 policy is selected, not implemented;
-legacy G7 review enforcement still needs migration. No new runtime validation or acceptance is claimed.
+are historical. Follow `docs/merge/UNIFIED_WORKFLOW.md`. RB-I11 is implemented at `dcb6b0e`;
+current CI and ordered G0–G7 pass. The user's explicitly authorized G7 acceptance is recorded
+in `docs/spec/gate_status.json`; it accepts the non-oracle local integration candidate, not production.
 
 Branch `integration/risk` · spec v1.1 · economic baseline v1.0 · testnet evaluation only.
-Updated 2026-10-03 through source `4a050df`; production code is unchanged from
-concrete execution bounds `be3db1e`, following sampler `3942100`.
-**Current source contains RB-I02 maker-remainder repairs and the RB-I05 bounded PERP sampler.**
+Updated 2026-10-03 with completed validation at `e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4`;
+Solidity is unchanged from RB-I11 `dcb6b0e`, with local-smoke repair `29c5f87` retained.
+Ordered gates pass at `c91acf75ae9770f0bf5ae2238b4018202d57acd8`, a metadata-only follow-up
+with unchanged Solidity and runners. G7 acceptance records that candidate at
+**2026-10-03 17:39:11 UTC**, with `reviewed_by: []`; no independent review is claimed.
+**Current source includes maker-remainder repairs, bounded PERP sampling and strict INDEX-prefix sealing.**
 The non-oracle changes and remaining work are tracked in
-[NON_ORACLE_FIXES.md](../integration/NON_ORACLE_FIXES.md). Targeted Monad validation passes
-92/92 and ABI exports/checks pass. Full CI at `4a050df` passes **825 tests / 129 suites**;
-ordered G0-G6 pass, while G7 exits 2 for stale source-bound A043 review. Independent teammate
-review is still required, including RB-I01 and the new economic/interface changes. Production
-approval is false and G7 human acceptance remains blocked; no approval is manufactured here.
+[NON_ORACLE_FIXES.md](../integration/NON_ORACLE_FIXES.md). Strengthened RB-I11 regressions pass
+**21/21**, full CI passes **832 tests / 130 suites**, and a separate Monad bundle passes
+**99 tests / 11 suites**, all with zero failures/skips. Python **237/237**, SDK, format, current
+ABI checks and the read-only creation estimate pass. Aggregate evidence is
+`artifacts/risk/unified-integration-2026-10-03.json`.
+Prior `4a050df` results remain historical evidence,
+not validation of the seal. Mandatory teammate signatures are retired; source-bound technical
+validation remains required. Production approval is false; no independent audit is claimed.
 
-**RB-I11 remains OPEN:** a later authenticated INDEX correction can change capture-time INDEX
-history after PERP publication while stored BASIS retains the older value. Existing green
-checks do not resolve this coherence issue. Strict INDEX-prefix sealing is proposed, not
-implemented, and awaits user confirmation; see
+**RB-I11 is implemented:** publication waits until the pinned authenticated INDEX source's
+observation time is strictly later than capture, making subsequent capture-time corrections
+fail existing monotone ingress. Valid waiting captures retain their original time and guards; see
 [RB-I11-index-prefix-seal.md](../questions/RB-I11-index-prefix-seal.md).
 
 The earlier authorized testnet foundation, real-book trade, YES settlement and cash exit are
@@ -43,19 +49,24 @@ It enforces initial 1x, uncalibrated full backing, funding/recovery disabled and
 with premium load 1. Signed independent INDEX ingress and actual Book-derived PERP sampling are
 wired. Fresh INDEX supports fully backed bootstrap trading before sampler warm-up; completed
 PERP/BASIS windows and an accounting epoch can enable normal pricing without enabling leverage
-or funding. This is implemented behavior, not a coherent-pricing release claim while RB-I11 is
-open. The sampler requires independent economic review, not relabeling as a completed production
-collector/oracle integration. The proposed seal would wait for `INDEX.lastObservedAt` strictly
-after capture time, retaining a valid pending capture until sealed or expired. For continuous
+or funding. RB-I11 now requires `INDEX.lastObservedAt` strictly after capture time, retaining a
+valid pending capture until sealed or expired. This implementation and its technical checks are
+not a completed production collector/oracle integration or independent audit. For continuous
 normal pricing it needs INDEX cadence comfortably below 30 seconds, e.g. 10 seconds; fresh-INDEX
-fully backed bootstrap place/match/cancel must remain available before any promotion. No such
-sealing condition has yet been added to the source.
+fully backed bootstrap place/match/cancel remains available before any promotion.
 
-Current runtime is **120,253 bytes**; creation code **129,495 bytes** plus **928 constructor bytes**
-gives **130,423-byte initcode**. The public-testnet read-only creation estimate is **27,820,847 gas**
+Current runtime after RB-I11 is **120,402 bytes**, with **129,644 creation bytes** plus **928
+constructor bytes**, giving **130,572-byte initcode**. The read-only Monad testnet estimate is
+**27,853,253 gas** at block **67,886,057**, using historical fixture dependencies;
+see `artifacts/risk/unified-deployment-estimate-2026-10-03.json`. It is below the 30M transaction
+ceiling, not a broadcast or receipt. Runtime/initcode fit Monad's 131,072/262,144-byte limits;
+the runtime exceeds Ethereum EIP-170.
+
+The pre-seal artifact was **120,253 runtime bytes**, **129,495 creation bytes** plus
+**928 constructor bytes**, giving **130,423-byte initcode**. Its historical read-only estimate was **27,820,847 gas**
 at block **67,865,259**, below the 30M transaction ceiling; see
-`artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`. Runtime/initcode fit Monad's
-131,072/262,144-byte limits but exceed Ethereum EIP-170. This is not a new deployment receipt.
+`artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`. Those pre-seal values are not the
+current creation estimate or a new deployment receipt.
 The older deployed engine's 114,546-byte runtime and 27,904,929 gas remain historical evidence.
 
 The concrete execution limit is `maxFills() == 8`, counting examined makers, not just fills.
@@ -68,11 +79,11 @@ unqualified multicall. Sampler traversal retains its separate shared **64-node**
 - Concrete deployment ABI: `artifacts/risk/book-risk-engine-abi.json` (**294 entries**, including
   constructor/public book methods); compiler artifact `contracts/out/BookRiskEngine.sol/BookRiskEngine.json`.
 - Abstract engine: `artifacts/risk/engine-abi.json` (**256 entries**; no deployment constructor).
-- Vault: `artifacts/risk/vault-abi.json` (**35 entries**). Current exports/checks pass, committed
-  at `aaf700c`; concrete ABI source SHA-256 is
-  `a5499d80b5e96fd6e06f2c04e0a14281ceebd3715e738e4a5b7890a3d3de7e58`.
+- Vault: `artifacts/risk/vault-abi.json` (**35 entries**). Current-source export/check exits zero;
+  the concrete ABI source SHA-256 is
+  `40e05c0e8034dcdba2a14fc19a97f2323412e69f92dc2146cac913ef8695cbb3`.
   The earlier 285/254/35 counts describe historical `5b82d9f`, not the sampler/batch delta.
-  ABI checks never refresh economic approval.
+  ABI checks do not grant deployment approval.
 - Book seam (internal, not an ABI): `contracts/src/interfaces/IBookRiskHooks.sol`.
 - Oracle seam: `contracts/src/interfaces/IResolutionIngress.sol` (`IResolutionEngine`).
 - Price observations: `contracts/src/interfaces/IPriceSource.sol` (`submitObservation(obs, sig)`).
@@ -89,7 +100,7 @@ Mutating entry points:
 | Governance | `activateMarket()`, `stageRiskParams(params)` | activation opens the first accounting epoch |
 | Monitor | `requestReduceOnly(reason)`, `clearReduceOnly(reason)`, `raiseHazards(h0, h1)` | cannot halt, finalize or lower hazards |
 | Anyone (keepers) | `beginRollover()`, `rollPage(n<=32)`, `finishRollover()` | hourly accounting epochs; trading pauses from epoch end until the last page |
-| Anyone (keepers) | `samplePerp()` | capture actual eligible depth; later-block promotion within 30 seconds retains original observed time. `bookDepth()` is the read-only quote, not proof of accepted history |
+| Anyone (keepers) | `samplePerp()` | capture eligible depth; publish in a later block within 30 seconds only after a strictly newer authenticated INDEX timestamp. Valid waiting captures keep their original time. `bookDepth()` is a view, not accepted history |
 | Anyone | `floorSweep(n<=32)` | backing floor at T-12h |
 | Anyone | `liquidate(trader, maxLots, maxExaminations, partner)` | book close, pair reduction (partner != 0) or takeover; abstract hook ceiling is 64, but the concrete Book route is capped at 8: read `maxFills()` rather than sending 64. Zero-effect calls pay nothing |
 | Anyone | `materializeScheduledHalt()` at or after T | |
@@ -210,12 +221,12 @@ through `a114d06` and were merged at `13ca730`. The original request remains his
    FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/integration/EndToEnd.t.sol"
    ```
 3. Also replay B's scripted seam vectors, G4/G5 mock-book suites and the complete suite.
-   RB-I01's taker-permit version repair is implemented at `f2ebc61`, with independent teammate
-   review pending. **RB-I02 is implemented at `857b5c0`:** only the successfully filled surviving
+   RB-I01's taker-permit version repair is implemented at `f2ebc61`; unified-team regression
+   evidence replaces the retired teammate-signature dependency. **RB-I02 is implemented at `857b5c0`:** only the successfully filled surviving
    maker node receives accounting's accepted post-fill version; unrelated orders remain stale.
    The user's non-oracle scope authorized the Book repair. RB-I05's stale-aware PERP sampler is
-   implemented at `3942100`; RB-I09 concrete execution/batch bounds are in `be3db1e`. These are
-   local source changes, not Book-team acceptance or changes to the old deployed engine.
+   implemented at `3942100`, with RB-I11 sealing at `dcb6b0e`; RB-I09 concrete execution/batch bounds
+   are in `be3db1e`. These local source changes do not update the old deployed engine.
    Review the current [non-oracle ledger](../integration/NON_ORACLE_FIXES.md), regression evidence
    and [sampler policy](../questions/RB-I05-book-depth-policy.md) before claiming closure.
 
@@ -264,30 +275,40 @@ ledger. `previewAccount.cashQ` already includes projected funding and premium;
 the component fields explain that projection and must not be subtracted again.
 Only `usableReleaseAtoms` identifies
 an amount that passes the current release preview. It is checked again at execution. Run the SDK fixtures:
-`bash scripts/check-task.sh B042` (needs `tsc` on PATH).
+`bash scripts/check-task.sh B042` after the locked local SDK installation in section 11.
 
 ## 10. Status and limits
 
-- RB-I11 is a known open pricing-coherence finding at `4a050df`, with policy confirmation and
-  implementation/regressions pending. Neither the prior green suite nor a current CI pass closes
-  it; final CI/gate evidence and economic/human approvals must remain distinct from this finding.
-- Current non-oracle validation: targeted Monad tests at `1654b9f` pass **92/92**, including two
+- RB-I11 is repaired at `dcb6b0e`: tests-first RED 18 pass / 3 fail, followed by strengthened
+  **21/21** GREEN (`tmp/rb-i11-final.log`). Full CI passes **832 tests / 130 suites**, zero failed/skipped,
+  in 1,461.88 seconds (`tmp/unified-full-ci.log`), with 10,000 fuzz runs, seed `0x45524f53`,
+  and invariants configured for 256 runs × depth 128. The final targeted Monad bundle passes
+  **99 tests / 11 suites** in 3.04 seconds (`tmp/unified-monad-final.log`). Runtime, ABI and the
+  read-only creation estimate are recorded in sections 1–2. Ordered G0–G7 pass with counts
+  **88/152/117/78/77/63/55/156**, no skipped checks. Source-bound A043/B043 checks pass **68/3**.
+  The user's explicitly authorized G7 acceptance is recorded for `c91acf7`; aggregate evidence:
+  `artifacts/risk/unified-integration-2026-10-03.json`. Technical runners still record
+  `accepted=false` / `merge_sha=null`; acceptance is separate and does not authorize production,
+  main merge or a new deployment. Real production inputs remain open; oracle integration is excluded.
+- Historical pre-seal validation: targeted Monad tests at `1654b9f` pass **92/92**, including two
   full-history 64-node sampler gas cases. The full risk run at `1654b9f`, before later RB-I08
   additions, passes **818 tests / 128 suites**, zero failures. Full CI at `4a050df` passes
   **825 tests / 129 suites**, zero failed/skipped, with 10,000 fuzz runs, seed `0x45524f53`,
   and invariant configuration 256 runs × depth 128. Elapsed: 1,469.81 seconds; log:
   `tmp/non-oracle-full-ci.log`. Ordered gate outcomes are recorded separately below.
   ABI exports/checks pass at `aaf700c`. The 727-test baseline below is historical and does not
-  certify the new delta. Peer review and human G7 acceptance remain outstanding.
+  certify the RB-I11 delta. Mandatory peer review has since been retired under GOV-01.
 - RB-I08's user-confirmed safe excess-collateral release policy retains existing production
   behavior during monitor/scheduled REDUCE_ONLY; seven focused regressions pass at `4a050df`.
   Required collateral, stale prices, halt and accounting-readiness checks are not bypassed.
   See `docs/questions/RB-I08-reduce-only-release.md`; those seven tests are included in the
   later 825-test CI result, not added to it.
-- SDK pinning at `56787d2` passes `npm test --prefix packages/risk-sdk`; Python suites now pass
-  **220 tests** including three new local-compiler runner regressions. Do not add this Python
-  count or overlapping focused checks to the full Forge total.
-- Gate acceptance and exact run status: `docs/spec/gate_status.json` and `artifacts/gates/`.
+- SDK pinning at `56787d2` passes `npm test --prefix packages/risk-sdk`, including compilation and
+  **six Node tests**. Current Python suites pass **237 tests**, A/B/audit/integration **66/156/8/7**,
+  including the GOV-02 runner regressions. The earlier 220-test result is historical. Do not add
+  Python counts or overlapping focused checks to the full Forge total.
+- Current gate acceptance/run status: `docs/spec/gate_status.json` and `artifacts/gates/`.
+  The following records the historical pre-GOV-01 enforcement, not a current signature dependency.
   At `4a050df`, ordered **G0-G6 exited 0**, with counts **71/152/117/78/77/63/55**.
   G0 includes the three new SDK runner regressions; its earlier `5b82d9f` count was 68.
   **G7 exited 2 after six tests**: `A review does not cover the current source and review regressions`.
@@ -299,12 +320,12 @@ an amount that passes the current release preview. It is checked again at execut
   `artifacts/risk/real-book-validation-2026-10-03.json` (commit `20330d8`, source `5b82d9f`)
   remains historical. A043 is recorded in
   `artifacts/reviews/A-on-B.md`, but its old fingerprints are stale after the new source changes.
-  Do not refresh approvals for one's own economic repair. Independent teammate review and the
-  subsequent G7 rerun are pending; G7 has empty `reviewed_by` and null `merge_sha`.
+  Do not rewrite those fingerprints as approval of new source. The unified workflow retires the
+  separate-signature requirement while retaining technical regressions and truthful acceptance.
   B's delta review of `71576ed..3b11044` is complete
-  (`artifacts/reviews/B-on-A.md`, addendum 2026-10-02, commit `32d30ac`). G7 acceptance and an
-  accepted merge SHA are still pending and can be recorded only by a human. Current state and
-  open items: `docs/merge/STATUS.md`.
+  (`artifacts/reviews/B-on-A.md`, addendum 2026-10-02, commit `32d30ac`). Current G7 checks and
+  the explicitly authorized acceptance are recorded separately above, not inferred from old results.
+  Current state and open items: `docs/merge/STATUS.md`.
 - Historical invariant campaign INV-01..INV-10: `artifacts/risk/invariant-campaign.json`.
 - Historical gas (Ethereum/Prague schedule, not Monad): `artifacts/risk/gas-engine.json`.
 - Release defaults and missing production inputs: `artifacts/risk/release-manifest.json`.
@@ -363,7 +384,8 @@ FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test --match-path "test/aud
   the original audit reproducers now assert the corrected behavior.
 
 Run the official `bash scripts/check-gate.sh G0` through `G7` from the repository root in order
-after their review requirements are met. Those scripts write evidence; refer to the resulting
+after source changes under the unified workflow. Those scripts write technical evidence, not
+human acceptance; refer to the resulting
 artifacts for actual counts, source state and counterpart status.
 
 ## 12. Authorized Monad testnet evaluation

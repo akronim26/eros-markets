@@ -1,14 +1,18 @@
 # RB-I11: seal INDEX history before publishing book-derived PERP
 
-Date: 2026-10-03. Status: **POLICY SELECTED under delegated unified-team authority; implementation and validation pending.**
+Date: 2026-10-03. Status: **IMPLEMENTED at `dcb6b0e`; sampler 21/21, full CI 832/832 and Monad 99/99 pass; G0–G7 pass and user-authorized G7 acceptance is recorded.**
 
 The user retired separate A/B ownership and mandatory peer review and delegated implementation
 decisions to the unified Risk and Order Book team. We select the strict INDEX-prefix seal below,
 with unchanged bootstrap availability and the documented feed-cadence tradeoff. This is our
 documented engineering decision, not a claim that the user explicitly reviewed this algorithm.
-See `docs/merge/UNIFIED_WORKFLOW.md`. No runtime change or production approval is claimed yet.
+See `docs/merge/UNIFIED_WORKFLOW.md`. This is unified-team technical work, not an independent
+security audit, production approval or a new deployment.
 
-## Confirmed behavior and scope
+## Historical defect and scope
+
+The following describes the pre-fix source at `4a050df`; the concrete sampler now applies the
+strict publication condition described below. Generic observation-store semantics are unchanged.
 
 `PriceIngress._ingest` authenticates the configured INDEX source, requires increasing sequence
 numbers and permits nondecreasing `observedAt`. A higher-sequence sample may therefore replace
@@ -35,7 +39,7 @@ from T that the mark band does not bind. All depth samples have sufficient valid
 1. INDEX is 0.50 every 30 seconds through time 900.
 2. PERP is 0.49 every 30 seconds through time 870, then 0.51 at time 900.
 3. Capture time 900 and promote it in a later block with the same integer timestamp. This is
-   allowed by the current prior-block policy on a subsecond chain; it leaves no newer pending
+   allowed by the pre-fix prior-block policy on a subsecond chain; it leaves no newer pending
    capture at that same timestamp. BASIS at 900 is stored as 0.51 - 0.50 = 0.01.
 4. Accept a correctly signed, higher-sequence INDEX replacement with `observedAt = 900` and
    price 0.60. The configured source must authorize this payload; a caller cannot invent it.
@@ -62,7 +66,7 @@ immutable-cap-1, funding-disabled, uncalibrated concrete engine. A constant PERP
 would also mask this particular mark difference through the median. Future calibrated pricing
 must not assume the discrepancy is always masked.
 
-## Proposed concrete-sampler policy
+## Implemented concrete-sampler policy
 
 Before promoting a pending book capture, additionally require:
 
@@ -85,11 +89,11 @@ A later **invalid** INDEX observation still makes the earlier prefix immutable, 
 evidence that current INDEX is usable. Existing current-context checks and capture-time BASIS
 validity remain mandatory. Where an invalid sample affects a positive-duration part of the
 current INDEX window, normal pricing remains unavailable. An invalid checkpoint exactly at the
-window endpoint has zero elapsed weight under the existing integral semantics; this proposal
+window endpoint has zero elapsed weight under the existing integral semantics; this change
 does not silently change that rule or restart a stopped funding epoch.
 
 The generic `ObservationStore` retains its monotone per-series append/same-second-replacement
-model and does not retroactively correct historical BASIS. This proposal prevents the discrepancy on the
+model and does not retroactively correct historical BASIS. This change prevents the discrepancy on the
 concrete engine's only production PERP publication route; it does not claim a general correction
 algorithm for other compositions or test harnesses that call `_recordPerp` directly. It neither
 changes existing authenticated INDEX ingress semantics nor alters accounting/funding rules.
@@ -106,7 +110,7 @@ Fresh-INDEX fully backed startup placement, matching and cancellation must remai
 before any PERP promotion. Waiting for a seal may delay normal-pricing warm-up but must not gate
 bootstrap startup. No calibration, leverage, funding or production approval follows.
 
-## Required implementation regression plan
+## Regression scope
 
 - Capture remains unpublished across later blocks until the pinned INDEX prefix is sealed;
   unchanged retries preserve its original time and eventually promote without starvation.
@@ -122,3 +126,47 @@ bootstrap startup. No calibration, leverage, funding or production approval foll
 - Keep cold bootstrap place/fill/cancel controls and full-window, epoch-only normal transition
   tests under a sufficiently frequent signed-INDEX fixture; remeasure bounded sampling gas and
   refresh affected full-suite/gate/ABI evidence without claiming human approval.
+
+## Implementation and evidence
+
+`BookRiskEngine.samplePerp` evaluates the existing block, age, Book revision, market/risk epoch,
+capture-time INDEX checkpoint and current eligible-depth guards before considering a wait.
+Only an otherwise publishable candidate may return false while retaining its exact pending state
+when the pinned source has not advanced strictly past its capture time. This return writes no
+PERP/BASIS checkpoint and does not take a new capture. Invalid/expired candidates still record
+unavailability at their original time; halted markets discard pending state. No external calls,
+new caller-controlled fields or changes to authenticated INDEX ingress were added.
+
+Tests were added before the source repair. `tmp/rb-i11-red.log` records **18 passing / 3 failing**
+sampler tests: old code prematurely published an unsealed capture, published while a capture was
+waiting before mutation, and failed to preserve the original waiting/expiry semantics. The first
+green run (`tmp/rb-i11-green.log`) passes **21/21**. A separate Monad targeted run passes **99 tests
+in 11 suites**, including gas fixtures with a genuinely signed newer INDEX checkpoint outside the
+measured sampler call. These checks are local and do not sum to a separate unique-test total.
+
+The sealed-publication test also rejects authenticated corrections at and before capture, then
+accepts a replacement at the newer seal timestamp. It compares the original BASIS's ten covered
+seconds and zero integral before/after, with unchanged PERP/BASIS checkpoint counts; the 900-second
+window is explicitly unavailable, not falsely described as warmed. The strengthened rerun passes
+**21/21** (`tmp/rb-i11-final.log`), and the source/tests are committed at `dcb6b0e`.
+
+The completed validation baseline is `e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4`, with Solidity
+unchanged from `dcb6b0e`. Full CI passes **832 tests / 130 suites**, zero failed/skipped, in
+1,461.88 seconds (`tmp/unified-full-ci.log`): 10,000 fuzz runs, seed `0x45524f53`, and invariants
+configured for 256 runs at depth 128. The final separate Monad bundle passes **99 tests / 11
+suites** in 3.04 seconds (`tmp/unified-monad-final.log`). Python passes **237 tests** across
+A/B/audit/integration (66/156/8/7); SDK compilation and six Node tests pass. Format and ABI
+export/check exit zero, with 294 concrete / 256 abstract / 35 vault entries. Counts are not additive.
+
+Current compiled runtime is **120,402 bytes**; creation bytecode is **129,644 bytes** plus **928
+constructor bytes**, giving **130,572-byte initcode**. Read-only public-testnet estimation using
+the historical fixture dependencies succeeds at **27,853,253 gas**, block **67,886,057**;
+see `artifacts/risk/unified-deployment-estimate-2026-10-03.json`. No new deployment was broadcast.
+Ordered G0–G7 exit zero with no skipped checks at `c91acf75ae9770f0bf5ae2238b4018202d57acd8`,
+with counts **88/152/117/78/77/63/55/156**. Source-bound A043/B043 checks pass **68/3** respectively.
+The user's explicitly authorized G7 acceptance is recorded in `docs/spec/gate_status.json` at
+**2026-10-03 17:39:11 UTC**, with `reviewed_by: []`. Aggregate evidence:
+`artifacts/risk/unified-integration-2026-10-03.json`. Technical runners still emit
+`accepted=false` and `merge_sha=null`; human acceptance is a separate record, not peer approval.
+The accepted scope is the unified non-oracle local integration candidate. Production inputs
+remain unresolved, oracle integration remains excluded, and no main merge or new deployment occurred.

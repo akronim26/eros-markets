@@ -2,8 +2,11 @@
 
 Scope: testnet evaluation of the concrete `contracts/src/engine/BookRiskEngine.sol`,
 not a mainnet release. A successful estimate is not a deployment or release approval.
-Economic changes still require independent teammate review; human gate acceptance
-is separate. Obtain explicit network, wallet and spending authorization before broadcast.
+Economic changes require source-bound unified-team regression and invariant evidence under
+`docs/merge/UNIFIED_WORKFLOW.md`; mandatory A/B peer review is retired. These checks are not an
+independent audit. G7 acceptance for `c91acf7` is recorded after passing checks under the user's
+explicit authorization; it does not authorize a new deployment or production release. Future
+gate acceptance still requires authorization. Confirm network, wallet and spending scope before any broadcast.
 
 ## What is real, and what remains missing
 
@@ -14,15 +17,18 @@ zero ordinary trading fees, and disabled conversion. IDs come from A's allocated
 registry; only the internal liquidation path can issue forced IOC orders.
 
 Signed `submitObservation` feeds the independent index, not the perpetual book history.
-The current source adds a bounded Book depth sampler under the user-approved RB-I05 policy;
-targeted Monad checks, ABI exports and a current deployment estimate pass. Full CI at `4a050df`
-also passes. Ordered G0-G6 pass; G7 is blocked on stale source-bound A043 review, with independent
-economic review and human gate acceptance still outstanding.
-**RB-I11 is OPEN:** the source at `4a050df` can accept a later authenticated INDEX correction
-that changes capture-time INDEX history after PERP/BASIS publication. Stored BASIS is not
-recomputed. Existing tests and gas estimates do not establish cross-series coherence for this
-case. The proposed strict INDEX-prefix seal awaits user confirmation and is not implemented;
-see `docs/questions/RB-I11-index-prefix-seal.md` before relying on the normal-pricing workflow.
+The current source adds a bounded Book depth sampler under the user-approved RB-I05 policy and
+implements RB-I11's strict INDEX-prefix seal at `dcb6b0e` under delegated unified-team authority.
+The strengthened sampler rerun passes 21/21 (`tmp/rb-i11-final.log`); full CI passes 832 tests in
+130 suites, and the final separate Monad bundle passes 99 tests in 11 suites, all with zero
+failures/skips. Current Python (237 tests), SDK, format, ABI and read-only creation-estimate checks pass;
+details follow below. Ordered G0–G7 pass, and user-authorized G7 acceptance is recorded for the
+non-oracle local integration candidate. Do not apply the older
+`4a050df` validation/deployment estimate to this new bytecode. The pre-fix source allowed later
+authenticated INDEX corrections to change capture-time INDEX while stored BASIS retained the
+old value. Current publication waits for a strictly newer authenticated INDEX timestamp, so
+existing monotone ingress prevents that historical correction after publication. See
+`docs/questions/RB-I11-index-prefix-seal.md` for the proof's scope and test evidence.
 Fresh, fully covered 300-second index history and the listing's index price band permit fully
 backed bootstrap exposure before PERP warm-up. The historical deployed smoke engine has no
 sampler and remains terminally closed. Do not describe local sampler tests as live leveraged
@@ -134,7 +140,32 @@ headroom. An artifact's runtime template still contains immutable placeholders a
 the final deployed code hash. Rebuild after source edits; metadata alone cannot prove freshness.
 No script mode signs or broadcasts. Failure exits nonzero and must not be relabeled a pass.
 
-Current source qualification after sampler `3942100` and execution bounds `be3db1e` is recorded
+Completed validation baseline **`e05bbbb8ac632b35ba15ac2da0e56bd63eec21e4`** has Solidity unchanged
+from `dcb6b0e`. Runtime is **120,402 bytes**, creation bytecode **129,644 bytes**, constructor
+arguments **928 bytes**, and complete initcode **130,572 bytes**. Read-only public-testnet
+`eth_estimateGas` returns **27,853,253 gas** at block **67,886,057**, using the historical fixture
+dependencies, not newly deployed production counterparts. Evidence:
+`artifacts/risk/unified-deployment-estimate-2026-10-03.json`. This leaves 2,146,747 gas below the
+30M ceiling for that specific request/state; it is not a deployment, receipt or reusable gas limit.
+Re-estimate the actual constructor inputs and current state before any authorized broadcast.
+
+Full CI passes **832 tests / 130 suites**, zero failed/skipped, in **1,461.88 seconds**
+(`tmp/unified-full-ci.log`), using 10,000 fuzz runs, seed `0x45524f53`, and invariants configured
+for 256 runs at depth 128. The final separate Monad run passes **99 tests / 11 suites** in
+**3.04 seconds** (`tmp/unified-monad-final.log`). Python A/B/audit/integration passes
+**66/156/8/7**, total **237**, and SDK compilation/six Node tests pass. Format and ABI export/check
+exit zero; current ABI counts are **294 concrete / 256 abstract / 35 vault**. Do not add
+overlapping Forge runs or Python/Node tests to the full Forge total. Ordered G0–G7 pass at
+`c91acf75ae9770f0bf5ae2238b4018202d57acd8`, with counts **88/152/117/78/77/63/55/156** and no
+skipped checks. Source-bound A043/B043 checks pass **68/3**. The user's explicitly authorized
+G7 acceptance is recorded in `docs/spec/gate_status.json` at **2026-10-03 17:39:11 UTC**, with
+`reviewed_by: []`. Technical runners still emit `accepted=false` / `merge_sha=null`; their output
+is not the human acceptance record. Aggregate evidence:
+`artifacts/risk/unified-integration-2026-10-03.json`. This accepts the non-oracle local integration
+candidate only: actual production inputs remain missing, oracle integration remains excluded,
+and no main merge, production approval or new deployment follows.
+
+Historical pre-RB-I11 qualification after sampler `3942100` and execution bounds `be3db1e` is recorded
 in `docs/integration/NON_ORACLE_FIXES.md`. Targeted Monad checks pass **92/92** at validation source
 `1654b9f` (production code unchanged from `be3db1e`). The engine artifact
 is **120,253 runtime bytes**, **129,495 creation bytes**, and **130,423 initcode bytes** including
@@ -159,12 +190,12 @@ individually bounded calls through a multicall and assume the entire transaction
 The abstract Book can support other bounds; its 64-node fixture is not this concrete deployment's
 gas guarantee. The **sampler's separate 64-node read budget** remains unchanged.
 
-Full-history, 64-node sampler benchmarks cover bootstrap and normal mode. Worst measured calls
+Pre-RB-I11 full-history, 64-node sampler benchmarks cover bootstrap and normal mode. Worst measured calls
 use **3,383,491 gas for capture**, **3,290,777 for promotion**, and **3,143,792 for `bookDepth()`**
 under Monad execution. They are local call measurements, not public-chain receipts or a fixed
 gas limit to copy. Re-estimate the current deployment/state and include bounded inclusion slack.
 
-Full CI at `4a050df` passes **825 tests across 129 suites**, zero failed/skipped, in 1,469.81
+Historical pre-RB-I11 full CI at `4a050df` passes **825 tests across 129 suites**, zero failed/skipped, in 1,469.81
 seconds. It uses 10,000 fuzz runs with seed `0x45524f53` and invariants configured for 256 runs
 at depth 128. The earlier `risk`-profile result at `1654b9f` is 818 tests / 128 suites, before
 the seven RB-I08 regressions. These are separate source/profile results, not additive counts.
@@ -180,16 +211,19 @@ or proof that RB-I11 is fixed. Separate ordered gate results at `4a050df` are G0
 with counts **71/152/117/78/77/63/55**, and G7 exit 2 after six tests because A043's source-bound
 review is stale. Separately run A044/B040/B041/B042/B043/B044 checks exit 0 with counts
 44/2/2/3/1/1; direct G7 Solidity passes six tests in two suites. Format and ABI checks exit 0,
-with ABI entries 294/256/35. These downstream technical checks do not bypass blocked review or
-constitute an ordered G7 pass. Evidence: `artifacts/risk/non-oracle-fixes-2026-10-03.json`.
+with ABI entries 294/256/35. These downstream technical checks did not constitute an ordered G7
+pass. GOV-01 subsequently retired mandatory peer approval; the old exit 2 remains historical
+evidence, not a requirement for a nonexistent separate owner. The unified runner migration and
+current G7 acceptance are recorded separately above. Historical evidence:
+`artifacts/risk/non-oracle-fixes-2026-10-03.json`.
 
 ## Maintaining book-derived PERP observations
 
-This section applies only to a newly reviewed, qualified deployment containing RB-I05. It is
+This section applies only to a newly validated, qualified deployment containing RB-I05/RB-I11. It is
 not an instruction to reuse the old closed smoke market or permission to deploy/broadcast again.
 Policy and local regression evidence are in `docs/questions/RB-I05-book-depth-policy.md`.
-The current-source mechanics below do **not** include the proposed RB-I11 seal. That open
-correctness issue must not be hidden by successful captures, ABI checks or historical gas tests.
+The current-source mechanics below include RB-I11's implemented seal; their final validation
+does not follow merely from historical RB-I05 gas tests or the older deployed smoke receipts.
 
 `bookDepth()` is a read-only view returning bid/ask VWAP, accepted lots per side, examined-node
 count and a state fingerprint. It consumes exactly listing depth N on each side, with bid rounded
@@ -204,7 +238,11 @@ executable when account/market epochs, projected full backing or accounting read
 2. Rechecks current bounded depth/account eligibility, Book mutation revision, market/risk epochs,
    and the original independent INDEX checkpoint. A changed or expired capture records an
    unavailable observation rather than extending valid coverage.
-3. Captures current eligible depth for a later call, provided this is a strictly newer timestamp.
+3. Requires the pinned authenticated INDEX source's `lastObservedAt` to be strictly newer than
+   capture time before valid publication. An otherwise eligible, unchanged capture waits without
+   writing PERP/BASIS or replacing its original timestamp; the 30-second expiry still applies.
+4. After resolving the old candidate, captures current eligible depth for a later call, provided
+   this is a strictly newer timestamp. A waiting candidate is not replaced by a moving target.
 
 Do not call twice in one block: the second call reverts `SameBlockBookSample()`. Repeated blocks
 with the same timestamp cannot create replacement captures for an already sampled second.
@@ -219,17 +257,19 @@ not a freshness bypass or guaranteed inclusion policy. Estimate calls against th
 enforce the qualified transaction gas limit and spending budget, and stop/back off on failures.
 Avoid simultaneous keepers and repeated paid-RPC polling. Newer INDEX samples need not be paused:
 promotion compares the checkpoint at capture time, so a replacement/backfill affecting that
-checkpoint invalidates a **pending** capture. This does not stop corrections after publication
-under current ingress semantics; that is the unresolved RB-I11 case. Intervening Book mutations invalidate a pending capture;
+checkpoint invalidates a **pending** capture. Publication additionally waits until the strictly
+newer authenticated checkpoint seals that prefix. Existing monotone ingress then rejects later
+corrections at or before the published capture. Intervening Book mutations invalidate a pending capture;
 continuous mutation or insufficient eligible depth can therefore prevent successful promotion.
 
-If approved and implemented, RB-I11 would require an accepted INDEX observation strictly newer
-than the pending capture, retaining the unchanged capture while waiting rather than renewing
-its timestamp. Continuous normal pricing would then need INDEX cadence **below 30 seconds**,
+RB-I11 requires an accepted INDEX observation strictly newer than the pending capture, retaining
+the unchanged capture while waiting rather than renewing its timestamp. Continuous normal pricing
+therefore needs INDEX cadence **below 30 seconds**,
 such as 10 seconds with inclusion headroom; an exactly 30-second feed can produce a sample
-already at its age limit. This is a proposed operational requirement, not a current implemented
-guard or permission to edit signed timestamps. Fresh-INDEX fully backed bootstrap startup must
-remain independent of PERP publication. Await the decision and new regression/gas evidence.
+already at its age limit. This is an implemented freshness constraint, not permission to edit
+signed timestamps or a production feed-service guarantee. Fresh-INDEX fully backed bootstrap
+startup remains independent of PERP publication. Retain new regression and gas evidence for the
+actual source/deployment rather than reusing pre-seal measurements.
 
 Normal pricing additionally needs continuous PERP 60-second and BASIS 900-second coverage,
 the required INDEX window and a completed accounting epoch. Maintain both sides' eligible N,
@@ -247,7 +287,8 @@ the earlier bootstrap-only deployment, not this sampler's runtime or keeper work
 ## Deployment sequence and acceptance evidence
 
 1. Review the exact source and deployment manifest. Re-run relevant economic/Book regressions,
-   including RB-I01 behavior, and affected gates. Technical passes do not grant peer/human approval.
+   including RB-I01/RB-I11 behavior, and affected gates. Technical passes alone do not grant
+   production approval or fabricate an independent audit or gate-acceptance record.
 2. Rehearse on Monad execution or a pinned Monad fork without oversized-contract or transaction
    limit bypasses. Estimate the full engine constructor, including its internally created ReserveVault.
    Runtime size alone does not establish deployability; splitting may be needed if gas exceeds 30M.
