@@ -1,0 +1,21 @@
+{
+  "network": "monad-testnet",
+  "chainId": 10143,
+  "creChainSelector": "2183018362218727504",
+  "usdc": "0xFE854aEB0e1B5B568291f52696E5726c89a8d39e",
+  "roles": { "timelock": "0xC2095b3DfD54328E59150bb70a3B541e21772F56", "teamSafe": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1", "guardianSafe": "0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d", "lister": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1" },
+  "contracts": {
+    "Timelock": { "address": "0xC2095b3DfD54328E59150bb70a3B541e21772F56", "codehash": "0x61ca245342d8ca783090c86a1e1f170c59da15077f3aba7d2c49c8506a264956", "deployBlock": 67901624 },
+    "BondTreasury": { "address": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a", "codehash": "0xb452b4bcafb7abbd76cce31d0caaed337da43096b9eeac67e3c76e050f72f3c7", "deployBlock": 67901624 },
+    "ResolutionOracle": { "address": "0xa87D6E10a7199666ec9F2e04866201E35AAf36A6", "codehash": "0x4cc529eb42654a45083b055d2e0081308e5ae3eeb980da5eb4dc0297a6e57d44", "deployBlock": 67901624 },
+    "UmaAdapter": { "address": "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1", "codehash": "0x5d553bb4ac3eeb76ddace056854e0b7c78c405109ce0f4a0d485b2a3fb503b29", "deployBlock": 67901624 },
+    "MarketRegistry": { "address": "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa", "codehash": "0x217cacdde2c26367cfee07a7a168b7d8e56012e35402d108457350274d718fad", "deployBlock": 67901624 },
+    "KeeperRouter": { "address": "0xa04109FfD14C8E2c8303b3F1047Eeb14D78a67A9", "codehash": "0xe300f39c5b9c6c2d77d172fc74f0b7c711a50ac2c7ddcba0c7e6e99f686e67c9", "deployBlock": 67901624 },
+    "StubMarketFactory": { "address": "0xF58833b3b45ca45b5C10F396e39e675678751943", "codehash": "0xfc3c2632116eb4750e43b5a2eb72c545a48f5417ff068806d06953e95ec8edfb", "deployBlock": 67901624, "testnetOnly": true }
+  },
+  "uma": { "finder": "0x6360e4D58837B5201f5aC8fA31e672c765ae5b08", "store": "0xb4bf9609ceaF1D5565682737CaB9AF06947f0377", "addressWhitelist": "0x0aE49CB05eCdDE2A2E2e4Bf80B19B76a38B311F6", "identifierWhitelist": "0xc3C05aBCC86A5c12A378AED31d66DB96028e809E", "oov3": "0xdE3B884250333652aC2Bf27fE10A6483a50B0a26", "sandboxOracle": "0x1211A79433CA94bD4cC93d69E615519790467d20", "finalFeeAtoms": "1000000" },
+  "cre": { "mockForwarder": "0xB9F79d863261869B234c481D1f9A7af84AeAd192", "keystoneForwarder": "0xF8344CFd5c43616a4366C34E3EEE75af79a74482", "orgOwner": "0x0000000000000000000000000000000000000000", "workflowName": "eros-resolution-stg", "workflowIds": [], "simRelayers": [] },
+  "trustSets": [],
+  "globalsVersion": 0,
+  "timelockOps": []
+}
