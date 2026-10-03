@@ -1,0 +1,12 @@
+{
+  "schema": "eros-historical-reserve-address/1",
+  "observed_at_utc": "2026-10-03T17:00:55.7763840Z",
+  "chain_id": 10143,
+  "block": 67883304,
+  "engine": "0x4aE742676984D2C383645E4745Eaf3943b67DE72",
+  "reserve_vault": "0xbb72f3a9417f8b49ccd5c3b2d22264a82dbeec7d",
+  "runtime_bytes": 2428,
+  "getter": "reserveVault()",
+  "broadcast": false,
+  "scope": "Historical closed smoke market only; address and code presence from RPC, not current-source deployment or independent runtime verification"
+}
