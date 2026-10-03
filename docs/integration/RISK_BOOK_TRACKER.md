@@ -1,5 +1,11 @@
 # Risk + Book integration tracker
 
+**GOV-01 workflow update (2026-10-03):** Risk and Order Book are one team. Mandatory
+A/B peer review is retired; older review-pending entries below are historical, not current
+approval dependencies. RB-I11's strict INDEX-prefix seal is selected, with implementation/tests
+pending. Legacy G7 review enforcement still needs migration; no gate pass or deployment is
+claimed by this documentation update. See `docs/merge/UNIFIED_WORKFLOW.md`.
+
 Updated **2026-10-03** · branch `integration/risk` · spec **1.1** / economics **1.0**.
 This is the shared planning index, not a replacement for the spec, source-bound reviews or evidence.
 Update it when behavior, counterpart status, validation or deployed addresses change.

@@ -1,5 +1,10 @@
 # Risk & Clearing handoff (book, oracle and frontend teams)
 
+**Current ownership:** Risk and Order Book are merged under GOV-01. The user retired mandatory
+A/B peer review and delegated implementation decisions; old review/owner dependencies below
+are historical. Follow `docs/merge/UNIFIED_WORKFLOW.md`. RB-I11 policy is selected, not implemented;
+legacy G7 review enforcement still needs migration. No new runtime validation or acceptance is claimed.
+
 Branch `integration/risk` · spec v1.1 · economic baseline v1.0 · testnet evaluation only.
 Updated 2026-10-03 through source `4a050df`; production code is unchanged from
 concrete execution bounds `be3db1e`, following sampler `3942100`.

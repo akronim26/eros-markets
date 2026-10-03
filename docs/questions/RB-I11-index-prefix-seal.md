@@ -1,6 +1,12 @@
 # RB-I11: seal INDEX history before publishing book-derived PERP
 
-Date: 2026-10-03. Status: **POLICY CHOICE PENDING; no production change authorized by this document.**
+Date: 2026-10-03. Status: **POLICY SELECTED under delegated unified-team authority; implementation and validation pending.**
+
+The user retired separate A/B ownership and mandatory peer review and delegated implementation
+decisions to the unified Risk and Order Book team. We select the strict INDEX-prefix seal below,
+with unchanged bootstrap availability and the documented feed-cadence tradeoff. This is our
+documented engineering decision, not a claim that the user explicitly reviewed this algorithm.
+See `docs/merge/UNIFIED_WORKFLOW.md`. No runtime change or production approval is claimed yet.
 
 ## Confirmed behavior and scope
 
@@ -88,7 +94,7 @@ concrete engine's only production PERP publication route; it does not claim a ge
 algorithm for other compositions or test harnesses that call `_recordPerp` directly. It neither
 changes existing authenticated INDEX ingress semantics nor alters accounting/funding rules.
 
-## Availability tradeoff requiring approval
+## Accepted engineering tradeoff
 
 The sampler must wait for an INDEX observation strictly later than the captured second. A source
 publishing only every 30 seconds can leave a promoted PERP already at age 30, usable only at that
@@ -100,7 +106,7 @@ Fresh-INDEX fully backed startup placement, matching and cancellation must remai
 before any PERP promotion. Waiting for a seal may delay normal-pricing warm-up but must not gate
 bootstrap startup. No calibration, leverage, funding or production approval follows.
 
-## Bounded regression plan after a decision
+## Required implementation regression plan
 
 - Capture remains unpublished across later blocks until the pinned INDEX prefix is sealed;
   unchanged retries preserve its original time and eventually promote without starvation.

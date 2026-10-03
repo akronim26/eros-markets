@@ -1,5 +1,10 @@
 # A to B: review and next-turn instructions
 
+**Superseded ownership workflow — GOV-01, 2026-10-03:** there is no longer a separate A/B
+review dependency. Risk and Order Book are one team, with autonomous documented decisions and
+required automated validation. The technical findings and evidence below remain useful, but
+requests for teammate approval are historical. Follow `docs/merge/UNIFIED_WORKFLOW.md` instead.
+
 Date: 2026-10-03. Shared branch: `integration/risk`.
 This is a request from A, not an approval written on B's behalf.
 

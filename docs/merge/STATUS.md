@@ -1,10 +1,18 @@
 # Risk & Clearing — STATUS
 
 - Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-03.
-- Shared, turn-by-turn ownership and independent economic review: `CLAUDE.md`.
+- Unified Risk and Order Book ownership and automated validation: `CLAUDE.md` and `docs/merge/UNIFIED_WORKFLOW.md`.
 - Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
 ## Current summary
+
+**GOV-01 supersedes the earlier review workflow:** the user merged Risk and Order Book and
+retired mandatory A/B peer review. We make and document implementation decisions without
+waiting for those approvals. Historical review records remain unchanged. The strict INDEX-prefix
+seal for RB-I11 is selected, with implementation/tests pending. Legacy G7 review enforcement
+still needs migration; the earlier exit-2 result is not relabeled passed. Human G7 acceptance,
+main merge and deployment remain separate. Earlier review-pending statements below are the
+pre-GOV-01 record, not current teammate dependencies.
 
 A reviewed B's newer work at `2506235`: **B-D02, B-D03 and A-I01 accepted**. All six fee-escrow
 choices are confirmed in `docs/questions/A-I01.md`; B-D01 through B-D05 have A dispositions.
@@ -384,3 +392,21 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   G7 remains blocked for current peer review and human acceptance; `merge_sha` stays null.
 - Next owner: B/shared teammate, following `docs/requests/A-to-B-merge-followup.md`.
   Review the implemented sampler and maker repair rather than asking another team to rebuild them.
+
+### 2026-10-03 (GOV-01) — unified Risk and Order Book — turn complete
+
+- Started from `507a703`; fetched shared remote at the same commit. Preserved the pre-existing
+  untracked handoff and Python caches. No runtime, runner, oracle or deployment changes.
+- User merged Risk and Order Book and retired mandatory A/B peer review. Updated CLAUDE and
+  current handoff banners; `docs/merge/UNIFIED_WORKFLOW.md` is the governing workflow. Historical
+  reviews and their hashes stay unchanged; no independent review is manufactured.
+- Selected RB-I11's strict newer-INDEX prefix seal under delegated decision authority, preserving
+  bootstrap and documenting feed-cadence costs. This is a policy selection, not an implemented fix.
+- G7 review requirements are retired in current status metadata, but the legacy runner still
+  enforces them. Its previous exit 2 remains true. Migrating enforcement while retaining A043/B043
+  regression suites is pending engineering work; no new technical pass or human acceptance claimed.
+- Validation: documentation diff whitespace check and gate-status JSON parse pass. Existing 825-test
+  CI and other results remain evidence of the previously recorded source, not new runs this turn.
+- Next: unified team implements/tests RB-I11 and migrates legacy G7 review enforcement, recording
+  source-bound technical results rather than A/B signatures. Main and deployment permissions remain
+  separate. This workflow update is committed and pushed under GOV-01; see `git log` for its SHA.
