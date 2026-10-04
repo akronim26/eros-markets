@@ -1,0 +1,48 @@
+{
+  "scenario": "E1",
+  "title": "Layer 1 to Final with a 2-minute liveness",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T18:35:42.637Z",
+  "steps": [
+    {
+      "step": "listed e1 (truth YES, T 2026-10-04T18:47:00.000Z)",
+      "market": "0x81db889d67b0de87eb15158ef577c4a7825facd7503db92fa356b9af3779a868",
+      "tx": "0x4f5b090f8dedd2a29b2346cf9635f69a1cf361c2d0fc644215183ca2a9b45a94",
+      "detail": {
+        "slug": "eros-e2e-e1-e1-849828-home-gt-3-1791139620",
+        "engine": "0xc9A1f60291f20A576a3E0EC897Cf42B31DDbD90d",
+        "spec": {
+          "scenario": "E1",
+          "tag": "e1",
+          "game": 849828,
+          "side": "home",
+          "target": 3,
+          "feed": "mlb",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 600,
+          "voidSecs": 6000
+        }
+      },
+      "block": "68188426",
+      "time": "2026-10-04T18:36:26.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "e1 oracle Final YES",
+      "ok": true,
+      "detail": "state Final, outcome 1, finalReason 1"
+    },
+    {
+      "check": "e1 engine settled YES, claims open",
+      "ok": true,
+      "detail": "engine finalOutcome 2, price 1000000000000000000, claimsEnabled true"
+    }
+  ]
+}

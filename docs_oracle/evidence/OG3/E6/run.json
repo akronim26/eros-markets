@@ -1,0 +1,75 @@
+{
+  "scenario": "E6",
+  "title": "early check → EarlyReview → committee → Final before T",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:10:16.049Z",
+  "steps": [
+    {
+      "step": "listed e6 (truth NO, T 2026-10-04T18:41:00.000Z)",
+      "market": "0xcb7d6bbc4eec668a3e62fe085c08ddaaae8903cd89a082a3c9e9e3dccef5a85a",
+      "tx": "0x039bc3184750ae3f27539024cb5096e54c22aee5134ea8b712ac28d4d8e808e9",
+      "detail": {
+        "slug": "eros-e2e-e6-e6-849829-home-gt-3-1791139260",
+        "engine": "0xE01E1169031Df28b087AED09B615b46e08041975",
+        "spec": {
+          "scenario": "E6",
+          "tag": "e6",
+          "game": 849829,
+          "side": "home",
+          "target": 3,
+          "feed": "mlb",
+          "tauIn": 5400,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 600,
+          "voidSecs": 9300,
+          "monitor": "0xCbf737ea4D798a74a2988fC3294910d5a581A85c"
+        }
+      },
+      "block": "68171444",
+      "time": "2026-10-04T17:10:58.000Z"
+    },
+    {
+      "step": "monitor: reduce-only, requestEarlyCheck",
+      "market": "0xcb7d6bbc4eec668a3e62fe085c08ddaaae8903cd89a082a3c9e9e3dccef5a85a",
+      "tx": "0x508db505b9d0a042d13d3db01b79c9702ccedabfaf6d0387905e88b3dff7d995",
+      "block": "68171454",
+      "time": "2026-10-04T17:11:01.000Z"
+    },
+    {
+      "step": "monitor: reduce-only, requestEarlyCheck",
+      "market": "0xcb7d6bbc4eec668a3e62fe085c08ddaaae8903cd89a082a3c9e9e3dccef5a85a",
+      "tx": "0xb25a108bc54fa006e462b60bdda4153d898f1c01d50406251578bbe765a170af",
+      "block": "68171460",
+      "time": "2026-10-04T17:11:02.000Z"
+    },
+    {
+      "step": "committee proposes NO (early)",
+      "market": "0xcb7d6bbc4eec668a3e62fe085c08ddaaae8903cd89a082a3c9e9e3dccef5a85a",
+      "tx": "0xa27d7adcc44c180d9c187dc9c00600177d7f1a2d6574c3980aaefff447d984ed",
+      "block": "68172995",
+      "time": "2026-10-04T17:18:46.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "e6 oracle Final NO",
+      "ok": true,
+      "detail": "state Final, outcome 2, finalReason 1"
+    },
+    {
+      "check": "e6 engine settled NO, claims open",
+      "ok": true,
+      "detail": "engine finalOutcome 1, price 0, claimsEnabled true"
+    },
+    {
+      "check": "halted and Final before T",
+      "ok": true,
+      "detail": "haltedAt 1791134326, Final by 1791135583, T 1791139260"
+    }
+  ]
+}

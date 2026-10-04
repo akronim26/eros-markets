@@ -165,8 +165,9 @@ Plan §13: owner OB · 1 PD · depends O21, OG1 deploy · acceptance: E1 passes 
 - Depends: O23.1
 - Plan: §7.5, §11.3, §12.6, E1
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/workflows/listen/ (process-supervisor config), docs_oracle/evidence/OG2/
 - Build: Run `cre workflow simulate … --listen --broadcast` under a process supervisor on a team host; then drive E1 end to end (create → T → halt → request → L1 report → assert → liveness → finalize → engine claims enabled).
 - Done when: E1 passes in sim mode with `settle` called once; NOT_READY and 429 runs show no write; all three are logged.
 - Check: manual: E1, NOT_READY and 429 logs with tx hashes in docs_oracle/evidence/OG2/
+- Notes: Done 4 Oct 2026 on Monad testnet: oracle/workflows/listen/supervise.sh keeps `cre workflow simulate … --listen --broadcast` running; E1 passed through it (market 0x81db…a868, Final YES, claims open); a NOT_READY market (0xa94d…b439) and a 429 market (0x955b…f701, httpbin.org/status/429) were each requested once and the listener logged nowrite for both. Evidence: docs_oracle/evidence/OG2/O23.2-listen-and-e1.md and O23.2-listener-runs.log.
