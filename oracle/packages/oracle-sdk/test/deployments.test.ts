@@ -57,7 +57,7 @@ describe('loadDeployments', () => {
 describe('loadGas', () => {
   test('reads the measured limits; an unlisted call has no guessed limit', () => {
     const gas = loadGas()
-    expect(gasLimit(gas, 'onReport')).toBe(140000n)
+    expect(gasLimit(gas, 'onReport')).toBe(200000n)
     expect(gasLimit(gas, 'onReportViaForwarder')).toBe(400000n)
     expect(() => gasLimit(gas, 'notACall')).toThrow(/no limit for notACall/)
   })

@@ -143,7 +143,7 @@ describe('runOnce', () => {
       marketId: ID, phase: 2, attempt: 1, labels: [2, 2, 1], calibratedBps: [4900, 4900, 4900], evidenceHash: ev,
       evidenceURIHash: keccak256(stringToBytes(uri)), gateHash: GATE, flags: 0, trustSetId: 2, deadline: chain.t + 3600n,
     })
-    expect(gas).toBe(190_000n)
+    expect(gas).toBe(250_000n)
     const digest = panelResultDigest(oracleDomain(10143, ORACLE), p)
     expect(await recoverAddress({ hash: digest, signature: sig })).toBe(signer.address)
     expect(chain.simulated.length).toBe(1) // eth_call first
@@ -192,7 +192,7 @@ describe('runOnce', () => {
     const r = (await runOnce(ID, deps))!
     expect(r.route).toBe('AutoPropose')
     expect(r.sent).toBeDefined()
-    expect(chain.sent.map((x) => x.gas)).toEqual([420_000n]) // gas.json submitPanelResultAutoPropose
+    expect(chain.sent.map((x) => x.gas)).toEqual([560_000n]) // gas.json submitPanelResultAutoPropose
     const { [GAS_KEY_AUTO]: _, ...calls } = deps.gas.calls
     const r2 = (await runOnce(ID, { ...deps, gas: { ...deps.gas, calls } }))!
     expect(r2.skipped).toBe(`no gas.json limit for ${GAS_KEY_AUTO}`)

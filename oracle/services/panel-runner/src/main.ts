@@ -11,6 +11,7 @@
 //   SOURCES              optional JSON file {marketId: [page URLs]}
 //   SNAPSHOT_DIR         default ./snapshots
 //   POLL_MS              tick interval (default 30000)
+//   FROM_BLOCK           where the StateChanged scan starts (default the oracle's deploy block)
 import { loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
 import { takeSnapshot } from '@eros-oracle/snapshotter'
 import { existsSync, readFileSync } from 'node:fs'
@@ -36,6 +37,7 @@ const env = z
     SOURCES: z.string().optional(),
     SNAPSHOT_DIR: z.string().default('snapshots'),
     POLL_MS: z.coerce.number().int().positive().default(30_000),
+    FROM_BLOCK: z.coerce.bigint().optional(),
   })
   .parse(process.env)
 
@@ -46,7 +48,7 @@ const models = env.PANEL_MODELS.split(',').map((m) => m.trim())
 const maps: CalibrationMap[] = env.CALIBRATION ? JSON.parse(readFileSync(env.CALIBRATION, 'utf8')) : placeholderMaps(models)
 const sources: Record<string, string[]> = env.SOURCES && existsSync(env.SOURCES) ? JSON.parse(readFileSync(env.SOURCES, 'utf8')) : {}
 const runner = new PanelRunner({
-  chain: viemPanelChain({ rpcUrl: env.RPC_URL, relayerKey: env.RELAYER_PRIVATE_KEY as Hex, deployments: loadDeployments(env.NETWORK) }),
+  chain: viemPanelChain({ rpcUrl: env.RPC_URL, relayerKey: env.RELAYER_PRIVATE_KEY as Hex, deployments: loadDeployments(env.NETWORK), fromBlock: env.FROM_BLOCK }),
   signer: signerFromEnv(),
   prompts: loadPrompts(),
   models,

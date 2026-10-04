@@ -1,4 +1,4 @@
-import { loadGas } from '@eros-oracle/oracle-sdk'
+import { gasLimit, loadGas } from '@eros-oracle/oracle-sdk'
 import { describe, expect, test } from 'bun:test'
 import type { Hex } from 'viem'
 import { actOnContradiction, DISPUTE_MARGIN_SECS } from '../src/dispute'
@@ -23,7 +23,7 @@ describe('acting on a contradiction', () => {
     const { page, pages } = pager()
     const r = await actOnContradiction(p, contradiction, chain, gas, page)
     expect(r.action).toBe('DISPUTED')
-    expect(chain.disputed).toEqual([{ id: ID, gas: 640_000n }])
+    expect(chain.disputed).toEqual([{ id: ID, gas: gasLimit(gas, 'disputeViaVenue') }])
     expect(pages.map((x) => x.kind)).toEqual(['DISPUTED'])
   })
 
@@ -73,7 +73,7 @@ describe('heartbeat and float', () => {
   test('a heartbeat when none was sent, then every 10 minutes, with gas.json’s limit', async () => {
     const chain = new FakeChain()
     expect(await beat(chain, gas)).not.toBeNull()
-    expect(chain.beats).toEqual([70_000n])
+    expect(chain.beats).toEqual([gasLimit(gas, 'watchdogHeartbeat')])
     chain.t += HEARTBEAT_EVERY_SECS - 1n
     expect(await beat(chain, gas)).toBeNull()
     chain.t += 1n
