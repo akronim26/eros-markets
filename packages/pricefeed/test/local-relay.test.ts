@@ -83,6 +83,22 @@ test('older unknown packet blocks newer source sequence and shared nonce survive
     assert.equal(replacement.get(s.domain,1n)!.state,'UNKNOWN');
   }finally{replacement?.close();s.packets.close();rmSync(s.dir,{recursive:true,force:true});}
 });
+test('restart preserves reserved nonce high-water mark when pending RPC has not seen the send',async()=>{
+  const s=await setup();let replacement:LocalRelay|undefined;
+  try{
+    const original=await s.relay.deliver(config,'owner',s.fence,1n);
+    // The fixture pending RPC remains zero: no proof this reservation is free.
+    s.relay.release();s.relay.close();
+    replacement=new LocalRelay(join(s.dir,'relay.sqlite'),s.packets,s.transport,policy,()=>1000100n);
+    await replacement.start();await replacement.start();
+    s.accepted(original.txHash!);assert.equal((await replacement.reconcile(config,1n)).state,'MINED');
+    s.packets.allocate(s.domain,'owner',s.fence,1000100n,n=>candidate(n));
+    await signPrepared(s.packets,s.domain,'owner',s.fence,2n,signer,()=>1000100n,1000n);
+    const next=await replacement.deliver(config,'owner',s.fence,2n);
+    assert.equal(next.nonce,1n);assert.equal(parseTransaction(next.raw!).nonce,1);
+    assert.equal(replacement.get(s.domain,1n)!.raw,original.raw);
+  }finally{replacement?.close();s.packets.close();rmSync(s.dir,{recursive:true,force:true});}
+});
 test('changed call or gas spending cannot broadcast; local RPC and chain admission are enforced',async()=>{
   const s=await setup();
   try{

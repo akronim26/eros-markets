@@ -133,6 +133,25 @@ quarantine blocks new nonce allocation across workers. Evidence is retained in
 [`docs/recovery-runbook.md`](docs/recovery-runbook.md) for boundaries, operator steps
 and remaining production backup/supervisor work.
 
+`npm run test:pipeline-crash` separately runs the joined continuous pipeline
+against an owned Anvil chain with the real ingress/store. Set PRICEFEED_FORGE,
+PRICEFEED_ANVIL and PRICEFEED_SOLC to the pinned executables as for the local demo.
+It kills the bot at seven boundaries, waits for actual writer leases to expire,
+and restarts another process while the chain stays alive. Five paths continue
+with immutable packets and exactly two accepted observations; two stop safely
+when a reserved transaction lacks durable raw bytes. The source is a fixture.
+Evidence: `artifacts/verification/pipeline-crash.json` and `pipeline-crash.log`.
+This does not complete the production transaction-signer or backup work.
+
+`npm run test:load` exercises seven declared many-market/slow-RPC scenarios, with
+actual bot classes and scripted source/chain responses. It tests independent
+collection, fifty ordered publications across 25 markets, queue expiry, RPC
+timeouts, provider queue pressure and 100-worker shutdown. An unreserved update
+that expires while queued is now archived as EXPIRED so fresh samples can continue.
+Timing/headroom measurements and limits are in `artifacts/verification/load.json`.
+See [`docs/load-evidence.md`](docs/load-evidence.md); these local settings do not
+approve production cadence, request limits or capacity.
+
 ## Risk output contract
 
 The eventual output is one signed depth-N observation through

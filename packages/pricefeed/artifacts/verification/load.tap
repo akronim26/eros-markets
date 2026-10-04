@@ -1,0 +1,173 @@
+TAP version 13
+LOAD_CASE {"scenario":"independent-collection","workers":25,"elapsedMs":1299.82,"sourceCalls":121,"sourceActive":0,"maxSourceActive":3,"rpcCalls":0,"rpcActive":0,"maxRpcActive":0,"perWorkerPolls":[1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":[],"headroomAtBroadcastMs":[],"elapsedSinceSigningAtSimulationMs":[],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto"],"accepted":0,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: 25-market collection remains independent when one book stalls, with no overlapping polls
+ok 1 - 25-market collection remains independent when one book stalls, with no overlapping polls
+  ---
+  duration_ms: 1343.823081
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"slow-rpc-two-rounds","workers":25,"elapsedMs":8084.047,"sourceCalls":100,"sourceActive":0,"maxSourceActive":3,"rpcCalls":451,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":["1691","1765","1837","1905","1973","2045","2122","2190","2262","2332","2398","2467","2536","2605","2677","2741","2809","2880","2949","3021","3090","3157","3225","3296","3369","1844","1956","2031","2103","2175","2242","2316","2386","2455","2530","2599","2665","2735","2806","2878","2944","3010","3081","3150","3230","3303","3367","3436","3507","3575"],"headroomAtBroadcastMs":["27569","27488","27408","27334","27258","27178","27095","27019","26940","26862","26787","26711","26635","26558","26480","26404","26329","26250","26173","26095","26018","25943","25869","25790","25711","27767","27649","27566","27487","27407","27333","27253","27175","27098","27016","26940","26866","26788","26709","26631","26557","26484","26407","26330","26242","26162","26089","26013","25935","25859"],"elapsedSinceSigningAtSimulationMs":["1271","1312","1350","1373","1394","1420","1447","1472","1494","1519","1543","1560","1581","1604","1625","1651","1670","1697","1725","1749","1769","1796","1814","1837","1897","1463","1476","1535","1553","1570","1586","1607","1624","1632","1650","1672","1687","1703","1724","1742","1757","1769","1786","1803","1826","1850","1869","1882","1902","1919"],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto"],"accepted":50,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: 25 markets across three categories share ordered nonces through two slow-RPC publication rounds
+ok 2 - 25 markets across three categories share ordered nonces through two slow-RPC publication rounds
+  ---
+  duration_ms: 8305.015646
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"queued-expiry-and-recovery","injectedDelayMs":31000,"workers":12,"elapsedMs":2718.777,"sourceCalls":48,"sourceActive":0,"maxSourceActive":1,"rpcCalls":99,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[2,2,2,2,2,2,2,2,2,2,2,2],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":["841","887","933","978","1021","1066","1110","1154","1198","1244","1290","1327"],"headroomAtBroadcastMs":["28768","28712","28660","28607","28556","28504","28453","28403","28352","28298","28246","28201"],"elapsedSinceSigningAtSimulationMs":["518","510","559","573","576","578","576","574","573","575","578","578","608"],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics"],"accepted":12,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: queue-expired unsent updates return EXPIRED without consuming nonces, and fresh updates resume
+ok 3 - queue-expired unsent updates return EXPIRED without consuming nonces, and fresh updates resume
+  ---
+  duration_ms: 2846.771668
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"rpc-timeout-late-completion","workers":3,"elapsedMs":2371.541,"sourceCalls":4,"sourceActive":0,"maxSourceActive":1,"rpcCalls":13,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[2,0,0],"maxBookActive":[1,0,0],"sourceAgeAtBroadcastMs":["2246"],"headroomAtBroadcastMs":["27546"],"elapsedSinceSigningAtSimulationMs":["21","2072"],"categories":["crypto","sports","politics"],"accepted":1,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: RPC simulation timeout allocates no nonce and late completion cannot broadcast
+ok 4 - RPC simulation timeout allocates no nonce and late completion cannot broadcast
+  ---
+  duration_ms: 2440.670567
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"continuous-queue-expiry","injectedDelayMs":31000,"expired":1,"workers":8,"elapsedMs":2431.333,"sourceCalls":39,"sourceActive":0,"maxSourceActive":1,"rpcCalls":137,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[3,3,3,3,3,3,3,2],"maxBookActive":[1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":["683","726","772","816","863","909","930","954","967","956","942","927","911","896","885"],"headroomAtBroadcastMs":["28767","28700","28632","28566","28498","28430","28364","28295","28869","28813","28760","28707","28653","28600","28546"],"elapsedSinceSigningAtSimulationMs":["21","315","367","394","412","426","445","458","506","319","335","334","336","337","338","335"],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports"],"accepted":15,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: continuous joined service survives shared-queue expiry and continues with fresh source captures
+ok 5 - continuous joined service survives shared-queue expiry and continues with fresh source captures
+  ---
+  duration_ms: 2474.101076
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"provider-backpressure","degradedDuringBurst":16,"workers":20,"elapsedMs":880.243,"sourceCalls":64,"sourceActive":0,"maxSourceActive":2,"rpcCalls":0,"rpcActive":0,"maxRpcActive":0,"perWorkerPolls":[2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":[],"headroomAtBroadcastMs":[],"elapsedSinceSigningAtSimulationMs":[],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports"],"accepted":0,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: provider queue pressure archives truthful gaps and workers recover after the burst drains
+ok 6 - provider queue pressure archives truthful gaps and workers recover after the burst drains
+  ---
+  duration_ms: 923.033576
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"100-worker-drain","workers":100,"elapsedMs":2126.5,"sourceCalls":300,"sourceActive":0,"maxSourceActive":1,"rpcCalls":0,"rpcActive":0,"maxRpcActive":0,"perWorkerPolls":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":[],"headroomAtBroadcastMs":[],"elapsedSinceSigningAtSimulationMs":[],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto"],"accepted":0,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: 100-worker collection drains all admitted work and shutdown wakes long poll timers
+ok 7 - 100-worker collection drains all admitted work and shutdown wakes long poll timers
+  ---
+  duration_ms: 2173.984494
+  type: 'test'
+  ...
+# Subtest: joined early-halt recorder sends fresh packets, archives closure as a gap, and never invents a final price
+ok 8 - joined early-halt recorder sends fresh packets, archives closure as a gap, and never invents a final price
+  ---
+  duration_ms: 594.057326
+  type: 'test'
+  ...
+# Subtest: deadline crossing during signing preserves immutable packet but reserves no nonce and broadcasts nothing
+ok 9 - deadline crossing during signing preserves immutable packet but reserves no nonce and broadcasts nothing
+  ---
+  duration_ms: 325.166741
+  type: 'test'
+  ...
+# Subtest: joined scheduler exits a completed recorder without another venue read or new packet
+ok 10 - joined scheduler exits a completed recorder without another venue read or new packet
+  ---
+  duration_ms: 237.661761
+  type: 'test'
+  ...
+# Subtest: slow relay simulation or transaction signing cannot broadcast across the recording deadline
+ok 11 - slow relay simulation or transaction signing cannot broadcast across the recording deadline
+  ---
+  duration_ms: 694.377591
+  type: 'test'
+  ...
+# Subtest: joined pipeline archives, builds, signs, sends and validates acceptance; degraded input creates no packet
+ok 12 - joined pipeline archives, builds, signs, sends and validates acceptance; degraded input creates no packet
+  ---
+  duration_ms: 365.339211
+  type: 'test'
+  ...
+# Subtest: unknown delivery blocks newer allocation and restart retries the identical packet/transaction
+ok 13 - unknown delivery blocks newer allocation and restart retries the identical packet/transaction
+  ---
+  duration_ms: 433.426963
+  type: 'test'
+  ...
+# Subtest: overlapping callbacks are rejected and successive observations consume distinct shared nonces
+ok 14 - overlapping callbacks are rejected and successive observations consume distinct shared nonces
+  ---
+  duration_ms: 439.614757
+  type: 'test'
+  ...
+# Subtest: startup rejects unknown higher onchain state and active leases renew without sequence reuse
+ok 15 - startup rejects unknown higher onchain state and active leases renew without sequence reuse
+  ---
+  duration_ms: 403.235876
+  type: 'test'
+  ...
+# Subtest: two market workers sign independent sequences while one relay serializes their concurrent nonces
+ok 16 - two market workers sign independent sequences while one relay serializes their concurrent nonces
+  ---
+  duration_ms: 597.987953
+  type: 'test'
+  ...
+# Subtest: continuous joined service shuts down cleanly and source quarantine cannot resume an unknown send
+ok 17 - continuous joined service shuts down cleanly and source quarantine cannot resume an unknown send
+  ---
+  duration_ms: 689.905884
+  type: 'test'
+  ...
+# Subtest: concrete RPC adapter rejects external destinations and missing listing ABI before any request
+ok 18 - concrete RPC adapter rejects external destinations and missing listing ABI before any request
+  ---
+  duration_ms: 0.789581
+  type: 'test'
+  ...
+# Subtest: new invalid source evidence does not rebroadcast an older valid packet, but its receipt is reconciled
+ok 19 - new invalid source evidence does not rebroadcast an older valid packet, but its receipt is reconciled
+  ---
+  duration_ms: 364.592835
+  type: 'test'
+  ...
+# Subtest: restart expires an unsent allocation and burns its sequence before publishing new evidence
+ok 20 - restart expires an unsent allocation and burns its sequence before publishing new evidence
+  ---
+  duration_ms: 390.70797
+  type: 'test'
+  ...
+# Subtest: opted-in joined pipeline delivers invalid checkpoints and archives original calculated impacts
+ok 21 - opted-in joined pipeline delivers invalid checkpoints and archives original calculated impacts
+  ---
+  duration_ms: 451.71487
+  type: 'test'
+  ...
+# Subtest: fresh invalid checkpoint supersedes an unsent valid allocation without reusing its sequence
+ok 22 - fresh invalid checkpoint supersedes an unsent valid allocation without reusing its sequence
+  ---
+  duration_ms: 382.585505
+  type: 'test'
+  ...
+# Subtest: invalid transition cannot skip an unknown valid transaction or mutate its frozen packet
+ok 23 - invalid transition cannot skip an unknown valid transaction or mutate its frozen packet
+  ---
+  duration_ms: 466.111912
+  type: 'test'
+  ...
+# Subtest: source outage suppresses rebroadcast while retaining immutable unresolved delivery
+ok 24 - source outage suppresses rebroadcast while retaining immutable unresolved delivery
+  ---
+  duration_ms: 369.147046
+  type: 'test'
+  ...
+# Subtest: continuous collection isolates slow worker, never overlaps a poll, and abort wakes long timers
+ok 25 - continuous collection isolates slow worker, never overlaps a poll, and abort wakes long timers
+  ---
+  duration_ms: 9.318939
+  type: 'test'
+  ...
+# Subtest: journal/callback failure stops the service and drains running polls before returning
+ok 26 - journal/callback failure stops the service and drains running polls before returning
+  ---
+  duration_ms: 1.029135
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 27921.186323

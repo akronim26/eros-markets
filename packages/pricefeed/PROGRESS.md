@@ -1179,7 +1179,13 @@ The observed diff contains recovery-child.ts and recovery.test.ts only. The
 actual relay fix was applied in the working tree afterward; this commit message
 alone does not mean the expiry regression passes in that committed snapshot.
 
-## Pending — expiry quarantine fix, crash evidence and recovery runbook
+## 987c6fc — expiry quarantine fix, crash evidence and recovery runbook
+
+Observed commit: `987c6fc4428e656ca8171383b4049972d502fd6e`,
+04 October 2026 11:20:40 +05:30.
+Message: `fix: persist expired relay quarantine and recovery evidenc`.
+The actual relay change, recovery runner/runbook and retained results are now in
+the observed user commit. The recorded message is preserved exactly from Git.
 
 Base: `fff4013a76a7879a9b77fdd333c182ffc5053b5b`.
 Suggested message: `fix: persist expired relay quarantine and recovery evidence (PF016)`.
@@ -1244,3 +1250,148 @@ Next independent work is many-worker load/slow-RPC evidence and an owned-chain
 joined crash campaign. Production transaction-signer backup/reservations,
 canonical block-labeled reads, nonce replacement/cancellation, approved budgets,
 supervisor/monitoring, mapping/calibration and named acceptance remain open.
+
+## Pending — many-market load and queue-expiry handling (PF024)
+
+Base: `987c6fc4428e656ca8171383b4049972d502fd6e`.
+Suggested message: `fix: expire queued price updates without stopping the bot (PF024)`.
+User requested the next step after the simple four-commit explanation. Scope
+remains packages/pricefeed on pricefeed; commits are manual and reminders every
+ten minutes. This slice measures declared local fixture workloads, not approved
+Polymarket/RPC capacity or production cadence.
+
+**Implemented.** Added mixed crypto/sports/politics worker fixtures with distinct
+mapping/rules/domain identity, actual Worker/Journal/PacketStore/LocalTestSigner/
+LocalRelay/LocalPipeline and a shared RequestLimiter. Source and RPC/receipts are
+scripted; monotonic elapsed time drives the fixture clock, with explicitly
+injected 31-second offset for deterministic expiry cases. No network client,
+external transaction or production adapter is constructed.
+
+Initial six-case load suite passed five and failed queued expiry: twelve signed
+unreserved packets became stale behind one gated simulation and process()
+rejected them rather than returning normal EXPIRED results. LocalPipeline now
+rechecks source headroom at queue execution and converts pre-reservation relay
+headroom exhaustion into durable UNSENT_HEADROOM_EXPIRED. Sequence is burned,
+original signed packet/time/bytes are retained, and pending work is removed.
+Existing reserved deliveries remain subject to relay quarantine/recovery.
+No timestamp rewrite, unsigned replacement or production coalescing policy is
+introduced. After the fix, the six load cases plus existing pipeline suite pass
+23/23. Added a seventh case proving the continuous joined service survives the
+same expiry, archives new source captures and reaches fresh acceptance for each
+worker. Added test:load runner and docs/load-evidence.md with explicit fixture
+budgets, what is measured and production limits. README/decisions/plan-status
+describe the new behavior and its boundaries.
+
+**Final verification.** `npm run test:load` exits 0 with 26 focused tests (seven
+load, seventeen existing pipeline and two service tests). Complete `npm test`
+exits 0: **258 tests**, zero failures/skips/cancellations/todo, including 144
+Fraction vectors (seed 20261002). Build, `npm run check:wire`,
+`npm run test:reference` and `git diff --check` exit 0. The initial 5/6 failure is
+retained as the regression that drove the fix; it is not described as a pass.
+Full suite runs outside the sandbox under the existing authorization for CLI
+subprocess output pipes. No owned Solidity test was rerun for this bot-side
+queue change; prior signed lifecycle/ingress evidence remains historical.
+
+Declared workloads: 25 collectors with one gated book (other workers poll at
+least twice, no per-worker overlap); two rounds of 25 distinct mapped/domain
+workers across crypto/sports/politics (50 scripted accepted receipts, shared
+nonces 0–49, per-source sequences 1/2); twelve signed packets aged 31 seconds
+before nonce reservation (EXPIRED, no broadcast, unchanged fields/signatures,
+fresh replacements at sequence 2 with nonces 0–11); a two-second simulation
+timeout followed by harmless late completion and immutable retry; eight-worker
+continuous service expiry/recovery; queue-cap-four burst across 20 workers
+(16 truthful degraded gaps, subsequent recovery); and 100-worker initial drain/
+shutdown with explicit rejection of 101 workers. Provider queue saturation never
+manufactures an observation. Packet/source archives verify in all scenarios.
+
+Measured focused-run examples: 25-market two-round scenario elapsed 8,084.047 ms
+including setup, crypto, SQLite/source/RPC work; maximum fixture source age at
+broadcast 3,575 ms, minimum source headroom 25,711 ms, maximum elapsed since
+signer completion at simulation 1,919 ms. Raw arrays and all scenario timings
+are retained, rather than converted into an approved throughput SLA. Source
+spacing one ms, source delay zero/one ms, RPC delay zero/three ms, two-second
+RPC timeout, 60-second writer leases and one-second headroom are test settings.
+The fixture clock uses monotonic elapsed ms plus the explicit 31,000-ms offset
+in expiry cases; this is not elapsed soak. Actual network inclusion/finality,
+IP-wide request coordination and production queue fairness remain unmeasured.
+
+Evidence: artifacts/verification/load.json and load.tap bind the actual command,
+seven measured cases, tested source SHA-256 and limitations; load-unit.json binds
+the final 258-test TAP count/log hash, actual base commit, source hashes, wire/
+reference results and original failing regression. No future commit, named
+gate acceptance, capacity guarantee or new external transaction is claimed.
+The seven load/focused 26/reference 144 counts are already included in 258.
+
+**Remaining/next.** These are short small-book fixtures with scripted source/RPC
+and actual bot/journal classes. CollectionService source isolation is separate
+from LocalPipeline.run, which still awaits publication per worker and serializes
+shared RPC work; full collection/publication decoupling is not certified.
+No queue coalescing, closure/invalid priority or operational policy is silently
+selected. Next independent work is a joined LocalPipeline crash campaign against
+owned Anvil. Sustained/larger-book/load/availability and calibration budgets,
+disk/permissions/power pressure, production signer/backup/RPC/lifecycle reads,
+nonce recovery, supervisor/monitoring and named acceptance remain open.
+
+## Pending — joined continuous-pipeline Anvil crash campaign (PF016/PF018)
+
+Base: `987c6fc4428e656ca8171383b4049972d502fd6e`. The preceding load slice is
+also still uncommitted in this working tree. Suggested message for this slice:
+`test: verify joined pipeline crash recovery on Anvil (PF016)`.
+User requested continuation after the seven-major-work-block explanation.
+Scope remains package-only on pricefeed, with manual commits and ten-minute
+reminders. No production or external-network transaction is authorized.
+
+**Implemented.** Added test:pipeline-crash, its pinned Python runner, an owned
+Anvil parent and a separate bot child. The child uses actual LocalPipeline.run,
+Worker, all four existing journals, LocalTestSigner, LocalRelay and the concrete
+loopback RPC adapter. Parent creates the existing package-owned receiver importing
+real PriceIngress/ObservationStore and keeps Anvil alive through OS SIGKILL.
+Source event/metadata/book responses, public keys and listing inputs are fixtures.
+No risk/CLOB/oracle source, deployment configuration or shared gate was changed.
+
+Seven boundaries: SIGNED, PREPARING, TX_SIGNED, UNKNOWN before network I/O,
+BROADCAST after actual EVM acceptance but before the bot receives the result,
+MINED, FINALIZED. Five cases recover immutable packet/digest/signature and any
+saved raw transaction/hash, accept sequences 1/2 exactly once, and continue the
+next transaction nonce. Parent independently checks actual ObservationAccepted
+logs, payload digest, transaction hashes, fixture midpoint 0.60 and valid depth.
+Already accepted cases broadcast only the new sequence on restart. An immediate
+replacement is rejected; later restart waits actual stored lease deadlines
+(approximately ten seconds here), without time warp or lease edits.
+
+PREPARING and TX_SIGNED safely block PIPELINE_DELIVERY_RECOVERY_REQUIRED because
+the local transaction signer has no independently durable raw transaction
+journal. Both preserve packet and delivery bytes, consume no chain nonce and
+produce zero acceptance events. These are expected safety blocks, not automatic
+recovery passes. Also added a unit regression verifying that a lagging pending
+nonce RPC cannot lower the relay's reserved nonce high-water mark on repeated
+startup. The existing implementation passes; no relay fix was necessary.
+
+**Verification.** Final test:pipeline-crash exits 0: seven boundaries, five
+continuations and two expected blocks; report/log bind tool versions, actual base
+commit, source SHA-256, archive location, command and exit code. Pinned Foundry
+1.8.3 tools were restored to /tmp because the earlier temporary directory was
+gone; global 1.5.1 was not substituted. solc 0.8.30 and package Node 24.21.0
+remain pinned. Sandbox localhost bind returned EPERM, so the owned-chain run
+used scoped external-sandbox execution. A first seven-case run also passed;
+additional parent receipt checks initially used the wrong event field name,
+causing compilation failure, then were corrected to payloadDigest before the
+final successful rerun. No assertion was weakened.
+
+Complete npm test exits 0: **259 tests**, zero failures/skips/cancellations/todo,
+including the added nonce regression and the existing 144 Fraction vectors.
+Build, check:wire, test:reference and diff whitespace checks exit 0. The seven
+Anvil boundaries are a separate campaign and are not counted inside 259. Evidence:
+artifacts/verification/pipeline-crash.json, pipeline-crash.log and
+pipeline-crash-unit.json; final unit TAP retained in var/pipeline-crash-full-suite.tap.
+README, decisions, recovery-runbook and plan-status now distinguish this joined
+EVM crash campaign from the previous manually composed scripted-chain drill.
+
+**Remaining/next.** Local joined crash behavior is now measured. Next recovery
+work is independently durable transaction-signer reservation/raw-byte storage
+and coordinated backup/restart controls, so currently blocked signing boundaries
+can be reconciled safely. Interrupted database transactions, disk/power failures,
+actual supervisor startup, production keys/Monad/lifecycle readers/finality,
+longer source/load/calibration campaigns and named review remain open. This
+short fixture-source campaign does not establish production availability or
+complete counterpart economics. No human gate or deployment is claimed.
