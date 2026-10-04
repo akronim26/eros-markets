@@ -226,7 +226,7 @@ describe('finalize batching through the keeper', () => {
   test('the batch limit is the line through the two measured limits, and only measured sizes are allowed', () => {
     expect(finalizeManyGas(GAS, 1)).toBe(gasLimit(GAS, 'finalizeMany1'))
     expect(finalizeManyGas(GAS, 4)).toBe(gasLimit(GAS, 'finalizeMany4'))
-    expect(finalizeManyGas(GAS, 2)).toBe(gasLimit(GAS, 'finalizeMany1') + 220_000n)
+    expect(finalizeManyGas(GAS, 2)).toBe(gasLimit(GAS, 'finalizeMany1') + 300_000n)
     expect(() => finalizeManyGas(GAS, 5)).toThrow(/not measured/)
     expect(() => finalizeManyGas(GAS, 0)).toThrow(/not measured/)
     expect(FINALIZE_BATCH.max).toBe(4)

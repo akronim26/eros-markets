@@ -142,7 +142,7 @@ describe('submission', () => {
     expect(await submitBundle(s, chain, gas)).toMatch(/^0x/)
     expect(chain.simulated.length).toBe(1)
     const sent = chain.sent[0]
-    expect(sent.gas).toBe(610_000n)
+    expect(sent.gas).toBe(820_000n)
     expect(sent.sigs.length).toBe(2) // threshold 2 of the 3 valid
     expect(hexToBigInt(sent.sigs[0].signer) < hexToBigInt(sent.sigs[1].signer)).toBe(true)
     expect(sent.uri).toBe(b.evidenceURI)

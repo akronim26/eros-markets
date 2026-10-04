@@ -95,7 +95,7 @@ describe('a reviewer completes a case in the console', () => {
     expect(chain.sent.length).toBe(1)
     expect(chain.sent[0].sigs.length).toBe(2)
     expect(chain.sent[0].uri).toBe(session.evidenceURI)
-    expect(chain.sent[0].gas).toBe(610_000n)
+    expect(chain.sent[0].gas).toBe(820_000n)
   })
 
   test('without the snapshot in the store the reviewer must take one before proposing', async () => {
