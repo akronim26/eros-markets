@@ -13,12 +13,12 @@ Plan §13: owner both · 3 PD · depends OG2, O31–O38 · acceptance: all pass.
 - Depends: OG2, O31.4, O32.3, O33.5, O34.4, O35.4, O36.2, O37.3, O38.5
 - Plan: §11.3, §12.7
 - Cut: no
-- Status: todo
+- Status: done
 - Files: oracle/e2e/**, docs_oracle/evidence/OG3/
 - Build: Deploy keeper ×2 (two providers), snapshotter and panel runner, committee console, alerts and the indexer for testnet per §12.7; scenario scripts that list markets with `minHorizonSecs = 10 min`, drive each step and write evidence.
 - Done when: a dry scenario (list → halt) runs end to end through the deployed services.
 - Check: manual: deployed service endpoints and one dry scenario log in docs_oracle/evidence/OG3/
-
+- Notes: Done 4-5 Oct 2026 (ADJ-52): oracle/e2e drives the scenarios against the deployed oracle with the keeper, panel runner, watchdog, indexer and CRE listener running; the dry scenario (list → halt) passed, the keeper halting at T exactly. Evidence: docs_oracle/evidence/OG3/DRY/ and OG3/README.md.
 ### O40.2 · E1 and E8
 - Owner: OB
 - PD: 0.5
@@ -37,36 +37,36 @@ Plan §13: owner both · 3 PD · depends OG2, O31–O38 · acceptance: all pass.
 - Depends: O40.1
 - Plan: §11.3, E2, E3, E4
 - Cut: no
-- Status: todo
+- Status: done
 - Files: docs_oracle/evidence/OG3/E2, docs_oracle/evidence/OG3/E3, docs_oracle/evidence/OG3/E4
 - Build: E2 provider blocked → escalate → panel → Review → committee → assert → public dispute → sandbox answers true → Final; E3 the same with false → committee proposes a different outcome → Final; E4 YES rejected then NO rejected → Voided → `settleInvalid` → INVALID price at the T capture.
 - Done when: E2 path REVIEWED and visible on Disputes Live; E3 `rejectedMask` set and no repeat; E4 INVALID payouts.
 - Check: manual: E2, E3 and E4 evidence with tx hashes
-
+- Notes: Done 4 Oct 2026: E2, E3 and E4 passed on testnet (ADJ-52). Evidence: docs_oracle/evidence/OG3/E2, E3, E4.
 ### O40.4 · E5 and E7
 - Owner: OA
 - PD: 0.5
 - Depends: O40.1
 - Plan: §11.3, E5, E7
 - Cut: no
-- Status: todo
+- Status: done
 - Files: docs_oracle/evidence/OG3/E5, docs_oracle/evidence/OG3/E7
 - Build: E5 no proposal by the L2 deadline → Open → permissionless proposal with own bond → Final; E7 never-answered dispute → `voidMarket` at `voidDeadline` (voidSecs 2 h).
 - Done when: E5 bond returned and reward paid or IOU recorded; E7 Final INVALID with the stuck bond recorded.
 - Check: manual: E5 and E7 evidence with tx hashes
-
+- Notes: Done 4 Oct 2026: E5 (permissionless proposal, bond returned and 1 USDC RewardPaid) and E7 (void at the deadline, BondStuck recorded) passed. Evidence: docs_oracle/evidence/OG3/E5, E7.
 ### O40.5 · E6 and E9
 - Owner: OA
 - PD: 0.5
 - Depends: O40.1
 - Plan: §11.3, E6, E9
 - Cut: no
-- Status: todo
+- Status: done
 - Files: docs_oracle/evidence/OG3/E6, docs_oracle/evidence/OG3/E9
 - Build: E6 monitor reduce-only → EarlyCheck → panel known → EarlyReview → committee → engine halts before T → Final before T; E9 exclusive group of three with two racing YES reports.
 - Done when: E6 `haltedAt < T` and claims before T; E9 a single Final YES (ORC-7).
 - Check: manual: E6 and E9 evidence with tx hashes
-
+- Notes: Done 4 Oct 2026: E6 (Final before T) and E9 (single Final YES in the group, ORC-7) passed (ADJ-52 on E9). Evidence: docs_oracle/evidence/OG3/E6, E9.
 ### O40.6 · E10 and E11
 - Owner: OB
 - PD: 0.5
