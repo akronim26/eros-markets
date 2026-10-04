@@ -13,8 +13,10 @@ seal for RB-I11 is implemented in `dcb6b0e`, with 21 passing sampler regressions
 runner migration is implemented in `bee683b` plus `e05bbbb`, with 17 mocked regressions passing;
 ordered G0-G7 all exit 0 at metadata `c91acf7`. Earlier exit-2 records remain historical.
 The user's explicit conditional G7 acceptance is now satisfied and recorded at
-**2026-10-03 17:39:11 UTC** for that source. Main merge remains unauthorized. The user separately
-authorized the current-source Monad testnet foundation deployment on 2026-10-04; it succeeded.
+**2026-10-03 17:39:11 UTC** for that source. On 2026-10-04 the user separately authorized committing
+the sponsor plan, fast-forwarding `main` to `integration/risk`, and pushing both branches (MAIN-01).
+The local fast-forward succeeded without conflicts; the publication checkpoint is recorded below.
+The user separately authorized the current-source Monad testnet foundation deployment; it succeeded.
 Historical turn-log review blockers are not current dependencies.
 
 **RB-DEPLOY complete:** source `162ac92`, Solidity unchanged at `dcb6b0e`, now deployed as engine
@@ -29,13 +31,13 @@ choices are confirmed in `docs/questions/A-I01.md`; B-D01 through B-D05 have A d
 B's `32d30ac` review of A's earlier seven commits remains recorded for that historical range.
 
 At the human's explicit request, main `a114d06` was merged **into integration/risk** at `13ca730`.
-Main was not changed. The old three-conflict rehearsal is superseded: this merge reconciled five
+Main was not changed by that earlier merge. The old three-conflict rehearsal is superseded: it reconciled five
 conflicts and silent canonical-type/helper hazards while retaining the reviewed accounting and
 stronger risk predicates. See `docs/merge/main-merge-prep.md`.
 
 The current non-oracle repair turn starts from `1958aef`. The user explicitly extended ownership
 to book internals and all Risk & Clearing work, including Person B's modules. Oracle implementation
-and oracle-branch integration remain excluded. Main is unchanged. The source commits through
+and oracle-branch integration remain excluded. Main stayed unchanged during that repair series. The source commits through
 `be3db1e` implement RB-I02–RB-I07 and RB-I09. RB-I10's SDK pin is `56787d2`. The user confirmed
 RB-I08: retain guarded safe excess-collateral release during REDUCE_ONLY; `4a050df` records
 seven focused regressions. Latest source `dcb6b0e` also includes RB-I11 and RB-I12.
@@ -535,3 +537,25 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Next owner: frontend/oracle integration team for activation/feed/UI and a correctly configured
   real-oracle market. Current fixture halt time is **2026-10-13 19:39:36 UTC**. No further broadcast
   or main update is included; see root `addresses.md` rather than the old closed-market ledger.
+
+### 2026-10-04 (SP-00 / MAIN-01) — unified Risk and Order Book — turn complete; checkpoint ready for publication
+
+- User explicitly confirmed: commit `SPONSOR_INTEGRATION_PLAN.md`, fast-forward `main` to
+  `integration/risk`, and push both branches. This is separate from the earlier G7 authorization;
+  it does not authorize production release, oracle integration or sponsor implementation.
+- Fresh fetch: `origin/main` was `a114d06`, an ancestor of `integration/risk@c3510b8`, with
+  zero main-only and 91 integration-only commits. Local main was also an ancestor of origin/main.
+- `dcad454` commits the root sponsor plan: all 21 bounty entries, shared work, difficulty,
+  blockers, current-source corrections and evidence boundaries. No implementation/configuration
+  changes or new deployment accompany it. Unrelated untracked handoff and Python caches remain local.
+- Document checks pass: 21 unique bounty sections, valid local links, no detected credential
+  patterns; staged whitespace check exits 0. `git diff --quiet c91acf7 HEAD -- contracts scripts
+  reference packages` exits 0: executable source remains the accepted candidate. Existing test/gate
+  evidence is preserved; no fresh test suite or new peer approval is claimed for this promotion.
+- Local `git merge --ff-only integration/risk` succeeds on main at `dcad454`; no conflict resolution,
+  merge commit, force-push or rewritten history. This status-only commit accompanies the promotion;
+  both branches are to be advanced to it and published together using an atomic, non-forced push.
+- Scope remains the completed non-oracle risk/book checkpoint and controlled testnet foundation.
+  Actual oracle/factory/INDEX services, active product demo and selected sponsor integrations remain
+  future work. Branch equality and remote publication are verified after pushing; Git refs identify
+  the published checkpoint without changing historical gate acceptance SHAs.
