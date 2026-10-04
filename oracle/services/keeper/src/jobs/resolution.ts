@@ -32,8 +32,6 @@ export const REQUEST_EVERY_SECS = 300n // the contract's own floor is minRequest
 export const FINALIZE_BATCH_MAX = 4 // finalizeMany4 is the largest batch measured
 
 export type ResolutionPlannerOptions = {
-  /** False on testnet, where markets run on ResolutionEngineStub. */
-  realEngine: boolean
   requestEverySecs?: bigint
 }
 
@@ -52,11 +50,12 @@ export const FINALIZE_BATCH: Batch = {
   gas: finalizeManyGas,
 }
 
-export function resolutionPlanner(opts: ResolutionPlannerOptions): Planner {
+export function resolutionPlanner(opts: ResolutionPlannerOptions = {}): Planner {
   const every = opts.requestEverySecs ?? REQUEST_EVERY_SECS
-  const engine = opts.realEngine ? 'RealEngine' : ''
 
   return async (v: MarketView): Promise<Job[]> => {
+    const realEngine = v.engineIdentity.kind === 'book-risk'
+    const engine = realEngine ? 'RealEngine' : ''
     const { resolution: r, info, now } = v
     const job = (action: string, functionName: string, gasKey: string, extra: Partial<Job> = {}, target: Target = 'ResolutionOracle'): Job[] => [
       { marketId: v.id, stateVersion: v.stateVersion, action, target, functionName, args: [v.id], gasKey, ...extra },
@@ -108,7 +107,7 @@ export function resolutionPlanner(opts: ResolutionPlannerOptions): Planner {
         // From Disputed, an unsettled dispute returns DISPUTED again: nothing to send.
         const isNoop = (res: unknown) =>
           res === FinalizeStatus.NOT_READY || (s === RState.Disputed && res === FinalizeStatus.DISPUTED)
-        return job('finalize', 'finalizeMarket', `finalizeMarket${engine}`, { isNoop, batch: opts.realEngine ? undefined : FINALIZE_BATCH })
+        return job('finalize', 'finalizeMarket', `finalizeMarket${engine}`, { isNoop, batch: realEngine ? undefined : FINALIZE_BATCH })
       }
     }
     return []

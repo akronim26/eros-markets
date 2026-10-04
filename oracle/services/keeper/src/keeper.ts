@@ -8,6 +8,7 @@
 // is forgotten when its transaction reverts or stays unconfirmed past `resendAfterMs`, so lost sends are retried.
 // A planner may return fallbacks: each job that would revert or change nothing gives way to the next.
 import { type GasTable, gasLimit } from '@eros-oracle/oracle-sdk'
+import { measuredJobGas } from './gas'
 import type { Hex } from 'viem'
 import { jobKey, stateVersion } from './version'
 import type {
@@ -99,7 +100,14 @@ export class Keeper {
       try {
         const resolution = await chain.getResolution(id)
         const info = await this.info(id)
-        return { id, resolution, stateVersion: stateVersion(resolution), now, info, reads: this.reads(id, resolution, info), alert: this.alert(id) }
+        let engineIdentity
+        try {
+          engineIdentity = await chain.engineIdentity(info.engine)
+        } catch (error) {
+          this.alert(id)('engine identity unverified: market skipped', { engine: info.engine, error: String(error) })
+          return null
+        }
+        return { id, resolution, stateVersion: stateVersion(resolution), now, info, engineIdentity, reads: this.reads(id, resolution, info), alert: this.alert(id) }
       } catch (e) {
         log.warn('market unreadable', { marketId: id, error: String(e) })
         return null
@@ -177,7 +185,7 @@ export class Keeper {
             throw new Error(`planner returned a job for ${j.marketId}@${j.stateVersion}, not the market it was given`)
           }
         }
-        if (jobs.length) return jobs
+        if (jobs.length) return jobs.map((job) => ({ ...job, engineIdentity: { ...v.engineIdentity, address: v.info.engine } }))
       } catch (e) {
         this.o.log.error('planner failed', { marketId: v.id, error: String(e) })
       }
@@ -245,6 +253,14 @@ export class Keeper {
     }
     this.sent.set(key, { hash: null, at: this.o.clock(), oracle: !job.freshVersion }) // before any await, so a concurrent duplicate stops above
     try {
+      job = await this.validateEngine(job)
+      try {
+        gas = measuredJobGas(this.o.gas, job)
+      } catch (error) {
+        this.sent.delete(key)
+        log.error('no measured gas limit: job not sent', { key, gasKey: job.gasKey, error: String(error) })
+        return result('no-gas-limit', { error: String(error) })
+      }
       const fresh = job.freshVersion ? await job.freshVersion() : stateVersion(await chain.getResolution(job.marketId))
       if (fresh !== job.stateVersion) {
         this.sent.delete(key)
@@ -271,16 +287,59 @@ export class Keeper {
     }
   }
 
+  private async validateEngine(job: Job): Promise<Job> {
+    if (job.target === 'BondTreasury') return job
+    const info = await this.info(job.marketId)
+    const identity = await this.o.chain.engineIdentity(info.engine)
+    const expected = job.engineIdentity
+    if (expected && (expected.address.toLowerCase() !== info.engine.toLowerCase()
+      || expected.kind !== identity.kind || expected.runtimeCodehash !== identity.runtimeCodehash || expected.chainId !== identity.chainId)) {
+      throw new Error(`engine identity changed for ${job.marketId}`)
+    }
+    if (job.target === 'Engine' && job.address?.toLowerCase() !== info.engine.toLowerCase()) {
+      throw new Error(`engine job address does not match market ${job.marketId}`)
+    }
+    if (job.target === 'Engine' && identity.kind !== 'book-risk') {
+      throw new Error(`settlement preparation requires a BookRiskEngine for ${job.marketId}`)
+    }
+    return { ...job, engineIdentity: { ...identity, address: info.engine } }
+  }
+
   private async send(call: Job, members: Checked[], gas: bigint): Promise<JobResult[]> {
+    const refused: JobResult[] = []
+    const verified = await mapLimit(members, this.o.concurrency, async (member): Promise<Checked | null> => {
+      try {
+        await this.validateEngine(member.job)
+        return member
+      } catch (error) {
+        this.sent.delete(member.key)
+        this.o.log.error('engine identity unverified: job not sent', { alert: true, key: member.key, error: String(error) })
+        refused.push({ key: member.key, job: member.job, outcome: 'failed', error: String(error) })
+        return null
+      }
+    })
+    const remaining = verified.filter((member): member is Checked => member !== null)
+    if (!remaining.length) return refused
+    if (remaining.length !== members.length) {
+      if (remaining.length === 1) {
+        call = remaining[0].job
+        gas = remaining[0].gas
+      } else {
+        const batch = remaining[0].job.batch!
+        call = { ...remaining[0].job, ...batch.call(remaining.map((member) => member.job.marketId)), action: `${batch.key}-batch`, batch: undefined }
+        gas = batch.gas(this.o.gas, remaining.length)
+      }
+      members = remaining
+    }
     try {
       const hash = await this.o.chain.send(call, gas)
       for (const m of members) this.sent.set(m.key, { hash, at: this.o.clock(), oracle: !m.job.freshVersion })
       this.o.log.info('sent', { keys: members.map((m) => m.key), hash, gas: gas.toString() })
-      return members.map((m) => ({ key: m.key, job: m.job, outcome: 'sent' as const, hash }))
+      return [...refused, ...members.map((m) => ({ key: m.key, job: m.job, outcome: 'sent' as const, hash }))]
     } catch (e) {
       for (const m of members) this.sent.delete(m.key)
       this.o.log.warn('send failed, retried next tick', { keys: members.map((m) => m.key), error: String(e) })
-      return members.map((m) => ({ key: m.key, job: m.job, outcome: 'failed' as const, error: String(e) }))
+      return [...refused, ...members.map((m) => ({ key: m.key, job: m.job, outcome: 'failed' as const, error: String(e) }))]
     }
   }
 

@@ -6,7 +6,7 @@ import { Keeper } from '../src/keeper'
 import { StaticSource } from '../src/sources'
 import type { AssertionStatus, Job, MarketInfo, MarketView, Resolution } from '../src/types'
 import { stateVersion } from '../src/version'
-import { FakeChain, GAS, id, INFO, resolution } from './fake'
+import { BOOK_IDENTITY, FakeChain, GAS, id, INFO, resolution, STUB_IDENTITY, withoutGasLimits } from './fake'
 
 const LIVE = id(77)
 const VENUE = '0x00000000000000000000000000000000000000aa' as Hex
@@ -24,6 +24,7 @@ async function plan(r: Partial<Resolution>, now: bigint, o: Opts = {}) {
     stateVersion: stateVersion(res),
     now,
     info: { ...INFO, ...o.info },
+    engineIdentity: o.realEngine ? BOOK_IDENTITY : STUB_IDENTITY,
     reads: {
       assertionStatus: async () => (reads.push('status'), { exists: true, disputed: false, settled: false, truthful: false, expiresAt: 0n, ...o.status }),
       assertionLedger: async () => (reads.push('ledger'), o.ledger ?? 10_000_000_000n),
@@ -36,7 +37,7 @@ async function plan(r: Partial<Resolution>, now: bigint, o: Opts = {}) {
     },
     alert: (msg) => alerts.push(msg),
   }
-  const jobs = await resolutionPlanner({ realEngine: o.realEngine ?? false })(v)
+  const jobs = await resolutionPlanner()(v)
   return { jobs, job: jobs[0] as Job | undefined, alerts, reads, v }
 }
 const action = async (r: Partial<Resolution>, now: bigint, o: Opts = {}) => (await plan(r, now, o)).job?.action ?? null
@@ -62,7 +63,7 @@ describe('every planned job names a measured gas limit', () => {
     }
     expect((await plan({ state: RState.None }, T, { realEngine: true })).job?.gasKey).toBe('haltScheduledRealEngine')
     expect((await plan({ state: RState.L2Pending, voidDeadline: 5000n }, 5000n, { realEngine: true })).job?.gasKey).toBe('voidMarketRealEngine')
-    expect(() => gasLimit(GAS, 'voidMarketRealEngine')).toThrow() // not measured yet: the keeper will not send it
+    expect(() => gasLimit(withoutGasLimits('voidMarketRealEngine'), 'voidMarketRealEngine')).toThrow()
   })
 })
 
@@ -195,7 +196,7 @@ describe('finalize batching through the keeper', () => {
 
   test('due markets go out as finalizeMany in runs of at most 4, each run with its measured limit', async () => {
     const chain = setup()
-    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner({ realEngine: false })], gas: GAS })
+    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner()], gas: GAS })
     const r = await k.tick()
     expect(r.results.map((x) => x.outcome)).toEqual(Array(6).fill('sent'))
     expect(chain.sends.map((s) => [s.job.target, s.job.functionName, (s.job.args[0] as Hex[]).length, s.gas])).toEqual([
@@ -210,7 +211,7 @@ describe('finalize batching through the keeper', () => {
     const chain = setup()
     chain.revertSim.add(ids[1])
     for (const m of ids.slice(2)) chain.markets.set(m, resolution({ state: RState.Open, voidDeadline: 0n }))
-    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner({ realEngine: false })], gas: GAS })
+    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner()], gas: GAS })
     const r = await k.tick()
     expect(r.results.map((x) => x.outcome).sort()).toEqual(['reverts', 'sent'])
     expect(chain.sends.map((s) => [s.job.functionName, s.gas])).toEqual([['finalizeMarket', gasLimit(GAS, 'finalizeMarket')]])
@@ -219,7 +220,7 @@ describe('finalize batching through the keeper', () => {
   test('nothing to apply yet (NOT_READY) sends nothing', async () => {
     const chain = setup()
     chain.simResult.set('finalizeMarket', FinalizeStatus.NOT_READY)
-    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner({ realEngine: false })], gas: GAS })
+    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner()], gas: GAS })
     expect((await k.tick()).results.map((x) => x.outcome)).toEqual(Array(6).fill('noop'))
     expect(chain.sends).toHaveLength(0)
   })
@@ -235,7 +236,7 @@ describe('finalize batching through the keeper', () => {
 
   test('the listing is read once per market, not every tick', async () => {
     const chain = setup()
-    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner({ realEngine: false })], gas: GAS })
+    const k = new Keeper({ chain, source: new StaticSource(ids), planners: [resolutionPlanner()], gas: GAS })
     await k.tick()
     await k.tick()
     expect(chain.infoReads).toBe(6)
@@ -267,7 +268,7 @@ describe('exclusive group conflict', () => {
     chain.finalYes = OTHER
     chain.markets.set(id(1), resolution({ ...proposedYes, voidDeadline: 0n }))
     chain.simResult.set('assertProposal', false)
-    const k = new Keeper({ chain, source: new StaticSource([id(1)]), planners: [resolutionPlanner({ realEngine: false })], gas: GAS })
+    const k = new Keeper({ chain, source: new StaticSource([id(1)]), planners: [resolutionPlanner()], gas: GAS })
     const r = await k.tick()
     expect(r.results.map((x) => x.outcome)).toEqual(['sent'])
     expect(chain.sends[0].job.functionName).toBe('assertProposal')

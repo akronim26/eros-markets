@@ -1,5 +1,7 @@
 // Every oracle interface and deployed contract whose ABI the SDK carries, with its Solidity source.
-export const ORACLE_ROOT = new URL('../../../../', import.meta.url).pathname
+import { fileURLToPath } from 'node:url'
+
+export const ORACLE_ROOT = fileURLToPath(new URL('../../../../', import.meta.url))
 export const ABI_DIR = `${ORACLE_ROOT}abi`
 
 export const SOURCES: { name: string; source: string; kind: 'interface' | 'contract' }[] = [

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { type GasTable, gasLimit } from '@eros-oracle/oracle-sdk'
+import { type GasTable, gasLimit, ORACLE_ROOT } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { engineFollowUpAbi, EngineOutcome, InvalidReadiness } from '../src/engineAbi'
 import { CHUNK, enginePlanner, engineVersion } from '../src/jobs/engine'
@@ -9,17 +9,17 @@ import { Keeper } from '../src/keeper'
 import { StaticSource } from '../src/sources'
 import type { Logger } from '../src/types'
 import { stateVersion } from '../src/version'
-import { ENGINE, FakeChain, GAS, id, resolution, SETTLEMENT, ZERO32 } from './fake'
+import { BOOK_IDENTITY, ENGINE, FakeChain, GAS, id, resolution, SETTLEMENT, testEngineGas, withoutGasLimits, ZERO32 } from './fake'
 
 /** gas.json plus stand-in limits for the engine calls, which are not measured yet. */
 const WITH_ENGINE: GasTable = {
   ...GAS,
   calls: {
     ...GAS.calls,
-    captureInvalidPrice: { limit: 1 },
-    finishPreparation: { limit: 2 },
-    preparePayoutChunk32: { limit: 3 },
-    prepareSnapshotChunk32: { limit: 4 },
+    captureInvalidPrice: testEngineGas(1),
+    finishPreparation: testEngineGas(2),
+    preparePayoutChunk32: testEngineGas(3),
+    prepareSnapshotChunk32: testEngineGas(4),
   },
 }
 
@@ -35,6 +35,7 @@ function logger() {
 }
 
 function finalMarket(chain: FakeChain) {
+  chain.identities.set(ENGINE, BOOK_IDENTITY)
   chain.markets.set(id(1), resolution({ state: RState.Final, voidDeadline: 0n, outcome: 1 }))
 }
 
@@ -131,11 +132,11 @@ describe('engine follow-up after Final', () => {
     expect(alerts).toEqual(['engine RECOVERY_REQUIRED: claims stay disabled (Risk on-call)'])
   })
 
-  test('with the real gas.json the engine calls are refused: they are not measured yet', async () => {
+  test('an engine call without a configured limit is refused', async () => {
     const chain = new FakeChain()
     finalMarket(chain)
     const { log, errors } = logger()
-    const r = await engineKeeper(chain, GAS, log).tick()
+    const r = await engineKeeper(chain, withoutGasLimits('finishPreparation'), log).tick()
     expect(r.results.map((x) => x.outcome)).toEqual(['no-gas-limit'])
     expect(errors).toEqual(['no measured gas limit: job not sent'])
     expect(chain.sends).toHaveLength(0)
@@ -158,7 +159,7 @@ describe('engine follow-up after Final', () => {
 
   test('the engine ABI copy is what Risk\'s SettlementController compiles to (forge inspect EngineHarness)', () => {
     const p = Bun.spawnSync(['forge', 'inspect', 'EngineHarness', 'abi', '--json'], {
-      cwd: new URL('../../../', import.meta.url).pathname, stdout: 'pipe', stderr: 'pipe',
+      cwd: ORACLE_ROOT, stdout: 'pipe', stderr: 'pipe',
     })
     expect(p.exitCode, p.stderr.toString().slice(-300)).toBe(0)
     const abi = JSON.parse(p.stdout.toString()) as { type: string; name?: string }[]

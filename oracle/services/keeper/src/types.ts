@@ -1,6 +1,7 @@
 // The keeper core only knows these interfaces, so tests can drive it with an in-memory chain.
 import type { GasTable, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import type { ContractFunctionReturnType, Hex } from 'viem'
+import type { EngineIdentity } from './engineIdentity'
 
 /** `getResolution`'s return value as viem decodes it. */
 export type Resolution = ContractFunctionReturnType<typeof ResolutionOracleAbi, 'view', 'getResolution'>
@@ -18,6 +19,7 @@ export type Job = {
   args: readonly unknown[]
   /** The call's deployments/gas.json entry; a job without one is never sent. */
   gasKey: string
+  engineIdentity?: EngineIdentity & { address: Hex }
   /** True when the simulated result means nothing would change (default: the call returned false). */
   isNoop?: (result: unknown) => boolean
   /** Jobs with the same batch key that pass their checks in one tick are sent as one call. */
@@ -108,6 +110,7 @@ export type MarketView = {
   stateVersion: Hex
   now: bigint
   info: MarketInfo
+  engineIdentity: EngineIdentity
   reads: MarketReads
   /** Logged at error level with `alert: true`, for paging. */
   alert(msg: string, data?: Record<string, unknown>): void
@@ -126,6 +129,7 @@ export interface Chain {
   now(): Promise<bigint>
   getResolution(id: Hex): Promise<Resolution>
   marketInfo(id: Hex): Promise<MarketInfo>
+  engineIdentity(engine: Hex): Promise<EngineIdentity>
   globalsMinRequestIntervalSecs(version: number): Promise<bigint>
   assertionStatus(venue: Hex, assertionId: Hex): Promise<AssertionStatus>
   assertionLedger(): Promise<bigint>

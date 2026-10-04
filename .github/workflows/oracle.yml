@@ -32,6 +32,23 @@ jobs:
         run: forge test -vvv
       # The local-deploy suites (keeper O31.4, panel runner O33.5) run locally: bun run test:fork in each service.
 
+  real-integration:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle
+    env:
+      FOUNDRY_PROFILE: integration
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.3
+      - name: Real factory, oracle, risk and book on Monad
+        run: forge test --match-path 'test/integration/*.t.sol' --network monad --hardfork monad:MonadTen --isolate -vv
+
   packages:
     runs-on: ubuntu-latest
     defaults:
@@ -54,6 +71,10 @@ jobs:
       # the vendored libraries under lib/ (ADJ-11).
       - name: Test (packages and services)
         run: bun run --filter '*' test
+      - name: Typecheck integration services
+        run: |
+          bun run --cwd services/keeper typecheck
+          bun run --cwd services/market-ops typecheck
 
   workflow:
     runs-on: ubuntu-latest

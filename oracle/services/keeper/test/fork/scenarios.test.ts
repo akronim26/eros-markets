@@ -3,7 +3,7 @@
 // same snapshot with fresh keeper keys.
 import { loadGas, MarketRegistryAbi } from '@eros-oracle/oracle-sdk'
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { type Address, createPublicClient, type Hex, http } from 'viem'
+import { type Address, createPublicClient, type Hex, http, keccak256 } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { foundry } from 'viem/chains'
 import { viemChain } from '../../src/chain'
@@ -50,7 +50,17 @@ async function instance(delayMs = 0): Promise<Instance> {
   const key = generatePrivateKey()
   const address = privateKeyToAccount(key).address
   await fund(s, address)
-  const chain = viemChain({ rpcUrl: s.rpcUrl, privateKey: key, deployments: s.deployments })
+  const registry = s.deployments.contracts.MarketRegistry.address
+  const market = await s.pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [s.marketId] })
+  const runtime = await s.pc.getCode({ address: market.engine })
+  if (!runtime || runtime === '0x') throw new Error('local fixture engine has no runtime code')
+  const engineIdentities = {
+    version: 1 as const,
+    chainId: s.deployments.chainId,
+    registry,
+    profiles: [{ kind: 'stub' as const, runtimeCodehash: keccak256(runtime) }],
+  }
+  const chain = viemChain({ rpcUrl: s.rpcUrl, privateKey: key, deployments: s.deployments, engineIdentities })
   const sent: Instance['sent'] = []
   const send = chain.send.bind(chain)
   chain.send = async (job, gas) => {
@@ -65,7 +75,7 @@ async function instance(delayMs = 0): Promise<Instance> {
   const keeper = new Keeper({
     chain,
     source: new RegistryLogSource(logs, reg.address as Address, BigInt(reg.deployBlock)),
-    planners: planners({ realEngine: false }), // anvil carries StubMarketFactory, as testnet does
+    planners: planners(),
     globalPlanners: globalPlanners(new TreasuryDisputeSource(logs, tr.address as Address, BigInt(tr.deployBlock))),
     gas: loadGas(),
     delayMs,
