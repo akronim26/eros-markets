@@ -1,8 +1,8 @@
 # Pricefeed plan status — 04 October 2026
 
 Source of requirements: `docs/requests/polymarket-event-price-feed-implementation-plan.pdf`,
-v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 849576c and the
-current local lifecycle additions. This is an implementation/evidence audit, not human gate
+v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit e37d19b and the
+current offline CLI additions. This is an implementation/evidence audit, not human gate
 acceptance. No PF-G0–PF-G7 acceptance is claimed.
 
 “Built” below describes local code/evidence only. A task with approvals, missing
@@ -26,7 +26,7 @@ tests or deployment inputs remains partial even when its core code is present.
 | PF014 Builder | Raw-book/metadata recomputation, rule/domain binding, frozen times/headroom; joined local builder; selected local fresh invalid-depth checkpoints preserve depths/times with zero price/impacts; explicit development lifecycle gates | Production invalid/closure/coalescing/lifecycle policy and concrete lifecycle reader; operational admission; unknown time remains unavailable |
 | PF015 Signer | Raw digest, recovery, low-s/v/serialization checks; independent durable public local-test signer journal | Approved production key backend, identity policy and risk/security review; test key is not an operational signer |
 | PF016 Recovery | Per-engine/source sequences, leases/fences, immutable retry, skipped/exhausted sequence, corrupt archive and lagging restore tests; actual four-journal reopen/resume on owned local chain | Forced OS-kill-at-every-boundary campaign, independent transaction-signing backup reservations/restore checks, production supervisor startup reconciliation |
-| PF017 CLI | validate-config, inspect-book, capture, serve, verify-digest, health and verify-evidence; read-only default | build-observation CLI and comprehensive CLI misuse/redaction tests; library builder is not yet exposed as that command |
+| PF017 CLI | validate-config, inspect-book, capture, serve, verify-digest, health, verify-evidence and offline build-observation; explicit archive/capture/sequence/replay-time inputs, raw recomputation, fixed-code errors and subprocess misuse/redaction tests | Broader operator review of all collection/storage failure paths; production signing/sending commands remain outside authorized scope |
 | PF018 Relay | Joined local pipeline and concrete loopback RPC/test-transaction signer; durable nonces, ordered stream, exact call checks, simulation before nonce reservation, age/spend bounds, unknown sends; two-worker nonce/isolation tests | Production RPC/key adapters, broader measured cross-market campaign, fee replacement/cancellation recovery and approved environment/budgets |
 | PF019 Receipts/reorg | Exact raw event/block/digest validation; invalid-depth success distinguished; mined/finalized/orphaned states; local journal/reorg fixtures | Block-labeled authoritative sourceState reconciliation, persistent quarantine of unknown higher state, production finality policy and wider reorg/RPC-disagreement campaign |
 | PF020 Real ingress | Four wire/short-window tests plus four signed 24-hour lifecycle tests importing real ingress/store/INVALID/risk context with scripted counterparts; earlier live-source campaigns remain separate | Full real counterpart economic/guard composition and expanded negative vectors; fixtures are not authentic oracle or live availability evidence |
@@ -67,6 +67,6 @@ tests or deployment inputs remains partial even when its core code is present.
   This adds real-source evidence to PF016/PF020/PF021 without approving cadence,
   a production listing, provider semantics or human gates.
 
-Next implementation work: operator CLI, broader
+Next implementation work: broader process-crash/restore and
 recovery/load evidence and runbooks. Production mapping, calibration, backend,
 environment, concrete lifecycle reader/policy and independent acceptance must come from the named owners.
