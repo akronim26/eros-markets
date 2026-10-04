@@ -3,13 +3,13 @@ import type { MarketConfig } from './config.js';
 import type { PacketDomain, PacketStore } from './packet-store.js';
 import { DurableObservationSigner } from './durable-observation-signer.js';
 import { DurableTransactionSigner, type RelayTransactionRequest, type TransactionReservation } from './durable-transaction-signer.js';
-import { loadTestnetKey } from './monad-keys.js';
+import { loadTestnetKey, testnetJournalPath } from './monad-keys.js';
 import { INGRESS_ABI } from './wire.js';
 
 export class MonadTestnetObservationSigner extends DurableObservationSigner {
   constructor(path:string,domain:PacketDomain,store:PacketStore,now:()=>bigint,keyPath:string,passwordPath:string){
     if(domain.chainId!==10143n)throw new Error('MONAD_TESTNET_ONLY');
-    super(path,structuredClone(domain),store,now,loadTestnetKey(keyPath,passwordPath,domain.signer),10143n);
+    super(testnetJournalPath(path,true),structuredClone(domain),store,now,loadTestnetKey(keyPath,passwordPath,domain.signer),10143n);
   }
 }
 export type TestnetTransactionLimits={gasCap:bigint;maxFeePerGas:bigint;maxCostWei:bigint};
@@ -21,7 +21,7 @@ export class MonadTestnetTransactionSigner extends DurableTransactionSigner {
     if(config.enabled||config.destination?.chainId!=='10143')throw new Error('MONAD_DISABLED_TESTNET_CONFIG_REQUIRED');
     if(limits.gasCap<=0n||limits.maxFeePerGas<=0n||limits.maxCostWei<limits.gasCap*limits.maxFeePerGas)
       throw new Error('BAD_TESTNET_TRANSACTION_LIMITS');
-    super(path,create,loadTestnetKey(keyPath,passwordPath,sender),10143);
+    super(testnetJournalPath(path,create),create,loadTestnetKey(keyPath,passwordPath,sender),10143);
     this.limits={...limits};
     this.destination=structuredClone(config.destination);
   }

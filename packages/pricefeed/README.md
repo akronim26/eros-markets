@@ -12,6 +12,8 @@ discovery and metadata validation are documented in [`docs/discovery.md`](docs/d
 Optional stream hints, heartbeat and full REST resync are documented in
 [`docs/stream.md`](docs/stream.md). Streaming affects collection; it does not
 increase the diagnostic publication cadence or authorize additional MON spending.
+Signer-history verification, key-file safeguards and bounded nonce recovery are
+documented in [`docs/custody.md`](docs/custody.md).
 
 ## Current behavior
 

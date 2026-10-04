@@ -11,6 +11,7 @@
     "test:engine": "python3 scripts/test-engine.py",
     "test:discovery": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/discovery.test.js dist/test/collector.test.js dist/test/worker.test.js dist/test/cli.test.js",
     "test:transport": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/market-stream.test.js dist/test/service.test.js dist/test/source-buffer.test.js dist/test/worker.test.js dist/test/collector.test.js",
+    "test:custody": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/signer-custody.test.js dist/test/monad-keys.test.js dist/test/monad-publication.test.js dist/test/transaction-relay.test.js dist/test/local-transaction-signer.test.js",
     "test:lifecycle": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/lifecycle.test.js dist/test/pipeline.test.js dist/test/service.test.js && python3 scripts/test-lifecycle.py",
     "test:recovery": "python3 scripts/test-recovery.py",
     "test:pipeline-crash": "python3 scripts/test-pipeline-crash.py",

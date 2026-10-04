@@ -66,7 +66,7 @@ export type SignRequest={identity:string;digest:Hex;owner:string;fence:bigint};
  * Implementing this interface alone does not certify a production backend. */
 export type RawSigner={address:string;signDigest(request:SignRequest):Promise<Hex>};
 const SECP_N=0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
-function canonicalSignature(signature:Hex):void {
+export function canonicalSignature(signature:Hex):void {
   if(!/^0x[0-9a-fA-F]{130}$/.test(signature))throw new Error('BAD_SIGNATURE_FORMAT');
   const r=BigInt('0x'+signature.slice(2,66)),s=BigInt('0x'+signature.slice(66,130)),v=signature.slice(130).toLowerCase();
   if(r<=0n||r>=SECP_N||s<=0n||s>SECP_N/2n||!['1b','1c'].includes(v))throw new Error('NONCANONICAL_SIGNATURE');

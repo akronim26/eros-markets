@@ -20,6 +20,7 @@ import type { PipelineResult } from './pipeline.js';
 import { record } from './book.js';
 import { SourceSnapshotBuffer } from './source-buffer.js';
 import { MarketStreamHints } from './market-stream.js';
+import { testnetJournalPath } from './monad-keys.js';
 
 export type TestnetRunPolicy={sender:string;relay:RelayPolicy;budget:TestnetRelayBudget};
 export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
@@ -63,6 +64,7 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
   if(!stat.isDirectory()||stat.isSymbolicLink()||(stat.mode&0o077)!==0||stat.uid!==process.getuid?.())throw new Error('TESTNET_PRIVATE_DIRECTORY_REQUIRED');
   const files=['source.sqlite','packets.sqlite','signer.sqlite','transactions.sqlite','relay.sqlite'];
   if(options.initialize?files.some(f=>existsSync(join(root,f))):files.some(f=>!existsSync(join(root,f))))throw new Error('TESTNET_JOURNAL_SET_INCOMPLETE_OR_ALREADY_EXISTS');
+  for(const file of files)testnetJournalPath(join(root,file),options.initialize);
   const read=monadTestnetReadRpc(options.rpcUrl);
   await preflightMonadTestnet(read,{config:cfg,abi:parsed.abi});
   const keys=options.keysDirectory,domain:PacketDomain={chainId:10143n,engine:d.engineAddress,marketId:d.marketId,
