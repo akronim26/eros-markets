@@ -83,7 +83,7 @@ export class DurablePipeline {
         const chain=await this.identity(e);e.signer.reconcile(this.owner,e.fence,chain);
         const history=this.packets.list(e.domain);e.pending=[];e.watch=[];
         for(const p of history){
-          if(p.state==='EXPIRED')continue;
+          if(p.state==='EXPIRED'||this.relay.get(e.domain,p.packet.observation.sequence)?.state==='CANCELLED')continue;
           const seq=p.packet.observation.sequence,r=this.relay.get(e.domain,seq);
           if(r?.state==='QUARANTINED'||r?.state==='REVERTED'
             ||r?.state==='PREPARING'&&!this.relay.canResumePreparing(e.domain,seq))throw new Error('PIPELINE_DELIVERY_RECOVERY_REQUIRED');
@@ -132,9 +132,14 @@ export class DurablePipeline {
     e.pending=e.pending.filter(v=>v!==seq);
     return this.result(e,'EXPIRED','UNSENT_HEADROOM_EXPIRED',seq);
   }
-  private async publish(e:Entry,p:StoredPacket):Promise<PipelineResult>{
+  private async publish(e:Entry,p:StoredPacket,checkedAt?:bigint):Promise<PipelineResult>{
     const seq=p.packet.observation.sequence;
-    const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
+    // A newly allocated packet reaches here synchronously after process's gate.
+    // Reuse only within 50 ms and the same whole second; a delay or time
+    // boundary demands a fresh check. All
+    // post-signing, pre-reservation and pre-broadcast gates still run normally.
+    const at=this.now(),sameGate=checkedAt!==undefined&&at>=checkedAt&&at-checkedAt<=50n&&at/1000n===checkedAt/1000n;
+    const blocked=sameGate?null:await this.lifecycleGate(e);if(blocked)return blocked;
     const expired=this.expireUnsent(e,p);if(expired)return expired;
     if(p.state!=='SIGNED')p=await this.bounded(this.network.sign(this.packets,e.domain,this.owner,e.fence,seq,e.signer,this.now,this.policy.headroomMs));
     if(p.state==='EXPIRED'){e.pending=e.pending.filter(v=>v!==seq);return this.result(e,'EXPIRED',p.reason,seq);}
@@ -190,6 +195,7 @@ export class DurablePipeline {
       if(result.inspection.status==='QUARANTINED')e.quarantined=result.inspection.reason??'SOURCE_QUARANTINED';
       if(e.quarantined)return this.result(e,'QUARANTINED',e.quarantined);
       const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
+      const checkedAt=this.now();
       if(recovered)return {...recovered,lifecycle:e.lifecycleView};
       const invalid=result.inspection.status==='INVALID_DEPTH',allowInvalid=invalid&&permitsInvalidDepth(e.rules);
       if(invalid&&!allowInvalid)return this.result(e,'SOURCE_UNAVAILABLE',`INVALID_DEPTH:${result.inspection.reason}`);
@@ -229,7 +235,7 @@ export class DurablePipeline {
         throw error;
       }
       e.pending.push(p.observation.sequence);
-      return await this.publish(e,this.packets.get(e.domain,p.observation.sequence)!);
+      return await this.publish(e,this.packets.get(e.domain,p.observation.sequence)!,checkedAt);
     }finally{this.busy.delete(result.worker);}
   }
   async run(signal:AbortSignal,onResult:(result:PipelineResult)=>void|Promise<void>):Promise<void>{

@@ -18,6 +18,7 @@ import { MonadTestnetLifecycleMonitor, type LifecycleView } from './lifecycle.js
 import { parseTestnetRunPolicy, runMonadTestnetService } from './monad-service.js';
 import { quoteMonadGas } from './monad-gas-quote.js';
 import { planMonadBudget, applyMonadBudget } from './monad-budget.js';
+import { recoverMonadNonce } from './monad-nonce-recovery.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -37,10 +38,21 @@ async function main():Promise<void> {
     'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize'],
     'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy'],
     'plan-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--old-policy','--new-policy','--transition-id','--reason'],
-    'apply-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--plan','--plan-sha256']};
+    'apply-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--plan','--plan-sha256'],
+    'recover-monad-nonce':['--rpc-env','--config','--abi','--journal-dir','--keys-dir','--policy','--nonce','--original-hash','--max-cost-wei','--wait-ms']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
+  if(command==='recover-monad-nonce'){
+    const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
+    const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
+    const integer=(key:string)=>{const v=need(key);if(!/^(0|[1-9]\d*)$/.test(v))throw new Error('BAD_NONCE_RECOVERY_LIMIT');return BigInt(v);};
+    const originalHash=need('--original-hash');if(!/^0x[\da-fA-F]{64}$/.test(originalHash))throw new Error('BAD_NONCE_RECOVERY_LIMIT');
+    const result=await recoverMonadNonce({rpcUrl,config:parseConfig(read(need('--config'))),abi:read(need('--abi')),
+      journalDirectory:need('--journal-dir'),keysDirectory:need('--keys-dir'),policy:read(need('--policy')),
+      nonce:integer('--nonce'),originalHash:originalHash as `0x${string}`,maxCostWei:integer('--max-cost-wei'),waitMs:Number(integer('--wait-ms'))});
+    console.log(json(result));if(result.status!=='FINALIZED')process.exitCode=2;return;
+  }
   if(command==='plan-monad-budget'||command==='apply-monad-budget'){
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');

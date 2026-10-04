@@ -9,6 +9,7 @@ import { sourceTime } from './time.js';
 import { submitCalldata } from './wire.js';
 import { sizeGas, type GasSizing } from './gas.js';
 import { relayProfileBody, verifyBudgetAudit, type RelayProfile } from './relay-policy.js';
+import { nonceRecoveries, recoveryBudget, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
 import { canonicalTransactionRequest, parseTransactionRequest, type RelayTransactionRequest, type TransactionJournal } from './local-transaction-signer.js';
 
 export type LocalRelayTransport={
@@ -27,7 +28,7 @@ export type LocalRelayTransport={
 };
 export type RelayPolicy={gasCap:bigint;maxFeePerGas:bigint;maxPriorityFeePerGas:bigint;maxCostWei:bigint;
   headroomMs:bigint;confirmations:bigint;timeoutMs:number;maxAttempts:number;leaseMs:bigint;gasSafetyMarginBps?:bigint};
-export type DeliveryState='PREPARING'|'READY'|'UNKNOWN'|'MINED'|'FINALIZED'|'ORPHANED'|'REVERTED'|'QUARANTINED';
+export type DeliveryState='PREPARING'|'READY'|'UNKNOWN'|'MINED'|'FINALIZED'|'ORPHANED'|'REVERTED'|'QUARANTINED'|'CANCELLED';
 export type DeliveryRecord={namespace:string;sequence:bigint;digest:Hex;nonce:bigint;raw:Hex|null;txHash:Hex|null;
   request?:RelayTransactionRequest;
   gasSizing?:GasSizing;
@@ -74,7 +75,7 @@ export class DurableRelay {
     const signerPins=this.db.prepare('SELECT sender FROM relay_signer').all();
     if(signerPins.length>1||signerPins.some(r=>r.sender!==transport.sender.toLowerCase())){this.db.close();throw new Error('RELAY_ACCOUNT_CHANGED');}
     if(accounts.length>1||accounts.some(r=>r.sender!==transport.sender.toLowerCase())){this.db.close();throw new Error('RELAY_ACCOUNT_CHANGED');}
-    try{for(const r of this.db.prepare('SELECT * FROM deliveries').all())this.parse(String(r.body),String(r.sha256));}
+    try{for(const r of this.db.prepare('SELECT * FROM deliveries').all())this.parse(String(r.body),String(r.sha256));nonceRecoveries(this.db);}
     catch(error){this.db.close();throw error;}
   }
   private tx<T>(fn:()=>T):T {this.db.exec('BEGIN IMMEDIATE');try{const r=fn();this.db.exec('COMMIT');return r;}catch(e){this.db.exec('ROLLBACK');throw e;}}
@@ -135,6 +136,16 @@ export class DurableRelay {
         });
         await this.bounded(journal.reconcile(reservations));this.lease();
       }
+      for(const r of nonceRecoveries(this.db)){
+        if(r.state!=='FINALIZED')throw new Error('RELAY_NONCE_RECOVERY_REQUIRED');
+        await verifyCancellationSigner(r);
+        const receipt=await this.bounded(this.transport.receipt(r.hash!));
+        if(!receipt)throw new Error('NONCE_RECOVERY_RECEIPT_MISSING');
+        validateCancellationReceipt(r,receipt);
+        const block=await this.bounded(this.transport.block(receipt.blockNumber));
+        if(!block||block.hash!==receipt.blockHash||receipt.blockNumber>await this.bounded(this.transport.head())
+          ||json(receipt)!==json(r.receipt))throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      }
     }catch(error){this.release();throw error;}
   }
   private key(d:PacketDomain,sequence:bigint):string{return `${packetNamespace(d)}:${sequence}`;}
@@ -171,7 +182,8 @@ export class DurableRelay {
     if(this.profile.chainId===31337n)return true;
     const prior=this.db.prepare('SELECT body,sha256 FROM deliveries').all().map(row=>this.parse(String(row.body),String(row.sha256)));
     const total=prior.reduce((sum,r)=>sum+(r.request?r.request.gas*r.request.maxFeePerGas:this.policy.maxCostWei),0n);
-    return prior.length<this.profile.maxTransactions!&&total+this.policy.gasCap*this.policy.maxFeePerGas<=this.profile.totalMaxCostWei!;
+    const recovery=recoveryBudget(this.db);
+    return prior.length+recovery.count<this.profile.maxTransactions!&&total+recovery.reservedWei+this.policy.gasCap*this.policy.maxFeePerGas<=this.profile.totalMaxCostWei!;
   }
   async deliver(cfg:MarketConfig,owner:string,fence:bigint,seq:bigint,beforeSend?:()=>Promise<void>):Promise<DeliveryRecord>{
     if(this.active)throw new Error('RELAY_BUSY');this.active=true;
@@ -219,7 +231,7 @@ export class DurableRelay {
         this.lease();
         for(const row of this.db.prepare('SELECT body,sha256 FROM deliveries WHERE ns=?').all(ns)){
           const old=this.parse(String(row.body),String(row.sha256));
-          if(!['MINED','FINALIZED','REVERTED'].includes(old.state))throw new Error('OLDER_DELIVERY_UNRESOLVED');
+          if(!['MINED','FINALIZED','REVERTED','CANCELLED'].includes(old.state))throw new Error('OLDER_DELIVERY_UNRESOLVED');
         }
         // A quarantined reserved nonce anywhere blocks the shared relay account.
         for(const row of this.db.prepare('SELECT body,sha256 FROM deliveries').all())
@@ -227,7 +239,8 @@ export class DurableRelay {
         if(this.profile.chainId===10143n){
           const prior=this.db.prepare('SELECT body,sha256 FROM deliveries').all().map(row=>this.parse(String(row.body),String(row.sha256)));
           const total=prior.reduce((sum,r)=>sum+(r.request?r.request.gas*r.request.maxFeePerGas:this.policy.maxCostWei),0n);
-          if(prior.length>=this.profile.maxTransactions!||total+selectedGas*this.policy.maxFeePerGas>this.profile.totalMaxCostWei!)
+          const recovery=recoveryBudget(this.db);
+          if(prior.length+recovery.count>=this.profile.maxTransactions!||total+recovery.reservedWei+selectedGas*this.policy.maxFeePerGas>this.profile.totalMaxCostWei!)
             throw new Error('TESTNET_RELAY_BUDGET_EXHAUSTED');
         }
         const account=this.account()!,nonce=BigInt(String(account.next_nonce));if(nonce>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('RELAY_NONCE_EXHAUSTED');
