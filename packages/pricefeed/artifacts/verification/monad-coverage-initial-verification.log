@@ -1,0 +1,11 @@
+{
+  "verified": false,
+  "optimizedTransactionsFinalized": 20,
+  "optimizedGasCostWei": "404203764000000000",
+  "newReservationsWei": "594417300000000000",
+  "acceptance": {
+    "verified": false,
+    "failure": "INITIAL_COVERAGE_FAILED_RECOVERY_NOT_RUN"
+  },
+  "productionApproved": false
+}

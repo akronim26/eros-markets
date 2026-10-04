@@ -19,7 +19,7 @@ import { monadLifecycleReader } from '../src/monad-lifecycle.js';
 import { MonadTestnetPublicationLifecycle } from '../src/lifecycle.js';
 import { PacketStore } from '../src/packet-store.js';
 import { Journal } from '../src/journal.js';
-import { Worker } from '../src/worker.js';
+import { Worker, type PollResult } from '../src/worker.js';
 import { rulesHash } from '../src/rules.js';
 import { prepareMonadTestnetObservation, prepareObservation, signPrepared } from '../src/publication.js';
 import { ACCEPTED_ABI, type DeliveryReceipt } from '../src/receipts.js';
@@ -33,7 +33,7 @@ import { json } from '../src/math.js';
 const abi=JSON.parse(readFileSync(new URL('../../artifacts/monad-testnet/receiver-abi.json',import.meta.url),'utf8'));
 const policy:RelayPolicy={gasCap:800000n,maxFeePerGas:150000000000n,maxPriorityFeePerGas:2000000000n,
   maxCostWei:120000000000000000n,headroomMs:1000n,confirmations:1n,timeoutMs:1000,maxAttempts:3,leaseMs:120000n};
-async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
+async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy,latestSnapshot?:()=>PollResult|null){
   const dir=mkdtempSync(join(tmpdir(),'monad-publication-'));chmodSync(dir,0o700);
   const key=join(dir,'observation-signer.json'),password=join(dir,'signer-password');
   const signerAddress=createTestnetKey(key,password),sender=createTestnetKey(join(dir,'tx-key'),join(dir,'tx-password'));
@@ -46,7 +46,11 @@ async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
   let now=1000100n,seq=0n,txNonce=0n,observedAt=0n,finalizedSeq=0n,failSend=false,balance=10n**18n,halt=false,autoFinalize=true,lifecycleChecks=0;
   const receipts=new Map<Hex,DeliveryReceipt>(),sent:Hex[]=[];
   let blockOffset=0n;
-  const block=(number:bigint)=>({number,hash:('0x'+number.toString(16).padStart(64,'0')) as Hex,timestamp:now/1000n});
+  const blocks=new Map<bigint,{number:bigint;hash:Hex;timestamp:bigint}>();
+  const block=(number:bigint)=>{
+    if(!blocks.has(number))blocks.set(number,{number,hash:('0x'+number.toString(16).padStart(64,'0')) as Hex,timestamp:now/1000n});
+    return blocks.get(number)!;
+  };
   const rpc:MonadSubmissionRpc={chainId:async()=>10143,code:async()=> '0x6001',
     block:async(selector)=>block('blockNumber' in selector?selector.blockNumber:9n+finalizedSeq+blockOffset),
     read:async(_address,_abi,name)=>name==='listing'?{...cfg.destination,indexSourceId:domain.sourceId,indexSigner:signerAddress,
@@ -81,7 +85,7 @@ async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
       book:async()=>capture({...JSON.parse(body),timestamp:now.toString()})},journal,'collector',()=>now);
     const lifecycle=new MonadTestnetPublicationLifecycle(cfg,journal,'lifecycle',monadLifecycleReader(rpc,cfg,abi,()=>now),30000n,()=>now);
     const check=lifecycle.check.bind(lifecycle);lifecycle.check=()=>{lifecycleChecks++;return check();};
-    pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle}],packets,relay,transport,runPolicy,()=>now);
+    pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle,...(latestSnapshot?{latestSnapshot}:{})}],packets,relay,transport,runPolicy,()=>now);
     return {transport};
   }
   const {transport}=open(true);
@@ -213,6 +217,58 @@ test('fresh allocation reuses only its synchronous lifecycle gate and retains al
     assert.equal(s.lifecycleChecks,8);assert.equal(s.sent.length,2);
   }finally{s.close();}
 });
+test('publication selects the latest archived book after chain reads without changing its source clock',async()=>{
+  let latest:PollResult|null=null;
+  const s=await setup(3,policy,()=>{s.setNow(1020100n);s.advanceBlock();return latest;});
+  try{
+    const old=await s.worker.poll();s.setNow(1020100n);latest=await s.worker.poll();
+    const raw=latest.book!.body;s.setNow(1000100n);await s.pipeline.start();
+    const result=await s.pipeline.process(old);assert.equal(result.state,'FINALIZED');
+    const packet=s.packets.get(s.domain,1n)!.packet;
+    assert.equal(packet.observation.observedAt,1020n);assert.equal(packet.sourceMs,1020100n);
+    assert.equal(packet.observation.publishedAt,1020n);assert.equal(latest.book!.body,raw);
+    assert.equal(JSON.parse(old.book!.body).timestamp,'1000100');assert.equal(s.sent.length,1);
+    assert.equal(parseTransaction(s.sent[0]!).nonce,0);
+    assert.equal(s.lifecycleChecks,5,'a delayed selection requires a new publication lifecycle check');
+  }finally{s.close();}
+});
+test('an unavailable or quarantined latest snapshot prevents allocation and sending',async()=>{
+  for(const quarantine of [false,true]){
+    let latest:PollResult|null=null;const s=await setup(3,policy,()=>latest);
+    try{
+      const old=await s.worker.poll();await s.pipeline.start();
+      if(quarantine){latest=structuredClone(old);latest.inspection.status='QUARANTINED';latest.inspection.reason='SOURCE_RULES_CHANGED';}
+      const result=await s.pipeline.process(old);
+      assert.equal(result.state,quarantine?'QUARANTINED':'SOURCE_UNAVAILABLE');
+      assert.equal(result.reason,quarantine?'SOURCE_RULES_CHANGED':'SOURCE_SNAPSHOT_NOT_READY');
+      assert.equal(s.packets.list(s.domain).length,0);assert.equal(s.sent.length,0);
+      if(quarantine){latest=old;assert.equal((await s.pipeline.process(old)).state,'QUARANTINED');}
+    }finally{s.close();}
+  }
+});
+test('a latest snapshot from another worker or policy persistently quarantines the relay before signing',async()=>{
+  for(const field of ['worker','configDigest'] as const){
+    let latest:PollResult|null=null;const s=await setup(3,policy,()=>latest);
+    try{
+      const old=await s.worker.poll();latest=structuredClone(old);latest[field]='foreign';await s.pipeline.start();
+      await assert.rejects(s.pipeline.process(old),/SOURCE_SNAPSHOT_BINDING_MISMATCH/);
+      assert.equal(s.packets.list(s.domain).length,0);assert.equal(s.sent.length,0);
+      s.restart();await assert.rejects(s.pipeline.start(),/RELAY_PERSISTENT_QUARANTINE/);
+    }finally{s.close();}
+  }
+});
+test('separate publication intervals reject unsafe values without changing the archived source config',async()=>{
+  const s=await setup();try{
+    const lifecycle={assertConfig:()=>{},check:async()=>{throw new Error('NOT_CALLED');}};
+    for(const publicationIntervalMs of [0,NaN,1.5,30001,s.cfg.poll.intervalMs-1])
+      assert.throws(()=>new MonadTestnetPipeline([{worker:s.worker,rules:s.rules,signer:s.signer,publicationIntervalMs,lifecycle}],
+        s.packets,s.relay,s.transport,policy),/BAD_PIPELINE_PUBLICATION_INTERVAL/);
+    const digest=(await s.worker.poll()).configDigest;
+    const p=new MonadTestnetPipeline([{worker:s.worker,rules:s.rules,signer:s.signer,publicationIntervalMs:20000,
+      lifecycle}],s.packets,s.relay,s.transport,policy);
+    assert.equal((await s.worker.poll()).configDigest,digest);p.close();
+  }finally{s.close();}
+});
 test('estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart',async()=>{
   const s=await setup(3,{...policy,gasSafetyMarginBps:1000n});try{
     const limits:bigint[]=[];
@@ -295,7 +351,7 @@ test('unfunded testnet simulation reserves no nonce and broadcasts nothing',asyn
 async function recoveryFixture(){
   const s=await setup(4),prepare=s.transport.prepare;
   await s.pipeline.start();
-  s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(1032000n);return raw;};
+  s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(1032000n);s.advanceBlock();return raw;};
   await assert.rejects(s.pipeline.process(await s.worker.poll()),/RELAY_HEADROOM_EXPIRED/);s.pipeline.close();
   const old=s.relay.get(s.domain,1n)!;
   assert.equal(old.state,'QUARANTINED');assert.equal(old.attempts,0);assert.equal(s.sent.length,0);

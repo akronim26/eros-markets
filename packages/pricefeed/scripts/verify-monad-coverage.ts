@@ -16,20 +16,23 @@ import { PacketStore, packetNamespace, type PreparedPacket } from '../src/packet
 import { parseTransactionRequest } from '../src/durable-transaction-signer.js';
 import { policyHash, relayProfileBody, verifyBudgetAudit } from '../src/relay-policy.js';
 import { sizeGas } from '../src/gas.js';
-import { reviewCoveragePhases, type CoverageSample, type CoverageCheckpoint } from './monad-coverage.js';
+import { replayCoverage, reviewCoveragePhases, type CoverageSample, type CoverageCheckpoint } from './monad-coverage.js';
 import { nonceRecoveries, validateCancellationReceipt, verifyCancellationSigner } from '../src/nonce-recovery-journal.js';
 import { budgetPlanHash } from '../src/monad-budget.js';
 
-const root='artifacts/monad-testnet/',archive='var/monad-testnet/coverage-run-evidence/';
+const args=process.argv.slice(2);
+assert.ok(args.every(arg=>['--initial-only','--retry'].includes(arg))&&new Set(args).size===args.length,'unsupported report option');
+const initialOnly=args.includes('--initial-only'),retry=args.includes('--retry'),prefix=retry?'coverage-retry':'coverage';
+const root='artifacts/monad-testnet/',archive=`var/monad-testnet/${prefix}-${initialOnly?'initial':'run'}-evidence/`;
 const read=(name:string)=>JSON.parse(readFileSync(root+name,'utf8'));
 const cfg=parseConfig(read('market-config.json')),d=cfg.destination!,abi=read('receiver-abi.json');
-const policyRaw=read('coverage-policy.json'),policy=parseTestnetRunPolicy(policyRaw),plan=read('coverage-budget-plan.json');
+const policyRaw=read(prefix+'-policy.json'),policy=parseTestnetRunPolicy(policyRaw),plan=read(prefix+'-budget-plan.json');
 assert.equal(budgetPlanHash(plan),plan.approvalHash);assert.deepEqual(plan.nextPolicy,policyRaw);
-const baselineBytes=readFileSync(root+'optimized-small-run.json'),baseline=JSON.parse(baselineBytes.toString());
-assert.equal(baseline.archive,'var/monad-testnet/optimized-run-evidence/');
+const baselineBytes=readFileSync(root+(retry?'coverage-initial-run.json':'optimized-small-run.json')),baseline=JSON.parse(baselineBytes.toString());
+assert.equal(baseline.archive,retry?'var/monad-testnet/coverage-initial-evidence/':'var/monad-testnet/optimized-run-evidence/');
 for(const [name,checksum] of Object.entries(baseline.archiveSha256))
   assert.equal(createHash('sha256').update(readFileSync(baseline.archive+name)).digest('hex'),checksum,'baseline archive changed');
-const phaseFiles=['coverage-initial.json','coverage-gap.json','coverage-recovered.json'];
+const phaseFiles=(initialOnly?['initial']:['initial','gap','recovered']).map(phase=>`${prefix}-${phase}.json`);
 const rawChecks=phaseFiles.map(read);
 const rpcUrl=process.env.PRICEFEED_MONAD_RPC_URL;assert.ok(rpcUrl,'RPC environment required');
 const rpc=monadSubmissionRpc(rpcUrl),client=createPublicClient({chain:monadTestnet,transport:http(rpcUrl,{retryCount:0})});
@@ -119,7 +122,9 @@ try{
     recoveryReceipts.push({receipt,gasUsed:full.gasUsed,effectiveGasPrice:full.effectiveGasPrice,gasCostWei:cost,reservationWei:r.reservationWei});
   }
   assert.ok(reserved<=policy.budget.totalMaxCostWei&&newReserved<=BigInt(plan.remainingReservationWei));
-  assert.ok(deliveries.length+recoveries.length-plan.deliveryCount<=plan.additionalTransactionSlots);
+  // A revision can retain unused slots from the previous policy. The ceiling
+  // increase is distinct from the actual slots remaining at this checkpoint.
+  assert.ok(deliveries.length+recoveries.length-plan.deliveryCount<=policy.budget.maxTransactions-plan.deliveryCount);
   assert.deepEqual(JSON.parse(json(items.slice(0,baseline.packets.length))),baseline.packets,'old packet/signature/receipt changed');
   assert.equal(reserved-newReserved,BigInt(plan.reservedWei));
   const oldRecoveryCost=BigInt(baseline.recoveryGasCostWei);
@@ -161,17 +166,24 @@ try{
     candidateWindows.push({block,actual});
   }
   let acceptance:{verified:boolean;failure?:string}={verified:false};
-  try{acceptance=reviewCoveragePhases(samples,checks);}catch{acceptance={verified:false,failure:'COVERAGE_PHASE_REQUIREMENTS_FAILED'};}
+  if(initialOnly){
+    assert.equal(checks[0]!.phase,'initial');
+    assert.deepEqual(checks[0]!.actual,replayCoverage(samples,checks[0]!.block));
+    acceptance={verified:false,failure:'INITIAL_COVERAGE_FAILED_RECOVERY_NOT_RUN'};
+    assert.equal(checks[0]!.actual.available,false,'use complete campaign report after an initial pass');
+  }else{
+    try{acceptance=reviewCoveragePhases(samples,checks);}catch{acceptance={verified:false,failure:'COVERAGE_PHASE_REQUIREMENTS_FAILED'};}
+  }
   for(const [name,checksum] of Object.entries(archiveSha256))assert.equal(createHash('sha256').update(readFileSync(archive+name)).digest('hex'),checksum,'archive changed');
   const report={mode:'MONAD_TESTNET_SUSTAINED_COVERAGE_DIAGNOSTIC',verifiedAtUtc:new Date().toISOString(),chainId:10143,
     config:cfg,sender:policy.sender,policy:policyRaw,approvedPlanHash:plan.approvalHash,archive,archiveSha256,captures,packets:items,receipts,checkpoint,
     deliveries,recoveries,recoveryReceipts,recoveryGasCostWei:recoveryCost,newGasCostWei:optimizedCost+recoveryCost-oldRecoveryCost,
     transactionsFinalized:items.length,optimizedTransactionsFinalized:items.length-baseline.transactionsFinalized,totalGasCostWei:totalCost,
     optimizedGasCostWei:optimizedCost,historicalReservationsWei:BigInt(plan.reservedWei),newReservationsWei:newReserved,
-    previousSignedPacketsAndTransactionsUnchanged:true,
+    previousSignedPacketsAndTransactionsUnchanged:true,evidenceVerified:true,initialOnly,retry,
     baselineEvidenceSha256:createHash('sha256').update(baselineBytes).digest('hex'),checks:rawChecks,candidateWindows,acceptance,
     productionApproved:false,humanGatesAccepted:false,limitations:['One diagnostic politics listing; production cadence, category/load calibration and hosting remain unapproved.']};
-  writeFileSync(root+'coverage-run.json',json(report)+'\n');
+  writeFileSync(root+prefix+(initialOnly?'-initial-run.json':'-run.json'),json(report)+'\n');
   console.log(json({verified:acceptance.verified,optimizedTransactionsFinalized:items.length-baseline.transactionsFinalized,optimizedGasCostWei:optimizedCost,
     newReservationsWei:newReserved,acceptance,productionApproved:false}));
   if(!acceptance.verified)process.exitCode=2;

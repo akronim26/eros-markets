@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { metadataIdentity, verifyEventMembership, inspectSnapshot, type Inspection, type MetadataIdentity } from './collector.js';
+import { metadataIdentity, metadataStatusDigest, verifyEventMembership, inspectSnapshot, type Inspection, type MetadataIdentity } from './collector.js';
 import type { MarketConfig } from './config.js';
 import type { Capture } from './polymarket.js';
 import { Journal } from './journal.js';
@@ -7,7 +7,7 @@ import { json } from './math.js';
 
 export type Provider={event(id:string):Promise<Capture>;metadata(id:string):Promise<Capture>;book(id:string):Promise<Capture>};
 export type PollResult={worker:string;category:string;atMs:bigint;configDigest:string;inspection:Inspection;
-  event:Capture|null;metadata:Capture|null;book:Capture|null;baselineRulesDigest:string|null;lastSourceMs:bigint|null};
+  event:Capture|null;metadata:Capture|null;book:Capture|null;baselineRulesDigest:string|null;baselineStatusDigest?:string|null;lastSourceMs:bigint|null};
 
 export function workerNamespace(cfg:MarketConfig):string {
   const d=cfg.destination;
@@ -26,6 +26,7 @@ export class Worker {
   private metadata:MetadataIdentity|null=null;
   private lastSourceMs:bigint|null=null;
   private rulesDigest:string|null=null;
+  private statusDigest:string|null=null;
   private quarantined:string|null=null;
   private current:Promise<PollResult>|null=null;
   private fence=0n;
@@ -39,6 +40,16 @@ export class Worker {
       if(previous.configDigest!==this.configDigest)this.quarantined='CONFIG_CHANGED_REVIEW_REQUIRED';
       if(typeof previous.lastSourceMs==='string')this.lastSourceMs=BigInt(previous.lastSourceMs);
       if(typeof previous.baselineRulesDigest==='string')this.rulesDigest=previous.baselineRulesDigest;
+      if(typeof previous.baselineStatusDigest==='string')this.statusDigest=previous.baselineStatusDigest;
+      else if(previous.event&&previous.metadata){
+        // Upgrade status monitoring from retained raw evidence, without rewriting
+        // any old capture, rule digest, packet, sequence or signer history.
+        try{
+          const event=previous.event as Record<string,unknown>,market=previous.metadata as Record<string,unknown>;
+          if(typeof event.body==='string'&&typeof market.body==='string')
+            this.statusDigest=metadataStatusDigest(JSON.parse(event.body),JSON.parse(market.body));
+        }catch{this.quarantined='RESTORED_METADATA_STATUS_INVALID';}
+      }
       const inspection=previous.inspection;
       if(inspection&&typeof inspection==='object'&&'status' in inspection&&inspection.status==='QUARANTINED')this.quarantined='RESTORED_QUARANTINE';
     }
@@ -65,14 +76,19 @@ export class Worker {
     try {
       if(this.quarantined){inspection.status='QUARANTINED';inspection.reason=this.quarantined;}
       else {
-        if(!this.metadataCapture||this.now()-this.metadataCapture.receivedAtMs>BigInt(this.config.poll.metadataMaxAgeMs)/2n){
+        if(!this.metadata||!this.metadataCapture||this.now()-this.metadataCapture.receivedAtMs>BigInt(this.config.poll.metadataMaxAgeMs)/2n){
+          this.metadata=null; // A failed refresh cannot reuse the previous healthy interpretation.
           this.eventCapture=await this.provider.event(this.config.mapping.eventId);
           const event=verifyEventMembership(this.config,this.eventCapture.data);
           const fresh=await this.provider.metadata(this.config.mapping.externalMarketId);
           // Preserve rejected metadata as evidence before identity validation.
           this.metadataCapture=fresh;const market=metadataIdentity(this.config,fresh.data);
+          const status=metadataStatusDigest(this.eventCapture.data,fresh.data);
+          if(this.statusDigest!==null&&status!==this.statusDigest)throw new Error('SOURCE_STATUS_CHANGED_REVIEW_REQUIRED');
+          this.statusDigest=status;
           this.metadata={tradeable:market.tradeable&&event.tradeable,
             rulesDigest:createHash('sha256').update(`${event.rulesDigest}:${market.rulesDigest}`).digest('hex')};
+          if(this.rulesDigest!==null&&this.metadata.rulesDigest!==this.rulesDigest)throw new Error('SOURCE_RULES_CHANGED');
         }
         book=await this.provider.book(this.config.mapping.outcomeTokenId);
         const metadataAt=this.eventCapture!.receivedAtMs<this.metadataCapture!.receivedAtMs
@@ -84,10 +100,10 @@ export class Worker {
       }
     }catch(error){
       inspection.reason=error instanceof Error?error.message:String(error);
-      if(/IDENTITY|OUTCOME_MAPPING|SOURCE_RULES/.test(inspection.reason)){inspection.status='QUARANTINED';this.quarantined=inspection.reason;}
+      if(/IDENTITY|OUTCOME_MAPPING|SOURCE_RULES|SOURCE_STATUS/.test(inspection.reason)){inspection.status='QUARANTINED';this.quarantined=inspection.reason;}
     }
     const result:PollResult={worker:this.config.key,category:this.config.category,atMs:this.now(),configDigest:this.configDigest,
-      inspection,event:this.eventCapture,metadata:this.metadataCapture,book,baselineRulesDigest:this.rulesDigest,lastSourceMs:this.lastSourceMs};
+      inspection,event:this.eventCapture,metadata:this.metadataCapture,book,baselineRulesDigest:this.rulesDigest,baselineStatusDigest:this.statusDigest,lastSourceMs:this.lastSourceMs};
     // A fenced/expired journal failure propagates, preventing a false healthy status.
     this.journal.append(this.namespace,this.owner,fence,this.now(),result);
     return result;

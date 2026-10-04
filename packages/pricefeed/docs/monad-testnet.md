@@ -264,7 +264,7 @@ fails without falling back to latest. A 30-second checkpoint-age limit and
 not approval of production finality or delivery budgets. One provider's stable
 answer does not prove provider honesty, disagreement handling or upgrade safety.
 
-## Sustained coverage campaign (prepared, not yet authorized)
+## Sustained coverage campaign (first phase failed, retry prepared)
 
 The optimized paid run proves lower transaction cost and restart/nonce recovery;
 its named window covers only 134/300 seconds. The next diagnostic proves a full
@@ -275,46 +275,53 @@ No fabricated thin/wide book or source timestamp is submitted.
 
 Prepared public files: `coverage-proposal.json`, `coverage-policy.json`, and
 `coverage-budget-plan.json` in `artifacts/monad-testnet/`. The read-only plan pins
-the current journal history and receiver state. It has **not** been applied.
+the current journal history and receiver state. The original policy and plan are
+retained as `coverage-policy-original.json` and `coverage-budget-plan-original.json`.
+The actual **1 MON** transfer funded a reduced **1.20 MON** remaining allowance;
+`coverage-funded-proposal.json` records this narrowing within the user's approval.
+The reduced plan was applied. Its initial phase completed and failed the full
+window requirement, so publication stopped before the gap/recovery phases.
 
 | Bound | Prepared value |
 |---|---|
 | Additional transaction reservation slots | 44 total, including any cancellation |
-| All remaining reservations allowed after transition | 1.35 test MON |
-| Lifetime reservations including historical 0.57010395 MON | 1.92010395 MON |
+| All remaining reservations allowed after transition | 1.20 test MON |
+| Lifetime reservations including historical 0.57010395 MON | 1.77010395 MON |
 | Lifetime count / budget revision | 55 / 2 |
-| Balance checked by the plan | 0.232440246 MON |
-| Funding gap / suggested transfer | 1.117559754 / 1.15 test MON |
-| Historical-average cost if all 44 prices finalize | About 0.88453 MON; estimate, not guaranteed |
+| Balance checked by the funded plan | 1.232440246 MON |
+| Funding gap | Zero |
+| Actual price targets | At most 20 per phase / 40 total |
+| Historical-average cost if all 40 prices finalize | About 0.80412 MON; estimate, not guaranteed |
 
-The lifetime policy ceiling increases by **1.21010395 MON**, because the old
+The lifetime policy ceiling increases by **1.06010395 MON**, because the old
 policy still had 0.13989605 MON of unused reservation allowance. Combining that
-unused allowance with the increase yields the exact new **1.35 MON remaining
+unused allowance with the increase yields the exact new **1.20 MON remaining
 envelope**; there is no extra allowance beyond it. The count and reservation
 limits both apply, and the run stops on either limit. Existing gas/fee ceilings,
 signer identities, timestamps, sequences and nonces remain unchanged.
 
 Budget plan hash:
-`1156fe89042918b4d1c5d194fc9ca625b6b3ac56e133d086f9df665bc0efd904`.
+`78f981cab2df863f211dbab9204d49626078969ec0a0368666afa9479032bd17`.
 Sender: `0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071`.
 
-Execution requires explicit approval of this new envelope and the transfer from
-the user's browser wallet. The previous eight-slot authorization is exhausted.
-After funding, recheck balance/nonce/source and apply this exact hashed plan with
-the existing `apply-monad-budget` command. Never initialize new journals, reset
+The user approved a maximum 1.35 MON / 44-slot envelope by replying “proceed”;
+the funded 1.20 MON envelope stays below that ceiling. Authorization and narrowing
+are recorded in `coverage-authorization.json`. `coverage-funded-check.json` and
+`coverage-budget-application.json` retain funding/preflight and atomic renewal
+proofs. The original larger proposal was never applied. Never initialize new journals, reset
 nonces or reuse a frozen evidence directory as the active publisher.
 
 The bounded procedure is:
 
 1. Run `serve-monad-testnet` with the coverage policy, existing keys and
    `var/monad-testnet/pilot`, `--initialize false`, duration cap 600 seconds and
-   lifetime finalized-price target 31 (existing 9 plus at most 22).
+   lifetime finalized-price target 29 (existing 9 plus at most 20).
 2. After the process exits and every delivery is resolved, capture `initial` at
    the last finalized price's block. A full window is required before stage 2.
    Preserve a failed window and stop if this requirement is not met.
 3. Leave publishing stopped for at least 60 seconds. Capture `gap` at a current
    finalized block; require unavailable TWAP and unchanged source sequence/time.
-4. Restart with the same journals and duration cap, lifetime target 53. Capture
+4. Restart with the same journals and duration cap, lifetime target 49. Capture
    `recovered` at its last finalized price block. Require full 300-second coverage
    entirely after the first fresh post-pause source observation. Cancellation
    reservations reduce the available price count and never extend the envelope.
@@ -347,9 +354,80 @@ exit nonzero; no successful live coverage result is claimed by preparation.
 Local checks: `dist/test/monad-coverage.test.js` and
 `python3 test/monad-coverage-reference.py`. These cover hand-derived full/gapped
 windows, invalid-depth interruption and historical block filtering; the Python
-replay also reproduces the original real 134/300 window. Actual sustained receipt
-and phase verification awaits the funded run. This diagnostic is one politics
+replay also reproduces the original real 134/300 window and new failed 268/300
+window. Actual initial receipt verification and independent replay agree on
+268/300. Gap and recovered phase verification remain pending. This diagnostic is one politics
 listing; category calibration and production cadence approval remain separate.
+
+### Initial result and collection timing fix
+
+Twenty additional prices finalized with source sequences 13–36 (four unreserved
+packets expired) and sender nonces 10–29. Named block **68183973**, timestamp
+**1791137641**, returns `available: false`, `coveredSecs: 268`, integral
+`168170000000000000000`. Real source intervals over 30 seconds leave **32 seconds
+uncovered**. New charged gas was **0.404203764 MON**; conservative reservations
+were **0.5944173 MON**. Every receipt/signature/raw transaction and unchanged old
+history verified. Both campaign reviews exit **2**, intentionally preserving the
+failed coverage result. No recovery phase or further paid attempt ran.
+
+Evidence: `coverage-initial.json`, `coverage-initial-run.json`,
+`coverage-initial-run-review.json` and the closed owner-only archive
+`var/monad-testnet/coverage-initial-evidence/`. Preserve these files when recording
+a retry. Active journals remain `var/monad-testnet/pilot`.
+
+A separate 150-second source probe captured 30 REST books and 57 WebSocket frames
+without transport errors, signatures or transactions (`coverage-source-probe.json`).
+It exposed fresher updates while the original joined loop was waiting on chain
+checks. A WebSocket price-change message is not a verified full book; stream
+reconstruction remains its separate planned milestone.
+
+The testnet service now runs the existing full REST collector independently.
+It archives on the existing five-second policy and buffers the latest complete
+result; the publisher selects that result after receipt/lifecycle reads, then
+recomputes from raw bodies and applies every existing signing/broadcast gate.
+Source timestamps and immutable retry packets are never refreshed. Missing,
+degraded or quarantined results cannot become healthy cached prices. Both loops
+drain before the source lease/journals close; a stopped or failed publisher stops
+collection too. Diagnostic publication is scheduled every **20 seconds**, separately
+from collection. This is a nominal interval, not a guarantee of inclusion, full
+coverage or an approved production/coalescing policy.
+
+### Prepared finite retry (not approved or applied)
+
+**Deferred by the user on 05 October 2026.** Continue the other original component
+milestones first. This proposal remains inactive; a general request to move past
+the coverage issue is not approval to spend under the increased cap. Preserve
+the failed 268/300 evidence and revisit the complete proof before release.
+
+`coverage-retry-policy.json`, `coverage-retry-proposal.json` and the read-only
+`coverage-retry-budget-plan.json` prepare revision **3**. The failed run left only
+24 reservation slots and **0.6055827 MON** in the active budget. Two new full
+windows at twenty-second publication need more slots/reservation room than that.
+
+The retry proposes **at most 38 more reservations**, including at most 17 prices
+per phase / 34 prices total and four recovery slots, within a **1.13 MON remaining
+reservation cap**. Duration caps are 600 seconds each with at least 60 seconds
+stopped between phases; lifetime finalized-price targets are **46**, then **63**.
+Lifetime limits become count **69** and **2.29452125 MON** reserved. Compared with
+the originally approved 44-slot / 1.35 MON campaign, this increases the maximum
+by **14 slots / 0.3744173 MON**. It requires new explicit authorization; the
+original approval does not cover it. No budget has been applied.
+
+Fresh read-only proof verifies source sequence **36**, sender nonce **30** and
+balance **0.828236482 MON**. Funding gap for the remaining reservation cap:
+**0.301763518 MON**; suggested top-up **0.35 test MON**. Expected charge for 34
+prices at the failed run's average is **0.6871463988 MON**; an estimate, whereas
+1.13 is the hard reservation cap. Plan hash:
+`46cd1f57466a685e172f223925b991b71bf1cac48fa3b218c923967b6a5ca07a`.
+
+Keep retry captures under `coverage-retry-initial.json`,
+`coverage-retry-gap.json`, and `coverage-retry-recovered.json`. Its coordinated
+frozen archive belongs in `var/monad-testnet/coverage-retry-run-evidence/`.
+Use `verify-monad-coverage.js --retry` and `review-monad-coverage.py --retry`;
+they bind the retry policy/plan and compare against the failed initial run's
+frozen history. For a failed retry initial phase, use a separate
+`coverage-retry-initial-evidence/` archive and `--retry --initial-only`. Never
+overwrite the original failed report or raise caps automatically after a failure.
 
 ## Run it before an engine exists
 

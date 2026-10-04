@@ -1,0 +1,128 @@
+TAP version 13
+# Subtest: collection validates explicit outcome identity and archives raw source time
+ok 1 - collection validates explicit outcome identity and archives raw source time
+  ---
+  duration_ms: 6.402346
+  type: 'test'
+  ...
+# Subtest: stale, thin, closed, changed rules and missing source time remain explicit unavailability
+ok 2 - stale, thin, closed, changed rules and missing source time remain explicit unavailability
+  ---
+  duration_ms: 1.410648
+  type: 'test'
+  ...
+# Subtest: adapter bounds responses and rejects redirects and unexpected hosts
+ok 3 - adapter bounds responses and rejects redirects and unexpected hosts
+  ---
+  duration_ms: 50.033699
+  type: 'test'
+  ...
+# Subtest: 429 and transport failures retry boundedly; failure is never a fabricated book
+ok 4 - 429 and transport failures retry boundedly; failure is never a fabricated book
+  ---
+  duration_ms: 6.822231
+  type: 'test'
+  ...
+# Subtest: deadline bounds both a stuck fetch and a stalled response body
+ok 5 - deadline bounds both a stuck fetch and a stalled response body
+  ---
+  duration_ms: 42.053435
+  type: 'test'
+  ...
+# Subtest: declared oversized response is cancelled without consuming its body
+ok 6 - declared oversized response is cancelled without consuming its body
+  ---
+  duration_ms: 1.972681
+  type: 'test'
+  ...
+# Subtest: keyset pages preserve outcome labels/token order and never select or enable a candidate
+ok 7 - keyset pages preserve outcome labels/token order and never select or enable a candidate
+  ---
+  duration_ms: 6.78544
+  type: 'test'
+  ...
+# Subtest: finite scans report truncation without claiming complete pagination or fetching extra pages
+ok 8 - finite scans report truncation without claiming complete pagination or fetching extra pages
+  ---
+  duration_ms: 1.2354
+  type: 'test'
+  ...
+# Subtest: pagination rejects loops, duplicate identities, malformed pages and non-string IDs
+ok 9 - pagination rejects loops, duplicate identities, malformed pages and non-string IDs
+  ---
+  duration_ms: 3.939686
+  type: 'test'
+  ...
+# Subtest: unknown/null, non-binary, negative-risk and closed metadata remain blocked candidates
+ok 10 - unknown/null, non-binary, negative-risk and closed metadata remain blocked candidates
+  ---
+  duration_ms: 3.138207
+  type: 'test'
+  ...
+# Subtest: discovery rejects schema/body inconsistencies and invalid limits before provider calls
+ok 11 - discovery rejects schema/body inconsistencies and invalid limits before provider calls
+  ---
+  duration_ms: 1.471071
+  type: 'test'
+  ...
+# Subtest: provider cursor is encoded as data and cannot change allowed host/filter bounds
+not ok 12 - provider cursor is encoded as data and cannot change allowed host/filter bounds
+  ---
+  duration_ms: 2.414039
+  type: 'test'
+  location: '/home/mihir/eros-markets/packages/pricefeed/dist/test/discovery.test.js:105:1'
+  failureType: 'testCodeFailure'
+  error: 'BAD_DISCOVERY_TAG'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    PublicPolymarket.tag (file:///home/mihir/eros-markets/packages/pricefeed/dist/src/polymarket.js:133:19)
+    file:///home/mihir/eros-markets/packages/pricefeed/dist/test/discovery.test.js:117:33
+    TestContext.<anonymous> (file:///home/mihir/eros-markets/packages/pricefeed/dist/test/discovery.test.js:118:30)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: metadata identity keeps its existing digest while rejecting duplicate membership and bad known-field types
+ok 13 - metadata identity keeps its existing digest while rejecting duplicate membership and bad known-field types
+  ---
+  duration_ms: 1.509551
+  type: 'test'
+  ...
+# Subtest: worker recovery preserves source ordering; rule quarantine stays latched
+ok 14 - worker recovery preserves source ordering; rule quarantine stays latched
+  ---
+  duration_ms: 135.46333
+  type: 'test'
+  ...
+# Subtest: one source outage becomes evidence while another worker can continue
+ok 15 - one source outage becomes evidence while another worker can continue
+  ---
+  duration_ms: 4.691664
+  type: 'test'
+  ...
+# Subtest: health query never labels an old captured sample as currently collecting
+ok 16 - health query never labels an old captured sample as currently collecting
+  ---
+  duration_ms: 0.792653
+  type: 'test'
+  ...
+# Subtest: event metadata age is checked even when the market response is newer
+ok 17 - event metadata age is checked even when the market response is newer
+  ---
+  duration_ms: 1.878318
+  type: 'test'
+  ...
+# Subtest: wrong-event metadata is quarantined and its raw response remains archived
+ok 18 - wrong-event metadata is quarantined and its raw response remains archived
+  ---
+  duration_ms: 1.620636
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 815.516903

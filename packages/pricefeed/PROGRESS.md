@@ -2123,3 +2123,215 @@ runbook reflect this distinction. No commits or pushes were made.
 
 Suggested preparation commit: `test: prepare sustained Monad coverage and gap recovery`.
 After the real proof passes: `test: verify sustained Monad coverage and gap recovery`.
+
+## 04 October 2026 — coverage authorization and funding check
+
+User replied **“proceed”** to the concrete 44-reservation / 1.35 test MON capped
+request. This authorizes that exact finite diagnostic; no repeat approval is
+needed within those limits. Public record: `coverage-authorization.json`, binding
+the same budget plan hash. Base now `0e42823` on the existing pricefeed branch.
+
+Fresh read-only finalized preflight confirms receiver pins, source sequence 12,
+sender nonce 10 and balance **0.232440246 MON**. The needed transfer has **not**
+arrived: remaining funding gap **1.117559754 MON**, suggested top-up **1.15 test
+MON**. Public record: `coverage-funding-check.json`. The user was asked to transfer
+to the existing sender and provide the public transaction hash or funding status.
+The approved cap is not activated before the full remaining envelope is funded.
+
+The prepared named-block capture was actually run against block **68169207**.
+Runtime/listing/source/finality/canonical checks pass and the live contract view
+matches the preserved **134/300** window and integral **83147000000000000000**
+exactly. Evidence: `coverage-historical-read-check.json` and
+`coverage-historical-read-review.json`; command exit 0. This verifies the reader,
+not a new complete window. Exact plan hash and active journal fingerprint also
+still match. No source-code change, new signature, nonce reservation, budget
+application or transaction occurred; no test suite rerun was needed for these
+read-only checks and documentation records.
+
+Next: once funding arrives, recheck balance and apply the already approved exact
+plan, run the initial full window, deliberate stopped interval and recovered full
+window, then freeze/review receipts and costs. No commit or push performed.
+
+## 04 October 2026 — funded reduced coverage campaign started
+
+User reported funding complete. Fresh pinned preflight verifies the transfer was
+**1 MON**, bringing the bot balance to **1.232440246 MON** at source sequence 12 /
+nonce 10. The originally suggested 1.15 transfer was not received in full. Rather
+than requiring another transfer, the campaign is narrowed within the user's
+existing maximum approval: **1.20 MON** total remaining reservation envelope,
+at most 44 additional reservation slots, with actual price targets **20 per
+phase / 40 total**. Duration caps remain 600 seconds per phase and stopped gap
+at least 60 seconds. Gas/fee ceilings and all keys/journals stay the same.
+
+Original exact policy/plan are preserved as `coverage-policy-original.json` and
+`coverage-budget-plan-original.json`; the original `coverage-proposal.json` is
+historical. `coverage-funded-proposal.json` records the smaller funded plan.
+Lifetime reservation ceiling: **1.77010395 MON**, revision 2 / count 55. The exact
+funded plan hash is
+`78f981cab2df863f211dbab9204d49626078969ec0a0368666afa9479032bd17`.
+Its live proof has zero funding gap and unchanged idle signing history. Audited
+atomic application exits 0 and sends zero transactions; evidence is retained in
+`coverage-funded-check.json`, `coverage-budget-plan.json` and
+`coverage-budget-application.json`. `coverage-authorization.json` records that
+this smaller envelope falls within the user's approved 1.35 maximum.
+
+The first actual live phase is running with lifetime finalized-price target 29
+(existing 9 plus 20), duration cap 600 and `--initialize false`. Its stdout/stderr
+are retained under `artifacts/verification/monad-coverage-initial-live.*`.
+No full-window result is claimed yet; a source timestamp interval of 39 seconds
+is being retained as a real missing-coverage interval, not filled or retimestamped.
+The exact completed outcome, paid costs and gap/restart proof will follow here.
+
+## 05 October 2026 — initial coverage failed; timing fix tested, retry prepared
+
+**Actual paid outcome.** The initial process completed its 20-new-price target
+(29 lifetime finalized prices), exit 0 with valid archive evidence. Sequences
+13–36 include four signed but unreserved expired packets; accepted nonces are
+10–29. New actual gas **0.404203764 MON**, new conservative reservations
+**0.5944173 MON**. Block **68183973**, timestamp **1791137641**, returns
+**268/300 seconds**, unavailable, integral **168170000000000000000**. Canonical
+receipts, real-source Fraction math, signatures/raw bytes, previous history and
+the closed five-journal archive all verify. Coverage remains failed: the canonical
+verifier and independent initial-only reviewer exit **2**. No gap/recovery phase
+or further paid attempt ran. Public failed reports and the owner-only
+`coverage-initial-evidence/` snapshot remain retained without resetting history.
+
+**Timing issue and fix.** The original per-worker callback waited on RPC reads
+before collecting again; repeated/old source clocks and intervals above 30 seconds
+created real uncovered segments. A free 150-second probe retained 30 complete
+REST books / 57 WebSocket frames with zero transport errors and no signing or
+transactions. Incremental frames are diagnostic only; stream reconstruction
+remains its planned milestone. `SourceSnapshotBuffer` now lets the existing
+archiving collector run independently, exposing only a cloned latest result from
+the same worker/config. After receipt/lifecycle reads the publisher reselects and
+recomputes a complete raw book, without changing vendor clocks or already-signed
+retry packets. Missing/degraded/quarantined/foreign data fails closed. Shutdown
+drains both loops before releasing the source lease. Testnet collection remains
+five seconds; the separate publication scheduler uses a nominal twenty seconds.
+This setting is diagnostic, not production cadence/coalescing approval or a claim
+that all live windows will succeed.
+
+**Verification.** Build exit 0; complete compiled Node suite **349/349**, no
+failures/skips/cancellations, including latest-book selection after delayed chain
+reads, lifecycle refresh, unsafe binding/cadence, degraded data and collector
+drain cases. Focused suite **33/33**. Independent coverage reference **5/5**, exit
+0, includes authentic failed 268/300 and historical 134/300. Wire check exit 0.
+The independent actual initial-only archive review reran with the expected exit
+2 (valid evidence, failed coverage). Initial new-test failures and the first full
+suite's four clock/block fixture failures are retained separately; the test
+fixture now gives canonical blocks immutable timestamps and advances its height
+when deliberately advancing time. Final passing TAP/source hashes are recorded
+under `artifacts/verification/monad-coverage-source-fix-*`. No new Forge, owned-chain
+crash, category soak or live publication pass is claimed.
+
+**Concrete retry, not activated.** Read-only proof verifies source 36 / nonce 30,
+balance **0.828236482 MON** and all active journals byte-identical to the closed
+initial archive. Active policy has only **24 slots / 0.6055827 MON** left.
+`coverage-retry-proposal.json`, policy and hashed budget plan prepare at most
+**38 further reservations / 1.13 MON remaining cap**, including at most 17 prices
+per phase / 34 prices plus four recovery slots. Phase targets 46 then 63, duration
+600 seconds each, stopped gap at least 60 seconds. Lifetime revision 3 would cap
+count at 69 and reservations at **2.29452125 MON**. This exceeds the original
+44-slot / 1.35 MON campaign approval by **14 slots / 0.3744173 MON**, so it needs
+new explicit authorization; no budget application or key unlock occurred.
+Funding gap **0.301763518 MON**, suggested top-up **0.35 test MON**. Estimated
+34-price charge at the latest measured average: **0.6871463988 MON**; not a promise.
+Plan hash `46cd1f57466a685e172f223925b991b71bf1cac48fa3b218c923967b6a5ca07a`.
+The independent preparation review validates hash/arithmetic and unchanged
+journals. Separate `--retry` evidence paths preserve the failed original campaign
+and bind retry verification to its own policy and baseline. Fresh chain/funding
+checks remain required before applying or running.
+
+**Commit tracking.** User requested only the original nine remaining milestones,
+with a commit message when each is actually complete. Current milestone is
+**2 — sustained Monad coverage and gap recovery**, still open; this fix and failed
+evidence stay within that milestone. No extra preparation/record-only commit
+message is offered. No commit, branch switch or push was performed; no change
+was made to decisions.md. Next: get the finite retry authorization/funding, verify
+both complete windows and gap recovery, then report that milestone's commit message.
+
+The exact retry approval was requested after completing local fixes, verification,
+read-only proof and the reviewable proposal. Until that reply and funding arrive,
+the bot stays stopped and revision 2 remains active. No additional spending is
+authorized by a general continue message sent before the new cap was presented.
+
+## 05 October 2026 — coverage proof deferred by user; discovery next
+
+User asked to move forward and remember the current issue. Treat the paid full
+window/gap proof as **deferred**, not passed or approved for another paid retry.
+Keep the authentic 268/300 failure, tested timing fix, proposal and original
+spend limits. Revision 3 stays inactive and the bot stays stopped. Required before
+coverage milestone 2 can close: authorize/fund a finite retry and independently
+verify both full windows plus gap/restart. Revisit it after the other component
+milestones; deferral does not establish production readiness.
+
+Continue original milestone **3: market discovery and metadata validation**,
+covering bounded provider pagination, category-tag candidates, exact outcome/token
+identity and explicit unsupported/null/negative-risk metadata. Discovery is read
+only and never auto-enables workers. No additional milestone or paid transaction
+is introduced. Work stays on pricefeed; manual commit messages are offered only
+for completed milestones. Existing uncommitted coverage work is preserved.
+
+## 05 October 2026 — milestone 3: discovery and metadata validation complete
+
+**Built.** `discover-markets` resolves an explicit tag slug and performs bounded
+Gamma keyset pagination, maintaining the filter and URL-encoding opaque cursors.
+Limits and duplicate event/market/condition/token checks fail closed; incomplete
+scans report their remaining cursor. Candidates retain both original outcome
+labels/token IDs and raw response evidence, choose no YES outcome and remain
+disabled/unapproved. Missing/null/schema-invalid fields, non-binary mappings,
+negative-risk/augmented/Other flags, unknown trading status, incomplete rules,
+invalid UTC/calendar dates and unverified tag membership produce explicit
+rejection reasons. Source endDate never overwrites Eros scheduledT. No risk,
+oracle, CLOB, factory or contract change was made.
+
+Metadata identity now shares the strict outcome parser and validates known
+field types and duplicate/conflicting event membership. A failed cache refresh
+clears the previous healthy interpretation and retries validation before another
+book can be healthy. Rules changes quarantine before another book fetch. Separate
+persisted status evidence quarantines changed trading/negative-risk flags and
+does not silently reopen after restart. Old-format histories derive their status
+baseline from retained raw bytes; original capture/sequence/signing history and
+the existing rules-digest encoding stay unchanged. The joined early-halt fixture
+now checks this explicit source quarantine while preserving RECORD_ONLY, archived
+closure and no extra/final-price submissions. Engine lifecycle stays separate.
+
+**Actual source checks.** Three CLI runs, each `--page-size 2 --max-pages 2`, exit
+0: sports tag 1 / 123 candidates, politics tag 2 / 14 candidates, crypto tag 21 /
+23 candidates. All 160 remain BLOCKED with recorded reasons, including incomplete
+structured rules, closed markets and negative-risk flags. All scans are incomplete
+at the declared page bound; these batches do not establish complete inventory,
+eligible mappings, source suitability or calibration. Raw bodies and SHA records
+are retained in `artifacts/discovery/*-live.json`. Independent Python review
+checks original page bytes, cursor/filter continuity, IDs/tokens, source fields,
+all disabled flags and rejection reasons; `live-review.json` passes all three.
+The Python HTTP probe initially received 403; the bot's normal Node transport
+then succeeded without proxying, header spoofing or restriction bypass. Official
+documentation was checked; advertised schema URLs could not be read by the web
+tool, so only the selected tested response contract is claimed as pinned.
+
+**Verification.** Build exit 0. Final complete compiled Node suite **361/361**,
+exit 0, no failures/skips/cancellations. New discovery cases and metadata refresh/
+status/restore cases are included. Focused discovery/collector/worker **22/22**;
+CLI **13/13** (also in the full suite). Initial focused failure and first full
+suite's one old closure-state expectation remain retained; the integration
+expectation was updated to the new persistent status quarantine with its original
+no-extra-price/history invariants. Independent three-category live review exit
+0, wire compatibility exit 0 and independent coverage reference **5/5**, exit 0.
+Current command/results/source hashes: `artifacts/verification/discovery-unit.json`.
+No new Forge/owned-chain crash campaign, paid publication, source soak/calibration
+or human gate acceptance is claimed. Active Monad journals are unchanged and no
+key was accessed by discovery. Git diff check passes; changes remain package-only.
+
+**Remaining scope.** Diagnostic discovery/validation implementation is complete.
+Production mapping, negative-risk semantics, cache/closure/time policy, terms,
+calibration and named acceptance stay open for the existing later milestones.
+The genuine 268/300 coverage/gap proof is **deferred**, with retry revision 3
+inactive; no additional spending is authorized or requested by this milestone.
+Next original milestone **4: stream hints, heartbeat and reconnect/resync
+recovery**, with complete REST books authoritative under the PDF plan. No extra
+commit milestone is added; no commit, push, branch change or decisions.md edit
+was performed.
+
+Commit message for completed milestone 3:
+`feat: complete market discovery and metadata validation`

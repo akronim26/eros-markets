@@ -43,6 +43,16 @@ class CoverageReference(unittest.TestCase):
         self.assertEqual(result['coveredSecs'], '134')
         self.assertFalse(result['available'])
 
+    def test_failed_initial_campaign_keeps_its_real_missing_seconds(self):
+        report = json.loads((PACKAGE / 'artifacts/monad-testnet/coverage-initial-run.json').read_text())
+        phase = report['checks'][0]
+        result = replay(report['packets'], report['receipts'], phase['block'])
+        self.assertEqual(result, phase['actual'])
+        self.assertEqual(result['coveredSecs'], '268')
+        self.assertFalse(result['available'])
+        self.assertTrue(report['evidenceVerified'])
+        self.assertFalse(report['acceptance']['verified'])
+
 
 if __name__ == '__main__':
     unittest.main()
