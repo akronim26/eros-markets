@@ -12,7 +12,7 @@ const LIVE = id(77)
 const VENUE = '0x00000000000000000000000000000000000000aa' as Hex
 const T = INFO.tau
 
-type Opts = { info?: Partial<MarketInfo>; status?: Partial<AssertionStatus>; ledger?: bigint; bond?: bigint; minInterval?: bigint; realEngine?: boolean }
+type Opts = { info?: Partial<MarketInfo>; status?: Partial<AssertionStatus>; ledger?: bigint; bond?: bigint; minInterval?: bigint; realEngine?: boolean; finalYes?: Hex }
 
 async function plan(r: Partial<Resolution>, now: bigint, o: Opts = {}) {
   const res = resolution({ voidDeadline: 0n, haltedAt: 0n, ...r })
@@ -29,6 +29,7 @@ async function plan(r: Partial<Resolution>, now: bigint, o: Opts = {}) {
       assertionLedger: async () => (reads.push('ledger'), o.ledger ?? 10_000_000_000n),
       bondFor: async () => (reads.push('bond'), o.bond ?? 2_000_000n),
       minRequestIntervalSecs: async () => (reads.push('interval'), o.minInterval ?? 60n),
+      groupFinalYes: async () => (reads.push('group'), o.finalYes ?? (`0x${'00'.repeat(32)}` as Hex)),
       settlementStatus: async () => {
         throw new Error('the resolution jobs never read the engine')
       },
@@ -238,5 +239,37 @@ describe('finalize batching through the keeper', () => {
     await k.tick()
     await k.tick()
     expect(chain.infoReads).toBe(6)
+  })
+})
+
+describe('exclusive group conflict', () => {
+  const GROUP = `0x${'0b'.repeat(32)}` as Hex
+  const OTHER = `0x${'0c'.repeat(32)}` as Hex
+  const proposedYes = { state: RState.Proposed, proposed: 1, assertionId: `0x${'00'.repeat(32)}` as Hex }
+
+  test('a Proposed YES in a group with a Final YES is sent as the conflict, not refused as a no-op', async () => {
+    const p = await plan(proposedYes, T + 1n, { info: { groupId: GROUP, groupExclusive: true }, finalYes: OTHER })
+    expect(p.job?.action).toBe('group-conflict')
+    expect(p.job?.functionName).toBe('assertProposal')
+    expect(p.job?.isNoop?.(false)).toBe(false)
+  })
+
+  test('without a Final YES in the group, or outside a group, it is the ordinary assertion', async () => {
+    expect(await action(proposedYes, T + 1n, { info: { groupId: GROUP, groupExclusive: true } })).toBe('assert')
+    expect(await action(proposedYes, T + 1n, { finalYes: OTHER })).toBe('assert')
+    expect(await action({ ...proposedYes, proposed: 2 }, T + 1n, { info: { groupId: GROUP, groupExclusive: true }, finalYes: OTHER })).toBe('assert')
+  })
+
+  test('the keeper sends it although the simulated assertProposal returns false', async () => {
+    const chain = new FakeChain([id(1)])
+    chain.time = T + 1n
+    chain.info = { ...INFO, groupId: GROUP, groupExclusive: true }
+    chain.finalYes = OTHER
+    chain.markets.set(id(1), resolution({ ...proposedYes, voidDeadline: 0n }))
+    chain.simResult.set('assertProposal', false)
+    const k = new Keeper({ chain, source: new StaticSource([id(1)]), planners: [resolutionPlanner({ realEngine: false })], gas: GAS })
+    const r = await k.tick()
+    expect(r.results.map((x) => x.outcome)).toEqual(['sent'])
+    expect(chain.sends[0].job.functionName).toBe('assertProposal')
   })
 })

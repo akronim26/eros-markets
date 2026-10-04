@@ -41,7 +41,7 @@ export function resolution(over: Partial<Resolution> = {}): Resolution {
 }
 
 export const ENGINE = '0x00000000000000000000000000000000000000ee' as Hex
-export const INFO: MarketInfo = { tau: 1000n, hasFeed: true, bufferSecs: 60n, l1TimeoutSecs: 300n, l2DeadlineSecs: 600n, earlyTtlSecs: 600n, engine: ENGINE }
+export const INFO: MarketInfo = { tau: 1000n, hasFeed: true, bufferSecs: 60n, l1TimeoutSecs: 300n, l2DeadlineSecs: 600n, earlyTtlSecs: 600n, engine: ENGINE, groupId: ZERO32, groupExclusive: false }
 
 export const SETTLEMENT: SettlementStatus = {
   halted: true, finalOutcome: 2, invalidPriceReady: false, snapshotCursor: 0n, payoutCursor: 0n, accountCount: 64n,
@@ -97,6 +97,7 @@ export class FakeChain implements Chain {
       assertionStatus: (venue, a) => this.assertionStatus(venue, a),
       assertionLedger: () => this.assertionLedger(),
       bondFor: (i) => this.bondFor(i),
+      groupFinalYes: (g) => this.groupFinalYes(g),
       settlementStatus: (e) => this.settlementStatus(e),
       treasuryDispute: (a) => this.treasuryDispute(a),
       treasuryState: () => this.treasuryState(),
@@ -130,6 +131,10 @@ export class FakeChain implements Chain {
   }
   async bondFor(_i: Hex) {
     return this.bond
+  }
+  finalYes: Hex = ZERO32 as Hex
+  async groupFinalYes(_g: Hex) {
+    return this.finalYes
   }
   async settlementStatus(_e: Hex) {
     return { ...this.settlement }
