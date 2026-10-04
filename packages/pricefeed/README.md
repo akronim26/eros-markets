@@ -9,6 +9,9 @@ full coverage (268/300 seconds). The timing fix and bounded retry are in
 [`docs/monad-testnet.md`](docs/monad-testnet.md#sustained-coverage-campaign-first-phase-failed-retry-prepared).
 That paid coverage proof is deferred at the user's request. Read-only market
 discovery and metadata validation are documented in [`docs/discovery.md`](docs/discovery.md).
+Optional stream hints, heartbeat and full REST resync are documented in
+[`docs/stream.md`](docs/stream.md). Streaming affects collection; it does not
+increase the diagnostic publication cadence or authorize additional MON spending.
 
 ## Current behavior
 

@@ -45,6 +45,16 @@ test('discovery CLI rejects unsupported categories, pagination limits and activa
     }
   }finally{f.close();}
 });
+test('stream CLI rejects ambiguous toggles before creating a database or using network',()=>{
+  const f=fixture();try{
+    const before=readdirSync(f.dir).sort();
+    for(const command of ['serve','serve-monad-testnet']){
+      const result=f.run([command,'--stream-hints','yes']);assert.equal(result.status,1);
+      assert.equal(result.stderr.trim(),'BAD_STREAM_HINTS_OPTION');assert.equal(result.stdout,'');
+    }
+    assert.deepEqual(readdirSync(f.dir).sort(),before);
+  }finally{f.close();}
+});
 
 test('offline CLI reconstructs an unsigned eleven-field packet without modifying the archive or allocating sequence',()=>{
   const f=fixture();try{

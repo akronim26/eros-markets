@@ -1,0 +1,109 @@
+{
+  "mode": "READ_ONLY_MARKET_STREAM_PROBE",
+  "startedAtUtc": "2026-10-04T21:18:22.552Z",
+  "completedAtUtc": "2026-10-04T21:19:12.676Z",
+  "durationSeconds": 50,
+  "deliberateReconnectAfterSeconds": 22,
+  "worker": "monad-testnet-politics",
+  "category": "politics",
+  "stream": {
+    "state": "STOPPED",
+    "generation": 2,
+    "reason": "STREAM_ABORTED",
+    "connections": 2,
+    "disconnects": 1,
+    "pongs": 4,
+    "acceptedEvents": 450,
+    "ignoredEvents": 5,
+    "rejectedFrames": 0,
+    "hintRequests": 455
+  },
+  "states": [
+    {
+      "state": "CONNECTING",
+      "generation": 1,
+      "reason": null,
+      "connections": 0,
+      "disconnects": 0,
+      "pongs": 0,
+      "acceptedEvents": 0,
+      "ignoredEvents": 0,
+      "rejectedFrames": 0,
+      "hintRequests": 1
+    },
+    {
+      "state": "CONNECTED",
+      "generation": 1,
+      "reason": null,
+      "connections": 1,
+      "disconnects": 0,
+      "pongs": 0,
+      "acceptedEvents": 0,
+      "ignoredEvents": 0,
+      "rejectedFrames": 0,
+      "hintRequests": 2
+    },
+    {
+      "state": "BACKOFF",
+      "generation": 1,
+      "reason": "STREAM_REQUESTED_RECONNECT",
+      "connections": 1,
+      "disconnects": 1,
+      "pongs": 2,
+      "acceptedEvents": 89,
+      "ignoredEvents": 4,
+      "rejectedFrames": 0,
+      "hintRequests": 92
+    },
+    {
+      "state": "CONNECTING",
+      "generation": 2,
+      "reason": null,
+      "connections": 1,
+      "disconnects": 1,
+      "pongs": 2,
+      "acceptedEvents": 89,
+      "ignoredEvents": 4,
+      "rejectedFrames": 0,
+      "hintRequests": 93
+    },
+    {
+      "state": "CONNECTED",
+      "generation": 2,
+      "reason": null,
+      "connections": 2,
+      "disconnects": 1,
+      "pongs": 2,
+      "acceptedEvents": 89,
+      "ignoredEvents": 4,
+      "rejectedFrames": 0,
+      "hintRequests": 94
+    },
+    {
+      "state": "STOPPED",
+      "generation": 2,
+      "reason": "STREAM_ABORTED",
+      "connections": 2,
+      "disconnects": 1,
+      "pongs": 4,
+      "acceptedEvents": 450,
+      "ignoredEvents": 5,
+      "rejectedFrames": 0,
+      "hintRequests": 455
+    }
+  ],
+  "captures": 45,
+  "inspections": {
+    "DEGRADED": 1,
+    "COLLECTING": 44
+  },
+  "originalTimestamps": true,
+  "evidenceValid": true,
+  "sourceArchiveSha256": "7272c649fc655cb32e80682e76215753269d25fbf2167a7ec5c3a94a0e87679c",
+  "configSha256": "2867d1b4413205090e7fda4bf1c5829e3e9bd2f392792c0d5fb8097ab5b59d53",
+  "successful": true,
+  "signaturesProduced": 0,
+  "transactionsSent": 0,
+  "coverageCertified": false,
+  "productionApproved": false
+}

@@ -119,3 +119,27 @@ test('changed rules quarantine before fetching another book and cannot change co
     const restored=new Worker(cfg,provider,j,'owner',()=>now);assert.equal((await restored.poll()).inspection.status,'QUARANTINED');
   }finally{j.close();}
 });
+test('stream lifecycle hints force metadata revalidation despite an otherwise fresh cache',async()=>{
+  const j=new Journal(':memory:');let now=1000100n,currentMetadata=metadata,books=0,metadataCalls=0;
+  const worker=new Worker(cfg,{event:async()=>capture(event,now),metadata:async()=>{metadataCalls++;return capture(currentMetadata,now);},
+    book:async()=>{books++;return capture({...book,timestamp:String(now)},now);}},j,'owner',()=>now);
+  try{
+    await worker.poll();now+=10n;currentMetadata={...metadata,closed:true};worker.requestStreamRefresh(1,'market_resolved',true);
+    const changed=await worker.poll();assert.equal(changed.inspection.status,'QUARANTINED');assert.equal(metadataCalls,2);assert.equal(books,1);
+    assert.equal(changed.inspection.reason,'SOURCE_STATUS_CHANGED_REVIEW_REQUIRED');assert.equal(j.verify(),true);
+  }finally{j.close();}
+});
+test('disconnect during REST fetch archives the original bytes but blocks their eligibility until a new resync',async()=>{
+  const j=new Journal(':memory:');let now=1000100n,hold=false,release!:()=>void,books=0,metadataCalls=0;
+  const gate=new Promise<void>(r=>release=r);
+  const worker=new Worker(cfg,{event:async()=>capture(event,now),metadata:async()=>{metadataCalls++;return capture(metadata,now);},
+    book:async()=>{books++;if(hold)await gate;return capture({...book,timestamp:String(now)},now);}},j,'owner',()=>now);
+  try{
+    await worker.poll();now+=1000n;hold=true;const pending=worker.poll();await Promise.resolve();
+    worker.requestStreamRefresh(2,'STREAM_CLOSED',true);release();const rejected=await pending;
+    assert.equal(rejected.inspection.status,'DEGRADED');assert.equal(rejected.inspection.reason,'STREAM_RESYNC_REQUIRED');
+    assert.equal(rejected.book!.data.timestamp,String(now));assert.equal(rejected.inspection.engineObservation,null);
+    hold=false;now+=1000n;const recovered=await worker.poll();assert.equal(recovered.inspection.status,'COLLECTING');
+    assert.equal(books,3);assert.equal(metadataCalls,2);assert.equal(j.verify(),true);
+  }finally{j.close();}
+});
