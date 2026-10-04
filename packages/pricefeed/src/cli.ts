@@ -16,6 +16,7 @@ import { monadTestnetReadRpc, preflightMonadTestnet } from './monad-preflight.js
 import { monadLifecycleReader, watchMonadLifecycle } from './monad-lifecycle.js';
 import { MonadTestnetLifecycleMonitor, type LifecycleView } from './lifecycle.js';
 import { parseTestnetRunPolicy, runMonadTestnetService } from './monad-service.js';
+import { quoteMonadGas } from './monad-gas-quote.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -32,10 +33,18 @@ async function main():Promise<void> {
     'build-observation':['--config','--rules','--db','--capture-id','--sequence','--published-at-ms'],
     'preflight-monad':['--rpc-env','--config','--abi'],
     'watch-monad-lifecycle':['--rpc-env','--config','--abi','--db','--interval-ms','--max-checkpoint-age-ms','--duration-seconds'],
-    'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize']};
+    'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize'],
+    'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
+  if(command==='quote-monad-gas'){
+    const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
+    const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
+    console.log(json(await quoteMonadGas({config:parseConfig(read(need('--config'))),rules:parseRules(read(need('--rules'))),
+      abi:read(need('--abi')),rpcUrl,keysDirectory:need('--keys-dir'),journalDirectory:need('--journal-dir'),
+      policy:parseTestnetRunPolicy(read(need('--policy')))})));return;
+  }
   if(command==='serve-monad-testnet'){
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');

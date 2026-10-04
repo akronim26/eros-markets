@@ -7,6 +7,7 @@ import { PacketStore, packetNamespace, type PacketDomain, type StoredPacket } fr
 import { confirmationState, validateReceipt, type AcceptedReceipt, type DeliveryReceipt } from './receipts.js';
 import { sourceTime } from './time.js';
 import { submitCalldata } from './wire.js';
+import { sizeGas, type GasSizing } from './gas.js';
 import { canonicalTransactionRequest, parseTransactionRequest, type RelayTransactionRequest, type TransactionJournal } from './local-transaction-signer.js';
 
 export type LocalRelayTransport={
@@ -15,7 +16,7 @@ export type LocalRelayTransport={
   pendingNonce():Promise<bigint>;
   identity(domain:PacketDomain):Promise<{chainId:bigint;engineCodeHash:string;abiHash:string;listing:Record<string,unknown>;
     signer:string;rulesHash:string;lastSequence:bigint;lastObservedAt:bigint}>;
-  simulate(to:string,data:Hex):Promise<void>;
+  simulate(to:string,data:Hex,gasLimit?:bigint):Promise<void|GasSizing>;
   // Must sign without sending; repeated nonce/data requests must preserve identity.
   prepare(request:RelayTransactionRequest):Promise<Hex>;
   broadcast(raw:Hex):Promise<Hex>;
@@ -24,10 +25,11 @@ export type LocalRelayTransport={
   head():Promise<bigint>;
 };
 export type RelayPolicy={gasCap:bigint;maxFeePerGas:bigint;maxPriorityFeePerGas:bigint;maxCostWei:bigint;
-  headroomMs:bigint;confirmations:bigint;timeoutMs:number;maxAttempts:number;leaseMs:bigint};
+  headroomMs:bigint;confirmations:bigint;timeoutMs:number;maxAttempts:number;leaseMs:bigint;gasSafetyMarginBps?:bigint};
 export type DeliveryState='PREPARING'|'READY'|'UNKNOWN'|'MINED'|'FINALIZED'|'ORPHANED'|'REVERTED'|'QUARANTINED';
 export type DeliveryRecord={namespace:string;sequence:bigint;digest:Hex;nonce:bigint;raw:Hex|null;txHash:Hex|null;
   request?:RelayTransactionRequest;
+  gasSizing?:GasSizing;
   state:DeliveryState;attempts:number;accepted:AcceptedReceipt|null;reason:string|null};
 const checksum=(body:string)=>createHash('sha256').update(body).digest('hex');
 /** Shared durable relay mechanics. Fixed-network wrappers determine endpoint and finality admission. */
@@ -52,7 +54,8 @@ export class DurableRelay {
       ||policy.headroomMs<=0n||policy.headroomMs>30000n||policy.confirmations<=0n
       ||!Number.isSafeInteger(policy.timeoutMs)||policy.timeoutMs<1||policy.timeoutMs>30000
       ||!Number.isSafeInteger(policy.maxAttempts)||policy.maxAttempts<1||policy.maxAttempts>10
-      ||policy.leaseMs<BigInt(policy.timeoutMs)*8n)throw new Error('BAD_RELAY_POLICY');
+      ||policy.leaseMs<BigInt(policy.timeoutMs)*8n
+      ||policy.gasSafetyMarginBps!==undefined&&(profile.chainId!==10143n||policy.gasSafetyMarginBps<100n||policy.gasSafetyMarginBps>5000n))throw new Error('BAD_RELAY_POLICY');
     this.db=new DatabaseSync(path,{timeout:1000});
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
       CREATE TABLE IF NOT EXISTS relay_nonce(sender TEXT PRIMARY KEY,initial_nonce TEXT NOT NULL,next_nonce TEXT NOT NULL,owner TEXT NOT NULL,fence INTEGER NOT NULL,until_ms TEXT NOT NULL) STRICT;
@@ -131,6 +134,13 @@ export class DurableRelay {
   private parse(body:string,sha:string):DeliveryRecord {
     if(checksum(body)!==sha)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
     const r=JSON.parse(body);
+    if(r.gasSizing){
+      const s=r.gasSizing;
+      r.gasSizing={estimatedGas:BigInt(s.estimatedGas),gasLimit:BigInt(s.gasLimit),marginBps:BigInt(s.marginBps)};
+      if(!r.request||r.gasSizing.gasLimit!==BigInt(r.request.gas)
+        ||sizeGas(r.gasSizing.estimatedGas,BigInt(r.request.gas),r.gasSizing.marginBps).gasLimit!==r.gasSizing.gasLimit)
+        throw new Error('DELIVERY_JOURNAL_INTEGRITY');
+    }
     if(r.request&&parseTransactionRequest(r.request).nonce!==BigInt(r.nonce))throw new Error('DELIVERY_JOURNAL_INTEGRITY');
     return {...r,sequence:BigInt(r.sequence),nonce:BigInt(r.nonce),accepted:r.accepted?{...r.accepted,
       blockNumber:BigInt(r.accepted.blockNumber),acceptedAt:BigInt(r.accepted.acceptedAt),priceWad:BigInt(r.accepted.priceWad)}:null,
@@ -187,7 +197,11 @@ export class DurableRelay {
       if(r?.state==='QUARANTINED')throw new Error('RELAY_RECOVERY_REQUIRED');
       const data=submitCalldata(packet.packet.observation,packet.signature);
       // A rejected simulation must not burn a shared-account nonce before signing.
-      await this.bounded(this.transport.simulate(d.engine,data));
+      const sizing=await this.bounded(this.transport.simulate(d.engine,data,r?.request?.gas));
+      if(this.policy.gasSafetyMarginBps!==undefined&&(!sizing||sizing.gasLimit>this.policy.gasCap
+        ||sizing.estimatedGas<21000n||sizing.gasLimit<sizing.estimatedGas
+        ||sizing.marginBps!==this.policy.gasSafetyMarginBps))throw new Error('MONAD_GAS_ESTIMATE_REQUIRED');
+      const selectedGas=r?.request?.gas??sizing?.gasLimit??this.policy.gasCap;
       this.packets.assertWriter(d,owner,fence,this.now());
       requireFresh();
       // A slow simulation may cross the recording deadline. Check before reserving a nonce.
@@ -206,12 +220,12 @@ export class DurableRelay {
         if(this.profile.chainId===10143n){
           const prior=this.db.prepare('SELECT body,sha256 FROM deliveries').all().map(row=>this.parse(String(row.body),String(row.sha256)));
           const total=prior.reduce((sum,r)=>sum+(r.request?r.request.gas*r.request.maxFeePerGas:this.policy.maxCostWei),0n);
-          if(prior.length>=this.profile.maxTransactions!||total+this.policy.gasCap*this.policy.maxFeePerGas>this.profile.totalMaxCostWei!)
+          if(prior.length>=this.profile.maxTransactions!||total+selectedGas*this.policy.maxFeePerGas>this.profile.totalMaxCostWei!)
             throw new Error('TESTNET_RELAY_BUDGET_EXHAUSTED');
         }
         const account=this.account()!,nonce=BigInt(String(account.next_nonce));if(nonce>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('RELAY_NONCE_EXHAUSTED');
-        const request=canonicalTransactionRequest({to:d.engine,data,nonce,gas:this.policy.gasCap,maxFeePerGas:this.policy.maxFeePerGas,maxPriorityFeePerGas:this.policy.maxPriorityFeePerGas});
-        const next:DeliveryRecord={namespace:ns,sequence:seq,digest:packet.digest,nonce,request,raw:null,txHash:null,state:'PREPARING',attempts:0,accepted:null,reason:null};
+        const request=canonicalTransactionRequest({to:d.engine,data,nonce,gas:selectedGas,maxFeePerGas:this.policy.maxFeePerGas,maxPriorityFeePerGas:this.policy.maxPriorityFeePerGas});
+        const next:DeliveryRecord={namespace:ns,sequence:seq,digest:packet.digest,nonce,request,...(sizing?{gasSizing:sizing}:{}),raw:null,txHash:null,state:'PREPARING',attempts:0,accepted:null,reason:null};
         const body=json(next);this.db.prepare('INSERT INTO deliveries VALUES(?,?,?,?,?)').run(this.key(d,seq),ns,nonce.toString(),body,checksum(body));
         this.db.prepare('UPDATE relay_nonce SET next_nonce=? WHERE sender=?').run((nonce+1n).toString(),this.transport.sender.toLowerCase());return next;
       });}

@@ -31,6 +31,11 @@ publication service with separate encrypted keys and five durable journals.
 Three authentic observations finalized, including one after a process restart;
 cost was 0.2448 test MON. See [`docs/monad-testnet.md`](docs/monad-testnet.md)
 for the commands, public evidence, exhausted pilot budget and next coverage test.
+Estimate-based gas sizing now verifies the buffered limit before nonce reservation.
+A fresh signed quote estimated 179,266 gas, selecting 197,193 with a 10% margin;
+it sent no transaction. [`cost-capacity.json`](artifacts/monad-testnet/cost-capacity.json)
+records daily scenarios and a finite six-minute campaign proposal. Renewing the
+pilot budget explicitly and sustained coverage are still the next steps.
 
 Candidate rules manifests and durable packet/signing library mechanics now live
 in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and
