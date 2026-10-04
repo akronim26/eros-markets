@@ -1,5 +1,40 @@
 # Market factory: what remains before a real-engine market
 
+## 2026-10-05 implementation update (supersedes the design assumptions below)
+
+`contracts/src/factory/MarketFactory.sol` and `EngineCodeStore.sol` implement a small,
+registry-only factory using a pinned, STOP-prefixed creation-code store. Every engine
+runs its normal constructors and gets its own reserve. The factory owns a dedicated
+collateral vault and can register only the engines it creates. No clones, proxy
+initializers, registry redesign or arbitrary predeployed-engine binding are needed.
+
+The factory artifact is `oracle/src/integration/RegistryBookRiskEngine.sol`, derived
+from the real `BookRiskEngine`. It enforces the registry's immutable `oiCapLots` on
+fills; otherwise the listing bond commitment and actual halted exposure could diverge.
+Its sampler conservatively requires remaining OI capacity for a full depth sample.
+
+The old gas arithmetic below is not a proof of impossibility: deployment receipts
+bill the selected limit, and factory listings load engine bytecode from chain rather
+than resending it as transaction calldata. New local MonadTen full-path tests prove
+representative small and 8 KiB claim listings fit; a 16 KiB claim can exhaust the budget
+and are tested to roll back completely. Exact current measurements, source identities,
+code-store headroom, tests and the operator checklist are recorded in
+`../docs/integration/REAL_FACTORY_INTEGRATION.md`. A fresh complete estimate is required
+for each actual pack; the representative test is not a universal listing-size proof.
+
+Keeper runtime identity is now per-market and fail-closed. Actual engine gas needs
+runtime/chain-bound provenance; old seam-harness measurements no longer authorize real
+engine jobs. Local batch measurements do not calibrate the deployed UMA venue.
+
+The user confirms there is no local account controlling the existing oracle testnet
+deployment, and the independent publisher is unfinished. No factory switch, new public
+deployment, live O42 completion or new OG3b acceptance is recorded. Scheduled scenarios
+need T at least 24 hours away, but early valid YES/NO finality can finish before T.
+INVALID uses a complete historical INDEX window when available, or the disclosed
+fallback only after T plus the missing-data grace; it is not unconditionally 0.5.
+
+## Original design handoff (retained for historical context)
+
 Status on 5 Oct 2026. The oracle runs end to end on Monad testnet with the oracle team's `ResolutionEngineStub`
 (through `StubMarketFactory`). Listing a market on the risk team's `BookRiskEngine` needs a real market factory
 (dependency DEP-2, risk plan SP-03, oracle task O42). This page lists what is already compatible, what blocks the

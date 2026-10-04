@@ -120,6 +120,7 @@ Plan §13: owner both · 2 PD · depends DEP-1/2 · acceptance: OG3b.
 - Build: Check the real `MarketFactory` against `IMarketFactory` (bound to the registry, `onlyRegistry`, atomic deploy + initialize + register, reverts on reuse); Timelock `setFactory`; new globals version with `minHorizonSecs = 86,400`; list the E2E markets the day before (T ≥ listing + 24 h, voidSecs 26 h).
 - Done when: one market is listed through the real factory and its `listing()` matches the pack.
 - Check: manual: setFactory and createMarket tx hashes, engine listing check in docs_oracle/evidence/OG3b/
+- Local implementation update (2026-10-05): code-store factory, dedicated vault and registry-bound engine now have local integration tests. See `docs/integration/REAL_FACTORY_INTEGRATION.md`. Status stays todo: no local account controls the current deployment, and no Timelock switch/listing receipt has been produced. Real packs also need the bounded-text/gas preflight and actual collateral/INDEX identities.
 
 ### O42.2 · E1–E11 on the real engine
 - Owner: OB
@@ -132,6 +133,7 @@ Plan §13: owner both · 2 PD · depends DEP-1/2 · acceptance: OG3b.
 - Build: Re-run every scenario of O40 against the real engine and factory; compare each result with the stub-engine run (V-E1).
 - Done when: all eleven pass and any behaviour difference from the stub is explained and fixed.
 - Check: manual: E1–E11 evidence in docs_oracle/evidence/OG3b/
+- Local implementation update (2026-10-05): real oracle/registry/book/risk cash-lifecycle regressions exercise authenticated reports, early and scheduled outcomes, rejection/dispute/void paths and owner claims. Token, INDEX and assertion verdicts remain explicit fixtures. These are not a replacement for all eleven live scenarios or CRE deployment access.
 
 ## O43 · Production venue, external audit and mainnet (gate OG4)
 Plan §13: owner both · no estimate · depends OG3b · acceptance: OG4.
