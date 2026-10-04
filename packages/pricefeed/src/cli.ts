@@ -10,6 +10,8 @@ import { Worker, ensureUniqueWorkers } from './worker.js';
 import { observationDigest, parseObservation } from './wire.js';
 import { healthView } from './health.js';
 import { CollectionService } from './service.js';
+import { buildArchivedObservation } from './offline-observation.js';
+import { parseRules } from './rules.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -17,15 +19,21 @@ function args(argv:string[]):{command:string;options:Map<string,string>} {
   for(let i=0;i<rest.length;i+=2){const key=rest[i],value=rest[i+1];if(!key?.startsWith('--')||value===undefined||options.has(key))throw new Error('BAD_OR_DUPLICATE_ARGUMENT');options.set(key,value);}
   return {command,options};
 }
-const read=(path:string)=>JSON.parse(readFileSync(path,'utf8')) as unknown;
+const read=(path:string)=>{const body=readFileSync(path,'utf8');try{return JSON.parse(body) as unknown;}catch{throw new Error('INVALID_JSON_INPUT');}};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 
 async function main():Promise<void> {
   const {command,options}=args(process.argv.slice(2));
-  const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'serve':['--configs','--db'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine']};
-  if(!allowed[command])throw new Error('UNKNOWN_COMMAND: only read-only inspection is implemented');
-  for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error(`UNSUPPORTED_OPTION_${key}`);
+  const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'serve':['--configs','--db'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine'],
+    'build-observation':['--config','--rules','--db','--capture-id','--sequence','--published-at-ms']};
+  if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
+  for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
+  if(command==='build-observation'){
+    const result=buildArchivedObservation(parseConfig(read(need('--config'))),parseRules(read(need('--rules'))),
+      need('--db'),need('--capture-id'),need('--sequence'),need('--published-at-ms'));
+    console.log(json(result));if(!result.available)process.exitCode=2;return;
+  }
   if(command==='verify-digest'){const chain=need('--chain-id');if(!/^[1-9]\d*$/.test(chain))throw new Error('BAD_CHAIN_ID');console.log(json({digest:observationDigest(parseObservation(read(need('--observation'))),BigInt(chain),need('--engine')),sent:false}));return;}
   if(command==='validate-config'){const cfg=parseConfig(read(need('--config')));console.log(json({valid:true,category:cfg.category,enabled:cfg.enabled,operationalOutput:false,openApprovals:Object.entries(cfg.policies).filter(([k,v])=>k.endsWith('ApprovalId')&&v===null).map(([k])=>k)}));return;}
   const path=options.get('--db')??'var/diagnostic.sqlite';mkdirSync(dirname(path),{recursive:true});const journal=new Journal(path);
@@ -60,4 +68,9 @@ async function main():Promise<void> {
     console.log(json({completed:true,signaturesProduced:0,transactionsSent:0,evidenceValid:journal.verify()}));
   }finally{journal.close();}
 }
-main().catch(error=>{console.error(error instanceof Error?error.message:String(error));process.exitCode=1;});
+main().catch(error=>{
+  // Only fixed diagnostic codes leave the CLI; parser/OS messages can contain input or paths.
+  const message=error instanceof Error?error.message:'';
+  console.error(/^[A-Z][A-Z0-9_]*(?::[A-Z0-9_]+)?(?:--[a-z-]+)?$/.test(message)?message:'COMMAND_FAILED');
+  process.exitCode=1;
+});

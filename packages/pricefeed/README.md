@@ -35,7 +35,9 @@ depth/time; unknown or stale source time remains unavailable. Packet/signature b
 across retries; an independent signer journal detects a restored packet archive
 behind signing history. These entry points are restricted to local development,
 with disabled configs and the public fixture signer on chain 31337. They are not
-wired into the read-only CLI or enabled as production adapters. `LocalPipeline`
+enabled as production adapters. The CLI's `build-observation` now exposes offline
+unsigned replay from a selected raw capture; it does not attach signing or relay.
+`LocalPipeline`
 joins collection, durable preparation, signing and `LocalRelay`; `localRpcTransport`
 supplies the loopback-only adapter. See `docs/rules-hash-proposal.md` and
 `docs/risk-requirements-crosscheck.md` for the remaining policy boundaries.
@@ -162,7 +164,16 @@ npm run cli -- capture --configs config/collection.example.json --duration-secon
 npm run cli -- serve --configs config/collection.example.json --db var/service.sqlite
 npm run cli -- health --db var/capture.sqlite
 npm run cli -- verify-evidence --db var/capture.sqlite
+npm run cli -- build-observation --config var/replay/config.json --rules var/replay/rules.json --db var/capture.sqlite --capture-id 2 --sequence 1 --published-at-ms 1791059028222
 ```
+
+`build-observation` requires an explicit disabled local destination, matching
+candidate manifest, capture ID, proposed sequence and replay time. It verifies
+archive checksums and recomputes from raw bodies without reserving a sequence,
+signing or sending. Historical time is never refreshed. Exit 0 means an unsigned
+candidate, 2 means unavailable and 1 means a command/integrity failure. See
+[`docs/offline-observation.md`](docs/offline-observation.md) for selecting inputs,
+output boundaries and SQLite read coordination files.
 
 `inspect-book` makes a bounded public read and prints the diagnostic. Exit 0 means
 `COLLECTING` for that snapshot; exit 2 means unavailable/invalid/quarantined, and
