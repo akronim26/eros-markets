@@ -159,7 +159,7 @@ async function main():Promise<void> {
         const outcomes=await Promise.allSettled(runs),failed=outcomes.find(r=>r.status==='rejected');
         if(failed?.status==='rejected')throw failed.reason;
       }
-      finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}
+      finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);workers.forEach(w=>w.releaseLease());}
       console.log(json({completed:true,signaturesProduced:0,transactionsSent:0,evidenceValid:journal.verify()}));return;
     }
     const seconds=need('--duration-seconds');if(!/^[1-9]\d*$/.test(seconds)||BigInt(seconds)>86400n)throw new Error('DURATION_REQUIRED_1_TO_86400_SECONDS');

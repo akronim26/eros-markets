@@ -100,6 +100,8 @@ signatures and sent no transactions. All five active journals remained byte-iden
 
 Raw logs stay ignored in `var/verification/custody/`; compact verification is in
 `artifacts/verification/custody-unit.json`. Production secret backend/custodian
-approval, coordinated backups/restore, operator alerts/supervision and general
-fee-replacement policy remain open. Backup/runbook automation stays in original
-milestone 8. The deferred 268/300 Monad coverage proof remains unpassed.
+approval, actual hosted restore/continuation and general fee-replacement policy
+remain open. Original milestone 8 now supplies [private diagnostic backup/restore
+drills and local/Render log monitoring](operations.md); offsite scheduling and
+named operator acceptance remain pending. The deferred 268/300 Monad coverage
+proof remains unpassed.

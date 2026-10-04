@@ -9,6 +9,11 @@ retained-signature verification, safe key/journal paths, bounded recovery RPCs a
 explicit never-broadcast nonce cancellation. Its tests do not authorize extra
 spending or general cancellation of an unknown price broadcast.
 
+Original milestone 8's [operations runbook](operations.md) provides the implemented
+private offline bundle/verify/isolated-restore commands and local/Render log alerts.
+The older drills below retain their original scope and results; they are not
+rewritten as hosted or production backup acceptance.
+
 Run the reproducible offline drill from this package:
 
 ```bash
