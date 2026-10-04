@@ -35,7 +35,7 @@ risk/CLOB/oracle code. All temporary chain activity stays on chain ID 31337.
 | Q06 event semantics and exact initial mapping | OPEN | Three real source examples remain disabled for operational output |
 | Q07 cadence/headroom/metadata age | Engine 30-second carry and full 300-second index coverage FIXED; producer budgets OPEN | Every diagnostic run declares its own settings; 30 seconds is not a production polling interval |
 | Q08 invalid-packet representation/priority | Engine invalid-depth acceptance and zero coverage FIXED; local fresh zero-price/impact invalid-depth representation implemented; production policy/review OPEN | Preserve actual depths/times and failure reasons; no fabricated samples for missing/closed/stale source; closure/coalescing and operational priorities require review |
-| Q09 live chain/engine/key/relay/finality | TESTNET SELECTED on 04 October 2026; user has no deployed engine/address/concrete ABI; read-only preflight and durable lifecycle monitor implemented; signing/relay/finality approval OPEN | Public testnet RPC can be checked separately; deployed dossier and actual engine verification remain missing. Local chain-31337 signing/sending restrictions remain; see monad-testnet.md |
+| Q09 live chain/engine/key/relay/finality | TESTNET SELECTED; standalone receiver deployed; three authentic observations finalized with separate encrypted keys, durable relay, signed-history reconciliation and new-process restart on 04 October 2026 | Diagnostic integration verified; sustained coverage, operational custody/backup, production finality and reviewed release remain open. Local fixture restrictions remain. See monad-testnet.md |
 | Q10 calibration/soak/retention/release | OPEN | Read-only measurements cannot approve production parameters or release |
 
 The eleven-field ABI and raw digest are fixed by existing `IPriceSource.sol` and
@@ -61,6 +61,44 @@ These details preserve what was actually selected, why it fits the existing
 contract and what remains. Q02/Q03 selections were made on 03 October 2026;
 the operating/RPC explanations were recorded on 04 October 2026. Dates identify
 the discussion, not a production approval or a new test campaign.
+
+### Standalone receiver deployment — subsequent user authorization
+
+Later on 04 October 2026 the user clarified that completing the pricefeed takes
+priority over full-engine/CLOB release work and explicitly requested deployment
+from a temporary folder. This supersedes the earlier lack of external deployment
+authority for this **standalone Monad testnet diagnostic receiver** only. The
+user supplied deployer `0x33a4De190Ffa59deC8260880bc96744D8Ac38177` and signed
+the prepared contract-creation transaction in their browser wallet. Deployment
+is finalized at `0xd2d82fed32fb9a911300e7d928607755bd101773`; actual runtime,
+constructor transaction, listing/source identity and read-only preflight passed.
+
+Preparation and deployment files live in `/tmp/eros-pricefeed-monad`. Public
+artifacts are retained in `artifacts/monad-testnet/`; encrypted testnet observation
+key material is excluded. The receiver imports unchanged real ingress/store;
+full listing tuple reads are compatible, with unrelated trading fields disabled.
+It has no CLOB, vault, settlement or oracle. A separately generated testnet signer
+is pinned for automatic raw observation signing. A separate explicit testnet
+adapter now uses this encrypted key and a separately generated encrypted sender
+key. Three real observations finalized with new-process restart; this does not
+approve production signing or an operational release.
+
+The user funded sender `0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071`
+with 0.6 test MON and instructed continued integration. The bounded pilot used
+three transactions with 0.12 test MON per-transaction and 0.36 total reservation
+caps; actual cost was 0.2448 test MON. Keys and unlock files are owner-only in
+ignored `var/monad-testnet/keys/`. Five separate journals preserve source,
+packets, observation signing, transaction signing and relay history. Unknown
+on-chain signed history persistently quarantines publication. Finite service
+admission remains diagnostic with disabled config; enabling production remains
+closed. No extra transactions beyond the pilot budget are authorized by its
+policy. Sustained coverage and the operating policy are the next planned proof.
+
+The reused politics mapping, candidate source-rules schema, N/spread and seven-day
+receiver deadline are explicitly diagnostic inputs. Source metadata must be
+revalidated before publication. No production mapping/calibration or human gate
+is approved. The full engine's RB-I01 and size/wiring decisions do not block this
+standalone pricefeed integration path; they remain full-engine owner work.
 
 ### Risk compatibility and output — existing contract, cross-checked
 

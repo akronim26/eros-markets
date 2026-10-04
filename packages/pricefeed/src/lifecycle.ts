@@ -151,3 +151,11 @@ export class MonadTestnetLifecycleMonitor extends DurableLifecycle {
     super(config,journal,owner,read,maxCheckpointAgeMs,now,10143n);
   }
 }
+
+/** Fixed testnet publication boundary controller; operational admission remains closed. */
+export class MonadTestnetPublicationLifecycle extends DurableLifecycle {
+  constructor(config:MarketConfig,journal:Journal,owner:string,read:LifecycleReader,maxCheckpointAgeMs:bigint,
+    now:()=>bigint=()=>BigInt(Date.now())){
+    super(config,journal,owner,read,maxCheckpointAgeMs,now,10143n);
+  }
+}

@@ -25,11 +25,11 @@ export function permitsInvalidDepth(rules:RulesManifest):boolean {
 export type SnapshotEvidence={bookBody:string;metadata:unknown;event:unknown;bookReceivedAtMs:bigint;
   metadataReceivedAtMs:bigint;eventReceivedAtMs:bigint};
 /** Pure builder for disabled development configurations. No key or network access. */
-export function prepareObservation(cfg:MarketConfig,rules:RulesManifest,evidence:SnapshotEvidence,sequence:bigint,
+function prepareOnChain(chainId:31337n|10143n,cfg:MarketConfig,rules:RulesManifest,evidence:SnapshotEvidence,sequence:bigint,
   publishedAtMs:bigint,minimumHeadroomMs:bigint):PreparedPacket {
   const d=cfg.destination,m=parseRules(rules);
   if(cfg.enabled||!d)throw new Error('DEVELOPMENT_BUILDER_REQUIRES_DISABLED_DESTINATION');
-  if(BigInt(d.chainId)!==31337n)throw new Error('DEVELOPMENT_CHAIN_ONLY');
+  if(BigInt(d.chainId)!==chainId)throw new Error('DEVELOPMENT_CHAIN_ONLY');
   if(minimumHeadroomMs<=0n||minimumHeadroomMs>30000n)throw new Error('BAD_PUBLICATION_HEADROOM');
   for(const [field,value] of Object.entries(DEVELOPMENT_POLICIES))
     if(m[field as keyof typeof DEVELOPMENT_POLICIES].toLowerCase()!==value
@@ -76,9 +76,9 @@ function hasHeadroom(packet:PreparedPacket,now:bigint,minimum:bigint):boolean {
   return now/1000n>=packet.observation.publishedAt&&sourceTime(packet.sourceMs.toString(),now,null,minimum).hasHeadroom;
 }
 /** Explicit local development signing entry point. Production admission is unchanged. */
-export async function signPrepared(store:PacketStore,domain:PacketDomain,owner:string,fence:bigint,sequence:bigint,
+async function signOnChain(chainId:31337n|10143n,store:PacketStore,domain:PacketDomain,owner:string,fence:bigint,sequence:bigint,
   signer:RawSigner,now:()=>bigint,minimumHeadroomMs:bigint):Promise<StoredPacket> {
-  if(domain.chainId!==31337n)throw new Error('DEVELOPMENT_CHAIN_ONLY');
+  if(domain.chainId!==chainId)throw new Error('DEVELOPMENT_CHAIN_ONLY');
   if(signer.address.toLowerCase()!==domain.signer.toLowerCase())throw new Error('SIGNER_IDENTITY_MISMATCH');
   if(minimumHeadroomMs<=0n||minimumHeadroomMs>30000n)throw new Error('BAD_SIGNING_HEADROOM');
   const identity=`${packetNamespace(domain)}:${sequence}`,active=busy.get(store)??new Set<string>();busy.set(store,active);
@@ -95,4 +95,17 @@ export async function signPrepared(store:PacketStore,domain:PacketDomain,owner:s
     if((await recoverAddress({hash:stored.digest,signature})).toLowerCase()!==domain.signer.toLowerCase())throw new Error('SIGNATURE_RECOVERY_MISMATCH');
     return store.saveSignature(domain,owner,fence,now(),sequence,signature,!hasHeadroom(stored.packet,now(),minimumHeadroomMs));
   }finally{active.delete(identity);}
+}
+
+export function prepareObservation(...args:Parameters<typeof prepareOnChain> extends [unknown,...infer A]?A:never):PreparedPacket {
+  return prepareOnChain(31337n,...args);
+}
+export function prepareMonadTestnetObservation(...args:Parameters<typeof prepareObservation>):PreparedPacket {
+  return prepareOnChain(10143n,...args);
+}
+export function signPrepared(...args:Parameters<typeof signOnChain> extends [unknown,...infer A]?A:never):Promise<StoredPacket> {
+  return signOnChain(31337n,...args);
+}
+export function signMonadTestnetPrepared(...args:Parameters<typeof signPrepared>):Promise<StoredPacket> {
+  return signOnChain(10143n,...args);
 }

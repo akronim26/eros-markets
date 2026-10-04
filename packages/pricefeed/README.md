@@ -23,13 +23,14 @@ failure or treating a new database as operational approval.
 All examples have `enabled: false`, `destination: null` and unapproved policies.
 The diagnostic examples use N=1,000,000 lots and spread=0.05; these are illustrative
 inputs only. Enabling a config fails closed until approved runtime policy adapters
-exist. No operational observations, signatures or transactions are produced.
-Fixture signatures use a public test-only key in a local test VM.
+exist. The collection commands produce no signatures or transactions.
+Local fixture signatures use public test-only keys in a local test VM.
 
-Monad testnet work now includes read-only RPC/engine preflight and a durable
-halt/deadline/source-state monitor. See [`docs/monad-testnet.md`](docs/monad-testnet.md) for the commands,
-how to obtain the deployment address/ABI and what is still needed for sending.
-This does not enable the local publication pipeline on an external chain.
+Monad testnet now has a deployed standalone receiver and an explicit diagnostic
+publication service with separate encrypted keys and five durable journals.
+Three authentic observations finalized, including one after a process restart;
+cost was 0.2448 test MON. See [`docs/monad-testnet.md`](docs/monad-testnet.md)
+for the commands, public evidence, exhausted pilot budget and next coverage test.
 
 Candidate rules manifests and durable packet/signing library mechanics now live
 in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and
@@ -274,5 +275,6 @@ Operational RPC/key/lifecycle readers, approved recording/closure policy, broade
 campaigns and reviewed production acceptance remain incomplete. The staged
 PF001–PF028 audit is in
 [`docs/plan-status.md`](docs/plan-status.md).
-No deployment or live transaction authority exists. See `PROGRESS.md` before
+The user authorized the separate diagnostic testnet deployment and bounded
+publication pilot; production release remains unapproved. See `PROGRESS.md` before
 continuing; update its pending entry before each manual user commit.

@@ -1,0 +1,90 @@
+
+> @eros/pricefeed@0.1.0 test:monad-publication
+> npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/monad-keys.test.js dist/test/monad-publication.test.js dist/test/monad-service.test.js
+
+
+> @eros/pricefeed@0.1.0 build
+> tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: encrypted testnet keys reopen with the same identity and reject wrong pins, loose permissions and corrupt ciphertext
+ok 1 - encrypted testnet keys reopen with the same identity and reject wrong pins, loose permissions and corrupt ciphertext
+  ---
+  duration_ms: 321.42817
+  type: 'test'
+  ...
+# Subtest: public fixture signing keys cannot become testnet keys
+ok 2 - public fixture signing keys cannot become testnet keys
+  ---
+  duration_ms: 142.184998
+  type: 'test'
+  ...
+# Subtest: testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+ok 3 - testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+  ---
+  duration_ms: 1562.78027
+  type: 'test'
+  ...
+# Subtest: testnet source history mismatch persists quarantine and prevents restart publication
+ok 4 - testnet source history mismatch persists quarantine and prevents restart publication
+  ---
+  duration_ms: 780.493667
+  type: 'test'
+  ...
+# Subtest: testnet receipt remains MINED until a finalized head includes its canonical block
+ok 5 - testnet receipt remains MINED until a finalized head includes its canonical block
+  ---
+  duration_ms: 857.860476
+  type: 'test'
+  ...
+# Subtest: testnet total budget survives restart and stops allocation after the last accepted packet
+ok 6 - testnet total budget survives restart and stops allocation after the last accepted packet
+  ---
+  duration_ms: 1308.52167
+  type: 'test'
+  ...
+# Subtest: unfunded testnet simulation reserves no nonce and broadcasts nothing
+ok 7 - unfunded testnet simulation reserves no nonce and broadcasts nothing
+  ---
+  duration_ms: 775.342615
+  type: 'test'
+  ...
+# Subtest: unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+ok 8 - unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+  ---
+  duration_ms: 995.588479
+  type: 'test'
+  ...
+# Subtest: original local builder/signing/relay cannot be used for external testnet output
+ok 9 - original local builder/signing/relay cannot be used for external testnet output
+  ---
+  duration_ms: 605.423058
+  type: 'test'
+  ...
+# Subtest: testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+ok 10 - testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+  ---
+  duration_ms: 857.953483
+  type: 'test'
+  ...
+# Subtest: testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+ok 11 - testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+  ---
+  duration_ms: 1.55704
+  type: 'test'
+  ...
+# Subtest: testnet service refuses another chain before creating journals or accessing keys/network
+ok 12 - testnet service refuses another chain before creating journals or accessing keys/network
+  ---
+  duration_ms: 2.713603
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9044.835648

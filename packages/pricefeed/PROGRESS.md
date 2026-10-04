@@ -1630,3 +1630,174 @@ boundaries after those testnet controls exist. It does not detect unknown higher
 chain state against production signer history by itself. Production budgets,
 closure/finality/nonce policies, source calibration, hosting/storage/backup and
 named review remain open; none is approved by these diagnostic tests.
+
+## 04 October 2026 — corrected next-step dependency audit
+
+Reviewed project CLAUDE/spec/handoff/merge/release records, the original pricefeed
+PDF, package decisions/status/Monad docs and implementation boundaries at
+`85799ea`. The preceding preflight/monitor entries were written before commit;
+both are now committed in `85799ea`. Their historical verification counts remain
+unchanged. The untracked project atomic-task CSV was read as reference only;
+its "Not started" labels do not override implementation evidence.
+
+Corrected plan-status's stale storage-first next step: the user's priority is
+real-engine testnet deployment preparation, then deployment verification and
+publication integration. Documented that a real-book test composition exists,
+but test helpers, open RB-I01, build/chain feasibility and initialization inputs
+still need deployment-owner work. An abstract ABI is insufficient. Testnet
+signing/relay/admission and signed-journal receipt reconciliation remain unbuilt;
+read-only preflight/monitoring does not enable them. Adapter development can
+proceed offline after interfaces/policies are fixed; actual integration requires
+a deployment. PF026/PF027/PF028 release dependencies remain intact.
+
+Next deliverable: deployment-readiness handoff with concrete artifacts, missing
+listing/key/backend inputs and owner actions, following docs/plan-status.md.
+This audit changes documentation only. No deployment, broadcast or runtime
+change occurred; tests were not rerun. Latest recorded package suite remains
+306 passing tests. Suggested commit: `docs: clarify pricefeed deployment and integration sequence`.
+
+## 04 October 2026 — standalone pricefeed receiver deployed on Monad testnet
+
+**Scope/authorization.** The user clarified that pricefeed completion should not
+wait for CLOB economic release work, explicitly requested deployment in a
+temporary folder, supplied a funded public wallet and selected browser signing.
+This supersedes the earlier no-external-deployment state for this diagnostic
+receiver. Shared contracts/deployment configs and human gate records were not
+edited. Work stayed on pricefeed; user commits manually.
+
+**Built and deployed.** `/tmp/eros-pricefeed-monad` contains the standalone
+PricefeedTestnetReceiver and unchanged snapshots of real Eros ingress/store and
+dependencies. It authenticates the same signed observation domain/fields,
+retains index history/TWAP and exposes the full listing tuple/source state/halt
+reads required by current preflight. It has no trading/custody/oracle economics.
+Owner-only irreversible diagnostic halt and scheduled T leave recording available.
+Constructor limits it to chain 10143 and validates identities/depth/horizon.
+
+The user signed creation through the localhost MetaMask/Rabby page; no deployer
+private key was accessed. A separate testnet observation signer was generated
+and encrypted in owner-only temporary files, excluded from public artifacts and
+HTTP routes. Its backend/durable key custody are still integration work.
+
+Receiver: `0xd2d82fed32fb9a911300e7d928607755bd101773`.
+Transaction: `0xd3d23d6a6c301ebe79431987d900690ea623ad1dddf6364bd234664def2a77ea`.
+Source signer: `0xF26e7995D8421A8cd16Af704C360c7928F76bb8e`.
+The receiver uses existing diagnostic politics mapping/rules, a new market domain
+and seven-day test deadline; this is not approved source/event equivalence.
+
+**Verification.** Pinned Foundry 1.8.3, solc 0.8.30, optimizer 200, Prague,
+network=monad. Ten separate receiver tests pass, command exit 0. An initial test
+run had two test-order failures because signature computation called a view
+after expectRevert; signatures were computed first and the full rerun passed.
+Tests cover listing/source pins, authentic exact acceptance event, replay,
+wrong signer/chain/receiver/rules, mutation, future/backward time, complete
+300-second TWAP, zero invalid checkpoints, 30-second gap carry, owner-only
+irreversible halt/continued recording, scheduled halt and constructor rejection.
+
+Real public testnet RPC estimated 2,093,134 deployment gas. The submitted limit
+was 2,511,761; actual charged gas at 102 gwei cost 0.256199622 test MON. The
+successful receipt is finalized/canonical. Verified exact deployment input,
+sender/nonce-derived address, compiled runtime including immutable owner,
+owner/kind, complete listing/source pins and actual preflight. Runtime 7,646
+bytes; creation bytecode 8,838 bytes. Source state was sequence 0/time 0.
+The existing watch CLI then ran 16 seconds against the real receiver: exit 0,
+four COLLECTING checkpoints, valid persistent journal and clean completion.
+This is chain-monitor health, not source freshness or publication permission.
+Local page route/host/token checks and JS syntax checks passed. No observation
+was signed/submitted; one external contract-creation transaction was user-signed.
+
+**Records/next.** Public build/source/ABI/config/rules/receipt/preflight/monitor
+evidence retained under artifacts/monad-testnet; secrets remain private in /tmp.
+Updated decisions, Monad setup and plan-status to make testnet signer/relay/
+receipt recovery the immediate next work, with a separate unattended sender
+backend and durable private signer custody. Local chain-31337 restrictions and
+production admission remain unchanged. No full-engine deployment, production
+mapping/calibration or human acceptance is claimed. Package TypeScript was not
+changed and its 306-test suite was not rerun; the ten receiver tests are separate.
+Suggested commit: `feat: record verified Monad pricefeed receiver deployment`.
+
+## Pending — 04 October 2026: diagnostic Monad publication and live restart
+
+Base: `85799ea` on `pricefeed`; includes the preceding uncommitted receiver
+deployment records. User funded the automatic sender and instructed continuing
+the pricefeed plan. No shared risk/CLOB/oracle/engine source was edited.
+
+**Result.** The bot now fetches authentic Polymarket books, computes prices,
+signs observations, sends transactions to the deployed standalone receiver and
+verifies finalized acceptance on Monad testnet. Two observations finalized,
+the process exited, then a new process reopened the same journals and finalized
+the third. Sequence/nonce pairs were 1/0, 2/1 and 3/2. Earlier packet bytes,
+signatures and raw transactions were unchanged after restart. Finalized source
+state equals sequence 3 and its real observedAt. This is an actual external
+diagnostic join, with real ingress/store and no full trading engine.
+
+**Implementation.** Extracted existing durable local mechanics into shared
+cores with fixed-chain public wrappers; existing Local APIs remain 31337-only.
+Added explicit 10143 observation/transaction signers, HTTPS RPC adapter,
+publication lifecycle controller, testnet relay/pipeline and finite
+`serve-monad-testnet` CLI. Separate encrypted private keys are in ignored
+owner-only `var/monad-testnet/keys/`; private material was not exposed or committed.
+The browser deployer remains separate from the automatic sender.
+
+The service uses five persistent journals for source evidence, packets,
+observation signing, transaction signing and relay. It checks concrete
+receiver/listing/rules/code pins, exact raw signatures/calls, gas/fee ceilings,
+source age and lifecycle gates before signing/reservation/sending. Canonical
+finalized blocks drive receipt confirmation. Uncertain send retries retain
+the same bytes/nonce. Restored signing-history mismatches and unknown higher
+source state persistently quarantine. Clean shutdown releases only owned leases.
+The testnet spend policy is pinned and counted across restarts; exhausted
+budget cannot allocate a fourth packet. Missing/closed/stale source still emits
+no fabricated sample; fresh invalid-depth policy preserves real time/depth.
+
+**Actual pilot.** Sender `0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071`
+was funded with 0.6 test MON. Three-transaction reservation cap: 0.36 test MON;
+per-transaction cap: 0.12. Actual cost **0.2448 test MON**, three times 800,000
+charged gas at 102 gwei. Accepted midpoint prices were 0.633371815,
+0.633371815 and 0.633158895; all three had valid two-sided depth.
+
+- Sequence 1: `0x34a68a4dbe45f22a3ad3e03a220e4df30edaf6507acd09e5ab1410544abd981a`.
+- Sequence 2: `0x01e811955edd9e282ef500dd16f1a4a57c89c981283a93c2d381814dd75e71c9`.
+- Sequence 3 after restart: `0x0c089ebea85e3bfc5bc80d391680c7f4295261833ea9ac98374b849a1a985141`.
+
+Both live CLI runs and read-only verification exited 0. Exact accepted event,
+canonical finalized block, source state, recovered observation/transaction
+signer, transaction hash/nonce/chain/value and actual cost were checked.
+Independent Python Fraction review matched prices/depths to original archived
+books and verified source times/checksums. Public records:
+`artifacts/monad-testnet/publication-pilot.json` (raw captures/receipts/restart),
+`publication-fraction-review.json` and `publication-policy.json`.
+Private closed journals remain under `var/monad-testnet/pilot/`.
+
+**Checks and failures.** Build passes. Full package suite **318/318**, exit 0;
+focused `test:monad-publication` **12/12**, exit 0, included in 318. The first
+sandboxed full suite failed twelve CLI tests because spawnSync was blocked with
+EPERM; it did not justify changing test expectations. The unrestricted rerun
+passed. Eight joined owned-Anvil SIGKILL recovery paths passed, exit 0. Wire
+check and 144 Fraction vectors (seed 20261002) passed, exit 0. The ten receiver
+Solidity tests are separate. Retained TAP/source hashes are in
+`artifacts/verification/monad-publication-unit.json`; rerun crash evidence is
+in `pipeline-crash.json`/log. Read-only evidence scripts were compiled and run
+after the full suite; no publication behavior changed afterward.
+
+**Next according to the plan.** Complete the sustained-feed proof before
+hosting work: measure/tighten gas limits and actual submission cadence, prepare
+an explicitly bounded campaign retaining existing signed history, then verify
+full 300-second TWAP coverage and invalid/gap recovery. The pilot's budget is
+exhausted; preserve journals and its immutable policy. Its three samples and
+restart interval do not establish sustained coverage. Follow with category
+calibration/soaks, supervisor/backup/alerts and reviewed handoff. Testnet mapping,
+provider semantics, operating policy and production release remain unapproved;
+no PF gate acceptance or full-engine join is claimed.
+
+Suggested commit: `feat: integrate Monad testnet pricefeed publication and restart`.
+
+### Branch workflow clarification — 04 October 2026
+
+User will continue local work on `pricefeed`, keep it updated with `origin/main`,
+and create/push remote `feat/pricefeed` themselves.
+Fetched origin branches; main advanced to `5f8e8a4`. Simulated merges against
+main, integration/risk, feat/clob, feat/oracle and feat/risk all passed without
+conflicts for both committed HEAD and a temporary snapshot including uncommitted
+work. Main has 33 commits absent from local pricefeed, which has 25 commits
+absent from main. No merge, branch switch or push was performed. Incorporating
+main is still pending; current working changes must be preserved.

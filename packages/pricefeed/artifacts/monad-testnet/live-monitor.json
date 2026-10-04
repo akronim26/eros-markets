@@ -1,0 +1,135 @@
+[
+  {
+    "mode": "MONAD_TESTNET_READ_ONLY",
+    "worker": "monad-testnet-politics",
+    "lifecycle": {
+      "mode": "COLLECTING",
+      "reason": null,
+      "atMs": "1791114200975",
+      "checkpoint": {
+        "chainId": "10143",
+        "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "scheduledT": "1791717905",
+        "halted": false,
+        "blockNumber": "68106356",
+        "blockHash": "0xcd6ec674218c2e6eba036d08debb706062907e957b5bb3ebb0c62f89a39a727b",
+        "blockTimestamp": "1791114198",
+        "canonical": true,
+        "sourceState": {
+          "lastSequence": "0",
+          "lastObservedAt": "0"
+        }
+      },
+      "freshCheckpoint": true
+    },
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  },
+  {
+    "mode": "MONAD_TESTNET_READ_ONLY",
+    "worker": "monad-testnet-politics",
+    "lifecycle": {
+      "mode": "COLLECTING",
+      "reason": null,
+      "atMs": "1791114204150",
+      "checkpoint": {
+        "chainId": "10143",
+        "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "scheduledT": "1791717905",
+        "halted": false,
+        "blockNumber": "68106369",
+        "blockHash": "0x88f9f2ff01ad13a96a990dd79b0c04a762dfc03ce243845bc2c8031bf2e95c14",
+        "blockTimestamp": "1791114202",
+        "canonical": true,
+        "sourceState": {
+          "lastSequence": "0",
+          "lastObservedAt": "0"
+        }
+      },
+      "freshCheckpoint": true
+    },
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  },
+  {
+    "mode": "MONAD_TESTNET_READ_ONLY",
+    "worker": "monad-testnet-politics",
+    "lifecycle": {
+      "mode": "COLLECTING",
+      "reason": null,
+      "atMs": "1791114209884",
+      "checkpoint": {
+        "chainId": "10143",
+        "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "scheduledT": "1791717905",
+        "halted": false,
+        "blockNumber": "68106385",
+        "blockHash": "0xf2764abee21f24c31bdc21c284a17f654535430a080096184d9240c7b094c423",
+        "blockTimestamp": "1791114207",
+        "canonical": true,
+        "sourceState": {
+          "lastSequence": "0",
+          "lastObservedAt": "0"
+        }
+      },
+      "freshCheckpoint": true
+    },
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  },
+  {
+    "mode": "MONAD_TESTNET_READ_ONLY",
+    "worker": "monad-testnet-politics",
+    "lifecycle": {
+      "mode": "COLLECTING",
+      "reason": null,
+      "atMs": "1791114215414",
+      "checkpoint": {
+        "chainId": "10143",
+        "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "scheduledT": "1791717905",
+        "halted": false,
+        "blockNumber": "68106404",
+        "blockHash": "0x57907a876a336d070eccb96ca4a4e4be9afb5b66829073e6f57df03f9dbe37dc",
+        "blockTimestamp": "1791114213",
+        "canonical": true,
+        "sourceState": {
+          "lastSequence": "0",
+          "lastObservedAt": "0"
+        }
+      },
+      "freshCheckpoint": true
+    },
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  },
+  {
+    "completed": true,
+    "checks": 4,
+    "lastMode": "COLLECTING",
+    "evidenceValid": true,
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  }
+]

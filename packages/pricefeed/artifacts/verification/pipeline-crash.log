@@ -1,41 +1,41 @@
 {
   "stage": "SIGNED",
-  "waitingForLeaseMs": 9549
+  "waitingForLeaseMs": 9175
 }
 ANVIL_CRASH_CASE {"stage":"SIGNED","status":"RESUMED","acceptedEvents":2}
 {
   "stage": "PREPARING",
-  "waitingForLeaseMs": 9939
+  "waitingForLeaseMs": 9817
 }
 ANVIL_CRASH_CASE {"stage":"PREPARING","status":"RESUMED","acceptedEvents":2}
 {
   "stage": "TX_RESERVED",
-  "waitingForLeaseMs": 9919
+  "waitingForLeaseMs": 9868
 }
 ANVIL_CRASH_CASE {"stage":"TX_RESERVED","status":"RESUMED","acceptedEvents":2}
 {
   "stage": "TX_SIGNED",
-  "waitingForLeaseMs": 9924
+  "waitingForLeaseMs": 9858
 }
 ANVIL_CRASH_CASE {"stage":"TX_SIGNED","status":"RESUMED","acceptedEvents":2}
 {
   "stage": "UNKNOWN",
-  "waitingForLeaseMs": 9902
+  "waitingForLeaseMs": 9848
 }
 ANVIL_CRASH_CASE {"stage":"UNKNOWN","status":"RESUMED","acceptedEvents":2}
 {
   "stage": "BROADCAST",
-  "waitingForLeaseMs": 9864
+  "waitingForLeaseMs": 9803
 }
 ANVIL_CRASH_CASE {"stage":"BROADCAST","status":"RESUMED","acceptedEvents":2}
 {
   "stage": "MINED",
-  "waitingForLeaseMs": 9821
+  "waitingForLeaseMs": 9473
 }
 ANVIL_CRASH_CASE {"stage":"MINED","status":"RESUMED","acceptedEvents":2}
 {
   "stage": "FINALIZED",
-  "waitingForLeaseMs": 9802
+  "waitingForLeaseMs": 9784
 }
 ANVIL_CRASH_CASE {"stage":"FINALIZED","status":"RESUMED","acceptedEvents":2}
 PASS: eight joined Anvil restart paths with durable transaction signing

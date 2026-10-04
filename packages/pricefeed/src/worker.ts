@@ -28,6 +28,7 @@ export class Worker {
   private rulesDigest:string|null=null;
   private quarantined:string|null=null;
   private current:Promise<PollResult>|null=null;
+  private fence=0n;
   private readonly configDigest:string;
   constructor(readonly config:MarketConfig,private readonly provider:Provider,private readonly journal:Journal,
     private readonly owner:string,private readonly now:()=>bigint=()=>BigInt(Date.now())) {
@@ -49,10 +50,16 @@ export class Worker {
     void operation.finally(()=>{if(this.current===operation)this.current=null;}).catch(()=>{});
     return operation;
   }
+  releaseLease():boolean {
+    if(this.current)throw new Error('WORKER_POLL_IN_FLIGHT');
+    if(!this.fence)return false;
+    const released=this.journal.release(this.namespace,this.owner,this.fence);this.fence=0n;return released;
+  }
   private async collect():Promise<PollResult> {
     const ttl=BigInt((this.config.poll.timeoutMs+this.config.poll.retryDelayMs*8)*
       (this.config.poll.maxRetries+1)*3+this.config.poll.intervalMs+10000);
     const fence=this.journal.acquire(this.namespace,this.owner,this.now(),ttl);
+    this.fence=fence;
     let book:Capture|null=null;
     let inspection:Inspection={status:'DEGRADED',reason:null,time:null,summary:null,engineObservation:null};
     try {
