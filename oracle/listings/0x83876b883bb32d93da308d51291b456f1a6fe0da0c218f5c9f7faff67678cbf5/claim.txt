@@ -1,0 +1,13 @@
+Eros Markets market 0x83876b883bb32d93da308d51291b456f1a6fe0da0c218f5c9f7faff67678cbf5 (chain 10143, oracle 0xa87D6E10a7199666ec9F2e04866201E35AAf36A6).
+Question: Did the Milwaukee Brewers score more than 2 runs against the San Diego Padres in the 2026 NLDS 'A' Game 1 on 3 October 2026 (MLB gamePk 849830)? [testnet Layer 2 test market]
+Rules: TESTNET TEST MARKET for the Layer 2, committee and watchdog runs; the game has already been played.
+
+This market resolves YES if the Milwaukee Brewers scored more than 2 runs in MLB game 849830 (gamePk), the 2026 NLDS 'A' Game 1 between the San Diego Padres (away) and the Milwaukee Brewers (home), played on 2026-10-03. It resolves NO if they scored 2 runs or fewer.
+
+Source and finality: the official MLB Stats API schedule entry for gamePk 849830 (https://statsapi.mlb.com/api/v1/schedule?gamePk=849830). The game counts as completed once that entry's status code (dates[0].games[0].status.codedGameState) is "F". The runs counted are the home score (dates[0].games[0].teams.home.score) shown with that status.
+
+Deadline: the scheduled resolution time T is 2026-10-04T12:10:00Z. If no official source shows the game as Final with a numeric Milwaukee Brewers score before the void deadline (six hours after the later of T and the halt), the market resolves INVALID.
+Scheduled time T: 2026-10-04T12:10:00Z (1791115800)
+Asserted outcome: YES
+Evidence: Layer 1 CRE report, value 0x2a80e1ef1d7842f27f2e6be0972bb708b9a135c38860dbe73c27c3486c34f4de, source https://statsapi.mlb.com/api/v1/schedule?gamePk=849830, keccak256 0x0000000000000000000000000000000000000000000000000000000000000000
+This assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.

@@ -15,6 +15,7 @@ tracked here so nothing waits on them unnoticed. Format and rules: header of
 - Build: Start on day 1 (approval is manual). Create the Chainlink account and organization, `cre login`, `cre whoami`; request deploy access with `cre account access` using the §12.3 use-case text; choose the private registry; record the organization owner address (`TrustSet.workflowOwner`); agree the 3-workflow quota with CP-PRICE (resolution + index relay + 1 spare).
 - Done when: deploy access is granted and the org owner address is recorded under `cre.orgOwner`.
 - Check: manual: approval email date and orgOwner recorded in oracle/deployments/monad-testnet.json
+- Notes: CRE CLI v1.36.0 installed and logged in (org org_M8cSbq73SLqtYxZb). Deploy access requested by the team with `cre account access` on 4 Oct 2026 (private registry; use case: perpetual futures on event markets, Layer 1 resolution workflow); `cre whoami` shows "Not enabled" until Chainlink approves by email. Simulation works meanwhile (O23).
 
 ### X02 · Production venue outreach (R-2)
 - Owner: lead
@@ -22,11 +23,12 @@ tracked here so nothing waits on them unnoticed. Format and rules: header of
 - Depends: -
 - Plan: §6.7, §16.2, §17, R-2
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: docs_oracle/requests/R-2-venue.md
 - Build: Start now. Ask UMA / Risk Labs for an OOv3 on Monad (timeline, relay model, USDC whitelisting and final fee); in parallel confirm the Base↔Monad CCIP lane for option (b).
 - Done when: a venue option is chosen with its expected date, or both are documented as unavailable.
 - Check: manual: docs_oracle/requests/R-2-venue.md records the answers and the chosen option
+- Notes: Research and a draft message to UMA in docs_oracle/requests/R-2-venue.md (4 Oct 2026): UMA lists no OOv3 on Monad; the Monad CCIP directory lists a Monad → Base lane (2.0.0); Base OOv3 0x2aBf…500c reads burnedBondPercentage 50%, USDC final fee 250 USDC, minimum bond 500 USDC, so option (b) needs the treasury sizing redone. Waits for the team to contact UMA and choose. Skipped: mainnet is out of hackathon scope (ADJ-51).
 
 ### X03 · Accounts, keys and Safes
 - Owner: both
