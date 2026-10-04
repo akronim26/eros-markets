@@ -7,15 +7,17 @@ import { PacketStore, packetNamespace, type PacketDomain, type StoredPacket } fr
 import { confirmationState, validateReceipt, type AcceptedReceipt, type DeliveryReceipt } from './receipts.js';
 import { sourceTime } from './time.js';
 import { submitCalldata } from './wire.js';
+import { canonicalTransactionRequest, parseTransactionRequest, type RelayTransactionRequest, type TransactionJournal } from './local-transaction-signer.js';
 
 export type LocalRelayTransport={
   rpcUrl:string;sender:string;
+  transactionJournal?:TransactionJournal;
   pendingNonce():Promise<bigint>;
   identity(domain:PacketDomain):Promise<{chainId:bigint;engineCodeHash:string;abiHash:string;listing:Record<string,unknown>;
     signer:string;rulesHash:string;lastSequence:bigint;lastObservedAt:bigint}>;
   simulate(to:string,data:Hex):Promise<void>;
   // Must sign without sending; repeated nonce/data requests must preserve identity.
-  prepare(request:{to:string;data:Hex;nonce:bigint;gas:bigint;maxFeePerGas:bigint;maxPriorityFeePerGas:bigint}):Promise<Hex>;
+  prepare(request:RelayTransactionRequest):Promise<Hex>;
   broadcast(raw:Hex):Promise<Hex>;
   receipt(hash:Hex):Promise<DeliveryReceipt|null>;
   block(number:bigint):Promise<{number:bigint;hash:Hex;timestamp:bigint}|null>;
@@ -25,6 +27,7 @@ export type RelayPolicy={gasCap:bigint;maxFeePerGas:bigint;maxPriorityFeePerGas:
   headroomMs:bigint;confirmations:bigint;timeoutMs:number;maxAttempts:number;leaseMs:bigint};
 export type DeliveryState='PREPARING'|'READY'|'UNKNOWN'|'MINED'|'FINALIZED'|'ORPHANED'|'REVERTED'|'QUARANTINED';
 export type DeliveryRecord={namespace:string;sequence:bigint;digest:Hex;nonce:bigint;raw:Hex|null;txHash:Hex|null;
+  request?:RelayTransactionRequest;
   state:DeliveryState;attempts:number;accepted:AcceptedReceipt|null;reason:string|null};
 const checksum=(body:string)=>createHash('sha256').update(body).digest('hex');
 /** Local-chain relay mechanics with injected transport. No RPC client/wallet is constructed. */
@@ -47,6 +50,7 @@ export class LocalRelay {
     this.db=new DatabaseSync(path,{timeout:1000});
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
       CREATE TABLE IF NOT EXISTS relay_nonce(sender TEXT PRIMARY KEY,initial_nonce TEXT NOT NULL,next_nonce TEXT NOT NULL,owner TEXT NOT NULL,fence INTEGER NOT NULL,until_ms TEXT NOT NULL) STRICT;
+      CREATE TABLE IF NOT EXISTS relay_signer(sender TEXT PRIMARY KEY,journal_id TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS deliveries(key TEXT PRIMARY KEY,ns TEXT NOT NULL,nonce TEXT NOT NULL UNIQUE,body TEXT NOT NULL,sha256 TEXT NOT NULL) STRICT;`);
     const accounts=this.db.prepare('SELECT sender,initial_nonce,next_nonce FROM relay_nonce').all();
     if(accounts.length>1||accounts.some(r=>r.sender!==transport.sender.toLowerCase())){this.db.close();throw new Error('RELAY_ACCOUNT_CHANGED');}
@@ -87,17 +91,35 @@ export class LocalRelay {
         const next=rows.reduce((high,r)=>BigInt(String(r.nonce))>=high?BigInt(String(r.nonce))+1n:high,BigInt(String(row.initial_nonce)));
         if(next!==BigInt(String(row.next_nonce)))throw new Error('RELAY_NONCE_JOURNAL_INTEGRITY');
       }
+      const signer=this.db.prepare('SELECT journal_id FROM relay_signer WHERE sender=?').get(this.transport.sender.toLowerCase());
+      const journal=this.transport.transactionJournal;
+      if(signer&&signer.journal_id!==journal?.id)throw new Error('RELAY_TRANSACTION_SIGNER_CHANGED');
+      if(journal&&!signer){
+        if(this.db.prepare('SELECT count(*) AS n FROM deliveries').get()!.n!==0)throw new Error('TRANSACTION_SIGNER_MIGRATION_REQUIRED');
+        this.db.prepare('INSERT INTO relay_signer VALUES(?,?)').run(this.transport.sender.toLowerCase(),journal.id);
+      }
       this.fence=row&&row.owner===this.owner&&BigInt(String(row.until_ms))>now?BigInt(String(row.fence)):BigInt(String(row?.fence??0))+1n;
       this.db.prepare('INSERT INTO relay_nonce VALUES(?,?,?,?,?,?) ON CONFLICT(sender) DO UPDATE SET owner=excluded.owner,fence=excluded.fence,until_ms=excluded.until_ms')
         .run(this.transport.sender.toLowerCase(),nonce.toString(),nonce.toString(),this.owner,this.fence,(now+this.policy.leaseMs).toString());
     });this.ready=true;
+    try{
+      const journal=this.transport.transactionJournal;
+      if(journal){
+        const reservations=this.db.prepare('SELECT body,sha256 FROM deliveries').all().map(row=>{
+          const r=this.parse(String(row.body),String(row.sha256));
+          if(!r.request)throw new Error('TRANSACTION_REQUEST_JOURNAL_REQUIRED');return {request:r.request,raw:r.raw};
+        });
+        await this.bounded(journal.reconcile(reservations));this.lease();
+      }
+    }catch(error){this.release();throw error;}
   }
   private key(d:PacketDomain,sequence:bigint):string{return `${packetNamespace(d)}:${sequence}`;}
   private parse(body:string,sha:string):DeliveryRecord {
     if(checksum(body)!==sha)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
     const r=JSON.parse(body);
     return {...r,sequence:BigInt(r.sequence),nonce:BigInt(r.nonce),accepted:r.accepted?{...r.accepted,
-      blockNumber:BigInt(r.accepted.blockNumber),acceptedAt:BigInt(r.accepted.acceptedAt),priceWad:BigInt(r.accepted.priceWad)}:null} as DeliveryRecord;
+      blockNumber:BigInt(r.accepted.blockNumber),acceptedAt:BigInt(r.accepted.acceptedAt),priceWad:BigInt(r.accepted.priceWad)}:null,
+      ...(r.request?{request:parseTransactionRequest(r.request)}:{})} as DeliveryRecord;
   }
   get(d:PacketDomain,seq:bigint):DeliveryRecord|null {
     const r=this.db.prepare('SELECT * FROM deliveries WHERE key=?').get(this.key(d,seq));
@@ -108,6 +130,10 @@ export class LocalRelay {
   }
   private fresh(packet:StoredPacket):boolean {
     return this.now()/1000n>=packet.packet.observation.publishedAt&&sourceTime(packet.packet.sourceMs.toString(),this.now(),null,this.policy.headroomMs).hasHeadroom;
+  }
+  canResumePreparing(d:PacketDomain,seq:bigint):boolean {
+    if(!this.ready)return false;this.lease();const r=this.get(d,seq);
+    return !!this.transport.transactionJournal&&r?.state==='PREPARING'&&!!r.request&&r.raw===null;
   }
   async deliver(cfg:MarketConfig,owner:string,fence:bigint,seq:bigint,beforeSend?:()=>Promise<void>):Promise<DeliveryRecord>{
     if(this.active)throw new Error('RELAY_BUSY');this.active=true;
@@ -157,17 +183,22 @@ export class LocalRelay {
         for(const row of this.db.prepare('SELECT body,sha256 FROM deliveries').all())
           if(this.parse(String(row.body),String(row.sha256)).state==='QUARANTINED')throw new Error('RELAY_NONCE_RECOVERY_REQUIRED');
         const account=this.account()!,nonce=BigInt(String(account.next_nonce));if(nonce>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('RELAY_NONCE_EXHAUSTED');
-        const next:DeliveryRecord={namespace:ns,sequence:seq,digest:packet.digest,nonce,raw:null,txHash:null,state:'PREPARING',attempts:0,accepted:null,reason:null};
+        const request=canonicalTransactionRequest({to:d.engine,data,nonce,gas:this.policy.gasCap,maxFeePerGas:this.policy.maxFeePerGas,maxPriorityFeePerGas:this.policy.maxPriorityFeePerGas});
+        const next:DeliveryRecord={namespace:ns,sequence:seq,digest:packet.digest,nonce,request,raw:null,txHash:null,state:'PREPARING',attempts:0,accepted:null,reason:null};
         const body=json(next);this.db.prepare('INSERT INTO deliveries VALUES(?,?,?,?,?)').run(this.key(d,seq),ns,nonce.toString(),body,checksum(body));
         this.db.prepare('UPDATE relay_nonce SET next_nonce=? WHERE sender=?').run((nonce+1n).toString(),this.transport.sender.toLowerCase());return next;
       });}
       if(r.digest!==packet.digest)throw new Error('DELIVERY_PACKET_MISMATCH');
+      const request=r.request??{to:d.engine,data,nonce:r.nonce,gas:this.policy.gasCap,maxFeePerGas:this.policy.maxFeePerGas,maxPriorityFeePerGas:this.policy.maxPriorityFeePerGas};
+      if(request.to.toLowerCase()!==d.engine.toLowerCase()||request.data!==data||request.nonce!==r.nonce||request.gas>this.policy.gasCap
+        ||request.maxFeePerGas>this.policy.maxFeePerGas||request.maxPriorityFeePerGas>this.policy.maxPriorityFeePerGas
+        ||request.gas*request.maxFeePerGas>this.policy.maxCostWei)throw new Error('DELIVERY_TRANSACTION_REQUEST_MISMATCH');
       if(!r.raw){
         try{
-          const raw=await this.bounded(this.transport.prepare({to:d.engine,data,nonce:r.nonce,gas:this.policy.gasCap,maxFeePerGas:this.policy.maxFeePerGas,maxPriorityFeePerGas:this.policy.maxPriorityFeePerGas}));
+          const raw=await this.bounded(this.transport.prepare(request));
           const tx=parseTransaction(raw);
           if(tx.type!=='eip1559'||tx.chainId!==31337||tx.nonce!==Number(r.nonce)||tx.to?.toLowerCase()!==d.engine.toLowerCase()
-            ||tx.data?.toLowerCase()!==data.toLowerCase()||(tx.value??0n)!==0n||!tx.gas||tx.gas>this.policy.gasCap
+            ||tx.data?.toLowerCase()!==data.toLowerCase()||(tx.value??0n)!==0n||!tx.gas||tx.gas!==request.gas||tx.maxFeePerGas!==request.maxFeePerGas||tx.maxPriorityFeePerGas!==request.maxPriorityFeePerGas
             ||!tx.maxFeePerGas||tx.maxFeePerGas>this.policy.maxFeePerGas||(tx.maxPriorityFeePerGas??0n)>this.policy.maxPriorityFeePerGas
             ||tx.gas*tx.maxFeePerGas>this.policy.maxCostWei
             ||(await recoverTransactionAddress({serializedTransaction:raw as TransactionSerialized})).toLowerCase()!==this.transport.sender.toLowerCase())throw new Error('SIGNED_TRANSACTION_MISMATCH');

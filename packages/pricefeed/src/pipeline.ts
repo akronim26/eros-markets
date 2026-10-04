@@ -75,7 +75,8 @@ export class LocalPipeline {
         for(const p of history){
           if(p.state==='EXPIRED')continue;
           const seq=p.packet.observation.sequence,r=this.relay.get(e.domain,seq);
-          if(r?.state==='QUARANTINED'||r?.state==='PREPARING'||r?.state==='REVERTED')throw new Error('PIPELINE_DELIVERY_RECOVERY_REQUIRED');
+          if(r?.state==='QUARANTINED'||r?.state==='REVERTED'
+            ||r?.state==='PREPARING'&&!this.relay.canResumePreparing(e.domain,seq))throw new Error('PIPELINE_DELIVERY_RECOVERY_REQUIRED');
           if(r?.state==='MINED'||r?.state==='FINALIZED')e.watch.push(seq);
           else e.pending.push(seq);
         }
