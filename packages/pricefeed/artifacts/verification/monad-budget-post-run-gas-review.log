@@ -1,0 +1,12 @@
+{
+  "verified": true,
+  "fractionPricesDepthVerified": true,
+  "authenticSourceTimeVerified": true,
+  "integerGasMarginAndCostsVerified": true,
+  "quotePacketDurablyExpired": true,
+  "relayAndTransactionJournalsUnchanged": true,
+  "transactionsSent": 0,
+  "existingDeliveryCount": 3,
+  "productionApproved": false,
+  "limitation": "RPC simulation estimate, not an optimized paid receipt or sustained coverage proof."
+}

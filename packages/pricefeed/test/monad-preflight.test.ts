@@ -66,6 +66,26 @@ test('Monad finalized and canonical reads fail closed without latest fallback',a
   await assert.rejects(k.run(),/MONAD_BLOCK_CHANGED/);
 });
 
+test('final canonical and chain checks run concurrently and both complete before accepting a checkpoint',async()=>{
+  const f=setup(),block=f.rpc.block,chain=f.rpc.chainId;
+  let release:()=>void=()=>{},chainCalls=0,canonicalDone=false;
+  const barrier=new Promise<void>(resolve=>{release=resolve;});
+  const timeout=setTimeout(()=>release(),1000);
+  f.rpc.block=async selector=>{
+    if('blockNumber' in selector){await barrier;assert.equal(chainCalls,2,'extra serial chain round trip');canonicalDone=true;}
+    return block(selector);
+  };
+  f.rpc.chainId=async()=>{chainCalls++;if(chainCalls===2)release();return chain();};
+  try{await f.run();assert.equal(canonicalDone,true);assert.equal(chainCalls,2);}
+  finally{clearTimeout(timeout);}
+  const g=setup();let calls=0;
+  g.rpc.chainId=async()=>++calls===1?10143:143;
+  const originalBlock=g.rpc.block;
+  g.rpc.block=async selector=>{if('blockNumber' in selector)throw new Error('private endpoint');return originalBlock(selector);};
+  await assert.rejects(g.run(),/^Error: MONAD_CANONICAL_BLOCK_FAILED$/);
+  assert.equal(calls,2);
+});
+
 test('Monad rejects stale, future, malformed and slow-to-complete block checkpoints',async()=>{
   for(const time of [1030001n,999999n]){const f=setup();f.setNow(time);await assert.rejects(f.run(),/MONAD_STALE_OR_FUTURE_BLOCK/);}
   const f=setup(),read=f.rpc.read;f.rpc.read=async(...args)=>{f.setNow(1030001n);return read(...args);};

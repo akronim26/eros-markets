@@ -34,13 +34,14 @@ function validatePacket(p:PreparedPacket):void {
 export class PacketStore {
   private readonly db:DatabaseSync;
   private readonly reconciled=new Map<string,string>();
-  constructor(path:string){
-    this.db=new DatabaseSync(path,{timeout:1000});
+  constructor(path:string,readOnly=false){
+    this.db=new DatabaseSync(path,{timeout:1000,readOnly});
     const existing=this.db.prepare('PRAGMA table_info(packets)').all();
     if(existing.length>0&&!existing.some(column=>column.name==='signature_sha256')){
       this.db.close();throw new Error('PACKET_SCHEMA_REVIEW_REQUIRED: preserve old journal; explicit migration needed');
     }
-    this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
+    if(readOnly&&existing.length===0){this.db.close();throw new Error('PACKET_JOURNAL_MISSING');}
+    if(!readOnly)this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
       CREATE TABLE IF NOT EXISTS packet_workers(ns TEXT PRIMARY KEY,domain TEXT NOT NULL,next_seq TEXT NOT NULL,last_ms TEXT NOT NULL,owner TEXT NOT NULL,fence INTEGER NOT NULL,until_ms TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS packets(ns TEXT NOT NULL,sequence TEXT NOT NULL,body TEXT NOT NULL,sha256 TEXT NOT NULL,digest TEXT NOT NULL,signature TEXT,signature_sha256 TEXT,state TEXT NOT NULL,reason TEXT,PRIMARY KEY(ns,sequence)) STRICT;`);
     if(!this.verify()){this.db.close();throw new Error('PACKET_JOURNAL_INTEGRITY');}

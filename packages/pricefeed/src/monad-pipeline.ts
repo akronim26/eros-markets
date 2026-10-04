@@ -3,7 +3,7 @@ import { DurablePipeline, type PipelineWorker } from './durable-pipeline.js';
 import type { PacketStore } from './packet-store.js';
 import { prepareMonadTestnetObservation, signMonadTestnetPrepared } from './publication.js';
 
-export type TestnetRelayBudget={maxTransactions:number;totalMaxCostWei:bigint};
+export type TestnetRelayBudget={maxTransactions:number;totalMaxCostWei:bigint;budgetRevision?:number};
 /** Explicit testnet-only pilot admission, never an enabled production MarketConfig. */
 export class MonadTestnetRelay extends DurableRelay {
   constructor(path:string,packets:PacketStore,transport:LocalRelayTransport,policy:RelayPolicy,

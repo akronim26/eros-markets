@@ -63,8 +63,9 @@ slower, so cadence must be measured. Three samples do **not** prove complete
 300-second TWAP coverage. Sustained coverage is the next planned proof, followed
 by category calibration and hosting/backup/monitoring work.
 
-Checks: 324 package tests pass after gas sizing, with 16 final focused gas/publication/
-service tests included in that count. Eight owned-Anvil crash/restart cases,
+Checks: 330 package tests pass after budget renewal and the RPC timing correction.
+The preceding focused gas/publication/service run passed 21, included in 330.
+Latest evidence: `artifacts/verification/monad-budget-latency-unit.json`. Eight owned-Anvil crash/restart cases,
 wire check and 144 Fraction vectors passed for the preceding publication milestone.
 The ten receiver Solidity tests are separate from the package suite.
 
@@ -126,15 +127,84 @@ aggregate limit; it does not guarantee all 84 fit if gas estimates rise.
 The observed balance falls **2.4168 MON** short of that additional envelope;
 a proposed **2.5 test MON** top-up provides a small cushion.
 
-The campaign is **not activated**. First implement an auditable transition of
-the idle relay's pinned policy/budget, preserving all packets, reservations and
-signing identities. Then fund/authorize the finite envelope and recheck live
-state. Do not create new journals or edit SQLite profiles to bypass recovery.
+The campaign is **not activated**. An auditable idle-journal budget transition
+is now implemented and tested, preserving all packets, reservations and signing
+identities. First measure paid gas in the smaller prepared run below; then
+fund/authorize the sustained envelope and recheck live state. Do not create new journals or edit SQLite profiles to bypass recovery.
 Measure actual cadence/charged fees and independently reconstruct full
 300-second coverage at a named finalized block, retaining unsuccessful windows.
 At five-second nominal submissions, the one-market daily scenario is about
 **347.56 MON/day** at the historical fee: gas savings do not remove ongoing
 publication cost. Approved market count/cadence still require these measurements.
+
+## Audited budget renewal and prepared small run
+
+`plan-monad-budget` reads the five existing journals and actual receiver state;
+it unlocks no keys and sends nothing. It verifies signatures, immutable requests,
+transaction signer identity, historical reservations, all three canonical finalized
+receipts and the next sender nonce. Planning does not create or modify journals.
+`apply-monad-budget` requires the exact approved plan SHA-256, locks all five
+journals, repeats live checks and verifies the unchanged journal snapshot. It
+atomically records a checksum-linked budget revision and changes only the relay
+profile. It retains all reservations, sequences, nonces, signatures and raw bytes.
+Repeated application of the same plan is idempotent; changed plans, active writers,
+insufficient funds, journal/chain mismatch and stale publisher profiles reject.
+The fee/gas ceilings and signer identities cannot be changed through this command.
+
+Prepared public inputs are
+[`small-run-policy.json`](../artifacts/monad-testnet/small-run-policy.json) and
+[`small-run-budget-plan.json`](../artifacts/monad-testnet/small-run-budget-plan.json).
+They allow **at most eight additional transactions / 0.35 test MON additional
+aggregate reservations**. Historical 0.36 reservations remain counted, making
+the lifetime caps 11 transactions / 0.71 MON. The measured bot balance is
+0.3552 MON, so no transfer from the user's browser wallet is needed for this test.
+The plan enables the 10% estimate margin, retaining the old absolute ceilings.
+The user **approved this cap**, and budget revision 1 was applied. The attempted
+run stopped before broadcast with `RELAY_HEADROOM_EXPIRED`, exit 1. Sequence 5
+expired without a nonce; sequence 6 reserved/signed nonce 3 with 197,166 gas and
+then persisted QUARANTINED, attempts 0. Its reservation is 0.0295749 MON;
+0.3204251 MON remains within the additional envelope. The balance stayed
+0.3552 MON, pending/finalized nonce stayed 3 and receiver sequence stayed 3.
+**Zero new transactions or gas spend.** The journal next nonce is 4 because
+reservation is durable; it cannot be reset to bypass the signed transaction.
+See [`stopped-small-run.json`](../artifacts/monad-testnet/stopped-small-run.json)
+and [`small-run-budget-application.json`](../artifacts/monad-testnet/small-run-budget-application.json).
+
+The following application/publication commands are **completed-run records**.
+Application replay is idempotent. Publication now rejects unresolved signed nonce
+3 until an explicit audited recovery is implemented; do not rerun it or edit the
+journals to clear quarantine. From this package:
+
+```bash
+npm run cli -- apply-monad-budget --rpc-env PRICEFEED_MONAD_RPC_URL \
+  --config artifacts/monad-testnet/market-config.json \
+  --abi artifacts/monad-testnet/receiver-abi.json \
+  --journal-dir var/monad-testnet/pilot \
+  --plan artifacts/monad-testnet/small-run-budget-plan.json \
+  --plan-sha256 5b528fe69c721fc1f860dd631277ab247450c5d3ce42b77824726a9213fb00df
+npm run cli -- serve-monad-testnet --rpc-env PRICEFEED_MONAD_RPC_URL \
+  --config artifacts/monad-testnet/market-config.json \
+  --rules artifacts/monad-testnet/rules.json \
+  --abi artifacts/monad-testnet/receiver-abi.json \
+  --keys-dir var/monad-testnet/keys --journal-dir var/monad-testnet/pilot \
+  --policy artifacts/monad-testnet/small-run-policy.json \
+  --duration-seconds 180 --stop-after-finalized 11 --initialize false
+```
+
+The finalized target is lifetime 11, including the original three. No automatic
+budget increase or fresh-journal reset is permitted if fewer observations fit.
+This small run measures actual paid savings; eight samples do not establish full
+300-second coverage. Repeat live checks at application; a changed journal requires
+a newly reviewed plan. A quote evidence snapshot is now preserved separately at
+`var/monad-testnet/gas-quote-evidence/`, with all five hashes retained in
+[`gas-quote-archive.json`](../artifacts/monad-testnet/gas-quote-archive.json), so the
+historical quote remains reviewable after the active journals advance.
+
+Verification before the stopped run: full suite **329/329**, focused suite **21/21**, and independent
+frozen gas-quote review pass. Five new budget tests cover atomic/idempotent renewal,
+history/nonce continuation, invalid approvals and rollback, audit tampering,
+competing writers on each journal and two sequential budget revisions. See
+[`monad-budget-unit.json`](../artifacts/verification/monad-budget-unit.json).
 
 ## Current standalone deployment
 
@@ -328,17 +398,18 @@ Monad engine. This monitor remains independent of the local publishing pipeline.
 
 ## What comes next
 
-Once the deployment dossier exists, run the pinned engine check against it.
-Then add an approved testnet observation signer and durable transaction signer,
-relay simulation/send/receipt adapter, publication-boundary lifecycle integration and
-finalized receipt/source-state reconciliation. The local pipeline, publication
-builder, lifecycle controller and transaction backend still enforce chain 31337.
-Changing only a chain ID or RPC URL cannot make them operational.
+Recover the signed, never-broadcast nonce explicitly and reduce RPC latency,
+then resume within the approved bounded envelope and measure paid gas. The final
+canonical-block and chain-ID checks now run concurrently, retaining both checks,
+fixed error precedence and named finalized blocks. This saves one network round
+trip per preflight; real successful cadence remains unmeasured. Then
+size/fund/authorize the full 300-second coverage campaign, followed by invalid/gap
+recovery, category calibration and operations/review. The standalone receiver,
+testnet signers and simulation/send/finalized receipt adapter are already joined.
+Full-engine integration still needs that engine's deployment dossier and accepted
+counterpart wiring; diagnostic tests do not approve production source policies.
 
-Testnet sending also needs an explicit signing backend, sender and observation
-signer identities, test MON, spend/fee limits, replacement/recovery policy,
-approved source/rules/operating inputs and external transaction authority.
 Monad may return a send hash before nonce/balance validation, and a mempool-only
-transaction lookup may return null; neither is acceptance or evidence that a
-nonce is safe to reuse. Real engine events and finalized block-labeled state
-must drive reconciliation. Q03-Q10 and human gates remain open as documented.
+transaction lookup may return null. Exact accepted events and canonical finalized
+block-labeled state drive reconciliation; never reuse an uncertain nonce.
+Q03-Q10 and human gates remain open as documented.

@@ -1,0 +1,2018 @@
+
+> @eros/pricefeed@0.1.0 test
+> npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/*.test.js
+
+
+> @eros/pricefeed@0.1.0 build
+> tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: offline CLI reconstructs an unsigned eleven-field packet without modifying the archive or allocating sequence
+ok 1 - offline CLI reconstructs an unsigned eleven-field packet without modifying the archive or allocating sequence
+  ---
+  duration_ms: 1140.502524
+  type: 'test'
+  ...
+# Subtest: offline CLI retains original wide-book impacts while explicitly selected invalid packet has zero prices
+ok 2 - offline CLI retains original wide-book impacts while explicitly selected invalid packet has zero prices
+  ---
+  duration_ms: 1875.914404
+  type: 'test'
+  ...
+# Subtest: offline CLI does not refresh historical source time or bypass archived quarantine
+ok 3 - offline CLI does not refresh historical source time or bypass archived quarantine
+  ---
+  duration_ms: 1874.428662
+  type: 'test'
+  ...
+# Subtest: offline CLI rejects inconsistent raw/data representations and corrupt archive checksums
+ok 4 - offline CLI rejects inconsistent raw/data representations and corrupt archive checksums
+  ---
+  duration_ms: 1788.153473
+  type: 'test'
+  ...
+# Subtest: offline CLI accepts capture persistence latency without changing the packet timestamps
+ok 5 - offline CLI accepts capture persistence latency without changing the packet timestamps
+  ---
+  duration_ms: 1063.167664
+  type: 'test'
+  ...
+# Subtest: offline CLI rejects missing captures, invalid sequence, future receive time and nonlocal destination
+ok 6 - offline CLI rejects missing captures, invalid sequence, future receive time and nonlocal destination
+  ---
+  duration_ms: 7301.120116
+  type: 'test'
+  ...
+# Subtest: offline CLI checks worker identity, source-rule binding and raw event membership
+ok 7 - offline CLI checks worker identity, source-rule binding and raw event membership
+  ---
+  duration_ms: 3792.634461
+  type: 'test'
+  ...
+# Subtest: offline CLI recomputes fresh thin books and rejects unavailable closed, missing-time and future-time books
+ok 8 - offline CLI recomputes fresh thin books and rejects unavailable closed, missing-time and future-time books
+  ---
+  duration_ms: 3528.133111
+  type: 'test'
+  ...
+# Subtest: CLI errors redact malformed JSON, file paths and unknown option values; missing archive is never created
+ok 9 - CLI errors redact malformed JSON, file paths and unknown option values; missing archive is never created
+  ---
+  duration_ms: 5672.950074
+  type: 'test'
+  ...
+# Subtest: Monad CLI requires an environment name and paired engine inputs without creating journals or leaking secrets
+ok 10 - Monad CLI requires an environment name and paired engine inputs without creating journals or leaking secrets
+  ---
+  duration_ms: 4075.39004
+  type: 'test'
+  ...
+# Subtest: Monad watcher CLI rejects bad policies and missing engine dossier before creating an archive
+ok 11 - Monad watcher CLI rejects bad policies and missing engine dossier before creating an archive
+  ---
+  duration_ms: 5619.460819
+  type: 'test'
+  ...
+# Subtest: Monad watcher CLI archives fixture engine state, reports health and cleanly hands its lease to a restarted process
+ok 12 - Monad watcher CLI archives fixture engine state, reports health and cleanly hands its lease to a restarted process
+  ---
+  duration_ms: 5034.670503
+  type: 'test'
+  ...
+# Subtest: collection validates explicit outcome identity and archives raw source time
+ok 13 - collection validates explicit outcome identity and archives raw source time
+  ---
+  duration_ms: 2.282758
+  type: 'test'
+  ...
+# Subtest: stale, thin, closed, changed rules and missing source time remain explicit unavailability
+ok 14 - stale, thin, closed, changed rules and missing source time remain explicit unavailability
+  ---
+  duration_ms: 1.077956
+  type: 'test'
+  ...
+# Subtest: adapter bounds responses and rejects redirects and unexpected hosts
+ok 15 - adapter bounds responses and rejects redirects and unexpected hosts
+  ---
+  duration_ms: 48.08351
+  type: 'test'
+  ...
+# Subtest: 429 and transport failures retry boundedly; failure is never a fabricated book
+ok 16 - 429 and transport failures retry boundedly; failure is never a fabricated book
+  ---
+  duration_ms: 18.863133
+  type: 'test'
+  ...
+# Subtest: deadline bounds both a stuck fetch and a stalled response body
+ok 17 - deadline bounds both a stuck fetch and a stalled response body
+  ---
+  duration_ms: 42.254333
+  type: 'test'
+  ...
+# Subtest: declared oversized response is cancelled without consuming its body
+ok 18 - declared oversized response is cancelled without consuming its body
+  ---
+  duration_ms: 1.428023
+  type: 'test'
+  ...
+# Subtest: categories share a schema; disabled diagnostic examples cannot sign
+ok 19 - categories share a schema; disabled diagnostic examples cannot sign
+  ---
+  duration_ms: 1.2492
+  type: 'test'
+  ...
+# Subtest: missing policies, unsafe integers and token/domain placeholders are rejected
+ok 20 - missing policies, unsafe integers and token/domain placeholders are rejected
+  ---
+  duration_ms: 0.716707
+  type: 'test'
+  ...
+# Subtest: listing verification fails closed on any pinned field mismatch
+ok 21 - listing verification fails closed on any pinned field mismatch
+  ---
+  duration_ms: 1.407997
+  type: 'test'
+  ...
+# Subtest: source time preserves milliseconds, floors seconds and never refreshes an old snapshot
+ok 22 - source time preserves milliseconds, floors seconds and never refreshes an old snapshot
+  ---
+  duration_ms: 0.727695
+  type: 'test'
+  ...
+# Subtest: demo builder preserves authentic time, summary and exact source/domain identifiers
+ok 23 - demo builder preserves authentic time, summary and exact source/domain identifiers
+  ---
+  duration_ms: 1.019679
+  type: 'test'
+  ...
+# Subtest: demo refuses expired, unavailable, invalid and exhausted observations rather than inventing time/price
+ok 24 - demo refuses expired, unavailable, invalid and exhausted observations rather than inventing time/price
+  ---
+  duration_ms: 0.463886
+  type: 'test'
+  ...
+# Subtest: independent demo TWAP verifies price changes, full coverage and integer midpoint rounding
+ok 25 - independent demo TWAP verifies price changes, full coverage and integer midpoint rounding
+  ---
+  duration_ms: 0.701528
+  type: 'test'
+  ...
+# Subtest: independent demo TWAP exposes a stale gap and invalid transition
+ok 26 - independent demo TWAP exposes a stale gap and invalid transition
+  ---
+  duration_ms: 0.391753
+  type: 'test'
+  ...
+# Subtest: same-second sample replaces the previous price without adding duplicate coverage
+ok 27 - same-second sample replaces the previous price without adding duplicate coverage
+  ---
+  duration_ms: 0.292813
+  type: 'test'
+  ...
+# Subtest: gas sizing rounds upward without clamping to a ceiling or inventing an estimate
+ok 28 - gas sizing rounds upward without clamping to a ceiling or inventing an estimate
+  ---
+  duration_ms: 0.677269
+  type: 'test'
+  ...
+# Subtest: cost planner reproduces measured pilot rates and counts multiple markets and fractional periods exactly
+ok 29 - cost planner reproduces measured pilot rates and counts multiple markets and fractional periods exactly
+  ---
+  duration_ms: 0.353432
+  type: 'test'
+  ...
+# Subtest: early halt remains record-only through T, exact T is included, stop survives restart/clock rollback
+ok 30 - early halt remains record-only through T, exact T is included, stop survives restart/clock rollback
+  ---
+  duration_ms: 8.06238
+  type: 'test'
+  ...
+# Subtest: explicit later recording horizon and scheduled halt need no oracle decision
+ok 31 - explicit later recording horizon and scheduled halt need no oracle decision
+  ---
+  duration_ms: 2.171028
+  type: 'test'
+  ...
+# Subtest: RPC outage/stale/future blocks fail closed; authentic recovery preserves halted state
+ok 32 - RPC outage/stale/future blocks fail closed; authentic recovery preserves halted state
+  ---
+  duration_ms: 3.670517
+  type: 'test'
+  ...
+# Subtest: wrong pins, reorg, backwards block, inconsistent block and disappearing halt persist quarantine
+ok 33 - wrong pins, reorg, backwards block, inconsistent block and disappearing halt persist quarantine
+  ---
+  duration_ms: 36.916056
+  type: 'test'
+  ...
+# Subtest: checks coalesce, returned evidence cannot mutate trusted state, config changes require review
+ok 34 - checks coalesce, returned evidence cannot mutate trusted state, config changes require review
+  ---
+  duration_ms: 5.568404
+  type: 'test'
+  ...
+# Subtest: corrupt archive and expired writer cannot grant publication permission
+ok 35 - corrupt archive and expired writer cannot grant publication permission
+  ---
+  duration_ms: 97.9169
+  type: 'test'
+  ...
+# Subtest: stopped market leaves the scheduler without fetching and does not stop another market
+ok 36 - stopped market leaves the scheduler without fetching and does not stop another market
+  ---
+  duration_ms: 6.837908
+  type: 'test'
+  ...
+# Subtest: read-only health recognizes lifecycle records and recalculates checkpoint freshness
+ok 37 - read-only health recognizes lifecycle records and recalculates checkpoint freshness
+  ---
+  duration_ms: 2.319226
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"independent-collection","workers":25,"elapsedMs":1613.276,"sourceCalls":121,"sourceActive":0,"maxSourceActive":3,"rpcCalls":0,"rpcActive":0,"maxRpcActive":0,"perWorkerPolls":[1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":[],"headroomAtBroadcastMs":[],"elapsedSinceSigningAtSimulationMs":[],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto"],"accepted":0,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: 25-market collection remains independent when one book stalls, with no overlapping polls
+ok 38 - 25-market collection remains independent when one book stalls, with no overlapping polls
+  ---
+  duration_ms: 1671.787777
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"slow-rpc-two-rounds","workers":25,"elapsedMs":9407.005,"sourceCalls":100,"sourceActive":0,"maxSourceActive":3,"rpcCalls":451,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":["2084","2170","2248","2325","2400","2474","2551","2632","2712","2788","2864","2940","3012","3086","3163","3237","3313","3396","3489","3574","3654","3728","3806","3888","3964","2161","2258","2337","2414","2491","2572","2649","2729","2804","2881","2954","3024","3099","3173","3256","3336","3422","3545","3621","3703","3786","3874","3950","4032","4109"],"headroomAtBroadcastMs":["27056","26962","26876","26791","26708","26626","26541","26452","26364","26280","26196","26112","26031","25949","25864","25782","25698","25607","26506","26413","26325","26242","26156","26066","25982","27700","27594","27507","27421","27336","27246","27161","27073","26989","26904","26822","26739","26656","26573","26482","26394","26299","26167","26082","25992","25900","25804","25719","25629","25544"],"elapsedSinceSigningAtSimulationMs":["1609","1675","1703","1713","1731","1749","1771","1782","1801","1822","1843","1863","1883","1900","1919","1940","1961","1985","2020","2057","2084","2100","2121","2144","2201","1732","1745","1767","1784","1802","1821","1844","1849","1867","1884","1899","1915","1932","1944","1955","1973","1985","2011","2067","2082","2101","2125","2142","2153","2174"],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto"],"accepted":50,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: 25 markets across three categories share ordered nonces through two slow-RPC publication rounds
+ok 39 - 25 markets across three categories share ordered nonces through two slow-RPC publication rounds
+  ---
+  duration_ms: 9702.392678
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"queued-expiry-and-recovery","injectedDelayMs":31000,"workers":12,"elapsedMs":3455.486,"sourceCalls":48,"sourceActive":0,"maxSourceActive":1,"rpcCalls":99,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[2,2,2,2,2,2,2,2,2,2,2,2],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":["1004","1056","1109","1163","1218","1272","1329","1386","1454","1513","1563","1611"],"headroomAtBroadcastMs":["28167","28107","28045","27982","27919","27856","27790","27725","27647","27579","27521","27464"],"elapsedSinceSigningAtSimulationMs":["658","624","675","688","691","692","688","694","696","699","720","715","751"],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics"],"accepted":12,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: queue-expired unsent updates return EXPIRED without consuming nonces, and fresh updates resume
+ok 40 - queue-expired unsent updates return EXPIRED without consuming nonces, and fresh updates resume
+  ---
+  duration_ms: 3611.513415
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"rpc-timeout-late-completion","workers":3,"elapsedMs":2571.599,"sourceCalls":4,"sourceActive":0,"maxSourceActive":1,"rpcCalls":13,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[2,0,0],"maxBookActive":[1,0,0],"sourceAgeAtBroadcastMs":["2365"],"headroomAtBroadcastMs":["27347"],"elapsedSinceSigningAtSimulationMs":["23","2174"],"categories":["crypto","sports","politics"],"accepted":1,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: RPC simulation timeout allocates no nonce and late completion cannot broadcast
+ok 41 - RPC simulation timeout allocates no nonce and late completion cannot broadcast
+  ---
+  duration_ms: 2652.959631
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"continuous-queue-expiry","injectedDelayMs":31000,"expired":1,"workers":8,"elapsedMs":2997.239,"sourceCalls":39,"sourceActive":0,"maxSourceActive":1,"rpcCalls":137,"rpcActive":0,"maxRpcActive":1,"perWorkerPolls":[3,3,3,3,3,3,3,2],"maxBookActive":[1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":["805","861","919","980","1038","1093","1116","1143","1177","1154","1135","1115","1096","1079","1062"],"headroomAtBroadcastMs":["28503","28418","28333","28247","28162","28080","27999","27914","28388","28324","28258","28192","28128","28063","27998"],"elapsedSinceSigningAtSimulationMs":["24","380","438","477","497","516","539","562","622","395","408","406","407","406","402","402"],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports"],"accepted":15,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: continuous joined service survives shared-queue expiry and continues with fresh source captures
+ok 42 - continuous joined service survives shared-queue expiry and continues with fresh source captures
+  ---
+  duration_ms: 3086.227785
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"provider-backpressure","degradedDuringBurst":16,"workers":20,"elapsedMs":1043.318,"sourceCalls":64,"sourceActive":0,"maxSourceActive":3,"rpcCalls":0,"rpcActive":0,"maxRpcActive":0,"perWorkerPolls":[2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":[],"headroomAtBroadcastMs":[],"elapsedSinceSigningAtSimulationMs":[],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports"],"accepted":0,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: provider queue pressure archives truthful gaps and workers recover after the burst drains
+ok 43 - provider queue pressure archives truthful gaps and workers recover after the burst drains
+  ---
+  duration_ms: 1093.23811
+  type: 'test'
+  ...
+LOAD_CASE {"scenario":"100-worker-drain","workers":100,"elapsedMs":2632.397,"sourceCalls":300,"sourceActive":0,"maxSourceActive":1,"rpcCalls":0,"rpcActive":0,"maxRpcActive":0,"perWorkerPolls":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"maxBookActive":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"sourceAgeAtBroadcastMs":[],"headroomAtBroadcastMs":[],"elapsedSinceSigningAtSimulationMs":[],"categories":["crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto","sports","politics","crypto"],"accepted":0,"externalTransactions":0,"source":"scripted fixtures","chain":"scripted RPC/receipts","clock":"monotonic elapsed ms plus explicitly injected offset","sourceEvidenceValid":true,"packetEvidenceValid":true}
+# Subtest: 100-worker collection drains all admitted work and shutdown wakes long poll timers
+ok 44 - 100-worker collection drains all admitted work and shutdown wakes long poll timers
+  ---
+  duration_ms: 2686.918566
+  type: 'test'
+  ...
+# Subtest: unknown send retries original raw transaction/nonce; exact receipt is mined then finalized and orphaned
+ok 45 - unknown send retries original raw transaction/nonce; exact receipt is mined then finalized and orphaned
+  ---
+  duration_ms: 411.710102
+  type: 'test'
+  ...
+# Subtest: slow lifecycle guard cannot consume source headroom unnoticed before nonce reservation or broadcast
+ok 46 - slow lifecycle guard cannot consume source headroom unnoticed before nonce reservation or broadcast
+  ---
+  duration_ms: 440.662267
+  type: 'test'
+  ...
+# Subtest: older unknown packet blocks newer source sequence and shared nonce survives restart
+ok 47 - older unknown packet blocks newer source sequence and shared nonce survives restart
+  ---
+  duration_ms: 306.385169
+  type: 'test'
+  ...
+# Subtest: restart preserves reserved nonce high-water mark when pending RPC has not seen the send
+ok 48 - restart preserves reserved nonce high-water mark when pending RPC has not seen the send
+  ---
+  duration_ms: 362.22346
+  type: 'test'
+  ...
+# Subtest: changed call or gas spending cannot broadcast; local RPC and chain admission are enforced
+ok 49 - changed call or gas spending cannot broadcast; local RPC and chain admission are enforced
+  ---
+  duration_ms: 227.875634
+  type: 'test'
+  ...
+# Subtest: a signing delay past headroom quarantines the reserved nonce and preserves original timestamps
+ok 50 - a signing delay past headroom quarantines the reserved nonce and preserves original timestamps
+  ---
+  duration_ms: 269.716787
+  type: 'test'
+  ...
+# Subtest: expired reservation on restart blocks new nonces across workers while preserving the old signed bytes
+ok 51 - expired reservation on restart blocks new nonces across workers while preserving the old signed bytes
+  ---
+  duration_ms: 319.845107
+  type: 'test'
+  ...
+# Subtest: headroom exhausted while resimulating an existing reservation persists quarantine
+ok 52 - headroom exhausted while resimulating an existing reservation persists quarantine
+  ---
+  duration_ms: 522.443444
+  type: 'test'
+  ...
+# Subtest: a rejected simulation consumes no transaction nonce and can retry the identical signed observation
+ok 53 - a rejected simulation consumes no transaction nonce and can retry the identical signed observation
+  ---
+  duration_ms: 258.348341
+  type: 'test'
+  ...
+# Subtest: headroom exhausted during simulation never reserves a nonce or changes the signed packet
+ok 54 - headroom exhausted during simulation never reserves a nonce or changes the signed packet
+  ---
+  duration_ms: 203.433492
+  type: 'test'
+  ...
+# Subtest: durable transaction signer reopens exact raw bytes and identity without sending
+ok 55 - durable transaction signer reopens exact raw bytes and identity without sending
+  ---
+  duration_ms: 125.125185
+  type: 'test'
+  ...
+# Subtest: the same nonce cannot sign different calldata, destination or gas/fee terms
+ok 56 - the same nonce cannot sign different calldata, destination or gas/fee terms
+  ---
+  duration_ms: 105.194811
+  type: 'test'
+  ...
+# Subtest: signer reconciliation rejects missing, conflicting and duplicate relay reservations
+ok 57 - signer reconciliation rejects missing, conflicting and duplicate relay reservations
+  ---
+  duration_ms: 112.555888
+  type: 'test'
+  ...
+# Subtest: restored empty signer journal cannot approve raw transactions already retained by relay
+ok 58 - restored empty signer journal cannot approve raw transactions already retained by relay
+  ---
+  duration_ms: 73.625665
+  type: 'test'
+  ...
+# Subtest: missing journal requires explicit creation and metadata identity cannot change
+ok 59 - missing journal requires explicit creation and metadata identity cannot change
+  ---
+  duration_ms: 115.553005
+  type: 'test'
+  ...
+# Subtest: modified transaction bytes or checksum fail reopening
+ok 60 - modified transaction bytes or checksum fail reopening
+  ---
+  duration_ms: 147.589926
+  type: 'test'
+  ...
+# Subtest: a checksummed transaction signed by a different key fails signer recovery validation
+ok 61 - a checksummed transaction signed by a different key fails signer recovery validation
+  ---
+  duration_ms: 254.107915
+  type: 'test'
+  ...
+# Subtest: bad nonce, zero gas, fees and malformed calldata allocate no reservation
+ok 62 - bad nonce, zero gas, fees and malformed calldata allocate no reservation
+  ---
+  duration_ms: 99.488394
+  type: 'test'
+  ...
+# Subtest: concurrent identical requests retain one immutable transaction reservation
+ok 63 - concurrent identical requests retain one immutable transaction reservation
+  ---
+  duration_ms: 147.094748
+  type: 'test'
+  ...
+# Subtest: decimal/lot boundary preserves fractional totals and rejects malformed financial values
+ok 64 - decimal/lot boundary preserves fractional totals and rejects malformed financial values
+  ---
+  duration_ms: 3.687132
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: method-discriminator-vwap
+ok 65 - independent Fraction fixture: method-discriminator-vwap
+  ---
+  duration_ms: 1.163189
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: spread-equality-vwap
+ok 66 - independent Fraction fixture: spread-equality-vwap
+  ---
+  duration_ms: 0.428129
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: spread-one-atom-vwap
+ok 67 - independent Fraction fixture: spread-one-atom-vwap
+  ---
+  duration_ms: 0.465964
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: odd-midpoint-vwap
+ok 68 - independent Fraction fixture: odd-midpoint-vwap
+  ---
+  duration_ms: 0.635279
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: thin-vwap
+ok 69 - independent Fraction fixture: thin-vwap
+  ---
+  duration_ms: 0.686643
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: endpoint-vwap
+ok 70 - independent Fraction fixture: endpoint-vwap
+  ---
+  duration_ms: 0.481489
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: crossed-vwap
+ok 71 - independent Fraction fixture: crossed-vwap
+  ---
+  duration_ms: 0.487102
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: partial-final-vwap
+ok 72 - independent Fraction fixture: partial-final-vwap
+  ---
+  duration_ms: 3.765881
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: method-discriminator-marginal
+ok 73 - independent Fraction fixture: method-discriminator-marginal
+  ---
+  duration_ms: 0.450481
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: spread-equality-marginal
+ok 74 - independent Fraction fixture: spread-equality-marginal
+  ---
+  duration_ms: 0.330733
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: spread-one-atom-marginal
+ok 75 - independent Fraction fixture: spread-one-atom-marginal
+  ---
+  duration_ms: 0.337297
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: odd-midpoint-marginal
+ok 76 - independent Fraction fixture: odd-midpoint-marginal
+  ---
+  duration_ms: 0.342281
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: thin-marginal
+ok 77 - independent Fraction fixture: thin-marginal
+  ---
+  duration_ms: 1.813189
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: endpoint-marginal
+ok 78 - independent Fraction fixture: endpoint-marginal
+  ---
+  duration_ms: 0.540882
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: crossed-marginal
+ok 79 - independent Fraction fixture: crossed-marginal
+  ---
+  duration_ms: 0.36523
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: partial-final-marginal
+ok 80 - independent Fraction fixture: partial-final-marginal
+  ---
+  duration_ms: 0.432409
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-0-vwap
+ok 81 - independent Fraction fixture: random-0-vwap
+  ---
+  duration_ms: 0.682252
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-0-marginal
+ok 82 - independent Fraction fixture: random-0-marginal
+  ---
+  duration_ms: 0.482625
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-1-vwap
+ok 83 - independent Fraction fixture: random-1-vwap
+  ---
+  duration_ms: 0.68889
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-1-marginal
+ok 84 - independent Fraction fixture: random-1-marginal
+  ---
+  duration_ms: 0.435917
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-2-vwap
+ok 85 - independent Fraction fixture: random-2-vwap
+  ---
+  duration_ms: 1.872502
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-2-marginal
+ok 86 - independent Fraction fixture: random-2-marginal
+  ---
+  duration_ms: 0.475949
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-3-vwap
+ok 87 - independent Fraction fixture: random-3-vwap
+  ---
+  duration_ms: 1.118783
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-3-marginal
+ok 88 - independent Fraction fixture: random-3-marginal
+  ---
+  duration_ms: 0.379541
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-4-vwap
+ok 89 - independent Fraction fixture: random-4-vwap
+  ---
+  duration_ms: 0.340863
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-4-marginal
+ok 90 - independent Fraction fixture: random-4-marginal
+  ---
+  duration_ms: 0.335389
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-5-vwap
+ok 91 - independent Fraction fixture: random-5-vwap
+  ---
+  duration_ms: 0.3703
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-5-marginal
+ok 92 - independent Fraction fixture: random-5-marginal
+  ---
+  duration_ms: 0.503382
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-6-vwap
+ok 93 - independent Fraction fixture: random-6-vwap
+  ---
+  duration_ms: 0.399288
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-6-marginal
+ok 94 - independent Fraction fixture: random-6-marginal
+  ---
+  duration_ms: 1.656753
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-7-vwap
+ok 95 - independent Fraction fixture: random-7-vwap
+  ---
+  duration_ms: 0.717773
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-7-marginal
+ok 96 - independent Fraction fixture: random-7-marginal
+  ---
+  duration_ms: 1.059721
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-8-vwap
+ok 97 - independent Fraction fixture: random-8-vwap
+  ---
+  duration_ms: 0.756954
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-8-marginal
+ok 98 - independent Fraction fixture: random-8-marginal
+  ---
+  duration_ms: 0.478429
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-9-vwap
+ok 99 - independent Fraction fixture: random-9-vwap
+  ---
+  duration_ms: 0.556426
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-9-marginal
+ok 100 - independent Fraction fixture: random-9-marginal
+  ---
+  duration_ms: 0.388617
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-10-vwap
+ok 101 - independent Fraction fixture: random-10-vwap
+  ---
+  duration_ms: 0.435346
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-10-marginal
+ok 102 - independent Fraction fixture: random-10-marginal
+  ---
+  duration_ms: 2.023111
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-11-vwap
+ok 103 - independent Fraction fixture: random-11-vwap
+  ---
+  duration_ms: 0.534378
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-11-marginal
+ok 104 - independent Fraction fixture: random-11-marginal
+  ---
+  duration_ms: 0.725528
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-12-vwap
+ok 105 - independent Fraction fixture: random-12-vwap
+  ---
+  duration_ms: 0.483246
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-12-marginal
+ok 106 - independent Fraction fixture: random-12-marginal
+  ---
+  duration_ms: 0.36154
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-13-vwap
+ok 107 - independent Fraction fixture: random-13-vwap
+  ---
+  duration_ms: 0.363125
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-13-marginal
+ok 108 - independent Fraction fixture: random-13-marginal
+  ---
+  duration_ms: 0.484515
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-14-vwap
+ok 109 - independent Fraction fixture: random-14-vwap
+  ---
+  duration_ms: 0.415764
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-14-marginal
+ok 110 - independent Fraction fixture: random-14-marginal
+  ---
+  duration_ms: 1.640793
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-15-vwap
+ok 111 - independent Fraction fixture: random-15-vwap
+  ---
+  duration_ms: 0.434471
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-15-marginal
+ok 112 - independent Fraction fixture: random-15-marginal
+  ---
+  duration_ms: 0.580193
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-16-vwap
+ok 113 - independent Fraction fixture: random-16-vwap
+  ---
+  duration_ms: 0.83384
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-16-marginal
+ok 114 - independent Fraction fixture: random-16-marginal
+  ---
+  duration_ms: 0.395588
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-17-vwap
+ok 115 - independent Fraction fixture: random-17-vwap
+  ---
+  duration_ms: 0.328693
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-17-marginal
+ok 116 - independent Fraction fixture: random-17-marginal
+  ---
+  duration_ms: 0.279183
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-18-vwap
+ok 117 - independent Fraction fixture: random-18-vwap
+  ---
+  duration_ms: 0.385303
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-18-marginal
+ok 118 - independent Fraction fixture: random-18-marginal
+  ---
+  duration_ms: 0.285515
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-19-vwap
+ok 119 - independent Fraction fixture: random-19-vwap
+  ---
+  duration_ms: 0.377568
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-19-marginal
+ok 120 - independent Fraction fixture: random-19-marginal
+  ---
+  duration_ms: 0.308279
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-20-vwap
+ok 121 - independent Fraction fixture: random-20-vwap
+  ---
+  duration_ms: 0.306439
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-20-marginal
+ok 122 - independent Fraction fixture: random-20-marginal
+  ---
+  duration_ms: 1.800266
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-21-vwap
+ok 123 - independent Fraction fixture: random-21-vwap
+  ---
+  duration_ms: 0.377766
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-21-marginal
+ok 124 - independent Fraction fixture: random-21-marginal
+  ---
+  duration_ms: 0.270285
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-22-vwap
+ok 125 - independent Fraction fixture: random-22-vwap
+  ---
+  duration_ms: 0.338927
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-22-marginal
+ok 126 - independent Fraction fixture: random-22-marginal
+  ---
+  duration_ms: 0.249656
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-23-vwap
+ok 127 - independent Fraction fixture: random-23-vwap
+  ---
+  duration_ms: 0.278491
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-23-marginal
+ok 128 - independent Fraction fixture: random-23-marginal
+  ---
+  duration_ms: 0.863839
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-24-vwap
+ok 129 - independent Fraction fixture: random-24-vwap
+  ---
+  duration_ms: 0.614143
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-24-marginal
+ok 130 - independent Fraction fixture: random-24-marginal
+  ---
+  duration_ms: 0.500181
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-25-vwap
+ok 131 - independent Fraction fixture: random-25-vwap
+  ---
+  duration_ms: 1.671336
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-25-marginal
+ok 132 - independent Fraction fixture: random-25-marginal
+  ---
+  duration_ms: 6.696192
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-26-vwap
+ok 133 - independent Fraction fixture: random-26-vwap
+  ---
+  duration_ms: 0.460895
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-26-marginal
+ok 134 - independent Fraction fixture: random-26-marginal
+  ---
+  duration_ms: 0.418967
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-27-vwap
+ok 135 - independent Fraction fixture: random-27-vwap
+  ---
+  duration_ms: 3.530593
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-27-marginal
+ok 136 - independent Fraction fixture: random-27-marginal
+  ---
+  duration_ms: 0.479323
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-28-vwap
+ok 137 - independent Fraction fixture: random-28-vwap
+  ---
+  duration_ms: 0.420868
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-28-marginal
+ok 138 - independent Fraction fixture: random-28-marginal
+  ---
+  duration_ms: 3.941971
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-29-vwap
+ok 139 - independent Fraction fixture: random-29-vwap
+  ---
+  duration_ms: 0.629372
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-29-marginal
+ok 140 - independent Fraction fixture: random-29-marginal
+  ---
+  duration_ms: 0.567271
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-30-vwap
+ok 141 - independent Fraction fixture: random-30-vwap
+  ---
+  duration_ms: 0.410885
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-30-marginal
+ok 142 - independent Fraction fixture: random-30-marginal
+  ---
+  duration_ms: 0.45403
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-31-vwap
+ok 143 - independent Fraction fixture: random-31-vwap
+  ---
+  duration_ms: 0.421835
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-31-marginal
+ok 144 - independent Fraction fixture: random-31-marginal
+  ---
+  duration_ms: 6.933894
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-32-vwap
+ok 145 - independent Fraction fixture: random-32-vwap
+  ---
+  duration_ms: 0.522679
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-32-marginal
+ok 146 - independent Fraction fixture: random-32-marginal
+  ---
+  duration_ms: 0.283477
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-33-vwap
+ok 147 - independent Fraction fixture: random-33-vwap
+  ---
+  duration_ms: 0.297925
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-33-marginal
+ok 148 - independent Fraction fixture: random-33-marginal
+  ---
+  duration_ms: 4.128651
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-34-vwap
+ok 149 - independent Fraction fixture: random-34-vwap
+  ---
+  duration_ms: 0.435274
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-34-marginal
+ok 150 - independent Fraction fixture: random-34-marginal
+  ---
+  duration_ms: 0.52738
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-35-vwap
+ok 151 - independent Fraction fixture: random-35-vwap
+  ---
+  duration_ms: 0.445827
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-35-marginal
+ok 152 - independent Fraction fixture: random-35-marginal
+  ---
+  duration_ms: 0.510806
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-36-vwap
+ok 153 - independent Fraction fixture: random-36-vwap
+  ---
+  duration_ms: 5.920182
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-36-marginal
+ok 154 - independent Fraction fixture: random-36-marginal
+  ---
+  duration_ms: 0.871354
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-37-vwap
+ok 155 - independent Fraction fixture: random-37-vwap
+  ---
+  duration_ms: 0.421976
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-37-marginal
+ok 156 - independent Fraction fixture: random-37-marginal
+  ---
+  duration_ms: 0.397434
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-38-vwap
+ok 157 - independent Fraction fixture: random-38-vwap
+  ---
+  duration_ms: 0.335937
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-38-marginal
+ok 158 - independent Fraction fixture: random-38-marginal
+  ---
+  duration_ms: 0.312727
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-39-vwap
+ok 159 - independent Fraction fixture: random-39-vwap
+  ---
+  duration_ms: 0.314024
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-39-marginal
+ok 160 - independent Fraction fixture: random-39-marginal
+  ---
+  duration_ms: 0.630397
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-40-vwap
+ok 161 - independent Fraction fixture: random-40-vwap
+  ---
+  duration_ms: 1.157236
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-40-marginal
+ok 162 - independent Fraction fixture: random-40-marginal
+  ---
+  duration_ms: 0.347943
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-41-vwap
+ok 163 - independent Fraction fixture: random-41-vwap
+  ---
+  duration_ms: 0.32559
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-41-marginal
+ok 164 - independent Fraction fixture: random-41-marginal
+  ---
+  duration_ms: 0.25869
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-42-vwap
+ok 165 - independent Fraction fixture: random-42-vwap
+  ---
+  duration_ms: 4.338561
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-42-marginal
+ok 166 - independent Fraction fixture: random-42-marginal
+  ---
+  duration_ms: 2.188548
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-43-vwap
+ok 167 - independent Fraction fixture: random-43-vwap
+  ---
+  duration_ms: 0.41725
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-43-marginal
+ok 168 - independent Fraction fixture: random-43-marginal
+  ---
+  duration_ms: 0.329491
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-44-vwap
+ok 169 - independent Fraction fixture: random-44-vwap
+  ---
+  duration_ms: 0.343265
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-44-marginal
+ok 170 - independent Fraction fixture: random-44-marginal
+  ---
+  duration_ms: 3.982398
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-45-vwap
+ok 171 - independent Fraction fixture: random-45-vwap
+  ---
+  duration_ms: 0.586353
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-45-marginal
+ok 172 - independent Fraction fixture: random-45-marginal
+  ---
+  duration_ms: 0.386183
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-46-vwap
+ok 173 - independent Fraction fixture: random-46-vwap
+  ---
+  duration_ms: 0.360026
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-46-marginal
+ok 174 - independent Fraction fixture: random-46-marginal
+  ---
+  duration_ms: 0.32919
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-47-vwap
+ok 175 - independent Fraction fixture: random-47-vwap
+  ---
+  duration_ms: 0.388109
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-47-marginal
+ok 176 - independent Fraction fixture: random-47-marginal
+  ---
+  duration_ms: 0.298613
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-48-vwap
+ok 177 - independent Fraction fixture: random-48-vwap
+  ---
+  duration_ms: 6.358388
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-48-marginal
+ok 178 - independent Fraction fixture: random-48-marginal
+  ---
+  duration_ms: 0.664769
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-49-vwap
+ok 179 - independent Fraction fixture: random-49-vwap
+  ---
+  duration_ms: 0.420713
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-49-marginal
+ok 180 - independent Fraction fixture: random-49-marginal
+  ---
+  duration_ms: 1.714601
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-50-vwap
+ok 181 - independent Fraction fixture: random-50-vwap
+  ---
+  duration_ms: 0.452825
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-50-marginal
+ok 182 - independent Fraction fixture: random-50-marginal
+  ---
+  duration_ms: 0.587924
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-51-vwap
+ok 183 - independent Fraction fixture: random-51-vwap
+  ---
+  duration_ms: 0.45902
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-51-marginal
+ok 184 - independent Fraction fixture: random-51-marginal
+  ---
+  duration_ms: 0.310923
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-52-vwap
+ok 185 - independent Fraction fixture: random-52-vwap
+  ---
+  duration_ms: 0.333826
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-52-marginal
+ok 186 - independent Fraction fixture: random-52-marginal
+  ---
+  duration_ms: 0.301323
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-53-vwap
+ok 187 - independent Fraction fixture: random-53-vwap
+  ---
+  duration_ms: 0.361449
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-53-marginal
+ok 188 - independent Fraction fixture: random-53-marginal
+  ---
+  duration_ms: 0.254331
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-54-vwap
+ok 189 - independent Fraction fixture: random-54-vwap
+  ---
+  duration_ms: 0.28443
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-54-marginal
+ok 190 - independent Fraction fixture: random-54-marginal
+  ---
+  duration_ms: 1.615236
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-55-vwap
+ok 191 - independent Fraction fixture: random-55-vwap
+  ---
+  duration_ms: 0.498327
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-55-marginal
+ok 192 - independent Fraction fixture: random-55-marginal
+  ---
+  duration_ms: 0.696087
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-56-vwap
+ok 193 - independent Fraction fixture: random-56-vwap
+  ---
+  duration_ms: 1.343105
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-56-marginal
+ok 194 - independent Fraction fixture: random-56-marginal
+  ---
+  duration_ms: 0.276662
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-57-vwap
+ok 195 - independent Fraction fixture: random-57-vwap
+  ---
+  duration_ms: 0.324178
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-57-marginal
+ok 196 - independent Fraction fixture: random-57-marginal
+  ---
+  duration_ms: 0.266825
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-58-vwap
+ok 197 - independent Fraction fixture: random-58-vwap
+  ---
+  duration_ms: 0.272391
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-58-marginal
+ok 198 - independent Fraction fixture: random-58-marginal
+  ---
+  duration_ms: 0.261555
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-59-vwap
+ok 199 - independent Fraction fixture: random-59-vwap
+  ---
+  duration_ms: 0.258384
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-59-marginal
+ok 200 - independent Fraction fixture: random-59-marginal
+  ---
+  duration_ms: 0.205068
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-60-vwap
+ok 201 - independent Fraction fixture: random-60-vwap
+  ---
+  duration_ms: 0.286337
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-60-marginal
+ok 202 - independent Fraction fixture: random-60-marginal
+  ---
+  duration_ms: 0.400792
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-61-vwap
+ok 203 - independent Fraction fixture: random-61-vwap
+  ---
+  duration_ms: 0.337031
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-61-marginal
+ok 204 - independent Fraction fixture: random-61-marginal
+  ---
+  duration_ms: 0.608074
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-62-vwap
+ok 205 - independent Fraction fixture: random-62-vwap
+  ---
+  duration_ms: 0.540453
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-62-marginal
+ok 206 - independent Fraction fixture: random-62-marginal
+  ---
+  duration_ms: 1.549097
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-63-vwap
+ok 207 - independent Fraction fixture: random-63-vwap
+  ---
+  duration_ms: 0.397504
+  type: 'test'
+  ...
+# Subtest: independent Fraction fixture: random-63-marginal
+ok 208 - independent Fraction fixture: random-63-marginal
+  ---
+  duration_ms: 0.264186
+  type: 'test'
+  ...
+# Subtest: canonical book aggregates duplicate fractional levels before flooring total depth
+ok 209 - canonical book aggregates duplicate fractional levels before flooring total depth
+  ---
+  duration_ms: 2.413918
+  type: 'test'
+  ...
+# Subtest: off-grid, malformed, out-of-domain and empty-sided books fail explicitly
+ok 210 - off-grid, malformed, out-of-domain and empty-sided books fail explicitly
+  ---
+  duration_ms: 2.311868
+  type: 'test'
+  ...
+# Subtest: selected book-price VWAP respects source minimum at one-lot boundaries
+ok 211 - selected book-price VWAP respects source minimum at one-lot boundaries
+  ---
+  duration_ms: 3.101663
+  type: 'test'
+  ...
+# Subtest: selected depth policy preserves residual quantity without rounding depth up
+ok 212 - selected depth policy preserves residual quantity without rounding depth up
+  ---
+  duration_ms: 0.706234
+  type: 'test'
+  ...
+# Subtest: encrypted testnet keys reopen with the same identity and reject wrong pins, loose permissions and corrupt ciphertext
+ok 213 - encrypted testnet keys reopen with the same identity and reject wrong pins, loose permissions and corrupt ciphertext
+  ---
+  duration_ms: 695.071372
+  type: 'test'
+  ...
+# Subtest: public fixture signing keys cannot become testnet keys
+ok 214 - public fixture signing keys cannot become testnet keys
+  ---
+  duration_ms: 292.058046
+  type: 'test'
+  ...
+# Subtest: Monad monitor persists early halt through restart, includes T/later horizon and remembers terminal stop
+ok 215 - Monad monitor persists early halt through restart, includes T/later horizon and remembers terminal stop
+  ---
+  duration_ms: 795.323341
+  type: 'test'
+  ...
+# Subtest: Monad outage is archived with redacted reason and retains prior halt; fresh recovery resumes recording
+ok 216 - Monad outage is archived with redacted reason and retains prior halt; fresh recovery resumes recording
+  ---
+  duration_ms: 360.755002
+  type: 'test'
+  ...
+# Subtest: Monad disappearing halt is permanently quarantined across database reopen
+ok 217 - Monad disappearing halt is permanently quarantined across database reopen
+  ---
+  duration_ms: 368.057783
+  type: 'test'
+  ...
+# Subtest: Monad finalized source progress persists across reopen and a sequence/time regression cannot be cleared by retry
+ok 218 - Monad finalized source progress persists across reopen and a sequence/time regression cannot be cleared by retry
+  ---
+  duration_ms: 467.052494
+  type: 'test'
+  ...
+# Subtest: Monad same-block changed state and same-sequence changed observedAt are contradictory
+ok 219 - Monad same-block changed state and same-sequence changed observedAt are contradictory
+  ---
+  duration_ms: 283.676741
+  type: 'test'
+  ...
+# Subtest: Monad newer sequence may retain the original observedAt and health recalculates checkpoint freshness
+ok 220 - Monad newer sequence may retain the original observedAt and health recalculates checkpoint freshness
+  ---
+  duration_ms: 141.024558
+  type: 'test'
+  ...
+# Subtest: Monad wrong chain, changed code/listing/source identity and missing source quarantine rather than recover as outages
+ok 221 - Monad wrong chain, changed code/listing/source identity and missing source quarantine rather than recover as outages
+  ---
+  duration_ms: 858.546001
+  type: 'test'
+  ...
+# Subtest: Monad stale checkpoints degrade, while canonical disagreement and malformed source facts quarantine
+ok 222 - Monad stale checkpoints degrade, while canonical disagreement and malformed source facts quarantine
+  ---
+  duration_ms: 360.736789
+  type: 'test'
+  ...
+# Subtest: Monad monitor refuses incompatible horizons/domains and leaves the local publication gate chain-31337-only
+ok 223 - Monad monitor refuses incompatible horizons/domains and leaves the local publication gate chain-31337-only
+  ---
+  duration_ms: 100.979983
+  type: 'test'
+  ...
+# Subtest: Monad reader snapshots inputs; persisted config/policy changes and corrupt journals prevent startup
+ok 224 - Monad reader snapshots inputs; persisted config/policy changes and corrupt journals prevent startup
+  ---
+  duration_ms: 128.512025
+  type: 'test'
+  ...
+# Subtest: Monad expired writer cannot append an outage or grant a fresh lifecycle view
+ok 225 - Monad expired writer cannot append an outage or grant a fresh lifecycle view
+  ---
+  duration_ms: 101.2255
+  type: 'test'
+  ...
+# Subtest: Monad watcher commits before callbacks, remains record-only after halt and drains on abort
+ok 226 - Monad watcher commits before callbacks, remains record-only after halt and drains on abort
+  ---
+  duration_ms: 109.648724
+  type: 'test'
+  ...
+# Subtest: Monad watcher stops on a persisted deadline/quarantine and rejects unsafe intervals
+ok 227 - Monad watcher stops on a persisted deadline/quarantine and rejects unsafe intervals
+  ---
+  duration_ms: 228.123137
+  type: 'test'
+  ...
+RECOVERY_CASE {"stage":"COLLECTED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"ALLOCATED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"SIGNING","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"SIGNER_RESERVED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"SIGNER_SIGNED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"SIGNED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"PREPARING","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"TX_SIGNED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"READY","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"UNKNOWN","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"BROADCAST","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"MINED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+RECOVERY_CASE {"stage":"FINALIZED","source":"scripted fixture","externalTransactions":0,"sequences":["1","2"],"nonces":["0","1"],"finalState":"FINALIZED","sourceEvidenceValid":true,"packetEvidenceValid":true,"transactionReservations":2,"immutableTransactionRetry":true,"broadcastCalls":2}
+# Subtest: Monad watcher polls again after an outage and authentic fresh state recovers without resetting its journal
+ok 228 - Monad watcher polls again after an outage and authentic fresh state recovers without resetting its journal
+  ---
+  duration_ms: 1329.126473
+  type: 'test'
+  ...
+# Subtest: Monad graceful lease release allows a new owner immediately and cannot erase another owner fence
+ok 229 - Monad graceful lease release allows a new owner immediately and cannot erase another owner fence
+  ---
+  duration_ms: 199.940774
+  type: 'test'
+  ...
+# Subtest: Monad lease cannot be released while an engine check is in flight
+ok 230 - Monad lease cannot be released while an engine check is in flight
+  ---
+  duration_ms: 133.839606
+  type: 'test'
+  ...
+# Subtest: Journal graceful release keeps increasing fences and stale released writers cannot append
+ok 231 - Journal graceful release keeps increasing fences and stale released writers cannot append
+  ---
+  duration_ms: 2.384517
+  type: 'test'
+  ...
+# Subtest: Monad preflight verifies network alone without requiring an engine or touching contract state
+ok 232 - Monad preflight verifies network alone without requiring an engine or touching contract state
+  ---
+  duration_ms: 1.626206
+  type: 'test'
+  ...
+# Subtest: Monad engine reads use one named finalized block and real ABI pins, including authoritative halt
+ok 233 - Monad engine reads use one named finalized block and real ABI pins, including authoritative halt
+  ---
+  duration_ms: 19.496264
+  type: 'test'
+  ...
+# Subtest: Monad rejects wrong network initially and after a provider changes network
+ok 234 - Monad rejects wrong network initially and after a provider changes network
+  ---
+  duration_ms: 36.626693
+  type: 'test'
+  ...
+# Subtest: Monad finalized and canonical reads fail closed without latest fallback
+ok 235 - Monad finalized and canonical reads fail closed without latest fallback
+  ---
+  duration_ms: 45.676484
+  type: 'test'
+  ...
+# Subtest: final canonical and chain checks run concurrently and both complete before accepting a checkpoint
+ok 236 - final canonical and chain checks run concurrently and both complete before accepting a checkpoint
+  ---
+  duration_ms: 32.582735
+  type: 'test'
+  ...
+# Subtest: Monad rejects stale, future, malformed and slow-to-complete block checkpoints
+ok 237 - Monad rejects stale, future, malformed and slow-to-complete block checkpoints
+  ---
+  duration_ms: 57.55463
+  type: 'test'
+  ...
+# Subtest: Monad requires matching runtime code and ABI before accepting listing reads
+ok 238 - Monad requires matching runtime code and ABI before accepting listing reads
+  ---
+  duration_ms: 81.781823
+  type: 'test'
+  ...
+# Subtest: Monad listing mismatch blocks every market, signer, rules, depth, time and invalid-rule pin
+ok 239 - Monad listing mismatch blocks every market, signer, rules, depth, time and invalid-rule pin
+  ---
+  duration_ms: 246.688198
+  type: 'test'
+  ...
+# Subtest: Monad source reads reject missing setup, changed signer/rules and contradictory or malformed state
+ok 240 - Monad source reads reject missing setup, changed signer/rules and contradictory or malformed state
+  ---
+  duration_ms: 174.520067
+  type: 'test'
+  ...
+# Subtest: Monad RPC errors are fixed codes and never contain endpoint credentials or provider messages
+ok 241 - Monad RPC errors are fixed codes and never contain endpoint credentials or provider messages
+  ---
+  duration_ms: 41.064089
+  type: 'test'
+  ...
+# Subtest: Monad read ABI matches the production tuple and rejects shortened, reordered, writable and duplicate functions
+ok 242 - Monad read ABI matches the production tuple and rejects shortened, reordered, writable and duplicate functions
+  ---
+  duration_ms: 22.707588
+  type: 'test'
+  ...
+# Subtest: Monad read adapter requires HTTPS, hides URL parse errors and exposes no wallet or send methods
+ok 243 - Monad read adapter requires HTTPS, hides URL parse errors and exposes no wallet or send methods
+  ---
+  duration_ms: 2.520701
+  type: 'test'
+  ...
+# Subtest: Concrete Monad HTTP adapter encodes and decodes the real listing/source/halt ABI at the pinned block
+ok 244 - Concrete Monad HTTP adapter encodes and decodes the real listing/source/halt ABI at the pinned block
+  ---
+  duration_ms: 31.540352
+  type: 'test'
+  ...
+# Subtest: budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+ok 245 - budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+  ---
+  duration_ms: 1536.342433
+  type: 'test'
+  ...
+# Subtest: budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+ok 246 - budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+  ---
+  duration_ms: 1106.979951
+  type: 'test'
+  ...
+# Subtest: failed or changed budget plans roll back without changing the profile or reservations
+ok 247 - failed or changed budget plans roll back without changing the profile or reservations
+  ---
+  duration_ms: 1144.516898
+  type: 'test'
+  ...
+# Subtest: budget audit detects deletion/tampering and conflicting replay without another authorization
+ok 248 - budget audit detects deletion/tampering and conflicting replay without another authorization
+  ---
+  duration_ms: 1469.713408
+  type: 'test'
+  ...
+# Subtest: applying a budget plan locks every journal through chain checks and commits only the relay policy
+ok 249 - applying a budget plan locks every journal through chain checks and commits only the relay policy
+  ---
+  duration_ms: 1392.466153
+  type: 'test'
+  ...
+# Subtest: testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+ok 250 - testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+  ---
+  duration_ms: 1720.117224
+  type: 'test'
+  ...
+# Subtest: estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+ok 251 - estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+  ---
+  duration_ms: 1467.173796
+  type: 'test'
+  ...
+# Subtest: optimized gas failures reserve no transaction nonce and never fall back to the full cap
+ok 252 - optimized gas failures reserve no transaction nonce and never fall back to the full cap
+  ---
+  duration_ms: 4365.157409
+  type: 'test'
+  ...
+# Subtest: a selected gas limit that fails simulation cannot consume a nonce
+ok 253 - a selected gas limit that fails simulation cannot consume a nonce
+  ---
+  duration_ms: 1037.768478
+  type: 'test'
+  ...
+# Subtest: gas quote records an expired signed packet without sending or consuming a transaction nonce
+ok 254 - gas quote records an expired signed packet without sending or consuming a transaction nonce
+  ---
+  duration_ms: 2550.38641
+  type: 'test'
+  ...
+# Subtest: testnet source history mismatch persists quarantine and prevents restart publication
+ok 255 - testnet source history mismatch persists quarantine and prevents restart publication
+  ---
+  duration_ms: 995.955608
+  type: 'test'
+  ...
+# Subtest: testnet receipt remains MINED until a finalized head includes its canonical block
+ok 256 - testnet receipt remains MINED until a finalized head includes its canonical block
+  ---
+  duration_ms: 1276.071205
+  type: 'test'
+  ...
+# Subtest: testnet total budget survives restart and stops allocation after the last accepted packet
+ok 257 - testnet total budget survives restart and stops allocation after the last accepted packet
+  ---
+  duration_ms: 1585.784628
+  type: 'test'
+  ...
+# Subtest: unfunded testnet simulation reserves no nonce and broadcasts nothing
+ok 258 - unfunded testnet simulation reserves no nonce and broadcasts nothing
+  ---
+  duration_ms: 1023.056125
+  type: 'test'
+  ...
+# Subtest: unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+ok 259 - unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+  ---
+  duration_ms: 1106.758006
+  type: 'test'
+  ...
+# Subtest: original local builder/signing/relay cannot be used for external testnet output
+ok 260 - original local builder/signing/relay cannot be used for external testnet output
+  ---
+  duration_ms: 961.82548
+  type: 'test'
+  ...
+# Subtest: testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+ok 261 - testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+  ---
+  duration_ms: 1144.570245
+  type: 'test'
+  ...
+# Subtest: testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+ok 262 - testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+  ---
+  duration_ms: 1.6099
+  type: 'test'
+  ...
+# Subtest: testnet service refuses another chain before creating journals or accessing keys/network
+ok 263 - testnet service refuses another chain before creating journals or accessing keys/network
+  ---
+  duration_ms: 3.005392
+  type: 'test'
+  ...
+# Subtest: joined early-halt recorder sends fresh packets, archives closure as a gap, and never invents a final price
+ok 264 - joined early-halt recorder sends fresh packets, archives closure as a gap, and never invents a final price
+  ---
+  duration_ms: 734.465669
+  type: 'test'
+  ...
+# Subtest: deadline crossing during signing preserves immutable packet but reserves no nonce and broadcasts nothing
+ok 265 - deadline crossing during signing preserves immutable packet but reserves no nonce and broadcasts nothing
+  ---
+  duration_ms: 403.607428
+  type: 'test'
+  ...
+# Subtest: joined scheduler exits a completed recorder without another venue read or new packet
+ok 266 - joined scheduler exits a completed recorder without another venue read or new packet
+  ---
+  duration_ms: 323.455003
+  type: 'test'
+  ...
+# Subtest: slow relay simulation or transaction signing cannot broadcast across the recording deadline
+ok 267 - slow relay simulation or transaction signing cannot broadcast across the recording deadline
+  ---
+  duration_ms: 891.965583
+  type: 'test'
+  ...
+# Subtest: joined pipeline archives, builds, signs, sends and validates acceptance; degraded input creates no packet
+ok 268 - joined pipeline archives, builds, signs, sends and validates acceptance; degraded input creates no packet
+  ---
+  duration_ms: 433.392723
+  type: 'test'
+  ...
+# Subtest: unknown delivery blocks newer allocation and restart retries the identical packet/transaction
+ok 269 - unknown delivery blocks newer allocation and restart retries the identical packet/transaction
+  ---
+  duration_ms: 543.82268
+  type: 'test'
+  ...
+# Subtest: overlapping callbacks are rejected and successive observations consume distinct shared nonces
+ok 270 - overlapping callbacks are rejected and successive observations consume distinct shared nonces
+  ---
+  duration_ms: 532.095343
+  type: 'test'
+  ...
+# Subtest: startup rejects unknown higher onchain state and active leases renew without sequence reuse
+ok 271 - startup rejects unknown higher onchain state and active leases renew without sequence reuse
+  ---
+  duration_ms: 471.796231
+  type: 'test'
+  ...
+# Subtest: two market workers sign independent sequences while one relay serializes their concurrent nonces
+ok 272 - two market workers sign independent sequences while one relay serializes their concurrent nonces
+  ---
+  duration_ms: 696.43272
+  type: 'test'
+  ...
+# Subtest: continuous joined service shuts down cleanly and source quarantine cannot resume an unknown send
+ok 273 - continuous joined service shuts down cleanly and source quarantine cannot resume an unknown send
+  ---
+  duration_ms: 884.890355
+  type: 'test'
+  ...
+# Subtest: concrete RPC adapter rejects external destinations and missing listing ABI before any request
+ok 274 - concrete RPC adapter rejects external destinations and missing listing ABI before any request
+  ---
+  duration_ms: 1.063288
+  type: 'test'
+  ...
+# Subtest: new invalid source evidence does not rebroadcast an older valid packet, but its receipt is reconciled
+ok 275 - new invalid source evidence does not rebroadcast an older valid packet, but its receipt is reconciled
+  ---
+  duration_ms: 453.845061
+  type: 'test'
+  ...
+# Subtest: restart expires an unsent allocation and burns its sequence before publishing new evidence
+ok 276 - restart expires an unsent allocation and burns its sequence before publishing new evidence
+  ---
+  duration_ms: 595.169858
+  type: 'test'
+  ...
+# Subtest: opted-in joined pipeline delivers invalid checkpoints and archives original calculated impacts
+ok 277 - opted-in joined pipeline delivers invalid checkpoints and archives original calculated impacts
+  ---
+  duration_ms: 543.792968
+  type: 'test'
+  ...
+# Subtest: fresh invalid checkpoint supersedes an unsent valid allocation without reusing its sequence
+ok 278 - fresh invalid checkpoint supersedes an unsent valid allocation without reusing its sequence
+  ---
+  duration_ms: 469.408671
+  type: 'test'
+  ...
+# Subtest: invalid transition cannot skip an unknown valid transaction or mutate its frozen packet
+ok 279 - invalid transition cannot skip an unknown valid transaction or mutate its frozen packet
+  ---
+  duration_ms: 576.262214
+  type: 'test'
+  ...
+# Subtest: source outage suppresses rebroadcast while retaining immutable unresolved delivery
+ok 280 - source outage suppresses rebroadcast while retaining immutable unresolved delivery
+  ---
+  duration_ms: 463.386989
+  type: 'test'
+  ...
+# Subtest: candidate rules encoding agrees with independently assembled ABI words and is presentation independent
+ok 281 - candidate rules encoding agrees with independently assembled ABI words and is presentation independent
+  ---
+  duration_ms: 4.27737
+  type: 'test'
+  ...
+# Subtest: independent signer journal makes retries idempotent and detects a restored packet archive behind signing
+ok 282 - independent signer journal makes retries idempotent and detects a restored packet archive behind signing
+  ---
+  duration_ms: 233.97403
+  type: 'test'
+  ...
+# Subtest: builder recomputes raw book and metadata, binds rules, preserves source time and checks headroom
+ok 283 - builder recomputes raw book and metadata, binds rules, preserves source time and checks headroom
+  ---
+  duration_ms: 3.286051
+  type: 'test'
+  ...
+# Subtest: explicit invalid policy preserves authentic time/depth and zeroes impacts for thin, wide, crossed and endpoint books
+ok 284 - explicit invalid policy preserves authentic time/depth and zeroes impacts for thin, wide, crossed and endpoint books
+  ---
+  duration_ms: 5.829978
+  type: 'test'
+  ...
+# Subtest: invalid policy cannot manufacture checkpoints from untrusted, missing, closed or stale evidence
+ok 285 - invalid policy cannot manufacture checkpoints from untrusted, missing, closed or stale evidence
+  ---
+  duration_ms: 4.541066
+  type: 'test'
+  ...
+# Subtest: durable allocation burns expired sequences, survives restart and fences stale owners
+ok 286 - durable allocation burns expired sequences, survives restart and fences stale owners
+  ---
+  duration_ms: 118.000688
+  type: 'test'
+  ...
+# Subtest: signing persists exact raw signature and retries return the frozen packet without signing again
+ok 287 - signing persists exact raw signature and retries return the frozen packet without signing again
+  ---
+  duration_ms: 12.344766
+  type: 'test'
+  ...
+# Subtest: signing delay expires frozen packet and retains signature evidence
+ok 288 - signing delay expires frozen packet and retains signature evidence
+  ---
+  duration_ms: 10.467469
+  type: 'test'
+  ...
+# Subtest: signing crash retry uses identical identity/digest; overlapping calls are blocked
+ok 289 - signing crash retry uses identical identity/digest; overlapping calls are blocked
+  ---
+  duration_ms: 144.97828
+  type: 'test'
+  ...
+# Subtest: independent domains start independent sequences; mutation of returned objects cannot alter journal
+ok 290 - independent domains start independent sequences; mutation of returned objects cannot alter journal
+  ---
+  duration_ms: 8.835836
+  type: 'test'
+  ...
+# Subtest: corrupt packet or regressed sequence counter refuses startup
+ok 291 - corrupt packet or regressed sequence counter refuses startup
+  ---
+  duration_ms: 211.905854
+  type: 'test'
+  ...
+# Subtest: non-raw signature, wrong signer, lost lease and production chain cannot publish
+ok 292 - non-raw signature, wrong signer, lost lease and production chain cannot publish
+  ---
+  duration_ms: 18.687047
+  type: 'test'
+  ...
+# Subtest: uint64 exhaustion stops allocation without wrapping or altering prior packet
+ok 293 - uint64 exhaustion stops allocation without wrapping or altering prior packet
+  ---
+  duration_ms: 118.762215
+  type: 'test'
+  ...
+# Subtest: invalid signature serialization is rejected and old packet schema requires explicit migration
+ok 294 - invalid signature serialization is rejected and old packet schema requires explicit migration
+  ---
+  duration_ms: 31.760058
+  type: 'test'
+  ...
+# Subtest: receipt requires exact event, source/digest and block; success alone is insufficient
+ok 295 - receipt requires exact event, source/digest and block; success alone is insufficient
+  ---
+  duration_ms: 5.475574
+  type: 'test'
+  ...
+# Subtest: invalid-depth success is retained with zero emitted midpoint, distinct from valid index readiness
+ok 296 - invalid-depth success is retained with zero emitted midpoint, distinct from valid index readiness
+  ---
+  duration_ms: 1.323894
+  type: 'test'
+  ...
+# Subtest: finality policy is explicit; missing canonical data stays mined and differing block is orphaned
+ok 297 - finality policy is explicit; missing canonical data stays mined and differing block is orphaned
+  ---
+  duration_ms: 0.830442
+  type: 'test'
+  ...
+# Subtest: SIGKILL at COLLECTED preserves identities and resumes two ordered deliveries
+ok 298 - SIGKILL at COLLECTED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 2012.412241
+  type: 'test'
+  ...
+# Subtest: SIGKILL at ALLOCATED preserves identities and resumes two ordered deliveries
+ok 299 - SIGKILL at ALLOCATED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1797.604201
+  type: 'test'
+  ...
+# Subtest: SIGKILL at SIGNING preserves identities and resumes two ordered deliveries
+ok 300 - SIGKILL at SIGNING preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1799.630039
+  type: 'test'
+  ...
+# Subtest: SIGKILL at SIGNER_RESERVED preserves identities and resumes two ordered deliveries
+ok 301 - SIGKILL at SIGNER_RESERVED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1915.949927
+  type: 'test'
+  ...
+# Subtest: SIGKILL at SIGNER_SIGNED preserves identities and resumes two ordered deliveries
+ok 302 - SIGKILL at SIGNER_SIGNED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1700.171614
+  type: 'test'
+  ...
+# Subtest: SIGKILL at SIGNED preserves identities and resumes two ordered deliveries
+ok 303 - SIGKILL at SIGNED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1871.103604
+  type: 'test'
+  ...
+# Subtest: SIGKILL at PREPARING preserves identities and resumes two ordered deliveries
+ok 304 - SIGKILL at PREPARING preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1936.220455
+  type: 'test'
+  ...
+# Subtest: SIGKILL at TX_SIGNED preserves identities and resumes two ordered deliveries
+ok 305 - SIGKILL at TX_SIGNED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1815.051751
+  type: 'test'
+  ...
+# Subtest: SIGKILL at READY preserves identities and resumes two ordered deliveries
+ok 306 - SIGKILL at READY preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1781.543554
+  type: 'test'
+  ...
+# Subtest: SIGKILL at UNKNOWN preserves identities and resumes two ordered deliveries
+ok 307 - SIGKILL at UNKNOWN preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1709.556403
+  type: 'test'
+  ...
+# Subtest: SIGKILL at BROADCAST preserves identities and resumes two ordered deliveries
+ok 308 - SIGKILL at BROADCAST preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1858.039884
+  type: 'test'
+  ...
+# Subtest: SIGKILL at MINED preserves identities and resumes two ordered deliveries
+ok 309 - SIGKILL at MINED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1726.127124
+  type: 'test'
+  ...
+# Subtest: SIGKILL at FINALIZED preserves identities and resumes two ordered deliveries
+ok 310 - SIGKILL at FINALIZED preserves identities and resumes two ordered deliveries
+  ---
+  duration_ms: 1742.491016
+  type: 'test'
+  ...
+# Subtest: crashed writer lease prevents immediate restart rather than forcing takeover
+ok 311 - crashed writer lease prevents immediate restart rather than forcing takeover
+  ---
+  duration_ms: 2303.583001
+  type: 'test'
+  ...
+# Subtest: restored old packet snapshot is blocked by signer reservations surviving SIGKILL
+ok 312 - restored old packet snapshot is blocked by signer reservations surviving SIGKILL
+  ---
+  duration_ms: 4384.871302
+  type: 'test'
+  ...
+# Subtest: restored relay snapshot behind accepted nonce cannot reserve or broadcast again
+ok 313 - restored relay snapshot behind accepted nonce cannot reserve or broadcast again
+  ---
+  duration_ms: 1489.917429
+  type: 'test'
+  ...
+# Subtest: restart cannot refresh an expired signed packet or broadcast its reserved transaction
+ok 314 - restart cannot refresh an expired signed packet or broadcast its reserved transaction
+  ---
+  duration_ms: 4506.205066
+  type: 'test'
+  ...
+# Subtest: continuous collection isolates slow worker, never overlaps a poll, and abort wakes long timers
+ok 315 - continuous collection isolates slow worker, never overlaps a poll, and abort wakes long timers
+  ---
+  duration_ms: 22.434822
+  type: 'test'
+  ...
+# Subtest: journal/callback failure stops the service and drains running polls before returning
+ok 316 - journal/callback failure stops the service and drains running polls before returning
+  ---
+  duration_ms: 1.005732
+  type: 'test'
+  ...
+# Subtest: restored relay snapshot behind independently signed transactions cannot start or send
+ok 317 - restored relay snapshot behind independently signed transactions cannot start or send
+  ---
+  duration_ms: 415.835669
+  type: 'test'
+  ...
+# Subtest: restored signer snapshot behind relay raw bytes blocks startup
+ok 318 - restored signer snapshot behind relay raw bytes blocks startup
+  ---
+  duration_ms: 515.501853
+  type: 'test'
+  ...
+# Subtest: pinned transaction signer cannot be disabled or replaced with an empty journal
+ok 319 - pinned transaction signer cannot be disabled or replaced with an empty journal
+  ---
+  duration_ms: 380.669984
+  type: 'test'
+  ...
+# Subtest: durable signer recovery still quarantines an expired PREPARING checkpoint
+ok 320 - durable signer recovery still quarantines an expired PREPARING checkpoint
+  ---
+  duration_ms: 436.522861
+  type: 'test'
+  ...
+# Subtest: restored signer reservation cannot silently change stored calldata or gas policy
+ok 321 - restored signer reservation cannot silently change stored calldata or gas policy
+  ---
+  duration_ms: 371.90648
+  type: 'test'
+  ...
+# Subtest: legacy relay history requires explicit migration before attaching a transaction journal
+ok 322 - legacy relay history requires explicit migration before attaching a transaction journal
+  ---
+  duration_ms: 440.9219
+  type: 'test'
+  ...
+# Subtest: wire digest binds every field and chain/engine domain; raw recovery differs from personal signing
+ok 323 - wire digest binds every field and chain/engine domain; raw recovery differs from personal signing
+  ---
+  duration_ms: 11.886449
+  type: 'test'
+  ...
+# Subtest: wire parsing rejects missing/extra fields, unsafe numbers, reversed times and overflow
+ok 324 - wire parsing rejects missing/extra fields, unsafe numbers, reversed times and overflow
+  ---
+  duration_ms: 0.789606
+  type: 'test'
+  ...
+# Subtest: SQLite raw evidence survives restart; duplicate writers are fenced and expired owners cannot append
+ok 325 - SQLite raw evidence survives restart; duplicate writers are fenced and expired owners cannot append
+  ---
+  duration_ms: 69.037094
+  type: 'test'
+  ...
+# Subtest: worker recovery preserves source ordering; rule quarantine stays latched
+ok 326 - worker recovery preserves source ordering; rule quarantine stays latched
+  ---
+  duration_ms: 75.540483
+  type: 'test'
+  ...
+# Subtest: one source outage becomes evidence while another worker can continue
+ok 327 - one source outage becomes evidence while another worker can continue
+  ---
+  duration_ms: 3.485916
+  type: 'test'
+  ...
+# Subtest: health query never labels an old captured sample as currently collecting
+ok 328 - health query never labels an old captured sample as currently collecting
+  ---
+  duration_ms: 0.411317
+  type: 'test'
+  ...
+# Subtest: event metadata age is checked even when the market response is newer
+ok 329 - event metadata age is checked even when the market response is newer
+  ---
+  duration_ms: 2.152231
+  type: 'test'
+  ...
+# Subtest: wrong-event metadata is quarantined and its raw response remains archived
+ok 330 - wrong-event metadata is quarantined and its raw response remains archived
+  ---
+  duration_ms: 0.979886
+  type: 'test'
+  ...
+1..330
+# tests 330
+# suites 0
+# pass 330
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 156118.501567

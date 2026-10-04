@@ -34,8 +34,12 @@ for the commands, public evidence, exhausted pilot budget and next coverage test
 Estimate-based gas sizing now verifies the buffered limit before nonce reservation.
 A fresh signed quote estimated 179,266 gas, selecting 197,193 with a 10% margin;
 it sent no transaction. [`cost-capacity.json`](artifacts/monad-testnet/cost-capacity.json)
-records daily scenarios and a finite six-minute campaign proposal. Renewing the
-pilot budget explicitly and sustained coverage are still the next steps.
+records daily scenarios and a finite six-minute campaign proposal. Explicit,
+audited budget renewal is now built and tested. A smaller eight-update run with
+a 0.35 test MON reservation cap was approved and applied. The first test stopped
+before broadcast on source-age protection, spending zero MON. Signed nonce 3
+requires explicit recovery before retry; actual paid savings and sustained
+coverage remain unverified.
 
 Candidate rules manifests and durable packet/signing library mechanics now live
 in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and

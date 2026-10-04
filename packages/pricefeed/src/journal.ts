@@ -4,9 +4,9 @@ import { json } from './math.js';
 
 export class Journal {
   private readonly db:DatabaseSync;
-  constructor(path:string) {
-    this.db=new DatabaseSync(path,{timeout:1000});
-    this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
+  constructor(path:string,readOnly=false) {
+    this.db=new DatabaseSync(path,{timeout:1000,readOnly});
+    if(!readOnly)this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
       CREATE TABLE IF NOT EXISTS writers (worker TEXT PRIMARY KEY, owner TEXT NOT NULL, fence INTEGER NOT NULL, until_ms TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS captures (id INTEGER PRIMARY KEY,worker TEXT NOT NULL,at_ms TEXT NOT NULL,payload TEXT NOT NULL,sha256 TEXT NOT NULL) STRICT;`);
   }
