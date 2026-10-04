@@ -123,6 +123,16 @@ This offline checker verifies archive hashes, original source times, prices and
 depths with Python Fraction, receipt bindings, ordering and the actual available
 or unavailable TWAP. It does not certify provider semantics or production finality.
 
+`npm run test:recovery` additionally kills subprocesses with OS SIGKILL at thirteen
+journal/signing/relay boundaries. Each restarts from the retained journals and
+checks immutable bytes, ordered sequences/nonces and receipt recovery. The drill
+uses scripted source and chain responses, alongside the actual journal and relay
+classes. It tests stale restores, writer leases and expired reserved nonces;
+quarantine blocks new nonce allocation across workers. Evidence is retained in
+`artifacts/verification/recovery.json` and `recovery.tap`. See
+[`docs/recovery-runbook.md`](docs/recovery-runbook.md) for boundaries, operator steps
+and remaining production backup/supervisor work.
+
 ## Risk output contract
 
 The eventual output is one signed depth-N observation through
