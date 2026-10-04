@@ -2,9 +2,9 @@ name: oracle
 
 on:
   push:
-    paths: ["oracle/**", "contracts/src/**", "contracts/provisional/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
   pull_request:
-    paths: ["oracle/**", "contracts/src/**", "contracts/provisional/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
 
 permissions:
   contents: read

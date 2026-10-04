@@ -2,7 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {MockUSDC} from "@eros-test/mocks/A/MockUSDC.sol";
-import {IAccountingPort} from "@eros-provisional/IAccountingPort.sol";
+import {IAccountingPort} from "@eros/interfaces/IAccountingPort.sol";
 import {
     Ledger,
     MarketInput,

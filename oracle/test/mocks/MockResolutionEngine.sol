@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {HaltView, FinalOutcome} from "@eros/interfaces/IResolutionIngress.sol";
+import {HaltView} from "@eros/interfaces/IResolutionIngress.sol";
+import {MathTypes} from "@eros/math/MathTypes.sol";
 import {ResolutionEngineStub} from "../../src/testnet/ResolutionEngineStub.sol";
 
 /// @title MockResolutionEngine
@@ -41,14 +42,14 @@ contract MockResolutionEngine is ResolutionEngineStub {
         ++settleCalls;
         _onlyAuthority();
         if (Y > 1) revert BadOutcome();
-        return _accept(Y == 1 ? FinalOutcome.YES : FinalOutcome.NO);
+        return _accept(Y == 1 ? MathTypes.FinalOutcome.YES : MathTypes.FinalOutcome.NO);
     }
 
     function settleInvalid() external override returns (bool) {
         if (revertOnSettle) revert MockSettleReverted();
         ++settleCalls;
         _onlyAuthority();
-        return _accept(FinalOutcome.INVALID);
+        return _accept(MathTypes.FinalOutcome.INVALID);
     }
 
     function listingHash() external view override returns (bytes32) {

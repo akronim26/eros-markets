@@ -2,8 +2,8 @@
 pragma solidity ^0.8.30;
 
 import {MockUSDC} from "@eros-test/mocks/A/MockUSDC.sol";
-import {IAccountingPort} from "@eros-provisional/IAccountingPort.sol";
-import {FinalOutcome} from "@eros-provisional/MathTypes.sol";
+import {IAccountingPort} from "@eros/interfaces/IAccountingPort.sol";
+import {MathTypes} from "@eros/math/MathTypes.sol";
 import {LifecycleMath} from "@eros/math/LifecycleMath.sol";
 import {HaltView} from "@eros/interfaces/IResolutionIngress.sol";
 import {SettlementController} from "@eros/settlement/SettlementController.sol";
@@ -135,7 +135,7 @@ contract SeamTest is RegistryFixture {
         _assertAndSettleTrue(id);
         assertEq(uint8(ro.getResolution(id).state), uint8(RState.Final));
         assertEq(uint8(ro.getResolution(id).outcome), uint8(Outcome.YES));
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.YES), "settle(1) is YES at the engine");
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.YES), "settle(1) is YES at the engine");
         assertEq(e.getSettlementStatus().settlementPriceE18, 1e18);
 
         _openClaims(e);
@@ -153,7 +153,7 @@ contract SeamTest is RegistryFixture {
         _proposeEarly(id, Outcome.INVALID);
         _assertAndSettleTrue(id);
         assertEq(uint8(ro.getResolution(id).state), uint8(RState.Final));
-        assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.INVALID));
+        assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.INVALID));
         assertEq(uint8(e.claimsStatus()), uint8(LifecycleMath.ClaimsStatus.ORACLE_FINAL_PRICE_PENDING));
 
         e.prepareSnapshotChunk(32); // the snapshot may run before the price
@@ -219,7 +219,7 @@ contract SeamTest is RegistryFixture {
             assertEq(r.assertionId, aid, "the assertion is still live");
             assertFalse(mvenue.statusOf(aid).settled, "the venue settlement rolled back too");
             assertEq(treasury.balanceOf(Ledger.ASSERTION), ledgerBefore, "no bond booked");
-            assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.YES), "the engine keeps its outcome");
+            assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.YES), "the engine keeps its outcome");
         }
         vm.revertToState(snap);
         {
@@ -241,7 +241,7 @@ contract SeamTest is RegistryFixture {
             e.settle(0); // NO already latched
             ro.finalizeMarket(id);
             assertEq(uint8(ro.getResolution(id).state), uint8(RState.Final));
-            assertEq(uint8(e.finalOutcome()), uint8(FinalOutcome.NO));
+            assertEq(uint8(e.finalOutcome()), uint8(MathTypes.FinalOutcome.NO));
         }
     }
 
@@ -252,7 +252,7 @@ contract SeamTest is RegistryFixture {
         assertEq(e.listing().scheduledT, T);
         assertEq(reg.getMarketCore(id).engine, address(e));
         address stranger = makeAddr("stranger");
-        bytes memory unauthorized = abi.encodeWithSignature("Unauthorized()"); // RiskContextPort
+        bytes memory unauthorized = abi.encodeWithSignature("RiskUnauthorized()"); // RiskContextPort
         vm.startPrank(stranger);
         vm.expectRevert(unauthorized);
         e.halt();

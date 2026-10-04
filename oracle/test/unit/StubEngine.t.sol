@@ -3,7 +3,9 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";
-import {HaltView, SettlementView, FinalOutcome, ClearingPhase} from "@eros/interfaces/IResolutionIngress.sol";
+import {HaltView, SettlementView} from "@eros/interfaces/IResolutionIngress.sol";
+import {MathTypes} from "@eros/math/MathTypes.sol";
+import {ClearingPhase} from "@eros/math/RiskTypes.sol";
 import {LifecycleMath} from "@eros/math/LifecycleMath.sol";
 import {RiskContextPort} from "@eros/risk/RiskContextPort.sol";
 import {ResolutionIngress} from "@eros/settlement/ResolutionIngress.sol";
@@ -58,7 +60,7 @@ contract StubEngineTest is Test {
         HaltView memory h = e.getHaltSnapshot();
         assertTrue(h.halted, "settle materializes the halt first");
         assertEq(h.economicHaltAt, T - 5 days);
-        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.YES));
+        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(MathTypes.FinalOutcome.YES));
     }
 
     // ------------------------------------------------------------------ fixture finality_cases
@@ -68,7 +70,7 @@ contract StubEngineTest is Test {
         assertTrue(e.settle(0));
         assertFalse(e.settle(0), "repeat returns false");
         vm.stopPrank();
-        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.NO));
+        assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(MathTypes.FinalOutcome.NO));
     }
 
     function test_fixture_conflictingOutcome() public {
@@ -94,11 +96,11 @@ contract StubEngineTest is Test {
         address[3] memory callers = [monitor, keeper, registry];
         for (uint256 i; i < 3; ++i) {
             vm.startPrank(callers[i]);
-            vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
+            vm.expectRevert(ResolutionEngineStub.RiskUnauthorized.selector);
             e.halt();
-            vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
+            vm.expectRevert(ResolutionEngineStub.RiskUnauthorized.selector);
             e.settle(1);
-            vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
+            vm.expectRevert(ResolutionEngineStub.RiskUnauthorized.selector);
             e.settleInvalid();
             vm.stopPrank();
         }
@@ -192,7 +194,7 @@ contract StubEngineTest is Test {
     function test_errorSelectorsMatchTheRealEngine() public pure {
         assertEq(ResolutionEngineStub.BadOutcome.selector, LifecycleMath.BadOutcome.selector);
         assertEq(ResolutionEngineStub.ConflictingFinalOutcome.selector, LifecycleMath.ConflictingFinalOutcome.selector);
-        assertEq(ResolutionEngineStub.Unauthorized.selector, RiskContextPort.Unauthorized.selector);
+        assertEq(ResolutionEngineStub.RiskUnauthorized.selector, RiskContextPort.RiskUnauthorized.selector);
         assertEq(ResolutionEngineStub.ScheduledHaltNotYet.selector, ResolutionIngress.ScheduledHaltNotYet.selector);
         assertEq(ResolutionEngineStub.BadListing.selector, RiskContextPort.BadListing.selector);
         assertEq(ResolutionEngineStub.AlreadyInitialized.selector, RiskContextPort.AlreadyInitialized.selector);
@@ -213,7 +215,7 @@ contract StubEngineTest is Test {
         {
             // test_initializeOnceByFactoryOnly
             vm.prank(keeper);
-            vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
+            vm.expectRevert(ResolutionEngineStub.RiskUnauthorized.selector);
             e.initialize(l, abi.encode(uint256(1)));
             vm.prank(address(factory));
             vm.expectRevert(ResolutionEngineStub.AlreadyInitialized.selector);
@@ -250,7 +252,7 @@ contract StubEngineTest is Test {
         e.setMonitorRestricted(true);
         assertTrue(e.marketRiskView().monitorRestricted);
         vm.prank(keeper);
-        vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
+        vm.expectRevert(ResolutionEngineStub.RiskUnauthorized.selector);
         e.setMonitorRestricted(false);
     }
 

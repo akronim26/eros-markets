@@ -17,7 +17,6 @@ remappings = [
   "solady/=lib/solady/src/",
   "forge-std/=lib/forge-std/src/",
   "@eros/=../contracts/src/",
-  "@eros-provisional/=../contracts/provisional/",
   "@eros-test/=../contracts/test/",
   "@uma/=lib/uma-protocol/packages/",
   "@openzeppelin/=lib/openzeppelin-contracts-v4/",

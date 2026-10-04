@@ -140,7 +140,7 @@
           {
             "name": "finalOutcome",
             "type": "uint8",
-            "internalType": "enum FinalOutcome"
+            "internalType": "enum MathTypes.FinalOutcome"
           },
           {
             "name": "oracleFinalityAccepted",
@@ -862,12 +862,12 @@
   },
   {
     "type": "error",
-    "name": "ScheduledHaltNotYet",
+    "name": "RiskUnauthorized",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "Unauthorized",
+    "name": "ScheduledHaltNotYet",
     "inputs": []
   }
 ]
