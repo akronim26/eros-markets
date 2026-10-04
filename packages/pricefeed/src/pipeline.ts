@@ -110,23 +110,38 @@ export class LocalPipeline {
     if(!e.watch.includes(seq))e.watch.push(seq);
     e.watch=e.watch.filter(v=>this.relay.get(e.domain,v)?.state!=='FINALIZED'||v===seq);
   }
+  private expireUnsent(e:Entry,p:StoredPacket):PipelineResult|null {
+    const seq=p.packet.observation.sequence;
+    if(this.relay.get(e.domain,seq)||sourceTime(p.packet.sourceMs.toString(),this.now(),null,this.policy.headroomMs).hasHeadroom)return null;
+    this.packets.expire(e.domain,this.owner,e.fence,this.now(),seq,'UNSENT_HEADROOM_EXPIRED');
+    e.pending=e.pending.filter(v=>v!==seq);
+    return this.result(e,'EXPIRED','UNSENT_HEADROOM_EXPIRED',seq);
+  }
   private async publish(e:Entry,p:StoredPacket):Promise<PipelineResult>{
     const seq=p.packet.observation.sequence;
     const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
-    if(!this.relay.get(e.domain,seq)&&!sourceTime(p.packet.sourceMs.toString(),this.now(),null,this.policy.headroomMs).hasHeadroom){
-      this.packets.expire(e.domain,this.owner,e.fence,this.now(),seq,'UNSENT_HEADROOM_EXPIRED');
-      e.pending=e.pending.filter(v=>v!==seq);return this.result(e,'EXPIRED','UNSENT_HEADROOM_EXPIRED',seq);
-    }
+    const expired=this.expireUnsent(e,p);if(expired)return expired;
     if(p.state!=='SIGNED')p=await this.bounded(signPrepared(this.packets,e.domain,this.owner,e.fence,seq,e.signer,this.now,this.policy.headroomMs));
     if(p.state==='EXPIRED'){e.pending=e.pending.filter(v=>v!==seq);return this.result(e,'EXPIRED',p.reason,seq);}
     return this.serialized(async()=>{
       const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
+      // Other markets may consume the publication budget while this task waits.
+      // An unreserved stale update is a normal expiry, not a service-wide failure.
+      const expired=this.expireUnsent(e,p);if(expired)return expired;
       this.relay.renew();let r=this.relay.get(e.domain,seq);
       if(r?.txHash)r=await this.relay.reconcile(e.config,seq);
       if(!r||!['MINED','FINALIZED'].includes(r.state)){
         try{r=await this.relay.deliver(e.config,this.owner,e.fence,seq,e.lifecycle?async()=>{
           const blocked=await this.lifecycleGate(e);if(blocked)throw new LifecycleBlocked(blocked);
-        }:undefined);}catch(error){if(error instanceof LifecycleBlocked)return error.result;throw error;}
+        }:undefined);}catch(error){
+          if(error instanceof LifecycleBlocked)return error.result;
+          if(error instanceof Error&&error.message==='RELAY_HEADROOM_EXPIRED'){
+            // A slow identity/simulation/guard can also exhaust headroom before
+            // nonce reservation. Reserved deliveries retain relay quarantine.
+            const expired=this.expireUnsent(e,p);if(expired)return expired;
+          }
+          throw error;
+        }
       }
       if(r.state==='UNKNOWN')r=await this.relay.reconcile(e.config,seq);
       if(!['UNKNOWN','MINED','FINALIZED'].includes(r.state))throw new Error(`PIPELINE_DELIVERY_RECOVERY_REQUIRED:${r.state}`);

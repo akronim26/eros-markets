@@ -217,6 +217,24 @@ checks and a development recovery runbook are present; production backup,
 supervisor, transaction-signer and replacement policies remain open. See
 [recovery-runbook.md](recovery-runbook.md).
 
+A separate joined LocalPipeline.run/owned-Anvil SIGKILL campaign now verifies
+five continuation paths and two expected recovery blocks across seven boundaries.
+The local chain remains alive; actual lease deadlines and elapsed time govern
+restart. Canonical on-chain events, immutable packet/signature/raw transaction
+identity and the next nonce are checked. PREPARING/TX_SIGNED startup remains
+blocked because the local transaction signer lacks an independent durable raw
+transaction journal. This is fixture-source evidence, not a new real-source
+campaign or production signer/backup certification.
+
+Seven local workload cases now exercise mixed-category workers, 25-market signed
+publication, provider queue pressure, RPC timeout/late completion and 100-worker
+collection. An unreserved packet that expires in the shared publication queue
+is durably marked EXPIRED without stopping the service; reserved deliveries keep
+their quarantine/recovery rules. Timing/headroom measurements use scripted source/
+RPC and declared small-book test settings. They do not approve cadence, capacity,
+source timestamp semantics or buffering/coalescing/priority policy. See
+[load-evidence.md](load-evidence.md).
+
 The development runtime is pinned to Node 24.21.0 LTS, TypeScript 5.9.3 and viem
 2.57.2, with a package-local lockfile. These are implementation tool choices, not
 approved infrastructure capacity, storage, risk parameters or production release.

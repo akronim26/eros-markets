@@ -1,0 +1,36 @@
+{
+  "stage": "SIGNED",
+  "waitingForLeaseMs": 9666
+}
+ANVIL_CRASH_CASE {"stage":"SIGNED","status":"RESUMED","acceptedEvents":2}
+{
+  "stage": "PREPARING",
+  "waitingForLeaseMs": 9956
+}
+ANVIL_CRASH_CASE {"stage":"PREPARING","status":"EXPECTED_RECOVERY_BLOCK","acceptedEvents":0}
+{
+  "stage": "TX_SIGNED",
+  "waitingForLeaseMs": 9959
+}
+ANVIL_CRASH_CASE {"stage":"TX_SIGNED","status":"EXPECTED_RECOVERY_BLOCK","acceptedEvents":0}
+{
+  "stage": "UNKNOWN",
+  "waitingForLeaseMs": 9859
+}
+ANVIL_CRASH_CASE {"stage":"UNKNOWN","status":"RESUMED","acceptedEvents":2}
+{
+  "stage": "BROADCAST",
+  "waitingForLeaseMs": 9826
+}
+ANVIL_CRASH_CASE {"stage":"BROADCAST","status":"RESUMED","acceptedEvents":2}
+{
+  "stage": "MINED",
+  "waitingForLeaseMs": 9842
+}
+ANVIL_CRASH_CASE {"stage":"MINED","status":"RESUMED","acceptedEvents":2}
+{
+  "stage": "FINALIZED",
+  "waitingForLeaseMs": 9903
+}
+ANVIL_CRASH_CASE {"stage":"FINALIZED","status":"RESUMED","acceptedEvents":2}
+PASS: five joined Anvil restart paths and two safe recovery blocks
