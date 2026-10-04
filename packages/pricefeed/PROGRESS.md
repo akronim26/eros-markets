@@ -1413,10 +1413,11 @@ Final complete verification and additional restore/demo integration are recorded
 in the pending follow-up below; no later result is attributed to this earlier
 commit's exact tree.
 
-## Pending — transaction-journal restore guards and demo integration (PF016/PF018/PF025)
+## 5a3c4d1 — transaction-journal restore guards and demo integration (PF016/PF018/PF025)
 
+Committed 04 October 2026 at 12:30:36 +05:30, as
+`feat: complete durable transaction journal integration`.
 Base: `558f234cb846615e9873114859c1beace9b6675f`.
-Suggested message: `feat: complete durable transaction journal integration (PF016)`.
 The user requested continuation of the recovery gap. Changes stay package-only
 on pricefeed. Commits remain manual; reminders were supplied at ten and twenty
 minutes. Actual earlier commits and their timestamps above were refreshed from
@@ -1494,3 +1495,138 @@ sustained load/calibration and named review remain open. Local closed-snapshot
 mismatch checks do not certify a production backup system or loss of all history.
 No external transaction, economic counterpart join, gate acceptance or deployment
 is claimed.
+
+## Pending — Monad testnet read-only preflight (PF017/PF018/PF023)
+
+Base: `5a3c4d180c5bc3a996b1c520f52ae0f0e9c94edd`.
+Suggested message: `feat: add Monad testnet read-only preflight (PF018/PF023)`.
+The user moved Monad integration ahead of storage/backup work, selected testnet
+and reported that no deployed engine address or concrete ABI is available.
+All changes stay in packages/pricefeed on pricefeed; commits remain manual.
+
+**Implemented.** New monad-preflight.ts exposes only read methods. The CLI's
+preflight-monad command takes an RPC environment-variable name and optionally
+paired config/ABI files. It verifies chain 10143, a fresh finalized block and a
+matching named-block hash/timestamp on re-read. With supplied engine pins, it
+checks runtime code, exact ABI hash and production listing tuple shape, every
+existing listing pin, configured source signer/rules/sequence/time and halted().
+All engine reads use one named block. RPC exceptions become fixed diagnostic
+codes; endpoint values never appear in output. Config/ABI inputs are snapshotted
+before awaiting. Unsupported finalized/state reads do not fall back to latest.
+
+The checkpoint is one-shot read evidence, not persistent lifecycle admission.
+The 30-second age guard and 5-second request timeout are diagnostic settings.
+No signing, sending, nonce/sequence allocation, journal creation, operational
+policy admission or external deployment is added. Existing local publication,
+relay, lifecycle and public-key backends still enforce chain 31337.
+
+**Verified.** Actual public Monad testnet RPC preflight passed: chain 10143,
+finalized block 68053460, hash
+0xabcbfb68bbdf0f51fed5f94016547c3e716c4070a465db43a3f01615705aa2d8,
+block timestamp 1791098220, checkedAtMs 1791098221700. It correctly returned
+NETWORK_VERIFIED_ENGINE_NOT_CONFIGURED with zero signatures/transactions.
+The sandbox request failed with MONAD_RPC_CHAIN_FAILED; the scoped read-only
+network escalation succeeded. This validates connectivity, not an actual engine.
+
+Twelve focused Monad tests pass (exit 0): network-only and engine-pin checks,
+changed/wrong chain, block disagreement, stale/future/slow checkpoints, missing
+or mismatched code/ABI, all listing pins, malformed/conflicting source/halt
+state, fixed-code errors and read-only HTTPS restrictions. A mocked HTTP test
+also exercises real viem ABI encoding/decoding with the complete production
+listing, sourceState and halted layouts at the exact block. These engine replies
+are fixtures, not Monad engine state. One new CLI subprocess test covers env
+names, paired inputs, credential redaction and no journal creation.
+
+Build exits 0. The final npm test TAP records **287 passing tests**, zero
+failures/skips/cancellations/todo (274 previous plus thirteen new). The shell
+session was unavailable after the user interrupted the turn, so its final shell
+exit code was not recovered; the completed TAP counts are retained. A preceding
+full run passed 286 before the final HTTP encoding test was added. Whitespace
+checks passed. Evidence: artifacts/verification/monad-network.json,
+monad-unit.json and var/monad-unit.tap. Older recovery/crash reports remain
+historical; their source hashes are not attributed to this new CLI tree.
+
+**Remaining/next.** Obtain the risk/deployment owner's concrete testnet engine
+composition, authorized deployment address, exact ABI/build artifact and agreed
+listing/source/rules dossier. The existing artifacts/risk/engine-abi.json is an
+abstract interface, not a deployable contract; CombinedEngine and the local
+pricefeed demo use test counterparts. No actual engine was supplied or checked.
+docs/monad-testnet.md explains where the address/ABI come from, how to configure
+the public or Alchemy RPC, and where to obtain test MON when sending is needed.
+Then verify the deployed pins and implement testnet signer/relay, durable
+lifecycle integration and finalized receipt/source-state recovery with explicit
+identities, budgets and transaction authority. Q03-Q10 and human gates remain
+open. Storage/backup work is deferred by the user's priority, not completed.
+
+## Pending — durable Monad lifecycle monitor (PF017/PF019/PF023/PF025)
+
+Base: `5a3c4d180c5bc3a996b1c520f52ae0f0e9c94edd`, following the uncommitted
+Monad preflight slice above. The user requested continuation and ongoing records.
+Suggested message: `feat: persist Monad testnet lifecycle monitoring (PF023)`.
+
+**Implemented.** A read-only Monad monitor reuses the durable lifecycle
+transition logic through a fixed chain-10143 wrapper. LocalLifecycle retains
+its fixed chain-31337 wrapper. The concrete Monad reader repeats complete
+engine preflight at one finalized block and retains source sequence/time in
+its checkpoint. Config/ABI snapshots remain fixed. Halt/deadline decisions
+and source progress survive journal reopen. Contradictory identity, halt or
+source state quarantine; outages/stale checkpoints degrade with fixed redacted
+reasons. Different source state in the same block, or changed observedAt at the
+same sequence, quarantine. A newer sequence can retain its original observedAt.
+No publication, signing, sending or operational admission is enabled.
+
+New watch-monad-lifecycle CLI validates the dossier/policies before opening
+an explicitly selected archive, performs serial checks on a monotonic schedule
+for declared duration/interval/age inputs and drains on SIGINT/SIGTERM. It
+archives before callbacks/output, exits at STOPPED/QUARANTINED, and reports exit
+2 for final DEGRADED/QUARANTINED. The monitor watches engine facts, not source
+books; COLLECTING here grants no publication permission or venue-data readiness.
+Existing health/verify-evidence commands work with its lifecycle records.
+
+Journal.release clears only the exact owned fenced lease, preserving its
+counter; it cannot release a newer owner or let stale writers append. Controllers
+refuse release during an in-flight check. The new watch CLI releases on clean
+shutdown, enabling immediate new-process startup. A crash still requires the
+existing lease to expire, with no forced takeover. The local pipeline does not
+call the new release API. Docs explain the diagnostic boundary and restart rules.
+
+**Verification.** Typecheck/build exit 0. npm run test:monad exits 0 with
+**66 passing tests**. Full npm test exits 0 with **306 passing tests**, no
+failures/skips/cancellations/todo. This is 287 previous tests plus seventeen
+monitor/lease tests and two CLI tests. The focused 66 are included in 306;
+144 independently derived Fraction vectors remain included, seed 20261002.
+Wire-format, independent reference and whitespace checks also exit 0.
+
+Tests cover persisted early halt through original T/later horizon, included
+exact deadline and durable stop; RPC/stale recovery with redacted retained
+halt; disappearing halt; source sequence/time regression across database reopen;
+same-block/source-state contradictions; unchanged observedAt at a newer sequence;
+identity changes; reader input snapshots; incompatible config/horizon/policy;
+corrupt archives and expired writers; watch abort/outage/recovery/terminal behavior;
+graceful handoff, stale release/append and in-flight release refusal.
+
+A subprocess test runs the actual watch CLI and viem ABI encoding with scripted
+HTTPS replies, reopens the same real SQLite archive in a new process, verifies
+fence increment/lease release and queries health. An admission test confirms
+invalid policies/missing or wrong-network dossiers do not create an archive.
+No external network transaction is produced. All engine responses remain
+fixtures; this does not verify an actual deployed Monad engine or elapsed soak.
+
+Evidence: artifacts/verification/monad-lifecycle-unit.json, retained full/focused
+logs var/monad-lifecycle-full.tap and var/monad-lifecycle-unit.tap. The report
+records source/runner/ABI/log hashes, actual exit codes and counterpart status.
+Earlier preflight/recovery reports retain their historical counts/hashes; this
+new report certifies the latest TypeScript tree. The earlier 287-test shell
+exit-code gap remains documented; the current full 306-test exit was captured.
+No Solidity/Anvil crash campaign was rerun in this read-only monitor slice.
+Changes remain package-only, on pricefeed and uncommitted for the user.
+
+**Remaining/next.** The concrete testnet engine deployment address, exact ABI/
+build artifact and listing/source/rules dossier are still missing. Run real
+engine checks when supplied, then integrate an approved observation signer,
+durable transaction signer, relay and finalized receipt/source-state reconciliation
+against the signed journals. The new monitor must be joined at publication
+boundaries after those testnet controls exist. It does not detect unknown higher
+chain state against production signer history by itself. Production budgets,
+closure/finality/nonce policies, source calibration, hosting/storage/backup and
+named review remain open; none is approved by these diagnostic tests.

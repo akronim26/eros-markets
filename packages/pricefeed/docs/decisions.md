@@ -35,7 +35,7 @@ risk/CLOB/oracle code. All temporary chain activity stays on chain ID 31337.
 | Q06 event semantics and exact initial mapping | OPEN | Three real source examples remain disabled for operational output |
 | Q07 cadence/headroom/metadata age | Engine 30-second carry and full 300-second index coverage FIXED; producer budgets OPEN | Every diagnostic run declares its own settings; 30 seconds is not a production polling interval |
 | Q08 invalid-packet representation/priority | Engine invalid-depth acceptance and zero coverage FIXED; local fresh zero-price/impact invalid-depth representation implemented; production policy/review OPEN | Preserve actual depths/times and failure reasons; no fabricated samples for missing/closed/stale source; closure/coalescing and operational priorities require review |
-| Q09 live chain/engine/key/relay/finality | OPEN; user reports obtaining an Alchemy Monad RPC, endpoint not supplied/validated | A provider candidate does not supply a deployed engine, signing backend, finality/spend policy or transaction authority; local chain-31337 development only |
+| Q09 live chain/engine/key/relay/finality | TESTNET SELECTED on 04 October 2026; user has no deployed engine/address/concrete ABI; read-only preflight and durable lifecycle monitor implemented; signing/relay/finality approval OPEN | Public testnet RPC can be checked separately; deployed dossier and actual engine verification remain missing. Local chain-31337 signing/sending restrictions remain; see monad-testnet.md |
 | Q10 calibration/soak/retention/release | OPEN | Read-only measurements cannot approve production parameters or release |
 
 The eleven-field ABI and raw digest are fixed by existing `IPriceSource.sol` and
@@ -43,6 +43,19 @@ The eleven-field ABI and raw digest are fixed by existing `IPriceSource.sol` and
 Tests and diagnostic preparation do not accept PF-G0 or any other human gate.
 
 ## Choices made along the requirements review
+
+On 04 October 2026 the user prioritized Monad integration before storage/backup
+work and selected testnet. The user explicitly reported no deployed engine
+address or concrete ABI and requested instructions for obtaining them. This
+authorizes package-side integration preparation and read-only connection checks,
+not an external deployment or use of the public development keys on testnet.
+The existing engine ABI is the abstract read interface, not a deployable engine.
+The finalized-block preflight and durable read-only halt/deadline/source-progress
+monitor do not approve production finality or bypass operational admission.
+The monitor detects sequence/time regressions but does not reconcile unknown
+higher state against a production signing journal. The local pipeline
+restrictions remain unchanged. Graceful monitor lease release preserves its
+fence; a crash still requires lease expiry, with no forced takeover.
 
 These details preserve what was actually selected, why it fits the existing
 contract and what remains. Q02/Q03 selections were made on 03 October 2026;

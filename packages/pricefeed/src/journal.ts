@@ -22,6 +22,12 @@ export class Journal {
       return fence;
     });
   }
+  /** Graceful handoff only. Keep the fence counter; stale owners cannot release successors. */
+  release(worker:string,owner:string,fence:bigint):boolean {
+    if(!worker||!owner||fence<=0n)throw new Error('BAD_WRITER_LEASE');
+    return this.tx(()=>BigInt(this.db.prepare('UPDATE writers SET until_ms=? WHERE worker=? AND owner=? AND fence=?')
+      .run('0',worker,owner,fence).changes)===1n);
+  }
   append(worker:string,owner:string,fence:bigint,nowMs:bigint,payload:unknown):void {
     this.tx(()=>{
       const query=this.db.prepare('SELECT * FROM writers WHERE worker=?');query.setReadBigInts(true);

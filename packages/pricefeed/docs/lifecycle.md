@@ -60,11 +60,28 @@ Decisions are checksum-protected in a dedicated `lifecycle:` namespace in the
 existing fenced WAL/FULL journal. Config/checkpoint-age policy changes and corrupt archives fail
 closed. Checkpoint permissions are persisted before returning; expired writer
 leases cannot grant output. STOPPED and QUARANTINED survive reconstruction and
-clock rollback. A new owner waits for the old lease to expire; this step does
-not provide forced takeover or OS-crash certification.
+clock rollback. A crashed owner's lease must expire before a new owner starts.
+The controller now exposes graceful release of its exact owned fence, preserving
+the fence counter; a stale owner cannot release a successor. The existing local
+pipeline does not call this new method. There is no forced takeover.
 Read-only health recognizes lifecycle records alongside source captures and
 recalculates block freshness at query time; it does not report old collecting
 checkpoints as currently healthy.
+
+## Monad testnet diagnostic monitor
+
+`MonadTestnetLifecycleMonitor` shares the transition/persistence implementation
+through a separate fixed chain-10143 wrapper. `LocalLifecycle` remains restricted
+to chain 31337. The new concrete reader performs the Monad preflight at one
+finalized named block, verifies all existing pins and reads authoritative
+`halted()` plus sourceState. It archives source sequence/time; regressions,
+same-block changes and a changed observedAt at the same sequence quarantine.
+RPC messages are redacted before persistence. This is a read-only monitor,
+not permission to publish or a join to Polymarket collection. The Monad watch
+CLI releases its owned lease on clean shutdown. See
+[monad-testnet.md](monad-testnet.md) for explicit diagnostic settings, commands
+and the missing deployment dossier. Actual deployed-engine verification,
+publication integration and approved policies/review remain open.
 
 Run from the package with pinned tools:
 

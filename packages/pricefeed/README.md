@@ -26,6 +26,11 @@ inputs only. Enabling a config fails closed until approved runtime policy adapte
 exist. No operational observations, signatures or transactions are produced.
 Fixture signatures use a public test-only key in a local test VM.
 
+Monad testnet work now includes read-only RPC/engine preflight and a durable
+halt/deadline/source-state monitor. See [`docs/monad-testnet.md`](docs/monad-testnet.md) for the commands,
+how to obtain the deployment address/ABI and what is still needed for sending.
+This does not enable the local publication pipeline on an external chain.
+
 Candidate rules manifests and durable packet/signing library mechanics now live
 in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and
 `src/local-test-signer.ts`. The builder recomputes observations from raw

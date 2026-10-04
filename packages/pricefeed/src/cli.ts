@@ -12,6 +12,9 @@ import { healthView } from './health.js';
 import { CollectionService } from './service.js';
 import { buildArchivedObservation } from './offline-observation.js';
 import { parseRules } from './rules.js';
+import { monadTestnetReadRpc, preflightMonadTestnet } from './monad-preflight.js';
+import { monadLifecycleReader, watchMonadLifecycle } from './monad-lifecycle.js';
+import { MonadTestnetLifecycleMonitor, type LifecycleView } from './lifecycle.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -25,10 +28,43 @@ const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 async function main():Promise<void> {
   const {command,options}=args(process.argv.slice(2));
   const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'serve':['--configs','--db'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine'],
-    'build-observation':['--config','--rules','--db','--capture-id','--sequence','--published-at-ms']};
+    'build-observation':['--config','--rules','--db','--capture-id','--sequence','--published-at-ms'],
+    'preflight-monad':['--rpc-env','--config','--abi'],
+    'watch-monad-lifecycle':['--rpc-env','--config','--abi','--db','--interval-ms','--max-checkpoint-age-ms','--duration-seconds']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
+  if(command==='preflight-monad'){
+    const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
+    const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
+    if(options.has('--config')!==options.has('--abi'))throw new Error('MONAD_CONFIG_AND_ABI_REQUIRED_TOGETHER');
+    const engine=options.has('--config')?{config:parseConfig(read(need('--config'))),abi:read(need('--abi'))}:undefined;
+    console.log(json(await preflightMonadTestnet(monadTestnetReadRpc(rpcUrl),engine)));return;
+  }
+  if(command==='watch-monad-lifecycle'){
+    const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
+    const url=process.env[name];if(!url)throw new Error('MONAD_RPC_ENV_MISSING');
+    const bounded=(key:string,min:bigint,max:bigint)=>{const raw=need(key);
+      if(!/^[1-9]\d*$/.test(raw)||BigInt(raw)<min||BigInt(raw)>max)throw new Error('MONAD_BAD_MONITOR_POLICY');return Number(raw);};
+    const interval=bounded('--interval-ms',1000n,60000n),maxAge=bounded('--max-checkpoint-age-ms',1000n,30000n),
+      duration=bounded('--duration-seconds',1n,86400n),cfg=parseConfig(read(need('--config'))),abi=read(need('--abi'));
+    // Validate the entire dossier and policy before creating any on-disk archive.
+    const reader=monadLifecycleReader(monadTestnetReadRpc(url),cfg,abi),path=need('--db');
+    mkdirSync(dirname(path),{recursive:true});const journal=new Journal(path),controller=new AbortController();
+    const stop=()=>controller.abort(),timer=setTimeout(stop,duration*1000);
+    process.once('SIGINT',stop);process.once('SIGTERM',stop);const outcome:{checks:number;last:LifecycleView|null}={checks:0,last:null};
+    let monitor:MonadTestnetLifecycleMonitor|null=null;
+    try{
+      monitor=new MonadTestnetLifecycleMonitor(cfg,journal,randomUUID(),reader,BigInt(maxAge));
+      await watchMonadLifecycle(monitor,interval,controller.signal,view=>{outcome.checks++;outcome.last=view;
+        console.log(json({mode:'MONAD_TESTNET_READ_ONLY',worker:cfg.key,lifecycle:view,operationalOutput:false,signaturesProduced:0,transactionsSent:0}));});
+      console.log(json({completed:true,checks:outcome.checks,lastMode:outcome.last?.mode??null,evidenceValid:journal.verify(),
+        operationalOutput:false,signaturesProduced:0,transactionsSent:0}));
+      if(outcome.last?.mode==='QUARANTINED'||outcome.last?.mode==='DEGRADED')process.exitCode=2;
+    }finally{clearTimeout(timer);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);
+      try{monitor?.releaseLease();}finally{journal.close();}}
+    return;
+  }
   if(command==='build-observation'){
     const result=buildArchivedObservation(parseConfig(read(need('--config'))),parseRules(read(need('--rules'))),
       need('--db'),need('--capture-id'),need('--sequence'),need('--published-at-ms'));
