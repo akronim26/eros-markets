@@ -30,6 +30,7 @@ import { parseConfig } from '../src/config.js';
 import { planMonadBudget, applyMonadBudget, budgetPlanHash } from '../src/monad-budget.js';
 import { json } from '../src/math.js';
 import { SourceSnapshotBuffer } from '../src/source-buffer.js';
+import { privateKeyToAccount } from 'viem/accounts';
 
 const abi=JSON.parse(readFileSync(new URL('../../artifacts/monad-testnet/receiver-abi.json',import.meta.url),'utf8'));
 const policy:RelayPolicy={gasCap:800000n,maxFeePerGas:150000000000n,maxPriorityFeePerGas:2000000000n,
@@ -370,8 +371,9 @@ test('unfunded testnet simulation reserves no nonce and broadcasts nothing',asyn
   }finally{s.close();}
 });
 
-async function recoveryFixture(){
-  const s=await setup(4),prepare=s.transport.prepare;
+async function recoveryFixture(timeoutMs=policy.timeoutMs){
+  const runPolicy={...policy,timeoutMs};
+  const s=await setup(4,runPolicy),prepare=s.transport.prepare;
   await s.pipeline.start();
   s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(1032000n);s.advanceBlock();return raw;};
   await assert.rejects(s.pipeline.process(await s.worker.poll()),/RELAY_HEADROOM_EXPIRED/);s.pipeline.close();
@@ -390,7 +392,7 @@ async function recoveryFixture(){
     cancelReceipts.set(hash,{status:'success',transactionHash:hash,blockNumber:block.number,blockHash:block.hash,logs:[]});return hash;
   };
   const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir,keysDirectory:s.dir,
-    policy:{schemaVersion:'1',sender:s.sender,relay:JSON.parse(json(policy)),budget:{maxTransactions:4,totalMaxCostWei:'480000000000000000'}},
+    policy:{schemaVersion:'1',sender:s.sender,relay:JSON.parse(json(runPolicy)),budget:{maxTransactions:4,totalMaxCostWei:'480000000000000000'}},
     nonce:0n,originalHash:old.txHash!,maxCostWei:3150000000000000n,waitMs:600};
   const account=loadTestnetKey(join(s.dir,'tx-key'),join(s.dir,'tx-password'),s.sender);
   return {s,old,options,account,cancelSends,setFail:(v:boolean)=>{fail=v;},run:()=>recoverMonadNonce(options,s.rpc,()=>1032000n,account)};
@@ -419,6 +421,51 @@ test('unknown cancellation send is durable and retries only identical bytes',asy
     f.setFail(false);assert.equal((await f.run()).status,'FINALIZED');
     assert.equal(f.cancelSends.length,2);assert.equal(f.cancelSends[0],f.cancelSends[1]);
   }finally{f.s.close();}
+});
+test('stalled recovery reads release all five journal locks and cannot create false cancellation evidence',async()=>{
+  const f=await recoveryFixture();try{
+    const receipt=f.s.rpc.receipt;f.s.rpc.receipt=()=>new Promise(()=>{});
+    await assert.rejects(f.run(),/NONCE_RECOVERY_RPC_TIMEOUT/);
+    for(const name of ['source','packets','signer','transactions','relay']){
+      const peer=new DatabaseSync(join(f.s.dir,name+'.sqlite'),{timeout:1});
+      try{peer.exec('BEGIN IMMEDIATE');peer.exec('ROLLBACK');}finally{peer.close();}
+    }
+    assert.equal(f.cancelSends.length,0);assert.equal(f.s.relay.get(f.s.domain,1n)!.state,'QUARANTINED');
+    f.s.rpc.receipt=receipt;assert.equal((await f.run()).status,'FINALIZED');
+  }finally{f.s.close();}
+});
+test('timed-out cancellation broadcasts persist UNKNOWN and resume only the exact archived bytes',async()=>{
+  const f=await recoveryFixture();try{
+    const send=f.s.rpc.send;let timedOutRaw:Hex|null=null;f.s.rpc.send=raw=>{timedOutRaw=raw;return new Promise(()=>{});};
+    const unknown=await f.run();assert.equal(unknown.status,'UNKNOWN');assert.ok(timedOutRaw);
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'),{readOnly:true});try{
+      const r=JSON.parse(String(db.prepare('SELECT body FROM nonce_recoveries').get()!.body));
+      assert.equal(r.state,'UNKNOWN');assert.equal(r.raw,timedOutRaw);assert.equal(r.attempts,1);
+    }finally{db.close();}
+    f.s.rpc.send=send;assert.equal((await f.run()).status,'FINALIZED');
+    assert.equal(f.cancelSends[0],timedOutRaw);assert.equal(f.s.relay.get(f.s.domain,1n)!.raw,f.old.raw);
+  }finally{f.s.close();}
+});
+test('recovery provider failures expose fixed errors without leaking provider credentials',async()=>{
+  const f=await recoveryFixture();try{
+    f.s.rpc.receipt=async()=>{throw new Error('https://private.invalid/key-secret');};
+    await assert.rejects(f.run(),{message:'NONCE_RECOVERY_RPC_FAILED'});assert.equal(f.cancelSends.length,0);
+  }finally{f.s.close();}
+});
+test('a coherently rewritten observation signer and packet signature cannot pass testnet startup',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());s.pipeline.close();
+    const packet=s.packets.get(s.domain,1n)!;
+    const wrong=await privateKeyToAccount(('0x'+'33'.repeat(32)) as Hex).sign({hash:packet.digest});
+    const signing=new DatabaseSync(join(s.dir,'signer.sqlite'));
+    const row=signing.prepare('SELECT identity,digest FROM signer_reservations').get()!;
+    signing.prepare('UPDATE signer_reservations SET signature=?,sha256=?').run(wrong,policyHash(`${row.identity}:${row.digest}:${wrong}`));signing.close();
+    const packets=new DatabaseSync(join(s.dir,'packets.sqlite'));
+    packets.prepare('UPDATE packets SET signature=?,signature_sha256=?').run(wrong,policyHash(wrong));packets.close();
+    s.restart();await assert.rejects(s.pipeline.start(),/SIGNER_JOURNAL_SIGNATURE_MISMATCH/);
+    assert.equal(s.sent.length,1);assert.equal(s.packets.list(s.domain).length,1);
+    s.restart();await assert.rejects(s.pipeline.start(),/RELAY_PERSISTENT_QUARANTINE/);
+  }finally{s.close();}
 });
 test('cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends',async()=>{
   const f=await recoveryFixture();try{

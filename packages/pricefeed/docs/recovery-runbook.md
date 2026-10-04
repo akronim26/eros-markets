@@ -4,6 +4,11 @@ This procedure describes the implemented development path, with disabled configs
 and chain 31337. It is a starting point for PF016/PF018/PF025 operator review,
 not an approved Monad launch, key backend, fee-replacement or supervisor procedure.
 
+The separate implemented testnet path is documented in [custody.md](custody.md):
+retained-signature verification, safe key/journal paths, bounded recovery RPCs and
+explicit never-broadcast nonce cancellation. Its tests do not authorize extra
+spending or general cancellation of an unknown price broadcast.
+
 Run the reproducible offline drill from this package:
 
 ```bash

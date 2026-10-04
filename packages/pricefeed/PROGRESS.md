@@ -2414,3 +2414,78 @@ Three are complete, five remain to build, and the deferred coverage proof remain
 unpassed. Its prepared budget renewal is inactive; no further spend is authorized
 by this work. No commit, push, branch switch, decisions.md edit or counterpart-file
 change was performed.
+
+## 05 October 2026 — milestone 5: transaction recovery and signer custody complete
+
+Base: user commit `7eb6aca`. Suggested commit message:
+`feat: harden transaction recovery and signer custody`.
+
+**What changed.** Existing observation signer reservations now check exact
+namespace/sequence identity, uint64 bounds, digest/checksum and canonical low-s/v
+encoding. Async journal verification recovers retained signatures against the
+pinned wallet. Monad startup and later chain/lifecycle history reconciliation
+require this verification. A coherently rewritten packet/signer signature with
+fresh checksums cannot substitute a different wallet. Cached signing retries
+also verify signature identity and recheck writer fencing. Cryptographic cache
+entries bind exact bytes and are limited to 1,024; row checks still reread SQLite.
+Constructor failures close their handles.
+
+Encrypted key format and existing wallet addresses are unchanged. Key loading
+requires owner-only real parents and regular single-link owner-only files,
+rejecting symlink ancestors/final links and hard links. Creation uses exclusive
+no-follow opens, 0600 modes and file/directory fsync; failure cleanup removes only
+its own newly created inode(s). Password, derived-key and temporary plaintext
+buffers are cleared on success/failure; JavaScript strings/account closures are
+not guaranteed erasable. Testnet journal/main/WAL/SHM paths receive owner/regular/
+single-link/parent checks before opening. Missing restore files and orphaned
+sidecars during initialization fail closed. No existing key/journal was chmodded.
+
+The existing never-broadcast expired-nonce cancellation now bounds every RPC
+operation using its pinned relay timeout, even for a transport ignoring timeout.
+Provider errors use fixed codes. Stalled reads release all five journal locks.
+Timed-out sends retain committed UNKNOWN intent and exact raw bytes; subsequent
+recovery reconciles receipts and retries only those bytes. No budgets, nonce
+ordering, raw packet fields, fees or cancellation scope were silently changed.
+Receipt polling waitMs remains separate from each RPC timeout.
+
+`npm run test:custody` is the focused check. `docs/custody.md` documents current
+safeguards and limits, and the recovery runbook links the actual testnet path.
+General replacement of already-broadcast prices, production secret backend/
+custodian approval, same-user compromise, coordinated backup/restore, supervisor
+and operator approval remain open. The engine has no hot observation-key rotation.
+Backup/runbook automation belongs to original milestone 8, not this commit.
+
+**Actual verification.**
+- Pinned Node 24 TypeScript build: exit 0.
+- Final full Node suite: **388/388**, zero failures/skips/cancellations, exit 0;
+  source hashes match the inputs captured before this run.
+- Focused custody/key/Monad publication/transaction suites: **55/55**, exit 0;
+  final full suite includes the subsequent orphaned-WAL/buffer-clearing refinement.
+- New cases reject corrupted/malleable/wrong-wallet signer history, unsafe
+  key/journal paths and coherent packet/signer forgery; they check partial key
+  creation cleanup, five-journal lock release after RPC timeout, UNKNOWN send
+  persistence, identical recovery bytes and credential redaction. Existing OS
+  crash/restore fixtures also pass in the full Node suite.
+- Wire compatibility: exit 0; independent impact reference **144 vectors** and
+  independent coverage reference **5/5**, exit 0.
+- Read-only audit of actual retained testnet public signature history: **36
+  observation signatures / 30 transaction signatures**, exit 0. Existing journal
+  path checks pass; no keys were unlocked and no new signatures were produced.
+- All five active Monad main journals remain byte-identical to milestone 4.
+  **Zero new live signatures, external transactions, MON spend or activated configs.**
+- Whitespace diff check passes; scope remains exclusively `packages/pricefeed/`.
+
+**Evidence.** Compact `artifacts/verification/custody-unit.json` records commands,
+counts, source/raw-log hashes and unchanged active journal hashes. Raw TAP remains
+ignored in `var/verification/custody/`; no bulky new capture report is tracked.
+Fixture signing/SQLite are real; source/RPC/chain counterparts are scripted. No
+new Forge, paid Monad, category calibration, deployment or production acceptance
+is claimed. Existing signed journals, spending policy and earlier evidence remain.
+
+**Original nine-milestone tracking.** Milestones **1, 3, 4 and 5 complete** for the
+stated diagnostic scope. Milestone **2 stays deferred/unpassed (268/300)**. Next
+is **6: category calibration and multi-market soaks**; **7: supervised deployment**,
+**8: monitoring/backups/runbooks**, and **9: release verification/handoff** remain.
+Four are complete, four remain to build, and one deferred proof remains separate.
+No extra milestone is added. No commit/push/branch change, decisions.md edit,
+counterpart-file modification or further spending authorization was performed.

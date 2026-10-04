@@ -16,6 +16,24 @@ import { validateReceipt } from './receipts.js';
 import { submitCalldata } from './wire.js';
 
 type RecoveryOptions=BudgetOptions&{keysDirectory:string;policy:unknown;nonce:bigint;originalHash:Hex;maxCostWei:bigint;waitMs:number};
+/** Bound provider calls even when an injected transport ignores its own timeout.
+ * A late send remains uncertain; this wrapper never declares it unsuccessful.
+ */
+function boundedRpc(provider:MonadSubmissionRpc,timeoutMs:number):MonadSubmissionRpc {
+  const call=async<T>(operation:()=>Promise<T>):Promise<T>=>{
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{return await Promise.race([Promise.resolve().then(operation),new Promise<never>((_resolve,reject)=>{
+      timer=setTimeout(()=>reject(new Error('NONCE_RECOVERY_RPC_TIMEOUT')),timeoutMs);
+    })]);}catch(error){
+      if(error instanceof Error&&error.message==='NONCE_RECOVERY_RPC_TIMEOUT')throw error;
+      throw new Error('NONCE_RECOVERY_RPC_FAILED');
+    }finally{if(timer)clearTimeout(timer);}
+  };
+  return {chainId:()=>call(()=>provider.chainId()),block:s=>call(()=>provider.block(s)),
+    code:(a,b)=>call(()=>provider.code(a,b)),read:(a,b,n,s,k)=>call(()=>provider.read(a,b,n,s,k)),
+    nonce:a=>call(()=>provider.nonce(a)),balance:a=>call(()=>provider.balance(a)),
+    simulate:(s,t,d,g)=>call(()=>provider.simulate(s,t,d,g)),send:r=>call(()=>provider.send(r)),receipt:h=>call(()=>provider.receipt(h))};
+}
 /** Only cancels a known signed, never-broadcast, expired final reservation.
  * Zero-value, empty-data, 21,000-gas self transaction; no arbitrary signing path.
  * Original price signature/request/raw bytes and every reservation are retained.
@@ -26,6 +44,7 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
     ||options.maxCostWei<=0n||!Number.isSafeInteger(options.waitMs)||options.waitMs<1||options.waitMs>120000)
     throw new Error('BAD_NONCE_RECOVERY_LIMIT');
   const p=parseTestnetRunPolicy(options.policy),cfg=options.config,d=cfg.destination!;
+  rpc=boundedRpc(rpc,p.relay.timeoutMs);
   const profile=relayProfileBody({chainId:10143n,...p.budget},p.relay);
   const request={gas:'21000',maxFeePerGas:p.relay.maxFeePerGas.toString(),maxPriorityFeePerGas:p.relay.maxPriorityFeePerGas.toString()};
   const reservationWei=21000n*p.relay.maxFeePerGas;

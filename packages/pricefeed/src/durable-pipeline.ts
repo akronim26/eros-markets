@@ -11,7 +11,7 @@ import { sourceTime } from './time.js';
 import type { LifecycleView } from './lifecycle.js';
 export type PipelineLifecycle={assertConfig(config:MarketConfig):void;check():Promise<LifecycleView>;releaseLease?():boolean};
 
-export type RecoverableSigner=RawSigner&{reconcile(owner:string,fence:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void};
+export type RecoverableSigner=RawSigner&{reconcile(owner:string,fence:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void;verifyJournal?():Promise<void>};
 export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig;releaseLease?():boolean};rules:RulesManifest;signer:RecoverableSigner;lifecycle?:PipelineLifecycle;
   latestSnapshot?:()=>PollResult|null;sourceReady?:()=>boolean;publicationIntervalMs?:number};
 type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null;lifecycleView:LifecycleView|null};
@@ -67,11 +67,13 @@ export class DurablePipeline {
       ||i.abiHash.toLowerCase()!==d.abiHash.toLowerCase()||i.signer.toLowerCase()!==d.signerAddress.toLowerCase()
       ||i.rulesHash.toLowerCase()!==d.sourceRulesHash.toLowerCase())throw new Error('PIPELINE_IDENTITY_MISMATCH');
     verifyListing(e.config,i.listing);
-    if(this.network.chainId===10143n)this.signedHistory(e,i);
+    if(this.network.chainId===10143n)await this.signedHistory(e,i);
     return i;
   }
-  private signedHistory(e:Entry,state:{lastSequence:bigint;lastObservedAt:bigint}):void {
+  private async signedHistory(e:Entry,state:{lastSequence:bigint;lastObservedAt:bigint}):Promise<void> {
     try{
+      if(!e.signer.verifyJournal)throw new Error('SIGNER_JOURNAL_VERIFICATION_REQUIRED');
+      await this.bounded(e.signer.verifyJournal());
       e.signer.reconcile(this.owner,e.fence,state);
       const finalized=this.packets.list(e.domain).filter(p=>this.relay.get(e.domain,p.packet.observation.sequence)?.state==='FINALIZED');
       if(finalized.some(p=>p.packet.observation.sequence>state.lastSequence))throw new Error('FINALIZED_SOURCE_REGRESSION');
@@ -117,7 +119,7 @@ export class DurablePipeline {
     const view=await this.bounded(e.lifecycle.check());e.lifecycleView=view;
     if(this.network.chainId===10143n&&(view.mode==='COLLECTING'||view.mode==='RECORD_ONLY')){
       if(!view.checkpoint?.sourceState){this.relay.quarantine('SOURCE_CHECKPOINT_MISSING');throw new Error('SOURCE_CHECKPOINT_MISSING');}
-      this.signedHistory(e,view.checkpoint.sourceState);
+      await this.signedHistory(e,view.checkpoint.sourceState);
     }
     if(view.mode==='STOPPED')return this.result(e,'STOPPED',view.reason);
     if(view.mode==='QUARANTINED')return this.result(e,'QUARANTINED',view.reason);

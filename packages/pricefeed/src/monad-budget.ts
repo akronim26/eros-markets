@@ -17,6 +17,7 @@ import { json } from './math.js';
 import { record } from './book.js';
 import { sizeGas } from './gas.js';
 import { nonceRecoveries, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
+import { testnetJournalPath } from './monad-keys.js';
 
 export type BudgetOptions={config:MarketConfig;abi:unknown;rpcUrl:string;journalDirectory:string};
 const schemas=['source','packets','signer','transactions'] as const;
@@ -37,6 +38,7 @@ export function openBudgetJournals(options:BudgetOptions,write:boolean){
   for(const name of [...schemas,'relay']){
     const path=join(root,name+'.sqlite');if(!existsSync(path))throw new Error('TESTNET_JOURNALS_MISSING');
     const f=lstatSync(path);if(!f.isFile()||f.isSymbolicLink()||f.uid!==process.getuid?.())throw new Error('TESTNET_PRIVATE_FILE_REQUIRED');
+    testnetJournalPath(path,false);
   }
   const db=new DatabaseSync(join(root,'relay.sqlite'),{readOnly:!write,timeout:1000});
   try{
