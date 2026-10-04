@@ -41,10 +41,13 @@ tests or deployment inputs remains partial even when its core code is present.
 
 ## Current verification and practical boundary
 
-- Latest package suite: **223 tests pass**, zero failed/skipped/cancelled/todo.
+- Latest package suite: **232 tests pass**, zero failed/skipped/cancelled/todo,
+  including nine new offline CLI subprocess cases. Evidence:
+  `artifacts/verification/offline-observation.json`.
   This includes **144 Fraction vectors**, seed 20261002; do not add them again.
-- Separately, **8 owned Solidity tests** pass: 4 wire/short-window and 4 signed
-  24-hour lifecycle fixtures. Counterpart accounting/book/oracle roles are scripted.
+- Separately, the preceding lifecycle commit recorded **8 passing owned Solidity
+  tests**: 4 wire/short-window and 4 signed 24-hour fixtures. They were not rerun
+  for this CLI-only change. Accounting/book/oracle roles are scripted.
 - `npm run check:wire` passes against current risk sources, including accepted
   event ABI; `npm run test:reference` passes. Build passes.
 - Current source edits stay within `packages/pricefeed/`. The old protected-hash

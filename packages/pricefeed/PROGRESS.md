@@ -1082,3 +1082,86 @@ plan-status and docs/lifecycle.md record this distinction.
 Next independent work: operator build-observation CLI and broader process-crash,
 restore/load evidence/runbooks. Production RPC/key/listing/calibration and
 independent acceptance remain owner inputs; this work does not authorize launch.
+
+## 47b442b — unsigned archive replay CLI (PF017)
+
+Observed commit: `47b442b663455086c0041f15803adc8db3f28405`,
+04 October 2026 10:54:24 +05:30.
+Message: `feat: add offline observation replay CLI`.
+The user committed the code, tests, README, command docs and machine verification
+while the final detailed progress/plan-status notes were being written. Those
+two documentation updates remain pending after this commit. This records actual
+Git history; the agent did not commit or alter the user's included sponsor files.
+
+Base: `e37d19b675bf4b6582271f5d8a8e950e012fd4b8`.
+Pre-commit suggested message: `feat: add offline observation replay CLI (PF017)`.
+The user requested continued implementation and commit messages every ten minutes
+on 04 October 2026. Current reminder policy and decisions now reflect that interval;
+earlier five-minute entries remain historical. Commits remain manual on pricefeed.
+The previously pending PF023 entry is now linked to its observed actual user commit.
+
+**Implemented.** `build-observation` exposes the existing pure development builder
+through an offline command. All config/rules/archive/capture-ID/proposed-sequence/
+replay-time arguments are explicit. Configs stay disabled with a destination on
+chain 31337. A read-only SQLite transaction streams capture checksum verification
+and selects the requested record. Worker/category, collection/persistence times,
+raw-body/parsed-data agreement, event membership, source rules, tradeability,
+source/metadata age and headroom are checked before recomputing the packet.
+Persistence may lag collection slightly; it cannot precede it. Archived summaries
+cannot replace arithmetic, and degraded/quarantined selected captures are unavailable.
+
+Output shows configured pins, capture provenance, recomputed impacts/reasons,
+eleven fields, raw digest and evidence hash. Selected fresh invalid-depth policy
+preserves real depth/time with zero packet prices; valid-only policy remains
+unavailable. Exit 0 is an unsigned candidate at declared historical time, 2 is
+unavailable and 1 is a command/integrity failure. Listing/lifecycle verification,
+allocated sequence, readiness for signing and operational output are explicitly
+false; signatures/transactions are zero. No signer, relay or provider call occurs.
+Configured engine/code/ABI/signer pins are not claimed verified. Fixed-code CLI
+errors avoid reflecting JSON input, paths, unknown option values or stack traces.
+README and docs/offline-observation.md describe usage and these boundaries.
+
+**Verification.** Tests-first CLI coverage was added before implementation.
+Initial sandbox subprocess runs failed with EPERM on output pipes; approved
+outside-sandbox execution allowed the actual tests. The initial real run caught
+an incorrect test assumption about SQLite read-only WAL/SHM creation; assertions
+now check unchanged database bytes and records rather than absence of SQLite
+coordination files. A subsequent test exposed shared fixture mutation; raw fixture
+objects are now cloned per test. Neither failure was relabeled as a passing run.
+
+Final `npm test` exits 0: **232 tests**, no failures/skips/cancellations/todo,
+including nine CLI subprocess cases and the existing 144 Fraction vectors
+(seed 20261002). Build, `npm run check:wire` and `npm run test:reference` exit 0.
+`git diff --check` passes. CLI tests cover exact unsigned fields, raw invalid impacts,
+archive/representation corruption, stale/missing/future timestamps, closure,
+quarantine, identity/rule mismatch, persistence latency, sequence bounds, external
+chain rejection, malformed JSON, redaction, duplicate/unknown options and missing DB.
+No owned Solidity test was rerun for this CLI-only slice; prior evidence remains
+historical rather than being claimed a fresh pass.
+
+The command also replayed capture 2 from the retained successful real-source
+politics campaign `pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039`.
+Explicit replay time 1791059028222 ms and proposed sequence 1 reproduced the
+original observation, source time, evidence hash and digest exactly:
+`0x2c430f80906f6f1f735ae712ebeb9bcfe8bc02cd6df23cfbe47e7b2873d5f4b7`.
+This used retained books, not new public requests or chain activity. Machine
+evidence: artifacts/verification/offline-observation.json, with command results,
+actual TAP counts/log hash, replay inputs/output and tested source SHA-256 hashes.
+No future commit hash or human gate acceptance is claimed.
+
+**Remaining/next.** PF017 still needs broader operator review of collection/storage
+failure paths; no operational signing/sending command is authorized. The next
+independent slice is a forced process-crash/restore campaign and its recovery
+runbook, beyond the existing graceful four-journal reopen tests. Production
+mapping/calibration/key/RPC/finality, concrete lifecycle reader, policies and named
+acceptance remain open. Edits stay in packages/pricefeed; unrelated sponsor-plan
+and root output work is left untouched. External-chain transactions: zero.
+
+## Pending — PF017 final progress and verification notes
+
+Base: `47b442b663455086c0041f15803adc8db3f28405`.
+Suggested message: `test: record offline observation replay verification (PF017)`.
+Only PROGRESS.md and docs/plan-status.md are pending: record the observed user
+commit, final 232-test result, real-capture packet/digest/evidence-hash match and
+next recovery work. No source changed after the successful suite; historical
+Solidity evidence is explicitly distinguished from freshly run CLI checks.
