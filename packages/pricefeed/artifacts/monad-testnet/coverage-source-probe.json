@@ -1,0 +1,717 @@
+{
+  "mode": "READ_ONLY_POLYMARKET_REST_WS_SOURCE_PROBE",
+  "startedAtUtc": "2026-10-04T18:24:18.989Z",
+  "endedAtUtc": "2026-10-04T18:26:49.998Z",
+  "durationMs": 151009,
+  "token": "109876868437950584369987384406356259939519193117253465815665152916226511121427",
+  "condition": "0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d",
+  "restCaptures": 30,
+  "wsFrames": 57,
+  "pongs": 14,
+  "errors": 0,
+  "socketClosed": true,
+  "archive": "var/monad-testnet/source-probe/captures.jsonl",
+  "archiveSha256": "093cb10e97c36327cb2ea851dc1d819c9f09601415254d612c94fa7efd05f71c",
+  "samples": [
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138259711",
+      "sourceMs": "1791138255537",
+      "sourceAgeMs": "4174",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "book",
+      "receivedAtMs": "1791138260709",
+      "sourceMs": "1791138255537",
+      "sourceAgeMs": "5172",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138264500",
+      "sourceMs": "1791138255537",
+      "sourceAgeMs": "8963",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138266851",
+      "sourceMs": "1791138266695",
+      "sourceAgeMs": "156",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138266851",
+      "sourceMs": "1791138266695",
+      "sourceAgeMs": "156",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138269417",
+      "sourceMs": "1791138266695",
+      "sourceAgeMs": "2722",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138274638",
+      "sourceMs": "1791138266695",
+      "sourceAgeMs": "7943",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138274940",
+      "sourceMs": "1791138274606",
+      "sourceAgeMs": "334",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138274941",
+      "sourceMs": "1791138274643",
+      "sourceAgeMs": "298",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138276783",
+      "sourceMs": "1791138276658",
+      "sourceAgeMs": "125",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138277494",
+      "sourceMs": "1791138277393",
+      "sourceAgeMs": "101",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138277495",
+      "sourceMs": "1791138277393",
+      "sourceAgeMs": "102",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138279351",
+      "sourceMs": "1791138277393",
+      "sourceAgeMs": "1958",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138280778",
+      "sourceMs": "1791138280653",
+      "sourceAgeMs": "125",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138280778",
+      "sourceMs": "1791138280654",
+      "sourceAgeMs": "124",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138283337",
+      "sourceMs": "1791138283017",
+      "sourceAgeMs": "320",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138283337",
+      "sourceMs": "1791138283066",
+      "sourceAgeMs": "271",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138284570",
+      "sourceMs": "1791138283066",
+      "sourceAgeMs": "1504",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138289588",
+      "sourceMs": "1791138283066",
+      "sourceAgeMs": "6522",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138294710",
+      "sourceMs": "1791138283066",
+      "sourceAgeMs": "11644",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138297059",
+      "sourceMs": "1791138296899",
+      "sourceAgeMs": "160",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "book",
+      "receivedAtMs": "1791138297059",
+      "sourceMs": "1791138296899",
+      "sourceAgeMs": "160",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "last_trade_price",
+      "receivedAtMs": "1791138297185",
+      "sourceMs": "1791138297075",
+      "sourceAgeMs": "110",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138297209",
+      "sourceMs": "1791138297108",
+      "sourceAgeMs": "101",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138297215",
+      "sourceMs": "1791138297114",
+      "sourceAgeMs": "101",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138297215",
+      "sourceMs": "1791138297114",
+      "sourceAgeMs": "101",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138297215",
+      "sourceMs": "1791138297114",
+      "sourceAgeMs": "101",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138297244",
+      "sourceMs": "1791138297126",
+      "sourceAgeMs": "118",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138297266",
+      "sourceMs": "1791138297133",
+      "sourceAgeMs": "133",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138299418",
+      "sourceMs": "1791138297133",
+      "sourceAgeMs": "2285",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138304641",
+      "sourceMs": "1791138297133",
+      "sourceAgeMs": "7508",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138309349",
+      "sourceMs": "1791138297133",
+      "sourceAgeMs": "12216",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312930",
+      "sourceMs": "1791138312724",
+      "sourceAgeMs": "206",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312930",
+      "sourceMs": "1791138312774",
+      "sourceAgeMs": "156",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312930",
+      "sourceMs": "1791138312775",
+      "sourceAgeMs": "155",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312930",
+      "sourceMs": "1791138312776",
+      "sourceAgeMs": "154",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312930",
+      "sourceMs": "1791138312782",
+      "sourceAgeMs": "148",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312931",
+      "sourceMs": "1791138312784",
+      "sourceAgeMs": "147",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312931",
+      "sourceMs": "1791138312785",
+      "sourceAgeMs": "146",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138312931",
+      "sourceMs": "1791138312790",
+      "sourceAgeMs": "141",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138314367",
+      "sourceMs": "1791138312790",
+      "sourceAgeMs": "1577",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138319589",
+      "sourceMs": "1791138312790",
+      "sourceAgeMs": "6799",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138319688",
+      "sourceMs": "1791138319537",
+      "sourceAgeMs": "151",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138320111",
+      "sourceMs": "1791138319976",
+      "sourceAgeMs": "135",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138324303",
+      "sourceMs": "1791138319976",
+      "sourceAgeMs": "4327",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138324500",
+      "sourceMs": "1791138324384",
+      "sourceAgeMs": "116",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138329623",
+      "sourceMs": "1791138324384",
+      "sourceAgeMs": "5239",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138332180",
+      "sourceMs": "1791138332001",
+      "sourceAgeMs": "179",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138334228",
+      "sourceMs": "1791138334002",
+      "sourceAgeMs": "226",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138334229",
+      "sourceMs": "1791138334070",
+      "sourceAgeMs": "159",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138334230",
+      "sourceMs": "1791138334097",
+      "sourceAgeMs": "133",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138335153",
+      "sourceMs": "1791138334097",
+      "sourceAgeMs": "1056",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138339324",
+      "sourceMs": "1791138334097",
+      "sourceAgeMs": "5227",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138342010",
+      "sourceMs": "1791138341838",
+      "sourceAgeMs": "172",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138344778",
+      "sourceMs": "1791138341838",
+      "sourceAgeMs": "2940",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138349592",
+      "sourceMs": "1791138341838",
+      "sourceAgeMs": "7754",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138352414",
+      "sourceMs": "1791138352313",
+      "sourceAgeMs": "101",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138352414",
+      "sourceMs": "1791138352313",
+      "sourceAgeMs": "101",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138354280",
+      "sourceMs": "1791138352313",
+      "sourceAgeMs": "1967",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138358189",
+      "sourceMs": "1791138358087",
+      "sourceAgeMs": "102",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138359422",
+      "sourceMs": "1791138358087",
+      "sourceAgeMs": "1335",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138362183",
+      "sourceMs": "1791138361951",
+      "sourceAgeMs": "232",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138362183",
+      "sourceMs": "1791138362065",
+      "sourceAgeMs": "118",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138364747",
+      "sourceMs": "1791138362065",
+      "sourceAgeMs": "2682",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138368327",
+      "sourceMs": "1791138368179",
+      "sourceAgeMs": "148",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138369043",
+      "sourceMs": "1791138368924",
+      "sourceAgeMs": "119",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138369313",
+      "sourceMs": "1791138368924",
+      "sourceAgeMs": "389",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138371518",
+      "sourceMs": "1791138371421",
+      "sourceAgeMs": "97",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138371603",
+      "sourceMs": "1791138371451",
+      "sourceAgeMs": "152",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138374371",
+      "sourceMs": "1791138371451",
+      "sourceAgeMs": "2920",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138377849",
+      "sourceMs": "1791138377743",
+      "sourceAgeMs": "106",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138377952",
+      "sourceMs": "1791138377794",
+      "sourceAgeMs": "158",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138379390",
+      "sourceMs": "1791138377794",
+      "sourceAgeMs": "1596",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138382970",
+      "sourceMs": "1791138382763",
+      "sourceAgeMs": "207",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138382970",
+      "sourceMs": "1791138382771",
+      "sourceAgeMs": "199",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138385021",
+      "sourceMs": "1791138382763",
+      "sourceAgeMs": "2258",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138389322",
+      "sourceMs": "1791138382763",
+      "sourceAgeMs": "6559",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138391117",
+      "sourceMs": "1791138391000",
+      "sourceAgeMs": "117",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138393106",
+      "sourceMs": "1791138393000",
+      "sourceAgeMs": "106",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138394555",
+      "sourceMs": "1791138393000",
+      "sourceAgeMs": "1555",
+      "fullBook": true
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138399358",
+      "sourceMs": "1791138393000",
+      "sourceAgeMs": "6358",
+      "fullBook": true
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138400172",
+      "sourceMs": "1791138399996",
+      "sourceAgeMs": "176",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138400172",
+      "sourceMs": "1791138400043",
+      "sourceAgeMs": "129",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138402425",
+      "sourceMs": "1791138402294",
+      "sourceAgeMs": "131",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138403449",
+      "sourceMs": "1791138403294",
+      "sourceAgeMs": "155",
+      "fullBook": false
+    },
+    {
+      "origin": "WS",
+      "eventType": "price_change",
+      "receivedAtMs": "1791138404371",
+      "sourceMs": "1791138404188",
+      "sourceAgeMs": "183",
+      "fullBook": false
+    },
+    {
+      "origin": "REST",
+      "eventType": "REST_BOOK",
+      "receivedAtMs": "1791138404886",
+      "sourceMs": "1791138404188",
+      "sourceAgeMs": "698",
+      "fullBook": true
+    }
+  ],
+  "signaturesProduced": 0,
+  "transactionsSent": 0,
+  "productionApproved": false,
+  "limitation": "Read-only timestamp comparison; stream state and price publication are not implemented or certified by this probe."
+}

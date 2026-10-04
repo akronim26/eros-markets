@@ -19,6 +19,8 @@ import { parseTestnetRunPolicy, runMonadTestnetService } from './monad-service.j
 import { quoteMonadGas } from './monad-gas-quote.js';
 import { planMonadBudget, applyMonadBudget } from './monad-budget.js';
 import { recoverMonadNonce } from './monad-nonce-recovery.js';
+import { discoverMarkets, validateDiscoveryOptions } from './discovery.js';
+import type { Category } from './config.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -39,10 +41,19 @@ async function main():Promise<void> {
     'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy'],
     'plan-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--old-policy','--new-policy','--transition-id','--reason'],
     'apply-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--plan','--plan-sha256'],
-    'recover-monad-nonce':['--rpc-env','--config','--abi','--journal-dir','--keys-dir','--policy','--nonce','--original-hash','--max-cost-wei','--wait-ms']};
+    'recover-monad-nonce':['--rpc-env','--config','--abi','--journal-dir','--keys-dir','--policy','--nonce','--original-hash','--max-cost-wei','--wait-ms'],
+    'discover-markets':['--category','--tag-slug','--page-size','--max-pages']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
+  if(command==='discover-markets'){
+    const integer=(key:string)=>{const v=need(key);if(!/^[1-9]\d{0,2}$/.test(v))throw new Error('BAD_DISCOVERY_OPTIONS');return Number(v);};
+    const discovery={category:need('--category') as Category,tagSlug:need('--tag-slug'),pageSize:integer('--page-size'),maxPages:integer('--max-pages')};
+    validateDiscoveryOptions(discovery);
+    const provider=new PublicPolymarket({intervalMs:5000,timeoutMs:4000,maxRetries:1,retryDelayMs:200,
+      metadataMaxAgeMs:90000,minimumHeadroomMs:5000,bodyLimitBytes:1000000},new RequestLimiter(100,200));
+    console.log(json(await discoverMarkets(provider,discovery)));return;
+  }
   if(command==='recover-monad-nonce'){
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');

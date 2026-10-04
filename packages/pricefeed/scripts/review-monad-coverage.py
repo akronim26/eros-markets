@@ -3,6 +3,7 @@
 import hashlib
 import json
 import runpy
+import sys
 from pathlib import Path
 
 PACKAGE = Path(__file__).resolve().parents[1]
@@ -30,7 +31,7 @@ def replay(items, receipts, block):
             'twapWad': str(integral // 300 if covered == 300 else 0)}
 
 
-def review(report, baseline, plan):
+def review(report, baseline, plan, initial_only=False):
     assert report['mode'] == 'MONAD_TESTNET_SUSTAINED_COVERAGE_DIAGNOSTIC'
     assert report['chainId'] == 10143 and report['productionApproved'] is False
     assert report['approvedPlanHash'] == plan['approvalHash']
@@ -54,7 +55,7 @@ def review(report, baseline, plan):
     assert len(report['packets']) == sum(d['state'] == 'FINALIZED' for d in deliveries)
     assert report['optimizedTransactionsFinalized'] == len(report['packets']) - baseline['transactionsFinalized']
     assert len(deliveries) + len(recoveries) <= report['policy']['budget']['maxTransactions']
-    assert len(deliveries) + len(recoveries) - plan['deliveryCount'] <= plan['additionalTransactionSlots']
+    assert len(deliveries) + len(recoveries) - plan['deliveryCount'] <= report['policy']['budget']['maxTransactions'] - plan['deliveryCount']
     assert [int(r['nonce']) for r in deliveries] == list(range(len(deliveries)))
     old_nonces = {r['nonce'] for r in baseline['deliveries']}
     old_recoveries = {r['key'] for r in baseline['recoveries']}
@@ -132,7 +133,7 @@ def review(report, baseline, plan):
     assert reserved <= int(report['policy']['budget']['totalMaxCostWei'])
     assert total_cost == int(report['totalGasCostWei']) and new_cost == int(report['newGasCostWei']) <= new_reserved
     checks = report['checks']
-    assert [c['phase'] for c in checks] == ['initial', 'gap', 'recovered']
+    assert [c['phase'] for c in checks] == (['initial'] if initial_only else ['initial', 'gap', 'recovered'])
     for c in [*checks, *report['candidateWindows']]:
         assert c['actual'] == replay(report['packets'], report['receipts'], c['block'])
     for c in checks:
@@ -141,6 +142,14 @@ def review(report, baseline, plan):
         obs = known[-1][0]['packet']['observation']
         assert c['sourceState']['lastSequence'] == obs['sequence']
         assert c['sourceState']['lastObservedAt'] == obs['observedAt']
+    if initial_only:
+        assert report['initialOnly'] is True and report['evidenceVerified'] is True
+        assert not checks[0]['actual']['available'] and report['acceptance']['verified'] is False
+        assert report['acceptance']['failure'] == 'INITIAL_COVERAGE_FAILED_RECOVERY_NOT_RUN'
+        return {'evidenceVerified': True, 'campaignPassed': False, 'authenticSourceFractionReview': True,
+                'historicalBlockReplay': True, 'oldSignedHistoryUnchanged': True,
+                'newGasCostWei': str(new_cost), 'newReservationsWei': str(new_reserved),
+                'initial': checks[0], 'recoveryRun': False, 'productionApproved': False}
     initial, gap, recovered = checks
     for left, right in zip(checks, checks[1:]):
         assert int(left['block']['number']) < int(right['block']['number'])
@@ -162,10 +171,16 @@ def review(report, baseline, plan):
 
 
 if __name__ == '__main__':
+    args = sys.argv[1:]
+    assert all(arg in ('--initial-only', '--retry') for arg in args) and len(args) == len(set(args))
+    initial_only, retry = '--initial-only' in args, '--retry' in args
+    prefix = 'coverage-retry' if retry else 'coverage'
     root = PACKAGE / 'artifacts/monad-testnet'
-    report = json.loads((root / 'coverage-run.json').read_text())
-    baseline_bytes = (root / 'optimized-small-run.json').read_bytes()
+    report = json.loads((root / (prefix + ('-initial-run.json' if initial_only else '-run.json'))).read_text())
+    baseline_bytes = (root / ('coverage-initial-run.json' if retry else 'optimized-small-run.json')).read_bytes()
     assert hashlib.sha256(baseline_bytes).hexdigest() == report['baselineEvidenceSha256']
-    result = review(report, json.loads(baseline_bytes), json.loads((root / 'coverage-budget-plan.json').read_text()))
-    (root / 'coverage-run-review.json').write_text(json.dumps(result, indent=2) + '\n')
+    result = review(report, json.loads(baseline_bytes), json.loads((root / (prefix + '-budget-plan.json')).read_text()), initial_only)
+    (root / (prefix + ('-initial-run-review.json' if initial_only else '-run-review.json'))).write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result, indent=2))
+    if initial_only:
+        sys.exit(2)

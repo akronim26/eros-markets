@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1",
   "mode": "MONAD_TESTNET_BUDGET_PLAN",
-  "id": "91a4a8f3-6dab-40f0-aadb-321669a73fe6",
-  "reason": "Bounded full 300-second coverage, deliberate publication pause and fresh full-window recovery",
+  "id": "c9d3a4f2-f51f-4ba4-ab06-37f7585ab079",
+  "reason": "Received 1 MON; narrow approved remaining cap to funded 1.20 MON for coverage, pause and recovery",
   "oldPolicy": {
     "schemaVersion": "1",
     "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
@@ -41,22 +41,22 @@
     },
     "budget": {
       "maxTransactions": 55,
-      "totalMaxCostWei": "1920103950000000000",
+      "totalMaxCostWei": "1770103950000000000",
       "budgetRevision": 2
     }
   },
-  "createdAtMs": "1791135479065",
+  "createdAtMs": "1791137055346",
   "checkpoint": {
     "mode": "MONAD_TESTNET_READ_ONLY",
     "status": "ENGINE_PINS_VERIFIED",
     "chainId": "10143",
     "blockTag": "finalized",
     "block": {
-      "number": "68176788",
-      "hash": "0xad79a1c499bcf6dbc378a17597599310c273a2e37a6ebcda2e4b2fcc55fb13c5",
-      "timestamp": "1791135472"
+      "number": "68182012",
+      "hash": "0xeaa0d10252b34226308ae9ff5f192331a387f14ed5d10abecdd32c2c7af399bc",
+      "timestamp": "1791137049"
     },
-    "checkedAtMs": "1791135475516",
+    "checkedAtMs": "1791137051651",
     "engine": {
       "address": "0xd2d82fed32fb9a911300e7d928607755bd101773",
       "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
@@ -108,9 +108,9 @@
         "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
         "scheduledT": "1791717905",
         "halted": false,
-        "blockNumber": "68176788",
-        "blockHash": "0xad79a1c499bcf6dbc378a17597599310c273a2e37a6ebcda2e4b2fcc55fb13c5",
-        "blockTimestamp": "1791135472",
+        "blockNumber": "68182012",
+        "blockHash": "0xeaa0d10252b34226308ae9ff5f192331a387f14ed5d10abecdd32c2c7af399bc",
+        "blockTimestamp": "1791137049",
         "canonical": true
       }
     },
@@ -121,15 +121,15 @@
   "reservedWei": "570103950000000000",
   "deliveryCount": 11,
   "nextNonce": "10",
-  "balanceWei": "232440246000000000",
+  "balanceWei": "1232440246000000000",
   "configHash": "2867d1b4413205090e7fda4bf1c5829e3e9bd2f392792c0d5fb8097ab5b59d53",
   "journalHash": "3c3561100bb402e56e1956017c6fab5b084c4fbc73a6e89d35808eab5500c372",
-  "remainingReservationWei": "1350000000000000000",
-  "fundingGapWei": "1117559754000000000",
+  "remainingReservationWei": "1200000000000000000",
+  "fundingGapWei": "0",
   "additionalTransactionSlots": 44,
-  "additionalReservationWei": "1210103950000000000",
+  "additionalReservationWei": "1060103950000000000",
   "productionApproved": false,
   "transactionsSent": 0,
   "signaturesProduced": 0,
-  "approvalHash": "1156fe89042918b4d1c5d194fc9ca625b6b3ac56e133d086f9df665bc0efd904"
+  "approvalHash": "78f981cab2df863f211dbab9204d49626078969ec0a0368666afa9479032bd17"
 }

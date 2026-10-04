@@ -82,4 +82,17 @@ export class PublicPolymarket {
   book(tokenId:string):Promise<Capture>{uint(tokenId,256);return this.request(`https://clob.polymarket.com/book?token_id=${tokenId}`);}
   metadata(marketId:string):Promise<Capture>{uint(marketId,256);return this.request(`https://gamma-api.polymarket.com/markets/${marketId}`);}
   event(eventId:string):Promise<Capture>{uint(eventId,256);return this.request(`https://gamma-api.polymarket.com/events/${eventId}`);}
+  tag(slug:string):Promise<Capture>{
+    if(!/^[a-z0-9][a-z0-9-]{0,79}$/.test(slug))throw new Error('BAD_DISCOVERY_TAG');
+    return this.request(`https://gamma-api.polymarket.com/tags/slug/${slug}`);
+  }
+  eventsPage(tagId:string,limit:number,cursor:string|null=null):Promise<Capture>{
+    uint(tagId,256);
+    if(!Number.isSafeInteger(limit)||limit<1||limit>100)throw new Error('BAD_DISCOVERY_LIMIT');
+    if(cursor!==null&&(typeof cursor!=='string'||cursor.length===0||cursor.length>8192||/\s/.test(cursor)))throw new Error('BAD_DISCOVERY_CURSOR');
+    const url=new URL('https://gamma-api.polymarket.com/events/keyset');
+    url.searchParams.set('closed','false');url.searchParams.set('limit',String(limit));url.searchParams.set('tag_id',tagId);
+    if(cursor!==null)url.searchParams.set('after_cursor',cursor);
+    return this.request(url.href);
+  }
 }

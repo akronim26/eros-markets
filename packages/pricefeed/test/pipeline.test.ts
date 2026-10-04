@@ -76,8 +76,10 @@ test('joined early-halt recorder sends fresh packets, archives closure as a gap,
     s.provider.book=async()=>({url:'https://fixture.invalid',receivedAtMs:1051100n,latencyMs:0n,attempts:1,
       headers:{},body:JSON.stringify({...JSON.parse(body),timestamp:'1051000'}),data:{...JSON.parse(body),timestamp:'1051000'}});
     const closed=await s.pipeline.process(await s.worker.poll());
-    assert.equal(closed.lifecycle?.mode,'RECORD_ONLY');assert.equal(closed.state,'SOURCE_UNAVAILABLE');
-    assert.equal(closed.reason,'SOURCE_NOT_TRADEABLE');assert.equal(s.packets.list(s.domain).length,2);
+    assert.equal(closed.lifecycle?.mode,'RECORD_ONLY');assert.equal(closed.state,'QUARANTINED');
+    assert.equal(closed.reason,'SOURCE_STATUS_CHANGED_REVIEW_REQUIRED');assert.equal(s.packets.list(s.domain).length,2);
+    const rejectedMetadata=s.journal.read(s.worker.namespace).at(-1)!.payload.metadata as Record<string,unknown>;
+    assert.equal(s.sent.length,2);assert.equal(JSON.parse(String(rejectedMetadata.body)).closed,true);
     assert.equal(s.journal.read(s.worker.namespace).at(-1)!.payload.inspection!==null,true);
     for(const raw of s.sent)assert.equal(decodeFunctionData({abi:INGRESS_ABI,data:parseTransaction(raw).data!}).functionName,'submitObservation');
   }finally{s.close();}

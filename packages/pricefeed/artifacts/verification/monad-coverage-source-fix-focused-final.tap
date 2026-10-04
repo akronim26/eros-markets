@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+ok 1 - budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+  ---
+  duration_ms: 1067.254518
+  type: 'test'
+  ...
+# Subtest: budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+ok 2 - budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+  ---
+  duration_ms: 754.087143
+  type: 'test'
+  ...
+# Subtest: failed or changed budget plans roll back without changing the profile or reservations
+ok 3 - failed or changed budget plans roll back without changing the profile or reservations
+  ---
+  duration_ms: 831.821899
+  type: 'test'
+  ...
+# Subtest: budget audit detects deletion/tampering and conflicting replay without another authorization
+ok 4 - budget audit detects deletion/tampering and conflicting replay without another authorization
+  ---
+  duration_ms: 647.504055
+  type: 'test'
+  ...
+# Subtest: applying a budget plan locks every journal through chain checks and commits only the relay policy
+ok 5 - applying a budget plan locks every journal through chain checks and commits only the relay policy
+  ---
+  duration_ms: 748.770261
+  type: 'test'
+  ...
+# Subtest: testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+ok 6 - testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+  ---
+  duration_ms: 955.187179
+  type: 'test'
+  ...
+# Subtest: fresh allocation reuses only its synchronous lifecycle gate and retains all later publication gates
+ok 7 - fresh allocation reuses only its synchronous lifecycle gate and retains all later publication gates
+  ---
+  duration_ms: 932.014748
+  type: 'test'
+  ...
+# Subtest: publication selects the latest archived book after chain reads without changing its source clock
+ok 8 - publication selects the latest archived book after chain reads without changing its source clock
+  ---
+  duration_ms: 726.50251
+  type: 'test'
+  ...
+# Subtest: an unavailable or quarantined latest snapshot prevents allocation and sending
+ok 9 - an unavailable or quarantined latest snapshot prevents allocation and sending
+  ---
+  duration_ms: 1201.650314
+  type: 'test'
+  ...
+# Subtest: a latest snapshot from another worker or policy persistently quarantines the relay before signing
+ok 10 - a latest snapshot from another worker or policy persistently quarantines the relay before signing
+  ---
+  duration_ms: 1448.504694
+  type: 'test'
+  ...
+# Subtest: separate publication intervals reject unsafe values without changing the archived source config
+ok 11 - separate publication intervals reject unsafe values without changing the archived source config
+  ---
+  duration_ms: 556.572148
+  type: 'test'
+  ...
+# Subtest: estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+ok 12 - estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+  ---
+  duration_ms: 994.872416
+  type: 'test'
+  ...
+# Subtest: optimized gas failures reserve no transaction nonce and never fall back to the full cap
+ok 13 - optimized gas failures reserve no transaction nonce and never fall back to the full cap
+  ---
+  duration_ms: 3003.233599
+  type: 'test'
+  ...
+# Subtest: a selected gas limit that fails simulation cannot consume a nonce
+ok 14 - a selected gas limit that fails simulation cannot consume a nonce
+  ---
+  duration_ms: 637.656467
+  type: 'test'
+  ...
+# Subtest: gas quote records an expired signed packet without sending or consuming a transaction nonce
+ok 15 - gas quote records an expired signed packet without sending or consuming a transaction nonce
+  ---
+  duration_ms: 1783.098446
+  type: 'test'
+  ...
+# Subtest: testnet source history mismatch persists quarantine and prevents restart publication
+ok 16 - testnet source history mismatch persists quarantine and prevents restart publication
+  ---
+  duration_ms: 700.738956
+  type: 'test'
+  ...
+# Subtest: testnet receipt remains MINED until a finalized head includes its canonical block
+ok 17 - testnet receipt remains MINED until a finalized head includes its canonical block
+  ---
+  duration_ms: 637.740727
+  type: 'test'
+  ...
+# Subtest: testnet total budget survives restart and stops allocation after the last accepted packet
+ok 18 - testnet total budget survives restart and stops allocation after the last accepted packet
+  ---
+  duration_ms: 1152.608915
+  type: 'test'
+  ...
+# Subtest: unfunded testnet simulation reserves no nonce and broadcasts nothing
+ok 19 - unfunded testnet simulation reserves no nonce and broadcasts nothing
+  ---
+  duration_ms: 1016.336716
+  type: 'test'
+  ...
+# Subtest: never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce
+ok 20 - never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce
+  ---
+  duration_ms: 2749.264059
+  type: 'test'
+  ...
+# Subtest: unknown cancellation send is durable and retries only identical bytes
+ok 21 - unknown cancellation send is durable and retries only identical bytes
+  ---
+  duration_ms: 1828.309736
+  type: 'test'
+  ...
+# Subtest: cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends
+ok 22 - cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends
+  ---
+  duration_ms: 742.319895
+  type: 'test'
+  ...
+# Subtest: missing or noncanonical finalized cancellation evidence blocks publisher restart
+ok 23 - missing or noncanonical finalized cancellation evidence blocks publisher restart
+  ---
+  duration_ms: 1313.242923
+  type: 'test'
+  ...
+# Subtest: a rewritten cancellation signer pin is rejected even with a recomputed row checksum
+ok 24 - a rewritten cancellation signer pin is rejected even with a recomputed row checksum
+  ---
+  duration_ms: 1175.41711
+  type: 'test'
+  ...
+# Subtest: unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+ok 25 - unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+  ---
+  duration_ms: 721.351354
+  type: 'test'
+  ...
+# Subtest: original local builder/signing/relay cannot be used for external testnet output
+ok 26 - original local builder/signing/relay cannot be used for external testnet output
+  ---
+  duration_ms: 511.641719
+  type: 'test'
+  ...
+# Subtest: testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+ok 27 - testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+  ---
+  duration_ms: 682.140174
+  type: 'test'
+  ...
+# Subtest: testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+ok 28 - testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+  ---
+  duration_ms: 0.753203
+  type: 'test'
+  ...
+# Subtest: testnet service refuses another chain before creating journals or accessing keys/network
+ok 29 - testnet service refuses another chain before creating journals or accessing keys/network
+  ---
+  duration_ms: 1.44536
+  type: 'test'
+  ...
+# Subtest: source collection advances while a publication is held, with only one frozen latest result
+ok 30 - source collection advances while a publication is held, with only one frozen latest result
+  ---
+  duration_ms: 53.712002
+  type: 'test'
+  ...
+# Subtest: a degraded capture replaces healthy data instead of replaying cached health
+ok 31 - a degraded capture replaces healthy data instead of replaying cached health
+  ---
+  duration_ms: 11.330277
+  type: 'test'
+  ...
+# Subtest: foreign worker/config and fatal collection failures invalidate the buffered healthy result
+ok 32 - foreign worker/config and fatal collection failures invalidate the buffered healthy result
+  ---
+  duration_ms: 2.224598
+  type: 'test'
+  ...
+# Subtest: shutdown drains an in-flight capture and rejects a second producer loop
+ok 33 - shutdown drains an in-flight capture and rejects a second producer loop
+  ---
+  duration_ms: 5.945833
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30686.931904

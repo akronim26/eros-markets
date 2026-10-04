@@ -9,6 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/*.test.js",
     "test:engine": "python3 scripts/test-engine.py",
+    "test:discovery": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/discovery.test.js dist/test/collector.test.js dist/test/worker.test.js dist/test/cli.test.js",
     "test:lifecycle": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/lifecycle.test.js dist/test/pipeline.test.js dist/test/service.test.js && python3 scripts/test-lifecycle.py",
     "test:recovery": "python3 scripts/test-recovery.py",
     "test:pipeline-crash": "python3 scripts/test-pipeline-crash.py",

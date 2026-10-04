@@ -18,6 +18,7 @@ import { Worker } from './worker.js';
 import { PublicPolymarket, RequestLimiter } from './polymarket.js';
 import type { PipelineResult } from './pipeline.js';
 import { record } from './book.js';
+import { SourceSnapshotBuffer } from './source-buffer.js';
 
 export type TestnetRunPolicy={sender:string;relay:RelayPolicy;budget:TestnetRelayBudget};
 export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
@@ -70,7 +71,7 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
   loadTestnetKey(join(keys,'transaction-signer.json'),join(keys,'transaction-password'),policy.sender);
   const source=new Journal(join(root,'source.sqlite')),packets=new PacketStore(join(root,'packets.sqlite'));
   let signer:MonadTestnetObservationSigner|undefined,transactionSigner:MonadTestnetTransactionSigner|undefined,
-    relay:MonadTestnetRelay|undefined,pipeline:MonadTestnetPipeline|undefined;
+    relay:MonadTestnetRelay|undefined,pipeline:MonadTestnetPipeline|undefined,collector:Worker|undefined;
   const stop=new AbortController(),forward=()=>stop.abort();signal.addEventListener('abort',forward,{once:true});
   if(signal.aborted)forward();let timer:ReturnType<typeof setTimeout>|undefined;
   try{
@@ -81,23 +82,30 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
       join(keys,'transaction-signer.json'),join(keys,'transaction-password'),policy.sender,policy.relay,options.initialize);
     const transport=monadRpcTransport(options.rpcUrl,cfg,parsed.abi,transactionSigner,policy.relay,monadSubmissionRpc(options.rpcUrl));
     relay=new MonadTestnetRelay(join(root,'relay.sqlite'),packets,transport,policy.relay,policy.budget);
-    const worker=new Worker(cfg,new PublicPolymarket(cfg.poll,new RequestLimiter(100,200)),source,randomUUID());
+    const worker=new Worker(cfg,new PublicPolymarket(cfg.poll,new RequestLimiter(100,200)),source,randomUUID());collector=worker;
+    const snapshots=new SourceSnapshotBuffer(worker);
     const lifecycle=new MonadTestnetPublicationLifecycle(cfg,source,randomUUID(),monadLifecycleReader(read,cfg,parsed.abi),30000n);
-    pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle}],packets,relay,transport,policy.relay);
+    // The collector owns/relinquishes its lease after both loops have drained.
+    // Pipeline shutdown must not release it during an independent in-flight poll.
+    const publicationIntervalMs=Math.max(20000,cfg.poll.intervalMs);
+    pipeline=new MonadTestnetPipeline([{worker:{config:cfg,poll:()=>snapshots.poll()},rules,signer,lifecycle,
+      latestSnapshot:()=>snapshots.snapshot(),publicationIntervalMs}],packets,relay,transport,policy.relay);
     await pipeline.start();
     const inventory=()=>packets.list(domain).map(p=>({packet:p.packet,digest:p.digest,signature:p.signature,state:p.state,
       delivery:relay!.get(domain,p.packet.observation.sequence)}));
     const finalized=()=>inventory().filter(p=>p.delivery?.state==='FINALIZED').length;
     timer=setTimeout(()=>stop.abort(),options.durationSeconds*1000);
     if(finalized()>=options.stopAfterFinalized)stop.abort();
-    await pipeline.run(stop.signal,async(result)=>{
+    const coupled=(run:Promise<void>)=>run.finally(()=>stop.abort());
+    const outcomes=await Promise.allSettled([coupled(snapshots.run(stop.signal)),coupled(pipeline.run(stop.signal,async(result)=>{
       await onResult(result);if(finalized()>=options.stopAfterFinalized)stop.abort();
-    });
+    }))]);
+    const failed=outcomes.find(r=>r.status==='rejected');if(failed?.status==='rejected')throw failed.reason;
     return {mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',completed:true,engine:d.engineAddress,
-      finalizedPackets:finalized(),stopAfterFinalized:options.stopAfterFinalized,packets:inventory(),
+      finalizedPackets:finalized(),stopAfterFinalized:options.stopAfterFinalized,publicationIntervalMs,collectionIntervalMs:cfg.poll.intervalMs,packets:inventory(),
       evidenceValid:source.verify()&&packets.verify(),humanGatesAccepted:false,productionApproved:false};
   }finally{
     if(timer)clearTimeout(timer);signal.removeEventListener('abort',forward);
-    try{pipeline?.close();}finally{relay?.close();transactionSigner?.close();signer?.close();packets.close();source.close();}
+    try{pipeline?.close();collector?.releaseLease();}finally{relay?.close();transactionSigner?.close();signer?.close();packets.close();source.close();}
   }
 }

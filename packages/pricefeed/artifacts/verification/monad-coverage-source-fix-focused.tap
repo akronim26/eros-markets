@@ -1,0 +1,274 @@
+TAP version 13
+# Subtest: budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+ok 1 - budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+  ---
+  duration_ms: 1393.002986
+  type: 'test'
+  ...
+# Subtest: budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+ok 2 - budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+  ---
+  duration_ms: 857.304498
+  type: 'test'
+  ...
+# Subtest: failed or changed budget plans roll back without changing the profile or reservations
+ok 3 - failed or changed budget plans roll back without changing the profile or reservations
+  ---
+  duration_ms: 988.240493
+  type: 'test'
+  ...
+# Subtest: budget audit detects deletion/tampering and conflicting replay without another authorization
+ok 4 - budget audit detects deletion/tampering and conflicting replay without another authorization
+  ---
+  duration_ms: 906.210243
+  type: 'test'
+  ...
+# Subtest: applying a budget plan locks every journal through chain checks and commits only the relay policy
+ok 5 - applying a budget plan locks every journal through chain checks and commits only the relay policy
+  ---
+  duration_ms: 902.868306
+  type: 'test'
+  ...
+# Subtest: testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+ok 6 - testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+  ---
+  duration_ms: 1347.46935
+  type: 'test'
+  ...
+# Subtest: fresh allocation reuses only its synchronous lifecycle gate and retains all later publication gates
+ok 7 - fresh allocation reuses only its synchronous lifecycle gate and retains all later publication gates
+  ---
+  duration_ms: 1001.185966
+  type: 'test'
+  ...
+# Subtest: publication selects the latest archived book after chain reads without changing its source clock
+not ok 8 - publication selects the latest archived book after chain reads without changing its source clock
+  ---
+  duration_ms: 715.55643
+  type: 'test'
+  location: '/home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:294:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'QUARANTINED'
+    - 'FINALIZED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FINALIZED'
+  actual: 'QUARANTINED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:306:16)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: an unavailable or quarantined latest snapshot prevents allocation and sending
+ok 9 - an unavailable or quarantined latest snapshot prevents allocation and sending
+  ---
+  duration_ms: 1364.390951
+  type: 'test'
+  ...
+# Subtest: a latest snapshot from another worker or policy persistently quarantines the relay before signing
+not ok 10 - a latest snapshot from another worker or policy persistently quarantines the relay before signing
+  ---
+  duration_ms: 878.895259
+  type: 'test'
+  location: '/home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:348:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /QUARANTINED/. Input:
+    
+    'Error: RELAY_PERSISTENT_QUARANTINE'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: 'RELAY_PERSISTENT_QUARANTINE'
+  stack: |-
+    MonadTestnetRelay.start (file:///home/mihir/eros-markets/packages/pricefeed/dist/src/durable-relay.js:141:19)
+    MonadTestnetPipeline.start (file:///home/mihir/eros-markets/packages/pricefeed/dist/src/durable-pipeline.js:107:30)
+    TestContext.<anonymous> (file:///home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:361:45)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:361:13)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: separate publication intervals reject unsafe values without changing the archived source config
+not ok 11 - separate publication intervals reject unsafe values without changing the archived source config
+  ---
+  duration_ms: 624.680308
+  type: 'test'
+  location: '/home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:368:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /BAD_PIPELINE_PUBLICATION_INTERVAL/. Input:
+    
+    'Error: MONAD_PUBLICATION_LIFECYCLE_REQUIRED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: 'MONAD_PUBLICATION_LIFECYCLE_REQUIRED'
+  stack: |-
+    new MonadTestnetPipeline (file:///home/mihir/eros-markets/packages/pricefeed/dist/src/monad-pipeline.js:13:19)
+    file:///home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:372:33
+    getActual (node:assert:611:5)
+    strict.throws (node:assert:759:24)
+    TestContext.<anonymous> (file:///home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:372:20)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (file:///home/mihir/eros-markets/packages/pricefeed/dist/test/monad-publication.test.js:372:20)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+ok 12 - estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+  ---
+  duration_ms: 1312.961428
+  type: 'test'
+  ...
+# Subtest: optimized gas failures reserve no transaction nonce and never fall back to the full cap
+ok 13 - optimized gas failures reserve no transaction nonce and never fall back to the full cap
+  ---
+  duration_ms: 4041.022193
+  type: 'test'
+  ...
+# Subtest: a selected gas limit that fails simulation cannot consume a nonce
+ok 14 - a selected gas limit that fails simulation cannot consume a nonce
+  ---
+  duration_ms: 832.062227
+  type: 'test'
+  ...
+# Subtest: gas quote records an expired signed packet without sending or consuming a transaction nonce
+ok 15 - gas quote records an expired signed packet without sending or consuming a transaction nonce
+  ---
+  duration_ms: 2447.787363
+  type: 'test'
+  ...
+# Subtest: testnet source history mismatch persists quarantine and prevents restart publication
+ok 16 - testnet source history mismatch persists quarantine and prevents restart publication
+  ---
+  duration_ms: 911.876104
+  type: 'test'
+  ...
+# Subtest: testnet receipt remains MINED until a finalized head includes its canonical block
+ok 17 - testnet receipt remains MINED until a finalized head includes its canonical block
+  ---
+  duration_ms: 921.427541
+  type: 'test'
+  ...
+# Subtest: testnet total budget survives restart and stops allocation after the last accepted packet
+ok 18 - testnet total budget survives restart and stops allocation after the last accepted packet
+  ---
+  duration_ms: 1417.810638
+  type: 'test'
+  ...
+# Subtest: unfunded testnet simulation reserves no nonce and broadcasts nothing
+ok 19 - unfunded testnet simulation reserves no nonce and broadcasts nothing
+  ---
+  duration_ms: 816.21649
+  type: 'test'
+  ...
+# Subtest: never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce
+ok 20 - never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce
+  ---
+  duration_ms: 2293.571911
+  type: 'test'
+  ...
+# Subtest: unknown cancellation send is durable and retries only identical bytes
+ok 21 - unknown cancellation send is durable and retries only identical bytes
+  ---
+  duration_ms: 2213.003985
+  type: 'test'
+  ...
+# Subtest: cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends
+ok 22 - cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends
+  ---
+  duration_ms: 1048.419829
+  type: 'test'
+  ...
+# Subtest: missing or noncanonical finalized cancellation evidence blocks publisher restart
+ok 23 - missing or noncanonical finalized cancellation evidence blocks publisher restart
+  ---
+  duration_ms: 1859.219569
+  type: 'test'
+  ...
+# Subtest: a rewritten cancellation signer pin is rejected even with a recomputed row checksum
+ok 24 - a rewritten cancellation signer pin is rejected even with a recomputed row checksum
+  ---
+  duration_ms: 1492.426425
+  type: 'test'
+  ...
+# Subtest: unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+ok 25 - unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+  ---
+  duration_ms: 1016.154584
+  type: 'test'
+  ...
+# Subtest: original local builder/signing/relay cannot be used for external testnet output
+ok 26 - original local builder/signing/relay cannot be used for external testnet output
+  ---
+  duration_ms: 618.283233
+  type: 'test'
+  ...
+# Subtest: testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+ok 27 - testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+  ---
+  duration_ms: 922.52042
+  type: 'test'
+  ...
+# Subtest: testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+ok 28 - testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+  ---
+  duration_ms: 1.03749
+  type: 'test'
+  ...
+# Subtest: testnet service refuses another chain before creating journals or accessing keys/network
+ok 29 - testnet service refuses another chain before creating journals or accessing keys/network
+  ---
+  duration_ms: 1.619677
+  type: 'test'
+  ...
+# Subtest: source collection advances while a publication is held, with only one frozen latest result
+ok 30 - source collection advances while a publication is held, with only one frozen latest result
+  ---
+  duration_ms: 51.276508
+  type: 'test'
+  ...
+# Subtest: a degraded capture replaces healthy data instead of replaying cached health
+ok 31 - a degraded capture replaces healthy data instead of replaying cached health
+  ---
+  duration_ms: 11.378177
+  type: 'test'
+  ...
+# Subtest: foreign worker/config and fatal collection failures invalidate the buffered healthy result
+ok 32 - foreign worker/config and fatal collection failures invalidate the buffered healthy result
+  ---
+  duration_ms: 2.003671
+  type: 'test'
+  ...
+# Subtest: shutdown drains an in-flight capture and rejects a second producer loop
+ok 33 - shutdown drains an in-flight capture and rejects a second producer loop
+  ---
+  duration_ms: 5.959555
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 30
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36111.183346

@@ -29,9 +29,12 @@ it cannot by itself declare completion. A later recording deadline must be
 explicit in the config. These fixture age/deadline choices are not an approved
 production cadence, finality or grace policy.
 
-Lifecycle and source availability are separate. A closed/untradeable source
-continues producing archived DEGRADED/gap diagnostics while the recorder is
-required. It produces no substituted 0, 1 or 0.5 price, invented timestamp or
+Lifecycle and source availability are separate. A source that starts
+closed/untradeable produces DEGRADED/gap diagnostics. A subsequent trading-status
+change is now archived and persistently quarantined for review; reopening does
+not silently restart prices. Source diagnostics continue while the recorder is
+required, and the lifecycle scheduler still stops at its verified deadline.
+This produces no substituted 0, 1 or 0.5 price, invented timestamp or
 oracle callback. Raw book pricing and source timestamps remain unchanged in
 RECORD_ONLY. Engine windows decide actual coverage/readiness.
 

@@ -67,3 +67,55 @@ test('wrong-event metadata is quarantined and its raw response remains archived'
     assert.equal(result.book,null);
   }finally{j.close();}
 });
+test('source status changes are archived, latched across restart and never silently reopen',async()=>{
+  for(const change of [{closed:true},{acceptingOrders:false},{active:null},{negRiskOther:true}]){
+    const j=new Journal(':memory:');let now=1000100n,currentMetadata={...metadata,negRiskOther:false} as Record<string,unknown>;
+    const provider={event:async()=>capture(event,now),metadata:async()=>capture(currentMetadata,now),book:async()=>capture({...book,timestamp:String(now)},now)};
+    try{
+      const worker=new Worker(cfg,provider,j,'owner',()=>now);const first=await worker.poll();assert.equal(first.inspection.status,'COLLECTING');
+      now+=BigInt(cfg.poll.metadataMaxAgeMs);currentMetadata={...currentMetadata,...change};
+      const rejected=await worker.poll();assert.equal(rejected.inspection.status,'QUARANTINED');
+      assert.equal(rejected.inspection.reason,'SOURCE_STATUS_CHANGED_REVIEW_REQUIRED');assert.equal(rejected.book,null);
+      assert.deepEqual(JSON.parse(rejected.metadata!.body),currentMetadata);assert.equal(rejected.baselineStatusDigest,first.baselineStatusDigest);
+      currentMetadata={...metadata,negRiskOther:false};const restored=new Worker(cfg,provider,j,'owner',()=>now);
+      assert.equal((await restored.poll()).inspection.status,'QUARANTINED');assert.equal(j.verify(),true);
+    }finally{j.close();}
+  }
+});
+test('status monitoring derives an old-format baseline from retained bytes without rewriting history',async()=>{
+  const j=new Journal(':memory:');let now=1000100n,currentMetadata:Record<string,unknown>={...metadata};
+  const provider={event:async()=>capture(event,now),metadata:async()=>capture(currentMetadata,now),book:async()=>capture({...book,timestamp:String(now)},now)};
+  try{
+    const first=new Worker(cfg,provider,j,'owner',()=>now);const result=await first.poll();first.releaseLease();
+    const {baselineStatusDigest:_removed,...legacy}=result;
+    const fence=j.acquire(first.namespace,'owner',now,10000n);j.append(first.namespace,'owner',fence,now,legacy);j.release(first.namespace,'owner',fence);
+    const before=j.read(first.namespace);currentMetadata={...metadata,closed:true};now+=1000n;
+    const upgraded=new Worker(cfg,provider,j,'owner',()=>now),changed=await upgraded.poll();
+    assert.equal(changed.inspection.reason,'SOURCE_STATUS_CHANGED_REVIEW_REQUIRED');assert.equal(changed.inspection.status,'QUARANTINED');
+    assert.deepEqual(j.read(first.namespace).slice(0,before.length),before);
+  }finally{j.close();}
+});
+test('failed metadata refresh cannot reuse old healthy metadata on a later poll',async()=>{
+  const j=new Journal(':memory:');let now=1000100n,currentMetadata:Record<string,unknown>=metadata,metadataCalls=0,bookCalls=0;
+  const provider={event:async()=>capture(event,now),metadata:async()=>{metadataCalls++;return capture(currentMetadata,now);},
+    book:async()=>{bookCalls++;return capture({...book,timestamp:String(now)},now);}};
+  try{
+    const worker=new Worker(cfg,provider,j,'owner',()=>now);assert.equal((await worker.poll()).inspection.status,'COLLECTING');
+    now+=BigInt(cfg.poll.metadataMaxAgeMs);currentMetadata={...metadata,active:'true'};
+    for(let i=0;i<2;i++){const bad=await worker.poll();assert.equal(bad.inspection.status,'DEGRADED');assert.equal(bad.book,null);}
+    assert.equal(metadataCalls,3);assert.equal(bookCalls,1);
+    currentMetadata=metadata;assert.equal((await worker.poll()).inspection.status,'COLLECTING');assert.equal(metadataCalls,4);
+  }finally{j.close();}
+});
+test('changed rules quarantine before fetching another book and cannot change configured deadlines',async()=>{
+  const j=new Journal(':memory:');let now=1000100n,currentMetadata=metadata,books=0;
+  const provider={event:async()=>capture(event,now),metadata:async()=>capture(currentMetadata,now),book:async()=>{books++;return capture(book,now);}};
+  try{
+    const worker=new Worker(cfg,provider,j,'owner',()=>now);await worker.poll();const deadline=cfg.destination?.scheduledT;
+    now+=BigInt(cfg.poll.metadataMaxAgeMs);currentMetadata={...metadata,description:'Changed exception rules'};
+    const changed=await worker.poll();assert.equal(changed.inspection.status,'QUARANTINED');assert.equal(changed.inspection.reason,'SOURCE_RULES_CHANGED');
+    assert.equal(books,1);assert.equal(cfg.destination?.scheduledT,deadline);assert.equal(changed.book,null);
+    assert.equal(JSON.parse(changed.metadata!.body).description,currentMetadata.description);
+    const restored=new Worker(cfg,provider,j,'owner',()=>now);assert.equal((await restored.poll()).inspection.status,'QUARANTINED');
+  }finally{j.close();}
+});

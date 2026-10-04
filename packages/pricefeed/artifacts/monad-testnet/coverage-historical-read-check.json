@@ -1,0 +1,32 @@
+{
+  "mode": "MONAD_TESTNET_COVERAGE_CHECKPOINT",
+  "phase": "initial",
+  "chainId": 10143,
+  "block": {
+    "number": "68169207",
+    "hash": "0x46a569ff76922f3f3fa6d01a66f2a4573be477eeef57868dc591c05bddd6051e",
+    "timestamp": "1791133182"
+  },
+  "actual": {
+    "available": false,
+    "twapWad": "0",
+    "coveredSecs": "134",
+    "integral": "83147000000000000000"
+  },
+  "sourceState": {
+    "signer": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e",
+    "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+    "lastSequence": "12",
+    "lastObservedAt": "1791133022",
+    "configured": true
+  },
+  "finalizedHead": {
+    "number": "68180787",
+    "hash": "0x3742b3eb01833cb33f65182910044f504258b70c0e5273766b1c35935ba02a91",
+    "timestamp": "1791136679"
+  },
+  "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "productionApproved": false
+}

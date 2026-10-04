@@ -1,0 +1,25 @@
+{
+  "mode": "OFFLINE_MONAD_COVERAGE_RETRY_PREPARATION_REVIEW",
+  "planHashValid": true,
+  "approvalHash": "46cd1f57466a685e172f223925b991b71bf1cac48fa3b218c923967b6a5ca07a",
+  "archiveUnchanged": true,
+  "activeArchiveSha256": {
+    "source.sqlite": "45ab98fbc477bb5a32bac1ed8993f3288ce251ede19e6e6dc4e68ad35abe74de",
+    "packets.sqlite": "49eed627b197ef96e07a648a0f2df3b390ab39c05eb88342839446206928c36b",
+    "signer.sqlite": "a805b3a0917f550d29e3bb4a6a0c1309f004fb395fd94f62898a4d4a401dcc27",
+    "transactions.sqlite": "fd75d277dd66c736dcf9c0cb6ce9b6c98a3c192920efea414210432b8c900ca3",
+    "relay.sqlite": "ccfcd78a475d30b7ec444d299932586bd4a64247a2fd60977759c0116777dc8b"
+  },
+  "activeJournalsUnchanged": true,
+  "nonce": "30",
+  "sourceSequence": "36",
+  "balanceWei": "828236482000000000",
+  "fundingGapWei": "301763518000000000",
+  "remainingSlots": 38,
+  "remainingReservationWei": "1130000000000000000",
+  "budgetApplied": false,
+  "authorized": false,
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "productionApproved": false
+}

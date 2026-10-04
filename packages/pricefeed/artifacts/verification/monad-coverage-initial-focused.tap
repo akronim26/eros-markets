@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: coverage verifies hand-derived full, expired carry and full post-restart windows
+ok 1 - coverage verifies hand-derived full, expired carry and full post-restart windows
+  ---
+  duration_ms: 6.209622
+  type: 'test'
+  ...
+# Subtest: later same-second invalid replacement cannot rewrite an earlier block proof
+ok 2 - later same-second invalid replacement cannot rewrite an earlier block proof
+  ---
+  duration_ms: 1.188443
+  type: 'test'
+  ...
+# Subtest: thin book terminates carry and a missing source cannot create synthetic coverage
+ok 3 - thin book terminates carry and a missing source cannot create synthetic coverage
+  ---
+  duration_ms: 0.448468
+  type: 'test'
+  ...
+# Subtest: replay rejects backward or duplicate accepted sequences, future receipts and malformed evaluation blocks
+ok 4 - replay rejects backward or duplicate accepted sequences, future receipts and malformed evaluation blocks
+  ---
+  duration_ms: 3.129276
+  type: 'test'
+  ...
+# Subtest: phase review rejects continued publication, changed TWAP, stale restart and recovery before window rolls forward
+ok 5 - phase review rejects continued publication, changed TWAP, stale restart and recovery before window rolls forward
+  ---
+  duration_ms: 10.290122
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.880303

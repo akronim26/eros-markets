@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: discovery CLI rejects unsupported categories, pagination limits and activation options without network or journals
+ok 1 - discovery CLI rejects unsupported categories, pagination limits and activation options without network or journals
+  ---
+  duration_ms: 3993.520779
+  type: 'test'
+  ...
+# Subtest: offline CLI reconstructs an unsigned eleven-field packet without modifying the archive or allocating sequence
+ok 2 - offline CLI reconstructs an unsigned eleven-field packet without modifying the archive or allocating sequence
+  ---
+  duration_ms: 808.834523
+  type: 'test'
+  ...
+# Subtest: offline CLI retains original wide-book impacts while explicitly selected invalid packet has zero prices
+ok 3 - offline CLI retains original wide-book impacts while explicitly selected invalid packet has zero prices
+  ---
+  duration_ms: 1520.045654
+  type: 'test'
+  ...
+# Subtest: offline CLI does not refresh historical source time or bypass archived quarantine
+ok 4 - offline CLI does not refresh historical source time or bypass archived quarantine
+  ---
+  duration_ms: 1623.029812
+  type: 'test'
+  ...
+# Subtest: offline CLI rejects inconsistent raw/data representations and corrupt archive checksums
+ok 5 - offline CLI rejects inconsistent raw/data representations and corrupt archive checksums
+  ---
+  duration_ms: 1877.288343
+  type: 'test'
+  ...
+# Subtest: offline CLI accepts capture persistence latency without changing the packet timestamps
+ok 6 - offline CLI accepts capture persistence latency without changing the packet timestamps
+  ---
+  duration_ms: 1084.161019
+  type: 'test'
+  ...
+# Subtest: offline CLI rejects missing captures, invalid sequence, future receive time and nonlocal destination
+ok 7 - offline CLI rejects missing captures, invalid sequence, future receive time and nonlocal destination
+  ---
+  duration_ms: 5151.005898
+  type: 'test'
+  ...
+# Subtest: offline CLI checks worker identity, source-rule binding and raw event membership
+ok 8 - offline CLI checks worker identity, source-rule binding and raw event membership
+  ---
+  duration_ms: 3360.329712
+  type: 'test'
+  ...
+# Subtest: offline CLI recomputes fresh thin books and rejects unavailable closed, missing-time and future-time books
+ok 9 - offline CLI recomputes fresh thin books and rejects unavailable closed, missing-time and future-time books
+  ---
+  duration_ms: 2998.707138
+  type: 'test'
+  ...
+# Subtest: CLI errors redact malformed JSON, file paths and unknown option values; missing archive is never created
+ok 10 - CLI errors redact malformed JSON, file paths and unknown option values; missing archive is never created
+  ---
+  duration_ms: 5088.663295
+  type: 'test'
+  ...
+# Subtest: Monad CLI requires an environment name and paired engine inputs without creating journals or leaking secrets
+ok 11 - Monad CLI requires an environment name and paired engine inputs without creating journals or leaking secrets
+  ---
+  duration_ms: 5488.143965
+  type: 'test'
+  ...
+# Subtest: Monad watcher CLI rejects bad policies and missing engine dossier before creating an archive
+ok 12 - Monad watcher CLI rejects bad policies and missing engine dossier before creating an archive
+  ---
+  duration_ms: 5370.121168
+  type: 'test'
+  ...
+# Subtest: Monad watcher CLI archives fixture engine state, reports health and cleanly hands its lease to a restarted process
+ok 13 - Monad watcher CLI archives fixture engine state, reports health and cleanly hands its lease to a restarted process
+  ---
+  duration_ms: 5065.378025
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44256.054247

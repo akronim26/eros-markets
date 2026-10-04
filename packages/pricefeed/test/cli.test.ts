@@ -35,6 +35,16 @@ function fixture() {
   };
   return {dir,db,cfg,rules,args,run,replace,payload,close:()=>rmSync(dir,{recursive:true,force:true})};
 }
+test('discovery CLI rejects unsupported categories, pagination limits and activation options without network or journals',()=>{
+  const f=fixture();try{
+    const base=['discover-markets','--category','sports','--tag-slug','sports','--page-size','2','--max-pages','2'];
+    for(const args of [base.map(v=>v==='sports'?'invalid/category':v),base.map(v=>v==='2'?'0':v),[...base,'--enabled','true'],
+      [...base,'--keys-dir',f.dir],[...base,'--rpc-env','SECRET_RPC']]){
+      const before=readFileSync(f.db),result=f.run(args);assert.equal(result.status,1,result.stderr);
+      assert.match(result.stderr,/BAD_DISCOVERY_OPTIONS|UNSUPPORTED_OPTION/);assert.deepEqual(readFileSync(f.db),before);
+    }
+  }finally{f.close();}
+});
 
 test('offline CLI reconstructs an unsigned eleven-field packet without modifying the archive or allocating sequence',()=>{
   const f=fixture();try{

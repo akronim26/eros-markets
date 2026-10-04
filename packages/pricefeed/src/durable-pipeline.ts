@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { parseConfig, verifyListing, type MarketConfig } from './config.js';
 import { json } from './math.js';
 import { PacketStore, packetNamespace, type PacketDomain, type StoredPacket } from './packet-store.js';
@@ -12,7 +12,8 @@ import type { LifecycleView } from './lifecycle.js';
 export type PipelineLifecycle={assertConfig(config:MarketConfig):void;check():Promise<LifecycleView>;releaseLease?():boolean};
 
 export type RecoverableSigner=RawSigner&{reconcile(owner:string,fence:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void};
-export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig;releaseLease?():boolean};rules:RulesManifest;signer:RecoverableSigner;lifecycle?:PipelineLifecycle};
+export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig;releaseLease?():boolean};rules:RulesManifest;signer:RecoverableSigner;lifecycle?:PipelineLifecycle;
+  latestSnapshot?:()=>PollResult|null;publicationIntervalMs?:number};
 type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null;lifecycleView:LifecycleView|null};
 export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'QUARANTINED'|'STOPPED'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
   reason:string|null;sequence:bigint|null;transactionHash:string|null;depthValid:boolean|null;lifecycle:LifecycleView|null};
@@ -39,6 +40,9 @@ export class DurablePipeline {
     const domains=new Set<string>();
     for(const input of workers){
       const config=parseConfig(JSON.parse(json(input.worker.config))),d=config.destination,rules=parseRules(input.rules);
+      if(input.publicationIntervalMs!==undefined&&(!Number.isSafeInteger(input.publicationIntervalMs)
+        ||input.publicationIntervalMs<config.poll.intervalMs||input.publicationIntervalMs>30000))
+        throw new Error('BAD_PIPELINE_PUBLICATION_INTERVAL');
       if(config.enabled||!d||d.chainId!==network.chainId.toString())throw new Error('LOCAL_DISABLED_CONFIG_ONLY');
       if(input.signer.address.toLowerCase()!==d.signerAddress.toLowerCase()||rulesHash(rules)!==d.sourceRulesHash.toLowerCase())throw new Error('PIPELINE_RULES_OR_SIGNER_MISMATCH');
       input.lifecycle?.assertConfig(config);
@@ -196,6 +200,20 @@ export class DurablePipeline {
       if(e.quarantined)return this.result(e,'QUARANTINED',e.quarantined);
       const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
       const checkedAt=this.now();
+      // Receipt and chain reads may outlive the snapshot handed to process().
+      // The testnet collector can keep archiving while those reads are pending.
+      // Select its newest complete result before allocating immutable fields.
+      if(e.latestSnapshot){
+        const latest=e.latestSnapshot();
+        if(!latest)return this.result(e,'SOURCE_UNAVAILABLE','SOURCE_SNAPSHOT_NOT_READY');
+        if(latest.worker!==e.config.key||latest.configDigest!==createHash('sha256').update(json(e.config)).digest('hex')){
+          this.relay.quarantine('SOURCE_SNAPSHOT_BINDING_MISMATCH');throw new Error('SOURCE_SNAPSHOT_BINDING_MISMATCH');
+        }
+        result=structuredClone(latest);
+        if(result.inspection.status==='QUARANTINED'){
+          e.quarantined=result.inspection.reason??'SOURCE_QUARANTINED';return this.result(e,'QUARANTINED',e.quarantined);
+        }
+      }
       if(recovered)return {...recovered,lifecycle:e.lifecycleView};
       const invalid=result.inspection.status==='INVALID_DEPTH',allowInvalid=invalid&&permitsInvalidDepth(e.rules);
       if(invalid&&!allowInvalid)return this.result(e,'SOURCE_UNAVAILABLE',`INVALID_DEPTH:${result.inspection.reason}`);
@@ -245,11 +263,15 @@ export class DurablePipeline {
     if(signal.aborted)forward();let failure:unknown;
     const heartbeat=setInterval(()=>{try{this.renew();}catch(error){failure=error;stop.abort();}},Math.max(1,Number(this.policy.leaseMs/3n)));
     try{
-      const scheduled:ScheduledWorker[]=[...this.entries.values()].map(e=>e.lifecycle?{
-        config:e.config,poll:()=>e.worker.poll(),shouldPoll:async()=>{
+      const scheduled:ScheduledWorker[]=[...this.entries.values()].map(e=>({
+        // Only the scheduler's interval changes. Source configuration/digests
+        // and archived provider clocks retain their original collection policy.
+        config:{key:e.config.key,poll:{intervalMs:e.publicationIntervalMs??e.config.poll.intervalMs}},
+        poll:()=>e.worker.poll(),
+        ...(e.lifecycle?{shouldPoll:async()=>{
           await this.lifecycleGate(e);return e.lifecycleView?.mode!=='STOPPED';
-        },
-      }:e.worker);
+        }}:e.worker.shouldPoll?{shouldPoll:()=>e.worker.shouldPoll!()}:{}),
+      }));
       await new CollectionService(scheduled).run(stop.signal,async result=>{
         if(!stop.signal.aborted)await onResult(await this.process(result));
       });

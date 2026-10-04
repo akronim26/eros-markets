@@ -4,8 +4,11 @@ An isolated CP-PRICE package following
 [`polymarket-event-price-feed-implementation-plan.pdf`](../../docs/requests/polymarket-event-price-feed-implementation-plan.pdf).
 Read [`PROGRESS.md`](PROGRESS.md) for each commit's changes, decisions, checks and
 blockers. [`docs/decisions.md`](docs/decisions.md) tracks Q01-Q10.
-The next diagnostic is the funded, capped sustained Monad coverage campaign in
-[`docs/monad-testnet.md`](docs/monad-testnet.md#sustained-coverage-campaign-prepared-not-yet-authorized).
+The sustained Monad campaign's first phase finalized 20 new prices but failed
+full coverage (268/300 seconds). The timing fix and bounded retry are in
+[`docs/monad-testnet.md`](docs/monad-testnet.md#sustained-coverage-campaign-first-phase-failed-retry-prepared).
+That paid coverage proof is deferred at the user's request. Read-only market
+discovery and metadata validation are documented in [`docs/discovery.md`](docs/discovery.md).
 
 ## Current behavior
 
@@ -30,9 +33,10 @@ Local fixture signatures use public test-only keys in a local test VM.
 
 Monad testnet now has a deployed standalone receiver and an explicit diagnostic
 publication service with separate encrypted keys and five durable journals.
-Nine authentic observations have finalized: the original three-price pilot cost
-0.2448 MON, and six optimized prices cost 0.120617754 MON. See [`docs/monad-testnet.md`](docs/monad-testnet.md)
-for the commands, public evidence, exhausted pilot budget and next coverage test.
+Twenty-nine authentic observations have finalized: the original three-price pilot
+cost 0.2448 MON, six optimized prices cost 0.120617754 MON, and the initial sustained
+attempt's twenty prices cost 0.404203764 MON. See [`docs/monad-testnet.md`](docs/monad-testnet.md)
+for commands, retained evidence and the deferred coverage test.
 Estimate-based gas sizing now verifies the buffered limit before nonce reservation.
 A fresh signed quote estimated 179,266 gas, selecting 197,193 with a 10% margin;
 it sent no transaction. [`cost-capacity.json`](artifacts/monad-testnet/cost-capacity.json)
@@ -43,7 +47,8 @@ of a signed but unsent nonce, six fresh prices finalized at **0.020102959 MON
 average**, **75.36% lower** than the original pilot. Recovery cost 0.002142 MON;
 all new spend was 0.122759754 MON. A cold restart preserved every signed packet
 and sent nothing. The bounded run verifies 134/300 seconds of TWAP coverage;
-the full sustained campaign is still next. See the receipt/Fraction evidence in
+the later sustained attempt reached only 268/300 and stopped. Its paid retry is
+deferred, with the receipt/Fraction evidence preserved. See earlier evidence in
 [`optimized-small-run.json`](artifacts/monad-testnet/optimized-small-run.json).
 
 Candidate rules manifests and durable packet/signing library mechanics now live
