@@ -12,6 +12,7 @@ import { LocalTestSigner } from '../src/local-test-signer.js';
 import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
 import { localRpcTransport } from '../src/local-rpc.js';
 import { LocalPipeline } from '../src/pipeline.js';
+import { LocalTransactionSigner, type RelayTransactionRequest } from '../src/local-transaction-signer.js';
 import { Worker, type Provider } from '../src/worker.js';
 import { json } from '../src/math.js';
 
@@ -25,8 +26,12 @@ async function main(){
   const path=(name:string)=>join(dir,name+'.sqlite');
   const journal=new Journal(path('source')),packets=new PacketStore(path('packets'));
   const signer=new LocalTestSigner(path('signer'),domain,packets,()=>BigInt(Date.now()));
-  const rpc=localRpcTransport(settings.endpoint,settings.abi as Abi);
   const crash=(point:string)=>{if(mode==='crash'&&stage===point){writeSync(1,json({crashedAt:point})+'\n');process.kill(process.pid,'SIGKILL');throw new Error('KILL_FAILED');}};
+  class CrashTransactionSigner extends LocalTransactionSigner {
+    override async sign(request:RelayTransactionRequest){const pending=super.sign(request);crash('TX_RESERVED');return await pending;}
+  }
+  const transactionSigner=new CrashTransactionSigner(path('transactions'),mode==='crash');
+  const rpc=localRpcTransport(settings.endpoint,settings.abi as Abi,transactionSigner);
   let broadcasts=0;
   const transport={...rpc,
     simulate:async(to: string,data:Parameters<typeof rpc.simulate>[1])=>{crash('SIGNED');await rpc.simulate(to,data);},
@@ -65,6 +70,6 @@ async function main(){
     assert.equal(journal.verify(),true);assert.equal(packets.verify(),true);
     writeSync(1,json({sequences:[1n,2n],nonces:deliveries.map(r=>r.nonce),broadcasts,
       deliveries,sourceEvidenceValid:true,packetEvidenceValid:true,externalTransactions:0})+'\n');
-  }finally{clearTimeout(timer);pipeline.close();relay.close();signer.close();packets.close();journal.close();}
+  }finally{clearTimeout(timer);pipeline.close();relay.close();signer.close();packets.close();journal.close();transactionSigner.close();}
 }
 main().catch(error=>{writeSync(2,(error instanceof Error?error.message:String(error))+'\n');process.exitCode=1;});

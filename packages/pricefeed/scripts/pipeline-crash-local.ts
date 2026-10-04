@@ -16,7 +16,7 @@ import { json } from '../src/math.js';
 import { config as fixture, reviewed, metadata, event, body } from '../test/publication-fixture.js';
 
 const pause=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
-const stages=['SIGNED','PREPARING','TX_SIGNED','UNKNOWN','BROADCAST','MINED','FINALIZED'];
+const stages=['SIGNED','PREPARING','TX_RESERVED','TX_SIGNED','UNKNOWN','BROADCAST','MINED','FINALIZED'];
 function rows(dir:string,name:string,sql:string){
   const db=new DatabaseSync(join(dir,name+'.sqlite'),{readOnly:true});try{return db.prepare(sql).all();}finally{db.close();}
 }
@@ -40,11 +40,11 @@ async function main(){
   const report:Record<string,unknown>={tasks:['PF016','PF018'],baseCommit:process.env.PRICEFEED_BASE_COMMIT,archive,cases,
     chainId:31337,clock:'real elapsed host/Anvil time; no time warp or forced lease takeover',
     toolVersions:JSON.parse(process.env.PRICEFEED_TOOL_VERSIONS??'{}'),
-    realComponents:['LocalPipeline.run','Worker','four SQLite journals','LocalTestSigner','LocalRelay','localRpcTransport','Anvil EVM','real PriceIngress/ObservationStore','OS SIGKILL'],
+    realComponents:['LocalPipeline.run','Worker','five SQLite journals','LocalTestSigner','LocalTransactionSigner','LocalRelay','localRpcTransport','Anvil EVM','real PriceIngress/ObservationStore','OS SIGKILL'],
     scriptedComponents:['source book/event/metadata','public test keys','owned receiver listing'],
     fullEconomicEngine:false,externalChainTransactions:0,productionApproved:false,humanGateAcceptance:false,verified:false,
     limitations:['Local chain only; production Monad/finality/keys and deployment remain open.',
-      'PREPARING/TX_SIGNED have no independent durable transaction-signer journal; startup must block.',
+      'Local public transaction key only; no production key backend or backup system.',
       'Does not simulate power loss, disk corruption, coordinated backup restore or supervisor deployment.']};
   const save=()=>{mkdirSync('artifacts/verification',{recursive:true});writeFileSync('artifacts/verification/pipeline-crash.json',json(report)+'\n');};
   const chain=defineChain({id:31337,name:'Owned crash fixture',nativeCurrency:{name:'Test Ether',symbol:'TEST',decimals:18},rpcUrls:{default:{http:[endpoint]}}});
@@ -76,6 +76,9 @@ async function main(){
       const killed=await child(dir,'crash',stage);
       assert.equal(killed.signal,'SIGKILL',killed.stderr);assert.equal(JSON.parse(killed.stdout).crashedAt,stage);
       const before=inventory(dir);assert.equal(before.length,1);assert.match(String(before[0]!.signature),/^0x[0-9a-f]{130}$/);
+      const signerBefore=rows(dir,'transactions','SELECT nonce,request,raw,tx_hash FROM transaction_reservations');
+      if(['SIGNED','PREPARING'].includes(stage))assert.equal(signerBefore.length,0);
+      else {assert.equal(signerBefore.length,1);if(stage==='TX_RESERVED')assert.equal(signerBefore[0]!.raw,null);else assert.ok(signerBefore[0]!.raw);}
       const previous=rows(dir,'relay','SELECT body FROM deliveries').map(r=>JSON.parse(String(r.body)))[0]??null;
       let earlyBlocked=false;
       if(stage==='SIGNED'){
@@ -86,19 +89,18 @@ async function main(){
       const deadline=leases.reduce((n,r)=>Math.max(n,Number(r.until_ms)),0),waitMs=Math.max(0,deadline-Date.now()+50);
       console.log(json({stage,waitingForLeaseMs:waitMs}));await pause(waitMs);
       const resumed=await child(dir,'resume',stage);
-      const blocked=['PREPARING','TX_SIGNED'].includes(stage);
-      if(blocked){
-        assert.equal(resumed.code,1);assert.match(resumed.stderr,/PIPELINE_DELIVERY_RECOVERY_REQUIRED/);
-        assert.deepEqual(inventory(dir),before);assert.equal(await rpc.pendingNonce(),initialNonce);
-        const logs=await client.getLogs({address:engine,event:ACCEPTED_ABI[0],fromBlock:deployed.blockNumber,toBlock:'latest'});assert.equal(logs.length,0);
-        assert.deepEqual(rows(dir,'relay','SELECT body FROM deliveries').map(r=>JSON.parse(String(r.body)))[0],previous);
-        cases.push({stage,status:'EXPECTED_RECOVERY_BLOCK',reason:'PIPELINE_DELIVERY_RECOVERY_REQUIRED',waitMs,crashDeliveryState:previous.state,initialNonce,acceptedEvents:0,immutablePacket:true});
-      }else{
         assert.equal(resumed.code,0,resumed.stderr);const result=JSON.parse(resumed.stdout);
         assert.deepEqual(result.sequences,['1','2']);assert.deepEqual(result.nonces,[String(initialNonce),String(initialNonce+1n)]);
         assert.equal(result.broadcasts,['BROADCAST','MINED','FINALIZED'].includes(stage)?1:2);
         assert.deepEqual(inventory(dir)[0],before[0]);
         const first=result.deliveries[0];if(previous?.raw){assert.equal(first.raw,previous.raw);assert.equal(first.txHash,previous.txHash);}
+        const signerAfter=rows(dir,'transactions','SELECT nonce,request,raw,tx_hash FROM transaction_reservations ORDER BY length(nonce),nonce');
+        assert.equal(signerAfter.length,2);
+        if(signerBefore.length){
+          assert.equal(signerAfter[0]!.request,signerBefore[0]!.request);
+          if(signerBefore[0]!.raw)assert.equal(signerAfter[0]!.raw,signerBefore[0]!.raw);
+        }
+        assert.equal(signerAfter[0]!.raw,first.raw);assert.equal(signerAfter[0]!.tx_hash,first.txHash);
         assert.equal(await rpc.pendingNonce(),initialNonce+2n);
         const logs=await client.getLogs({address:engine,event:ACCEPTED_ABI[0],fromBlock:deployed.blockNumber,toBlock:'latest'});
         assert.equal(logs.length,2);assert.deepEqual(logs.map(l=>l.args.sequence),[1n,2n]);
@@ -106,8 +108,7 @@ async function main(){
         assert.ok(logs.every(l=>l.args.depthValid===true&&l.args.priceWad===600000000000000000n));
         assert.deepEqual(logs.map(l=>l.transactionHash),result.deliveries.map((r:{txHash:string})=>r.txHash));
         const after=rows(dir,'relay','SELECT next_nonce FROM relay_nonce')[0]!;assert.equal(String(after.next_nonce),String(initialNonce+2n));
-        cases.push({stage,status:'RESUMED',waitMs,crashDeliveryState:previous?.state??null,earlyBlocked,initialNonce,acceptedEvents:2,immutablePacket:true,immutableTransaction:!!previous?.raw,...result});
-      }
+        cases.push({stage,status:'RESUMED',waitMs,crashDeliveryState:previous?.state??null,earlyBlocked,initialNonce,acceptedEvents:2,immutablePacket:true,immutableTransaction:!!previous?.raw||!!signerBefore[0]?.raw,transactionReservations:signerAfter.length,signerRecoveryVerified:true,...result});
       save();console.log('ANVIL_CRASH_CASE '+JSON.stringify({stage,status:cases.at(-1)!.status,acceptedEvents:cases.at(-1)!.acceptedEvents}));
     }
     report.verified=true;
@@ -119,6 +120,6 @@ async function main(){
     report.fileSha256=Object.fromEntries(files.map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')]));
     report.finishedAtUtc=new Date().toISOString();save();
   }
-  console.log('PASS: five joined Anvil restart paths and two safe recovery blocks');
+  console.log('PASS: eight joined Anvil restart paths with durable transaction signing');
 }
 main().catch(error=>{console.error(error instanceof Error?error.message:String(error));process.exitCode=1;});

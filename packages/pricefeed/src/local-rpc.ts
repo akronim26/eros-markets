@@ -3,10 +3,11 @@ import { createPublicClient, defineChain, http, keccak256, parseAbi, stringToHex
 import { privateKeyToAccount } from 'viem/accounts';
 import { record } from './book.js';
 import type { LocalRelayTransport } from './local-relay.js';
+import type { LocalTransactionSigner } from './local-transaction-signer.js';
 
 const SOURCE_ABI=parseAbi(['function sourceState(bytes32) view returns ((address signer,bytes32 rulesHash,uint64 lastSequence,uint64 lastObservedAt,bool configured))']);
 /** Concrete development adapter. Only a public fixture account and loopback chain 31337. */
-export function localRpcTransport(rpcUrl:string,engineAbi:Abi):LocalRelayTransport {
+export function localRpcTransport(rpcUrl:string,engineAbi:Abi,transactionSigner?:LocalTransactionSigner):LocalRelayTransport {
   const url=new URL(rpcUrl);
   if(url.protocol!=='http:'||!['localhost','127.0.0.1','[::1]'].includes(url.hostname)||url.username||url.password||url.hash)throw new Error('LOCAL_RPC_ONLY');
   if(!engineAbi.some(item=>item.type==='function'&&item.name==='listing'))throw new Error('LOCAL_LISTING_ABI_REQUIRED');
@@ -16,6 +17,7 @@ export function localRpcTransport(rpcUrl:string,engineAbi:Abi):LocalRelayTranspo
   const account=privateKeyToAccount(('0x'+'22'.repeat(32)) as Hex);
   const check=async()=>{if(await client.getChainId()!==31337)throw new Error('DEVELOPMENT_CHAIN_ONLY');};
   return {rpcUrl,sender:account.address,
+    ...(transactionSigner?{transactionJournal:transactionSigner}:{}),
     pendingNonce:async()=>{await check();return BigInt(await client.getTransactionCount({address:account.address,blockTag:'pending'}));},
     identity:async(domain)=>{
       await check();if(domain.chainId!==31337n)throw new Error('DEVELOPMENT_CHAIN_ONLY');
@@ -35,6 +37,7 @@ export function localRpcTransport(rpcUrl:string,engineAbi:Abi):LocalRelayTranspo
     // can predate an authentic packet. The mined engine still enforces zero future tolerance.
     simulate:async(to,data)=>{await check();await client.call({account:account.address,to:to as Hex,data,blockTag:'pending'});},
     prepare:async(req)=>{await check();if(req.nonce<0n||req.nonce>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('BAD_RELAY_NONCE');
+      if(transactionSigner)return transactionSigner.sign(req);
       return account.signTransaction({type:'eip1559',chainId:31337,to:req.to as Hex,data:req.data,nonce:Number(req.nonce),
         gas:req.gas,maxFeePerGas:req.maxFeePerGas,maxPriorityFeePerGas:req.maxPriorityFeePerGas,value:0n});},
     broadcast:async(raw)=>{await check();return client.sendRawTransaction({serializedTransaction:raw});},
