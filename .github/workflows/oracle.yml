@@ -1,0 +1,122 @@
+name: oracle
+
+on:
+  push:
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+  pull_request:
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle
+    env:
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.3
+      - name: Format
+        run: forge fmt --check
+      - name: Build and contract sizes
+        run: forge build --sizes
+      - name: Test (unit, fuzz, invariant, real UMA, seam, vectors)
+        run: forge test -vvv
+      # The local-deploy suites (keeper O31.4, panel runner O33.5) run locally: bun run test:fork in each service.
+
+  packages:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      # oracle-cli's tests dry-run createMarket with `forge script` (O22.2); claims render through oracle-sdk (O30.3)
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.3
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - name: Install (workspace lockfile)
+        run: bun install --frozen-lockfile
+      # Each workspace member's own `test` script: a bare `bun test` here would also pick up the test files of
+      # the vendored libraries under lib/ (ADJ-11).
+      - name: Test (packages and services)
+        run: bun run --filter '*' test
+
+  workflow:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle/workflows/resolution
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+      - run: bun test
+      - run: bun run typecheck
+      - run: bun run build
+      - name: No withDefault on the outcome path
+        run: "! grep -rn --exclude-dir=node_modules '.withDefault(' --include='*.ts' . ../../packages"
+
+  dryrun:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle/workflows/dryrun
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+      - run: bun test
+      - run: bun run typecheck
+      - run: bun run build
+      - name: No withDefault on the outcome path
+        run: "! grep -rn --exclude-dir=node_modules '.withDefault(' --include='*.ts' . ../../packages"
+
+  indexer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle/indexer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm codegen
+      - run: pnpm typecheck
+      # handler tests replay the recorded local-deploy events (scripts/record.test.ts, run locally with anvil)
+      - run: pnpm test
+
+  validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oracle/validation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The dataset itself is local only (ADJ-39): here the fixture and pin tests run and the dataset tests skip.
+      - run: python3 -m unittest discover -s tests -t .

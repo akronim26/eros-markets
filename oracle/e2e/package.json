@@ -1,0 +1,14 @@
+{
+  "name": "@eros-oracle/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Testnet end-to-end scenarios E1-E9 driven against the deployed oracle and running services (plan 11.3).",
+  "type": "module",
+  "scripts": {
+    "scenario": "bun src/main.ts"
+  },
+  "dependencies": {
+    "@eros-oracle/oracle-sdk": "workspace:*",
+    "viem": "2.57.2"
+  }
+}

@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+# Task O37.3: the same indexer for Monad mainnet (chain 143): config.yaml's contracts and events, for the mainnet deploy
+# (OG4). Nothing is deployed there yet and the production venue is open (X02; UMA lists no OOv3 on Monad, V-U7), so
+# every address and the start block come from the environment. ErosSandboxOracle is testnet only: defined (its
+# handlers are shared) but not indexed on 143.
+#   ENVIO_START_BLOCK=… ENVIO_ORACLE_ADDRESS=… ENVIO_REGISTRY_ADDRESS=… ENVIO_TREASURY_ADDRESS=… ENVIO_UMA_ADAPTER_ADDRESS=…
+#   ENVIO_OOV3_ADDRESS=… ENVIO_FORWARDER_ADDRESS=… pnpm envio start --config config.mainnet.yaml
+name: eros-oracle-indexer
+description: Eros Markets resolution oracle (Layers 1-3) on Monad mainnet
+field_selection:
+  transaction_fields:
+    - hash
+    - from
+contracts:
+  - name: ResolutionOracle
+    abi_file_path: ../abi/ResolutionOracle.json
+    events:
+      - event: ResolutionInitialized
+      - event: HaltRecorded
+      - event: StateChanged
+      - event: ResolutionRequested
+      - event: ProposedL1
+      - event: ProposalRecorded
+      - event: PanelResultAccepted
+      - event: PanelNotYet
+      - event: Asserted
+      - event: Disputed
+      - event: AssertionRejected
+      - event: Finalized
+      - event: Voided
+      - event: TrustSetCreated
+      - event: TrustSetActivated
+      - event: TrustSetRevoked
+      - event: WatchdogHeartbeat
+  - name: MarketRegistry
+    abi_file_path: ../abi/MarketRegistry.json
+    events:
+      - event: MarketListed
+      - event: CategorySet
+  - name: BondTreasury
+    abi_file_path: ../abi/BondTreasury.json
+    events:
+      - event: Deposited
+      - event: Withdrawn
+      - event: ListingCommitted
+      - event: ListingReleased
+      - event: AssertionFunded
+      - event: BondReturned
+      - event: BondLost
+      - event: BondStuck
+      - event: DisputeFunded
+      - event: DisputeClosed
+      - event: RewardOwed
+      - event: RewardPaid
+      - event: OwedClaimed
+      - event: Skimmed
+  - name: UmaAdapter
+    abi_file_path: ../abi/UmaAdapter.json
+    events:
+      - event: VenueAsserted
+      - event: VenueDisputed
+      - event: VenueResolved
+  - name: OptimisticOracleV3
+    events:
+      - event: "AssertionMade(bytes32 indexed assertionId, bytes32 domainId, bytes claim, address indexed asserter, address callbackRecipient, address escalationManager, address caller, uint64 expirationTime, address currency, uint256 bond, bytes32 indexed identifier)"
+      - event: "AssertionDisputed(bytes32 indexed assertionId, address indexed caller, address indexed disputer)"
+      - event: "AssertionSettled(bytes32 indexed assertionId, address indexed bondRecipient, bool disputed, bool settlementResolution, address settleCaller)"
+  - name: KeystoneForwarder
+    events:
+      - event: "ReportProcessed(address indexed receiver, bytes32 indexed workflowExecutionId, bytes2 indexed reportId, bool result)"
+  - name: ErosSandboxOracle
+    abi_file_path: ../abi/ErosSandboxOracle.json
+    events:
+      - event: PriceRequested
+      - event: PricePushed
+chains:
+  - id: 143 # Monad mainnet (HyperSync https://monad.hypersync.xyz)
+    start_block: ${ENVIO_START_BLOCK}
+    contracts:
+      - name: ResolutionOracle
+        address: "${ENVIO_ORACLE_ADDRESS}"
+      - name: MarketRegistry
+        address: "${ENVIO_REGISTRY_ADDRESS}"
+      - name: BondTreasury
+        address: "${ENVIO_TREASURY_ADDRESS}"
+      - name: UmaAdapter
+        address: "${ENVIO_UMA_ADAPTER_ADDRESS}"
+      - name: OptimisticOracleV3
+        address: "${ENVIO_OOV3_ADDRESS}"
+      - name: KeystoneForwarder
+        address: "${ENVIO_FORWARDER_ADDRESS}" # the production KeystoneForwarder (reports from the DON)

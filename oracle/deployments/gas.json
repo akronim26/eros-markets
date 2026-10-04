@@ -1,0 +1,256 @@
+{
+  "source": "oracle/test/gas/OracleGas.t.sol (task O18.1)",
+  "toolchain": "Foundry 1.8.3 (CI pin, isolate = true), solc 0.8.33, optimizer 200 runs, evm prague",
+  "method": "Each call is measured as its own cold transaction: `transaction` includes the 21,000 intrinsic gas and calldata (what a limit must cover); `execution` subtracts the same call to an empty contract and is compared with the plan 6.9 budget. `limit` is what every service sends (plan 9): about 1.2 x transaction, rounded up. `excessAllowed` bounds a justified excess (status justified); the tests read this file and fail if a call exceeds its limit or its budget plus excess. Monad reprices cold access (8,100 gas per cold storage slot and 10,100 per cold account, against 2,100 and 2,600 in Foundry), so on Monad a call costs more than Foundry measures (1.27x on escalateToL2, 4 Oct 2026, where 130,000 ran out of gas): every limit is at least 1.6 x the Foundry transaction and at least the Foundry transaction + 80,000 (the surcharges are fixed per cold account and slot, so small calls grow most: skim needed 91,303 against a Foundry 49,952), rounded up to 10,000. Monad bills the limit.",
+  "calls": {
+    "onReport": {
+      "transaction": 113254,
+      "execution": 79676,
+      "budget": 150000,
+      "limit": 200000,
+      "status": "met",
+      "note": "onReport alone from the production KeystoneForwarder, cold.",
+      "monadTestnet": {
+        "execution": 123413,
+        "tx": "0x06c226fab71b4c5dfb066fcda74e0e9a5b15e79ec2a7b2def3ea1b48fb3a10fb",
+        "note": "V-C13: onReport inside the CRE MockKeystoneForwarder report call, from `cast run` (Foundry 1.8.3) of the first simulated broadcast; under the 140,000 limit."
+      }
+    },
+    "onReportViaForwarder": {
+      "transaction": 147934,
+      "execution": 112466,
+      "budget": 240000,
+      "limit": 400000,
+      "status": "met",
+      "note": "The CRE writeReport gasLimit (writeGasLimit). Measured through MockKeystoneForwarderLite; the real KeystoneForwarder adds f + 1 ecrecovers (plan: <= 90k), so about 240k with margin would do. Kept at the plan's starting 400,000 until `cre workflow simulate --limits default` measures the real forwarder (plan 6.9).",
+      "monadTestnet": {
+        "transaction": 201805,
+        "execution": 168681,
+        "tx": "0x06c226fab71b4c5dfb066fcda74e0e9a5b15e79ec2a7b2def3ea1b48fb3a10fb",
+        "note": "V-C13: `cre workflow simulate --limits default --broadcast` (CLI v1.36.0) through the CRE MockKeystoneForwarder (4 signatures); `cast run` replay. The receipt shows gasUsed 400,000 because Monad bills the gas limit (writeGasLimit)."
+      }
+    },
+    "haltScheduled": {
+      "transaction": 252304,
+      "execution": 227002,
+      "budget": 285551,
+      "limit": 410000,
+      "status": "met",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Budget 200,000 + the engine's halt() (85,551 measured alone). The oracle's own part is about 142k on either engine."
+    },
+    "haltScheduledRealEngine": {
+      "transaction": 506983,
+      "execution": 481681,
+      "budget": 540230,
+      "limit": 820000,
+      "status": "met",
+      "engine": "B's SettlementController (seam harness)",
+      "note": "Provisional mainnet figure: the engine's halt() (340,230 alone) runs B's MockAccountingPort, which logs every call to storage; A measured the real halt at 72k with 1,024 accounts. Re-measure with A's accounting before mainnet; the oracle's own part is about 142k."
+    },
+    "assertProposal": {
+      "transaction": 686242,
+      "execution": 660939,
+      "budget": 610224,
+      "excessAllowed": 56000,
+      "limit": 1140000,
+      "status": "justified",
+      "claimBytes": 639,
+      "note": "Default texts, real UMA OOv3 behind UmaAdapter, team bond from the treasury. The limit is the 16 KiB one (services do not know the claim length in advance). Excess over 600,000 + 16 x claim bytes: about 51k (8%). The claim renderer was rewritten in O18.1 (byte-identical output, parity-tested), which removed about 430k of rendering per assertion (953k before); what remains is spread over a fully cold transaction touching eight contracts (OOv3 reads UMA's Finder and Store, token approvals and transfers, the treasury's bond bookkeeping) that the plan's prototype estimate did not include."
+    },
+    "assertProposalMaxClaim": {
+      "transaction": 946703,
+      "execution": 921397,
+      "budget": 858624,
+      "excessAllowed": 70000,
+      "limit": 1520000,
+      "status": "justified",
+      "claimBytes": 16164,
+      "note": "Claim at the 16 KiB maximum (16,164 bytes rendered; the bound assumes maximum-width fields). Excess about 63k (7%): the fixed part as for the default texts plus about 16.8 gas per claim byte against the budget's 16 (OOv3's claim event and hashing, memory). Was 1,227k before the renderer rewrite."
+    },
+    "finalizeMarket": {
+      "transaction": 254795,
+      "execution": 229493,
+      "budget": 300000,
+      "limit": 410000,
+      "status": "met",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Settles on the real OOv3 (bond returned to the treasury) and delivers settle to the engine."
+    },
+    "finalizeMarketRealEngine": {
+      "transaction": 261004,
+      "execution": 235732,
+      "budget": 300000,
+      "limit": 420000,
+      "status": "met",
+      "engine": "B's SettlementController (seam harness)",
+      "note": "As finalizeMarket, on B's real engine."
+    },
+    "requestResolution": {
+      "transaction": 107377,
+      "execution": 82075,
+      "limit": 190000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): a feed market in L1Pending past T + bufferSecs; emits ResolutionRequested. The keeper sends it only from L1Pending (halting is haltScheduled's job). No plan 6.9 budget."
+    },
+    "escalateToL2": {
+      "transaction": 104833,
+      "execution": 79531,
+      "limit": 190000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): L1Pending -> L2Pending at T + l1TimeoutSecs. No plan 6.9 budget."
+    },
+    "openAfterDeadline": {
+      "transaction": 72992,
+      "execution": 47690,
+      "limit": 160000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): L2Pending -> Open past l2StartedAt + l2DeadlineSecs. No plan 6.9 budget."
+    },
+    "expireEarly": {
+      "transaction": 77238,
+      "execution": 51936,
+      "limit": 160000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): EarlyCheck -> None after the early TTL. No plan 6.9 budget."
+    },
+    "syncAssertion": {
+      "transaction": 76321,
+      "execution": 51049,
+      "limit": 160000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): Proposed -> Disputed after a dispute on OOv3 (reads the venue). No plan 6.9 budget."
+    },
+    "voidMarket": {
+      "transaction": 141762,
+      "execution": 116460,
+      "limit": 230000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): void at voidDeadline with no live assertion. No plan 6.9 budget; the real engine's settleInvalid is not measured yet (as for haltScheduledRealEngine)."
+    },
+    "voidMarketStuck": {
+      "transaction": 225095,
+      "execution": 199823,
+      "limit": 370000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): void at voidDeadline with a live, disputed team assertion: the venue is read, the market voided and the bond written off (markStuck). The keeper uses it whenever assertionId != 0."
+    },
+    "finalizeMany1": {
+      "transaction": 259501,
+      "execution": 233486,
+      "limit": 420000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): KeeperRouter.finalizeMany with one market (router overhead about 4.7k over finalizeMarket)."
+    },
+    "finalizeMany4": {
+      "transaction": 815008,
+      "execution": 785136,
+      "limit": 1320000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Keeper (O31.2): finalizeMany with four markets, the keeper's largest batch. A batch of k markets is sent with finalizeMany1.limit + (k - 1) x perExtraMarket, the line through the two measured limits.",
+      "perExtraMarket": 300000,
+      "maxBatch": 4
+    },
+    "closeDispute": {
+      "transaction": 117878,
+      "execution": 92575,
+      "limit": 200000,
+      "status": "measured",
+      "note": "Keeper (O31.3): BondTreasury.closeDispute on its costlier path (venue never settled; the market is Final with VOID_DEADLINE, so the oracle's resolution is read too). No plan 6.9 budget."
+    },
+    "skim": {
+      "transaction": 49952,
+      "execution": 25936,
+      "limit": 130000,
+      "status": "measured",
+      "note": "Keeper (O31.3): BondTreasury.skim on the path that credits WATCHDOG_FLOAT (a donation larger than the bonds out at the venue); the zero-credit path costs less (45.7k). No plan 6.9 budget."
+    },
+    "createMarket": {
+      "transaction": 6863399,
+      "execution": 6148251,
+      "budget": 30000000,
+      "limit": 10990000,
+      "status": "met",
+      "engine": "StubMarketFactory (testnet)",
+      "note": "Largest texts (worst-case claim at 16 KiB). Several SSTORE2 deploys and the engine deploy; Foundry does not price storage as Monad's MIP-8 does, so measure on testnet (plan 6.9).",
+      "monadTestnet": {
+        "transaction": 4149249,
+        "tx": "0xee55d0c0f1aada1dfd02ccf0342452365af0bac7271d249bb593f58133645a06",
+        "note": "V-M3: first testnet listing (MLB pack, 3,876 B claim), receipt gasUsed on Monad testnet; Monad bills the gas limit, not gasUsed."
+      }
+    },
+    "createMarketRealEngine": {
+      "transaction": 21984385,
+      "execution": 21269710,
+      "budget": 30000000,
+      "limit": 30000000,
+      "status": "met",
+      "engine": "B's SettlementController (seam harness)",
+      "note": "Deploying B's 78 KiB engine dominates; 73% of the 30M per-transaction ceiling. Watch it when the shared MarketFactory replaces the stub. Limit capped at the 30M per-transaction ceiling instead of 1.6 x transaction: most of this call is code deployment, not cold reads; re-measure on Monad with the real factory (O42)."
+    },
+    "submitPanelResult": {
+      "transaction": 154943,
+      "execution": 105907,
+      "limit": 250000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Panel runner (O33.5): the most expensive route it sends, after T to Review, with a 256-byte evidence URI (the contract's maximum); before T to EarlyReview 131,014 and to None 131,573. The auto-propose route has its own key, submitPanelResultAutoPropose. No plan 6.9 budget."
+    },
+    "submitReviewedProposal": {
+      "transaction": 507129,
+      "execution": 448111,
+      "limit": 820000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Committee console (O34.2): the costlier route, from EarlyReview before T (the proposal halts the engine at once, section 8.5); from Review 361,449. Both with all three members signing (EOAs) and a 256-byte evidence URI. A committee member that is a contract (a Safe, ERC-1271) is not measured: the console sends such a proposal only under the key submitReviewedProposalERC1271, which is absent. No plan 6.9 budget."
+    },
+    "disputeViaVenue": {
+      "transaction": 531374,
+      "execution": 506075,
+      "limit": 860000,
+      "status": "measured",
+      "note": "Watchdog (O35.3): BondTreasury.disputeViaVenue on a live team assertion on the real OOv3 with the sandbox DVM (the dispute pays the bond from WATCHDOG_FLOAT and OOv3 requests a price from the DVM). No plan 6.9 budget."
+    },
+    "watchdogHeartbeat": {
+      "transaction": 55172,
+      "execution": 31156,
+      "limit": 140000,
+      "status": "measured",
+      "note": "Watchdog (O35.3): ResolutionOracle.watchdogHeartbeat, the first one (a zero storage slot written); later ones cost less. No plan 6.9 budget."
+    },
+    "submitPanelResultAutoPropose": {
+      "transaction": 349958,
+      "limit": 560000,
+      "status": "measured",
+      "engine": "ResolutionEngineStub (testnet)",
+      "note": "Panel runner's auto-propose route (L2_AUTO, ADJ-50): three identical YES labels above \u03b8_hi in a category validated for the market's gateHash, recorded as an L2_AUTO proposal, with a 256-byte evidence URI. Measured by test_gas_submitPanelResult_autoPropose; limit 1.2 \u00d7 the transaction. No plan 6.9 budget."
+    }
+  },
+  "contractSizes": {
+    "limitBytes": 131072,
+    "runtimeBytes": {
+      "ResolutionOracle": 41199,
+      "MarketRegistry": 28474,
+      "BondTreasury": 9646,
+      "UmaAdapter": 4445,
+      "ErosSandboxOracle": 2684,
+      "StubMarketFactory": 8331,
+      "ResolutionEngineStub": 6762,
+      "KeeperRouter": 1754,
+      "TestUSDC": 2242
+    },
+    "testOnlyRuntimeBytes": {
+      "EngineHarness": 78244,
+      "SeamFactory": 80690
+    }
+  }
+}

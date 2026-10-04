@@ -1,0 +1,13 @@
+Eros Markets market 0x0f65df9373357751925237a2ff66996cac4684d644e3a1dd509483ac71fcafe0 (chain 10143, oracle 0xa87D6E10a7199666ec9F2e04866201E35AAf36A6).
+Question: Did the Los Angeles Dodgers score more than 1 runs against the Atlanta Braves in the 2026 NLDS 'B' Game 1 on 3 October 2026 (MLB gamePk 849828)? [testnet E8 test market]
+Rules: TESTNET TEST MARKET for end-to-end scenario E8; the game has already been played.
+
+This market resolves YES if the Los Angeles Dodgers (home) scored more than 1 runs in MLB game 849828 (gamePk), the 2026 NLDS 'B' Game 1 between the Atlanta Braves (away) and the Los Angeles Dodgers (home), played on 2026-10-03. It resolves NO if they scored 1 runs or fewer.
+
+Source and finality: the official MLB Stats API schedule entry for gamePk 849828 (https://statsapi.mlb.com/api/v1/schedule?gamePk=849828). The game counts as completed once that entry's status code (dates[0].games[0].status.codedGameState) is "F". The runs counted are the home score (dates[0].games[0].teams.home.score) shown with that status.
+
+Deadline: the scheduled resolution time T is 2026-10-04T19:05:00Z. If no official source shows the game as Final with a numeric Los Angeles Dodgers score before the void deadline, the market resolves INVALID.
+Scheduled time T: 2026-10-04T19:05:00Z (1791140700)
+Asserted outcome: YES
+Evidence: Layer 1 CRE report, value 0xceebf77a833b30520287ddd9478ff51abbdffa30aa90a8d655dba0e8a79ce0c1, source https://statsapi.mlb.com/api/v1/schedule?gamePk=849828, keccak256 0x0000000000000000000000000000000000000000000000000000000000000000
+This assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.

@@ -1,0 +1,83 @@
+{
+  "slug": "eros-mlb-2026-alds-849833-cws-runs-over-3",
+  "reference": {
+    "urlParam": "822678"
+  },
+  "dryRun": {
+    "liveUrlParam": "849833"
+  },
+  "ambiguity": {
+    "models": [
+      "groq:openai/gpt-oss-120b@2026-10-03",
+      "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "aicredits:anthropic/claude-sonnet-5.5@2026-10-04"
+    ]
+  },
+  "marketInput": {
+    "question": "Will the Chicago White Sox score more than 3 runs against the Cleveland Guardians in ALDS Game 3 on 7 October 2026 (MLB gamePk 849833)?",
+    "rules": "This market resolves YES if the Chicago White Sox score more than 3 runs (4 or more) in MLB game 849833 (gamePk), the 2026 American League Division Series Game 3 between the Cleveland Guardians (away) and the Chicago White Sox (home), scheduled to start at 2026-10-07 20:00 UTC. It resolves NO if they score 3 runs or fewer. Who wins does not matter: only the White Sox's runs count.\n\nSource and finality: the official MLB Stats API schedule entry for gamePk 849833 (https://statsapi.mlb.com/api/v1/schedule?gamePk=849833). The game counts as completed once that entry's status code (dates[0].games[0].status.codedGameState) is \"F\", which MLB uses for a completed game (\"Final\" or \"Completed Early\"); a postponed, cancelled or suspended game has another code even where the entry's general state reads \"Final\". In these rules \"Final\" means that status code \"F\". The runs counted are the first numeric home score (dates[0].games[0].teams.home.score) the entry shows together with that status, including any extra innings; that score stands, and any later correction, status change or protest is ignored. A game MLB records as Final counts as played, however many innings were completed. A live, delayed, suspended or in-progress score never counts, and nothing before Final can resolve the market, even if the White Sox already have 4 or more runs.\n\nDeadline: the scheduled resolution time T is 2026-10-08 01:00 UTC. The void deadline is six days after the later of T and the moment trading halts: 2026-10-14 01:00 UTC if trading halts at or before T, later if it halts after T. Only what the official sources show before the void deadline counts. If no official source shows the game as Final with a numeric White Sox score before the void deadline, for any reason (postponement, suspension, cancellation, a removed or replaced entry, or a source failure), the market resolves INVALID.\n\nPostponement and suspension: a postponed game, or a suspended game resumed later, is the same game and counts if it reaches Final before the void deadline, as does a cancelled game that is rescheduled. If MLB completes the game under another gamePk, so that the entry for gamePk 849833 never shows Final, the result is the White Sox's runs in the official MLB box score (mlb.com) of that completed game once mlb.com shows it as final.\n\nTeams: in every case the game must be between these two teams with the Chicago White Sox as the home team; otherwise the market resolves INVALID. A change of venue alone does not void the market.\n\nSources: the Stats API entry decides whenever it shows Final with a numeric home score, even if mlb.com shows something else. The official MLB box score on mlb.com is used only if the Stats API gives no numeric final score for this game (it is down, returns an error or empty entry, or shows Final without a numeric home score) when the market is resolved; the box score counts once mlb.com shows the game as final, with the White Sox's final runs as shown there.\n\nINVALID settlement: an INVALID market settles at the 24-hour TWAP of the market's index before T, or at 0.5 if that index is missing after T + 1 hour (DEC-08).",
+    "claimTemplate": "Eros Markets market {{MARKET_ID}} (chain {{CHAIN_ID}}, oracle {{ORACLE}}).\nQuestion: {{QUESTION}}\nRules: {{RULES}}\nScheduled time T: {{TAU_UTC}} ({{TAU_UNIX}})\nAsserted outcome: {{OUTCOME}}\nEvidence: {{EVIDENCE}}, keccak256 {{EVIDENCE_HASH}}\nThis assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.",
+    "windowStart": "2026-10-05T00:00:00Z",
+    "windowEnd": "2026-10-07T20:00:00Z",
+    "tau": "2026-10-08T01:00:00Z",
+    "groupId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "groupExclusive": false,
+    "hasFeed": true,
+    "feed": {
+      "urlTemplate": "https://statsapi.mlb.com/api/v1/schedule?gamePk={id}",
+      "urlParam": "849833",
+      "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "finalPath": "dates[0].games[0].status.codedGameState",
+      "finalValue": "F",
+      "valuePath": "dates[0].games[0].teams.home.score",
+      "valueType": 1,
+      "decimals": 0,
+      "op": 2,
+      "target": "3",
+      "bufferSecs": 600,
+      "l1TimeoutSecs": 3600
+    },
+    "allowList": [
+      "statsapi.mlb.com"
+    ],
+    "ai": {
+      "modelIdHashes": [
+        "0x0f88999d7b3d12fabb30fc17ed3deaae4dea955b3c47c97a3b2937fe3f4ff0e6",
+        "0xde231ad8fec520538ddf8df926723c8f873e7880e1021e668b2544f8c6d5b994",
+        "0xc70ab38cdd9517585154b7265dc597fa733bbdbde60ca27bc0e6cd8084a4b277"
+      ],
+      "promptHash": "0xd4e1459eb8c085de75bcd5bb4c97008561bdc896745e62eba6c28bb3fac70d82",
+      "calibratorHash": "0xe510f4a69d907f2070276c5fae1b651f30feb80c19f45f786e3469c0e5feed56",
+      "categoryId": "0xecf68b55a3148ada593e183bf15435fbd3f76364946ed2169f5e36e27bc9eafd",
+      "highConfBps": 9900
+    },
+    "uma": {
+      "minBond": 2000000,
+      "bondBps": 1112,
+      "livenessL1": 1800,
+      "livenessAuto": 1800,
+      "livenessReviewed": 3600
+    },
+    "l2DeadlineSecs": 600,
+    "voidSecs": 518400,
+    "monitor": "0x0000000000000000000000000000000000000030",
+    "oiCapLots": 100000
+  },
+  "engineListing": {
+    "engineGovernance": "0x0000000000000000000000000000000000000060",
+    "template": 0,
+    "deploymentCapX": 1,
+    "maxTraders": 1024,
+    "indexSourceId": "0x44decf363c7aa37ac172d04bf40784d83b18aca8614b3119739e26bb3343a39d",
+    "indexSigner": "0x0000000000000000000000000000000000000051",
+    "indexRulesHash": "0xd6ce921d69d5ea3e1295c845a4cdc24af344c1a3b5a0c71b6113d4a535f63c5e",
+    "depthNLots": 500,
+    "maxSpreadWad": "50000000000000000",
+    "bootstrapBandWad": "50000000000000000",
+    "minOrderLots": 1,
+    "maxOrderLots": 1000000000,
+    "maxLiqLotsPerBlock": 0,
+    "fundingEnabled": false
+  },
+  "engineInit": "0x00000000000000000000000000000000000000000000000000000000000186a0"
+}

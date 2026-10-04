@@ -1,0 +1,65 @@
+{
+  "scenario": "E7",
+  "title": "unanswered dispute → voidMarket at voidDeadline",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:06:27.014Z",
+  "steps": [
+    {
+      "step": "listed e7 (truth YES, T 2026-10-04T17:18:00.000Z)",
+      "market": "0x6e969e02ebeec4d81807ca642295c2c0784294fc103e0bf406d9dca4f32ad87f",
+      "tx": "0xb550da9c908068da42b749dc139bb1722324ca2f307a87fd529f520b63e74da4",
+      "detail": {
+        "slug": "eros-e2e-e7-e7-849828-home-gt-3-1791134280",
+        "engine": "0x0F87E6563f4e8c2fDcAc5ceD27D63183695fD2a6",
+        "spec": {
+          "scenario": "E7",
+          "tag": "e7",
+          "game": 849828,
+          "side": "home",
+          "target": 3,
+          "feed": "mlb",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 60,
+          "voidSecs": 5400
+        }
+      },
+      "block": "68170684",
+      "time": "2026-10-04T17:07:08.000Z"
+    },
+    {
+      "step": "dispute on OOv3 (the DVM never answers)",
+      "market": "0x6e969e02ebeec4d81807ca642295c2c0784294fc103e0bf406d9dca4f32ad87f",
+      "tx": "0xb1c80f217665bc4ae4a39e636ec3786fdb4d594ea8fc2ae7b02a4113ef760cd3",
+      "block": "68173226",
+      "time": "2026-10-04T17:19:56.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "e7 oracle Final INVALID",
+      "ok": true,
+      "detail": "state Final, outcome 3, finalReason 3"
+    },
+    {
+      "check": "e7 engine settled INVALID, claims open",
+      "ok": true,
+      "detail": "engine finalOutcome 3, price 500000000000000000, claimsEnabled true"
+    },
+    {
+      "check": "voided at the void deadline",
+      "ok": true,
+      "detail": "voided true, finalReason 3, voidDeadline 1791139680"
+    },
+    {
+      "check": "the stuck bond is recorded (BondStuck)",
+      "ok": true,
+      "detail": "BondStuck 11120000 atoms in 0x64d90247f9ecda6684adcd5d1b98e1b358e0ae98030ad5f1fa653d3f60e87a30"
+    }
+  ]
+}

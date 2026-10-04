@@ -1,0 +1,166 @@
+{
+  "scenario": "E8",
+  "title": "fifteen markets sharing one T through Layer 1",
+  "network": "monad-testnet",
+  "status": "error: Error: 0xe371a2d5: timed out waiting for Final (state Open)",
+  "started": "2026-10-04T17:04:13.610Z",
+  "steps": [
+    {
+      "step": "listed e8-00 (truth YES)",
+      "market": "0xe371a2d5076f7c0923ab460a0a2b2ee733e45caf0d8622d558e7b215823ccf2c",
+      "tx": "0xe6b41a2ed05cc4cbbf154100bf276a5d68ea64b25dc009f22db461580eca03fd",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-00-849828-home-gt-0-1791135900"
+      },
+      "block": "68170223",
+      "time": "2026-10-04T17:04:49.000Z"
+    },
+    {
+      "step": "listed e8-01 (truth YES)",
+      "market": "0x15771bae0344eb9b86428ec6368bbc70bd5a073a4863451c2e337edeca302a0a",
+      "tx": "0x0006af0f6f80f3af14fe0e8d1ad2d73b9696cf973b0043579b92bfd4334d27b1",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-01-849828-home-gt-1-1791135900"
+      },
+      "block": "68170364",
+      "time": "2026-10-04T17:05:32.000Z"
+    },
+    {
+      "step": "listed e8-02 (truth YES)",
+      "market": "0x3615fc9a573f12c56c1e166d53b469c79b358eabe056d928f64253c410f2ea9f",
+      "tx": "0x271d21c414bbbd3b2d01da5f146147f5e694cbb6fa024c8c0eba71769ebfc5f5",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-02-849828-home-gt-2-1791135900"
+      },
+      "block": "68170550",
+      "time": "2026-10-04T17:06:28.000Z"
+    },
+    {
+      "step": "listed e8-03 (truth YES)",
+      "market": "0xdf734039dd786139c6c50ef4d2980313bd31fbd5637ec5efdaa89e2b3802ab9a",
+      "tx": "0x04f31d6ae2a5176ef8a2b67244c73212909ab69746fd5611ee20b66a1304adb7",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-03-849828-home-gt-3-1791135900"
+      },
+      "block": "68170699",
+      "time": "2026-10-04T17:07:13.000Z"
+    },
+    {
+      "step": "listed e8-04 (truth YES)",
+      "market": "0x1df69f846e830d8223c9c8e9b64fbb1ad45c77629d4c1d9eb18a6bcc26b45671",
+      "tx": "0x44a67f2d2f1f96a5a8d2c1e53f007568e8f9885b43f8742bf8c678e34d92cf03",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-04-849828-home-gt-4-1791135900"
+      },
+      "block": "68170859",
+      "time": "2026-10-04T17:08:01.000Z"
+    },
+    {
+      "step": "listed e8-05 (truth NO)",
+      "market": "0x8a581d0ac98173ae28570472654c73d44de589b649da7b122f2164f78d983c0c",
+      "tx": "0x59109413a4068fa03ce43dfb06c4f5ac7630663eefa6ed91c320c5659ac9614b",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-05-849828-home-gt-5-1791135900"
+      },
+      "block": "68171025",
+      "time": "2026-10-04T17:08:51.000Z"
+    },
+    {
+      "step": "listed e8-06 (truth NO)",
+      "market": "0x031f13f1df43fb8396a5c85953256ca1e2b2302419402be2dbc1874cd454b892",
+      "tx": "0xe6f40c657bce28905a8fbfa0002d1831c72e1a2d54288a292c2d8a02585810e4",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-06-849828-home-gt-6-1791135900"
+      },
+      "block": "68171190",
+      "time": "2026-10-04T17:09:41.000Z"
+    },
+    {
+      "step": "listed e8-07 (truth NO)",
+      "market": "0xba261a82b35d3d9ace928e0011b4c8cbb2c9a8fcf0d7c9abf6205cbe004322f8",
+      "tx": "0x29ba2460335550aa094698613c11a66a5d17b7b2521c6c1e0fcc19653921b88e",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-07-849828-home-gt-7-1791135900"
+      },
+      "block": "68171348",
+      "time": "2026-10-04T17:10:29.000Z"
+    },
+    {
+      "step": "listed e8-08 (truth NO)",
+      "market": "0x9d19bc4709ccba64c48ddafa7bbace67126bf5c227d7c79fd903323d8713216a",
+      "tx": "0xa4a3fb0915a6fc9e5cb79f7443155be7aaf6f8de6abaded37e8c94b49409a08a",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-08-849828-home-gt-8-1791135900"
+      },
+      "block": "68171505",
+      "time": "2026-10-04T17:11:16.000Z"
+    },
+    {
+      "step": "listed e8-09 (truth NO)",
+      "market": "0x53e714aa743877778ee3ef62634c1193c532302c9170b1df967e1670612697e1",
+      "tx": "0x8324856814db4513c776c8f660f5b9045f83a464914fe11cb57910db187de587",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-09-849828-home-gt-9-1791135900"
+      },
+      "block": "68171640",
+      "time": "2026-10-04T17:11:57.000Z"
+    },
+    {
+      "step": "listed e8-10 (truth NO)",
+      "market": "0x9004da7405de361d6b0e14f8acb748a03a7d6df317eebf64a4478be501cf26f2",
+      "tx": "0xd438dc57c8a9624ec17d9a704f2ce319fd494d89a694148cf67ad1cccd4c8e20",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-10-849828-home-gt-10-1791135900"
+      },
+      "block": "68171789",
+      "time": "2026-10-04T17:12:42.000Z"
+    },
+    {
+      "step": "listed e8-11 (truth NO)",
+      "market": "0xfa4efc93f0b1e1c4cfb23eceb8aa93218569e479d58cd1030a2912e06e61be87",
+      "tx": "0x1a334e6ffc76bb921605be098bbbd24480af5ebc3ba617eaa500e34e5977fbff",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-11-849828-home-gt-11-1791135900"
+      },
+      "block": "68171963",
+      "time": "2026-10-04T17:13:34.000Z"
+    },
+    {
+      "step": "listed e8-12 (truth NO)",
+      "market": "0x422ab2a184681d01b8da0de118f397afb81f52596229139a56358f8f79c507fc",
+      "tx": "0x58521737d586109da41757b2ed4aae38e444cd1207f147580d3c09c83efd3d3c",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-12-849828-home-gt-12-1791135900"
+      },
+      "block": "68172124",
+      "time": "2026-10-04T17:14:23.000Z"
+    },
+    {
+      "step": "listed e8-13 (truth NO)",
+      "market": "0xd3439d7772d56e80e50bff250fd6fc511e2ae4706af046585c0c943dd4b1d063",
+      "tx": "0x5770c3549677031d55bcace20e94d70846d2a54951d78227bbda7cba482595d1",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-13-849828-home-gt-13-1791135900"
+      },
+      "block": "68172282",
+      "time": "2026-10-04T17:15:11.000Z"
+    },
+    {
+      "step": "listed e8-14 (truth NO)",
+      "market": "0x5aac8ef08fd85261832faeee87ee74552efbe2af97658baeb70aa192b0a70d76",
+      "tx": "0xd3a9247bcaf111a7678d535fa37952fe8eb81aa526a4beb66069de9ad826cf15",
+      "detail": {
+        "slug": "eros-e2e-e8-e8-14-849828-home-gt-14-1791135900"
+      },
+      "block": "68172432",
+      "time": "2026-10-04T17:15:56.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "all fifteen share one T",
+      "ok": true,
+      "detail": "T 1791135900"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "model": "google:gemini-3.8-flash@2026-10-03",
+  "scenario": "home-1-1",
+  "recordedAt": "2026-10-03T22:45:13.451Z",
+  "httpStatus": 200,
+  "headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "body": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\"outcome\": \"NO\", \"confidence\": 1.0, \"sources\": [1, 2], \"reason\": \"Both sources confirm the match concluded with a final score of 1-1. Since the home team scored 1 goal, which is not above 2, the market resolves to NO.\"}",
+              "thoughtSignature": "ErsDCrgDAWkUfROcXZwW96BQt8K1+iKJsaaoZ890nPwQG1KluF0p6VLVeRFwz7NZPh00v60QF2wbSD4dOgrn8mHnICqkv2KCt9mdiywaKcmaR1vKUANMJfJp1rliiwXIDnvD7VkYGxGzaqLgakUGSTefBobBSvHktS18UWNG2OEnBZ4X71VZLMpGvJwyMTiGjRns6lP/ak5lGrC/6j5DfHl5eLESEM95o703LK/tS6uu+vixMJORIkUSKlMZXNxieXS02fEI8JOAiBQ/9NeoUCrdOwKwvAEOia28kbrkRvCLm4cFH+R0Zi/b7M8cce5vQISC92hkMn8X+1X3Lgn4/T73lgA7uMR9jHvWcdTZCXn2TcnfCYJ70Vhe1Gj5HpscHzFtIGzjtpGbs9FX49CgAe7A6bDbLNFeHwuvjPPxFOEpBSK0hT8t3sV1h1NYzFExaC2e9x7FKXR+Dh1CodXb3g7q4MBBPMBQojdKy8R36zrnfaoX//ADB5Of4QjsnTBgq7nZugOXtc/8Ki/9QsEGbBqKheAfNgxr8jqLn/4O6whQ7ioZ6MTuXSRmpG/oCTFnvo4JbkxuqXOrmtv+348="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 400,
+      "candidatesTokenCount": 66,
+      "totalTokenCount": 570,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 400
+        }
+      ],
+      "thoughtsTokenCount": 104,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.8-flash",
+    "responseId": "XIXBave5GviiqfkPjcLZ4QQ"
+  }
+}

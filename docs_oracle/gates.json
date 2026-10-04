@@ -1,0 +1,112 @@
+{
+  "schema": "eros-oracle-gates/1",
+  "source": "docs_oracle/eros-oracle-implementation-plan.md section 13",
+  "rule": "A gate passes only when every task of its entry plan tasks is done, its exit criteria hold and its evidence is recorded. Set status to passed and record merge_sha (the commit that holds the passing state) and evidence. Never mark a gate passed with a mock where the exit criteria name a real component.",
+  "gates": [
+    {
+      "id": "OG0",
+      "title": "Seam frozen",
+      "owners": "both",
+      "entry": [
+        "O01",
+        "O02"
+      ],
+      "exit_criteria": "Seam decisions recorded in docs_oracle/seam-decisions.md (O01, ADJ-29); Appendix C types and interfaces compiled in oracle/src unchanged; interface hash recorded here.",
+      "interface_hash_command": "cd oracle && cat $(ls src/types/*.sol src/interfaces/*.sol | LC_ALL=C sort) | sha256sum",
+      "interface_hash": "4dfc5dc1c0b01326a15802935f1c815f5735696001fe25bdba7b5846d9c65be8",
+      "evidence_dir": null,
+      "status": "passed",
+      "merge_sha": "761550afbd12d6734f2104aa645f307035ab1edd",
+      "evidence": [
+        "O01: docs_oracle/seam-decisions.md S-01..S-15 (commit 94a9569)",
+        "O02.1: Appendix C.2-C.6 and B.7 byte-identical to the plan; forge fmt --check and forge build pass (commit 394f2c4, CI https://github.com/xipharis/eros-markets/actions/runs/36949937527)",
+        "O02.2: Constants.t.sol 10/10, ABI SHA256SUMS verified, C.7 values also matched in viem 2.57.2 (commit 761550a, CI https://github.com/xipharis/eros-markets/actions/runs/36950137629)",
+        "Interface hash computed with interface_hash_command at 761550a; oracle/src unchanged since",
+        "ADJ-33 (commit acbc41f): pragma relaxed to ^0.8.30 in every types/interfaces file, no other change (ABI SHA256SUMS verify); interface hash recomputed with interface_hash_command: 4dfc5dc1c0b01326a15802935f1c815f5735696001fe25bdba7b5846d9c65be8 (was 67356f50954a4064882f92717c171e346644f4dcc4f99fc1152b9dbc939b7b6a at 761550a)"
+      ]
+    },
+    {
+      "id": "OG1",
+      "title": "Contracts complete",
+      "owners": "both",
+      "entry": [
+        "O10",
+        "O11",
+        "O12",
+        "O13",
+        "O14",
+        "O15",
+        "O16",
+        "O17",
+        "O18",
+        "O19"
+      ],
+      "exit_criteria": "Oracle CI green (FOUNDRY_PROFILE=ci: fmt, build with sizes, unit, fuzz, invariant ORC-1..15, real UMA, seam, vectors); internal review of the contracts diff by OB recorded.",
+      "evidence_dir": "docs_oracle/evidence/OG1",
+      "status": "passed",
+      "merge_sha": "7119c72e0d8cbdb57ecb4a1d0b1db81100741656",
+      "evidence": [
+        "O10-O19: all 34 entry tasks done (check_tasks.py)",
+        "Internal review of oracle/src at 46991be/7119c72: docs_oracle/evidence/OG1/review.md; no critical/high/medium findings, L-1 fixed in 7119c72, I-1..I-5 dispositioned; accepted by xipharis 3 Oct 2026 (ADJ-35: team review)",
+        "CI FOUNDRY_PROFILE=ci green at 46991be: https://github.com/xipharis/eros-markets/actions/runs/37105657314 (forge, packages, workflow, dryrun)",
+        "CI FOUNDRY_PROFILE=ci green at 7119c72: https://github.com/xipharis/eros-markets/actions/runs/37105877808 (forge, packages, workflow, dryrun)"
+      ]
+    },
+    {
+      "id": "OG2",
+      "title": "Layer 1 simulated on testnet",
+      "owners": "both",
+      "entry": [
+        "O23"
+      ],
+      "exit_criteria": "E1 passes in sim mode on Monad testnet; the 429 and NOT_READY cases are logged with no report written.",
+      "evidence_dir": "docs_oracle/evidence/OG2",
+      "status": "passed",
+      "merge_sha": "75f1b691efce0965871db5b13fe420262d1d87b7",
+      "evidence": [
+        "O23.1: CRE simulate --broadcast through the testnet MockKeystoneForwarder proposed YES (0x06c2\u202610fb); onReport and writeReport gas in gas.json",
+        "O23.2: E1 passed in sim mode through the --listen stand-in (market 0x81db\u2026a868, Final YES, engine claims open); NOT_READY (0xa94d\u2026b439) and 429 (0x955b\u2026f701) each requested once and logged nowrite by the listener, no report written",
+        "Evidence: docs_oracle/evidence/OG2/O23.1-broadcast-simulation.md, O23.2-listen-and-e1.md, O23.2-listener-runs.log; scenario records docs_oracle/evidence/OG3/E1 and OG3/O23 (commit 75f1b69)"
+      ]
+    },
+    {
+      "id": "OG3",
+      "title": "Testnet E2E (stub engine)",
+      "owners": "both",
+      "entry": [
+        "O40"
+      ],
+      "exit_criteria": "E1-E11 all pass on Monad testnet with the stub engine; evidence logged.",
+      "evidence_dir": "docs_oracle/evidence/OG3",
+      "status": "not_started",
+      "merge_sha": null,
+      "evidence": []
+    },
+    {
+      "id": "OG3b",
+      "title": "Testnet E2E (real engine and factory)",
+      "owners": "both",
+      "entry": [
+        "O42"
+      ],
+      "exit_criteria": "E1-E11 all pass against the real engine and MarketFactory after Risk G6/G7 (DEP-1/2); differences from the stub run explained.",
+      "evidence_dir": "docs_oracle/evidence/OG3b",
+      "status": "not_started",
+      "merge_sha": null,
+      "evidence": []
+    },
+    {
+      "id": "OG4",
+      "title": "Mainnet launch",
+      "owners": "both",
+      "entry": [
+        "O43"
+      ],
+      "exit_criteria": "Every item of the plan section 12.10 mainnet launch checklist is ticked with evidence.",
+      "evidence_dir": "docs_oracle/evidence/OG4",
+      "status": "not_started",
+      "merge_sha": null,
+      "evidence": []
+    }
+  ]
+}

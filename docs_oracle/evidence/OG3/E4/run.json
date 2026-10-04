@@ -1,0 +1,100 @@
+{
+  "scenario": "E4",
+  "title": "YES and NO rejected → Voided → INVALID",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:07:46.038Z",
+  "steps": [
+    {
+      "step": "listed e4 (truth YES, T 2026-10-04T17:19:00.000Z)",
+      "market": "0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2",
+      "tx": "0x8e5cb88eaa2399040e5336fb606eaa30228a7c0096d2476626983ecb040d22a6",
+      "detail": {
+        "slug": "eros-e2e-e4-e4-849830-home-gt-2-1791134340",
+        "engine": "0x902Cfa8e544f2AD087f80e9dDA73C6511c9bf25b",
+        "spec": {
+          "scenario": "E4",
+          "tag": "e4",
+          "game": 849830,
+          "side": "home",
+          "target": 2,
+          "feed": "blocked",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 3000,
+          "voidSecs": 8400
+        }
+      },
+      "block": "68171016",
+      "time": "2026-10-04T17:08:48.000Z"
+    },
+    {
+      "step": "committee proposes YES",
+      "market": "0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2",
+      "tx": "0x2ee1107445a71eec1fc424a158acb13567b49165cf331d01237d03986ffeb46a",
+      "block": "68174633",
+      "time": "2026-10-04T17:27:01.000Z"
+    },
+    {
+      "step": "third party disputes YES on OOv3",
+      "market": "0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2",
+      "tx": "0x009f1d8979a7a0b8eea1efa131473a76523ab428888be0beb0847d45101f9d7c",
+      "block": "68174787",
+      "time": "2026-10-04T17:27:47.000Z"
+    },
+    {
+      "step": "sandbox DVM answers false to YES",
+      "market": "0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2",
+      "tx": "0x1d88e000e2ca657c2032debca0a9b5193c84bf1087f0818861946d024f2c67d8",
+      "block": "68174861",
+      "time": "2026-10-04T17:28:10.000Z"
+    },
+    {
+      "step": "committee proposes NO",
+      "market": "0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2",
+      "tx": "0x5bc37670e3c74e41e0191de9651ac52ee20276a681d2ab571d7dab0e3f071bb8",
+      "block": "68175291",
+      "time": "2026-10-04T17:30:19.000Z"
+    },
+    {
+      "step": "third party disputes NO on OOv3",
+      "market": "0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2",
+      "tx": "0x54516d4a24f4a3dec99eee9782ff88aff035039f7cd66c8ca453a254d02d14f5",
+      "block": "68175815",
+      "time": "2026-10-04T17:32:58.000Z"
+    },
+    {
+      "step": "sandbox DVM answers false to NO",
+      "market": "0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2",
+      "tx": "0x8d5dbeb953a786950e0f8483ed7bb8d38d310607f83bc8175e93e70c87aa027d",
+      "block": "68176158",
+      "time": "2026-10-04T17:34:41.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "e4 oracle Final INVALID",
+      "ok": true,
+      "detail": "state Final, outcome 3, finalReason 2"
+    },
+    {
+      "check": "e4 engine settled INVALID, claims open",
+      "ok": true,
+      "detail": "engine finalOutcome 3, price 500000000000000000, claimsEnabled true"
+    },
+    {
+      "check": "Voided after both outcomes were rejected",
+      "ok": true,
+      "detail": "rejectedMask 6, finalReason 2"
+    },
+    {
+      "check": "INVALID payouts at the listed fallback price",
+      "ok": true,
+      "detail": "price 500000000000000000"
+    }
+  ]
+}
