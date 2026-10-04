@@ -1,8 +1,8 @@
 # Pricefeed plan status — 05 October 2026
 
 Source of requirements: `docs/requests/polymarket-event-price-feed-implementation-plan.pdf`,
-v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 7eb6aca plus
-diagnostic signer custody and bounded transaction recovery. This is an
+v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit cbbe4dd plus
+diagnostic category calibration and multi-market source evidence. This is an
 implementation/evidence audit, not human gate acceptance. No PF-G0–PF-G7 acceptance is claimed.
 
 “Built” below describes the stated local or diagnostic testnet code/evidence only. A task with approvals, missing
@@ -47,8 +47,8 @@ checks; sustained 300-second coverage and a full economic engine join remain.
 | PF018 Relay | Joined local pipeline/loopback adapter; durable ordered nonces, exact simulation/age/spend checks and shared-account quarantine; independent public local transaction journal, pinned ID and exact request/raw-byte reconciliation; 25-market two-round scripted RPC delivery with exact nonces 0–49; queue-expired unreserved packets become EXPIRED without service failure; owned-chain crash recovery verifies immutable sends, actual receipt recovery and nonce continuation; Monad testnet HTTPS adapter with finalized-block pins, simulation, durable nonces, persistent spend caps and three actual finalized transactions; exact estimate-based upward-rounded gas sizing and selected-limit simulation; one actual fresh quote without sending; audited budget renewal; explicit never-broadcast nonce cancellation and six optimized finalized prices | Production RPC/key adapters, transaction-signer backup controls, real-chain/cross-market inclusion/load evidence, general fee replacement/cancellation beyond never-broadcast expiry and approved production budgets |
 | PF019 Receipts/reorg | Exact raw event/block/digest validation; invalid-depth success distinguished; mined/finalized/orphaned states; local journal/reorg fixtures; Monad finalized checkpoint/source progress; actual exact accepted logs; signed packet/signer/transaction journal reconciliation and persistent unknown-higher-state quarantine; new-process sequence/nonce continuation | Production finality policy and wider reorg/RPC-disagreement campaign |
 | PF020 Real ingress | Four wire/short-window tests plus four signed 24-hour lifecycle tests importing real ingress/store/INVALID/risk context with scripted counterparts; earlier live-source campaigns remain separate | Full real counterpart economic/guard composition and expanded negative vectors; fixtures are not authentic oracle or live availability evidence |
-| PF021 Live soak | Existing category captures and source-time review; new six-minute durable real-data campaigns with actual journal restarts: crypto 236/300, politics at 10 s 294/300, politics at 5 s 300/300 (72 accepted); independent archive/Fraction replay | Approved duration/availability/load targets, longer quiet/active periods and selected-listing soak; one successful diagnostic window is not an availability guarantee |
-| PF022 Calibration | Exact arithmetic/captures; measured gas quote and six paid optimized prices averaging 0.020102959 MON, acceptance intervals 17–28 seconds, independent cost/capacity scenarios and six-minute proposal | Candidate N/spread comparisons, broader cadence/headroom calibration and signed risk-owner production calibration |
+| PF021 Live soak | Earlier real-source/local-chain campaigns retained; simultaneous six-minute read-only sports/politics/crypto soak with 216 captures, graceful same-process journal/worker reopen and independent archive replay; healthy and stale periods retained | Approved duration/availability/load targets, longer dedicated quiet/active periods and selected-listing soak; source projections are not engine coverage or an availability guarantee |
+| PF022 Calibration | Explicit four-depth / three-spread / three-delivery-delay comparison: 108 cells independently reconstructed from raw books using Fraction; original vendor times, depth/spread/age/gap statistics and failed scenarios retained; earlier real gas/capacity measurements remain | Broader real cadence/inclusion/headroom campaigns, fee/quote/precision and executable-size review, own-perp calibration and signed risk-owner production settings |
 | PF023 Lifecycle | Durable local block-labeled record-only/deadline controller joined to scheduler/pipeline; source-closure gap and delayed signing/simulation/transaction guards; restart/quarantine tests; four signed accelerated full-24-hour complete/gapped/legacy/thin cases against real risk modules; durable read-only Monad finalized-block halt/deadline/source-progress monitor, pinned concrete reader, CLI/SQLite process restart and graceful fenced handoff | Actual standalone receiver preflight/monitoring and publication-boundary integration verified; approved production checkpoint/finality/closure/operating policy; authentic oracle join, selected-listing elapsed soak and named risk/oracle review |
 | PF024 Load/chaos | OS-kill journal/restore/expiry drills; seven declared load cases with 3/8/12/20/25/100 workers, RPC timeout/late completion, 31-second queued ageing and fresh recovery, source pressure/drain; timing and headroom measurements retained; joined eight-boundary Anvil crash campaign and signer/relay restore mismatch guards | Approved throughput/fairness/availability targets; sustained owned-chain/cross-market load, larger books, sustained real-source/RPC calibration, disk/permissions/power-pressure campaign and operational queue/priority design |
 | PF025 Monitoring/runbooks | Freshness-aware health; diagnostic states; development recovery runbook, reproducible crash/restore runner and readonly Monad watch/health/archive commands | Approved operator procedures, supervisor/backup/storage drills, block-labeled engine health, alerts/metrics ownership and closure/key-failure runbooks |
@@ -189,11 +189,21 @@ stream hints, heartbeat and reconnect/resync recovery using complete REST snapsh
 The final suite passes **378/378** tests; the public probe made two connections,
 received four PONG replies and retained 45 REST captures with zero paid submissions.
 Original milestone 5 now hardens transaction recovery and diagnostic custody;
-[custody.md](custody.md) records checks, bounds and operating limits. The current
-full suite passes **388/388** tests. Read-only audit validates the retained **36
+[custody.md](custody.md) records checks, bounds and operating limits. That milestone's
+full suite passed **388/388** tests. Read-only audit validates the retained **36
 observation signatures / 30 transaction signatures**, with all five active journals
-unchanged and no key unlock or MON spend. Next original milestone is category
-calibration and multi-market soaks.
+unchanged and no key unlock or MON spend. Those were milestone 5's checks.
+Original milestone 6 now supplies [category calibration](calibration.md) and a
+simultaneous three-market read-only soak, with 216 captures and 108 independently
+verified comparison cells. At N=1,000,000 lots/spread=0.05/five-second assumed
+delivery, source-side projections are crypto 289.987/300, sports 59.843/300 and
+politics 300/300 seconds. These are diagnostic source projections, not authentic
+submitted checkpoints or engine readiness. No production settings were activated.
+The latest full suite passes **394/394** tests; the focused calibration/load/service
+suite passes **17/17**, with all seven declared scripted load cases rerun.
+Wire, 144 impact vectors and five coverage reference cases also pass. All five
+active Monad main journals remain byte-identical to milestone 5; no keys were
+unlocked or MON spent. Next original milestone is supervised deployment preparation.
 
 When returning to coverage: approve/fund the separately prepared finite retry, then
 recheck/apply its exact hashed plan. `coverage-retry-budget-plan.json` verifies
@@ -208,6 +218,9 @@ captures/archive. Never reset journals or silently extend caps.
 After both complete 300-second windows and gap/restart verification pass, finish
 the deferred coverage milestone. Discovery and stream recovery are complete for
 diagnostics, and custody/recovery hardening is complete within the diagnostic path.
-The four remaining original implementation milestones are category calibration,
-supervised hosting, backups/alerts and release review.
+Category calibration and multi-market diagnostic tooling/evidence are also complete
+within their stated scope. The three remaining original implementation milestones
+are supervised hosting, backups/alerts and release review. Longer approved
+calibration campaigns and production parameter acceptance remain outside the
+short diagnostic pass.
 Local invalid-book tests do not count as live invalid evidence.

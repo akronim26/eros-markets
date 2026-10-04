@@ -14,6 +14,9 @@ Optional stream hints, heartbeat and full REST resync are documented in
 increase the diagnostic publication cadence or authorize additional MON spending.
 Signer-history verification, key-file safeguards and bounded nonce recovery are
 documented in [`docs/custody.md`](docs/custody.md).
+Read-only category comparisons and the simultaneous three-market soak are in
+[`docs/calibration.md`](docs/calibration.md). Its availability figures are
+source-side projections; they do not complete the deferred paid Monad proof.
 
 ## Current behavior
 

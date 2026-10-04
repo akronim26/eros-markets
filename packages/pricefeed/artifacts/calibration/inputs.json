@@ -1,0 +1,128 @@
+[
+  {
+    "schemaVersion": "1",
+    "configVersion": "milestone-6-diagnostic",
+    "key": "crypto-example",
+    "category": "crypto",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "1112205",
+      "externalMarketId": "5170735",
+      "conditionId": "0x42dc04e485b5d8ec749326fe564820ee37a1c63425f43d7b0755a016afd5c4cb",
+      "outcomeTokenId": "60853708478456543766262549859214991255573301006704578370875039498477095018713",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "vendor-ms-floor-diagnostic-only",
+      "quantityPolicyId": "claims-to-lots-floor-total-diagnostic-only",
+      "quotePolicyId": "vendor-quote-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": null,
+    "poll": {
+      "intervalMs": 5000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 1000000
+    }
+  },
+  {
+    "schemaVersion": "1",
+    "configVersion": "milestone-6-diagnostic",
+    "key": "sports-lebron-diagnostic",
+    "category": "sports",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "92909",
+      "externalMarketId": "741099",
+      "conditionId": "0x73057b771600660ac6e659c5b831587fd3bdd378e63f359731aa3e1538577fb0",
+      "outcomeTokenId": "93899316926271869920456375862370520960408256763360958310639371758093650988742",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "vendor-ms-floor-diagnostic-only",
+      "quantityPolicyId": "claims-to-lots-floor-total-diagnostic-only",
+      "quotePolicyId": "vendor-quote-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": null,
+    "poll": {
+      "intervalMs": 5000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 1000000
+    }
+  },
+  {
+    "schemaVersion": "1",
+    "configVersion": "milestone-6-diagnostic",
+    "key": "politics-example",
+    "category": "politics",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "45915",
+      "externalMarketId": "601826",
+      "conditionId": "0x1a01bf78f56a507fcb666d564d8c8b91b0750679163ed6e96746102c9b7d285d",
+      "outcomeTokenId": "109876868437950584369987384406356259939519193117253465815665152916226511121427",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "vendor-ms-floor-diagnostic-only",
+      "quantityPolicyId": "claims-to-lots-floor-total-diagnostic-only",
+      "quotePolicyId": "vendor-quote-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": null,
+    "poll": {
+      "intervalMs": 5000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 1000000
+    }
+  }
+]
