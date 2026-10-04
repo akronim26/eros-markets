@@ -85,34 +85,52 @@ The pinned versions remain Foundry 1.8.3 and solc 0.8.30. This runner compiles
 the existing package-owned PipelineDemoMarket, importing real ingress/store,
 and creates a fresh localhost chain 31337. Only public fixture keys are used.
 The parent keeps Anvil alive while the bot child sends itself SIGKILL without
-cleanup. Another child reopens the source, packet, observation-signer and relay
+cleanup. Another child reopens source, packet, observation-signer, relay and transaction-signer
 journals after the actual stored leases expire. There is no time warp, forced
 takeover, timestamp rewrite or external-chain submission.
 
 | Boundary | Joined startup result |
 |---|---|
 | SIGNED | Resume the immutable signed observation, then accept sequence 2 |
-| PREPARING | Block with PIPELINE_DELIVERY_RECOVERY_REQUIRED; reserved nonce has no saved raw bytes |
-| TX_SIGNED | Same safe block; local transaction signature existed only in process memory |
+| PREPARING | Sign the exact stored request after journal reconciliation; no prior signer reservation |
+| TX_RESERVED | Complete the exact independent nonce/request reservation whose raw signature is still null |
+| TX_SIGNED | Recover saved raw bytes from the independent signer journal before relay READY |
 | UNKNOWN, before network send | Reconcile, send the exact retained transaction, then accept sequence 2 |
 | BROADCAST, after real EVM acceptance | Recover canonical receipt without rebroadcasting, then accept sequence 2 |
 | MINED | Recheck canonical receipt and continue; two-confirmation fixture rule |
 | FINALIZED | Recheck accepted receipt and continue; one-confirmation fixture rule |
 
-Each of five continuation cases checks exactly two on-chain ObservationAccepted
+Each of eight continuation cases checks exactly two on-chain ObservationAccepted
 events, sequences 1/2, increasing transaction nonces, exact payload digest,
 fixture price 0.60 and valid depth. Original packet/digest/signature and any
 previously saved raw transaction/hash remain identical. Immediate takeover is
-also rejected. The two blocked cases preserve the packet and delivery record,
-produce zero acceptance events and consume no chain nonce. They do not claim
-automatic recovery from missing transaction-signer history.
+also rejected. PREPARING recovery requires the checked independent journal; a
+transport without it retains the previous startup block. The first campaign's
+two safe stops are superseded by this explicit journal integration, not bypassed.
 
 Evidence is retained in artifacts/verification/pipeline-crash.json and
 pipeline-crash.log. Package var/pipeline-crash-* contains the diagnostic journals
 and settings; these are not coordinated production backups. Source responses
 and listing configuration are fixtures; the EVM, RPC, ingress/store, continuous
 pipeline and process termination are real. Production signer journaling,
-power/disk failure, wider reorgs, supervisor and backup/restore remain open.
+power/disk failure, wider reorgs, supervisor and coordinated backup/restore remain open.
+
+The new transactions.sqlite journal stores a stable journal ID and each exact
+nonce/destination/calldata/gas/fee request before signing. Raw transaction bytes
+and their hash are stored before returning to the relay. Relay startup pins the
+journal ID and checks both histories; backend-ahead, backend-behind, conflicting
+requests, changed/missing journals or switching back to a nonjournal transport
+block startup. Legacy relay history cannot silently adopt an empty new journal.
+There is no automatic migration or journal-reset flag.
+
+Run `npm run test:transactions` for the local signer/relay restoration checks.
+Its snapshots are copied from closed databases. Both a relay snapshot behind
+independent signer history and a signer snapshot behind retained relay raw bytes
+are rejected. The expiry test reconstructs a TX_SIGNED relay checkpoint and
+proves that headroom exhaustion still quarantines it without an additional send.
+These tests do not authorize coordinated rollback, deleting archives or
+production backup recovery. Preserve all five base journals, any configured
+lifecycle journal, and their WAL state.
 
 ## Expiry, restore and quarantine
 
@@ -135,7 +153,7 @@ surviving observation signer reserved an identity, and that an older relay snaps
 is rejected when the scripted chain has consumed its nonce. Backups in these
 fixtures are made from closed databases before allocation, not by copying a
 running WAL database. They do not certify a production backup system, a restored
-transaction signer, coordinated rollback of every archive, or loss of all history.
+production transaction signer, coordinated rollback of every archive, or loss of all history.
 
 Lifecycle/source quarantine stays independent of relay recovery. Changed rules,
 wrong identities, stale/future time, source closure or unavailable engine reads

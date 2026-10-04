@@ -1251,10 +1251,12 @@ joined crash campaign. Production transaction-signer backup/reservations,
 canonical block-labeled reads, nonce replacement/cancellation, approved budgets,
 supervisor/monitoring, mapping/calibration and named acceptance remain open.
 
-## Pending — many-market load and queue-expiry handling (PF024)
+## 7b112bd — many-market load and queue-expiry handling (PF024)
 
 Base: `987c6fc4428e656ca8171383b4049972d502fd6e`.
-Suggested message: `fix: expire queued price updates without stopping the bot (PF024)`.
+Committed together with the joined crash slice as
+`7b112bd017d7990190961cb325385301e547f19b`, 04 October 2026
+12:03:17 +05:30, actual message `test: verify joined pipeline crash recovery on Anvil`.
 User requested the next step after the simple four-commit explanation. Scope
 remains packages/pricefeed on pricefeed; commits are manual and reminders every
 ten minutes. This slice measures declared local fixture workloads, not approved
@@ -1332,11 +1334,12 @@ owned Anvil. Sustained/larger-book/load/availability and calibration budgets,
 disk/permissions/power pressure, production signer/backup/RPC/lifecycle reads,
 nonce recovery, supervisor/monitoring and named acceptance remain open.
 
-## Pending — joined continuous-pipeline Anvil crash campaign (PF016/PF018)
+## 7b112bd — joined continuous-pipeline Anvil crash campaign (PF016/PF018)
 
-Base: `987c6fc4428e656ca8171383b4049972d502fd6e`. The preceding load slice is
-also still uncommitted in this working tree. Suggested message for this slice:
-`test: verify joined pipeline crash recovery on Anvil (PF016)`.
+Base: `987c6fc4428e656ca8171383b4049972d502fd6e`. Committed with the
+preceding load slice as `7b112bd017d7990190961cb325385301e547f19b`,
+04 October 2026 12:03:17 +05:30, actual message
+`test: verify joined pipeline crash recovery on Anvil`.
 User requested continuation after the seven-major-work-block explanation.
 Scope remains package-only on pricefeed, with manual commits and ten-minute
 reminders. No production or external-network transaction is authorized.
@@ -1395,3 +1398,99 @@ actual supervisor startup, production keys/Monad/lifecycle readers/finality,
 longer source/load/calibration campaigns and named review remain open. This
 short fixture-source campaign does not establish production availability or
 complete counterpart economics. No human gate or deployment is claimed.
+
+## 558f234 — durable local transaction-signer foundation (PF016/PF018)
+
+Commit `558f234cb846615e9873114859c1beace9b6675f`, 04 October 2026
+12:15:04 +05:30, actual message `feat: persist transaction signatures for crash recovery`.
+The user committed during active work after the ten-minute reminder. This commit
+contains the independent public-key transaction journal, nonce/request/raw/hash
+bindings, local RPC preparation hook, relay journal identity/reconciliation and
+checked PREPARING startup path, nine signer tests and the additional TX_RESERVED
+kill boundary. It also retains the pre-fix regression report/log, where a signer
+journal existed but PREPARING startup still failed until recovery was enabled.
+Final complete verification and additional restore/demo integration are recorded
+in the pending follow-up below; no later result is attributed to this earlier
+commit's exact tree.
+
+## Pending — transaction-journal restore guards and demo integration (PF016/PF018/PF025)
+
+Base: `558f234cb846615e9873114859c1beace9b6675f`.
+Suggested message: `feat: complete durable transaction journal integration (PF016)`.
+The user requested continuation of the recovery gap. Changes stay package-only
+on pricefeed. Commits remain manual; reminders were supplied at ten and twenty
+minutes. Actual earlier commits and their timestamps above were refreshed from
+git, not invented.
+
+**Implemented.** A separate transactions.sqlite stores a stable identity plus
+each exact nonce/destination/calldata/gas/fee request before signing, then raw
+transaction/hash before returning. Relay reservations now retain their original
+request and pin the backend journal ID. Startup checks both complete histories;
+an older relay behind independent signer history, older signer behind retained
+raw bytes, changed identity, disabled/missing journal or conflicting request
+blocks startup. Existing relay history cannot adopt an empty journal silently.
+Added metadata-account and reservation-nonce consistency checks. Canonical
+request fields are retained across retries and remain constrained by current
+spend/headroom gates. Public test key and chain 31337 restrictions remain fixed.
+
+LocalPipeline may resume PREPARING only after the independent journal has passed
+relay startup reconciliation. A reserved-but-unsigned request completes the same
+signature; an already signed request returns exactly the saved raw bytes. The
+durable backend never broadcasts. Source times and observation sequences are
+unchanged. Expired reservations still quarantine and block account-wide new
+nonce allocation; lifecycle/identity/source guards still precede sending.
+
+Added six relay/signer snapshot/admission/expiry tests using closed-database
+snapshots and explicit checkpoint reconstruction for the expired TX_SIGNED case.
+Nine backend tests cover exact reopen/retry, nonce conflicts across calldata/
+destination/gas/fees, history mismatch, missing journal, metadata identity,
+checksum corruption, a checksummed signature from the wrong key, malformed
+requests and concurrent identical requests. Added test:transactions runner.
+The local demo now opens/closes/reopens all five base journals; its report hashes
+the transaction journal, and independent review optionally verifies that fifth
+archive while remaining compatible with the older four-journal reports.
+
+**Verification.** Final test:pipeline-crash exits 0: **eight** real SIGKILL
+boundaries in LocalPipeline.run with owned Anvil, actual loopback RPC and real
+ingress/store. SIGNED, PREPARING, TX_RESERVED, TX_SIGNED, UNKNOWN, BROADCAST,
+MINED and FINALIZED all resume sequences 1/2 with exactly two accepted events
+and two independent transaction reservations each. Parent checks null versus
+saved signer raw bytes at crash, preserved requests/raw/hash, original packet/
+digest/signature, exact events/price/depth and consecutive nonces. Already mined
+cases broadcast only the new update after restart. Leases expire at actual host
+time; no time warp or forced writer takeover is used.
+
+`npm run test:transactions` exits 0 with **42 focused tests**. Complete npm test
+exits 0 with **274 tests**, no failures/skips/cancellations/todo; these include
+all fifteen new backend/restore tests and the existing 144 Fraction vectors.
+Build, check:wire, test:reference and whitespace checks exit 0. The eight Anvil
+boundaries are separate from 274. Pinned tool versions remain Foundry 1.8.3,
+solc 0.8.30, Node 24.21.0, TypeScript 5.9.3 and viem 2.57.2. Local chain and
+full CLI suite use the existing scoped external-sandbox execution permissions.
+
+The three-second fixture-source graceful restart demo exits 0: five journals,
+five immutable packets preserved, chain sequence 5 to 13, thirteen total
+accepted updates and unique ordered transaction nonces. Independent archive/
+Fraction replay exits 0 and correctly reports only **3/300 seconds** valid TWAP
+coverage; this was a restart smoke test, not full-window readiness or a new
+real-source soak. Historical genuine-source campaign evidence remains unchanged.
+
+Evidence: artifacts/verification/pipeline-crash.json/log (current eight-case
+campaign), transaction-recovery-baseline.json/log (retained failed PREPARING
+regression), transaction-recovery-unit.json (274/42 counts, source/log hashes,
+wire/reference and demo linkage), transaction-demo-review.json; unique demo
+report artifacts/pipeline/pipeline-1791096736866-fca7e807-d987-46ec-b26d-4b85e33b9557.json.
+Full/focused TAP logs remain in var/transaction-full-suite.tap and
+var/transaction-focused.tap. README, decisions, plan-status and recovery runbook
+now distinguish local independent journaling from production signer/backup work.
+The preceding seven-case/259-test section records its earlier commit; the latest
+pipeline-crash report is refreshed here, with its previous content retained in git.
+
+**Remaining/next.** Interrupted database transactions, disk-full/permissions/
+power loss and coordinated multi-journal backup/restore are the next independent
+storage work. Production key/backend, real Monad/engine/lifecycle/finality
+adapters, nonce replacement/cancellation policies, supervisor/monitoring,
+sustained load/calibration and named review remain open. Local closed-snapshot
+mismatch checks do not certify a production backup system or loss of all history.
+No external transaction, economic counterpart join, gate acceptance or deployment
+is claimed.

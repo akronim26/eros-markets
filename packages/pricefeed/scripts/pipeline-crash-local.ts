@@ -89,26 +89,26 @@ async function main(){
       const deadline=leases.reduce((n,r)=>Math.max(n,Number(r.until_ms)),0),waitMs=Math.max(0,deadline-Date.now()+50);
       console.log(json({stage,waitingForLeaseMs:waitMs}));await pause(waitMs);
       const resumed=await child(dir,'resume',stage);
-        assert.equal(resumed.code,0,resumed.stderr);const result=JSON.parse(resumed.stdout);
-        assert.deepEqual(result.sequences,['1','2']);assert.deepEqual(result.nonces,[String(initialNonce),String(initialNonce+1n)]);
-        assert.equal(result.broadcasts,['BROADCAST','MINED','FINALIZED'].includes(stage)?1:2);
-        assert.deepEqual(inventory(dir)[0],before[0]);
-        const first=result.deliveries[0];if(previous?.raw){assert.equal(first.raw,previous.raw);assert.equal(first.txHash,previous.txHash);}
-        const signerAfter=rows(dir,'transactions','SELECT nonce,request,raw,tx_hash FROM transaction_reservations ORDER BY length(nonce),nonce');
-        assert.equal(signerAfter.length,2);
-        if(signerBefore.length){
-          assert.equal(signerAfter[0]!.request,signerBefore[0]!.request);
-          if(signerBefore[0]!.raw)assert.equal(signerAfter[0]!.raw,signerBefore[0]!.raw);
-        }
-        assert.equal(signerAfter[0]!.raw,first.raw);assert.equal(signerAfter[0]!.tx_hash,first.txHash);
-        assert.equal(await rpc.pendingNonce(),initialNonce+2n);
-        const logs=await client.getLogs({address:engine,event:ACCEPTED_ABI[0],fromBlock:deployed.blockNumber,toBlock:'latest'});
-        assert.equal(logs.length,2);assert.deepEqual(logs.map(l=>l.args.sequence),[1n,2n]);
-        assert.equal(logs[0]!.args.payloadDigest,before[0]!.digest);
-        assert.ok(logs.every(l=>l.args.depthValid===true&&l.args.priceWad===600000000000000000n));
-        assert.deepEqual(logs.map(l=>l.transactionHash),result.deliveries.map((r:{txHash:string})=>r.txHash));
-        const after=rows(dir,'relay','SELECT next_nonce FROM relay_nonce')[0]!;assert.equal(String(after.next_nonce),String(initialNonce+2n));
-        cases.push({stage,status:'RESUMED',waitMs,crashDeliveryState:previous?.state??null,earlyBlocked,initialNonce,acceptedEvents:2,immutablePacket:true,immutableTransaction:!!previous?.raw||!!signerBefore[0]?.raw,transactionReservations:signerAfter.length,signerRecoveryVerified:true,...result});
+      assert.equal(resumed.code,0,resumed.stderr);const result=JSON.parse(resumed.stdout);
+      assert.deepEqual(result.sequences,['1','2']);assert.deepEqual(result.nonces,[String(initialNonce),String(initialNonce+1n)]);
+      assert.equal(result.broadcasts,['BROADCAST','MINED','FINALIZED'].includes(stage)?1:2);
+      assert.deepEqual(inventory(dir)[0],before[0]);
+      const first=result.deliveries[0];if(previous?.raw){assert.equal(first.raw,previous.raw);assert.equal(first.txHash,previous.txHash);}
+      const signerAfter=rows(dir,'transactions','SELECT nonce,request,raw,tx_hash FROM transaction_reservations ORDER BY length(nonce),nonce');
+      assert.equal(signerAfter.length,2);
+      if(signerBefore.length){
+        assert.equal(signerAfter[0]!.request,signerBefore[0]!.request);
+        if(signerBefore[0]!.raw)assert.equal(signerAfter[0]!.raw,signerBefore[0]!.raw);
+      }
+      assert.equal(signerAfter[0]!.raw,first.raw);assert.equal(signerAfter[0]!.tx_hash,first.txHash);
+      assert.equal(await rpc.pendingNonce(),initialNonce+2n);
+      const logs=await client.getLogs({address:engine,event:ACCEPTED_ABI[0],fromBlock:deployed.blockNumber,toBlock:'latest'});
+      assert.equal(logs.length,2);assert.deepEqual(logs.map(l=>l.args.sequence),[1n,2n]);
+      assert.equal(logs[0]!.args.payloadDigest,before[0]!.digest);
+      assert.ok(logs.every(l=>l.args.depthValid===true&&l.args.priceWad===600000000000000000n));
+      assert.deepEqual(logs.map(l=>l.transactionHash),result.deliveries.map((r:{txHash:string})=>r.txHash));
+      const after=rows(dir,'relay','SELECT next_nonce FROM relay_nonce')[0]!;assert.equal(String(after.next_nonce),String(initialNonce+2n));
+      cases.push({stage,status:'RESUMED',waitMs,crashDeliveryState:previous?.state??null,earlyBlocked,initialNonce,acceptedEvents:2,immutablePacket:true,immutableTransaction:!!previous?.raw||!!signerBefore[0]?.raw,transactionReservations:signerAfter.length,signerRecoveryVerified:true,...result});
       save();console.log('ANVIL_CRASH_CASE '+JSON.stringify({stage,status:cases.at(-1)!.status,acceptedEvents:cases.at(-1)!.acceptedEvents}));
     }
     report.verified=true;

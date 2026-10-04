@@ -217,14 +217,18 @@ checks and a development recovery runbook are present; production backup,
 supervisor, transaction-signer and replacement policies remain open. See
 [recovery-runbook.md](recovery-runbook.md).
 
-A separate joined LocalPipeline.run/owned-Anvil SIGKILL campaign now verifies
+A separate joined LocalPipeline.run/owned-Anvil SIGKILL campaign initially verified
 five continuation paths and two expected recovery blocks across seven boundaries.
 The local chain remains alive; actual lease deadlines and elapsed time govern
 restart. Canonical on-chain events, immutable packet/signature/raw transaction
-identity and the next nonce are checked. PREPARING/TX_SIGNED startup remains
-blocked because the local transaction signer lacks an independent durable raw
-transaction journal. This is fixture-source evidence, not a new real-source
-campaign or production signer/backup certification.
+identity and the next nonce are checked. The local signer now has an independent
+transaction journal with a pinned identity, exact nonce/request reservations,
+raw signature/hash persistence and reconciliation against relay history.
+PREPARING/TX_SIGNED can resume when those checks pass; an added TX_RESERVED kill
+also resumes the same request. All eight current boundaries continue, while
+missing, conflicting or lagging archives and stale reserved packets stay blocked.
+The local demo now reopens five journals. This is fixture-source evidence with
+public keys, not a new real-source campaign or production signer/backup certification.
 
 Seven local workload cases now exercise mixed-category workers, 25-market signed
 publication, provider queue pressure, RPC timeout/late completion and 100-worker

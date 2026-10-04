@@ -1,0 +1,28 @@
+[
+  {
+    "report": "artifacts/pipeline/pipeline-1791096736866-fca7e807-d987-46ec-b26d-4b85e33b9557.json",
+    "source": "fixture",
+    "acceptedPackets": 13,
+    "archiveHashesVerified": true,
+    "authenticSourceTimesVerified": true,
+    "fractionPricesDepthVerified": true,
+    "receiptBindingsAndOrderingVerified": true,
+    "twap": {
+      "available": false,
+      "coveredSecs": "3",
+      "integral": "1800000000000000000",
+      "twapWad": "0"
+    },
+    "restart": {
+      "kind": "GRACEFUL_IN_PROCESS_JOURNAL_REOPEN",
+      "atMs": 1791096738369,
+      "resumedAtMs": 1791096738509,
+      "chainSequenceBefore": "5",
+      "preservedPackets": 5,
+      "immutableVerified": true,
+      "chainSequenceAfter": "13",
+      "verified": true
+    },
+    "productionApproved": false
+  }
+]
