@@ -1,0 +1,74 @@
+{
+  "slug": "eros-sample-home-over-2",
+  "reference": {
+    "urlParam": "evt_finished_1"
+  },
+  "marketInput": {
+    "question": "Will the home team score more than 2 goals in event evt_1?",
+    "rules": "YES if the official final home score of event evt_1 is above 2; NO if it is 2 or less. The source is the provider's event endpoint once its status is FINAL. If the event is cancelled, postponed beyond T, or never reaches FINAL by the Layer 1 deadline, Layer 2 decides from the same rules; the market is INVALID only if the event is not played. INVALID settles at the 24 h TWAP before T, or 0.5 if the index is missing after T+1h (DEC-08).",
+    "claimTemplate": "Eros Markets market {{MARKET_ID}} (chain {{CHAIN_ID}}, oracle {{ORACLE}}).\nQuestion: {{QUESTION}}\nRules: {{RULES}}\nScheduled time T: {{TAU_UTC}} ({{TAU_UNIX}})\nAsserted outcome: {{OUTCOME}}\nEvidence: {{EVIDENCE}}, keccak256 {{EVIDENCE_HASH}}\nThis assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.",
+    "windowStart": 1800000000,
+    "windowEnd": 1800172800,
+    "tau": 1800172800,
+    "groupId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "groupExclusive": false,
+    "hasFeed": true,
+    "feed": {
+      "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+      "urlParam": "evt_1",
+      "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "finalPath": "event.status",
+      "finalValue": "FINAL",
+      "valuePath": "event.home",
+      "valueType": 1,
+      "decimals": 0,
+      "op": 2,
+      "target": "2",
+      "bufferSecs": 300,
+      "l1TimeoutSecs": 1800
+    },
+    "allowList": [
+      "api.example-sports.com",
+      "stats.example-data.org"
+    ],
+    "ai": {
+      "modelIdHashes": [
+        "0xce001d13151851d9c327caee4557ee199bf62096526a6d4dd324bb05e42ebe46",
+        "0xf895ea819e16e9257cfe1ef9bbbb0b5cb05e87fe5d60630a4c869ad273bfc1e3",
+        "0xd2f9ebee8a28be0599296c42ffb3747aaf0c374728071f9c1a7e01ccc633574d"
+      ],
+      "promptHash": "0x57fa6589480c85be8bbc98526b1113f0b44823894c29f47f6800a84eb5354e50",
+      "calibratorHash": "0xb37bd532f371e3432cef1740005279bcda56869e47476743400d18054524ee26",
+      "categoryId": "0xecf68b55a3148ada593e183bf15435fbd3f76364946ed2169f5e36e27bc9eafd",
+      "highConfBps": 9100
+    },
+    "uma": {
+      "minBond": 2000000,
+      "bondBps": 1112,
+      "livenessL1": 3600,
+      "livenessAuto": 7200,
+      "livenessReviewed": 7200
+    },
+    "l2DeadlineSecs": 1800,
+    "voidSecs": 259200,
+    "monitor": "0x0000000000000000000000000000000000000030",
+    "oiCapLots": 100000
+  },
+  "engineListing": {
+    "engineGovernance": "0x0000000000000000000000000000000000000060",
+    "template": 0,
+    "deploymentCapX": 1,
+    "maxTraders": 1024,
+    "indexSourceId": "0x44decf363c7aa37ac172d04bf40784d83b18aca8614b3119739e26bb3343a39d",
+    "indexSigner": "0x0000000000000000000000000000000000000051",
+    "indexRulesHash": "0xd6ce921d69d5ea3e1295c845a4cdc24af344c1a3b5a0c71b6113d4a535f63c5e",
+    "depthNLots": 500,
+    "maxSpreadWad": "50000000000000000",
+    "bootstrapBandWad": "50000000000000000",
+    "minOrderLots": 1,
+    "maxOrderLots": 1000000000,
+    "maxLiqLotsPerBlock": 0,
+    "fundingEnabled": false
+  },
+  "engineInit": "0x00000000000000000000000000000000000000000000000000000000000186a0"
+}

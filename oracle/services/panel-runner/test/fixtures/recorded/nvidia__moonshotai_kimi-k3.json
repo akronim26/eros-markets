@@ -1,0 +1,38 @@
+{
+  "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+  "recordedAt": "2026-10-03T12:30:04.567Z",
+  "httpStatus": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "id": "chatcmpl-9a1914f8-cc8b-458b-b10b-55b5936578a2",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "content": "{\"label\": \"YES\", \"confidence\": 0.99, \"cited\": [0, 1], \"rationale\": \"The match is FINAL with home score 3, which is above 2; news item corroborates the 3-1 result.\"}",
+          "refusal": null,
+          "role": "assistant",
+          "reasoning_content": "Final 3-1, above 2 → YES."
+        },
+        "finish_reason": "stop",
+        "logprobs": null
+      }
+    ],
+    "created": 1791030601,
+    "model": "moonshotai/kimi-k3",
+    "object": "chat.completion",
+    "usage": {
+      "prompt_tokens": 299,
+      "completion_tokens": 83,
+      "total_tokens": 382,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 16
+      }
+    }
+  }
+}

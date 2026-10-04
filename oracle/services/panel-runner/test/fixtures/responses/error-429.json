@@ -1,0 +1,13 @@
+{
+  "httpStatus": 429,
+  "headers": {
+    "retry-after": "7"
+  },
+  "body": {
+    "error": {
+      "message": "Rate limit reached for model in organization on tokens per minute (TPM). Please try again in 7s.",
+      "type": "tokens",
+      "code": "rate_limit_exceeded"
+    }
+  }
+}

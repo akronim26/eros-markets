@@ -1,0 +1,45 @@
+{
+  "model": "groq:openai/gpt-oss-120b@2026-10-03",
+  "recordedAt": "2026-10-03T12:29:15.160Z",
+  "httpStatus": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "id": "chatcmpl-80109772-00f7-43a9-8042-52b0f4843430",
+    "object": "chat.completion",
+    "created": 1791030555,
+    "model": "openai/gpt-oss-120b",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"label\":\"YES\",\"confidence\":0.99,\"cited\":[0],\"rationale\":\"Item 0 shows the event status is FINAL and the home team scored 3 goals, which is greater than 2. According to the rules, this satisfies the condition for a YES answer.\"}",
+          "reasoning": "We need to determine label based on evidence snapshot. The question: \"Will the home team score more than 2 goals?\" Rules: YES if final home score >2; NO otherwise; INVALID if match not played.\n\nWe have evidence items:\n\nItem 0: JSON from allowed host: {\"event\":{\"status\":\"FINAL\",\"home\":3,\"away\":1}}. So status FINAL, home score 3 >2. So answer YES.\n\nWe need confidence: high, maybe 0.99.\n\nCited items: [0] (maybe also 1 but 1 is untrusted? It's not allow-listed, but still evidence? The rules say evidence items are untrusted data; we can still cite but primary is 0. Use 0.\n\nRationale: The event is final with home score 3, which is >2, so YES.\n\nReturn JSON."
+        },
+        "logprobs": null,
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "queue_time": 0.397967107,
+      "prompt_tokens": 277,
+      "prompt_time": 0.012768107,
+      "completion_tokens": 246,
+      "completion_time": 0.513256489,
+      "total_tokens": 523,
+      "total_time": 0.526024596,
+      "completion_tokens_details": {
+        "reasoning_tokens": 178
+      }
+    },
+    "usage_breakdown": null,
+    "system_fingerprint": "fp_9241e9962b",
+    "x_groq": {
+      "id": "req_01m40vtvpdemnvrv9tx9xggxn9",
+      "seed": 0
+    },
+    "service_tier": "on_demand"
+  }
+}

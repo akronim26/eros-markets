@@ -1,0 +1,873 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "activeProfile",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct IMarketConfig.ProfileVersion",
+        "components": [
+          {
+            "name": "version",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "profileHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "effectiveAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "factory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getHaltSnapshot",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct HaltView",
+        "components": [
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "economicHaltAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "haltRecordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenAccountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenBookEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "oiHaltLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundingIndexAtHalt",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "accountingEpochAtHalt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accrualCutoff",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "premiumTariffHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getSettlementStatus",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "v",
+        "type": "tuple",
+        "internalType": "struct SettlementView",
+        "components": [
+          {
+            "name": "phase",
+            "type": "uint8",
+            "internalType": "enum ClearingPhase"
+          },
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "finalOutcome",
+            "type": "uint8",
+            "internalType": "enum FinalOutcome"
+          },
+          {
+            "name": "oracleFinalityAccepted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "invalidPriceReady",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "settlementPriceE18",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotCursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "payoutCursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "totalTraderPayoutAtoms",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalDeficitQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "claimsEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "accountingComplete",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "recoveryRequired",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "halt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct HaltView",
+        "components": [
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "economicHaltAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "haltRecordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenAccountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenBookEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "oiHaltLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundingIndexAtHalt",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "accountingEpochAtHalt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accrualCutoff",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "premiumTariffHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "initialize",
+    "inputs": [
+      {
+        "name": "l",
+        "type": "tuple",
+        "internalType": "struct IMarketConfig.Listing",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "token",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "registry",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "resolutionAuthority",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "monitor",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "governance",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "scheduledT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "listedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "sourceHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "rulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "invalidRule",
+            "type": "tuple",
+            "internalType": "struct IMarketConfig.InvalidRule",
+            "components": [
+              {
+                "name": "fallbackListed",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "captureGraceSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "fallbackPriceWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "voidSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          },
+          {
+            "name": "template",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Template"
+          },
+          {
+            "name": "deploymentCapX",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxTraders",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "indexSourceId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "indexSigner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "indexRulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "depthNLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxSpreadWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bootstrapBandWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxLiqLotsPerBlock",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "fundingEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      },
+      {
+        "name": "engineInit",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "listing",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IMarketConfig.Listing",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "token",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "registry",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "resolutionAuthority",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "monitor",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "governance",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "scheduledT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "listedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "sourceHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "rulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "invalidRule",
+            "type": "tuple",
+            "internalType": "struct IMarketConfig.InvalidRule",
+            "components": [
+              {
+                "name": "fallbackListed",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "captureGraceSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "fallbackPriceWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "voidSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          },
+          {
+            "name": "template",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Template"
+          },
+          {
+            "name": "deploymentCapX",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxTraders",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "indexSourceId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "indexSigner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "indexRulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "depthNLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxSpreadWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bootstrapBandWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxLiqLotsPerBlock",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "fundingEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "listingHash",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketRiskView",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "v",
+        "type": "tuple",
+        "internalType": "struct RiskView.MarketRiskView",
+        "components": [
+          {
+            "name": "asOfTime",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "stage",
+            "type": "uint8",
+            "internalType": "enum Stage"
+          },
+          {
+            "name": "pricingMode",
+            "type": "uint8",
+            "internalType": "enum PricingMode"
+          },
+          {
+            "name": "accountingState",
+            "type": "uint8",
+            "internalType": "enum AccountingState"
+          },
+          {
+            "name": "indexAvailable",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "indexWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "markAvailable",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "markWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "riskVersion",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "profileHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "secsToT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "monitorRestricted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "fundingFreshThrough",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "floorStatus",
+            "type": "uint8",
+            "internalType": "enum FloorLifecycle.FloorStatus"
+          },
+          {
+            "name": "floorCursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "floorCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "liquidationCapLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "liquidationRemainingLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "pendingWork",
+            "type": "uint8",
+            "internalType": "uint8"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "materializeScheduledHalt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct HaltView",
+        "components": [
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "economicHaltAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "haltRecordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenAccountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenBookEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "oiHaltLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundingIndexAtHalt",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "accountingEpochAtHalt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accrualCutoff",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "premiumTariffHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMonitorRestricted",
+    "inputs": [
+      {
+        "name": "restricted",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settle",
+    "inputs": [
+      {
+        "name": "Y",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "newlyAccepted",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settleInvalid",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "newlyAccepted",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "error",
+    "name": "AlreadyInitialized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadListing",
+    "inputs": [
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "BadOutcome",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConflictingFinalOutcome",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ScheduledHaltNotYet",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  }
+]

@@ -1,0 +1,121 @@
+{
+  "schema": "eros-validation-split/1",
+  "rule": {
+    "salt": "eros-validation-split/1",
+    "hash": "sha256",
+    "unitHexDigits": 16,
+    "bounds": {
+      "train": "[0, 3/10)",
+      "calibration": "[3/10, 1/2)",
+      "holdout": "[1/2, 1)"
+    }
+  },
+  "rowsSha256": "ee3feffc12360bf4a2fce0bf35191b8617f169a30b8aec8c0093df5f124ba288",
+  "splits": {
+    "train": {
+      "parents": 1671,
+      "rows": 19828,
+      "parentIdsSha256": "c98b0e87275bfe148175f7e3cc6b19438ba9aea6f733f8b0883b847d7123f8c8",
+      "perCategory": {
+        "companies": {
+          "parents": 219,
+          "rows": 669
+        },
+        "crypto": {
+          "parents": 278,
+          "rows": 9030
+        },
+        "elections": {
+          "parents": 194,
+          "rows": 3363
+        },
+        "macro": {
+          "parents": 264,
+          "rows": 2756
+        },
+        "other": {
+          "parents": 147,
+          "rows": 1184
+        },
+        "politics": {
+          "parents": 140,
+          "rows": 625
+        },
+        "sports": {
+          "parents": 429,
+          "rows": 2201
+        }
+      }
+    },
+    "calibration": {
+      "parents": 1076,
+      "rows": 13535,
+      "parentIdsSha256": "723a0a32f98184659a858f7ebde7e0b4385fc49b592350cc894fbd1eea2a5aea",
+      "perCategory": {
+        "companies": {
+          "parents": 138,
+          "rows": 303
+        },
+        "crypto": {
+          "parents": 181,
+          "rows": 7740
+        },
+        "elections": {
+          "parents": 117,
+          "rows": 2012
+        },
+        "macro": {
+          "parents": 173,
+          "rows": 1347
+        },
+        "other": {
+          "parents": 77,
+          "rows": 353
+        },
+        "politics": {
+          "parents": 95,
+          "rows": 345
+        },
+        "sports": {
+          "parents": 295,
+          "rows": 1435
+        }
+      }
+    },
+    "holdout": {
+      "parents": 2715,
+      "rows": 30588,
+      "parentIdsSha256": "0076a5be251252f24196b3f65f7d727c5071046192f795aaa6746719c350ac05",
+      "perCategory": {
+        "companies": {
+          "parents": 350,
+          "rows": 885
+        },
+        "crypto": {
+          "parents": 463,
+          "rows": 13834
+        },
+        "elections": {
+          "parents": 297,
+          "rows": 4872
+        },
+        "macro": {
+          "parents": 423,
+          "rows": 3900
+        },
+        "other": {
+          "parents": 269,
+          "rows": 2129
+        },
+        "politics": {
+          "parents": 243,
+          "rows": 904
+        },
+        "sports": {
+          "parents": 670,
+          "rows": 4064
+        }
+      }
+    }
+  }
+}

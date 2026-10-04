@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "marketId": "0xe085067fb3e1eba632de103ba472329d833cddefdb9296cc70569d9b080d5fcf",
+  "phase": 2,
+  "evidenceHash": "0x2f954347fe999c15115f1cb77852983e3eb8760a975bbeab21f98170d6174c80",
+  "evidenceURI": "eros-snapshot:0x2f954347fe999c15115f1cb77852983e3eb8760a975bbeab21f98170d6174c80",
+  "outcomes": [
+    {
+      "model": "groq:openai/gpt-oss-120b@2026-10-03",
+      "label": "YES",
+      "labelCode": 1,
+      "confidence": 0.99,
+      "cited": [
+        0
+      ],
+      "rationale": "Item 0 shows the event status is FINAL and the home team scored 3 goals, which is greater than 2. According to the rules, this satisfies the condition for a YES answer."
+    },
+    {
+      "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "label": "YES",
+      "labelCode": 1,
+      "confidence": 0.99,
+      "cited": [
+        0,
+        1
+      ],
+      "rationale": "The match is FINAL with home score 3, which is above 2; news item corroborates the 3-1 result."
+    },
+    {
+      "model": "google:gemini-3.8-flash@2026-10-03",
+      "label": "YES",
+      "labelCode": 1,
+      "confidence": 1,
+      "cited": [
+        0,
+        1
+      ],
+      "rationale": "The final score shows the home team scored 3 goals, which is strictly greater than 2 goals as required by the rules."
+    }
+  ],
+  "calibratedBps": [
+    4900,
+    4900,
+    4900
+  ],
+  "flags": 0,
+  "findings": [],
+  "candidate": {
+    "logOdds": -0.12001600384109774,
+    "probabilityYes": 0.4700319616460247,
+    "nEff": 3
+  }
+}

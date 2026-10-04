@@ -1,0 +1,990 @@
+{
+ "schema": "eros-validation-runs/1",
+ "models": [
+  "groq:openai/gpt-oss-120b@2026-10-03",
+  "nvidia:moonshotai/kimi-k3@2026-10-03",
+  "aicredits:google/gemini-3.8-flash@2026-10-04"
+ ],
+ "records": [
+  {
+   "split": "train",
+   "category": "macro",
+   "rank": 0,
+   "parent_id": "pm:273760",
+   "market_id": "pm:1600964",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x7be0172058dca082d1120a809d00476aaed87eeb184026068b97a88135e651f9",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.2093",
+   "items": [
+    {
+     "url": "https://www.indec.gob.ar/",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.85,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "train",
+   "category": "macro",
+   "rank": 1,
+   "parent_id": "pm:97909",
+   "market_id": "pm:833214",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0xa324e6fbb5ef7b0bc50e5b356add8ac5f915a96746698c6fffab12526a2d0301",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://www.bls.gov/bls/news-release/cpi.htm",
+     "httpStatus": 403
+    },
+    {
+     "url": "https://www.bls.gov/schedule",
+     "httpStatus": 403
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "train",
+   "category": "macro",
+   "rank": 2,
+   "parent_id": "pm:207870",
+   "market_id": "pm:1373289",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0xc690c1ee50218ee01e927b2c903df7a7b9ee1ff9c03c416ba057193a2b677ea3",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.8667",
+   "items": [
+    {
+     "url": "https://www.tsa.gov/travel/passenger-volumes",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.6,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.6,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "calibration",
+   "category": "macro",
+   "rank": 0,
+   "parent_id": "pm:67929",
+   "market_id": "pm:655625",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0x1276da978d2f47ad1c29ef42acfdb21c3d350b600839501297a32e01f915f901",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://www.bls.gov/bls/news-release/cpi.htm",
+     "httpStatus": 403
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "calibration",
+   "category": "macro",
+   "rank": 1,
+   "parent_id": "pm:168359",
+   "market_id": "pm:1198895",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x26e2e9819fde63179d0c5f77a750c6878c99d36ac909d5457e931e3cf72a3028",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.7228",
+   "items": [
+    {
+     "url": "https://www.tsa.gov/travel/passenger-volumes",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "calibration",
+   "category": "macro",
+   "rank": 2,
+   "parent_id": "pm:27824",
+   "market_id": "pm:553811",
+   "truth": "YES",
+   "status": "RUN",
+   "evidenceHash": "0xb1807a455d30e5bd47c4da13334d0ef7b5923f8a251573d5468ac5ea47a59605",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.5801",
+   "items": [
+    {
+     "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+     "httpStatus": 200
+    },
+    {
+     "url": "https://www.federalreserve.gov/monetarypolicy/openmarket.htm",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.99,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "calibration",
+   "category": "macro",
+   "rank": 3,
+   "parent_id": "pm:193866",
+   "market_id": "pm:1301181",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0x874919957df58b0f199e2ce21d32b1e557234669315893066c2fb50e34fc42a7",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://app.parcllabs.com/prediction-market-resolutions/10",
+     "httpStatus": 308
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "calibration",
+   "category": "macro",
+   "rank": 4,
+   "parent_id": "pm:193908",
+   "market_id": "pm:1301502",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x1505421752d3f3f2c9abbd2b2e69908ae6bc9e661a5da5a413923a4780597543",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.8929",
+   "items": [
+    {
+     "url": "https://www.banrep.gov.co/es/calendario-eventos",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.8,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NO",
+     "confidence": 0.75,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "holdout",
+   "category": "macro",
+   "rank": 0,
+   "parent_id": "pm:287380",
+   "market_id": "pm:1654931",
+   "truth": "YES",
+   "status": "RUN",
+   "evidenceHash": "0xc09a75cdee74b1dbd1b6945085f0aea32bbd1f20dabb5d448c28c509bf4f3b8d",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.6149",
+   "items": [
+    {
+     "url": "https://www.cbr.ru/eng/dkp/cal_mp/#t13",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.85,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "holdout",
+   "category": "macro",
+   "rank": 1,
+   "parent_id": "pm:16085",
+   "market_id": "pm:516724",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0xfc5353d70ea43d916e542f6477c0b9202e1b89612d1539798f3272b1976fea45",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.5150",
+   "items": [
+    {
+     "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+     "httpStatus": 200
+    },
+    {
+     "url": "https://www.federalreserve.gov/monetarypolicy/openmarket.htm",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.6,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "holdout",
+   "category": "macro",
+   "rank": 2,
+   "parent_id": "pm:100058",
+   "market_id": "pm:895722",
+   "truth": "YES",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0x67dfc58a52c0b8dd75f5a0e22823929be26b25e6bed70b50bba143a59fab43ee",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://web.dubapp.com/portfolios/index/559397469116612608",
+     "httpStatus": 308
+    },
+    {
+     "url": "https://web.dubapp.com/portfolios/index/559433043512836096",
+     "httpStatus": 308
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "holdout",
+   "category": "macro",
+   "rank": 3,
+   "parent_id": "pm:248005",
+   "market_id": "pm:1507688",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x348f39eaabce1ef1644df7337eb18c976cbee324c816f86c410abfe0af7b7940",
+   "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+   "costInr": "0.7001",
+   "items": [
+    {
+     "url": "https://www.tsa.gov/travel/passenger-volumes",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.85,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "train",
+   "category": "elections",
+   "rank": 0,
+   "parent_id": "pm:177629",
+   "market_id": "pm:1230767",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x5058695ad6585812427d96dd8ed15481f247638871ff886eabde4e46c181ea6a",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "1.0393",
+   "items": [
+    {
+     "url": "https://www.soumu.go.jp/",
+     "httpStatus": 200
+    },
+    {
+     "url": "https://www.e-stat.go.jp/",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "ABSTAIN",
+     "confidence": null,
+     "cited": [],
+     "abstainReason": "API_FAILURE"
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.99,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "train",
+   "category": "elections",
+   "rank": 1,
+   "parent_id": "pm:287579",
+   "market_id": "pm:1655496",
+   "truth": "YES",
+   "status": "RUN",
+   "evidenceHash": "0xfa05c384539a3d88c7c643959f19cd98ee278f2ea8b5b1495b1a23247e33005b",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "0.1708",
+   "items": [
+    {
+     "url": "https://www.cena.bj/",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.85,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "ABSTAIN",
+     "confidence": 0.99,
+     "cited": [],
+     "abstainReason": "NO_VALID_CITATION"
+    }
+   ]
+  },
+  {
+   "split": "calibration",
+   "category": "elections",
+   "rank": 0,
+   "parent_id": "pm:246332",
+   "market_id": "pm:1501218",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0xad332eb524c303d8aa2e4c39a8bbcbeb7b24635e455e367d598c99f76155e45d",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://registraduria.gov.co",
+     "httpStatus": 403
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "calibration",
+   "category": "elections",
+   "rank": 1,
+   "parent_id": "pm:243963",
+   "market_id": "pm:1493435",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0x0d71d144f43bcdd76ff0645d2fe2038afd337fa5b127a0491cd6eb72459ac94d",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://www.interieur.gouv.fr/",
+     "httpStatus": 403
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "calibration",
+   "category": "elections",
+   "rank": 2,
+   "parent_id": "pm:83713",
+   "market_id": "pm:687321",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0x9e51b04629c17a13744ed18e7ad4d742ce021b21a7b9e059f891494f7e39d517",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://www.nec.go.kr/",
+     "httpStatus": 302
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "calibration",
+   "category": "elections",
+   "rank": 3,
+   "parent_id": "pm:259955",
+   "market_id": "pm:1555825",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x1a35421edf34a646682b80ca9c92e985cb47a434a7e749c36d3d69314efc2f9f",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "0.5887",
+   "items": [
+    {
+     "url": "https://dait.interno.gov.it/elezioni/speciale-elezioni",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.85,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "calibration",
+   "category": "elections",
+   "rank": 4,
+   "parent_id": "pm:226068",
+   "market_id": "pm:1420486",
+   "truth": "YES",
+   "status": "RUN",
+   "evidenceHash": "0x9ecb4854039d61c3e95bea605ff8013e6717aeefb1420cfccaccf941dccdfc55",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "0.4930",
+   "items": [
+    {
+     "url": "https://elections.sos.state.tx.us/index.htm",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "calibration",
+   "category": "elections",
+   "rank": 5,
+   "parent_id": "pm:112083",
+   "market_id": "pm:973238",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x1f8004209b93fd181196b2ae5d7ea355d709a455b871e14a90aaa4ee16c1286c",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "0.2859",
+   "items": [
+    {
+     "url": "https://democrats.org/",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.85,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "holdout",
+   "category": "elections",
+   "rank": 0,
+   "parent_id": "pm:34581",
+   "market_id": "pm:569319",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0x29b73f55363d6f1f570a4a02d5b5a40ba9c86a63dbe30e95a47d9db4a87097dd",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://registraduria.gov.co",
+     "httpStatus": 403
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "holdout",
+   "category": "elections",
+   "rank": 1,
+   "parent_id": "pm:41655",
+   "market_id": "pm:587297",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x5f160d6bd02d7a008f544ded794d3cf3eea182039016ed243ecc3b5aed5bc8a2",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "0.4785",
+   "items": [
+    {
+     "url": "https://www.kiesraad.nl/",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "holdout",
+   "category": "elections",
+   "rank": 2,
+   "parent_id": "pm:119483",
+   "market_id": "pm:1004375",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0xad4ee298ac2a3912e15c20e7838eb40df62298209ebe8b9963664c625ed5bced",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://eci.gov.in",
+     "httpStatus": 302
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "holdout",
+   "category": "elections",
+   "rank": 3,
+   "parent_id": "pm:204548",
+   "market_id": "pm:1364030",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0x33deb4dbe7a641d15fcd5fa9661e29dc3b00577c5506b9630cb3d8e98378494c",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "0.5388",
+   "items": [
+    {
+     "url": "https://www.wahlen.rlp.de/landtagswahl/ergebnisse",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0
+     ],
+     "abstainReason": null
+    }
+   ]
+  },
+  {
+   "split": "holdout",
+   "category": "elections",
+   "rank": 4,
+   "parent_id": "pm:213277",
+   "market_id": "pm:1390131",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0x3e4666345c8919ff45131cc9320f99dec80ecf6e25f6d63d2b266d60a9188a87",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://www.reuters.com/world/china/perus-congress-begins-debating-removal-president-jeri-2026-02-17/",
+     "httpStatus": 401
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "holdout",
+   "category": "elections",
+   "rank": 5,
+   "parent_id": "pm:39623",
+   "market_id": "pm:580891",
+   "truth": "NO",
+   "status": "NO_EVIDENCE",
+   "evidenceHash": "0xfcfa8dbc67aeec566a4bb7cc944d26f29304568522aa765e4bc1dec7045d1b9d",
+   "costInr": "0.0000",
+   "items": [
+    {
+     "url": "https://www.volby.cz/index_en.htm",
+     "httpStatus": 302
+    }
+   ],
+   "outcomes": []
+  },
+  {
+   "split": "holdout",
+   "category": "elections",
+   "rank": 6,
+   "parent_id": "pm:287763",
+   "market_id": "pm:1656596",
+   "truth": "NO",
+   "status": "RUN",
+   "evidenceHash": "0xd65f19793869e1c6c647673d765303135b384fb92e97437ca143e6fbc1e16063",
+   "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+   "costInr": "0.2353",
+   "items": [
+    {
+     "url": "https://www.onpe.gob.pe/elecciones/",
+     "httpStatus": 403
+    },
+    {
+     "url": "https://portal.jne.gob.pe/portal/",
+     "httpStatus": 200
+    }
+   ],
+   "outcomes": [
+    {
+     "model": "groq:openai/gpt-oss-120b@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.93,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "nvidia:moonshotai/kimi-k3@2026-10-03",
+     "label": "NOT_YET",
+     "confidence": 0.9,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    },
+    {
+     "model": "aicredits:google/gemini-3.8-flash@2026-10-04",
+     "label": "NOT_YET",
+     "confidence": 0.95,
+     "cited": [
+      0,
+      1
+     ],
+     "abstainReason": null
+    }
+   ]
+  }
+ ]
+}
