@@ -21,20 +21,23 @@ import { prepareMonadTestnetObservation, prepareObservation, signPrepared } from
 import { ACCEPTED_ABI, type DeliveryReceipt } from '../src/receipts.js';
 import { INGRESS_ABI, type Observation } from '../src/wire.js';
 import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
+import { quoteMonadGas } from '../src/monad-gas-quote.js';
+import { parseConfig } from '../src/config.js';
 
 const abi=JSON.parse(readFileSync(new URL('../../artifacts/monad-testnet/receiver-abi.json',import.meta.url),'utf8'));
 const policy:RelayPolicy={gasCap:800000n,maxFeePerGas:150000000000n,maxPriorityFeePerGas:2000000000n,
   maxCostWei:120000000000000000n,headroomMs:1000n,confirmations:1n,timeoutMs:1000,maxAttempts:3,leaseMs:120000n};
-async function setup(maxTransactions=3){
+async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
   const dir=mkdtempSync(join(tmpdir(),'monad-publication-'));chmodSync(dir,0o700);
-  const key=join(dir,'observation-key'),password=join(dir,'observation-password');
+  const key=join(dir,'observation-signer.json'),password=join(dir,'signer-password');
   const signerAddress=createTestnetKey(key,password),sender=createTestnetKey(join(dir,'tx-key'),join(dir,'tx-password'));
   const rules={...reviewed};
-  const cfg={...config,requiredFeedUntil:config.destination!.scheduledT,destination:{...config.destination!,
-    chainId:'10143',signerAddress,sourceRulesHash:rulesHash(rules),abiHash:parseEngineReadAbi(abi).abiHash,engineCodeHash:keccak256('0x6001')}};
+  const parsedConfig=parseConfig({...config,requiredFeedUntil:config.destination!.scheduledT,destination:{...config.destination!,
+    chainId:'10143',signerAddress,sourceRulesHash:rulesHash(rules),abiHash:parseEngineReadAbi(abi).abiHash,engineCodeHash:keccak256('0x6001')}});
+  const cfg={...parsedConfig,destination:parsedConfig.destination!};
   const domain={chainId:10143n,engine:cfg.destination.engineAddress,marketId:cfg.destination.marketId,
     sourceId:cfg.destination.sourceId,rulesHash:cfg.destination.sourceRulesHash,signer:signerAddress};
-  let now=1000100n,seq=0n,observedAt=0n,finalizedSeq=0n,failSend=false,balance=10n**18n,halt=false,autoFinalize=true;
+  let now=1000100n,seq=0n,txNonce=0n,observedAt=0n,finalizedSeq=0n,failSend=false,balance=10n**18n,halt=false,autoFinalize=true;
   const receipts=new Map<Hex,DeliveryReceipt>(),sent:Hex[]=[];
   const block=(number:bigint)=>({number,hash:('0x'+number.toString(16).padStart(64,'0')) as Hex,timestamp:now/1000n});
   const rpc:MonadSubmissionRpc={chainId:async()=>10143,code:async()=> '0x6001',
@@ -43,10 +46,11 @@ async function setup(maxTransactions=3){
       indexRulesHash:domain.rulesHash,depthNLots:cfg.pricing.depthNLots,maxSpreadWad:cfg.pricing.maxSpreadWad}
       :name==='halted'?halt:{signer:signerAddress,rulesHash:domain.rulesHash,configured:true,lastSequence:finalizedSeq,
         lastObservedAt:finalizedSeq?observedAt:0n},
-    nonce:async()=>seq,balance:async()=>balance,simulate:async()=>{},
+    nonce:async()=>txNonce,balance:async()=>balance,simulate:async()=>{},
     send:async(raw)=>{
       sent.push(raw);if(failSend)throw new Error('https://secret-rpc.invalid/token');
       const tx=keccak256(raw),o=decodeFunctionData({abi:INGRESS_ABI,data:parseTransaction(raw).data!}).args[0] as unknown as Observation;
+      txNonce=BigInt(parseTransaction(raw).nonce!)+1n;
       seq=o.sequence;observedAt=o.observedAt;if(autoFinalize)finalizedSeq=seq;
       const b=block(9n+seq),packet=packets.get(domain,seq)!;
       receipts.set(tx,{status:'success',transactionHash:tx,blockNumber:b.number,blockHash:b.hash,logs:[{
@@ -62,14 +66,14 @@ async function setup(maxTransactions=3){
   function open(create:boolean){
     packets=new PacketStore(join(dir,'packets.sqlite'));journal=new Journal(join(dir,'source.sqlite'));
     signer=new MonadTestnetObservationSigner(join(dir,'signer.sqlite'),domain,packets,()=>now,key,password);
-    transactionSigner=new MonadTestnetTransactionSigner(join(dir,'transactions.sqlite'),cfg,join(dir,'tx-key'),join(dir,'tx-password'),sender,policy,create);
-    const transport=monadRpcTransport('https://fixture.invalid',cfg,abi,transactionSigner,policy,rpc,()=>now);
-    relay=new MonadTestnetRelay(join(dir,'relay.sqlite'),packets,transport,policy,
-      {maxTransactions,totalMaxCostWei:BigInt(maxTransactions)*policy.maxCostWei},()=>now);
+    transactionSigner=new MonadTestnetTransactionSigner(join(dir,'transactions.sqlite'),cfg,join(dir,'tx-key'),join(dir,'tx-password'),sender,runPolicy,create);
+    const transport=monadRpcTransport('https://fixture.invalid',cfg,abi,transactionSigner,runPolicy,rpc,()=>now);
+    relay=new MonadTestnetRelay(join(dir,'relay.sqlite'),packets,transport,runPolicy,
+      {maxTransactions,totalMaxCostWei:BigInt(maxTransactions)*runPolicy.maxCostWei},()=>now);
     worker=new Worker(cfg,{event:async()=>capture(event),metadata:async()=>capture(metadata),
       book:async()=>capture({...JSON.parse(body),timestamp:now.toString()})},journal,'collector',()=>now);
     const lifecycle=new MonadTestnetPublicationLifecycle(cfg,journal,'lifecycle',monadLifecycleReader(rpc,cfg,abi,()=>now),30000n,()=>now);
-    pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle}],packets,relay,transport,policy,()=>now);
+    pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle}],packets,relay,transport,runPolicy,()=>now);
     return {transport};
   }
   const {transport}=open(true);
@@ -91,6 +95,58 @@ test('testnet pipeline signs real raw digests, sends chain-10143 transactions an
     s.restart();await s.pipeline.start();const second=await s.pipeline.process(await s.worker.poll());
     assert.equal(second.state,'FINALIZED');assert.equal(second.sequence,2n);assert.equal(parseTransaction(s.sent[1]!).nonce,1);
     assert.deepEqual(s.packets.get(s.domain,1n),packet);
+  }finally{s.close();}
+});
+test('estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart',async()=>{
+  const s=await setup(3,{...policy,gasSafetyMarginBps:1000n});try{
+    const limits:bigint[]=[];
+    s.rpc.simulate=async(_sender,_to,_data,gas)=>{limits.push(gas);return 100001n;};
+    s.setFailure(true);await s.pipeline.start();
+    const result=await s.pipeline.process(await s.worker.poll());assert.equal(result.state,'UNKNOWN');
+    const first=s.relay.get(s.domain,1n)!;
+    assert.equal(first.request!.gas,110002n);assert.deepEqual(first.gasSizing,{estimatedGas:100001n,gasLimit:110002n,marginBps:1000n});
+    assert.deepEqual(limits,[800000n,110002n]);
+    s.restart();s.rpc.simulate=async(_sender,_to,_data,gas)=>{limits.push(gas);return 105000n;};
+    s.setFailure(false);await s.pipeline.start();
+    assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
+    assert.equal(s.sent[1],first.raw);assert.equal(s.relay.get(s.domain,1n)!.request!.gas,110002n);
+    assert.equal(limits.at(-1),110002n);
+  }finally{s.close();}
+});
+test('optimized gas failures reserve no transaction nonce and never fall back to the full cap',async()=>{
+  for(const estimate of [undefined,0n,20999n,727273n,800001n]){
+    const s=await setup(3,{...policy,gasSafetyMarginBps:1000n});try{
+      s.rpc.simulate=async()=>estimate;await s.pipeline.start();
+      await assert.rejects(s.pipeline.process(await s.worker.poll()),/MONAD_(GAS_ESTIMATE_REQUIRED|GAS_CAP_EXCEEDED)/);
+      assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.sent.length,0);
+    }finally{s.close();}
+  }
+});
+test('a selected gas limit that fails simulation cannot consume a nonce',async()=>{
+  const s=await setup(3,{...policy,gasSafetyMarginBps:1000n});try{
+    s.rpc.simulate=async(_sender,_to,_data,gas)=>{if(gas<800000n)throw new Error('out of gas');return 100000n;};
+    await s.pipeline.start();await assert.rejects(s.pipeline.process(await s.worker.poll()),/MONAD_SIMULATION_FAILED/);
+    assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.sent.length,0);
+  }finally{s.close();}
+});
+test('gas quote records an expired signed packet without sending or consuming a transaction nonce',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());s.pipeline.close();
+    s.rpc.simulate=async()=>100001n;
+    const capture=(data:Record<string,unknown>)=>({url:'https://fixture.invalid',receivedAtMs:1000200n,
+      latencyMs:0n,body:JSON.stringify(data),headers:{},data,attempts:1});
+    const result=await quoteMonadGas({config:s.cfg,rules:s.rules,abi,rpcUrl:'https://fixture.invalid',
+      keysDirectory:s.dir,journalDirectory:s.dir,policy:{sender:s.sender,relay:{...policy,gasSafetyMarginBps:1000n},
+        budget:{maxTransactions:3,totalMaxCostWei:360000000000000000n}}},s.rpc,
+      {event:async()=>capture(event),metadata:async()=>capture(metadata),book:async()=>capture({...JSON.parse(body),timestamp:'1000100'})},()=>1000200n);
+    assert.equal(result.sequence,2n);assert.equal(result.sizing.gasLimit,110002n);
+    assert.equal(result.nonceBefore,result.nonceAfter);assert.equal(result.transactionsSent,0);
+    assert.equal(s.sent.length,1);assert.equal(s.relay.get(s.domain,2n),null);
+    assert.equal(s.packets.get(s.domain,2n)!.state,'EXPIRED');assert.ok(s.packets.get(s.domain,2n)!.signature);
+    s.restart();await s.pipeline.start();assert.equal((await s.pipeline.process(await s.worker.poll())).sequence,3n);
+    assert.equal(parseTransaction(s.sent[1]!).nonce,1);
+    s.restart();await s.pipeline.start();assert.equal((await s.pipeline.process(await s.worker.poll())).sequence,4n);
+    assert.equal(parseTransaction(s.sent[2]!).nonce,2);
   }finally{s.close();}
 });
 test('testnet source history mismatch persists quarantine and prevents restart publication',async()=>{

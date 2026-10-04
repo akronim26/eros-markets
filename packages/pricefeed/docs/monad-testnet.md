@@ -63,9 +63,78 @@ slower, so cadence must be measured. Three samples do **not** prove complete
 300-second TWAP coverage. Sustained coverage is the next planned proof, followed
 by category calibration and hosting/backup/monitoring work.
 
-Checks: 318 package tests, 12 focused new tests included in that count, eight
-owned-Anvil crash/restart cases, wire check and 144 Fraction vectors passed.
+Checks: 324 package tests pass after gas sizing, with 16 final focused gas/publication/
+service tests included in that count. Eight owned-Anvil crash/restart cases,
+wire check and 144 Fraction vectors passed for the preceding publication milestone.
 The ten receiver Solidity tests are separate from the package suite.
+
+## Estimate-based gas and campaign budget
+
+The relay can use `gasSafetyMarginBps` in an explicitly pinned testnet policy.
+It estimates the exact call, rounds the buffered gas upward and simulates again
+at that selected limit before reserving a transaction nonce. Missing/invalid
+estimates, ceiling breaches and failed selected-limit simulation reject the
+submission. Once reserved, retries retain the original limit, nonce and signed
+bytes. The initial estimate/margin/limit are archived with the delivery.
+Omitting the field preserves the historical policy; this does not migrate it.
+
+An actual fresh-book quote on 04 October 2026 estimated **179,266 gas** and selected
+**197,193** with a diagnostic **10% margin**. Both RPC simulations passed. This is
+about **75.35% less** than 800,000. At the pilot's historical 102 gwei, the selected
+limit implies **0.020113686 test MON/update**, versus 0.0816; the 150 gwei fee ceiling
+implies **0.02957895**. These are scenarios based on one valid politics packet,
+not optimized paid receipts or production calibration.
+
+The quote consumed observation sequence **4**, retained its signature in the
+original journals, and expired it with `GAS_QUOTE_ONLY_NOT_FOR_DELIVERY`.
+Sender nonce remained **3**, finalized receiver sequence remained **3**, and
+balance was **0.3552 test MON**. No transaction was signed or sent. Future
+publication may start at sequence 5; observation sequence gaps do not consume
+transaction nonces. The original three-transaction archive is frozen at
+`var/monad-testnet/pilot-evidence/` with every original file hash unchanged;
+the active history continues at `var/monad-testnet/pilot/`.
+
+The completed quote command was:
+
+```bash
+npm run cli -- quote-monad-gas --rpc-env PRICEFEED_MONAD_RPC_URL \
+  --config artifacts/monad-testnet/market-config.json \
+  --rules artifacts/monad-testnet/rules.json \
+  --abi artifacts/monad-testnet/receiver-abi.json \
+  --keys-dir var/monad-testnet/keys --journal-dir var/monad-testnet/pilot \
+  --policy artifacts/monad-testnet/gas-quote-policy.json
+```
+
+Each invocation signs and expires a new quote-only observation. Run while the
+publisher is stopped; preserve all five journals. The quote policy is **only
+for quoting** and cannot replace the pinned publication policy. A direct
+`serve-monad-testnet` restart with a changed policy rejects `RELAY_PROFILE_CHANGED`.
+
+Public evidence: [`gas-quote.json`](../artifacts/monad-testnet/gas-quote.json),
+[`gas-quote-review.json`](../artifacts/monad-testnet/gas-quote-review.json), and
+[`cost-capacity.json`](../artifacts/monad-testnet/cost-capacity.json).
+`npm run report:monad-cost` reproduces capacity scenarios and independent offline
+Fraction/source-time/journal/integer-cost checks; it never sends a transaction.
+
+The proposed six-minute campaign polls at five seconds, nominally 72 submissions.
+At the quote limit it estimates **1.448185392 test MON** at the historical fee,
+or **2.1296844** reserved at the maximum fee. An additional **2.772 test MON**
+aggregate reservation envelope and at most **84 additional transactions** allow
+some variation. Historical reservations stay counted, yielding a proposed
+lifetime cap of **3.132 MON / 87 transactions**. This envelope is a separate
+aggregate limit; it does not guarantee all 84 fit if gas estimates rise.
+The observed balance falls **2.4168 MON** short of that additional envelope;
+a proposed **2.5 test MON** top-up provides a small cushion.
+
+The campaign is **not activated**. First implement an auditable transition of
+the idle relay's pinned policy/budget, preserving all packets, reservations and
+signing identities. Then fund/authorize the finite envelope and recheck live
+state. Do not create new journals or edit SQLite profiles to bypass recovery.
+Measure actual cadence/charged fees and independently reconstruct full
+300-second coverage at a named finalized block, retaining unsuccessful windows.
+At five-second nominal submissions, the one-market daily scenario is about
+**347.56 MON/day** at the historical fee: gas savings do not remove ongoing
+publication cost. Approved market count/cadence still require these measurements.
 
 ## Current standalone deployment
 

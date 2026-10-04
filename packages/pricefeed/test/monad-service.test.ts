@@ -11,10 +11,13 @@ const raw={schemaVersion:'1',sender:'0x'+'12'.repeat(20),relay:{gasCap:'800000',
   leaseMs:'120000',timeoutMs:10000,maxAttempts:3},budget:{maxTransactions:3,totalMaxCostWei:'360000000000000000'}};
 test('testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits',()=>{
   const parsed=parseTestnetRunPolicy(raw);assert.equal(parsed.budget.totalMaxCostWei,360000000000000000n);
+  assert.equal(parseTestnetRunPolicy({...raw,relay:{...raw.relay,gasSafetyMarginBps:'1000'}}).relay.gasSafetyMarginBps,1000n);
   for(const value of [{...raw,budget:{...raw.budget,maxTransactions:0}},
     {...raw,relay:{...raw.relay,confirmations:'2'}},{...raw,relay:{...raw.relay,maxFeePerGas:'0'}},
     {...raw,relay:{...raw.relay,maxPriorityFeePerGas:'150000000001'}},
-    {...raw,budget:{...raw.budget,totalMaxCostWei:'1'}}])assert.throws(()=>parseTestnetRunPolicy(value));
+    {...raw,budget:{...raw.budget,totalMaxCostWei:'1'}},
+    {...raw,relay:{...raw.relay,gasSafetyMarginBps:'0'}},
+    {...raw,relay:{...raw.relay,gasSafetyMarginBps:'5001'}}])assert.throws(()=>parseTestnetRunPolicy(value));
 });
 test('testnet service refuses another chain before creating journals or accessing keys/network',async()=>{
   const dir=mkdtempSync(join(tmpdir(),'monad-service-')),journals=join(dir,'journals');

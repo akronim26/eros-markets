@@ -13,7 +13,10 @@ import { monadSubmissionRpc } from '../src/monad-rpc.js';
 import { preflightMonadTestnet } from '../src/monad-preflight.js';
 import type { PreparedPacket } from '../src/packet-store.js';
 
-const root='artifacts/monad-testnet/',archive='var/monad-testnet/pilot/';
+const root='artifacts/monad-testnet/';
+const previousReport=JSON.parse(readFileSync(root+'publication-pilot.json','utf8'));
+const archive=previousReport.archive.replace(/\/?$/,'/');
+assert.ok(/^var\/monad-testnet\/[a-z-]+\/$/.test(archive),'private archive path required');
 function objects(path:string):Record<string,any>[] {
   // CLI emits pretty-printed objects. Each opening brace at column zero starts one record.
   return readFileSync(path,'utf8').trim().split(/\n(?=\{)/).map(s=>JSON.parse(s));
@@ -64,7 +67,9 @@ const captures=source.prepare('SELECT payload,sha256 FROM captures ORDER BY id')
 const archiveSha256=Object.fromEntries(['source.sqlite','packets.sqlite','signer.sqlite','transactions.sqlite','relay.sqlite']
   .map(name=>[name,createHash('sha256').update(readFileSync(archive+name)).digest('hex')]));
 const report={mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',verifiedAtUtc:new Date().toISOString(),chainId:10143,
-  config,sender:policy.sender,policy,archive,archiveSha256,firstRun:first,restartedRun:restarted,captures,checkpoint,receipts,
+  config,sender:policy.sender,policy,archive,archiveSha256,
+  ...(previousReport.archivePreservation?{archivePreservation:previousReport.archivePreservation}:{}),
+  firstRun:first,restartedRun:restarted,captures,checkpoint,receipts,
   restart:{newProcess:true,previousSignedPacketsAndTransactionsUnchanged:true,sequences:[1,2,3],nonces:[0,1,2]},
   totalGasCostWei:cost,transactionsFinalized:3,productionApproved:false,humanGatesAccepted:false,
   limitations:['Three-sample pilot does not establish full 300-second TWAP coverage or sustained availability.',

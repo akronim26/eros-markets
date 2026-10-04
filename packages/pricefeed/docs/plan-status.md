@@ -1,19 +1,19 @@
 # Pricefeed plan status — 04 October 2026
 
 Source of requirements: `docs/requests/polymarket-event-price-feed-implementation-plan.pdf`,
-v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 85799ea plus
-the pending diagnostic Monad publication/restart milestone. This is an implementation/evidence audit, not human gate
-acceptance. No PF-G0–PF-G7 acceptance is claimed.
+v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit a373a64 plus
+the pending estimate-based gas and cost-capacity milestone. This is an
+implementation/evidence audit, not human gate acceptance. No PF-G0–PF-G7 acceptance is claimed.
 
 “Built” below describes the stated local or diagnostic testnet code/evidence only. A task with approvals, missing
 tests or deployment inputs remains partial even when its core code is present.
 
-Latest planning estimate discussed on 04 October 2026, after durable recovery:
-about **90% of core local bot implementation complete / 10% left**, and about
-**70% of the full implementation, operations and reviewed handoff plan complete /
-30% left**. These are approximate effort estimates from the audit, not equally
+Latest planning estimate on 04 October 2026, after external publication/restart
+and gas measurement: about **95% of core bot implementation complete / 5% left**,
+and about **75–80% of the full implementation, operations and reviewed handoff
+plan complete / 20–25% left**. These are approximate effort estimates from the audit, not equally
 weighted task counts, approved gates or a production release score. Remaining
-effort is concentrated in operational adapters, recovery/load/soak evidence,
+effort is concentrated in sustained external coverage, recovery/load/soak evidence,
 calibration, monitoring, backup controls and named acceptance.
 
 The user's current priority is Monad **testnet**, ahead of storage/backup drills.
@@ -43,12 +43,12 @@ checks; sustained 300-second coverage and a full economic engine join remain.
 | PF014 Builder | Raw-book/metadata recomputation, rule/domain binding, frozen times/headroom; joined local builder; selected local fresh invalid-depth checkpoints preserve depths/times with zero price/impacts; explicit development lifecycle gates | Production invalid/closure/coalescing/lifecycle policy and concrete lifecycle reader; operational admission; unknown time remains unavailable |
 | PF015 Signer | Raw digest, recovery, low-s/v/serialization checks; independent durable local/testnet signer journals; separate encrypted private testnet keys and fixed-chain/receiver transaction signing | Approved production key backend, identity policy and risk/security review; test key is not an operational signer |
 | PF016 Recovery | Sequence/lease/fence/immutable retry and lagging-restore tests; real-source/local-chain graceful reopen; thirteen OS SIGKILL journal boundaries with scripted counterparts; eight joined LocalPipeline.run/owned-Anvil kill boundaries (all resume with checked durable transaction journal); signer/relay snapshot mismatch, stale restore and lease/expiry checks | interrupted DB transaction/disk/power-failure drills, production transaction-signer backup controls and supervisor startup reconciliation |
-| PF017 CLI | validate-config, inspect-book, capture, serve, verify-digest, health, verify-evidence, offline build-observation, preflight-monad, watch-monad-lifecycle and finite budgeted serve-monad-testnet; explicit archive/capture/sequence/replay-time inputs, raw recomputation, fixed-code errors and subprocess misuse/redaction tests | Broader operator review of all collection/storage failure paths; production signing/sending commands remain outside authorized scope |
-| PF018 Relay | Joined local pipeline/loopback adapter; durable ordered nonces, exact simulation/age/spend checks and shared-account quarantine; independent public local transaction journal, pinned ID and exact request/raw-byte reconciliation; 25-market two-round scripted RPC delivery with exact nonces 0–49; queue-expired unreserved packets become EXPIRED without service failure; owned-chain crash recovery verifies immutable sends, actual receipt recovery and nonce continuation; Monad testnet HTTPS adapter with finalized-block pins, simulation, durable nonces, persistent spend caps and three actual finalized transactions | Production RPC/key adapters, transaction-signer backup controls, real-chain/cross-market inclusion/load evidence, fee replacement/cancellation and approved budgets |
+| PF017 CLI | validate-config, inspect-book, capture, serve, verify-digest, health, verify-evidence, offline build-observation, preflight-monad, watch-monad-lifecycle, finite budgeted serve-monad-testnet and quote-monad-gas; explicit archive/capture/sequence/replay-time inputs, raw recomputation, fixed-code errors and subprocess misuse/redaction tests | Broader operator review of all collection/storage failure paths; production signing/sending commands remain outside authorized scope |
+| PF018 Relay | Joined local pipeline/loopback adapter; durable ordered nonces, exact simulation/age/spend checks and shared-account quarantine; independent public local transaction journal, pinned ID and exact request/raw-byte reconciliation; 25-market two-round scripted RPC delivery with exact nonces 0–49; queue-expired unreserved packets become EXPIRED without service failure; owned-chain crash recovery verifies immutable sends, actual receipt recovery and nonce continuation; Monad testnet HTTPS adapter with finalized-block pins, simulation, durable nonces, persistent spend caps and three actual finalized transactions; exact estimate-based upward-rounded gas sizing and selected-limit simulation; one actual fresh quote without sending | Production RPC/key adapters, transaction-signer backup controls, real-chain/cross-market inclusion/load evidence, fee replacement/cancellation and approved budgets |
 | PF019 Receipts/reorg | Exact raw event/block/digest validation; invalid-depth success distinguished; mined/finalized/orphaned states; local journal/reorg fixtures; Monad finalized checkpoint/source progress; actual exact accepted logs; signed packet/signer/transaction journal reconciliation and persistent unknown-higher-state quarantine; new-process sequence/nonce continuation | Production finality policy and wider reorg/RPC-disagreement campaign |
 | PF020 Real ingress | Four wire/short-window tests plus four signed 24-hour lifecycle tests importing real ingress/store/INVALID/risk context with scripted counterparts; earlier live-source campaigns remain separate | Full real counterpart economic/guard composition and expanded negative vectors; fixtures are not authentic oracle or live availability evidence |
 | PF021 Live soak | Existing category captures and source-time review; new six-minute durable real-data campaigns with actual journal restarts: crypto 236/300, politics at 10 s 294/300, politics at 5 s 300/300 (72 accepted); independent archive/Fraction replay | Approved duration/availability/load targets, longer quiet/active periods and selected-listing soak; one successful diagnostic window is not an availability guarantee |
-| PF022 Calibration | Exact arithmetic and capture evidence available | Candidate N/spread comparisons, measured cadence/headroom report and signed risk-owner production calibration |
+| PF022 Calibration | Exact arithmetic/captures; measured 179,266 gas estimate and 197,193 buffered limit, independent integer cost/capacity scenarios and six-minute budget proposal | Candidate N/spread comparisons, measured cadence/headroom report and signed risk-owner production calibration |
 | PF023 Lifecycle | Durable local block-labeled record-only/deadline controller joined to scheduler/pipeline; source-closure gap and delayed signing/simulation/transaction guards; restart/quarantine tests; four signed accelerated full-24-hour complete/gapped/legacy/thin cases against real risk modules; durable read-only Monad finalized-block halt/deadline/source-progress monitor, pinned concrete reader, CLI/SQLite process restart and graceful fenced handoff | Actual standalone receiver preflight/monitoring and publication-boundary integration verified; approved production checkpoint/finality/closure/operating policy; authentic oracle join, selected-listing elapsed soak and named risk/oracle review |
 | PF024 Load/chaos | OS-kill journal/restore/expiry drills; seven declared load cases with 3/8/12/20/25/100 workers, RPC timeout/late completion, 31-second queued ageing and fresh recovery, source pressure/drain; timing and headroom measurements retained; joined eight-boundary Anvil crash campaign and signer/relay restore mismatch guards | Approved throughput/fairness/availability targets; sustained owned-chain/cross-market load, larger books, sustained real-source/RPC calibration, disk/permissions/power-pressure campaign and operational queue/priority design |
 | PF025 Monitoring/runbooks | Freshness-aware health; diagnostic states; development recovery runbook, reproducible crash/restore runner and readonly Monad watch/health/archive commands | Approved operator procedures, supervisor/backup/storage drills, block-labeled engine health, alerts/metrics ownership and closure/key-failure runbooks |
@@ -58,9 +58,11 @@ checks; sustained 300-second coverage and a full economic engine join remain.
 
 ## Current verification and practical boundary
 
-- Latest package suite: **318 tests pass**, zero failed/skipped/cancelled/todo.
-  Twelve new key/publication/service tests are included, not added separately.
-  Evidence: `artifacts/verification/monad-publication-unit.json` and retained TAP.
+- Latest package suite: **324 tests pass**, zero failed/skipped/cancelled/todo.
+  Six added gas/quote/cost tests are included, not added separately. Final focused
+  gas/publication/service suite: **16 pass**, included in 324.
+  Evidence: `artifacts/verification/monad-gas-unit.json` and retained TAP.
+  The preceding 318-test publication evidence remains historical.
   The first sandboxed full run failed twelve CLI subprocess tests due to EPERM;
   the unrestricted rerun passed. Eight owned-Anvil crash/restart cases also passed.
   Older reports retain their original source hashes and remain historical.
@@ -132,10 +134,12 @@ standalone receiver using real signature ingress and observation storage.
    recovery and publication-boundary lifecycle checks are connected. Two real
    observations finalized, followed by a new process submitting the third.
    Local chain-31337 restrictions and closed production admission remain.
-3. **Prove one complete feed — next.** Measure and tighten diagnostic gas limits
-   using real estimates; the pilot charged its entire 800,000 gas limit on each
-   transaction. Prepare a bounded sustained campaign preserving existing signed
-   history and explicit additional spend limits. Its pilot budget is exhausted;
+3. **Prove one complete feed — next.** Estimate-based gas sizing is built and one
+   real fresh quote verified: 197,193 selected gas versus the old 800,000 limit,
+   with zero transactions sent. Cost/capacity scenarios and a finite six-minute
+   campaign proposal are retained in `artifacts/monad-testnet/cost-capacity.json`.
+   Implement and verify an explicit idle-journal policy/budget transition, retaining
+   all signed history and historical reservations, before activating that proposal. Its pilot budget is exhausted;
    do not delete journals or silently enlarge that pinned policy. Establish actual
    submission cadence and complete 300-second TWAP coverage, with invalid/gap and
    restart behavior. The seven-day receiver deadline/mapping/N/spread are diagnostic.
@@ -147,7 +151,9 @@ standalone receiver using real signature ingress and observation storage.
    Eros economic integration additionally needs accepted engine/book/oracle/
    factory wiring, including the engine team's existing RB-I01 disposition.
 
-Next concrete deliverable: a measured, bounded sustained testnet campaign proving
-complete 300-second index coverage. Prepare its gas/cadence/budget and recovery
-inputs first. The completed three-transaction pilot proves external publication
+Next concrete deliverable: an auditable transition from the exhausted pilot
+policy to an explicitly bounded sustained campaign; then fund/authorize and run
+the 300-second coverage proof. Quote-only sequence 4 is expired; sender nonce 3
+and receiver sequence 3 are unchanged. Frozen pilot evidence remains separate
+from the continued active journals. Gas savings are simulated, not paid receipts. The completed three-transaction pilot proves external publication
 and clean restart, with no production listing/calibration or gate acceptance.

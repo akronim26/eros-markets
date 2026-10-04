@@ -81,7 +81,7 @@
       "totalMaxCostWei": "360000000000000000"
     }
   },
-  "archive": "var/monad-testnet/pilot/",
+  "archive": "var/monad-testnet/pilot-evidence/",
   "archiveSha256": {
     "source.sqlite": "bfd53a89fbd45c61eb95c85f8e51d5ac6c7fbd211a05359734f9ba0f10489991",
     "packets.sqlite": "3ad27ef7b53af9cfb03cbb0b41374c93a94f124320ef8d63047b8b6ab2282588",
@@ -14730,5 +14730,11 @@
   "limitations": [
     "Three-sample pilot does not establish full 300-second TWAP coverage or sustained availability.",
     "Diagnostic politics mapping and policies remain unapproved for production; no full economic engine is exercised."
-  ]
+  ],
+  "archivePreservation": {
+    "originalPath": "var/monad-testnet/pilot",
+    "copiedAtUtc": "2026-10-04T15:02:40.901248+00:00",
+    "allOriginalFileHashesUnchanged": true,
+    "reason": "Frozen three-transaction evidence before continuing the original active journals with quote-only packets."
+  }
 }

@@ -1801,3 +1801,79 @@ conflicts for both committed HEAD and a temporary snapshot including uncommitted
 work. Main has 33 commits absent from local pricefeed, which has 25 commits
 absent from main. No merge, branch switch or push was performed. Incorporating
 main is still pending; current working changes must be preserved.
+
+## Pending — 04 October 2026: measured Monad gas sizing and cost capacity
+
+Base: `a373a64` on `pricefeed`. User authorized gas optimization and the next
+useful plan tasks. Changes remain within `packages/pricefeed/`; no push or
+shared engine/book/oracle changes were made.
+
+**What changed.** Added exact-call gas estimates, integer upward-rounded safety
+margins and a second simulation at the selected limit before nonce reservation.
+The diagnostic policy accepts a pinned `gasSafetyMarginBps`; the quote uses
+1000 bps (10%). Missing/invalid estimates, margin/cap failures and selected-limit
+simulation failures reserve no transaction nonce. Initial estimate/margin/limit
+are archived. Retries and process restarts preserve the original gas limit and
+raw transaction even when a later estimate differs. Historical policies omitting
+the field remain compatible; their persisted budget is not silently changed.
+
+Added `quote-monad-gas`: on an idle journal set, it checks finalized receiver
+pins and known signed history, fetches authentic source evidence, signs one
+durable quote-only observation, simulates twice and expires it. It does not
+construct the transaction signer or call broadcast. Added integer-only capacity
+planning, a reproducible cost report and independent Python Fraction/source-time/
+journal/integer-cost review. Strengthened the fixture to distinguish observation
+sequence from transaction nonce across a skipped quote and two later restarts.
+
+**Real measured result.** Fresh politics observation sequence 4 estimated
+**179,266 gas**, selecting **197,193 gas** with 10% margin. Both actual testnet RPC
+simulations passed. Selected limit is **75.35% lower** than the pilot's 800,000.
+At the pilot's historical 102 gwei this implies **0.020113686 test MON/update**;
+at the 150 gwei fee ceiling, **0.02957895**. No optimized paid receipt or approved
+operating margin is claimed. Actual source time/depth/price match independent
+Fraction replay. Quote packet 4 is durably EXPIRED; next observation may use
+sequence 5. Sender nonce remained 3, finalized receiver sequence remained 3,
+and measured balance was 0.3552 test MON. **Zero external transactions**, zero
+transaction reservations. Relay and transaction journal file hashes are unchanged.
+
+**Evidence preserved.** Copied the closed original five journals to private
+`var/monad-testnet/pilot-evidence/` before quoting; all original file hashes match.
+Only the public pilot report's archive location/preservation metadata changed;
+its captures, packets, receipts, signatures and original costs remain intact.
+The original active journals continue under `var/monad-testnet/pilot/`; the signer
+history was not forked into another active publisher. Frozen pilot Fraction review
+still passes. Public quote/policy/review/cost files are under `artifacts/monad-testnet/`.
+
+**Next campaign prepared, not activated.** The six-minute five-second diagnostic
+proposal has 72 nominal submissions: estimated **1.448185392 MON** at the
+historical price or **2.1296844 MON** reserved at the quote limit/maximum fee.
+Proposal allows at most 84 additional transactions and **2.772 MON** additional
+aggregate reservations; historical 0.36 reservations remain counted, yielding
+a proposed lifetime **87 transactions / 3.132 MON** cap. If gas rises, fewer
+transactions can fit; the envelope is not 84 times the per-transaction cap.
+Measured funding gap is **2.4168 MON**, with **2.5 test MON** suggested as a
+future top-up. No funding, policy transition or spend increase was performed.
+The unchanged historical gas ceiling permits reconciliation of old signed
+requests; each new request still uses its verified buffered estimate.
+
+The immediate next work is an auditable, tested transition of the idle relay's
+pinned policy/budget preserving reservations and both signing journals. Then
+fund/authorize the finite campaign, recheck live state and measure actual charged
+cost/cadence plus full 300-second coverage at a named finalized block. Invalid/gap
+and restart behavior, category calibration and operations/review still remain.
+The five-second scenario still costs about **347.56 MON/market/day** at the
+historical price, so production market count and cadence need explicit economics.
+
+**Verification.** Full package suite **324/324**, exit 0. Final focused
+`npm run test:gas` **16/16**, exit 0, included in 324. Wire check, reproducible
+cost report, independent gas/source review and preserved pilot review exit 0.
+Retained TAP/log/file hashes: `artifacts/verification/monad-gas-unit.json`.
+An initial quote fixture failed because its config field order did not match
+the canonical config digest; the fixture now uses `parseConfig`. Strengthening
+the nonce fixture initially exposed a TypeScript optional-nonce type error;
+the signed-transaction fixture guard was corrected before rerunning the checks.
+Earlier crash/engine/144-vector campaigns retain their historical evidence;
+they were not rerun for this gas/cost batch. No production admission or human
+gate acceptance is claimed.
+
+Suggested commit: `fix: estimate Monad publication gas and record feed cost budgets`.

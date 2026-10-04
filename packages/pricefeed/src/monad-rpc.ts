@@ -6,11 +6,12 @@ import type { LocalRelayTransport, RelayPolicy } from './durable-relay.js';
 import type { DeliveryReceipt } from './receipts.js';
 import type { MonadTestnetTransactionSigner } from './monad-signers.js';
 import { monadTestnetReadRpc, parseEngineReadAbi, preflightMonadTestnet, type MonadReadRpc } from './monad-preflight.js';
+import { sizeGas } from './gas.js';
 
 export interface MonadSubmissionRpc extends MonadReadRpc {
   nonce(sender:Hex):Promise<bigint>;
   balance(sender:Hex):Promise<bigint>;
-  simulate(sender:Hex,to:Hex,data:Hex,gasCap:bigint):Promise<void>;
+  simulate(sender:Hex,to:Hex,data:Hex,gasCap:bigint):Promise<bigint|void>;
   send(raw:Hex):Promise<Hex>;
   receipt(hash:Hex):Promise<DeliveryReceipt|null>;
 }
@@ -23,7 +24,8 @@ export function monadSubmissionRpc(rpcUrl:string):MonadSubmissionRpc {
     balance:(sender)=>client.getBalance({address:sender,blockTag:'pending'}),
     simulate:async(sender,to,data,gasCap)=>{
       await client.call({account:sender,to,data,gas:gasCap,blockTag:'pending'});
-      if(await client.estimateGas({account:sender,to,data,blockTag:'pending'})>gasCap)throw new Error('MONAD_GAS_CAP_EXCEEDED');
+      const estimate=await client.estimateGas({account:sender,to,data,gas:gasCap,blockTag:'pending'});
+      if(estimate>gasCap)throw new Error('MONAD_GAS_CAP_EXCEEDED');return estimate;
     },
     send:(raw)=>client.sendRawTransaction({serializedTransaction:raw}),
     receipt:async(hash)=>{
@@ -67,10 +69,23 @@ export function monadRpcTransport(rpcUrl:string,config:MarketConfig,engineAbi:un
         signer:engine.sourceState.signer,rulesHash:engine.sourceState.rulesHash,
         lastSequence:engine.sourceState.lastSequence,lastObservedAt:engine.sourceState.lastObservedAt};
     },
-    simulate:async(to,data)=>{
+    simulate:async(to,data,reservedGas)=>{
       destination(to);await check();
       if(await fixed('MONAD_BALANCE_READ_FAILED',()=>rpc.balance(account))<policy.maxCostWei)throw new Error('MONAD_SENDER_NEEDS_TEST_MON');
-      await fixed('MONAD_SIMULATION_FAILED',()=>rpc.simulate(account,to as Hex,data,policy.gasCap));
+      if(reservedGas!==undefined&&(reservedGas<21000n||reservedGas>policy.gasCap))throw new Error('MONAD_GAS_CAP_EXCEEDED');
+      const estimate=await fixed('MONAD_SIMULATION_FAILED',()=>rpc.simulate(account,to as Hex,data,reservedGas??policy.gasCap));
+      if(policy.gasSafetyMarginBps===undefined)return;
+      if(reservedGas!==undefined){
+        if(typeof estimate!=='bigint'||estimate<21000n)throw new Error('MONAD_GAS_ESTIMATE_REQUIRED');
+        if(estimate>reservedGas)throw new Error('MONAD_GAS_CAP_EXCEEDED');
+        return {estimatedGas:estimate,gasLimit:reservedGas,marginBps:policy.gasSafetyMarginBps};
+      }
+      const sizing=sizeGas(estimate,policy.gasCap,policy.gasSafetyMarginBps);
+      // Verify the selected bound before the relay reserves a nonce. No paid transaction.
+      const verified=await fixed('MONAD_SIMULATION_FAILED',()=>rpc.simulate(account,to as Hex,data,sizing.gasLimit));
+      if(typeof verified!=='bigint'||verified<21000n)throw new Error('MONAD_GAS_ESTIMATE_REQUIRED');
+      if(verified>sizing.gasLimit)throw new Error('MONAD_GAS_CAP_EXCEEDED');
+      return sizing;
     },
     prepare:async(request)=>{destination(request.to);await check();return signer.sign(request);},
     broadcast:async(raw)=>{

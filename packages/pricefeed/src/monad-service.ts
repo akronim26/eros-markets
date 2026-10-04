@@ -29,12 +29,14 @@ export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
   };
   const relay:RelayPolicy={gasCap:amount('gasCap'),maxFeePerGas:amount('maxFeePerGas'),maxPriorityFeePerGas:amount('maxPriorityFeePerGas'),
     maxCostWei:amount('maxCostWei'),headroomMs:amount('headroomMs'),confirmations:amount('confirmations'),
-    leaseMs:amount('leaseMs'),timeoutMs:number(r.timeoutMs,1,30000),maxAttempts:number(r.maxAttempts,1,10)};
+    leaseMs:amount('leaseMs'),timeoutMs:number(r.timeoutMs,1,30000),maxAttempts:number(r.maxAttempts,1,10),
+    ...(r.gasSafetyMarginBps!==undefined?{gasSafetyMarginBps:amount('gasSafetyMarginBps')}:{})};
   const budget={maxTransactions:number(b.maxTransactions,1,100000),totalMaxCostWei:uint(b.totalMaxCostWei,256)};
   if(relay.gasCap<=0n||relay.maxFeePerGas<=0n||relay.maxPriorityFeePerGas>relay.maxFeePerGas
     ||relay.maxCostWei<relay.gasCap*relay.maxFeePerGas||relay.headroomMs<=0n||relay.headroomMs>30000n
     ||relay.confirmations!==1n||relay.leaseMs<BigInt(relay.timeoutMs)*8n||relay.leaseMs>3600000n
-    ||budget.totalMaxCostWei<relay.maxCostWei)throw new Error('BAD_TESTNET_RUN_POLICY');
+    ||budget.totalMaxCostWei<relay.maxCostWei
+    ||relay.gasSafetyMarginBps!==undefined&&(relay.gasSafetyMarginBps<100n||relay.gasSafetyMarginBps>5000n))throw new Error('BAD_TESTNET_RUN_POLICY');
   return {sender:p.sender,relay,budget};
 }
 export type TestnetServiceOptions={config:MarketConfig;rules:RulesManifest;abi:unknown;rpcUrl:string;
