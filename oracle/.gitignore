@@ -21,3 +21,4 @@ indexer/.envio/
 validation/dataset/crypto-price/raw/**
 !validation/dataset/crypto-price/raw/MANIFEST.json
 validation/dataset/crypto-price/rows.jsonl.gz
+workflows/listen/logs/
