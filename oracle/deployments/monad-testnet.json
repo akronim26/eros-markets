@@ -3,19 +3,126 @@
   "chainId": 10143,
   "creChainSelector": "2183018362218727504",
   "usdc": "0xFE854aEB0e1B5B568291f52696E5726c89a8d39e",
-  "roles": { "timelock": "0xC2095b3DfD54328E59150bb70a3B541e21772F56", "teamSafe": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1", "guardianSafe": "0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d", "lister": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1" },
-  "contracts": {
-    "Timelock": { "address": "0xC2095b3DfD54328E59150bb70a3B541e21772F56", "codehash": "0x61ca245342d8ca783090c86a1e1f170c59da15077f3aba7d2c49c8506a264956", "deployBlock": 67901624 },
-    "BondTreasury": { "address": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a", "codehash": "0xb452b4bcafb7abbd76cce31d0caaed337da43096b9eeac67e3c76e050f72f3c7", "deployBlock": 67901624 },
-    "ResolutionOracle": { "address": "0xa87D6E10a7199666ec9F2e04866201E35AAf36A6", "codehash": "0x4cc529eb42654a45083b055d2e0081308e5ae3eeb980da5eb4dc0297a6e57d44", "deployBlock": 67901624 },
-    "UmaAdapter": { "address": "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1", "codehash": "0x5d553bb4ac3eeb76ddace056854e0b7c78c405109ce0f4a0d485b2a3fb503b29", "deployBlock": 67901624 },
-    "MarketRegistry": { "address": "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa", "codehash": "0x217cacdde2c26367cfee07a7a168b7d8e56012e35402d108457350274d718fad", "deployBlock": 67901624 },
-    "KeeperRouter": { "address": "0xa04109FfD14C8E2c8303b3F1047Eeb14D78a67A9", "codehash": "0xe300f39c5b9c6c2d77d172fc74f0b7c711a50ac2c7ddcba0c7e6e99f686e67c9", "deployBlock": 67901624 },
-    "StubMarketFactory": { "address": "0xF58833b3b45ca45b5C10F396e39e675678751943", "codehash": "0xfc3c2632116eb4750e43b5a2eb72c545a48f5417ff068806d06953e95ec8edfb", "deployBlock": 67901624, "testnetOnly": true }
+  "roles": {
+    "timelock": "0xC2095b3DfD54328E59150bb70a3B541e21772F56",
+    "teamSafe": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+    "guardianSafe": "0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d",
+    "lister": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1"
   },
-  "uma": { "finder": "0x6360e4D58837B5201f5aC8fA31e672c765ae5b08", "store": "0xb4bf9609ceaF1D5565682737CaB9AF06947f0377", "addressWhitelist": "0x0aE49CB05eCdDE2A2E2e4Bf80B19B76a38B311F6", "identifierWhitelist": "0xc3C05aBCC86A5c12A378AED31d66DB96028e809E", "oov3": "0xdE3B884250333652aC2Bf27fE10A6483a50B0a26", "sandboxOracle": "0x1211A79433CA94bD4cC93d69E615519790467d20", "finalFeeAtoms": "1000000" },
-  "cre": { "mockForwarder": "0xB9F79d863261869B234c481D1f9A7af84AeAd192", "keystoneForwarder": "0xF8344CFd5c43616a4366C34E3EEE75af79a74482", "orgOwner": "0x0000000000000000000000000000000000000000", "workflowName": "eros-resolution-stg", "workflowIds": [], "simRelayers": [] },
-  "trustSets": [],
-  "globalsVersion": 0,
-  "timelockOps": []
+  "contracts": {
+    "Timelock": {
+      "address": "0xC2095b3DfD54328E59150bb70a3B541e21772F56",
+      "codehash": "0x61ca245342d8ca783090c86a1e1f170c59da15077f3aba7d2c49c8506a264956",
+      "deployBlock": 67901624
+    },
+    "BondTreasury": {
+      "address": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a",
+      "codehash": "0xb452b4bcafb7abbd76cce31d0caaed337da43096b9eeac67e3c76e050f72f3c7",
+      "deployBlock": 67901624
+    },
+    "ResolutionOracle": {
+      "address": "0xa87D6E10a7199666ec9F2e04866201E35AAf36A6",
+      "codehash": "0x4cc529eb42654a45083b055d2e0081308e5ae3eeb980da5eb4dc0297a6e57d44",
+      "deployBlock": 67901624
+    },
+    "UmaAdapter": {
+      "address": "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1",
+      "codehash": "0x5d553bb4ac3eeb76ddace056854e0b7c78c405109ce0f4a0d485b2a3fb503b29",
+      "deployBlock": 67901624
+    },
+    "MarketRegistry": {
+      "address": "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa",
+      "codehash": "0x217cacdde2c26367cfee07a7a168b7d8e56012e35402d108457350274d718fad",
+      "deployBlock": 67901624
+    },
+    "KeeperRouter": {
+      "address": "0xa04109FfD14C8E2c8303b3F1047Eeb14D78a67A9",
+      "codehash": "0xe300f39c5b9c6c2d77d172fc74f0b7c711a50ac2c7ddcba0c7e6e99f686e67c9",
+      "deployBlock": 67901624
+    },
+    "StubMarketFactory": {
+      "address": "0xF58833b3b45ca45b5C10F396e39e675678751943",
+      "codehash": "0xfc3c2632116eb4750e43b5a2eb72c545a48f5417ff068806d06953e95ec8edfb",
+      "deployBlock": 67901624,
+      "testnetOnly": true
+    }
+  },
+  "uma": {
+    "finder": "0x6360e4D58837B5201f5aC8fA31e672c765ae5b08",
+    "store": "0xb4bf9609ceaF1D5565682737CaB9AF06947f0377",
+    "addressWhitelist": "0x0aE49CB05eCdDE2A2E2e4Bf80B19B76a38B311F6",
+    "identifierWhitelist": "0xc3C05aBCC86A5c12A378AED31d66DB96028e809E",
+    "oov3": "0xdE3B884250333652aC2Bf27fE10A6483a50B0a26",
+    "sandboxOracle": "0x1211A79433CA94bD4cC93d69E615519790467d20",
+    "finalFeeAtoms": "1000000"
+  },
+  "cre": {
+    "mockForwarder": "0xB9F79d863261869B234c481D1f9A7af84AeAd192",
+    "keystoneForwarder": "0xF8344CFd5c43616a4366C34E3EEE75af79a74482",
+    "orgOwner": "0x0000000000000000000000000000000000000000",
+    "workflowName": "eros-resolution-stg",
+    "workflowIds": [],
+    "simRelayers": [
+      "0x0f27bf7D22A563475c62Ef68Bd41c72f359124C5"
+    ]
+  },
+  "trustSets": [
+    {
+      "id": 1,
+      "production": false,
+      "active": true,
+      "attestor": "0xAdB4aB1A632fad6D41d49bcD9DEf374084B286B0",
+      "committee": [
+        "0x068eD0017f2d18f5BcbDfF2157DA00Dd877Cd71b",
+        "0x179D2025d3afB902598dbB1F0e8234e99088139F",
+        "0xED10ce281361Baf48c617a0B19d8217f23a20593"
+      ],
+      "threshold": 2,
+      "watchdog": "0x89F4b643a05915918c2459d04Da494598985264C",
+      "venue": "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1"
+    }
+  ],
+  "globalsVersion": 1,
+  "timelockOps": [
+    {
+      "id": "0x7fdab53115c48bf717ea39873bcd90e248ff7a74b653d194a26533bd7e37a43f",
+      "target": "0xa87D6E10a7199666ec9F2e04866201E35AAf36A6",
+      "selector": "0x81c79aca",
+      "readyAt": 1791112138,
+      "executed": true,
+      "name": "trust set: setSimForwarder, setSimRelayer, createTrustSet, activateTrustSet(1)",
+      "proposeTx": "0x7eac76b3bb7838bfbd7bd2fb28e9055a8dae602217e23113de748f0bd3416bca",
+      "executeTx": "0x5419106d456ab816699d2e0fe2d16de52ebad32112cfed740da0b4f6c8eac6c3"
+    },
+    {
+      "id": "0x6429e0f9fa97c4e4d40e2dfd5bbc1e4b4fd4476573752b827ebac91f0cabf70c",
+      "target": "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa",
+      "selector": "0x93718de1",
+      "readyAt": 1791112161,
+      "executed": true,
+      "name": "registry setup: setGlobals (version 1), setProvider(statsapi.mlb.com), setAuthRef(SPORTSDATA_V1)",
+      "proposeTx": "0x7992d4e9a22644acf2d0433fc910460fdc3301e68630e527b0cb6d38e95d83ef",
+      "executeTx": "0x46e790bbc007d6e3fd7d07b2723d48411f2439c1fac5a73e53ab3f2d69414c86"
+    },
+    {
+      "id": "0x56ad30a6da092ab13a7a84a988f1650b0c326147a7bcc58c770ae976a5f432db",
+      "target": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a",
+      "selector": "0xd4ae02be",
+      "readyAt": 1791112163,
+      "executed": true,
+      "name": "treasury limits: setLimits(100 USDC, 20)",
+      "proposeTx": "0xaebab583bbf853a38a99708e1036b632ca4dd3faa91bd361debd0c048624ec17",
+      "executeTx": "0xc9f6d6aa609d18f736de39fea42816121481324bb58d34ad8bbb2ed8274201db"
+    }
+  ],
+  "markets": [
+    {
+      "marketId": "0xbb40e8e0ece7adae065af4f5a16f87abe4a912db0ada1696171ac7ef6b3be5ea",
+      "engine": "0x597C3744E6C91Ce93e82856A5066FC213c2f21e9",
+      "pack": "listings/0xbb40e8e0ece7adae065af4f5a16f87abe4a912db0ada1696171ac7ef6b3be5ea/pack.json",
+      "listedTx": "0xee55d0c0f1aada1dfd02ccf0342452365af0bac7271d249bb593f58133645a06",
+      "listedBlock": 68099870,
+      "createMarketGas": 4149249
+    }
+  ]
 }

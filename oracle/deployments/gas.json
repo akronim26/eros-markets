@@ -170,7 +170,12 @@
       "limit": 8300000,
       "status": "met",
       "engine": "StubMarketFactory (testnet)",
-      "note": "Largest texts (worst-case claim at 16 KiB). Several SSTORE2 deploys and the engine deploy; Foundry does not price storage as Monad's MIP-8 does, so measure on testnet (plan 6.9)."
+      "note": "Largest texts (worst-case claim at 16 KiB). Several SSTORE2 deploys and the engine deploy; Foundry does not price storage as Monad's MIP-8 does, so measure on testnet (plan 6.9).",
+      "monadTestnet": {
+        "transaction": 4149249,
+        "tx": "0xee55d0c0f1aada1dfd02ccf0342452365af0bac7271d249bb593f58133645a06",
+        "note": "V-M3: first testnet listing (MLB pack, 3,876 B claim), receipt gasUsed on Monad testnet; Monad bills the gas limit, not gasUsed."
+      }
     },
     "createMarketRealEngine": {
       "transaction": 21984385,
@@ -216,7 +221,7 @@
       "limit": 420000,
       "status": "measured",
       "engine": "ResolutionEngineStub (testnet)",
-      "note": "Panel runner's auto-propose route (L2_AUTO, ADJ-50): three identical YES labels above θ_hi in a category validated for the market's gateHash, recorded as an L2_AUTO proposal, with a 256-byte evidence URI. Measured by test_gas_submitPanelResult_autoPropose; limit 1.2 × the transaction. No plan 6.9 budget."
+      "note": "Panel runner's auto-propose route (L2_AUTO, ADJ-50): three identical YES labels above \u03b8_hi in a category validated for the market's gateHash, recorded as an L2_AUTO proposal, with a 256-byte evidence URI. Measured by test_gas_submitPanelResult_autoPropose; limit 1.2 \u00d7 the transaction. No plan 6.9 budget."
     }
   },
   "contractSizes": {
