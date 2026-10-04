@@ -2,6 +2,16 @@
 
 Effective 2026-10-03. Items: GOV-01 / GOV-02.
 
+## Integration scope update — 2026-10-05
+
+The user now authorizes real factory/oracle/risk/book integration and its local
+operational and lifecycle tests (RF-01 through RF-04). This supersedes the older
+oracle exclusions below for this work. Sponsor and frontend integration are deferred.
+No local account controls the existing oracle deployment; the independent pricefeed
+is not yet complete. Live factory switching, actual observations, O42 and OG3b remain
+pending. See `../integration/REAL_FACTORY_INTEGRATION.md`. No new gate acceptance,
+main merge, external review or production permission is inferred.
+
 The user explicitly merged the Risk and Order Book teams and instructed us to make
 our own decisions without mandatory A/B review. This supersedes older ownership,
 next-turn and peer-review requirements in handoffs and status documents.
