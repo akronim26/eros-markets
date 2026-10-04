@@ -14,8 +14,8 @@ The oracle team edits nothing else in the repository. In particular:
 
 - `contracts/**` (the order book and the Risk & Clearing engine) is **read-only**. Oracle code imports it
   only through the `oracle/foundry.toml` remappings:
-  - `@eros/` → `../contracts/src/` (engine interfaces; and B's real settlement modules, in seam tests only)
-  - `@eros-provisional/` → `../contracts/provisional/`
+  - `@eros/` → `../contracts/src/` (engine interfaces and the shared types in `math/MathTypes.sol` and
+    `math/RiskTypes.sol`; and B's real settlement modules, in seam tests only)
   - `@eros-test/` → `../contracts/test/` (non-test mocks such as `mocks/A/MockUSDC.sol` and `mocks/B/*`)
 - **Never import a `contracts/**/*.t.sol` file.** It would compile twice under two paths and make the
   oracle CI run the Risk suites.

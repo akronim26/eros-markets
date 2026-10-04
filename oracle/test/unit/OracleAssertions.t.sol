@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
-import {FinalOutcome} from "@eros/interfaces/IResolutionIngress.sol";
+import {MathTypes} from "@eros/math/MathTypes.sol";
 import {
     FinalizeStatus,
     FinalReason,
@@ -183,7 +183,7 @@ contract OracleAssertionsTest is OracleFixture {
             assertEq(uint8(r.finalReason), uint8(FinalReason.ASSERTED_TRUE));
             assertFalse(r.voided);
             assertEq(e.settleCalls(), 1);
-            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.YES), "settle(1)");
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(MathTypes.FinalOutcome.YES), "settle(1)");
             assertEq(_ledger(), LEDGER, "onBondReturned credits the returned bond");
             assertEq(treasury.outstanding(id, 0), 0);
             assertEq(token.balanceOf(address(treasury)), LEDGER + 100e6, "ASSERTION + WATCHDOG_FLOAT");
@@ -197,7 +197,7 @@ contract OracleAssertionsTest is OracleFixture {
             (bytes32 id, MockResolutionEngine e, bytes32 aid) = _live(Outcome.NO);
             mvenue.setResult(aid, true);
             ro.finalizeMarket(id);
-            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.NO), "settle(0)");
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(MathTypes.FinalOutcome.NO), "settle(0)");
             assertEq(e.settleCalls(), 1);
 
             _toReview(id2);
@@ -206,7 +206,9 @@ contract OracleAssertionsTest is OracleFixture {
             mvenue.setResult(_res(id2).assertionId, true);
             ro.finalizeMarket(id2);
             assertEq(uint8(_res(id2).outcome), uint8(Outcome.INVALID));
-            assertEq(uint8(e2.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID), "settleInvalid()");
+            assertEq(
+                uint8(e2.getSettlementStatus().finalOutcome), uint8(MathTypes.FinalOutcome.INVALID), "settleInvalid()"
+            );
             assertEq(e2.settleCalls(), 1);
         }
         vm.revertToState(snap);
@@ -332,7 +334,7 @@ contract OracleAssertionsTest is OracleFixture {
             assertTrue(r.voided);
             assertEq(r.rejectedMask, 6);
             assertEq(e.settleCalls(), 1);
-            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID));
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(MathTypes.FinalOutcome.INVALID));
             assertEq(_ledger(), LEDGER - 2 * BOND, "each lost bond booked once, no second booking at Final");
             assertEq(treasury.totalOutstanding(), 0);
             assertEq(treasury.committedListing(id), 0, "releaseListing");
@@ -449,7 +451,7 @@ contract OracleAssertionsTest is OracleFixture {
             assertEq(uint8(r.finalReason), uint8(FinalReason.VOID_DEADLINE));
             assertTrue(r.voided);
             assertEq(e.settleCalls(), 1);
-            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(FinalOutcome.INVALID));
+            assertEq(uint8(e.getSettlementStatus().finalOutcome), uint8(MathTypes.FinalOutcome.INVALID));
             assertEq(treasury.committedListing(id), 0);
             assertFalse(ro.voidMarket(id), "Final");
             assertEq(e.settleCalls(), 1);

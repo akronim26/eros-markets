@@ -72,7 +72,7 @@ contract MocksTest is Test {
         {
             // test_engine_keepsStubAuthority
             MockResolutionEngine e = _engine("e3");
-            vm.expectRevert(ResolutionEngineStub.Unauthorized.selector);
+            vm.expectRevert(ResolutionEngineStub.RiskUnauthorized.selector);
             e.settle(1);
         }
     }

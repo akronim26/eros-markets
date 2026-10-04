@@ -2,7 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {Test, console} from "forge-std/Test.sol";
-import {FinalOutcome} from "@eros-provisional/MathTypes.sol";
+import {MathTypes} from "@eros/math/MathTypes.sol";
 import {HaltView} from "@eros/interfaces/IResolutionIngress.sol";
 import {
     FinalReason,
@@ -274,10 +274,10 @@ contract OracleInvariantsTest is Test {
     }
 
     /// The engine's FinalOutcome for an oracle outcome (the engine orders NO before YES; never a cast).
-    function _engineOutcome(Outcome o) internal pure returns (FinalOutcome) {
-        if (o == Outcome.YES) return FinalOutcome.YES;
-        if (o == Outcome.NO) return FinalOutcome.NO;
-        return FinalOutcome.INVALID;
+    function _engineOutcome(Outcome o) internal pure returns (MathTypes.FinalOutcome) {
+        if (o == Outcome.YES) return MathTypes.FinalOutcome.YES;
+        if (o == Outcome.NO) return MathTypes.FinalOutcome.NO;
+        return MathTypes.FinalOutcome.INVALID;
     }
 
     // ------------------------------------------------------------------ handler reach

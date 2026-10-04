@@ -2,13 +2,9 @@
 pragma solidity ^0.8.30;
 
 import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";
-import {
-    IResolutionEngine,
-    HaltView,
-    SettlementView,
-    FinalOutcome,
-    ClearingPhase
-} from "@eros/interfaces/IResolutionIngress.sol";
+import {IResolutionEngine, HaltView, SettlementView} from "@eros/interfaces/IResolutionIngress.sol";
+import {MathTypes} from "@eros/math/MathTypes.sol";
+import {ClearingPhase} from "@eros/math/RiskTypes.sol";
 import {RiskView} from "@eros/risk/RiskView.sol";
 import {IEngineMonitorView} from "../interfaces/IEngineMonitorView.sol";
 
@@ -22,7 +18,7 @@ import {IEngineMonitorView} from "../interfaces/IEngineMonitorView.sol";
 /// @dev Errors use the engine's names, so their selectors match the real engine.
 contract ResolutionEngineStub is IResolutionEngine, IMarketConfig, IEngineMonitorView {
     error AlreadyInitialized();
-    error Unauthorized();
+    error RiskUnauthorized();
     error BadListing(uint8 reason);
     error BadOutcome();
     error ConflictingFinalOutcome();
@@ -37,7 +33,7 @@ contract ResolutionEngineStub is IResolutionEngine, IMarketConfig, IEngineMonito
     bool internal _initialized;
     uint256 internal _oiLots;
     HaltView internal _halt;
-    FinalOutcome internal _final;
+    MathTypes.FinalOutcome internal _final;
     bool internal _monitorRestricted;
 
     constructor() {
@@ -46,7 +42,7 @@ contract ResolutionEngineStub is IResolutionEngine, IMarketConfig, IEngineMonito
 
     /// @notice Once, by the factory. `engineInit = abi.encode(uint256 oiLots)`: the OI reported at the halt.
     function initialize(Listing calldata l, bytes calldata engineInit) external {
-        if (msg.sender != factory) revert Unauthorized();
+        if (msg.sender != factory) revert RiskUnauthorized();
         if (_initialized) revert AlreadyInitialized();
         if (uint256(l.scheduledT) + l.invalidRule.captureGraceSecs > uint256(l.listedAt) + l.invalidRule.voidSecs) {
             revert BadListing(L_HORIZON_VOID);
@@ -74,12 +70,12 @@ contract ResolutionEngineStub is IResolutionEngine, IMarketConfig, IEngineMonito
     function settle(uint8 Y) external virtual returns (bool newlyAccepted) {
         _onlyAuthority();
         if (Y > 1) revert BadOutcome();
-        return _accept(Y == 1 ? FinalOutcome.YES : FinalOutcome.NO);
+        return _accept(Y == 1 ? MathTypes.FinalOutcome.YES : MathTypes.FinalOutcome.NO);
     }
 
     function settleInvalid() external virtual returns (bool newlyAccepted) {
         _onlyAuthority();
-        return _accept(FinalOutcome.INVALID);
+        return _accept(MathTypes.FinalOutcome.INVALID);
     }
 
     function getHaltSnapshot() external view virtual returns (HaltView memory) {
@@ -89,17 +85,17 @@ contract ResolutionEngineStub is IResolutionEngine, IMarketConfig, IEngineMonito
     /// @notice Claims open once the outcome is final; for INVALID only from T, when the real engine's
     ///         price capture can run. The stub has no index, so it reports the listing's fallback price.
     function getSettlementStatus() external view returns (SettlementView memory v) {
-        bool finalSet = _final != FinalOutcome.UNSET;
-        bool binary = _final == FinalOutcome.YES || _final == FinalOutcome.NO;
-        bool priceReady = binary || (_final == FinalOutcome.INVALID && block.timestamp >= _listing.scheduledT);
+        bool finalSet = _final != MathTypes.FinalOutcome.UNSET;
+        bool binary = _final == MathTypes.FinalOutcome.YES || _final == MathTypes.FinalOutcome.NO;
+        bool priceReady = binary || (_final == MathTypes.FinalOutcome.INVALID && block.timestamp >= _listing.scheduledT);
         v.halted = _halt.halted;
         v.finalOutcome = _final;
         v.oracleFinalityAccepted = finalSet;
-        v.invalidPriceReady = _final == FinalOutcome.INVALID && priceReady;
+        v.invalidPriceReady = _final == MathTypes.FinalOutcome.INVALID && priceReady;
         if (priceReady) {
-            v.settlementPriceE18 = _final == FinalOutcome.YES
+            v.settlementPriceE18 = _final == MathTypes.FinalOutcome.YES
                 ? 1e18
-                : _final == FinalOutcome.NO ? 0 : _listing.invalidRule.fallbackPriceWad;
+                : _final == MathTypes.FinalOutcome.NO ? 0 : _listing.invalidRule.fallbackPriceWad;
         }
         v.snapshotId = _halt.snapshotId;
         v.claimsEnabled = finalSet && priceReady;
@@ -132,20 +128,20 @@ contract ResolutionEngineStub is IResolutionEngine, IMarketConfig, IEngineMonito
 
     /// @notice Stands in for the engine's `requestReduceOnly` / `clearReduceOnly` (monitor only).
     function setMonitorRestricted(bool restricted) external {
-        if (msg.sender != _listing.monitor) revert Unauthorized();
+        if (msg.sender != _listing.monitor) revert RiskUnauthorized();
         _monitorRestricted = restricted;
     }
 
     // ------------------------------------------------------------------ internals
 
     function _onlyAuthority() internal view {
-        if (msg.sender != _listing.resolutionAuthority) revert Unauthorized();
+        if (msg.sender != _listing.resolutionAuthority) revert RiskUnauthorized();
     }
 
-    function _accept(FinalOutcome o) internal returns (bool newlyAccepted) {
+    function _accept(MathTypes.FinalOutcome o) internal returns (bool newlyAccepted) {
         _materialize(true);
         if (_final == o) return false;
-        if (_final != FinalOutcome.UNSET) revert ConflictingFinalOutcome();
+        if (_final != MathTypes.FinalOutcome.UNSET) revert ConflictingFinalOutcome();
         _final = o;
         return true;
     }

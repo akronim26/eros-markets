@@ -9,7 +9,7 @@ import {MarginMath} from "@eros/math/MarginMath.sol";
 import {HorizonMath} from "@eros/math/HorizonMath.sol";
 import {MockAccountingPort} from "@eros-test/mocks/B/MockAccountingPort.sol";
 import {MockBookAdapter} from "@eros-test/mocks/B/MockBookAdapter.sol";
-import {AdmissionMode} from "@eros-provisional/MathTypes.sol";
+import {AdmissionMode} from "@eros/math/RiskTypes.sol";
 import {IMarketFactory} from "../../src/interfaces/IMarketFactory.sol";
 
 /// @title EngineHarness
