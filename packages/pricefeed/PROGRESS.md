@@ -2489,3 +2489,95 @@ is **6: category calibration and multi-market soaks**; **7: supervised deploymen
 Four are complete, four remain to build, and one deferred proof remains separate.
 No extra milestone is added. No commit/push/branch change, decisions.md edit,
 counterpart-file modification or further spending authorization was performed.
+
+## 05 October 2026 — milestone 6: category calibration and multi-market diagnostics complete
+
+Base: user commit `cbbe4dd`. Suggested commit message:
+`test: validate category calibration and multi-market soaks`.
+
+**What changed.** Added a finite public-data-only three-category soak, explicit
+candidate grid, offline raw-archive comparison and independent Python Fraction/
+time-interval verifier. The runners require disabled configs, null destinations
+and before-fee VWAP, use the existing shared limiter/independent scheduler, require
+fresh output paths and load no keys/signers/relay adapters. The soak gracefully
+reopens SQLite and recreates workers with a new owner inside the same OS process;
+this is not a supervised restart, OS crash or backup drill. Interrupted runs are
+labeled and exit nonzero; no successful public result is manufactured.
+
+Each grid cell recomputes from original raw metadata/books. N, spread and assumed
+delivery delay are explicit inputs. Stale/future/backwards clocks, source gaps,
+quarantine and invalid depth cannot become usable by changing a price setting.
+Reported depth/spread/age/latency/poll-gap statistics retain integer units.
+Projected carry expires at original vendor seconds +30 and is cut at the next
+decision, including unavailable/invalid decisions. Repeated timestamps never
+refresh carry. Source-side projections are **not submitted checkpoints, chain
+inclusion, indexTwap300 or risk readiness**. Analysis never updates runtime pricing.
+
+New commands: `soak:readonly`, `report:calibration`, `verify:calibration` /
+`verify:soak` and `test:calibration`. `docs/calibration.md` explains reconstruction,
+candidate assumptions, measured results, reproducibility and operating limits.
+The example grid uses four depths, three spreads and three hypothetical delivery
+delays; these do not select production defaults. Own-perp constraints, executable
+fill, fees/quote/precision and actual relay/finality budgets remain separate.
+
+**Actual public campaign.** Three simultaneous workers, **360,458 ms**, five-second
+diagnostic cadence, **216 captures / 72 per category**, **108 comparison cells**.
+At the 180-second boundary, 108 archived captures survived graceful close/reopen;
+another 108 followed. Crypto/politics reused their disabled examples. The old
+sports example was closed; a separate disabled diagnostic used event 92909 /
+market 741099's Yes outcome, “Will LeBron James retire before next NBA season?”.
+Its source sports/NBA tags do not approve Eros event equivalence or listing horizon.
+
+At N=1,000,000 lots, spread=0.05 and a five-second assumed delivery delay:
+
+| Source | Healthy captures | Source-age p95 | Projected availability in last 300 s |
+|---|---:|---:|---:|
+| Crypto | 64/72 | 45.670 s | 289.987/300 s |
+| Sports | 13/72 | 204.133 s | 59.843/300 s |
+| Politics | 72/72 | 3.718 s | 300/300 s |
+
+Crypto had seven stale decisions/one headroom failure; sports had 57 stale/two
+headroom failures. Four sports clock advances and 68 repeats preserve the quiet/
+stale behavior alongside changing-source periods. This is observed book-clock
+behavior, not proof of trades or longer reviewed quiet/active campaigns.
+At ten-second assumed delay, tightening spread to 0.02 at N=1,000,000 reduced
+crypto projection from 284.987 to 211.476 seconds and politics from 300 to 294.960.
+Reducing N at spread 0.05 did not fix the timestamp gaps in this run. Keep these
+failed cases visible; faster polling/wider spreads cannot make stale data fresh.
+
+**Verification.**
+- Final pinned Node 24 TypeScript build: exit 0.
+- Final full Node suite: **394/394**, no failures/skips/cancellations, exit 0;
+  input hashes match the source captured before this run.
+- Focused calibration/load/service suite: **17/17**, exit 0. Six new calibration
+  cases check exact N/spread/delay arithmetic, gaps/repeated clocks/thin depth,
+  identity/body/time corruption, quarantine, one-lot/min-size boundaries and
+  independent replay rejecting changed results. All seven declared existing
+  3/8/12/20/25/100-worker scripted load/slow-RPC/backpressure cases were rerun.
+- Independent public-archive review: **216 captures / 3 markets / 108 cells**,
+  exit 0; raw checksums/mapping/config/clocks and Fraction/interval results match.
+- Wire check, **144** independent impact vectors and **5/5** coverage reference
+  cases: exit 0. No new Forge campaign or real multi-market chain load is claimed.
+- All five active Monad main journals remain byte-identical to milestone 5.
+  **Zero actual key unlocks, live signatures, external transactions, MON spend
+  or activated configs.** This read-only pass does not complete the deferred
+  paid 268/300 coverage/gap proof.
+
+**Evidence.** Compact `artifacts/calibration/multi-market.json` records counts,
+comparison subset, commands, final source/raw-report hashes, scripted load cases
+and unchanged active journal hashes. `artifacts/calibration/inputs.json` keeps
+disabled public run inputs. Raw SQLite, selection, full collector/comparison
+reports and TAP stay ignored in `var/verification/calibration/`; another checkout
+must rerun for its own raw archive. The collector's loaded JS hashes are recorded
+separately: extra depth/spread statistics were added to offline analysis during
+collection, then all cells were independently replayed. No bulky raw data is added
+to the tracked evidence. Previous archives and failure evidence remain untouched.
+
+**Original nine-milestone tracking.** Milestones **1, 3, 4, 5 and 6 complete** for
+their stated diagnostic scope. Milestone **2 remains deferred/unpassed (268/300)**.
+Next is **7: supervised deployment preparation**; **8: monitoring/backups/runbooks**
+and **9: release verification/handoff** follow. **Five complete, three upcoming,
+one deferred proof.** Longer agreed soak/cadence/inclusion targets, signed owner
+production parameters and human PF gates remain open; none are silently accepted.
+No extra milestone, commit/push, decisions.md edit, counterpart-file change or
+additional spending authorization was performed.
