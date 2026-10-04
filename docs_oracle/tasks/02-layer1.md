@@ -152,12 +152,13 @@ Plan §13: owner OB · 1 PD · depends O21, OG1 deploy · acceptance: E1 passes 
 - Depends: O21.4, OG1, X04
 - Plan: §7.5, §12.6, V-C12, V-C13, ADJ-20
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: docs_oracle/evidence/OG2/
 - Build: `cast code` both testnet forwarders (V-C12); register the sim relayer key; list one feed market with the stub engine; after T + buffer call `KeeperRouter.haltAndRequest`; run `cre workflow simulate resolution --target local-sim --limits default --evm-tx-hash … --broadcast`; record `onReport` and total `writeReport` gas from the receipts (V-C13).
 - Done when: the market is Proposed (L1) on testnet and the gas numbers are written into `deployments/gas.json`.
 - Check: manual: ProposedL1 event tx hash and both gas values recorded in docs_oracle/evidence/OG2/
 
+- Notes: Done 4 Oct 2026 on Monad testnet: market 0x273c…75e3 (finished MLB game, T 11:55 UTC) halted and requested by the keeper service, `cre workflow simulate … --broadcast` (CLI v1.36.0) proposed YES in 0x06c2…10fb (ProposedL1); onReport 123,413 and transaction 201,805 gas from a `cast run` replay (Monad bills the 400,000 limit). Evidence: docs_oracle/evidence/OG2/O23.1-broadcast-simulation.md.
 ### O23.2 · Continuous `--listen` stand-in and E1
 - Owner: OB
 - PD: 0.5

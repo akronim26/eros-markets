@@ -142,44 +142,45 @@ Plan §13: owner both · no estimate · depends OG3b · acceptance: OG4.
 - Depends: OG3b, X02
 - Plan: §6.7, §16.2, R-2, V-U8, V-U9
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: oracle/src/venues/*
 - Build: Either (a) a new UmaAdapter pointing to UMA OOv3 on Monad, or (b) a `RelayVenue` on Monad plus a Base asserter linked by CCIP (lane confirmed); then read the venue's burned bond share (V-U8) and USDC minimum bond (V-U9) on chain. The state machine is unchanged; only `IAssertionVenue` changes.
 - Done when: the chosen venue passes the O13 suites adapted to it and the two values are recorded.
 - Check: manual: venue decision, V-U8 and V-U9 values with the cast commands recorded in docs_oracle/evidence/OG4/
-
+- Notes: Skipped: mainnet is out of hackathon scope (ADJ-51).
 ### O43.2 · DVM parameters and the void bound
 - Owner: OA
 - PD: -
 - Depends: OG3b
 - Plan: §14.2, §16.2, V-U6
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: docs_oracle/evidence/OG4/
 - Build: Read `maxRolls` and the vote timing on Ethereum VotingV2 (V-U6); recompute the §14.2 bound; if it exceeds 45 days, raise `voidSecs` and `dvmMaxRolls` for new listings.
 - Done when: production `voidSecs` covers the measured worst case.
 - Check: manual: V-U6 values and the recomputed bound recorded in docs_oracle/evidence/OG4/
-
+- Notes: Skipped: mainnet is out of hackathon scope (ADJ-51).
 ### O43.3 · External audit
 - Owner: both
 - PD: -
 - Depends: OG3b
 - Plan: §12.10
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: docs_oracle/audit/*
 - Build: External audit of `oracle/src`; merge every fix; invariants ORC-1…15 green at the `ci` profile afterwards.
 - Done when: the report and the fix list (each with its commit) are committed.
 - Check: cd oracle && FOUNDRY_PROFILE=ci forge test
-
+- Notes: Skipped: mainnet is out of hackathon scope (ADJ-51).
 ### O43.4 · Mainnet launch
 - Owner: both
 - PD: -
 - Depends: O43.1, O43.2, O43.3
 - Plan: §12.6, §12.10, §14.1, §17
 - Cut: no
-- Status: todo
+- Status: skipped
 - Files: oracle/deployments/monad-mainnet.json, docs_oracle/evidence/OG4/
 - Build: Every §12.10 checklist item: venue live (no sandbox); Timelock ≥ 48 h; guardian Safe; keys in HSM/KMS or hardware wallets; production trust set (mainnet KeystoneForwarder, workflow ID, org owner) and `lockProduction()` before the first listing; a mainnet report with `ReportProcessed(result=true)`; treasury funded and limits set; watchdog green 7 days on testnet; validation report published; parameters recorded with source, date and owner; 45-day and DEC-08 disclosures in the UI; legal review.
 - Done when: every checklist item is ticked with its evidence.
 - Check: manual: the §12.10 checklist with evidence links in docs_oracle/evidence/OG4/checklist.md
+- Notes: Skipped: mainnet is out of hackathon scope (ADJ-51).
