@@ -44,7 +44,15 @@ assert int(campaign['estimatedReservationAtQuoteLimitWei']) == limit * int(cost[
 assert int(campaign['proposedPolicy']['budget']['totalMaxCostWei']) == int(campaign['existingReservedWei']) + int(campaign['additionalReservationWei'])
 assert int(campaign['fundingGapWei']) == max(0, int(campaign['additionalReservationWei']) - int(campaign['observedBalanceWei']))
 assert not campaign['activated'] and not cost['productionApproved'] and not cost['cadenceApproved']
+manifest_path = root / 'gas-quote-archive.json'
 archive = PACKAGE / 'var/monad-testnet/pilot'
+if manifest_path.exists():
+    manifest = json.loads(manifest_path.read_text())
+    archive = (PACKAGE / manifest['archive']).resolve()
+    assert archive.is_relative_to(PACKAGE / 'var')
+    assert manifest['quoteSha256'] == cost['quoteSha256']
+    for name, digest in manifest['archiveSha256'].items():
+        assert hashlib.sha256((archive / name).read_bytes()).hexdigest() == digest
 pilot = json.loads((root / 'publication-pilot.json').read_text())
 for name in ['relay.sqlite', 'transactions.sqlite']:
     assert hashlib.sha256((archive / name).read_bytes()).hexdigest() == pilot['archiveSha256'][name]

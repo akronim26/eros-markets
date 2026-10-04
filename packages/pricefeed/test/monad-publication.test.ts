@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chmodSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
+import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, keccak256, parseAbiParameters,
@@ -23,6 +25,8 @@ import { INGRESS_ABI, type Observation } from '../src/wire.js';
 import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
 import { quoteMonadGas } from '../src/monad-gas-quote.js';
 import { parseConfig } from '../src/config.js';
+import { planMonadBudget, applyMonadBudget, budgetPlanHash } from '../src/monad-budget.js';
+import { json } from '../src/math.js';
 
 const abi=JSON.parse(readFileSync(new URL('../../artifacts/monad-testnet/receiver-abi.json',import.meta.url),'utf8'));
 const policy:RelayPolicy={gasCap:800000n,maxFeePerGas:150000000000n,maxPriorityFeePerGas:2000000000n,
@@ -80,12 +84,110 @@ async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
   const close=()=>{pipeline.close();relay.close();transactionSigner.close();signer.close();packets.close();journal.close();};
   return {dir,cfg,rules,domain,rpc,transport,sender,sent,
     get packets(){return packets;},get pipeline(){return pipeline;},get worker(){return worker;},get relay(){return relay;},
+    get journal(){return journal;},
     get signer(){return signer;},get transactionSigner(){return transactionSigner;},
     setBalance:(n:bigint)=>{balance=n;},setFailure:(n:boolean)=>{failSend=n;},setFinalized:(n:bigint)=>{finalizedSeq=n;},
     holdFinality:()=>{autoFinalize=false;},
     setNow:(n:bigint)=>{now=n;},setHalt:()=>{halt=true;},
     restart:()=>{close();open(false);},close:()=>{close();rmSync(dir,{recursive:true,force:true});}};
 }
+function renewalPolicies(sender:string){
+  const old={schemaVersion:'1',sender,relay:JSON.parse(json(policy)),budget:{maxTransactions:3,totalMaxCostWei:'360000000000000000'}};
+  const next={...old,relay:{...old.relay,gasSafetyMarginBps:'1000'},budget:{maxTransactions:4,totalMaxCostWei:'480000000000000000',budgetRevision:1}};
+  return {old,next};
+}
+test('budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history',async()=>{
+  const s=await setup();let nextRelay:MonadTestnetRelay|undefined,nextPipeline:MonadTestnetPipeline|undefined;
+  try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());s.pipeline.close();
+    const first=s.packets.get(s.domain,1n),delivery=s.relay.get(s.domain,1n),{old,next}=renewalPolicies(s.sender);
+    const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir};
+    const plan=await planMonadBudget(options,old,next,randomUUID(),'BOUNDED_TEST',s.rpc,()=>1000100n);
+    assert.equal(plan.deliveryCount,1);assert.equal(plan.remainingReservationWei,'360000000000000000');
+    assert.deepEqual(s.relay.get(s.domain,1n),delivery);assert.equal(s.sent.length,1);
+    const result=await applyMonadBudget(options,plan,plan.approvalHash,s.rpc,()=>1000100n);
+    assert.equal(result.alreadyApplied,false);assert.equal(result.nextNonce,1n);
+    assert.equal((await applyMonadBudget(options,plan,plan.approvalHash,s.rpc,()=>1000100n)).alreadyApplied,true);
+    assert.deepEqual(s.packets.get(s.domain,1n),first);assert.deepEqual(s.relay.get(s.domain,1n),delivery);
+    await assert.rejects(s.relay.start(),/RELAY_PROFILE_CHANGED/);
+    assert.throws(()=>new MonadTestnetRelay(join(s.dir,'relay.sqlite'),s.packets,s.transport,policy,
+      {maxTransactions:3,totalMaxCostWei:360000000000000000n},()=>1000100n),/RELAY_PROFILE_CHANGED/);
+    const relayPolicy={...policy,gasSafetyMarginBps:1000n};s.rpc.simulate=async()=>100001n;
+    const transport=monadRpcTransport('https://fixture.invalid',s.cfg,abi,s.transactionSigner,relayPolicy,s.rpc,()=>1000100n);
+    nextRelay=new MonadTestnetRelay(join(s.dir,'relay.sqlite'),s.packets,transport,relayPolicy,
+      {maxTransactions:4,totalMaxCostWei:480000000000000000n,budgetRevision:1},()=>1000100n);
+    const lifecycle=new MonadTestnetPublicationLifecycle(s.cfg,s.journal,'renewed-lifecycle',monadLifecycleReader(s.rpc,s.cfg,abi,()=>1000100n),30000n,()=>1000100n);
+    nextPipeline=new MonadTestnetPipeline([{worker:s.worker,rules:s.rules,signer:s.signer,lifecycle}],s.packets,nextRelay,transport,relayPolicy,()=>1000100n);
+    await nextPipeline.start();const update=await nextPipeline.process(await s.worker.poll());
+    assert.equal(update.state,'FINALIZED');assert.equal(update.sequence,2n);assert.equal(parseTransaction(s.sent[1]!).nonce,1);
+    assert.equal(parseTransaction(s.sent[1]!).gas,110002n);assert.deepEqual(nextRelay.get(s.domain,1n),delivery);
+  }finally{nextPipeline?.close();nextRelay?.close();s.close();}
+});
+test('budget plans reject live writers and changes outside finite budgets and enabling gas estimates',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());
+    const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir},{old,next}=renewalPolicies(s.sender);
+    await assert.rejects(planMonadBudget(options,old,next,randomUUID(),'TEST',s.rpc,()=>1000100n),/IDLE_JOURNALS_REQUIRED/);
+    s.pipeline.close();
+    for(const changed of [{...next,relay:{...next.relay,gasCap:'700000'}},
+      {...next,budget:{...next.budget,budgetRevision:2}},
+      {...next,budget:{...next.budget,maxTransactions:3}}])
+      await assert.rejects(planMonadBudget(options,old,changed,randomUUID(),'TEST',s.rpc,()=>1000100n),/BUDGET_RENEWAL_SCOPE/);
+    assert.equal(s.sent.length,1);
+  }finally{s.close();}
+});
+test('failed or changed budget plans roll back without changing the profile or reservations',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());s.pipeline.close();
+    const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir},{old,next}=renewalPolicies(s.sender);
+    const plan=await planMonadBudget(options,old,next,randomUUID(),'TEST',s.rpc,()=>1000100n);
+    await assert.rejects(applyMonadBudget(options,{...plan,reason:'DIFFERENT'},plan.approvalHash,s.rpc,()=>1000100n),/PLAN_CHANGED/);
+    s.setBalance(1n);await assert.rejects(applyMonadBudget(options,plan,plan.approvalHash,s.rpc,()=>1000100n),/NEEDS_TEST_MON/);
+    s.setBalance(10n**18n);const nonce=s.rpc.nonce;s.rpc.nonce=async()=>2n;
+    await assert.rejects(applyMonadBudget(options,plan,plan.approvalHash,s.rpc,()=>1000100n),/NONCE_CHANGED/);s.rpc.nonce=nonce;
+    const db=new DatabaseSync(join(s.dir,'relay.sqlite'));
+    assert.equal(db.prepare("SELECT name FROM sqlite_master WHERE name='relay_budget_audit'").get(),undefined);db.close();
+    await s.relay.start();s.relay.release();
+    await assert.rejects(applyMonadBudget(options,plan,plan.approvalHash,s.rpc,()=>1000100n),/JOURNALS_CHANGED/);
+    assert.equal(s.sent.length,1);
+  }finally{s.close();}
+});
+test('budget audit detects deletion/tampering and conflicting replay without another authorization',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());s.pipeline.close();
+    const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir},{old,next}=renewalPolicies(s.sender);
+    const plan=await planMonadBudget(options,old,next,randomUUID(),'TEST',s.rpc,()=>1000100n);
+    await applyMonadBudget(options,plan,plan.approvalHash,s.rpc,()=>1000100n);
+    const changed={...plan,id:randomUUID()};changed.approvalHash=budgetPlanHash(changed);
+    await assert.rejects(applyMonadBudget(options,changed,changed.approvalHash,s.rpc,()=>1000100n),/REVISION_CONFLICT/);
+    const db=new DatabaseSync(join(s.dir,'relay.sqlite'));db.exec('DELETE FROM relay_budget_audit');db.close();
+    assert.throws(()=>new MonadTestnetRelay(join(s.dir,'relay.sqlite'),s.packets,s.transport,{...policy,gasSafetyMarginBps:1000n},
+      {maxTransactions:4,totalMaxCostWei:480000000000000000n,budgetRevision:1},()=>1000100n),/BUDGET_AUDIT_INTEGRITY/);
+  }finally{s.close();}
+});
+test('applying a budget plan locks every journal through chain checks and commits only the relay policy',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());s.pipeline.close();
+    const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir},{old,next}=renewalPolicies(s.sender);
+    const plan=await planMonadBudget(options,old,next,randomUUID(),'TEST_LOCKS',s.rpc,()=>1000100n);
+    const nonce=s.rpc.nonce;let checked=0;
+    s.rpc.nonce=async()=>{
+      for(const name of ['source','packets','signer','transactions','relay']){
+        const competitor=new DatabaseSync(join(s.dir,name+'.sqlite'),{timeout:1});
+        try{assert.throws(()=>competitor.exec('BEGIN IMMEDIATE'),/locked|busy/);checked++;}
+        finally{competitor.close();}
+      }
+      return nonce('0x0000000000000000000000000000000000000001');
+    };
+    await applyMonadBudget(options,plan,plan.approvalHash,s.rpc,()=>1000100n);assert.equal(checked,5);
+    s.rpc.nonce=nonce;
+    const nextAgain={...next,budget:{maxTransactions:5,totalMaxCostWei:'600000000000000000',budgetRevision:2}};
+    const second=await planMonadBudget(options,next,nextAgain,randomUUID(),'SECOND_BUDGET',s.rpc,()=>1000100n);
+    assert.equal((await applyMonadBudget(options,second,second.approvalHash,s.rpc,()=>1000100n)).revision,2);
+    const db=new DatabaseSync(join(s.dir,'relay.sqlite'));assert.equal(db.prepare('SELECT count(*) AS n FROM relay_budget_audit').get()!.n,2);db.close();
+    assert.equal(s.sent.length,1);
+  }finally{s.close();}
+});
 test('testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart',async()=>{
   const s=await setup();try{
     await s.pipeline.start();const first=await s.pipeline.process(await s.worker.poll());assert.equal(first.state,'FINALIZED');

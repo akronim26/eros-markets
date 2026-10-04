@@ -1,0 +1,13 @@
+{
+  "archive": "var/monad-testnet/gas-quote-evidence",
+  "archiveSha256": {
+    "source.sqlite": "170a9cff99173b455e887631feb1fc5474a86b081bfe94aca2bbb25ed58c984b",
+    "packets.sqlite": "c03809b069a4bec1b6897f11ddd10e77fc3b8d71d39980849bc244d0c7ccf62c",
+    "signer.sqlite": "51793273049ed208c075e601008f9ad40a35b1d2b7929cd3f585fd4bfa766726",
+    "transactions.sqlite": "cf04b653eb072fa1ac99bd2256cd19878bbb745fa208a7286364ef1623b2e113",
+    "relay.sqlite": "abf8348faff87aea8bae03317bcf90d771134561e3b1bdc8535d5dcbda59deb1"
+  },
+  "quoteSha256": "82abd171566a4359e3c2a8c6860c3ec6ebb5e9b6618fa7d621fb76001e793a9d",
+  "copiedAtUtc": "2026-10-04T15:57:47.500155+00:00",
+  "reason": "Freeze quote-only sequence 4 and unchanged relay/transaction journals before any budget renewal; active journals stay in pilot."
+}

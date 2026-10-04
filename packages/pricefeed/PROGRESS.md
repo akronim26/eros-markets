@@ -1877,3 +1877,100 @@ they were not rerun for this gas/cost batch. No production admission or human
 gate acceptance is claimed.
 
 Suggested commit: `fix: estimate Monad publication gas and record feed cost budgets`.
+
+## Pending — 04 October 2026: auditable budget renewal; small paid run prepared
+
+Base: `c909e0d` on `pricefeed`. User continued the gas-cost work and confirmed
+that their 1.6 test MON remains in the browser wallet. All changes remain within
+`packages/pricefeed/`; no push or shared engine/book/oracle change.
+
+**Built.** Added read-only `plan-monad-budget` and exact-plan-hash
+`apply-monad-budget`. The transition preserves both signing histories, observation
+sequence, sender nonce, original deliveries and all historical spend reservations.
+It verifies canonical finalized receipts, receiver/source pins, signatures/raw
+transactions, signer identity, exact journal snapshot, idle leases and current
+funding. Application locks all five journals and atomically changes only the relay
+profile plus a checksum-linked revision audit. Duplicate application is idempotent;
+a changed approval, active writer, insufficient funds, chain/journal disagreement,
+missing/tampered audit or stale cached publisher rejects. Policy renewal cannot
+change signing identities or existing fee/gas ceilings; it can enable the verified
+estimate margin and explicitly increase count/aggregate reservation caps.
+
+**Prepared, not activated.** Read-only actual RPC checks verified all three old
+receipts, receiver sequence 3 and sender nonce 3. Bot balance remains **0.3552 MON**.
+`small-run-budget-plan.json` proposes **eight additional transactions / 0.35 MON
+additional reservations**, with lifetime caps 11 transactions / 0.71 MON counting
+historical 0.36 reservations. Funding gap is zero; browser funds can stay put for
+this small test. Plan hash is
+`5b528fe69c721fc1f860dd631277ab247450c5d3ce42b77824726a9213fb00df`.
+This is not approval: original three-transaction authority is exhausted. No policy
+application, additional signature, nonce reservation or chain transaction occurred.
+The next action is approval/application of this envelope and actual paid gas
+measurement, then sizing/funding/approval of sustained 300-second coverage.
+
+**Evidence.** Before any active-history transition, froze the closed quote journals
+at private `var/monad-testnet/gas-quote-evidence/`; all five original hashes match
+the public manifest. Independent quote review now reads that frozen snapshot,
+remaining reproducible when active history advances. Frozen original pilot
+history remains separate and intact. No alternative active signing history exists.
+
+**Verification.** Full package suite **329/329**, exit 0; focused gas/publication/
+service suite **21/21**, exit 0, included in 329. Five new renewal tests verify
+history/nonce continuation, exact approval/rollback, audit integrity, stale profiles,
+all-five-journal writer exclusion, idempotence and consecutive revisions. Independent
+preserved gas-quote review passes. Retained TAP and tested file hashes:
+`artifacts/verification/monad-budget-unit.json`. An initial build exposed an
+implicit-any delivery list, corrected with explicit typing. An initial rejection
+fixture used an invalid gas/fee combination and reached policy validation first;
+the fixture now uses a valid out-of-scope gas ceiling. Final checks pass without
+weakening validation. Earlier owned-chain crash/Solidity/Fraction campaigns were
+not rerun for this batch and retain their historical evidence.
+
+Eight additional samples will measure paid gas, not full 300-second coverage.
+Sustained coverage, invalid/gap recovery, category calibration and approved
+operations/review remain. Production admission and human gates remain closed.
+
+Suggested commit: `feat: add audited Monad pricefeed budget renewal`.
+
+**Approved-run outcome (same milestone).** User approved the exact eight-update /
+0.35 MON cap. Applying revision 1 succeeded with unchanged signed history,
+historical reservations, receiver sequence 3 and sender nonce 3; application sent
+nothing. The finite publisher exited **1** with `RELAY_HEADROOM_EXPIRED` before
+broadcast. Sequence 5 expired unreserved. Sequence 6 signed/reserved nonce 3,
+selected gas **197,166** from estimate **179,241**, then persisted QUARANTINED,
+attempts **0**. New reservation **0.0295749 MON** remains counted; additional
+reservation room is **0.3204251 MON**. The live pending/finalized nonce is still 3,
+receiver sequence still 3, no receipt exists, balance still **0.3552 MON**.
+**Zero additional transactions / zero gas paid.** Local next nonce is correctly 4;
+no nonce reset, force-send or replacement was performed.
+
+Frozen the closed five journals at private
+`var/monad-testnet/stopped-small-run-evidence/`. Independently verified checksums,
+unchanged original packets/signatures/raw transactions, authentic sequence-6
+raw-book Fraction price/depth and zero recorded broadcast attempts. Public outcome:
+`artifacts/monad-testnet/stopped-small-run.json`; successful application record:
+`small-run-budget-application.json`. Retained failure logs are under verification.
+The failed run is not optimized paid-gas or sustained-coverage evidence.
+
+**Latency correction and next work.** Source 6 was already six seconds old when
+built, and serial RPC gates consumed the remaining publication headroom. Final
+canonical-block and chain-ID checks now run concurrently, retaining both checks,
+fixed error precedence and named-block/freshness validation. Added a barrier test
+for actual concurrency, completion and failure precedence. Prepared read-only
+receipt-cost/Fraction/TWAP report scripts for a later finalized optimized run;
+they compile but have no live optimized receipts to review yet. Their first build
+caught a sender string/Hex typing issue, corrected before the successful build.
+The next required work is explicit tested recovery/cancellation of the signed,
+never-broadcast nonce, preserving both transactions and cumulative budgets; then
+resume the approved cap. Routine restart is intentionally blocked. No extra
+funding is currently needed, and source-age validation remains unchanged.
+
+**Final verification after latency correction.** Full suite **330/330**, exit 0,
+zero failed/skipped/cancelled/todo; the earlier focused 21 is included in 330.
+Frozen pilot and gas-quote reviews still pass after the active journals advanced.
+Receipt report TypeScript builds and the independent report Python parses; neither
+has optimized live receipts yet, so no report execution success is claimed.
+Latest tested file hashes/TAP/outcome metadata:
+`artifacts/verification/monad-budget-latency-unit.json`.
+
+Suggested commit: `feat: add audited Monad pricefeed budget renewal`.

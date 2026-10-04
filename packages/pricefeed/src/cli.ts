@@ -17,6 +17,7 @@ import { monadLifecycleReader, watchMonadLifecycle } from './monad-lifecycle.js'
 import { MonadTestnetLifecycleMonitor, type LifecycleView } from './lifecycle.js';
 import { parseTestnetRunPolicy, runMonadTestnetService } from './monad-service.js';
 import { quoteMonadGas } from './monad-gas-quote.js';
+import { planMonadBudget, applyMonadBudget } from './monad-budget.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -34,10 +35,20 @@ async function main():Promise<void> {
     'preflight-monad':['--rpc-env','--config','--abi'],
     'watch-monad-lifecycle':['--rpc-env','--config','--abi','--db','--interval-ms','--max-checkpoint-age-ms','--duration-seconds'],
     'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize'],
-    'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy']};
+    'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy'],
+    'plan-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--old-policy','--new-policy','--transition-id','--reason'],
+    'apply-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--plan','--plan-sha256']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
+  if(command==='plan-monad-budget'||command==='apply-monad-budget'){
+    const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
+    const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
+    const setup={rpcUrl,config:parseConfig(read(need('--config'))),abi:read(need('--abi')),journalDirectory:need('--journal-dir')};
+    console.log(json(command==='plan-monad-budget'
+      ?await planMonadBudget(setup,read(need('--old-policy')),read(need('--new-policy')),need('--transition-id'),need('--reason'))
+      :await applyMonadBudget(setup,read(need('--plan')),need('--plan-sha256'))));return;
+  }
   if(command==='quote-monad-gas'){
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');

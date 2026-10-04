@@ -31,7 +31,8 @@ export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
     maxCostWei:amount('maxCostWei'),headroomMs:amount('headroomMs'),confirmations:amount('confirmations'),
     leaseMs:amount('leaseMs'),timeoutMs:number(r.timeoutMs,1,30000),maxAttempts:number(r.maxAttempts,1,10),
     ...(r.gasSafetyMarginBps!==undefined?{gasSafetyMarginBps:amount('gasSafetyMarginBps')}:{})};
-  const budget={maxTransactions:number(b.maxTransactions,1,100000),totalMaxCostWei:uint(b.totalMaxCostWei,256)};
+  const budget={maxTransactions:number(b.maxTransactions,1,100000),totalMaxCostWei:uint(b.totalMaxCostWei,256),
+    ...(b.budgetRevision!==undefined?{budgetRevision:number(b.budgetRevision,1,100000)}:{})};
   if(relay.gasCap<=0n||relay.maxFeePerGas<=0n||relay.maxPriorityFeePerGas>relay.maxFeePerGas
     ||relay.maxCostWei<relay.gasCap*relay.maxFeePerGas||relay.headroomMs<=0n||relay.headroomMs>30000n
     ||relay.confirmations!==1n||relay.leaseMs<BigInt(relay.timeoutMs)*8n||relay.leaseMs>3600000n

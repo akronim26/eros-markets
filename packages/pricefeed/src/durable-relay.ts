@@ -8,6 +8,7 @@ import { confirmationState, validateReceipt, type AcceptedReceipt, type Delivery
 import { sourceTime } from './time.js';
 import { submitCalldata } from './wire.js';
 import { sizeGas, type GasSizing } from './gas.js';
+import { relayProfileBody, verifyBudgetAudit, type RelayProfile } from './relay-policy.js';
 import { canonicalTransactionRequest, parseTransactionRequest, type RelayTransactionRequest, type TransactionJournal } from './local-transaction-signer.js';
 
 export type LocalRelayTransport={
@@ -39,9 +40,10 @@ export class DurableRelay {
   private fence=0n;
   private ready=false;
   private active=false;
+  private readonly profileBody:string;
   protected constructor(path:string,private readonly packets:PacketStore,private readonly transport:LocalRelayTransport,
     private readonly policy:RelayPolicy,private readonly now:()=>bigint,
-    private readonly profile:{chainId:31337n|10143n;maxTransactions?:number;totalMaxCostWei?:bigint}){
+    private readonly profile:RelayProfile){
     const url=new URL(transport.rpcUrl);
     if(profile.chainId===31337n){
       if(url.protocol!=='http:'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)||url.username||url.password||url.hash)throw new Error('LOCAL_RPC_ONLY');
@@ -62,9 +64,12 @@ export class DurableRelay {
       CREATE TABLE IF NOT EXISTS relay_signer(sender TEXT PRIMARY KEY,journal_id TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS relay_control(id INTEGER PRIMARY KEY CHECK(id=1),profile TEXT NOT NULL,reason TEXT) STRICT;
       CREATE TABLE IF NOT EXISTS deliveries(key TEXT PRIMARY KEY,ns TEXT NOT NULL,nonce TEXT NOT NULL UNIQUE,body TEXT NOT NULL,sha256 TEXT NOT NULL) STRICT;`);
-    const profileBody=json(profile.chainId===10143n?{...profile,relayPolicy:policy}:profile),control=this.db.prepare('SELECT profile,reason FROM relay_control WHERE id=1').get();
+    this.profileBody=relayProfileBody(profile,policy);
+    const profileBody=this.profileBody,control=this.db.prepare('SELECT profile,reason FROM relay_control WHERE id=1').get();
     if(control&&control.profile!==profileBody){this.db.close();throw new Error('RELAY_PROFILE_CHANGED');}
     if(!control)this.db.prepare('INSERT INTO relay_control VALUES(1,?,NULL)').run(profileBody);
+    try{verifyBudgetAudit(this.db,profileBody,profile.budgetRevision??0);}
+    catch(error){this.db.close();throw error;}
     const accounts=this.db.prepare('SELECT sender,initial_nonce,next_nonce FROM relay_nonce').all();
     const signerPins=this.db.prepare('SELECT sender FROM relay_signer').all();
     if(signerPins.length>1||signerPins.some(r=>r.sender!==transport.sender.toLowerCase())){this.db.close();throw new Error('RELAY_ACCOUNT_CHANGED');}
@@ -80,6 +85,7 @@ export class DurableRelay {
   }
   private account(){const q=this.db.prepare('SELECT * FROM relay_nonce WHERE sender=?');q.setReadBigInts(true);return q.get(this.transport.sender.toLowerCase());}
   private lease():void {
+    if(this.db.prepare('SELECT profile FROM relay_control WHERE id=1').get()?.profile!==this.profileBody)throw new Error('RELAY_PROFILE_CHANGED');
     const row=this.account();
     if(this.db.prepare('SELECT reason FROM relay_control WHERE id=1').get()?.reason)throw new Error('RELAY_PERSISTENT_QUARANTINE');
     if(!row||row.owner!==this.owner||BigInt(String(row.fence))!==this.fence||BigInt(String(row.until_ms))<=this.now())throw new Error('RELAY_WRITER_FENCED');
@@ -100,6 +106,7 @@ export class DurableRelay {
     this.ready=false;const nonce=await this.bounded(this.transport.pendingNonce());
     if(nonce<0n||nonce>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('BAD_RELAY_NONCE');
     this.tx(()=>{
+      if(this.db.prepare('SELECT profile FROM relay_control WHERE id=1').get()?.profile!==this.profileBody)throw new Error('RELAY_PROFILE_CHANGED');
       const row=this.account(),now=this.now();
       if(row&&BigInt(String(row.until_ms))>now&&row.owner!==this.owner)throw new Error('RELAY_WRITER_BUSY');
       if(row&&(nonce>BigInt(String(row.next_nonce))||nonce<BigInt(String(row.initial_nonce))))throw new Error('UNKNOWN_RELAY_NONCE');

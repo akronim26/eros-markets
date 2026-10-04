@@ -122,10 +122,17 @@ export async function preflightMonadTestnet(rpc:MonadReadRpc,
         engineCodeHash,rulesHash:state.rulesHash,scheduledT:BigInt(d.scheduledT),halted,
         blockNumber:block.number,blockHash:block.hash,blockTimestamp:block.timestamp,canonical:true}};
   }
-  const canonical=await rpcCall('MONAD_CANONICAL_BLOCK_FAILED',()=>rpc.block({blockNumber:block.number}));checkBlock(canonical);
+  // Both reads follow all contract reads. Await both, retaining deterministic
+  // error priority, but do not spend an extra network round trip on chain ID.
+  const [canonicalRead,chainRead]=await Promise.allSettled([
+    rpcCall('MONAD_CANONICAL_BLOCK_FAILED',()=>rpc.block({blockNumber:block.number})),checkChain(),
+  ]);
+  if(canonicalRead.status==='rejected')throw canonicalRead.reason;
+  const canonical=canonicalRead.value;checkBlock(canonical);
   if(canonical.number!==block.number||canonical.hash.toLowerCase()!==block.hash.toLowerCase()||canonical.timestamp!==block.timestamp)
     throw new Error('MONAD_BLOCK_CHANGED');
-  await checkChain();checkBlock(block);
+  if(chainRead.status==='rejected')throw chainRead.reason;
+  checkBlock(block);
   return {mode:'MONAD_TESTNET_READ_ONLY',status:verified?'ENGINE_PINS_VERIFIED':'NETWORK_VERIFIED_ENGINE_NOT_CONFIGURED',
     chainId:BigInt(MONAD_TESTNET_CHAIN_ID),blockTag:'finalized',block,checkedAtMs:now(),engine:verified,
     operationalOutput:false,signaturesProduced:0,transactionsSent:0};
