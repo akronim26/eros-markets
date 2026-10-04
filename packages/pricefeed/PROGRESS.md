@@ -1157,11 +1157,90 @@ mapping/calibration/key/RPC/finality, concrete lifecycle reader, policies and na
 acceptance remain open. Edits stay in packages/pricefeed; unrelated sponsor-plan
 and root output work is left untouched. External-chain transactions: zero.
 
-## Pending — PF017 final progress and verification notes
+## 13e92b7 — PF017 final progress and verification notes
+
+Observed commit: `13e92b7c35a4668bb6ccc36f493127edeb636c3a`,
+04 October 2026 10:58:28 +05:30.
+Message: `test: record offline observation replay verification`.
 
 Base: `47b442b663455086c0041f15803adc8db3f28405`.
 Suggested message: `test: record offline observation replay verification (PF017)`.
-Only PROGRESS.md and docs/plan-status.md are pending: record the observed user
+Only PROGRESS.md and docs/plan-status.md were updated to record the observed user
 commit, final 232-test result, real-capture packet/digest/evidence-hash match and
 next recovery work. No source changed after the successful suite; historical
 Solidity evidence is explicitly distinguished from freshly run CLI checks.
+
+## fff4013 — process-crash fixtures added during PF016 work
+
+Observed commit: `fff4013a76a7879a9b77fdd333c182ffc5053b5b`,
+04 October 2026 11:09:50 +05:30.
+Message: `fix: quarantine expired relay reservations after restart`.
+The observed diff contains recovery-child.ts and recovery.test.ts only. The
+actual relay fix was applied in the working tree afterward; this commit message
+alone does not mean the expiry regression passes in that committed snapshot.
+
+## Pending — expiry quarantine fix, crash evidence and recovery runbook
+
+Base: `fff4013a76a7879a9b77fdd333c182ffc5053b5b`.
+Suggested message: `fix: persist expired relay quarantine and recovery evidence (PF016)`.
+User requested remaining-plan percentage then the next implementation step.
+Planning estimate before this slice: core bot implementation about 80% complete
+(20% left); full implementation/operations/review plan about 65% complete
+(35% left). These are approximate effort estimates from the PF001–PF028 audit,
+not a count of accepted tasks, measured schedule or production release score.
+
+**Implemented.** Thirteen OS SIGKILL boundaries exercise actual source,
+packet, observation-signer and relay journals with scripted source/transaction-
+signer/chain counterparts. Initial seventeen-test recovery suite passed after
+correcting a fixture JSON formatting assertion. The enhanced expiry regression
+then failed: a restarted expired reserved packet was refused but its delivery
+remained PREPARING instead of persistent quarantine. LocalRelay now persists
+RESERVED_NONCE_HEADROOM_EXPIRED before refusing previously reserved states,
+including after delayed simulation/guard reads. It preserves packet/raw bytes
+and invokes the existing shared-account allocation block. The focused expiry
+case now passes for PREPARING/READY/UNKNOWN. The complete recovery/relay and
+package suites subsequently passed as recorded below.
+
+Additional tests cover immediate lease contention, packet snapshots behind
+independent signer reservations, relay snapshots behind consumed chain nonce,
+precise signer reservation/signature crash stages, another worker blocked by
+quarantine and slow resimulation. Added test:recovery runner records commands,
+actual TAP results, thirteen case reports and source hashes. The recovery runbook
+distinguishes scripted crash evidence from real-source/Anvil graceful restarts,
+and names backup, receipt, expiry and unresolved-nonce limitations. All work stays
+inside packages/pricefeed; no deployment or external transaction occurs.
+
+**Final verification.** `npm run test:recovery` exits 0 with 26 passing tests,
+including thirteen boundary cases and four additional lease/restore/expiry
+tests (some run multiple scenarios), plus nine relay tests. The complete
+`npm test` exits 0 with **251 tests**, no failures/skips/cancellations/todo.
+The 144 independent Fraction vectors (seed 20261002) and focused 26 tests are
+already included; do not add the counts. Build, `npm run check:wire`,
+`npm run test:reference` and `git diff --check` exit 0. The first sandbox full run
+reported 242/251 passing because nine CLI subprocess outputs were unavailable;
+the approved outside-sandbox repeat passed all 251. The isolated expiry test
+failed before the relay fix and passed afterward. Actual failure/pass results
+are retained in the progress and machine summaries, not rewritten as first-run
+success. Owned Solidity tests were not rerun for this bot journal/relay change;
+earlier evidence remains historical.
+
+Machine evidence: artifacts/verification/recovery.json and recovery.tap retain
+the focused command, thirteen per-boundary reports, actual TAP counts, tested
+source hashes and explicit fixture/clock limitations. recovery-unit.json records
+the final full-suite counts/log SHA-256, actual base commit and source hashes,
+wire/reference results and earlier failure reasons. No future commit or human
+acceptance is manufactured. Each resumed boundary preserves archived packet,
+digest and stored signature, reuses the exact reserved transaction, recovers
+already accepted receipts without another broadcast, and continues sequences
+1/2 with nonces 0/1. Tests independently inspect signature-null reservation
+versus persisted signer signature. Immediate lease takeover, lagging packet
+snapshot, lagging relay nonce snapshot and expired sends remain blocked.
+
+**Remaining/next.** Crash fixtures manually compose existing journals; source,
+transaction-signer reservations, blocks/receipts/acceptance and elapsed clock are
+scripted. This is real OS termination, not a joined LocalPipeline/Anvil kill,
+disk/power-loss, production supervisor or production-backup certification.
+Next independent work is many-worker load/slow-RPC evidence and an owned-chain
+joined crash campaign. Production transaction-signer backup/reservations,
+canonical block-labeled reads, nonce replacement/cancellation, approved budgets,
+supervisor/monitoring, mapping/calibration and named acceptance remain open.

@@ -103,6 +103,34 @@ test('a signing delay past headroom quarantines the reserved nonce and preserves
     assert.equal(s.packets.get(s.domain,1n)!.packet.observation.publishedAt,1000n);
   }finally{s.close();}
 });
+test('expired reservation on restart blocks new nonces across workers while preserving the old signed bytes',async()=>{
+  const s=await setup();try{
+    const original=await s.relay.deliver(config,'owner',s.fence,1n);s.setNow(1031000n);
+    await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/HEADROOM_EXPIRED/);
+    const blocked=s.relay.get(s.domain,1n)!;assert.equal(blocked.state,'QUARANTINED');
+    assert.equal(blocked.raw,original.raw);assert.equal(blocked.nonce,original.nonce);
+    assert.deepEqual(s.packets.get(s.domain,1n),s.signed);
+    const d={...s.domain,sourceId:h('99'),rulesHash:h('98')},cfg={...config,destination:{...config.destination!,sourceId:d.sourceId,sourceRulesHash:d.rulesHash}};
+    const fence=s.packets.acquire(d,'second',1031000n,100000n);s.packets.reconcile(d,'second',fence,1031000n,{lastSequence:0n,lastObservedAt:0n});
+    s.packets.allocate(d,'second',fence,1031000n,sequence=>({...candidate(sequence),domain:d,sourceMs:1031000n,
+      observation:{...candidate(sequence).observation,sourceId:d.sourceId,sourceRulesHash:d.rulesHash,observedAt:1031n,publishedAt:1031n}}));
+    await signPrepared(s.packets,d,'second',fence,1n,signer,()=>1031000n,1000n);
+    const identity=s.transport.identity;s.transport.identity=async()=>({...await identity(d),signer:d.signer,rulesHash:d.rulesHash,
+      listing:{...cfg.destination,indexSourceId:d.sourceId,indexSigner:d.signer,indexRulesHash:d.rulesHash,depthNLots:cfg.pricing.depthNLots,maxSpreadWad:cfg.pricing.maxSpreadWad}});
+    await assert.rejects(s.relay.deliver(cfg,'second',fence,1n),/RELAY_NONCE_RECOVERY_REQUIRED/);
+    assert.equal(s.relay.get(d,1n),null);assert.equal(s.sent.length,1);
+  }finally{s.close();}
+});
+test('headroom exhausted while resimulating an existing reservation persists quarantine',async()=>{
+  const s=await setup();try{
+    const original=await s.relay.deliver(config,'owner',s.fence,1n);
+    s.transport.simulate=async()=>{s.setNow(1030001n);};
+    await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/HEADROOM_EXPIRED/);
+    const blocked=s.relay.get(s.domain,1n)!;
+    assert.equal(blocked.state,'QUARANTINED');assert.equal(blocked.reason,'RESERVED_NONCE_HEADROOM_EXPIRED');
+    assert.equal(blocked.raw,original.raw);assert.equal(s.sent.length,1);
+  }finally{s.close();}
+});
 test('a rejected simulation consumes no transaction nonce and can retry the identical signed observation',async()=>{
   const s=await setup();try{
     s.transport.simulate=async()=>{throw new Error('SIMULATION_REJECTED');};

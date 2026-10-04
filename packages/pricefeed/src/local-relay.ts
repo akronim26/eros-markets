@@ -127,17 +127,26 @@ export class LocalRelay {
       verifyListing(cfg,identity.listing);
       if(identity.lastSequence>=seq)throw new Error('RECEIPT_RECONCILIATION_REQUIRED');
       if(identity.lastObservedAt>packet.packet.observation.observedAt)throw new Error('BACKWARDS_CHAIN_SOURCE_TIME');
-      if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
+      const requireFresh=()=>{
+        if(this.fresh(packet))return;
+        // A restart or delayed read may exhaust a previously reserved nonce's
+        // headroom. Persist account-wide recovery blocking, including reservations
+        // without raw bytes; never leave them looking retryable after expiry.
+        if(r&&['PREPARING','READY','UNKNOWN','ORPHANED'].includes(r.state))
+          this.save(d,{...r,state:'QUARANTINED',reason:'RESERVED_NONCE_HEADROOM_EXPIRED'});
+        throw new Error('RELAY_HEADROOM_EXPIRED');
+      };
+      requireFresh();
       if(r?.state==='QUARANTINED')throw new Error('RELAY_RECOVERY_REQUIRED');
       const data=submitCalldata(packet.packet.observation,packet.signature);
       // A rejected simulation must not burn a shared-account nonce before signing.
       await this.bounded(this.transport.simulate(d.engine,data));
       this.packets.assertWriter(d,owner,fence,this.now());
-      if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
+      requireFresh();
       // A slow simulation may cross the recording deadline. Check before reserving a nonce.
       if(beforeSend)await beforeSend();
       this.packets.assertWriter(d,owner,fence,this.now());
-      if(!this.fresh(packet))throw new Error('RELAY_HEADROOM_EXPIRED');
+      requireFresh();
       if(!r){r=this.tx(()=>{
         this.lease();
         for(const row of this.db.prepare('SELECT body,sha256 FROM deliveries WHERE ns=?').all(ns)){

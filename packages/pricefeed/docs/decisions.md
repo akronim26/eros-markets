@@ -209,6 +209,14 @@ resolve invalid/lifecycle policy or establish a production pipeline. Q10 still
 requires calibration, soak/load evidence, retention, monitoring ownership,
 independent review and release approval.
 
+Local recovery drills now terminate processes with OS SIGKILL at thirteen journal
+boundaries using scripted source/chain counterparts. Expired reserved deliveries
+persist shared-account quarantine on restart or slow resimulation, preserving
+packet/raw bytes and preventing new nonce allocation. Older packet/relay snapshot
+checks and a development recovery runbook are present; production backup,
+supervisor, transaction-signer and replacement policies remain open. See
+[recovery-runbook.md](recovery-runbook.md).
+
 The development runtime is pinned to Node 24.21.0 LTS, TypeScript 5.9.3 and viem
 2.57.2, with a package-local lockfile. These are implementation tool choices, not
 approved infrastructure capacity, storage, risk parameters or production release.
