@@ -1,7 +1,32 @@
 import { performance } from 'node:perf_hooks';
 import type { PollResult } from './worker.js';
 
-export type ScheduledWorker={config:{key:string;poll:{intervalMs:number}};poll():Promise<PollResult>;shouldPoll?():Promise<boolean>};
+/** A burst occupies one pending slot. Transport generations never represent source time. */
+export class RefreshSignal {
+  private pending=false;
+  private readonly listeners=new Set<()=>void>();
+  resyncRevision=0;
+  generation=0;
+  constructor(readonly minimumHintIntervalMs=1000){
+    if(!Number.isSafeInteger(minimumHintIntervalMs)||minimumHintIntervalMs<1||minimumHintIntervalMs>60000)throw new Error('BAD_HINT_INTERVAL');
+  }
+  request(generation:number,resync=false):void {
+    this.generation=generation;if(resync)this.resyncRevision++;
+    this.pending=true;for(const wake of this.listeners)wake();
+  }
+  consume():void {this.pending=false;}
+  wait(periodMs:number,minimumMs:number,signal:AbortSignal):Promise<void>{
+    if(signal.aborted||periodMs<=0)return Promise.resolve();
+    return new Promise(resolve=>{
+      const begun=performance.now();let hintTimer:ReturnType<typeof setTimeout>|undefined;
+      const done=()=>{clearTimeout(timer);if(hintTimer)clearTimeout(hintTimer);this.listeners.delete(wake);signal.removeEventListener('abort',done);resolve();};
+      const wake=()=>{if(hintTimer===undefined)hintTimer=setTimeout(done,Math.max(0,minimumMs-(performance.now()-begun)));};
+      const timer=setTimeout(done,periodMs);this.listeners.add(wake);signal.addEventListener('abort',done,{once:true});
+      if(this.pending)wake();if(signal.aborted)done();
+    });
+  }
+}
+export type ScheduledWorker={config:{key:string;poll:{intervalMs:number}};poll():Promise<PollResult>;shouldPoll?():Promise<boolean>;refresh?:RefreshSignal};
 function pause(ms:number,signal:AbortSignal):Promise<void> {
   if(signal.aborted)return Promise.resolve();
   return new Promise(resolve=>{
@@ -9,7 +34,7 @@ function pause(ms:number,signal:AbortSignal):Promise<void> {
     const timer=setTimeout(done,ms);signal.addEventListener('abort',done,{once:true});
   });
 }
-/** Periodic complete snapshots only. Collection never signs or broadcasts. */
+/** Periodic complete snapshots, optionally woken by bounded stream hints. */
 export class CollectionService {
   private running=false;
   constructor(private readonly workers:readonly ScheduledWorker[]){
@@ -29,10 +54,14 @@ export class CollectionService {
             const begun=performance.now();
             if(worker.shouldPoll&&!await worker.shouldPoll())break;
             if(stop.signal.aborted)break;
+            worker.refresh?.consume();
             const result=await worker.poll();
             await onResult(result); // raw evidence has been archived before this callback.
             const remaining=worker.config.poll.intervalMs-(performance.now()-begun);
-            if(remaining>0)await pause(remaining,stop.signal);
+            if(remaining>0){
+              if(worker.refresh)await worker.refresh.wait(remaining,worker.refresh.minimumHintIntervalMs-(performance.now()-begun),stop.signal);
+              else await pause(remaining,stop.signal);
+            }
           }
         }catch(error){stop.abort(error);throw error;}
       });

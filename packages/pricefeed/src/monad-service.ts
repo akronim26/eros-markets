@@ -19,6 +19,7 @@ import { PublicPolymarket, RequestLimiter } from './polymarket.js';
 import type { PipelineResult } from './pipeline.js';
 import { record } from './book.js';
 import { SourceSnapshotBuffer } from './source-buffer.js';
+import { MarketStreamHints } from './market-stream.js';
 
 export type TestnetRunPolicy={sender:string;relay:RelayPolicy;budget:TestnetRelayBudget};
 export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
@@ -42,11 +43,12 @@ export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
   return {sender:p.sender,relay,budget};
 }
 export type TestnetServiceOptions={config:MarketConfig;rules:RulesManifest;abi:unknown;rpcUrl:string;
-  keysDirectory:string;journalDirectory:string;policy:TestnetRunPolicy;durationSeconds:number;stopAfterFinalized:number;initialize:boolean};
+  keysDirectory:string;journalDirectory:string;policy:TestnetRunPolicy;durationSeconds:number;stopAfterFinalized:number;initialize:boolean;streamHints?:boolean};
 /** Finite explicitly budgeted testnet service, with five durable journals and no production admission. */
 export async function runMonadTestnetService(options:TestnetServiceOptions,signal:AbortSignal,
   onResult:(result:PipelineResult)=>void|Promise<void>):Promise<Record<string,unknown>> {
   const cfg=validateMonadLifecycleConfig(parseConfig(structuredClone(options.config))),d=cfg.destination!;
+  if(options.streamHints!==undefined&&typeof options.streamHints!=='boolean')throw new Error('BAD_STREAM_HINTS_OPTION');
   const rules=parseRules(structuredClone(options.rules)),parsed=parseEngineReadAbi(options.abi),policy=structuredClone(options.policy);
   if(parsed.abiHash.toLowerCase()!==d.abiHash.toLowerCase()||rulesHash(rules)!==d.sourceRulesHash.toLowerCase())throw new Error('MONAD_CONFIG_OR_ABI_MISMATCH');
   if(!Number.isSafeInteger(options.durationSeconds)||options.durationSeconds<1||options.durationSeconds>86400
@@ -84,12 +86,13 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
     relay=new MonadTestnetRelay(join(root,'relay.sqlite'),packets,transport,policy.relay,policy.budget);
     const worker=new Worker(cfg,new PublicPolymarket(cfg.poll,new RequestLimiter(100,200)),source,randomUUID());collector=worker;
     const snapshots=new SourceSnapshotBuffer(worker);
+    const stream=options.streamHints?new MarketStreamHints([worker]):null;
     const lifecycle=new MonadTestnetPublicationLifecycle(cfg,source,randomUUID(),monadLifecycleReader(read,cfg,parsed.abi),30000n);
     // The collector owns/relinquishes its lease after both loops have drained.
     // Pipeline shutdown must not release it during an independent in-flight poll.
     const publicationIntervalMs=Math.max(20000,cfg.poll.intervalMs);
     pipeline=new MonadTestnetPipeline([{worker:{config:cfg,poll:()=>snapshots.poll()},rules,signer,lifecycle,
-      latestSnapshot:()=>snapshots.snapshot(),publicationIntervalMs}],packets,relay,transport,policy.relay);
+      latestSnapshot:()=>snapshots.snapshot(),...(stream?{sourceReady:()=>snapshots.publicationReady()}:{}),publicationIntervalMs}],packets,relay,transport,policy.relay);
     await pipeline.start();
     const inventory=()=>packets.list(domain).map(p=>({packet:p.packet,digest:p.digest,signature:p.signature,state:p.state,
       delivery:relay!.get(domain,p.packet.observation.sequence)}));
@@ -97,12 +100,14 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
     timer=setTimeout(()=>stop.abort(),options.durationSeconds*1000);
     if(finalized()>=options.stopAfterFinalized)stop.abort();
     const coupled=(run:Promise<void>)=>run.finally(()=>stop.abort());
-    const outcomes=await Promise.allSettled([coupled(snapshots.run(stop.signal)),coupled(pipeline.run(stop.signal,async(result)=>{
+    const runs=[coupled(snapshots.run(stop.signal)),coupled(pipeline.run(stop.signal,async(result)=>{
       await onResult(result);if(finalized()>=options.stopAfterFinalized)stop.abort();
-    }))]);
+    }))];
+    if(stream)runs.push(coupled(stream.run(stop.signal)));
+    const outcomes=await Promise.allSettled(runs);
     const failed=outcomes.find(r=>r.status==='rejected');if(failed?.status==='rejected')throw failed.reason;
     return {mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',completed:true,engine:d.engineAddress,
-      finalizedPackets:finalized(),stopAfterFinalized:options.stopAfterFinalized,publicationIntervalMs,collectionIntervalMs:cfg.poll.intervalMs,packets:inventory(),
+      finalizedPackets:finalized(),stopAfterFinalized:options.stopAfterFinalized,publicationIntervalMs,collectionIntervalMs:cfg.poll.intervalMs,stream:stream?.inspect()??null,packets:inventory(),
       evidenceValid:source.verify()&&packets.verify(),humanGatesAccepted:false,productionApproved:false};
   }finally{
     if(timer)clearTimeout(timer);signal.removeEventListener('abort',forward);

@@ -2335,3 +2335,82 @@ was performed.
 
 Commit message for completed milestone 3:
 `feat: complete market discovery and metadata validation`
+
+## 05 October 2026 — milestone 4: stream hints and reconnect recovery complete
+
+Base: user commit `828de59`. Suggested commit message:
+`feat: add book streaming and reconnect recovery`.
+
+**What changed.** The public market stream now prompts full REST refreshes; it
+never supplies calculated depth, prices or observation timestamps. Native Node
+24 subscriptions bind token and condition, include lifecycle events, send PING
+every ten seconds and enforce a PONG deadline. Timeout, close/error, missing PONG,
+malformed/binary/oversized frames and deliberate disconnect recover with bounded
+backoff/jitter. Unknown events and unrelated identities are ignored. Whole batches
+are checked before refreshing; no incremental book is merged.
+
+Per-worker signals coalesce bursts into one pending slot and enforce a diagnostic
+one-second minimum hint cadence. Periodic collection, independent worker loops
+and the shared REST limiter remain active. Tick/lifecycle hints and reconnect
+invalidate cached eligibility and force metadata revalidation. Detached callbacks
+and in-flight captures from older resync revisions cannot restore that eligibility.
+Durable ordering, rule/status baselines and quarantine remain intact.
+
+`SourceSnapshotBuffer` coalesces bootstrap/background requests and retains only
+current-revision results. The optional Monad guard checks eligibility before/after
+signing, before nonce reservation and before broadcast. Degraded/quarantined
+captures block pending publication. Signed packet fields remain immutable while
+waiting for a refresh. An already-reserved nonce keeps its explicit recovery
+requirement; it is never silently deleted/reused.
+
+`serve` and finite `serve-monad-testnet` accept `--stream-hints true|false`, default
+false. Hints affect collection, not the twenty-second publisher, caps or admission.
+A finite public-data-only probe and independent Python reviewer are documented
+in `docs/stream.md`. They require no keys or RPC adapter.
+
+**Actual verification.**
+- Pinned Node 24 TypeScript build: exit 0.
+- Final full Node suite: **378/378**, no failures/skips/cancellations, exit 0.
+  A preceding 378-pass run came before the final publication predicate tightening;
+  the final run covers it and has matching source hashes.
+- Focused transport/collector/worker/buffer suite: **36/36**, exit 0.
+- Wire compatibility: exit 0; independent impact reference **144 vectors**;
+  independent coverage reference **5/5**, exit 0.
+- Fifty-second actual public-data probe: **two connections**, disconnect at 22
+  seconds, **four PONG replies**, **450 accepted hint events**, five ignored events
+  and zero rejected frames. **45 REST captures**: 44 COLLECTING and one expected
+  STREAM_RESYNC_REQUIRED capture crossing reconnect. Exit 0; original clocks kept.
+- Independent Python replay: **45 checksums/raw representations**, **44 original
+  eligible timestamps**, exit 0. Four tamper cases rejected: checksum corruption,
+  parsed/body mismatch, retimestamped observation and wrong capture count.
+- All five active Monad journals match the prior discovery manifest byte for byte.
+  **Zero new live signatures, transactions, MON spend or activated configs.**
+- Whitespace diff check passes; all changed files are inside this package.
+
+**Evidence.** `artifacts/stream/live-probe.json`, `live-review.json` and
+`artifacts/verification/stream-unit.json` retain compact results/hashes. Raw TAP,
+stderr and SQLite remain ignored in `var/verification/stream/`. No new bulky raw
+capture report is tracked. Full WebSocket frames were not retained: event counters
+are probe-reported; independent review certifies the REST archive/timestamps.
+Another checkout must rerun the probe for its own local archive. Earlier evidence
+is preserved. No new Forge/paid Monad campaign, calibration, deployment or human
+production acceptance is claimed.
+
+**Original nine-milestone tracking.** No extra milestone or commit is added.
+
+| Original milestone | State |
+|---|---|
+| 1. Expired nonce recovery within budget | Complete |
+| 2. Sustained Monad coverage and gap recovery | Deferred: actual first phase failed at 268/300 |
+| 3. Market discovery and metadata validation | Complete for diagnostics (`828de59`) |
+| 4. Stream hints and reconnect recovery | Complete for diagnostics; this work |
+| 5. Transaction recovery and signer custody | Next |
+| 6. Category calibration and multi-market soaks | Remaining |
+| 7. Supervised deployment | Remaining |
+| 8. Monitoring, backups and runbooks | Remaining |
+| 9. Release verification and handoff evidence | Remaining |
+
+Three are complete, five remain to build, and the deferred coverage proof remains
+unpassed. Its prepared budget renewal is inactive; no further spend is authorized
+by this work. No commit, push, branch switch, decisions.md edit or counterpart-file
+change was performed.

@@ -1,8 +1,8 @@
 # Pricefeed plan status — 05 October 2026
 
 Source of requirements: `docs/requests/polymarket-event-price-feed-implementation-plan.pdf`,
-v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 0e42823 plus
-the deferred initial coverage failure, collection timing fix and metadata discovery. This is an
+v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 828de59 plus
+diagnostic stream hints, reconnect/resync and publication guards. This is an
 implementation/evidence audit, not human gate acceptance. No PF-G0–PF-G7 acceptance is claimed.
 
 “Built” below describes the stated local or diagnostic testnet code/evidence only. A task with approvals, missing
@@ -38,7 +38,7 @@ checks; sustained 300-second coverage and a full economic engine join remain.
 | PF009 Metadata | Direct event/market lookup; bounded tagged keyset discovery; binary token/label checks; explicit null/negative-risk candidate rejection; failed-refresh cache invalidation and durable rule/status quarantine; actual sports/politics/crypto pages independently reviewed | Approved production API/schema/cache/closure policy and negative-risk semantics; reviewed eligible mappings; discovery never enables workers |
 | PF010 Book adapter | Bounded complete REST reads; exact raw evidence; identity, normalization, sorting/duplicates, schema/error tests | Accepted source-schema review and approved dependent quote/mapping policies; no live incremental book reconstruction implemented |
 | PF011 Source time | Vendor ms retained, seconds floored, skew/headroom/repetition checks and timestamp evidence | Provider timestamp-generation interpretation and measured/approved end-to-end budget |
-| PF012 Scheduler/stream | Global limiter/backoff, independent polling loops; 25-worker slow-source isolation, 100-worker drain, provider-burst gaps/recovery and continuous joined queue-expiry tests | Stream subscription/heartbeat/reconnect generations; approved cadence, sustained fairness targets and buffering/coalescing policy; collection/publication decoupling not certified |
+| PF012 Scheduler/stream | Global limiter/backoff and independent polling; public token/condition subscriptions, PING/PONG, bounded reconnect generations, coalesced hints, periodic REST fallback, metadata resync and old-generation cache invalidation; 50-second native-client reconnect probe and publication-boundary fixtures | Approved production cadence, sustained fairness/load targets and coalescing policy; full TWAP availability and collection/publication decoupling not certified |
 | PF013 Storage | Raw valid/invalid/gap archive; fenced WAL/FULL packet journal; atomic sequence allocation, checksums and local delivery journal | Approved retention/migrations and broader permission/storage-failure drills; independent transaction-signer backup/restore controls |
 | PF014 Builder | Raw-book/metadata recomputation, rule/domain binding, frozen times/headroom; joined local builder; selected local fresh invalid-depth checkpoints preserve depths/times with zero price/impacts; explicit development lifecycle gates | Production invalid/closure/coalescing/lifecycle policy and concrete lifecycle reader; operational admission; unknown time remains unavailable |
 | PF015 Signer | Raw digest, recovery, low-s/v/serialization checks; independent durable local/testnet signer journals; separate encrypted private testnet keys and fixed-chain/receiver transaction signing | Approved production key backend, identity policy and risk/security review; test key is not an operational signer |
@@ -183,8 +183,12 @@ compatibility pass. This fixes local scheduling; a paid full-window proof remain
 The user deferred this paid proof on 05 October 2026 and requested continuing the
 other original milestones. Discovery/metadata implementation is complete for
 diagnostics; [discovery.md](discovery.md) records its actual bounded three-category
-API checks and pending production policies. Next original milestone is stream
-hints, heartbeat and reconnect/resync recovery, using complete REST snapshots.
+API checks and pending production policies. Original milestone 4 now also implements
+stream hints, heartbeat and reconnect/resync recovery using complete REST snapshots;
+[stream.md](stream.md) records the explicit CLI option, limits and evidence.
+The final suite passes **378/378** tests; the public probe made two connections,
+received four PONG replies and retained 45 REST captures with zero paid submissions.
+Next original milestone is transaction recovery and signer custody.
 
 When returning to coverage: approve/fund the separately prepared finite retry, then
 recheck/apply its exact hashed plan. `coverage-retry-budget-plan.json` verifies
@@ -197,6 +201,7 @@ exceeds the original campaign approval by **14 slots / 0.3744173 MON** and is
 captures/archive. Never reset journals or silently extend caps.
 
 After both complete 300-second windows and gap/restart verification pass, finish
-the current planned coverage commit. Discovery, stream recovery, custody/recovery,
-category calibration, supervised hosting, backups/alerts and release review remain
-the other original milestones. Local invalid-book tests do not count as live invalid evidence.
+the deferred coverage milestone. Discovery and stream recovery are complete for
+diagnostics. The five remaining original implementation milestones are custody/recovery,
+category calibration, supervised hosting, backups/alerts and release review.
+Local invalid-book tests do not count as live invalid evidence.

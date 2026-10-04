@@ -13,7 +13,7 @@ export type PipelineLifecycle={assertConfig(config:MarketConfig):void;check():Pr
 
 export type RecoverableSigner=RawSigner&{reconcile(owner:string,fence:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void};
 export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig;releaseLease?():boolean};rules:RulesManifest;signer:RecoverableSigner;lifecycle?:PipelineLifecycle;
-  latestSnapshot?:()=>PollResult|null;publicationIntervalMs?:number};
+  latestSnapshot?:()=>PollResult|null;sourceReady?:()=>boolean;publicationIntervalMs?:number};
 type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null;lifecycleView:LifecycleView|null};
 export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'QUARANTINED'|'STOPPED'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
   reason:string|null;sequence:bigint|null;transactionHash:string|null;depthValid:boolean|null;lifecycle:LifecycleView|null};
@@ -144,19 +144,22 @@ export class DurablePipeline {
     // post-signing, pre-reservation and pre-broadcast gates still run normally.
     const at=this.now(),sameGate=checkedAt!==undefined&&at>=checkedAt&&at-checkedAt<=50n&&at/1000n===checkedAt/1000n;
     const blocked=sameGate?null:await this.lifecycleGate(e);if(blocked)return blocked;
+    if(e.sourceReady&&!e.sourceReady())return this.result(e,'SOURCE_UNAVAILABLE','STREAM_RESYNC_REQUIRED',seq);
     const expired=this.expireUnsent(e,p);if(expired)return expired;
     if(p.state!=='SIGNED')p=await this.bounded(this.network.sign(this.packets,e.domain,this.owner,e.fence,seq,e.signer,this.now,this.policy.headroomMs));
     if(p.state==='EXPIRED'){e.pending=e.pending.filter(v=>v!==seq);return this.result(e,'EXPIRED',p.reason,seq);}
     return this.serialized(async()=>{
       const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
+      if(e.sourceReady&&!e.sourceReady())return this.result(e,'SOURCE_UNAVAILABLE','STREAM_RESYNC_REQUIRED',seq);
       // Other markets may consume the publication budget while this task waits.
       // An unreserved stale update is a normal expiry, not a service-wide failure.
       const expired=this.expireUnsent(e,p);if(expired)return expired;
       this.relay.renew();let r=this.relay.get(e.domain,seq);
       if(r?.txHash)r=await this.relay.reconcile(e.config,seq);
       if(!r||!['MINED','FINALIZED'].includes(r.state)){
-        try{r=await this.relay.deliver(e.config,this.owner,e.fence,seq,e.lifecycle?async()=>{
+        try{r=await this.relay.deliver(e.config,this.owner,e.fence,seq,e.lifecycle||e.sourceReady?async()=>{
           const blocked=await this.lifecycleGate(e);if(blocked)throw new LifecycleBlocked(blocked);
+          if(e.sourceReady&&!e.sourceReady())throw new LifecycleBlocked(this.result(e,'SOURCE_UNAVAILABLE','STREAM_RESYNC_REQUIRED',seq));
         }:undefined);}catch(error){
           if(error instanceof LifecycleBlocked)return error.result;
           if(error instanceof Error&&error.message==='RELAY_HEADROOM_EXPIRED'){

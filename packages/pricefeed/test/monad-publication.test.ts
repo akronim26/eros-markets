@@ -29,11 +29,12 @@ import { quoteMonadGas } from '../src/monad-gas-quote.js';
 import { parseConfig } from '../src/config.js';
 import { planMonadBudget, applyMonadBudget, budgetPlanHash } from '../src/monad-budget.js';
 import { json } from '../src/math.js';
+import { SourceSnapshotBuffer } from '../src/source-buffer.js';
 
 const abi=JSON.parse(readFileSync(new URL('../../artifacts/monad-testnet/receiver-abi.json',import.meta.url),'utf8'));
 const policy:RelayPolicy={gasCap:800000n,maxFeePerGas:150000000000n,maxPriorityFeePerGas:2000000000n,
   maxCostWei:120000000000000000n,headroomMs:1000n,confirmations:1n,timeoutMs:1000,maxAttempts:3,leaseMs:120000n};
-async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy,latestSnapshot?:()=>PollResult|null){
+async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy,latestSnapshot?:()=>PollResult|null,sourceReady?:()=>boolean){
   const dir=mkdtempSync(join(tmpdir(),'monad-publication-'));chmodSync(dir,0o700);
   const key=join(dir,'observation-signer.json'),password=join(dir,'signer-password');
   const signerAddress=createTestnetKey(key,password),sender=createTestnetKey(join(dir,'tx-key'),join(dir,'tx-password'));
@@ -85,7 +86,7 @@ async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy,latestSnapsh
       book:async()=>capture({...JSON.parse(body),timestamp:now.toString()})},journal,'collector',()=>now);
     const lifecycle=new MonadTestnetPublicationLifecycle(cfg,journal,'lifecycle',monadLifecycleReader(rpc,cfg,abi,()=>now),30000n,()=>now);
     const check=lifecycle.check.bind(lifecycle);lifecycle.check=()=>{lifecycleChecks++;return check();};
-    pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle,...(latestSnapshot?{latestSnapshot}:{})}],packets,relay,transport,runPolicy,()=>now);
+    pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle,...(latestSnapshot?{latestSnapshot}:{}),...(sourceReady?{sourceReady}:{})}],packets,relay,transport,runPolicy,()=>now);
     return {transport};
   }
   const {transport}=open(true);
@@ -243,6 +244,27 @@ test('an unavailable or quarantined latest snapshot prevents allocation and send
       assert.equal(result.reason,quarantine?'SOURCE_RULES_CHANGED':'SOURCE_SNAPSHOT_NOT_READY');
       assert.equal(s.packets.list(s.domain).length,0);assert.equal(s.sent.length,0);
       if(quarantine){latest=old;assert.equal((await s.pipeline.process(old)).state,'QUARANTINED');}
+    }finally{s.close();}
+  }
+});
+test('stream disconnect during signing or simulation blocks delivery until a full REST resync, preserving signed bytes',async()=>{
+  for(const phase of ['sign','simulate'] as const){
+    let buffer:SourceSnapshotBuffer;
+    const s=await setup(3,policy,()=>buffer.snapshot(),()=>buffer.publicationReady());
+    try{
+      buffer=new SourceSnapshotBuffer(s.worker);const sample=await buffer.poll();await s.pipeline.start();
+      const sign=s.signer.signDigest.bind(s.signer);
+      if(phase==='sign'){
+        s.signer.signDigest=async request=>{
+          const signed=await sign(request);s.worker.requestStreamRefresh(2,'STREAM_CLOSED',true);return signed;};
+      }else s.rpc.simulate=async()=>{s.worker.requestStreamRefresh(2,'STREAM_CLOSED',true);};
+      const blocked=await s.pipeline.process(sample);assert.equal(blocked.state,'SOURCE_UNAVAILABLE');
+      assert.equal(blocked.reason,'STREAM_RESYNC_REQUIRED');assert.equal(s.sent.length,0);assert.equal(s.relay.get(s.domain,1n),null);
+      const signed=s.packets.get(s.domain,1n)!;assert.equal(signed.state,'SIGNED');
+      s.signer.signDigest=sign;s.rpc.simulate=async()=>{};
+      const recovered=await buffer.poll();assert.equal((await s.pipeline.process(recovered)).state,'FINALIZED');
+      assert.equal(s.sent.length,1);assert.equal(s.packets.get(s.domain,1n)!.signature,signed.signature);
+      assert.deepEqual(s.packets.get(s.domain,1n)!.packet,signed.packet);assert.equal(parseTransaction(s.sent[0]!).nonce,0);
     }finally{s.close();}
   }
 });

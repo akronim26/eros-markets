@@ -4,6 +4,7 @@ import type { MarketConfig } from './config.js';
 import type { Capture } from './polymarket.js';
 import { Journal } from './journal.js';
 import { json } from './math.js';
+import { RefreshSignal } from './service.js';
 
 export type Provider={event(id:string):Promise<Capture>;metadata(id:string):Promise<Capture>;book(id:string):Promise<Capture>};
 export type PollResult={worker:string;category:string;atMs:bigint;configDigest:string;inspection:Inspection;
@@ -21,6 +22,8 @@ export function ensureUniqueWorkers(configs:MarketConfig[]):void {
 
 export class Worker {
   readonly namespace:string;
+  readonly refresh=new RefreshSignal();
+  private forceMetadata=false;
   private metadataCapture:Capture|null=null;
   private eventCapture:Capture|null=null;
   private metadata:MetadataIdentity|null=null;
@@ -61,12 +64,17 @@ export class Worker {
     void operation.finally(()=>{if(this.current===operation)this.current=null;}).catch(()=>{});
     return operation;
   }
+  requestStreamRefresh(generation:number,reason:string,resync:boolean):void {
+    if(resync||reason==='tick_size_change'||reason==='market_resolved'||reason==='new_market')this.forceMetadata=true;
+    this.refresh.request(generation,resync);
+  }
   releaseLease():boolean {
     if(this.current)throw new Error('WORKER_POLL_IN_FLIGHT');
     if(!this.fence)return false;
     const released=this.journal.release(this.namespace,this.owner,this.fence);this.fence=0n;return released;
   }
   private async collect():Promise<PollResult> {
+    const revision=this.refresh.resyncRevision,forceMetadata=this.forceMetadata;this.forceMetadata=false;
     const ttl=BigInt((this.config.poll.timeoutMs+this.config.poll.retryDelayMs*8)*
       (this.config.poll.maxRetries+1)*3+this.config.poll.intervalMs+10000);
     const fence=this.journal.acquire(this.namespace,this.owner,this.now(),ttl);
@@ -76,7 +84,7 @@ export class Worker {
     try {
       if(this.quarantined){inspection.status='QUARANTINED';inspection.reason=this.quarantined;}
       else {
-        if(!this.metadata||!this.metadataCapture||this.now()-this.metadataCapture.receivedAtMs>BigInt(this.config.poll.metadataMaxAgeMs)/2n){
+        if(forceMetadata||!this.metadata||!this.metadataCapture||this.now()-this.metadataCapture.receivedAtMs>BigInt(this.config.poll.metadataMaxAgeMs)/2n){
           this.metadata=null; // A failed refresh cannot reuse the previous healthy interpretation.
           this.eventCapture=await this.provider.event(this.config.mapping.eventId);
           const event=verifyEventMembership(this.config,this.eventCapture.data);
@@ -102,6 +110,8 @@ export class Worker {
       inspection.reason=error instanceof Error?error.message:String(error);
       if(/IDENTITY|OUTCOME_MAPPING|SOURCE_RULES|SOURCE_STATUS/.test(inspection.reason)){inspection.status='QUARANTINED';this.quarantined=inspection.reason;}
     }
+    if(revision!==this.refresh.resyncRevision&&inspection.status!=='QUARANTINED')
+      inspection={status:'DEGRADED',reason:'STREAM_RESYNC_REQUIRED',time:null,summary:null,engineObservation:null};
     const result:PollResult={worker:this.config.key,category:this.config.category,atMs:this.now(),configDigest:this.configDigest,
       inspection,event:this.eventCapture,metadata:this.metadataCapture,book,baselineRulesDigest:this.rulesDigest,baselineStatusDigest:this.statusDigest,lastSourceMs:this.lastSourceMs};
     // A fenced/expired journal failure propagates, preventing a false healthy status.

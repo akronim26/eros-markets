@@ -21,6 +21,7 @@ import { planMonadBudget, applyMonadBudget } from './monad-budget.js';
 import { recoverMonadNonce } from './monad-nonce-recovery.js';
 import { discoverMarkets, validateDiscoveryOptions } from './discovery.js';
 import type { Category } from './config.js';
+import { MarketStreamHints } from './market-stream.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -33,11 +34,11 @@ const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 
 async function main():Promise<void> {
   const {command,options}=args(process.argv.slice(2));
-  const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'serve':['--configs','--db'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine'],
+  const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'serve':['--configs','--db','--stream-hints'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine'],
     'build-observation':['--config','--rules','--db','--capture-id','--sequence','--published-at-ms'],
     'preflight-monad':['--rpc-env','--config','--abi'],
     'watch-monad-lifecycle':['--rpc-env','--config','--abi','--db','--interval-ms','--max-checkpoint-age-ms','--duration-seconds'],
-    'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize'],
+    'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize','--stream-hints'],
     'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy'],
     'plan-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--old-policy','--new-policy','--transition-id','--reason'],
     'apply-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--plan','--plan-sha256'],
@@ -45,6 +46,9 @@ async function main():Promise<void> {
     'discover-markets':['--category','--tag-slug','--page-size','--max-pages']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
+  const streamOption=options.get('--stream-hints');
+  if(streamOption!==undefined&&!['true','false'].includes(streamOption))throw new Error('BAD_STREAM_HINTS_OPTION');
+  const streamHints=streamOption==='true';
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
   if(command==='discover-markets'){
     const integer=(key:string)=>{const v=need(key);if(!/^[1-9]\d{0,2}$/.test(v))throw new Error('BAD_DISCOVERY_OPTIONS');return Number(v);};
@@ -90,7 +94,7 @@ async function main():Promise<void> {
       const result=await runMonadTestnetService({config:parseConfig(read(need('--config'))),rules:parseRules(read(need('--rules'))),
         abi:read(need('--abi')),rpcUrl,keysDirectory:need('--keys-dir'),journalDirectory:need('--journal-dir'),
         policy:parseTestnetRunPolicy(read(need('--policy'))),durationSeconds:Number(duration),stopAfterFinalized:Number(target),
-        initialize:initialize==='true'},controller.signal,r=>console.log(json({mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',...r})));
+        initialize:initialize==='true',streamHints},controller.signal,r=>console.log(json({mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',...r})));
       console.log(json(result));
       if(!result.evidenceValid||Number(result.finalizedPackets)<Number(target))process.exitCode=2;
     }finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}
@@ -146,7 +150,15 @@ async function main():Promise<void> {
     if(command==='inspect-book'){const result=await workers[0]!.poll();console.log(json({...result,event:result.event?{url:result.event.url,receivedAtMs:result.event.receivedAtMs,attempts:result.event.attempts}:null,metadata:result.metadata?{url:result.metadata.url,receivedAtMs:result.metadata.receivedAtMs,attempts:result.metadata.attempts}:null,book:result.book?{url:result.book.url,receivedAtMs:result.book.receivedAtMs,latencyMs:result.book.latencyMs,attempts:result.book.attempts,sha256:createHash('sha256').update(result.book.body).digest('hex')}:null}));if(result.inspection.status!=='COLLECTING')process.exitCode=2;return;}
     if(command==='serve'){
       const controller=new AbortController(),stop=()=>controller.abort();process.once('SIGINT',stop);process.once('SIGTERM',stop);
-      try{await new CollectionService(workers).run(controller.signal,result=>{console.log(json({worker:result.worker,category:result.category,atMs:result.atMs,inspection:result.inspection}));});}
+      try{
+        const stream=streamHints?new MarketStreamHints(workers,undefined,undefined,view=>console.log(json({mode:'STREAM_HINTS',...view}))):null;
+        const coupled=(run:Promise<void>)=>run.finally(()=>controller.abort());
+        const runs=[coupled(new CollectionService(workers).run(controller.signal,result=>{
+          console.log(json({worker:result.worker,category:result.category,atMs:result.atMs,inspection:result.inspection}));}))];
+        if(stream)runs.push(coupled(stream.run(controller.signal)));
+        const outcomes=await Promise.allSettled(runs),failed=outcomes.find(r=>r.status==='rejected');
+        if(failed?.status==='rejected')throw failed.reason;
+      }
       finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}
       console.log(json({completed:true,signaturesProduced:0,transactionsSent:0,evidenceValid:journal.verify()}));return;
     }
