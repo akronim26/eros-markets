@@ -17,6 +17,12 @@ documented in [`docs/custody.md`](docs/custody.md).
 Read-only category comparisons and the simultaneous three-market soak are in
 [`docs/calibration.md`](docs/calibration.md). Its availability figures are
 source-side projections; they do not complete the deferred paid Monad proof.
+Render worker setup, persistent storage and bounded process supervision are in
+[`docs/deployment.md`](docs/deployment.md). Deployment files and local restart
+tests are prepared; a running Render service has not been verified yet.
+Local/Render log alerts, cached publication/budget status and coordinated offline
+backups/isolated restore review are in [`docs/operations.md`](docs/operations.md).
+Backup bundles are private runtime data and must stay out of Git.
 
 ## Current behavior
 

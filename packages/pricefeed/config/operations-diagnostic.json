@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1",
+  "intervalMs": 30000,
+  "maxCaptureSilenceMs": "30000",
+  "minimumFreeBytes": "104857600",
+  "maximumPendingDeliveries": 1,
+  "maxReceiptSilenceMs": "120000",
+  "minimumBudgetRemainingWei": "50000000000000000",
+  "maxBackupAgeMs": "86400000",
+  "backup": null
+}

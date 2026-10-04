@@ -1,0 +1,220 @@
+{
+  "mode": "DIAGNOSTIC_MONITORING_AND_OFFLINE_BACKUP_VERIFICATION",
+  "verifiedAtUtc": "2026-10-04T23:27:05.654342+00:00",
+  "baselineCommit": "0c938e887a70ed505bb8ace03e135459052ddde2",
+  "includesUncommittedMilestone7Preparation": true,
+  "buildExitCode": 0,
+  "nodeSuite": {
+    "tests": 416,
+    "pass": 416,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "exitCode": 0,
+    "command": [
+      "/home/mihir/eros-markets/packages/pricefeed/node_modules/.bin/node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "dist/test/calibration.test.js",
+      "dist/test/cli.test.js",
+      "dist/test/collector.test.js",
+      "dist/test/config-time.test.js",
+      "dist/test/demo.test.js",
+      "dist/test/deployment.test.js",
+      "dist/test/discovery.test.js",
+      "dist/test/gas-cost.test.js",
+      "dist/test/lifecycle.test.js",
+      "dist/test/load.test.js",
+      "dist/test/local-relay.test.js",
+      "dist/test/local-transaction-signer.test.js",
+      "dist/test/market-stream.test.js",
+      "dist/test/math.test.js",
+      "dist/test/monad-coverage.test.js",
+      "dist/test/monad-keys.test.js",
+      "dist/test/monad-lifecycle.test.js",
+      "dist/test/monad-preflight.test.js",
+      "dist/test/monad-publication.test.js",
+      "dist/test/monad-service.test.js",
+      "dist/test/operations.test.js",
+      "dist/test/pipeline.test.js",
+      "dist/test/publication.test.js",
+      "dist/test/receipts.test.js",
+      "dist/test/recovery.test.js",
+      "dist/test/service.test.js",
+      "dist/test/signer-custody.test.js",
+      "dist/test/source-buffer.test.js",
+      "dist/test/transaction-relay.test.js",
+      "dist/test/wire-journal.test.js",
+      "dist/test/worker.test.js"
+    ]
+  },
+  "focusedOperationsAndDeployment": {
+    "tests": 22,
+    "pass": 22,
+    "exitCode": 0
+  },
+  "backupDrills": {
+    "tests": 11,
+    "pass": 11,
+    "exitCode": 0,
+    "command": [
+      "python3",
+      "test/backup-journals.test.py"
+    ],
+    "pythonVersion": "3.12.3",
+    "sqliteVersion": "3.45.1",
+    "diskFullCase": "Injected ENOSPC; host disk was not filled."
+  },
+  "operationsCases": [
+    {
+      "scenario": "pinned-backup-health",
+      "corruptionDetected": true,
+      "activeJournalUnchanged": true,
+      "keysUnlocked": 0,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "cached-monad-publication-status",
+      "blockNumber": "42",
+      "reservedWei": "43000",
+      "remainingWei": "7000",
+      "chainQueried": false,
+      "keysUnlocked": 0,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "render-monitor-while-parked",
+      "missingArchiveRecreated": false,
+      "shutdownWokeTimer": true,
+      "transactionsSent": 0
+    }
+  ],
+  "backupCases": [
+    {
+      "scenario": "wal-backup-and-isolated-restore",
+      "committedWalPreserved": true,
+      "activationApproved": false,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "five-journals-and-two-custody-roles",
+      "journals": 5,
+      "custodyFiles": 4,
+      "keysUnlocked": 0,
+      "campaignDeadlineRenewed": false
+    }
+  ],
+  "otherChecks": [
+    {
+      "name": "backup",
+      "command": [
+        "python3",
+        "test/backup-journals.test.py"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "wire",
+      "command": [
+        "/home/mihir/eros-markets/packages/pricefeed/node_modules/.bin/node",
+        "dist/scripts/check-wire.js"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "impact",
+      "command": [
+        "python3",
+        "reference/vectors.py",
+        "--check"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "python3",
+        "test/monad-coverage-reference.py"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "blueprint",
+      "command": [
+        "python3",
+        "scripts/verify-deployment.py",
+        "var/verification/deployment/render-schema.json"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "impactReferenceVectors": 144,
+  "coverageReferenceCases": 5,
+  "blueprintValidation": {
+    "verified": true,
+    "officialSchema": "https://render.com/schema/render.yaml.json",
+    "schemaSha256": "a0d4e8a3eb119a1b63657741757e3c25c091b3ce463c4be8c90e8026678d8163",
+    "blueprintSha256": "1ed2a8ca9796f595487806ef2f262d21c2cb610188d1e2b77339ccd55cad0391",
+    "accountDeploymentVerified": false,
+    "resourcesCreated": 0
+  },
+  "activeMonadJournalsByteUnchanged": true,
+  "activeJournalSha256": {
+    "source.sqlite": "45ab98fbc477bb5a32bac1ed8993f3288ce251ede19e6e6dc4e68ad35abe74de",
+    "packets.sqlite": "49eed627b197ef96e07a648a0f2df3b390ab39c05eb88342839446206928c36b",
+    "signer.sqlite": "a805b3a0917f550d29e3bb4a6a0c1309f004fb395fd94f62898a4d4a401dcc27",
+    "transactions.sqlite": "fd75d277dd66c736dcf9c0cb6ce9b6c98a3c192920efea414210432b8c900ca3",
+    "relay.sqlite": "ccfcd78a475d30b7ec444d299932586bd4a64247a2fd60977759c0116777dc8b"
+  },
+  "sourceInputsUnchangedDuringRun": true,
+  "sourceSha256": {
+    "src/operations.ts": "4bda89f2b4464c8fbb9671f823b3cb61c0a85a6aa42f03557e87fe671be65139",
+    "scripts/operations.ts": "4a06c897d93336fd8ee13b66fae744d2c7358a4fc1465a2c491e7c2b4f54a189",
+    "scripts/backup-journals.py": "87ea626bd7b0f2988bff985f48a0ddd10d736b8defe8d833270e5aee56e812d7",
+    "scripts/render-start.ts": "68f47c5944b38d5128ad825c534e620d5b43994d36fd98c0d14c43ab8ce25dd2",
+    "test/operations.test.ts": "931d9087b325fda5a78937946b011603bdd539f545e6c6cfdf9f0a1499efc712",
+    "test/backup-journals.test.py": "01850ce2be7e1a1dfa32d8207fbdd53efaaa64a6503b262b3a75453773b79e1a",
+    "config/operations-diagnostic.json": "501d1d402beed2fb371924c488d595f6b965e61577efa5ea81b1ac490d70a6b2",
+    "deploy/render.yaml": "1ed2a8ca9796f595487806ef2f262d21c2cb610188d1e2b77339ccd55cad0391",
+    "package.json": "89c0843014dae0d75eec856e0154d4f70616b0601418b2fbc3d0c76e8a7404fb",
+    ".gitignore": "dbacae13c9cf744a6bff637fa4d84ded82a3b624c1ce986beb920bdfdc6dc89d"
+  },
+  "evidenceSha256": {
+    "var/verification/operations/full.tap": "85ad25914933dcec7bdadea193eae149348ad731e92b9b933dbdf2878de645b8",
+    "var/verification/operations/full-review.json": "d670101744b7f07c51c674fe732e245c1fad57bbc6cb8a68399011b6035726d5",
+    "var/verification/operations/focused.tap": "bca43fb2b6d84b2697daf5511d4b446ea56d865d07e49852360c8a4f3b7df219",
+    "var/verification/operations/focused-before-fixture-fix.tap": "b29b234ef84af0518386241034fea6349ce3e5fff64cba6353d17b9e621920c8",
+    "var/verification/operations/side-review.json": "6c09627ab03185fc56e3ac998a1833ecb4471dbf8bca56c461d7b85e78c5eaeb",
+    "var/verification/operations/backup.log": "53ce5bb542d38b1da5988ab986592e640241077041027bbeb67b59757eb669bf",
+    "var/verification/operations/wire.log": "3bac381a9b8aad32fce631d36011c08b7d826601f7764c9bc497a9ed66eb8562",
+    "var/verification/operations/impact.log": "c19e56f043fbb4ce2920f5a2189888e6c155f8902e76719e9ca2bbb6cbfc02bd",
+    "var/verification/operations/coverage.log": "7b288cf927468fb4b58f5ef69c886942cd47911cf9aa32d270b3874f7df25a68",
+    "var/verification/operations/blueprint.log": "abb33e81da3dc2b0e941cd9ba046c7dccf30c530bac2a1913acbaf37d06652e2"
+  },
+  "alertRoute": "USER_SELECTED_LOCAL_RENDER_LOGS",
+  "notificationsSent": 0,
+  "packageOnlyScope": true,
+  "gitDiffCheckExitCode": 0,
+  "actualKeysReadOrUnlocked": 0,
+  "newLiveSignatures": 0,
+  "newTransactions": 0,
+  "newMonSpend": "0",
+  "configurationsActivated": 0,
+  "cloudResourcesCreated": 0,
+  "hostedDeploymentVerified": false,
+  "coverageIssueDeferred": true,
+  "productionApproved": false,
+  "humanGatesAccepted": false,
+  "limitations": [
+    "Local SQLite/WAL/flock/files/signals are real; source, publication and custody inputs are temporary fixtures.",
+    "Read-only status shows cached block-labeled evidence; it never refreshes chain state, wallet balance or TWAP through RPC.",
+    "Backup copies form a fixed stopped-service journal inventory; nonstandard extra state requires a reviewed inventory.",
+    "Testnet custody copies include both unlock files and remain private diagnostic material, not approved production secret isolation. No actual custody file was copied.",
+    "Restore creates an isolated review candidate; it never overwrites active state, changes keys/deadlines/budgets or bypasses canonical startup reconciliation.",
+    "Named operator response, hosted/offsite scheduling and retention, remote tool/permissions/restore verification and production custody approval remain open.",
+    "Raw logs and the complete tested source manifest stay ignored locally; another checkout must rerun its evidence.",
+    "Original milestone 9 release/handoff remains next; hosted activation and the deferred 268/300 paid coverage proof remain pending."
+  ]
+}

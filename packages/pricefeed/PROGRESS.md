@@ -2581,3 +2581,151 @@ one deferred proof.** Longer agreed soak/cadence/inclusion targets, signed owner
 production parameters and human PF gates remain open; none are silently accepted.
 No extra milestone, commit/push, decisions.md edit, counterpart-file change or
 additional spending authorization was performed.
+
+## 05 October 2026 — milestone 7: supervised deployment preparation
+
+Base: user commit `0c938e8`. Suggested commit message:
+`feat: add supervised pricefeed deployment`.
+
+**What changed.** Prepared Render as the preferred host: one paid Node background
+worker, one persistent disk, manual deploys, pinned runtime and a graceful shutdown
+allowance. Added explicit profile preparation/check/run commands, raw-file input
+pins, private state paths and a Linux process supervisor. Runtime startup never
+initializes missing archives. Initial Render activation parks until an operator
+explicitly prepares the read-only profile. Completed finite campaigns and operator
+errors park without a collector/signer, so Render host restarts do not repeatedly
+launch them. A running Render process alone is not feed health.
+
+An inherited OS file lock survives in the worker if its supervisor is killed;
+duplicate launchers cannot acquire it. The supervisor drains work on TERM, waits
+for real retained source leases after crashes, and persists restart count/operator
+stops using checksums, file fsync, atomic rename and parent fsync. Only declared
+transient failures or abnormal crashes restart within the profile allowance.
+Corruption, missing state, changed pins, quarantine and budget exhaustion stop
+output. No automatic archive deletion, lease takeover, latch reset or signer
+rotation was added. Fixed shell arguments acquire the lock; user profile paths
+are passed as argv. The original read-only `serve` CLI now releases its worker
+leases after draining, fixing immediate graceful new-process handoff.
+
+The separate Monad profile requires all five existing journals and always uses
+`initialize:false`. Preparation persists a deadline at the earlier of the absolute
+limit and preparation time plus duration; process restarts only use the remaining
+time. Existing finalized targets, budgets, nonces, immutable signed bytes and
+startup reconciliation remain enforced. This profile does not authorize additional
+spending, the deferred retry or continuous testnet publication.
+
+**Verification.** Final pinned TypeScript build: exit 0. Final full Node suite:
+**406/406**, zero failures/skips/cancellations/todo, exit 0; tested source hashes
+remain unchanged. The initial focused deployment/CLI/service suite passed **29/29**,
+exit 0. The first full regression exposed a repeated-TERM shutdown race (**404/405**):
+the group and supervisor could both signal a worker, whose one-shot handler let
+the second signal bypass lease cleanup. Signal handlers now remain installed
+through draining. Both targeted graceful/repeated-TERM regressions pass **2/2**,
+exit 0; the original failure evidence is retained. Twelve deployment tests include
+real process/SQLite/flock checks for graceful
+handoff, duplicate rejection, worker SIGKILL with actual lease expiry, supervisor
+SIGKILL with orphan-held locks, persistent restart/operator limits, missing/corrupt
+archives, the parked Render wrapper, finite deadline immutability and the CLI
+lease fix. Source replies are scripted; the testnet deadline case never opens
+keys or runs a live relay. Render's official Blueprint JSON schema validates the
+prepared YAML locally, exit 0. Wire check, **144** independent impact vectors and
+**5/5** coverage reference cases pass, exit 0. All five active Monad main journals
+remain byte-identical to milestone 6. **Zero actual key unlocks, live signatures,
+external transactions, MON spend, uploads or Render resources created.**
+
+**Evidence and activation.** Compact `artifacts/verification/deployment-unit.json`
+records final counts, eight declared cases, Blueprint/source/raw-log hashes and
+unchanged active journal hashes. `docs/deployment.md` records setup, costs, restart
+semantics and required hosted checks. Raw schema/TAP remain ignored in
+`var/verification/deployment/`; another checkout must rerun its own checks.
+Render account/API deployment, remote native-image tools/permissions, hosted
+restart/availability and capacity are **unverified**. Activation needs account/
+repository access, the user's published commit/branch and approval of the paid
+worker/disk. No cloud resources or paid subscriptions were created. Existing
+funded bot state/keys were neither moved nor unlocked. A future move requires
+coordinated stop/transfer/reconciliation; production custody remains unapproved.
+
+**Original nine-milestone tracking.** Milestones **1, 3, 4, 5 and 6 complete**
+within their diagnostic scopes. **Milestone 7 preparation is complete locally**;
+its hosted activation is pending. Milestone **2 remains deferred/unpassed (268/300)**.
+Next are **8: monitoring/backups/runbooks** and **9: release verification/handoff**.
+No extra milestone, commit/push, branch change, decisions.md edit, counterpart
+modification, human gate acceptance or additional spending authorization occurred.
+
+## 05 October 2026 — milestone 8: diagnostic monitoring and backup drills complete
+
+Base: user commit `0c938e8` plus the existing uncommitted milestone 7 preparation.
+Suggested commit message: `feat: add pricefeed monitoring and backup drills`.
+
+**What changed.** Added one-shot/read-only health and a continuous log monitor,
+explicit diagnostic thresholds and Render wrapper integration. The user selected
+local/Render logs for alerts. Each market exposes query-time freshness and capture
+silence; unavailable data remains unavailable. Operator stops, pin/archive failures,
+disk space on both state/journal filesystems, pending deliveries, persistent relay
+quarantine, cached finalized receipt progress and exact reservation-budget totals
+are visible. Cancellation reservations are included. Receipt/lifecycle records are
+block-labeled; chain state, current wallet balance and TWAP are not invented from
+cached data. Alert open/clear transitions avoid repeating unchanged conditions
+within a monitor process; active conditions reopen after restart. Monitoring runs
+even while Render is parked, and TERM wakes its interval. No notification is sent.
+
+Added an offline private backup/verify/isolated-restore tool. It requires the
+existing service OS lock, acquires SQLite write reservations across all required
+journals, refuses active leases/CLI writers, checks required schemas/application
+checksums and uses SQLite's backup API so committed WAL data is retained. Testnet
+copies preserve all five journals including budget/cancellation history. An explicit
+custody flag copies both encrypted wallet roles and both unlock files as private
+bytes; it never unlocks them. This is sensitive diagnostic custody, not approved
+production secret isolation. Actual custody files were not read or copied.
+
+Bundles pin original inputs/profile/marker/supervision and have an externally
+checked manifest digest. Files are exclusive/private/flushed, the manifest is last,
+and partial/existing bundles are never adopted. Restore verifies before/after
+copying to a fresh separate review candidate. It preserves counters, operator
+stops, keys and deadlines; it never replaces active state or starts publication.
+Canonical chain/signer/nonce/receipt reconciliation remains required before any
+manual activation. No retention deletion, offsite transfer, automatic maintenance
+stop, recurring host backup job, budget renewal or quarantine reset was installed.
+
+**Verification.**
+- Final pinned Node TypeScript build: exit 0.
+- Final full Node suite: **416/416**, zero failures/skips/cancellations/todo,
+  exit 0; tested source/config hashes remain unchanged.
+- Focused monitoring/deployment suite: **22/22**, exit 0. Ten new monitoring
+  cases cover explicit limits, freshness/unavailability, capture-silence boundary,
+  persistent stops/corruption/disk alerts, alert transitions, watch shutdown,
+  pinned backup integrity/age, cached Monad receipt/reservation status and real
+  Render wrapper monitoring/shutdown while a missing archive remains missing.
+- Python backup/restore drills: **11/11**, exit 0. Real committed WAL and all-five-
+  journal/custody copying, private files, service lock/independent writer/lease
+  rejection, missing/corrupt/mixed data, external manifest pins, isolated restore
+  and refusal to overwrite current state pass. ENOSPC is an injected failure,
+  not a filled host disk. Initial test work corrected the Python/Node pretty-JSON
+  supervision checksum compatibility and an incomplete scripted relay schema.
+- Wire compatibility, **144** independent impact vectors, **5/5** coverage
+  reference cases and the revised Blueprint's official JSON-schema check: exit 0.
+- All five active Monad main journals remain byte-identical. **Zero actual key
+  reads/unlocks, live signatures, external transactions, MON spend, notifications,
+  activated configs, uploads or cloud resources created.**
+
+**Evidence and boundaries.** Compact `artifacts/verification/operations-unit.json`
+records counts, cases, commands, source/raw-log hashes and unchanged journal hashes.
+Raw TAP/backup logs stay ignored in `var/verification/operations/`; Python caches
+are ignored too. Source/publication/custody test inputs are fixtures. No authentic
+chain, hosted availability/restore, production custody, human PF gate or broader
+disk/power failure campaign is claimed. Earlier milestone 7 evidence is historical
+for its tested source; this full rerun includes the monitoring integration.
+
+`docs/operations.md` provides restart/restore/expiry/closure/key/storage response
+procedures. Initial log routing is selected, but a named responder, response targets,
+hosted/offsite schedule and retention require operator acceptance before activation.
+The example thresholds are diagnostic inputs; monitoring changes no pricing limits
+or spending authority. Actual Render activation/tools/permissions and hosted drills
+remain pending. Same-disk bundles alone do not protect against losing the disk.
+
+**Original nine-milestone tracking.** Milestones **1, 3, 4, 5 and 6 complete**
+within their scopes; **7 deployment preparation** and **8 operations tooling/drills**
+are complete locally. Next is **9: release verification/handoff**. Milestone
+**2 remains deferred/unpassed (268/300)**; Render activation and named production/
+operator acceptance remain open. No extra milestone, commit/push, branch change,
+decisions.md edit, counterpart-file modification or new spending authority occurred.

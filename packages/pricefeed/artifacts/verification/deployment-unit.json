@@ -1,0 +1,196 @@
+{
+  "mode": "DIAGNOSTIC_SUPERVISED_DEPLOYMENT_PREPARATION",
+  "verifiedAtUtc": "2026-10-04T22:52:14.630356+00:00",
+  "baselineCommit": "0c938e887a70ed505bb8ace03e135459052ddde2",
+  "buildExitCode": 0,
+  "nodeSuite": {
+    "tests": 406,
+    "pass": 406,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "exitCode": 0,
+    "command": [
+      "/home/mihir/eros-markets/packages/pricefeed/node_modules/.bin/node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "dist/test/calibration.test.js",
+      "dist/test/cli.test.js",
+      "dist/test/collector.test.js",
+      "dist/test/config-time.test.js",
+      "dist/test/demo.test.js",
+      "dist/test/deployment.test.js",
+      "dist/test/discovery.test.js",
+      "dist/test/gas-cost.test.js",
+      "dist/test/lifecycle.test.js",
+      "dist/test/load.test.js",
+      "dist/test/local-relay.test.js",
+      "dist/test/local-transaction-signer.test.js",
+      "dist/test/market-stream.test.js",
+      "dist/test/math.test.js",
+      "dist/test/monad-coverage.test.js",
+      "dist/test/monad-keys.test.js",
+      "dist/test/monad-lifecycle.test.js",
+      "dist/test/monad-preflight.test.js",
+      "dist/test/monad-publication.test.js",
+      "dist/test/monad-service.test.js",
+      "dist/test/pipeline.test.js",
+      "dist/test/publication.test.js",
+      "dist/test/receipts.test.js",
+      "dist/test/recovery.test.js",
+      "dist/test/service.test.js",
+      "dist/test/signer-custody.test.js",
+      "dist/test/source-buffer.test.js",
+      "dist/test/transaction-relay.test.js",
+      "dist/test/wire-journal.test.js",
+      "dist/test/worker.test.js"
+    ]
+  },
+  "initialFocusedSuite": {
+    "tests": 29,
+    "pass": 29,
+    "exitCode": 0,
+    "stage": "Before the repeated-TERM shutdown refinement; final full suite includes the fix and additional regression."
+  },
+  "firstFullSuite": {
+    "tests": 405,
+    "pass": 404,
+    "fail": 1,
+    "exitCode": 1,
+    "reason": "Repeated TERM bypassed one-shot worker signal handler during lease cleanup; fixed with handlers retained through draining."
+  },
+  "targetedShutdownRegression": {
+    "tests": 2,
+    "pass": 2,
+    "exitCode": 0
+  },
+  "deploymentCases": [
+    {
+      "scenario": "graceful-new-process-restart",
+      "capturesBefore": 2,
+      "capturesAfter": 4,
+      "realSqlite": true,
+      "source": "scripted",
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "duplicate-supervisor-rejected",
+      "exitCode": 78,
+      "writerFence": 1,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "repeated-term-during-drain",
+      "workerExitCode": 0,
+      "leaseReleased": true,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "sigkill-worker-lease-recovery",
+      "capturesBefore": 1,
+      "capturesAfter": 3,
+      "restarts": 1,
+      "leaseForced": false,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "corruption-and-operator-stop",
+      "workerRelaunched": false,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "sigkill-supervisor-orphan-lock",
+      "duplicateExitCode": 78,
+      "orphanHeldLock": true,
+      "writerResumed": true,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "render-parked-no-bootstrap",
+      "workerRelaunched": false,
+      "missingArchiveRecreated": false,
+      "transactionsSent": 0
+    },
+    {
+      "scenario": "testnet-deadline-immutable",
+      "keysOpened": false,
+      "transactionsSent": 0
+    }
+  ],
+  "blueprintValidation": {
+    "verified": true,
+    "officialSchema": "https://render.com/schema/render.yaml.json",
+    "schemaSha256": "a0d4e8a3eb119a1b63657741757e3c25c091b3ce463c4be8c90e8026678d8163",
+    "blueprintSha256": "f8bbdbc016b107ab9c0312a9bca811fa79ed595a8842915660512ed0bb94b645",
+    "accountDeploymentVerified": false,
+    "resourcesCreated": 0,
+    "exitCode": 0,
+    "command": [
+      "python3",
+      "scripts/verify-deployment.py",
+      "var/verification/deployment/render-schema.json"
+    ]
+  },
+  "wireCheckExitCode": 0,
+  "impactReference": {
+    "vectors": 144,
+    "exitCode": 0
+  },
+  "coverageReference": {
+    "cases": 5,
+    "exitCode": 0
+  },
+  "activeMonadJournalsByteUnchanged": true,
+  "activeJournalSha256": {
+    "source.sqlite": "45ab98fbc477bb5a32bac1ed8993f3288ce251ede19e6e6dc4e68ad35abe74de",
+    "packets.sqlite": "49eed627b197ef96e07a648a0f2df3b390ab39c05eb88342839446206928c36b",
+    "signer.sqlite": "a805b3a0917f550d29e3bb4a6a0c1309f004fb395fd94f62898a4d4a401dcc27",
+    "transactions.sqlite": "fd75d277dd66c736dcf9c0cb6ce9b6c98a3c192920efea414210432b8c900ca3",
+    "relay.sqlite": "ccfcd78a475d30b7ec444d299932586bd4a64247a2fd60977759c0116777dc8b"
+  },
+  "sourceInputsUnchangedDuringRun": true,
+  "sourceSha256": {
+    "src/cli.ts": "3d750020e2e35d4ce68314d6c2439e79ab2b19ed9752401837ae2001b3fbf2c5",
+    "src/deployment.ts": "eadf593ad125760799669eb90bf45747e376f13419723ac360cb5a8fa6211d60",
+    "src/supervisor.ts": "87ae92171be9fb850cf12758b34642d89705fd1d8d541a0cd3f19e7ccd2627e6",
+    "test/deployment.test.ts": "3361d2bac1c251a15a50b94d16105f8269c9ed136f5e6bc777bc10b0dc5ab178",
+    "scripts/supervise.ts": "9c06fa38ee7dd805fb7e5d392ba8da07ce17717e37df8eb75ef98a66d1d07802",
+    "scripts/supervised-worker.ts": "e9d9b0a2ec67bf9b3ab49b9cc3775ad7633ea60cb7f30a81c983087d42314fff",
+    "scripts/render-profile.ts": "c3e1285f74429d8c1ca07bec0baf9cbf4b0344f12f9a891b15f9bcbbd275d5bf",
+    "scripts/render-start.ts": "77b2e2576c006abd078ffc5a82c3dd99ce803f3502ffc6d4c12b15f78a497612",
+    "scripts/verify-deployment.py": "c429f241899a7413a164c60647d40b355e6267e32871d3f4f201fbb4f3228457",
+    "deploy/render.yaml": "f8bbdbc016b107ab9c0312a9bca811fa79ed595a8842915660512ed0bb94b645",
+    "package.json": "1a1314d714f7600625a451ae87816b60d8cdca972f2846bb2ff21f41f7b9c261"
+  },
+  "evidenceSha256": {
+    "var/verification/deployment/full-final.tap": "cd746da78dbcde775d5fd7e91d6ce969f983c4e464324f7e825293470fe298f5",
+    "var/verification/deployment/full-review.json": "357bb046385261f207fef6d1e832b54f8315d22a55f6fedeb6bef7915b16f2d7",
+    "var/verification/deployment/focused-final.tap": "13c75a034773477a54d5ecc40c843db79e6f8d986cd4741ffac0bf423469ed98",
+    "var/verification/deployment/full-before-shutdown-fix.tap": "59911c36012577f323b53f8dda8d6d1b2738de062a4fce215c1996966c49666f",
+    "var/verification/deployment/full-before-shutdown-fix.json": "acbc60ca6474571e2784a45c08a6997f23505512498585354d94cd2bfd30a7c5",
+    "var/verification/deployment/render-schema.json": "a0d4e8a3eb119a1b63657741757e3c25c091b3ce463c4be8c90e8026678d8163",
+    "var/verification/deployment/blueprint-review.json": "0ae85bf1b8aadce62fa0f2b42b32d06b547814f54c2aca3d86b4507d74907c9f"
+  },
+  "packageOnlyScope": true,
+  "gitDiffCheckExitCode": 0,
+  "hostedDeploymentVerified": false,
+  "cloudResourcesCreated": 0,
+  "actualKeysUnlocked": 0,
+  "newLiveSignatures": 0,
+  "newTransactions": 0,
+  "newMonSpend": "0",
+  "configurationsActivated": 0,
+  "coverageIssueDeferred": true,
+  "productionApproved": false,
+  "humanGatesAccepted": false,
+  "limitations": [
+    "Local OS processes, SQLite, flock and signals are real; source/RPC/chain counterparts are scripted.",
+    "The finite testnet deadline test uses public fixture inputs and unopened key paths; no live Monad service is launched.",
+    "Official JSON-schema validation is local; Render account deployment, native runtime tools, remote permissions, hosted restart and capacity remain unverified.",
+    "Raw logs/schema and the complete tested source hash manifest remain ignored locally; another checkout must rerun its own evidence.",
+    "Paid hosting requires account/repository access, the published user commit and explicit recurring charge approval.",
+    "Monitoring/backups and release handoff remain original milestones 8 and 9; deferred paid coverage remains 268/300."
+  ]
+}

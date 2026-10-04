@@ -1,6 +1,7 @@
 node_modules/
 dist/
 var/
+__pycache__/
 artifacts/source-soak/raw/
 test/integration/out/
 test/integration/cache/
