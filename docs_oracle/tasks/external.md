@@ -47,11 +47,12 @@ tracked here so nothing waits on them unnoticed. Format and rules: header of
 - Depends: OG1, X03
 - Plan: §12.4, §12.5, §12.11, §14.1, V-M3, V-C16, ADJ-18, ADJ-20
 - Cut: yes
-- Status: todo
+- Status: done
 - Files: oracle/deployments/monad-testnet.json
 - Build: The "OG1 deploy" that O23 waits for (ADJ-20). Re-verify every external address with `cast code`; run DeployUmaSandbox and DeployOracle; verify on the testnet explorer; queue and execute the §12.5 Timelock operations (sim forwarder, sim relayer, trust set 1 and its activation, globals version 1, providers, authRefs, treasury limits); fund the ASSERTION and WATCHDOG_FLOAT ledgers; list the first market and record `createMarket` gas (V-M3).
 - Done when: `deployments/monad-testnet.json` holds every address, code hash, deploy block and Timelock operation, and the first market is listed.
 - Check: manual: oracle/deployments/monad-testnet.json complete and the first MarketListed tx hash recorded
+- Notes: Done 4 Oct 2026 on Monad testnet. The deployed runtimes match their recorded codehashes (keccak of `cast code`; this RPC has no `eth_getProof`, so `cast codehash` fails). Rehearsed first on an anvil 1.8.3 fork (Forge 1.8.3 refuses to fork an anvil 1.5.1 on chain 10143: `unknown monad hardfork Prague`). Live: the lister (team Safe stand-in, ADJ-38) proposed CreateTrustSet's two operations and the FundTreasury limits, keeper 1 executed them after the 300 s delay (execute gas 408,461 / 261,199 / 128,207): sim forwarder 0xB9F7…D192, sim relayer 0x0f27…24C5, trust set 1 active, globals version 1, statsapi.mlb.com, SPORTSDATA_V1, limits 100 USDC / 20 disputes; the deployer minted TestUSDC and deposited 1,000 USDC each into ASSERTION and WATCHDOG_FLOAT (broadcast/FundTreasury.s.sol/10143); the lister listed the O22.4 MLB pack unshifted (market 0xbb40…e5ea, engine 0x597C…21e9, T 8 Oct 2026 01:00 UTC), tx 0xee55d0c0…5a06, createMarket 4,149,249 gas (V-M3, in gas.json). Every hash is in deployments/monad-testnet.json (`timelockOps`, `markets`). The StubMarketFactory was not redeployed: the stub's error is `Unauthorized` on chain, `RiskUnauthorized` in the current source.
 
 ## External dependencies (other teams, plan §3.3)
 
