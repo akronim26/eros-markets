@@ -1,0 +1,18 @@
+{
+  "mode": "MONAD_TESTNET_NONCE_RECOVERY",
+  "status": "FINALIZED",
+  "nonce": "3",
+  "hash": "0x8d7958cb431e51f9010d2131d485fd4e053062d3e7404e932230fecf296688f8",
+  "receipt": {
+    "status": "success",
+    "transactionHash": "0x8d7958cb431e51f9010d2131d485fd4e053062d3e7404e932230fecf296688f8",
+    "blockNumber": "68167766",
+    "blockHash": "0x9acd92d55b8a2c156dc69758b9aad778a9a1e6c95f39140bf933cc998aeea0eb",
+    "logs": []
+  },
+  "cancellationReservationWei": "3150000000000000",
+  "totalReservationsWei": "392724900000000000",
+  "priceTransactionsSent": 0,
+  "originalPriceRequestAndRawRetained": true,
+  "productionApproved": false
+}

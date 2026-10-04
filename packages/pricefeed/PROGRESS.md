@@ -1974,3 +1974,152 @@ Latest tested file hashes/TAP/outcome metadata:
 `artifacts/verification/monad-budget-latency-unit.json`.
 
 Suggested commit: `feat: add audited Monad pricefeed budget renewal`.
+
+## Completed — 04 October 2026: explicit nonce recovery and paid gas savings
+
+Base: `80032eb` on `pricefeed`. User instructed recovery and completion. Reused
+only the existing keys/journals and approved 0.35 MON envelope. Changes stay
+inside `packages/pricefeed/`; no push or shared component change.
+
+**Built and verified recovery.** Added `recover-monad-nonce`, constrained to the
+latest expired, signed but never-broadcast price reservation. It pins exact old
+hash/nonce, signer journal identity, current policy, idle leases, canonical known
+history and chain nonce. It signs only a 21,000-gas, zero-value, empty-data self
+transaction on testnet; no arbitrary transfer/call/signing route. Original price
+request/raw bytes/signature remain unchanged. Cancellation request/raw bytes and
+uncertain send attempts are durable; retries use identical bytes. Canonical
+finalized success marks only the original delivery CANCELLED. Publisher startup
+verifies recovery signatures/receipts/finality and skips that price. Unknown,
+missing/corrupt or noncanonical recovery evidence blocks startup. Both abandoned
+price and cancellation reservations/counts stay charged to the cumulative cap.
+Audited future budget renewal now reconciles cancelled history as well.
+
+Removed one duplicate pre-sign lifecycle read only across the synchronous builder
+path within 50 ms and the same whole second. Delays/time boundaries still recheck;
+post-signing, pre-reservation and pre-broadcast gates are unchanged. Source age,
+receiver/source/listing/ABI/code pins and spend limits were not loosened.
+
+**Actual chain result.** Zero-value cancellation nonce **3** finalized in block
+**68167766**, hash
+`0x8d7958cb431e51f9010d2131d485fd4e053062d3e7404e932230fecf296688f8`,
+charging **0.002142 MON**. Then six authentic prices **sequences 7–12 / nonces 4–9**
+finalized. Gas limits **197,059–197,180**; total price cost **0.120617754 MON**,
+average **0.020102959 MON**, **75.36% below** the original 0.0816/update.
+All new charged gas including cancellation: **0.122759754 MON**. Additional
+reservations including abandoned request/cancellation: **0.21010395 MON**, within
+approved **0.35 MON**. Lifetime conservative reservation count **11** is exhausted;
+no extra transaction, nonce reuse, journal reset or budget increase occurred.
+
+The resumed service exited **0**, nine finalized prices total. A separate cold
+process reopened the same five journals and exited **0** at target nine, sending
+nothing. Every stored packet/signature/request/raw transaction/receipt matched.
+Original pilot and quote evidence still independently pass their frozen reviews.
+Closed optimized journals are frozen under private
+`var/monad-testnet/optimized-run-evidence/`; active history remains unchanged in
+location, with final source sequence 12 and next sender nonce 10.
+
+**Independent proof.** Read-only verifier checks exact signed requests, canonical
+finalized accepted logs, cancellation scope/receipt, gas margin and charged cost.
+Python independently replays authentic raw books with Fraction, source times,
+depths/invalidity, integer gas/cap arithmetic and the 300-second segment integral.
+At named block **68169207** / timestamp **1791133182**, coverage is **134/300**,
+`available: false`. This short stopped test does not prove sustained coverage.
+Acceptance intervals **20/18/17/23/28 seconds**, source ages at acceptance **12–20
+seconds**, remain diagnostic. Public evidence: `nonce-recovery.json`,
+`optimized-small-run.json`, `optimized-small-run-review.json`,
+`optimized-restart-review.json` under `artifacts/monad-testnet/`.
+
+**Verification.** Final full compiled suite **336/336**, exit 0; latest focused
+`npm run test:gas` **27/27**, exit 0, included in 336. Five new recovery tests cover
+history/nonce continuation, cumulative count caps, uncertain-send immutable retry,
+invalid limits/identities/active writers/already-attempted sends, missing finalized
+proof and rewritten signer pins. One new gate-reuse test retains all later gates.
+The preceding full 335 run passed before the final signer-pin strengthening/test;
+336 verifies the final sources. Build, real receipt report, independent optimized
+Fraction/TWAP review, frozen pilot and quote reviews all pass. Retained tested file
+hashes/TAP/logs: `artifacts/verification/monad-nonce-recovery-unit.json`.
+Early fixtures used a one-millisecond receipt timeout or changed a mock block's
+timestamp without advancing it; fixtures were corrected rather than relaxing
+recovery/finality checks. A misplaced gate timestamp caused an initial TypeScript
+scope error and was corrected before the passing runs. Earlier owned-chain
+crash/Solidity/category campaigns were not rerun for this milestone.
+
+**Next according to the plan.** Recovery and the bounded paid-gas test are done.
+Next renew/fund/authorize a sustained campaign using actual cost/cadence, prove
+full 300-second coverage plus invalid/gap behavior, then category calibration and
+supervisor/backup/hosting/alerts/review. General already-broadcast replacement,
+production policies/listing/operating inputs and human gate acceptance remain open.
+
+Suggested commit: `feat: recover expired Monad nonce within feed budget`.
+
+**Final state check.** Read-only pinned Monad preflight confirms receiver source
+sequence **12**, pending sender nonce **10** and remaining bot balance
+**0.232440246 MON**. No new transaction was sent during verification. Public
+record: `artifacts/monad-testnet/optimized-final-state.json`. All edited/untracked
+files remain inside `packages/pricefeed/`; `git diff --check` passes. No push.
+
+## 04 October 2026 — sustained Monad coverage campaign prepared
+
+**Requested next step.** User requested the next planned milestone: a real
+300-second Monad window, deliberate publication gap and recovery. Base commit
+`80032eb`, alongside the existing pending nonce-recovery milestone. Preparation
+does not claim the actual sustained test has passed.
+
+**Built.** A read-only named-block capture command validates current and historical
+runtime/ABI/listing/source pins, finalized height and canonical block hash before
+reading `indexTwap300` at that block's actual timestamp. The sustained verifier
+checks a closed five-journal archive, the applied budget audit, observation and
+transaction signatures, canonical receipts, cancellation proofs, original signed
+history and exact gas/cap arithmetic. It retains candidate receipt windows,
+including failures. Separate bigint and independent Python/Fraction replays
+filter by receipt block before same-second replacement, preventing a later valid
+or invalid sample from rewriting a historical window. Required phases are full
+initial coverage, unavailable gap with unchanged source progress, and a full
+window built after restart. Failed requirements are recorded and exit nonzero.
+Real invalid books retain the selected zero-price policy; no artificial source
+book is submitted to manufacture live invalid evidence.
+
+**Concrete finite proposal.** `coverage-proposal.json` and `coverage-policy.json`
+allow at most **44 additional reservations**, including any cancellation, and
+**1.35 MON total remaining reservation allowance**. Two publication phases each
+have a 600-second duration cap / at most 22 new finalized prices, separated by
+at least 60 seconds stopped. Both reuse the existing keys and active journals.
+The maximum count is not a guaranteed coverage outcome; failed phases stop
+without increasing limits. At the measured six-price average, 44 paid prices
+would cost about **0.884530196 MON**, subject to gas/fee changes.
+
+The exact lifetime cap becomes **1.92010395 MON** at revision **2** / count **55**:
+historical reservations 0.57010395 plus the new 1.35 envelope. The policy ceiling
+increase is only **1.21010395 MON**, since the old ceiling had 0.13989605 unused.
+The remaining envelope is capped at 1.35, not 1.35 plus that old unused allowance.
+
+**Read-only live checks.** `coverage-budget-plan.json` verifies the idle history,
+source sequence **12**, pending sender nonce **10**, and balance
+**0.232440246 MON**. Funding gap: **1.117559754 MON**; suggested browser-wallet
+transfer **1.15 test MON** to the existing sender. Plan approval hash:
+`1156fe89042918b4d1c5d194fc9ca625b6b3ac56e133d086f9df665bc0efd904`.
+`coverage-preparation-review.json` independently checks the plan hash and unchanged
+active journal snapshot. **No budget application, new signature or transaction**
+occurred. The prior eight-slot authorization is exhausted; this new concrete
+envelope requires user approval and funding before execution.
+
+**Verification.** Build exit 0. Full compiled Node suite **341/341**, no failures,
+skips or cancellations, exit 0; five new coverage cases are included. Independent
+Python reference suite **4/4**, exit 0, verifies hand-derived windows and reproduces
+the historical real **134/300** unavailable result. First sandboxed full attempt
+failed in existing CLI subprocess fixtures; the identical compiled suite passed
+with approved local fixture access. Failed TAP is retained separately. Tested
+source/report hashes and results are in
+`artifacts/verification/monad-coverage-preparation-unit.json`. No additional
+Forge, owned-chain crash or category soak campaign was run for this preparation.
+
+**Still pending.** Fund/approve/apply the exact finite plan, run and retain both
+full windows plus the intervening gap, freeze the new archive, and execute the
+canonical receipt and independent Fraction phase review. Named-block capture and
+the complete sustained verifier compile, but their actual new campaign execution
+remains unverified. Follow with category calibration, remaining recovery/custody
+work and supervisor/backup/hosting/alerts/review. Docs/plan-status and the Monad
+runbook reflect this distinction. No commits or pushes were made.
+
+Suggested preparation commit: `test: prepare sustained Monad coverage and gap recovery`.
+After the real proof passes: `test: verify sustained Monad coverage and gap recovery`.

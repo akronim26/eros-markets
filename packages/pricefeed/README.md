@@ -4,6 +4,8 @@ An isolated CP-PRICE package following
 [`polymarket-event-price-feed-implementation-plan.pdf`](../../docs/requests/polymarket-event-price-feed-implementation-plan.pdf).
 Read [`PROGRESS.md`](PROGRESS.md) for each commit's changes, decisions, checks and
 blockers. [`docs/decisions.md`](docs/decisions.md) tracks Q01-Q10.
+The next diagnostic is the funded, capped sustained Monad coverage campaign in
+[`docs/monad-testnet.md`](docs/monad-testnet.md#sustained-coverage-campaign-prepared-not-yet-authorized).
 
 ## Current behavior
 
@@ -28,18 +30,21 @@ Local fixture signatures use public test-only keys in a local test VM.
 
 Monad testnet now has a deployed standalone receiver and an explicit diagnostic
 publication service with separate encrypted keys and five durable journals.
-Three authentic observations finalized, including one after a process restart;
-cost was 0.2448 test MON. See [`docs/monad-testnet.md`](docs/monad-testnet.md)
+Nine authentic observations have finalized: the original three-price pilot cost
+0.2448 MON, and six optimized prices cost 0.120617754 MON. See [`docs/monad-testnet.md`](docs/monad-testnet.md)
 for the commands, public evidence, exhausted pilot budget and next coverage test.
 Estimate-based gas sizing now verifies the buffered limit before nonce reservation.
 A fresh signed quote estimated 179,266 gas, selecting 197,193 with a 10% margin;
 it sent no transaction. [`cost-capacity.json`](artifacts/monad-testnet/cost-capacity.json)
 records daily scenarios and a finite six-minute campaign proposal. Explicit,
 audited budget renewal is now built and tested. A smaller eight-update run with
-a 0.35 test MON reservation cap was approved and applied. The first test stopped
-before broadcast on source-age protection, spending zero MON. Signed nonce 3
-requires explicit recovery before retry; actual paid savings and sustained
-coverage remain unverified.
+a 0.35 test MON reservation cap was approved and applied. After explicit recovery
+of a signed but unsent nonce, six fresh prices finalized at **0.020102959 MON
+average**, **75.36% lower** than the original pilot. Recovery cost 0.002142 MON;
+all new spend was 0.122759754 MON. A cold restart preserved every signed packet
+and sent nothing. The bounded run verifies 134/300 seconds of TWAP coverage;
+the full sustained campaign is still next. See the receipt/Fraction evidence in
+[`optimized-small-run.json`](artifacts/monad-testnet/optimized-small-run.json).
 
 Candidate rules manifests and durable packet/signing library mechanics now live
 in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and

@@ -1,0 +1,180 @@
+
+> @eros/pricefeed@0.1.0 test:gas
+> npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/gas-cost.test.js dist/test/monad-publication.test.js dist/test/monad-service.test.js
+
+
+> @eros/pricefeed@0.1.0 build
+> tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: gas sizing rounds upward without clamping to a ceiling or inventing an estimate
+ok 1 - gas sizing rounds upward without clamping to a ceiling or inventing an estimate
+  ---
+  duration_ms: 7.093386
+  type: 'test'
+  ...
+# Subtest: cost planner reproduces measured pilot rates and counts multiple markets and fractional periods exactly
+ok 2 - cost planner reproduces measured pilot rates and counts multiple markets and fractional periods exactly
+  ---
+  duration_ms: 0.70897
+  type: 'test'
+  ...
+# Subtest: budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+ok 3 - budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history
+  ---
+  duration_ms: 1319.338058
+  type: 'test'
+  ...
+# Subtest: budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+ok 4 - budget plans reject live writers and changes outside finite budgets and enabling gas estimates
+  ---
+  duration_ms: 845.462456
+  type: 'test'
+  ...
+# Subtest: failed or changed budget plans roll back without changing the profile or reservations
+ok 5 - failed or changed budget plans roll back without changing the profile or reservations
+  ---
+  duration_ms: 920.135934
+  type: 'test'
+  ...
+# Subtest: budget audit detects deletion/tampering and conflicting replay without another authorization
+ok 6 - budget audit detects deletion/tampering and conflicting replay without another authorization
+  ---
+  duration_ms: 879.864242
+  type: 'test'
+  ...
+# Subtest: applying a budget plan locks every journal through chain checks and commits only the relay policy
+ok 7 - applying a budget plan locks every journal through chain checks and commits only the relay policy
+  ---
+  duration_ms: 962.851174
+  type: 'test'
+  ...
+# Subtest: testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+ok 8 - testnet pipeline signs real raw digests, sends chain-10143 transactions and resumes journal/nonces after restart
+  ---
+  duration_ms: 1310.081227
+  type: 'test'
+  ...
+# Subtest: fresh allocation reuses only its synchronous lifecycle gate and retains all later publication gates
+ok 9 - fresh allocation reuses only its synchronous lifecycle gate and retains all later publication gates
+  ---
+  duration_ms: 1002.302651
+  type: 'test'
+  ...
+# Subtest: estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+ok 10 - estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart
+  ---
+  duration_ms: 1148.125475
+  type: 'test'
+  ...
+# Subtest: optimized gas failures reserve no transaction nonce and never fall back to the full cap
+ok 11 - optimized gas failures reserve no transaction nonce and never fall back to the full cap
+  ---
+  duration_ms: 3721.679087
+  type: 'test'
+  ...
+# Subtest: a selected gas limit that fails simulation cannot consume a nonce
+ok 12 - a selected gas limit that fails simulation cannot consume a nonce
+  ---
+  duration_ms: 696.737038
+  type: 'test'
+  ...
+# Subtest: gas quote records an expired signed packet without sending or consuming a transaction nonce
+ok 13 - gas quote records an expired signed packet without sending or consuming a transaction nonce
+  ---
+  duration_ms: 2012.142556
+  type: 'test'
+  ...
+# Subtest: testnet source history mismatch persists quarantine and prevents restart publication
+ok 14 - testnet source history mismatch persists quarantine and prevents restart publication
+  ---
+  duration_ms: 843.769346
+  type: 'test'
+  ...
+# Subtest: testnet receipt remains MINED until a finalized head includes its canonical block
+ok 15 - testnet receipt remains MINED until a finalized head includes its canonical block
+  ---
+  duration_ms: 873.801311
+  type: 'test'
+  ...
+# Subtest: testnet total budget survives restart and stops allocation after the last accepted packet
+ok 16 - testnet total budget survives restart and stops allocation after the last accepted packet
+  ---
+  duration_ms: 1088.650045
+  type: 'test'
+  ...
+# Subtest: unfunded testnet simulation reserves no nonce and broadcasts nothing
+ok 17 - unfunded testnet simulation reserves no nonce and broadcasts nothing
+  ---
+  duration_ms: 708.378092
+  type: 'test'
+  ...
+# Subtest: never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce
+ok 18 - never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce
+  ---
+  duration_ms: 1879.927852
+  type: 'test'
+  ...
+# Subtest: unknown cancellation send is durable and retries only identical bytes
+ok 19 - unknown cancellation send is durable and retries only identical bytes
+  ---
+  duration_ms: 1985.310751
+  type: 'test'
+  ...
+# Subtest: cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends
+ok 20 - cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends
+  ---
+  duration_ms: 838.303935
+  type: 'test'
+  ...
+# Subtest: missing or noncanonical finalized cancellation evidence blocks publisher restart
+ok 21 - missing or noncanonical finalized cancellation evidence blocks publisher restart
+  ---
+  duration_ms: 1456.263645
+  type: 'test'
+  ...
+# Subtest: a rewritten cancellation signer pin is rejected even with a recomputed row checksum
+ok 22 - a rewritten cancellation signer pin is rejected even with a recomputed row checksum
+  ---
+  duration_ms: 1277.228792
+  type: 'test'
+  ...
+# Subtest: unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+ok 23 - unknown testnet send preserves immutable raw transaction and redacts RPC credentials
+  ---
+  duration_ms: 890.090898
+  type: 'test'
+  ...
+# Subtest: original local builder/signing/relay cannot be used for external testnet output
+ok 24 - original local builder/signing/relay cannot be used for external testnet output
+  ---
+  duration_ms: 549.038832
+  type: 'test'
+  ...
+# Subtest: testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+ok 25 - testnet transaction signer cannot sign a transfer, another receiver or an excessive fee request
+  ---
+  duration_ms: 801.13716
+  type: 'test'
+  ...
+# Subtest: testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+ok 26 - testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits
+  ---
+  duration_ms: 1.579954
+  type: 'test'
+  ...
+# Subtest: testnet service refuses another chain before creating journals or accessing keys/network
+ok 27 - testnet service refuses another chain before creating journals or accessing keys/network
+  ---
+  duration_ms: 2.028022
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28753.741193

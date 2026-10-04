@@ -22,7 +22,9 @@ assert sources == report['captures']
 assert report['packets'][:3] == pilot['restartedRun']['packets']
 samples, reviewed, total_cost, new_cost, new_reserved = {}, [], 0, 0, 0
 previous_sequence, previous_time = 0, 0
-for nonce, (item, receipt) in enumerate(zip(report['packets'], report['receipts'], strict=True)):
+for price_index, (item, receipt) in enumerate(zip(report['packets'], report['receipts'], strict=True)):
+    nonce = receipt['nonce']
+    assert nonce == price_index + (1 if price_index >= 3 else 0)
     packet, delivery = item['packet'], item['delivery']
     obs, accepted = packet['observation'], receipt['accepted']
     assert delivery['accepted'] == accepted and delivery['state'] == 'FINALIZED'
@@ -64,6 +66,27 @@ for nonce, (item, receipt) in enumerate(zip(report['packets'], report['receipts'
     reviewed.append({'sequence': obs['sequence'], 'nonce': nonce, 'gasCostWei': str(cost),
                      'depthValid': accepted['depthValid']})
 assert len(reviewed) == report['transactionsFinalized'] == report['optimizedTransactionsFinalized'] + 3
+assert len(report['recoveries']) == len(report['recoveryReceipts']) == 1
+recovery, cancel_receipt = report['recoveries'][0], report['recoveryReceipts'][0]
+assert recovery['state'] == 'FINALIZED' and recovery['nonce'] == '3'
+assert recovery['sender'].lower() == report['sender'].lower() and recovery['request']['gas'] == '21000'
+assert recovery['receipt'] == cancel_receipt['receipt'] and recovery['receipt']['status'] == 'success'
+assert recovery['receipt']['transactionHash'] == recovery['hash'] and not recovery['receipt']['logs']
+assert list(helpers['records'](archive / 'relay.sqlite', 'nonce_recoveries', 'body')) == report['recoveries']
+original = json.loads(recovery['originalBody'])
+assert hashlib.sha256(recovery['originalBody'].encode()).hexdigest() == recovery['originalSha256']
+stopped = json.loads((PACKAGE / 'artifacts/monad-testnet/stopped-small-run.json').read_text())
+assert original == stopped['reservedDelivery'] and original['attempts'] == 0
+cancelled = [r for r in report['deliveries'] if r['state'] == 'CANCELLED']
+assert len(cancelled) == 1 and cancelled[0] == {**original, 'state': 'CANCELLED', 'reason': 'NONCE_CANCELLED'}
+assert len(report['deliveries']) + len(report['recoveries']) <= report['policy']['budget']['maxTransactions']
+cancel_cost = int(cancel_receipt['gasUsed']) * int(cancel_receipt['effectiveGasPrice'])
+assert cancel_cost == int(cancel_receipt['gasCostWei']) == int(report['recoveryGasCostWei'])
+cancel_reservation = 21000 * int(recovery['request']['maxFeePerGas'])
+assert cancel_cost <= cancel_reservation == int(recovery['reservationWei'])
+new_reserved += cancel_reservation + int(original['request']['gas']) * int(original['request']['maxFeePerGas'])
+total_cost += cancel_cost
+assert new_cost + cancel_cost == int(report['newGasCostWei']) <= int(plan['additionalReservationWei'])
 assert total_cost == int(report['totalGasCostWei']) and new_cost == int(report['optimizedGasCostWei'])
 assert new_reserved == int(report['newReservationsWei']) <= int(plan['additionalReservationWei'])
 end = int(report['twap']['evaluationBlock']['timestamp'])
@@ -80,6 +103,7 @@ expected = {'available': covered == 300, 'coveredSecs': str(covered), 'integral'
 assert report['twap']['actual'] == expected
 output = {'verified': True, 'archiveHashesVerified': True, 'authenticSourceFractionReview': True,
           'oldSignedHistoryUnchanged': True, 'optimizedGasCostWei': str(new_cost),
+          'recoveryGasCostWei': str(cancel_cost), 'newGasCostWei': str(new_cost + cancel_cost),
           'newReservationsWei': str(new_reserved), 'packets': reviewed, 'twap': expected,
           'productionApproved': False, 'limitation': 'Bounded gas test; sustained coverage remains separate.'}
 (PACKAGE / 'artifacts/monad-testnet/optimized-small-run-review.json').write_text(json.dumps(output, indent=2)+'\n')

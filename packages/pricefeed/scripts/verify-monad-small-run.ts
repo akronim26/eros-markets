@@ -16,6 +16,7 @@ import { PacketStore } from '../src/packet-store.js';
 import { parseTransactionRequest } from '../src/durable-transaction-signer.js';
 import { policyHash, relayProfileBody, verifyBudgetAudit } from '../src/relay-policy.js';
 import { sizeGas } from '../src/gas.js';
+import { nonceRecoveries, validateCancellationReceipt, verifyCancellationSigner } from '../src/nonce-recovery-journal.js';
 
 const root='artifacts/monad-testnet/',archive='var/monad-testnet/optimized-run-evidence/';
 const read=(name:string)=>JSON.parse(readFileSync(root+name,'utf8'));
@@ -35,20 +36,21 @@ try{
   const profile=relayProfileBody({chainId:10143n,...policy.budget},policy.relay);
   assert.equal(relay.prepare('SELECT profile FROM relay_control WHERE id=1').get()!.profile,profile);
   verifyBudgetAudit(relay,profile,policy.budget.budgetRevision);
+  const recoveries=nonceRecoveries(relay);assert.equal(recoveries.length,1);assert.equal(recoveries[0]!.state,'FINALIZED');
   const audit=JSON.parse(String(relay.prepare('SELECT body FROM relay_budget_audit WHERE revision=1').get()!.body));
   assert.equal(audit.approvalHash,plan.approvalHash);
   const domain={chainId:10143n,engine:d.engineAddress,marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress};
   const inventory=packets.list(domain),rows=relay.prepare('SELECT body,sha256 FROM deliveries').all();
   const deliveries=rows.map(row=>{assert.equal(policyHash(String(row.body)),row.sha256);return JSON.parse(String(row.body));})
     .sort((a,b)=>Number(BigInt(a.nonce)-BigInt(b.nonce)));
-  assert.ok(deliveries.length>3&&deliveries.length<=11,'no optimized finalized samples or count cap exceeded');
+  assert.ok(deliveries.length>4&&deliveries.length+recoveries.length<=11,'no optimized finalized samples or count cap exceeded');
   assert.equal(transactions.prepare('SELECT count(*) AS count FROM transaction_reservations').get()!.count,deliveries.length);
   const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi}),receipts=[],items=[];
-  let totalCost=0n,optimizedCost=0n,reserved=0n,newReserved=0n;
+  let totalCost=0n,optimizedCost=0n,recoveryCost=0n,reserved=0n,newReserved=0n;
   for(let i=0;i<deliveries.length;i++){
     const delivery=deliveries[i]!,saved=inventory.find(p=>p.packet.observation.sequence.toString()===delivery.sequence);
     assert.ok(saved?.signature);const packet=saved.packet,request=parseTransactionRequest(delivery.request);
-    assert.equal(delivery.state,'FINALIZED');assert.equal(request.nonce,BigInt(i));
+    assert.ok(['FINALIZED','CANCELLED'].includes(delivery.state));assert.equal(request.nonce,BigInt(i));
     assert.equal(observationDigest(packet.observation,10143n,d.engineAddress),saved.digest);
     assert.equal(saved.digest,delivery.digest);
     assert.equal((await recoverAddress({hash:saved.digest,signature:saved.signature})).toLowerCase(),d.signerAddress.toLowerCase());
@@ -71,6 +73,9 @@ try{
       assert.equal(sizeGas(BigInt(delivery.gasSizing.estimatedGas),policy.relay.gasCap,policy.relay.gasSafetyMarginBps!).gasLimit,request.gas);
       assert.equal(BigInt(delivery.gasSizing.gasLimit),request.gas);newReserved+=reservation;
     }
+    if(delivery.state==='CANCELLED'){
+      assert.equal(recoveries[0]!.nonce,String(i));assert.equal(delivery.accepted,null);continue;
+    }
     const receipt=await rpc.receipt(hash);assert.ok(receipt);assert.ok(receipt.blockNumber<=checkpoint.block.number);
     const block=await rpc.block({blockNumber:receipt.blockNumber});
     const accepted=validateReceipt(packet,hash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)});
@@ -80,8 +85,17 @@ try{
     receipts.push({nonce:i,sequence:packet.observation.sequence,receipt,gasLimit:request.gas,gasUsed:full.gasUsed,
       effectiveGasPrice:full.effectiveGasPrice,gasCostWei:cost,reservationWei:reservation,accepted});items.push(item);
   }
+  const recoveryReceipts=[];
+  for(const r of recoveries){
+    await verifyCancellationSigner(r);const receipt=await rpc.receipt(r.hash!);assert.ok(receipt);validateCancellationReceipt(r,receipt);
+    assert.ok(receipt.blockNumber<=checkpoint.block.number);assert.equal((await rpc.block({blockNumber:receipt.blockNumber})).hash,receipt.blockHash);
+    assert.equal(json(receipt),json(r.receipt));const full=await client.getTransactionReceipt({hash:r.hash!});
+    assert.equal(full.blockHash,receipt.blockHash);const cost=full.gasUsed*full.effectiveGasPrice;
+    assert.ok(cost<=BigInt(r.reservationWei));totalCost+=cost;recoveryCost+=cost;reserved+=BigInt(r.reservationWei);newReserved+=BigInt(r.reservationWei);
+    recoveryReceipts.push({receipt,gasUsed:full.gasUsed,effectiveGasPrice:full.effectiveGasPrice,gasCostWei:cost,reservationWei:r.reservationWei});
+  }
   assert.ok(reserved<=policy.budget.totalMaxCostWei&&newReserved<=BigInt(plan.additionalReservationWei));
-  assert.ok(optimizedCost<=BigInt(plan.additionalReservationWei));
+  assert.ok(optimizedCost+recoveryCost<=BigInt(plan.additionalReservationWei));
   const latest=items.at(-1)!.packet.observation;
   assert.equal(checkpoint.engine!.sourceState.lastSequence,latest.sequence);assert.equal(checkpoint.engine!.sourceState.lastObservedAt,latest.observedAt);
   assert.equal(await rpc.nonce(policy.sender as Hex),BigInt(deliveries.length));
@@ -93,6 +107,7 @@ try{
   for(const [name,checksum] of Object.entries(archiveSha256))assert.equal(createHash('sha256').update(readFileSync(archive+name)).digest('hex'),checksum,'archive changed');
   const report={mode:'MONAD_TESTNET_OPTIMIZED_GAS_DIAGNOSTIC',verifiedAtUtc:new Date().toISOString(),chainId:10143,
     config:cfg,sender:policy.sender,policy:policyRaw,approvedPlanHash:plan.approvalHash,archive,archiveSha256,captures,packets:items,receipts,checkpoint,
+    deliveries,recoveries,recoveryReceipts,recoveryGasCostWei:recoveryCost,newGasCostWei:optimizedCost+recoveryCost,
     transactionsFinalized:items.length,optimizedTransactionsFinalized:items.length-3,totalGasCostWei:totalCost,
     optimizedGasCostWei:optimizedCost,historicalReservationsWei:BigInt(plan.reservedWei),newReservationsWei:newReserved,
     previousSignedPacketsAndTransactionsUnchanged:true,twap:{evaluationBlock:checkpoint.block,actual},

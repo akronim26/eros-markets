@@ -16,6 +16,7 @@ import { submitCalldata } from './wire.js';
 import { json } from './math.js';
 import { record } from './book.js';
 import { sizeGas } from './gas.js';
+import { nonceRecoveries, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
 
 export type BudgetOptions={config:MarketConfig;abi:unknown;rpcUrl:string;journalDirectory:string};
 const schemas=['source','packets','signer','transactions'] as const;
@@ -30,7 +31,7 @@ function policies(oldRaw:unknown,nextRaw:unknown){
     throw new Error('BUDGET_RENEWAL_SCOPE');
   return {old,next};
 }
-function open(options:BudgetOptions,write:boolean){
+export function openBudgetJournals(options:BudgetOptions,write:boolean){
   const root=options.journalDirectory,stat=lstatSync(root);
   if(!stat.isDirectory()||stat.isSymbolicLink()||(stat.mode&0o077)!==0||stat.uid!==process.getuid?.())throw new Error('TESTNET_PRIVATE_DIRECTORY_REQUIRED');
   for(const name of [...schemas,'relay']){
@@ -48,7 +49,7 @@ const tables=[['main','relay_control','id'],['main','relay_nonce','sender'],['ma
   ['source','writers','worker'],['source','captures','id'],['packets','packet_workers','ns'],['packets','packets','ns,sequence'],
   ['signer','signer_fences','ns'],['signer','signer_reservations','identity'],
   ['transactions','transaction_signer','id'],['transactions','transaction_reservations','nonce']] as const;
-function snapshot(db:DatabaseSync){
+export function budgetJournalSnapshot(db:DatabaseSync){
   const parts=tables.map(([schema,table,order])=>{
     const query=db.prepare(`SELECT * FROM ${schema}.${table} ORDER BY ${order}`);query.setReadBigInts(true);
     return {table:schema+'.'+table,rows:query.all()};
@@ -56,6 +57,10 @@ function snapshot(db:DatabaseSync){
   if(db.prepare("SELECT name FROM sqlite_master WHERE name='relay_budget_audit'").get()){
     const query=db.prepare('SELECT * FROM relay_budget_audit ORDER BY revision');query.setReadBigInts(true);
     parts.push({table:'main.relay_budget_audit',rows:query.all()});
+  }
+  if(db.prepare("SELECT name FROM sqlite_master WHERE name='nonce_recoveries'").get()){
+    const query=db.prepare('SELECT * FROM nonce_recoveries ORDER BY key');query.setReadBigInts(true);
+    parts.push({table:'main.nonce_recoveries',rows:query.all()});
   }
   return policyHash(json(parts));
 }
@@ -97,7 +102,7 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
     for(const row of rows){
       const body=String(row.body);if(policyHash(body)!==row.sha256)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
       const r=JSON.parse(body),packet=bySequence.get(String(r.sequence)),request=parseTransactionRequest(r.request);
-      if(r.state!=='FINALIZED'||!r.raw||!r.accepted||r.namespace!==ns||row.ns!==ns||row.key!==ns+':'+r.sequence
+      if(!['FINALIZED','CANCELLED'].includes(r.state)||!r.raw||r.state==='FINALIZED'&&!r.accepted||r.namespace!==ns||row.ns!==ns||row.key!==ns+':'+r.sequence
         ||row.nonce!==r.nonce||request.nonce.toString()!==r.nonce||!packet?.signature||packet.state!=='SIGNED'
         ||r.digest!==packet.digest||request.to!==d.engineAddress.toLowerCase()||request.data!==submitCalldata(packet.packet.observation,packet.signature).toLowerCase())
         throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
@@ -121,21 +126,30 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
     deliveries.sort((a,b)=>a.nonce<b.nonce?-1:1);
     const initial=BigInt(String(accounts[0]!.initial_nonce)),next=BigInt(String(accounts[0]!.next_nonce));
     if(next!==initial+BigInt(deliveries.length)||deliveries.some((r,i)=>r.nonce!==initial+BigInt(i)))throw new Error('RELAY_NONCE_JOURNAL_INTEGRITY');
-    if(reservedWei>old.budget.totalMaxCostWei||deliveries.length>old.budget.maxTransactions)throw new Error('BUDGET_HISTORY_EXCEEDS_POLICY');
-    const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi},now),last=deliveries.at(-1)?.packet.observation;
+    const recovered=nonceRecoveries(db);reservedWei+=recovered.reduce((s,r)=>s+BigInt(r.reservationWei),0n);
+    if(recovered.some(r=>r.state!=='FINALIZED'))throw new Error('BUDGET_UNRESOLVED_HISTORY');
+    if(reservedWei>old.budget.totalMaxCostWei||deliveries.length+recovered.length>old.budget.maxTransactions)throw new Error('BUDGET_HISTORY_EXCEEDS_POLICY');
+    const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi},now),last=deliveries.filter(r=>r.record.state==='FINALIZED').at(-1)?.packet.observation;
     if(checkpoint.engine!.sourceState.lastSequence!==(last?.sequence??0n)
       ||checkpoint.engine!.sourceState.lastObservedAt!==(last?.observedAt??0n))throw new Error('BUDGET_CHAIN_HISTORY_CHANGED');
     await Promise.all(deliveries.map(async entry=>{
+      if(entry.record.state==='CANCELLED')return;
       const r=entry.record,receipt=await rpc.receipt(r.txHash as Hex);
       if(!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
       const block=await rpc.block({blockNumber:receipt.blockNumber});
       const accepted=validateReceipt(entry.packet,r.txHash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)});
       if(json(accepted)!==json(r.accepted))throw new Error('BUDGET_ACCEPTED_RECEIPT_CHANGED');
     }));
+    for(const r of recovered){
+      await verifyCancellationSigner(r);const receipt=await rpc.receipt(r.hash!);
+      if(!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
+      validateCancellationReceipt(r,receipt);const block=await rpc.block({blockNumber:receipt.blockNumber});
+      if(block.hash!==receipt.blockHash||json(receipt)!==json(r.receipt))throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+    }
     if(await rpc.nonce(old.sender as Hex)!==next)throw new Error('BUDGET_SENDER_NONCE_CHANGED');
     const balanceWei=await rpc.balance(old.sender as Hex);
     if(now()-checkpoint.checkedAtMs>30000n)throw new Error('BUDGET_CHECKPOINT_EXPIRED');
-    return {checkpoint,reservedWei,deliveryCount:deliveries.length,nextNonce:next,balanceWei,configHash:policyHash(json(cfg)),journalHash:snapshot(db)};
+    return {checkpoint,reservedWei,deliveryCount:deliveries.length+recovered.length,nextNonce:next,balanceWei,configHash:policyHash(json(cfg)),journalHash:budgetJournalSnapshot(db)};
   }finally{store.close();source.close();}
 }
 
@@ -146,7 +160,7 @@ export function budgetPlanHash(value:unknown):string {
 export async function planMonadBudget(options:BudgetOptions,oldPolicy:unknown,nextPolicy:unknown,id:string,reason:string,
   rpc:MonadSubmissionRpc=monadSubmissionRpc(options.rpcUrl),now:()=>bigint=()=>BigInt(Date.now())){
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id)||!reason||reason.length>280)throw new Error('BAD_BUDGET_RENEWAL_ID');
-  const {old,next}=policies(oldPolicy,nextPolicy),db=open(options,false);
+  const {old,next}=policies(oldPolicy,nextPolicy),db=openBudgetJournals(options,false);
   try{
     db.exec('BEGIN');
     const state=await proof(db,options,old,rpc,now),remainingReservationWei=next.budget.totalMaxCostWei-state.reservedWei;
@@ -164,7 +178,7 @@ export async function applyMonadBudget(options:BudgetOptions,value:unknown,expec
   const plan=record(structuredClone(value));
   if(!/^[0-9a-f]{64}$/.test(expectedHash)||plan.approvalHash!==expectedHash||budgetPlanHash(plan)!==expectedHash
     ||plan.schemaVersion!=='1'||plan.mode!=='MONAD_TESTNET_BUDGET_PLAN')throw new Error('BUDGET_PLAN_CHANGED');
-  const {old,next}=policies(plan.oldPolicy,plan.nextPolicy),db=open(options,true);
+  const {old,next}=policies(plan.oldPolicy,plan.nextPolicy),db=openBudgetJournals(options,true);
   let committed=false;
   try{
     db.exec('BEGIN IMMEDIATE');
@@ -178,14 +192,14 @@ export async function applyMonadBudget(options:BudgetOptions,value:unknown,expec
         return {mode:'MONAD_TESTNET_BUDGET_RENEWAL',alreadyApplied:true,revision:next.budget.budgetRevision,approvalHash:expectedHash,transactionsSent:0};
       }
     }
-    if(snapshot(db)!==plan.journalHash)throw new Error('BUDGET_JOURNALS_CHANGED');
+    if(budgetJournalSnapshot(db)!==plan.journalHash)throw new Error('BUDGET_JOURNALS_CHANGED');
     const state=await proof(db,options,old,rpc,now);
     if(state.configHash!==plan.configHash||state.nextNonce.toString()!==plan.nextNonce
       ||state.checkpoint.engine!.sourceState.lastSequence.toString()!==(plan.checkpoint as any).engine.sourceState.lastSequence)
       throw new Error('BUDGET_CHAIN_HISTORY_CHANGED');
     const remaining=next.budget.totalMaxCostWei-state.reservedWei;
     if(state.balanceWei<remaining)throw new Error('BUDGET_SENDER_NEEDS_TEST_MON');
-    if(snapshot(db)!==plan.journalHash)throw new Error('BUDGET_JOURNALS_CHANGED');
+    if(budgetJournalSnapshot(db)!==plan.journalHash)throw new Error('BUDGET_JOURNALS_CHANGED');
     const previous=db.prepare("SELECT name FROM sqlite_master WHERE name='relay_budget_audit'").get()
       ?db.prepare('SELECT sha256 FROM relay_budget_audit ORDER BY revision DESC LIMIT 1').get()?.sha256??null:null;
     const body=json({revision:next.budget.budgetRevision,id:plan.id,reason:plan.reason,approvalHash:expectedHash,

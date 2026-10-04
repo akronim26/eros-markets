@@ -1,8 +1,8 @@
 # Pricefeed plan status — 04 October 2026
 
 Source of requirements: `docs/requests/polymarket-event-price-feed-implementation-plan.pdf`,
-v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit a373a64 plus
-the pending estimate-based gas and cost-capacity milestone. This is an
+v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 80032eb plus
+the pending nonce recovery, measured gas and sustained coverage preparation. This is an
 implementation/evidence audit, not human gate acceptance. No PF-G0–PF-G7 acceptance is claimed.
 
 “Built” below describes the stated local or diagnostic testnet code/evidence only. A task with approvals, missing
@@ -44,25 +44,26 @@ checks; sustained 300-second coverage and a full economic engine join remain.
 | PF015 Signer | Raw digest, recovery, low-s/v/serialization checks; independent durable local/testnet signer journals; separate encrypted private testnet keys and fixed-chain/receiver transaction signing | Approved production key backend, identity policy and risk/security review; test key is not an operational signer |
 | PF016 Recovery | Sequence/lease/fence/immutable retry and lagging-restore tests; real-source/local-chain graceful reopen; thirteen OS SIGKILL journal boundaries with scripted counterparts; eight joined LocalPipeline.run/owned-Anvil kill boundaries (all resume with checked durable transaction journal); signer/relay snapshot mismatch, stale restore and lease/expiry checks | interrupted DB transaction/disk/power-failure drills, production transaction-signer backup controls and supervisor startup reconciliation |
 | PF017 CLI | validate-config, inspect-book, capture, serve, verify-digest, health, verify-evidence, offline build-observation, preflight-monad, watch-monad-lifecycle, finite budgeted serve-monad-testnet, quote-monad-gas and plan/apply-monad-budget; explicit archive/capture/sequence/replay-time inputs, raw recomputation, fixed-code errors and subprocess misuse/redaction tests | Broader operator review of all collection/storage failure paths; production signing/sending commands remain outside authorized scope |
-| PF018 Relay | Joined local pipeline/loopback adapter; durable ordered nonces, exact simulation/age/spend checks and shared-account quarantine; independent public local transaction journal, pinned ID and exact request/raw-byte reconciliation; 25-market two-round scripted RPC delivery with exact nonces 0–49; queue-expired unreserved packets become EXPIRED without service failure; owned-chain crash recovery verifies immutable sends, actual receipt recovery and nonce continuation; Monad testnet HTTPS adapter with finalized-block pins, simulation, durable nonces, persistent spend caps and three actual finalized transactions; exact estimate-based upward-rounded gas sizing and selected-limit simulation; one actual fresh quote without sending; audited idle-journal budget renewal preserving history | Production RPC/key adapters, transaction-signer backup controls, real-chain/cross-market inclusion/load evidence, fee replacement/cancellation and approved budgets |
+| PF018 Relay | Joined local pipeline/loopback adapter; durable ordered nonces, exact simulation/age/spend checks and shared-account quarantine; independent public local transaction journal, pinned ID and exact request/raw-byte reconciliation; 25-market two-round scripted RPC delivery with exact nonces 0–49; queue-expired unreserved packets become EXPIRED without service failure; owned-chain crash recovery verifies immutable sends, actual receipt recovery and nonce continuation; Monad testnet HTTPS adapter with finalized-block pins, simulation, durable nonces, persistent spend caps and three actual finalized transactions; exact estimate-based upward-rounded gas sizing and selected-limit simulation; one actual fresh quote without sending; audited budget renewal; explicit never-broadcast nonce cancellation and six optimized finalized prices | Production RPC/key adapters, transaction-signer backup controls, real-chain/cross-market inclusion/load evidence, general fee replacement/cancellation beyond never-broadcast expiry and approved production budgets |
 | PF019 Receipts/reorg | Exact raw event/block/digest validation; invalid-depth success distinguished; mined/finalized/orphaned states; local journal/reorg fixtures; Monad finalized checkpoint/source progress; actual exact accepted logs; signed packet/signer/transaction journal reconciliation and persistent unknown-higher-state quarantine; new-process sequence/nonce continuation | Production finality policy and wider reorg/RPC-disagreement campaign |
 | PF020 Real ingress | Four wire/short-window tests plus four signed 24-hour lifecycle tests importing real ingress/store/INVALID/risk context with scripted counterparts; earlier live-source campaigns remain separate | Full real counterpart economic/guard composition and expanded negative vectors; fixtures are not authentic oracle or live availability evidence |
 | PF021 Live soak | Existing category captures and source-time review; new six-minute durable real-data campaigns with actual journal restarts: crypto 236/300, politics at 10 s 294/300, politics at 5 s 300/300 (72 accepted); independent archive/Fraction replay | Approved duration/availability/load targets, longer quiet/active periods and selected-listing soak; one successful diagnostic window is not an availability guarantee |
-| PF022 Calibration | Exact arithmetic/captures; measured 179,266 gas estimate and 197,193 buffered limit, independent integer cost/capacity scenarios and six-minute budget proposal | Candidate N/spread comparisons, measured cadence/headroom report and signed risk-owner production calibration |
+| PF022 Calibration | Exact arithmetic/captures; measured gas quote and six paid optimized prices averaging 0.020102959 MON, acceptance intervals 17–28 seconds, independent cost/capacity scenarios and six-minute proposal | Candidate N/spread comparisons, broader cadence/headroom calibration and signed risk-owner production calibration |
 | PF023 Lifecycle | Durable local block-labeled record-only/deadline controller joined to scheduler/pipeline; source-closure gap and delayed signing/simulation/transaction guards; restart/quarantine tests; four signed accelerated full-24-hour complete/gapped/legacy/thin cases against real risk modules; durable read-only Monad finalized-block halt/deadline/source-progress monitor, pinned concrete reader, CLI/SQLite process restart and graceful fenced handoff | Actual standalone receiver preflight/monitoring and publication-boundary integration verified; approved production checkpoint/finality/closure/operating policy; authentic oracle join, selected-listing elapsed soak and named risk/oracle review |
 | PF024 Load/chaos | OS-kill journal/restore/expiry drills; seven declared load cases with 3/8/12/20/25/100 workers, RPC timeout/late completion, 31-second queued ageing and fresh recovery, source pressure/drain; timing and headroom measurements retained; joined eight-boundary Anvil crash campaign and signer/relay restore mismatch guards | Approved throughput/fairness/availability targets; sustained owned-chain/cross-market load, larger books, sustained real-source/RPC calibration, disk/permissions/power-pressure campaign and operational queue/priority design |
 | PF025 Monitoring/runbooks | Freshness-aware health; diagnostic states; development recovery runbook, reproducible crash/restore runner and readonly Monad watch/health/archive commands | Approved operator procedures, supervisor/backup/storage drills, block-labeled engine health, alerts/metrics ownership and closure/key-failure runbooks |
 | PF026 Security/release | Dependencies pinned, scope guarded, local test keys and production restrictions explicit | Complete reviewed release manifest, real identities, data-terms/security/least-privilege review and all approved inputs |
-| PF027 Handoff/live join | Local real-source and real ingress/store evidence clearly separated from mocks | Standalone testnet receiver deployed and pins verified; three authentic finalized receipts and new-process restart verified; sustained coverage remains. Full economics still needs an authorized concrete engine and actual counterparts |
+| PF027 Handoff/live join | Local real-source and real ingress/store evidence clearly separated from mocks | Standalone testnet receiver deployed and pins verified; nine authentic finalized prices, nonce recovery and new-process restart verified; short optimized window has 134/300 coverage, sustained coverage remains. Full economics still needs an authorized concrete engine and actual counterparts |
 | PF028 Final review | README, per-commit PROGRESS, decision docs and historical status PDF exist | Independent final review, current task evidence index, clean-environment full replay and accepted handoff/release |
 
 ## Current verification and practical boundary
 
-- Latest package suite: **330 tests pass**, zero failed/skipped/cancelled/todo.
-  Five budget-renewal tests and one final-check concurrency test are included. Earlier focused
-  gas/publication/service suite: **21 pass**, included in 330.
-  Latest evidence: `artifacts/verification/monad-budget-latency-unit.json` and retained TAP.
-  The earlier 329-test budget evidence and stopped-run logs remain retained.
+- Latest package suite: **336 tests pass**, zero failed/skipped/cancelled/todo.
+  Five budget-renewal tests, final-check concurrency, five explicit nonce recovery
+  tests and synchronous gate reuse are included. Focused gas/publication/service
+  suite: **27 pass**, included in 336.
+  Latest evidence: `artifacts/verification/monad-nonce-recovery-unit.json` and retained TAP.
+  Earlier 330/329 budget evidence and stopped-run logs remain historical.
   The preceding 324-test gas evidence remains historical.
   The preceding 318-test publication evidence remains historical.
   The first sandboxed full run failed twelve CLI subprocess tests due to EPERM;
@@ -142,9 +143,11 @@ standalone receiver using real signature ingress and observation storage.
    campaign proposal are retained in `artifacts/monad-testnet/cost-capacity.json`.
    Explicit idle-journal budget renewal is built and tested, retaining all signed
    history and historical reservations. A smaller eight-update / 0.35 MON additional
-   reservation plan was approved/applied. Its attempted run stopped before broadcast
-   on source-age protection, spending zero MON; signed nonce 3 now needs explicit
-   recovery. Its original pilot budget is exhausted;
+   reservation plan was approved/applied. An initial stopped attempt is retained;
+   explicit nonce recovery then succeeded, followed by six authentic finalized
+   optimized prices costing 0.120617754 MON (75.36% lower per update). Cancellation
+   cost 0.002142 MON. Cold restart preserved all history and sent nothing. The
+   short window verifies 134/300 coverage. Its conservative count cap is exhausted;
    do not delete journals or silently enlarge that pinned policy. Establish actual
    submission cadence and complete 300-second TWAP coverage, with invalid/gap and
    restart behavior. The seven-day receiver deadline/mapping/N/spread are diagnostic.
@@ -156,12 +159,19 @@ standalone receiver using real signature ingress and observation storage.
    Eros economic integration additionally needs accepted engine/book/oracle/
    factory wiring, including the engine team's existing RB-I01 disposition.
 
-Next concrete deliverable: implement/test explicit recovery of the signed,
-never-broadcast nonce 3 and reduce publication RPC latency. The small 0.35 MON
-cap is approved/applied; its first run stopped safely before sending and balance
-remains 0.3552 MON. Existing funds cover the test; browser funds can stay put.
-Then resume within the approved remaining envelope and measure paid gas before
-sizing/funding/authorizing the sustained 300-second coverage campaign. Quote-only sequence 4 is expired; sender nonce 3
-and receiver sequence 3 are unchanged. Frozen pilot evidence remains separate
-from the continued active journals. Gas savings are simulated, not paid receipts. The completed three-transaction pilot proves external publication
-and clean restart, with no production listing/calibration or gate acceptance.
+Next concrete deliverable: fund/authorize the prepared sustained campaign using the
+measured paid cost and actual cadence, then independently verify full 300-second
+coverage at a named finalized block plus invalid/gap recovery. Nonce recovery and
+the approved small test are complete. Quote-only sequence 4 and unreserved
+sequence 5 remain expired; signed sequence 6 is retained with a finalized
+cancellation; prices 7–12 finalized using nonces 4–9. The conservative count cap
+is exhausted even though reserved spend stayed below 0.35 MON. Renew explicitly
+while retaining all history; do not reset journals or silently raise limits.
+Read-only `coverage-budget-plan.json` prepares revision 2 with 44 additional
+reservation slots and **1.35 MON total remaining reservation allowance**. It
+needs **1.117559754 MON** more at the verified balance (suggested top-up 1.15).
+The policy remains inactive. Named-block capture, canonical receipt/archive
+verification and independent Fraction replay for initial/gap/recovered windows
+are prepared; actual complete testnet windows remain unverified until funded,
+authorized and run. Local invalid-book tests do not count as live invalid evidence.
+Category calibration and supervisor/backup/hosting/alerts/review follow.

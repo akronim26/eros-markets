@@ -8,7 +8,9 @@ import { join } from 'node:path';
 import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, keccak256, parseAbiParameters,
   parseTransaction, recoverAddress, type Hex } from 'viem';
 import { config, reviewed, body, metadata, event } from './publication-fixture.js';
-import { createTestnetKey } from '../src/monad-keys.js';
+import { createTestnetKey, loadTestnetKey } from '../src/monad-keys.js';
+import { recoverMonadNonce } from '../src/monad-nonce-recovery.js';
+import { policyHash } from '../src/relay-policy.js';
 import { MonadTestnetObservationSigner, MonadTestnetTransactionSigner } from '../src/monad-signers.js';
 import { MonadTestnetPipeline, MonadTestnetRelay } from '../src/monad-pipeline.js';
 import { monadRpcTransport, type MonadSubmissionRpc } from '../src/monad-rpc.js';
@@ -41,11 +43,12 @@ async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
   const cfg={...parsedConfig,destination:parsedConfig.destination!};
   const domain={chainId:10143n,engine:cfg.destination.engineAddress,marketId:cfg.destination.marketId,
     sourceId:cfg.destination.sourceId,rulesHash:cfg.destination.sourceRulesHash,signer:signerAddress};
-  let now=1000100n,seq=0n,txNonce=0n,observedAt=0n,finalizedSeq=0n,failSend=false,balance=10n**18n,halt=false,autoFinalize=true;
+  let now=1000100n,seq=0n,txNonce=0n,observedAt=0n,finalizedSeq=0n,failSend=false,balance=10n**18n,halt=false,autoFinalize=true,lifecycleChecks=0;
   const receipts=new Map<Hex,DeliveryReceipt>(),sent:Hex[]=[];
+  let blockOffset=0n;
   const block=(number:bigint)=>({number,hash:('0x'+number.toString(16).padStart(64,'0')) as Hex,timestamp:now/1000n});
   const rpc:MonadSubmissionRpc={chainId:async()=>10143,code:async()=> '0x6001',
-    block:async(selector)=>block('blockNumber' in selector?selector.blockNumber:9n+finalizedSeq),
+    block:async(selector)=>block('blockNumber' in selector?selector.blockNumber:9n+finalizedSeq+blockOffset),
     read:async(_address,_abi,name)=>name==='listing'?{...cfg.destination,indexSourceId:domain.sourceId,indexSigner:signerAddress,
       indexRulesHash:domain.rulesHash,depthNLots:cfg.pricing.depthNLots,maxSpreadWad:cfg.pricing.maxSpreadWad}
       :name==='halted'?halt:{signer:signerAddress,rulesHash:domain.rulesHash,configured:true,lastSequence:finalizedSeq,
@@ -77,6 +80,7 @@ async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
     worker=new Worker(cfg,{event:async()=>capture(event),metadata:async()=>capture(metadata),
       book:async()=>capture({...JSON.parse(body),timestamp:now.toString()})},journal,'collector',()=>now);
     const lifecycle=new MonadTestnetPublicationLifecycle(cfg,journal,'lifecycle',monadLifecycleReader(rpc,cfg,abi,()=>now),30000n,()=>now);
+    const check=lifecycle.check.bind(lifecycle);lifecycle.check=()=>{lifecycleChecks++;return check();};
     pipeline=new MonadTestnetPipeline([{worker,rules,signer,lifecycle}],packets,relay,transport,runPolicy,()=>now);
     return {transport};
   }
@@ -86,6 +90,8 @@ async function setup(maxTransactions=3,runPolicy:RelayPolicy=policy){
     get packets(){return packets;},get pipeline(){return pipeline;},get worker(){return worker;},get relay(){return relay;},
     get journal(){return journal;},
     get signer(){return signer;},get transactionSigner(){return transactionSigner;},
+    get lifecycleChecks(){return lifecycleChecks;},
+    advanceBlock:()=>{blockOffset++;},
     setBalance:(n:bigint)=>{balance=n;},setFailure:(n:boolean)=>{failSend=n;},setFinalized:(n:bigint)=>{finalizedSeq=n;},
     holdFinality:()=>{autoFinalize=false;},
     setNow:(n:bigint)=>{now=n;},setHalt:()=>{halt=true;},
@@ -199,6 +205,14 @@ test('testnet pipeline signs real raw digests, sends chain-10143 transactions an
     assert.deepEqual(s.packets.get(s.domain,1n),packet);
   }finally{s.close();}
 });
+test('fresh allocation reuses only its synchronous lifecycle gate and retains all later publication gates',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());
+    assert.equal(s.lifecycleChecks,4);assert.equal(s.sent.length,1);
+    await s.pipeline.process(await s.worker.poll());
+    assert.equal(s.lifecycleChecks,8);assert.equal(s.sent.length,2);
+  }finally{s.close();}
+});
 test('estimated testnet gas is rounded up, verified at the selected limit and preserved after unknown-send restart',async()=>{
   const s=await setup(3,{...policy,gasSafetyMarginBps:1000n});try{
     const limits:bigint[]=[];
@@ -276,6 +290,89 @@ test('unfunded testnet simulation reserves no nonce and broadcasts nothing',asyn
     s.setBalance(0n);await s.pipeline.start();await assert.rejects(s.pipeline.process(await s.worker.poll()),/MONAD_SENDER_NEEDS_TEST_MON/);
     assert.equal(s.sent.length,0);assert.equal(s.relay.get(s.domain,1n),null);
   }finally{s.close();}
+});
+
+async function recoveryFixture(){
+  const s=await setup(4),prepare=s.transport.prepare;
+  await s.pipeline.start();
+  s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(1032000n);return raw;};
+  await assert.rejects(s.pipeline.process(await s.worker.poll()),/RELAY_HEADROOM_EXPIRED/);s.pipeline.close();
+  const old=s.relay.get(s.domain,1n)!;
+  assert.equal(old.state,'QUARANTINED');assert.equal(old.attempts,0);assert.equal(s.sent.length,0);
+  const code=s.rpc.code;s.rpc.code=async(address,block)=>address.toLowerCase()===s.sender.toLowerCase()?'0x':code(address,block);
+  s.rpc.simulate=async()=>21000n;
+  const send=s.rpc.send,receipt=s.rpc.receipt,nonce=s.rpc.nonce;
+  let cancelled=false,fail=false;const cancelSends:Hex[]=[],cancelReceipts=new Map<Hex,DeliveryReceipt>();
+  s.rpc.nonce=async()=>cancelled?1n:nonce(s.sender as Hex);
+  s.rpc.receipt=async hash=>cancelReceipts.get(hash)??await receipt(hash);
+  s.rpc.send=async raw=>{
+    if((parseTransaction(raw).data??'0x')!=='0x'){cancelled=false;return send(raw);}
+    cancelSends.push(raw);if(fail)throw new Error('private provider failure');
+    const hash=keccak256(raw),block=await s.rpc.block({blockTag:'finalized'});cancelled=true;
+    cancelReceipts.set(hash,{status:'success',transactionHash:hash,blockNumber:block.number,blockHash:block.hash,logs:[]});return hash;
+  };
+  const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir,keysDirectory:s.dir,
+    policy:{schemaVersion:'1',sender:s.sender,relay:JSON.parse(json(policy)),budget:{maxTransactions:4,totalMaxCostWei:'480000000000000000'}},
+    nonce:0n,originalHash:old.txHash!,maxCostWei:3150000000000000n,waitMs:600};
+  const account=loadTestnetKey(join(s.dir,'tx-key'),join(s.dir,'tx-password'),s.sender);
+  return {s,old,options,account,cancelSends,setFail:(v:boolean)=>{fail=v;},run:()=>recoverMonadNonce(options,s.rpc,()=>1032000n,account)};
+}
+test('never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce',async()=>{
+  const f=await recoveryFixture();try{
+    const packet=f.s.packets.get(f.s.domain,1n),result=await f.run();assert.equal(result.status,'FINALIZED');
+    assert.equal(f.cancelSends.length,1);const tx=parseTransaction(f.cancelSends[0]!);
+    assert.equal(tx.to!.toLowerCase(),f.s.sender.toLowerCase());assert.equal(tx.value??0n,0n);assert.equal(tx.gas,21000n);
+    assert.equal(tx.nonce,0);assert.equal(tx.chainId,10143);assert.equal(tx.data??'0x','0x');
+    assert.deepEqual(f.s.packets.get(f.s.domain,1n),packet);assert.equal(f.s.relay.get(f.s.domain,1n)!.raw,f.old.raw);
+    assert.equal(f.s.relay.get(f.s.domain,1n)!.state,'CANCELLED');
+    assert.equal((await f.run()).status,'FINALIZED');assert.equal(f.cancelSends.length,1);
+    f.s.restart();f.s.setNow(1040000n);f.s.advanceBlock();await f.s.pipeline.start();
+    const next=await f.s.pipeline.process(await f.s.worker.poll());assert.equal(next.state,'FINALIZED');
+    assert.equal(next.sequence,2n);assert.equal(parseTransaction(f.s.sent[0]!).nonce,1);
+    assert.equal((await f.s.pipeline.process(await f.s.worker.poll())).state,'FINALIZED');
+    assert.equal((await f.s.pipeline.process(await f.s.worker.poll())).reason,'TESTNET_RELAY_BUDGET_EXHAUSTED');
+    assert.equal(f.s.sent.length,2,'cancellation must count against the lifetime cap');
+  }finally{f.s.close();}
+});
+test('unknown cancellation send is durable and retries only identical bytes',async()=>{
+  const f=await recoveryFixture();try{
+    f.setFail(true);assert.equal((await f.run()).status,'UNKNOWN');
+    await assert.rejects(f.s.relay.start(),/RELAY_NONCE_RECOVERY_REQUIRED/);
+    f.setFail(false);assert.equal((await f.run()).status,'FINALIZED');
+    assert.equal(f.cancelSends.length,2);assert.equal(f.cancelSends[0],f.cancelSends[1]);
+  }finally{f.s.close();}
+});
+test('cancellation rejects incorrect cost/hash/nonce, busy writers and already-attempted price sends',async()=>{
+  const f=await recoveryFixture();try{
+    const run=(change:Record<string,unknown>)=>recoverMonadNonce({...f.options,...change},f.s.rpc,()=>1032000n,f.account);
+    await assert.rejects(run({maxCostWei:1n}),/NONCE_RECOVERY_COST_CAP/);
+    await assert.rejects(run({originalHash:'0x'+'33'.repeat(32)}),/NONCE_RECOVERY_SCOPE/);
+    await assert.rejects(run({nonce:1n}),/NONCE_RECOVERY_IDENTITY_MISMATCH/);
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));
+    db.prepare("UPDATE relay_nonce SET until_ms='1033000'").run();
+    await assert.rejects(f.run(),/NONCE_RECOVERY_IDLE_REQUIRED/);db.prepare("UPDATE relay_nonce SET until_ms='0'").run();
+    const row=db.prepare('SELECT key,body FROM deliveries').get()!,r=JSON.parse(String(row.body));r.attempts=1;
+    const body=json(r);db.prepare('UPDATE deliveries SET body=?,sha256=? WHERE key=?').run(body,policyHash(body),row.key!);db.close();
+    await assert.rejects(f.run(),/NONCE_RECOVERY_SCOPE/);assert.equal(f.cancelSends.length,0);
+  }finally{f.s.close();}
+});
+test('missing or noncanonical finalized cancellation evidence blocks publisher restart',async()=>{
+  const f=await recoveryFixture();try{
+    const result=await f.run();f.s.restart();
+    const receipt=f.s.rpc.receipt;f.s.rpc.receipt=async hash=>hash===result.hash?null:receipt(hash);
+    await assert.rejects(f.s.pipeline.start(),/NONCE_RECOVERY_RECEIPT_MISSING/);f.s.rpc.receipt=receipt;
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));db.exec('DELETE FROM nonce_recoveries');db.close();
+    assert.throws(()=>f.s.restart(),/NONCE_RECOVERY_EVIDENCE_MISSING/);
+  }finally{try{f.s.close();}catch{/* constructor rejection already closed the reopened handles */}}
+});
+test('a rewritten cancellation signer pin is rejected even with a recomputed row checksum',async()=>{
+  const f=await recoveryFixture();try{
+    await f.run();const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));
+    const row=db.prepare('SELECT key,body FROM nonce_recoveries').get()!,r=JSON.parse(String(row.body));
+    r.signerJournalId=randomUUID();const body=json(r);
+    db.prepare('UPDATE nonce_recoveries SET body=?,sha256=? WHERE key=?').run(body,policyHash(body),row.key!);db.close();
+    assert.throws(()=>f.s.restart(),/NONCE_RECOVERY_INTEGRITY/);
+  }finally{try{f.s.close();}catch{/* constructor rejection is terminal */}}
 });
 test('unknown testnet send preserves immutable raw transaction and redacts RPC credentials',async()=>{
   const s=await setup();try{

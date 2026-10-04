@@ -1,0 +1,97 @@
+{
+  "mode": "MONAD_TESTNET_SUSTAINED_COVERAGE_PROPOSAL",
+  "baselineEvidenceSha256": "fe310fc05b5f9791054dab37e635943f8a1bdad681f467a4208e73ed3b4d8604",
+  "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+  "oldPolicy": {
+    "schemaVersion": "1",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "relay": {
+      "gasCap": "800000",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000",
+      "maxCostWei": "120000000000000000",
+      "headroomMs": "5000",
+      "confirmations": "1",
+      "leaseMs": "120000",
+      "timeoutMs": 10000,
+      "maxAttempts": 3,
+      "gasSafetyMarginBps": "1000"
+    },
+    "budget": {
+      "maxTransactions": 11,
+      "totalMaxCostWei": "710000000000000000",
+      "budgetRevision": 1
+    }
+  },
+  "nextPolicy": {
+    "schemaVersion": "1",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "relay": {
+      "gasCap": "800000",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000",
+      "maxCostWei": "120000000000000000",
+      "headroomMs": "5000",
+      "confirmations": "1",
+      "leaseMs": "120000",
+      "timeoutMs": 10000,
+      "maxAttempts": 3,
+      "gasSafetyMarginBps": "1000"
+    },
+    "budget": {
+      "maxTransactions": 55,
+      "totalMaxCostWei": "1920103950000000000",
+      "budgetRevision": 2
+    }
+  },
+  "activated": false,
+  "authorized": false,
+  "historicalReservedWei": "570103950000000000",
+  "maxAdditionalReservations": 44,
+  "remainingReservationCapWei": "1350000000000000000",
+  "policyCapIncreaseWei": "1210103950000000000",
+  "observedBalanceWei": "232440246000000000",
+  "balanceObservedAtUtc": "2026-10-04T17:10:30.287Z",
+  "fundingGapAtRecordedBalanceWei": "1117559754000000000",
+  "suggestedTopUpWei": "1150000000000000000",
+  "expectedCostFor44PricesAtMeasuredAverageWei": "884530196000000000",
+  "reservationFor44PricesAtHighestMeasuredLimitWei": "1301388000000000000",
+  "highestMeasuredGasLimit": "197180",
+  "measuredPriceSamples": 6,
+  "phases": [
+    {
+      "phase": "initial",
+      "maxNewFinalizedPrices": 22,
+      "durationCapSeconds": 600,
+      "requireCoveredSeconds": 300
+    },
+    {
+      "phase": "gap",
+      "minimumPauseSeconds": 60,
+      "requireAvailable": false,
+      "requireSourceSequenceUnchanged": true
+    },
+    {
+      "phase": "recovered",
+      "maxNewFinalizedPrices": 22,
+      "durationCapSeconds": 600,
+      "requireCoveredSeconds": 300,
+      "requireWindowEntirelyAfterRestart": true
+    }
+  ],
+  "checkpoints": "Evaluate indexTwap300 at each named canonical finalized block timestamp; keep all failed receipt windows.",
+  "stopConditions": [
+    "Stop at either count or aggregate reservation cap; cancellations consume this same envelope.",
+    "Stop on unresolved signed delivery or failed phase. Do not reset journals or silently extend limits.",
+    "Apply the exact hashed budget plan only after approval and a fresh balance/nonce/source check."
+  ],
+  "productionApproved": false,
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "limitations": [
+    "44 is a ceiling, not a guaranteed submission count or coverage result.",
+    "Measured 17–28 second acceptance intervals can worsen; fresh source gaps remain unavailable.",
+    "Estimated cost uses six historical prices; the 1.35 MON bound covers maximum reservations, not a promised charge.",
+    "One existing politics listing; no fabricated invalid market books or new production listing approval."
+  ]
+}

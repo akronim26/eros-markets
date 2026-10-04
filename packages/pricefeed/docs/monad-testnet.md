@@ -3,8 +3,9 @@
 The user selected testnet on 04 October 2026 and moved this work ahead of the
 storage/backup drills. A **standalone diagnostic receiver is now deployed**,
 alongside preflight, a durable lifecycle monitor and automated diagnostic
-publication. Three real Polymarket observations are finalized on testnet,
-including a new-process restart from the five saved journals.
+publication. Nine real Polymarket observations have finalized on testnet.
+Explicit recovery of an unsent nonce enabled six gas-optimized prices, followed
+by a cold restart retaining every signed packet.
 
 ## Completed publication pilot
 
@@ -63,9 +64,9 @@ slower, so cadence must be measured. Three samples do **not** prove complete
 300-second TWAP coverage. Sustained coverage is the next planned proof, followed
 by category calibration and hosting/backup/monitoring work.
 
-Checks: 330 package tests pass after budget renewal and the RPC timing correction.
-The preceding focused gas/publication/service run passed 21, included in 330.
-Latest evidence: `artifacts/verification/monad-budget-latency-unit.json`. Eight owned-Anvil crash/restart cases,
+Checks: 336 package tests pass after explicit nonce recovery. Focused
+gas/publication/service suite: 27 pass, included in 336. Latest evidence:
+`artifacts/verification/monad-nonce-recovery-unit.json`. Eight owned-Anvil crash/restart cases,
 wire check and 144 Fraction vectors passed for the preceding publication milestone.
 The ten receiver Solidity tests are separate from the package suite.
 
@@ -165,15 +166,18 @@ expired without a nonce; sequence 6 reserved/signed nonce 3 with 197,166 gas and
 then persisted QUARANTINED, attempts 0. Its reservation is 0.0295749 MON;
 0.3204251 MON remains within the additional envelope. The balance stayed
 0.3552 MON, pending/finalized nonce stayed 3 and receiver sequence stayed 3.
-**Zero new transactions or gas spend.** The journal next nonce is 4 because
+This describes the **retained initial failed attempt**, which sent nothing.
+Recovery and the successful six-price run are recorded below. At that stop,
+the journal next nonce was 4 because
 reservation is durable; it cannot be reset to bypass the signed transaction.
 See [`stopped-small-run.json`](../artifacts/monad-testnet/stopped-small-run.json)
 and [`small-run-budget-application.json`](../artifacts/monad-testnet/small-run-budget-application.json).
 
 The following application/publication commands are **completed-run records**.
-Application replay is idempotent. Publication now rejects unresolved signed nonce
-3 until an explicit audited recovery is implemented; do not rerun it or edit the
-journals to clear quarantine. From this package:
+Application replay is idempotent. The original target 11 cannot be reached after
+counting the abandoned reservation and cancellation. Use the recovery/current
+run records below; do not edit journals or raise the exhausted count cap.
+From this package:
 
 ```bash
 npm run cli -- apply-monad-budget --rpc-env PRICEFEED_MONAD_RPC_URL \
@@ -259,6 +263,93 @@ fails without falling back to latest. A 30-second checkpoint-age limit and
 5-second HTTP timeout with no automatic retries are **diagnostic settings**,
 not approval of production finality or delivery budgets. One provider's stable
 answer does not prove provider honesty, disagreement handling or upgrade safety.
+
+## Sustained coverage campaign (prepared, not yet authorized)
+
+The optimized paid run proves lower transaction cost and restart/nonce recovery;
+its named window covers only 134/300 seconds. The next diagnostic proves a full
+300-second window, pauses publication for at least 60 seconds, then starts a new
+process using the same five active journals and builds another full window.
+The pause must make the TWAP unavailable while source sequence/time stay unchanged.
+No fabricated thin/wide book or source timestamp is submitted.
+
+Prepared public files: `coverage-proposal.json`, `coverage-policy.json`, and
+`coverage-budget-plan.json` in `artifacts/monad-testnet/`. The read-only plan pins
+the current journal history and receiver state. It has **not** been applied.
+
+| Bound | Prepared value |
+|---|---|
+| Additional transaction reservation slots | 44 total, including any cancellation |
+| All remaining reservations allowed after transition | 1.35 test MON |
+| Lifetime reservations including historical 0.57010395 MON | 1.92010395 MON |
+| Lifetime count / budget revision | 55 / 2 |
+| Balance checked by the plan | 0.232440246 MON |
+| Funding gap / suggested transfer | 1.117559754 / 1.15 test MON |
+| Historical-average cost if all 44 prices finalize | About 0.88453 MON; estimate, not guaranteed |
+
+The lifetime policy ceiling increases by **1.21010395 MON**, because the old
+policy still had 0.13989605 MON of unused reservation allowance. Combining that
+unused allowance with the increase yields the exact new **1.35 MON remaining
+envelope**; there is no extra allowance beyond it. The count and reservation
+limits both apply, and the run stops on either limit. Existing gas/fee ceilings,
+signer identities, timestamps, sequences and nonces remain unchanged.
+
+Budget plan hash:
+`1156fe89042918b4d1c5d194fc9ca625b6b3ac56e133d086f9df665bc0efd904`.
+Sender: `0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071`.
+
+Execution requires explicit approval of this new envelope and the transfer from
+the user's browser wallet. The previous eight-slot authorization is exhausted.
+After funding, recheck balance/nonce/source and apply this exact hashed plan with
+the existing `apply-monad-budget` command. Never initialize new journals, reset
+nonces or reuse a frozen evidence directory as the active publisher.
+
+The bounded procedure is:
+
+1. Run `serve-monad-testnet` with the coverage policy, existing keys and
+   `var/monad-testnet/pilot`, `--initialize false`, duration cap 600 seconds and
+   lifetime finalized-price target 31 (existing 9 plus at most 22).
+2. After the process exits and every delivery is resolved, capture `initial` at
+   the last finalized price's block. A full window is required before stage 2.
+   Preserve a failed window and stop if this requirement is not met.
+3. Leave publishing stopped for at least 60 seconds. Capture `gap` at a current
+   finalized block; require unavailable TWAP and unchanged source sequence/time.
+4. Restart with the same journals and duration cap, lifetime target 53. Capture
+   `recovered` at its last finalized price block. Require full 300-second coverage
+   entirely after the first fresh post-pause source observation. Cancellation
+   reservations reduce the available price count and never extend the envelope.
+5. Close/checkpoint all five databases and copy a coordinated, owner-only frozen
+   snapshot to `var/monad-testnet/coverage-run-evidence/`. Keep it separate from
+   the active publisher. Verify no uncheckpointed WAL remains in the snapshot.
+
+From the package, capture named blocks using the pinned RPC environment:
+
+```bash
+./node_modules/.bin/node dist/scripts/capture-monad-coverage.js initial BLOCK_NUMBER \
+  > artifacts/monad-testnet/coverage-initial.json
+./node_modules/.bin/node dist/scripts/capture-monad-coverage.js gap \
+  > artifacts/monad-testnet/coverage-gap.json
+./node_modules/.bin/node dist/scripts/capture-monad-coverage.js recovered BLOCK_NUMBER \
+  > artifacts/monad-testnet/coverage-recovered.json
+./node_modules/.bin/node dist/scripts/verify-monad-coverage.js
+python3 scripts/review-monad-coverage.py
+```
+
+Capture validates current and named-block runtime/listing/source pins, finalized
+height, canonical hash and exact block timestamp. It does not access wallets or
+journals. Receipt verification checks signatures, immutable raw requests, gas,
+canonical acceptance and the applied budget audit against the frozen history.
+Both replayers filter by receipt block **before** replacing same-second samples,
+so later observations cannot repair a historical gap. Candidate receipt windows,
+including failed windows, remain in `coverage-run.json`. Failed required phases
+exit nonzero; no successful live coverage result is claimed by preparation.
+
+Local checks: `dist/test/monad-coverage.test.js` and
+`python3 test/monad-coverage-reference.py`. These cover hand-derived full/gapped
+windows, invalid-depth interruption and historical block filtering; the Python
+replay also reproduces the original real 134/300 window. Actual sustained receipt
+and phase verification awaits the funded run. This diagnostic is one politics
+listing; category calibration and production cadence approval remain separate.
 
 ## Run it before an engine exists
 
@@ -396,20 +487,98 @@ Health recalculates block age when queried and always reports
 fixtures and a real CLI/SQLite restart; it does not contact or certify an actual
 Monad engine. This monitor remains independent of the local publishing pipeline.
 
+## Explicit recovery of a signed, never-broadcast nonce
+
+`recover-monad-nonce` supports only the latest expired price reservation with
+zero recorded broadcast attempts. It requires the exact old transaction hash,
+idle five-journal set, pinned identities/policy, known canonical finalized price
+history, the unchanged chain nonce, and an EOA sender. Other recovery cases fail
+closed. It signs only a zero-value, empty-data self transaction on chain 10143
+with 21,000 gas, using the existing sender's encrypted key. It cannot sign a
+transfer, contract call or a new price at the same nonce.
+
+Both original signed price bytes and the cancellation bytes persist separately;
+unknown sends retry the same cancellation. Sender/fee pins and checksums bind
+the cancellation record. Canonical finalized success marks the original delivery
+CANCELLED; the original price packet and transaction signing journal are retained.
+Publisher startup verifies the cancellation receipt/signature/canonical block
+and skips the cancelled price. Missing/corrupt/unknown recovery evidence blocks
+restart. Cancellation reservation and count remain in the original cumulative
+budget, as does the abandoned price reservation; no budget is reset or enlarged.
+
+The approved recovery command for the stopped run is:
+
+```bash
+npm run cli -- recover-monad-nonce --rpc-env PRICEFEED_MONAD_RPC_URL \
+  --config artifacts/monad-testnet/market-config.json \
+  --abi artifacts/monad-testnet/receiver-abi.json \
+  --keys-dir var/monad-testnet/keys --journal-dir var/monad-testnet/pilot \
+  --policy artifacts/monad-testnet/small-run-policy.json --nonce 3 \
+  --original-hash 0x9d15860802ff8d75877fd614e96a2e01a1cbf183cc0242d7c324555076bea497 \
+  --max-cost-wei 3150000000000000 --wait-ms 120000
+```
+
+The cancellation ceiling is **0.00315 test MON**, counted within the already
+approved 0.35 MON additional envelope. The abandoned reservation and cancellation
+consume two conservative slots, leaving at most **six new price transactions**.
+The subsequent service uses the same journals/policy, `--initialize false` and
+`--stop-after-finalized 9` (three original + six new prices). The former target 11
+is no longer attainable within the same transaction count budget. A larger run
+requires a separately approved renewal; recovery cannot authorize one.
+
+## Completed recovery and optimized paid run
+
+Cancellation nonce **3** finalized at block **68167766**:
+`0x8d7958cb431e51f9010d2131d485fd4e053062d3e7404e932230fecf296688f8`.
+It charged **21,000 gas × 102 gwei = 0.002142 MON**. Original price sequence 6,
+request/raw bytes and transaction signer reservation remain intact; its delivery
+is CANCELLED. Recovery sends no price to the engine.
+
+The resumed service finalized prices **7–12 / nonces 4–9** and exited 0 at
+lifetime **nine finalized prices**. Gas limits were 197,059–197,180, averaging
+**0.020102959 MON/update**, **75.36% lower** than the pilot's 0.0816. Six prices
+cost **0.120617754 MON**; including recovery, new gas cost was **0.122759754 MON**.
+Additional reservations, including the abandoned request and cancellation, total
+**0.21010395 MON**, within the **0.35 MON** envelope. The final read-only chain check confirms the sender's
+remaining balance is **0.232440246 MON** and pending nonce **10**;
+the conservative transaction count is exhausted and requires explicit renewal.
+
+A separate process reopened all five journals, checked cancelled-nonce finality
+and signed source history, and exited at target 9 with no new transaction.
+All packets/signatures/requests/raw bytes/receipts matched the completed run.
+Closed evidence is frozen at `var/monad-testnet/optimized-run-evidence/`;
+the original active journals remain the only publishing history.
+
+Read-only canonical receipt/signature/request verification and independent
+raw-book Fraction/time/depth/cost/TWAP review pass. The named evaluation block
+**68169207**, timestamp **1791133182**, has **134/300 seconds** coverage and
+`available: false`, as expected for a short stopped run. No full coverage claimed.
+Acceptance intervals were **20, 18, 17, 23, 28 seconds**; acceptance ages **12–20
+seconds**. These are measurements, not approval of cadence or margin.
+
+Evidence:
+[`nonce-recovery.json`](../artifacts/monad-testnet/nonce-recovery.json),
+[`optimized-small-run.json`](../artifacts/monad-testnet/optimized-small-run.json),
+[`optimized-small-run-review.json`](../artifacts/monad-testnet/optimized-small-run-review.json),
+[`optimized-restart-review.json`](../artifacts/monad-testnet/optimized-restart-review.json).
+Full package suite **336/336** and focused suite **27/27** pass. The focused set
+is included in 336; no new Solidity/crash/category campaign or gate acceptance
+is claimed. The full 300-second campaign, category calibration and operations
+remain after this completed gas/recovery milestone.
+
 ## What comes next
 
-Recover the signed, never-broadcast nonce explicitly and reduce RPC latency,
-then resume within the approved bounded envelope and measure paid gas. The final
-canonical-block and chain-ID checks now run concurrently, retaining both checks,
-fixed error precedence and named finalized blocks. This saves one network round
-trip per preflight; real successful cadence remains unmeasured. Then
-size/fund/authorize the full 300-second coverage campaign, followed by invalid/gap
+Recovery and the approved six-price run are complete. Renew the exhausted
+count budget explicitly before the next campaign. The final canonical-block and chain-ID checks run concurrently. A fresh
+packet can reuse its immediately preceding lifecycle check only across the
+synchronous builder path within 50 ms and the same whole second; delayed paths
+recheck. Post-signing, pre-reservation and pre-broadcast checks still run. Source
+age, named finalized blocks, runtime/source/listing pins and budget checks remain.
+Real cadence and actual savings must be measured rather than inferred from tests.
+
+Then size/fund/authorize the 300-second coverage campaign, followed by invalid/gap
 recovery, category calibration and operations/review. The standalone receiver,
 testnet signers and simulation/send/finalized receipt adapter are already joined.
 Full-engine integration still needs that engine's deployment dossier and accepted
 counterpart wiring; diagnostic tests do not approve production source policies.
-
-Monad may return a send hash before nonce/balance validation, and a mempool-only
-transaction lookup may return null. Exact accepted events and canonical finalized
-block-labeled state drive reconciliation; never reuse an uncertain nonce.
 Q03-Q10 and human gates remain open as documented.
