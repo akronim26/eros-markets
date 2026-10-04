@@ -11,6 +11,8 @@ import { Journal } from '../src/journal.js';
 import { json } from '../src/math.js';
 import { workerNamespace } from '../src/worker.js';
 import { observationDigest } from '../src/wire.js';
+import { keccak256 } from 'viem';
+import { parseEngineReadAbi } from '../src/monad-preflight.js';
 import { config, reviewed, invalidConfig, invalidReviewed, metadata, event, body, candidate } from './publication-fixture.js';
 
 function fixture() {
@@ -142,5 +144,101 @@ test('CLI errors redact malformed JSON, file paths and unknown option values; mi
     missing[missing.indexOf('--db')+1]=path;const absent=f.run(missing);assert.equal(absent.status,1);assert.ok(!absent.stderr.includes(secret));
     assert.ok(!readdirSync(f.dir).includes(`${secret}.sqlite`));
     for(const command of ['sign-observation','send-observation','submit'])assert.equal(f.run([command]).status,1);
+  }finally{f.close();}
+});
+
+test('Monad CLI requires an environment name and paired engine inputs without creating journals or leaking secrets',()=>{
+  const f=fixture(),secret='private-rpc-secret';try{
+    const env:NodeJS.ProcessEnv={...process.env,PRICEFEED_TEST_RPC:`http://rpc.invalid/${secret}`};delete env.NODE_TEST_CONTEXT;
+    const run=(args:string[])=>spawnSync(process.execPath,[fileURLToPath(new URL('../src/cli.js',import.meta.url)),
+      'preflight-monad',...args],{cwd:f.dir,encoding:'utf8',env,timeout:10000});
+    const before=readdirSync(f.dir).sort();
+    for(const [args,code] of [
+      [['--rpc-env',`https://rpc.invalid/${secret}`],'MONAD_BAD_RPC_ENV_NAME'],
+      [['--rpc-env','PRICEFEED_MISSING_ENV_TEST_ONLY'],'MONAD_RPC_ENV_MISSING'],
+      [['--rpc-env','PRICEFEED_TEST_RPC','--config',f.cfg],'MONAD_CONFIG_AND_ABI_REQUIRED_TOGETHER'],
+      [['--rpc-env','PRICEFEED_TEST_RPC','--abi',f.rules],'MONAD_CONFIG_AND_ABI_REQUIRED_TOGETHER'],
+      [['--rpc-env','PRICEFEED_TEST_RPC'],'MONAD_HTTPS_RPC_REQUIRED'],
+    ] as [string[],string][]){
+      const r=run(args);assert.equal(r.status,1,r.stderr);assert.equal(r.stderr.trim(),code);
+      assert.equal(r.stdout,'');assert.ok(!r.stderr.includes(secret));assert.ok(!r.stderr.includes(f.dir));
+    }
+    assert.deepEqual(readdirSync(f.dir).sort(),before);assert.ok(!readdirSync(f.dir).includes('var'));
+  }finally{f.close();}
+});
+
+test('Monad watcher CLI rejects bad policies and missing engine dossier before creating an archive',()=>{
+  const f=fixture(),secret='private-rpc-secret';try{
+    const env:NodeJS.ProcessEnv={...process.env,PRICEFEED_TEST_RPC:`https://rpc.invalid/${secret}`};delete env.NODE_TEST_CONTEXT;
+    const db=join(f.dir,'monad.sqlite'),before=readdirSync(f.dir).sort();
+    const args=['--rpc-env','PRICEFEED_TEST_RPC','--config',f.cfg,'--abi',f.rules,'--db',db,
+      '--interval-ms','1000','--max-checkpoint-age-ms','30000','--duration-seconds','1'];
+    const run=(argv:string[])=>spawnSync(process.execPath,[fileURLToPath(new URL('../src/cli.js',import.meta.url)),
+      'watch-monad-lifecycle',...argv],{cwd:f.dir,encoding:'utf8',env,timeout:10000});
+    for(const [key,value] of [['--interval-ms','999'],['--max-checkpoint-age-ms','30001'],['--duration-seconds','0']]){
+      const bad=[...args];bad[bad.indexOf(key!)+1]=value!;const r=run(bad);
+      assert.equal(r.status,1);assert.equal(r.stderr.trim(),'MONAD_BAD_MONITOR_POLICY');assert.ok(!r.stderr.includes(secret));
+    }
+    const missing=run(args.filter((_x,i)=>i!==args.indexOf('--config')&&i!==args.indexOf('--config')+1));
+    assert.equal(missing.status,1);assert.match(missing.stderr,/REQUIRED_--config/);
+    // The existing fixture is local chain 31337; monitoring must not adopt it on Monad.
+    const wrong=run(args);assert.equal(wrong.status,1);assert.match(wrong.stderr,/MONAD_DISABLED_TESTNET_CONFIG_REQUIRED/);
+    assert.deepEqual(readdirSync(f.dir).sort(),before);
+  }finally{f.close();}
+});
+
+test('Monad watcher CLI archives fixture engine state, reports health and cleanly hands its lease to a restarted process',()=>{
+  const f=fixture();try{
+    const engineAbi=fileURLToPath(new URL('../../../../artifacts/risk/engine-abi.json',import.meta.url));
+    const artifact=JSON.parse(readFileSync(engineAbi,'utf8')),now=BigInt(Math.floor(Date.now()/1000)),code='0x60006000';
+    const cfg={...config,requiredFeedUntil:String(now+3600n),destination:{...config.destination!,chainId:'10143',
+      engineCodeHash:keccak256(code),abiHash:parseEngineReadAbi(artifact).abiHash,listedAt:String(now-86400n),scheduledT:String(now+3600n)}};
+    writeFileSync(f.cfg,json(cfg));const preload=join(f.dir,'fixture-rpc.mjs'),db=join(f.dir,'monad.sqlite');
+    // Real CLI/HTTP encoding and real SQLite, with explicitly scripted RPC counterparts.
+    writeFileSync(preload,`
+      import { readFileSync } from 'node:fs';
+      import { decodeFunctionData, encodeFunctionResult } from ${JSON.stringify(new URL('../../node_modules/viem/_esm/index.js',import.meta.url).href)};
+      const cfg=JSON.parse(readFileSync(${JSON.stringify(f.cfg)},'utf8')),d=cfg.destination;
+      const abi=JSON.parse(readFileSync(${JSON.stringify(engineAbi)},'utf8')).abi;
+      const t=BigInt(Math.floor(Date.now()/1000)),hash='0x'+t.toString(16).padStart(64,'0'),address='0x'+'44'.repeat(20),number='0x'+t.toString(16);
+      const listing={marketId:d.marketId,token:address,registry:address,resolutionAuthority:address,monitor:address,governance:address,
+        scheduledT:BigInt(d.scheduledT),listedAt:BigInt(d.listedAt),sourceHash:hash,rulesHash:hash,
+        invalidRule:{...d.invalidRule,captureGraceSecs:BigInt(d.invalidRule.captureGraceSecs),fallbackPriceWad:BigInt(d.invalidRule.fallbackPriceWad),voidSecs:BigInt(d.invalidRule.voidSecs)},
+        template:0,deploymentCapX:0n,maxTraders:0,indexSourceId:d.sourceId,indexSigner:d.signerAddress,indexRulesHash:d.sourceRulesHash,
+        depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad),bootstrapBandWad:0n,
+        minOrderLots:1n,maxOrderLots:10n,maxLiqLotsPerBlock:100n,fundingEnabled:false};
+      globalThis.fetch=async(_input,init)=>{
+        const req=JSON.parse(init.body);let result;
+        if(req.method==='eth_chainId')result='0x279f';
+        else if(req.method==='eth_getBlockByNumber')result={number,hash,timestamp:'0x'+t.toString(16),transactions:[]};
+        else if(req.method==='eth_getCode')result=${JSON.stringify(code)};
+        else if(req.method==='eth_call'){
+          if(req.params[1]!==number)throw new Error('WRONG_BLOCK');
+          const fn=decodeFunctionData({abi,data:req.params[0].data});
+          result=encodeFunctionResult({abi,functionName:fn.functionName,result:fn.functionName==='listing'?listing:
+            fn.functionName==='sourceState'?{signer:d.signerAddress,rulesHash:d.sourceRulesHash,lastSequence:1n,lastObservedAt:BigInt(d.listedAt)+86400n-1n,configured:true}:true});
+        }else throw new Error('UNEXPECTED_METHOD');
+        return new Response(JSON.stringify({jsonrpc:'2.0',id:req.id,result}),{headers:{'Content-Type':'application/json'}});
+      };
+    `);
+    const env:NodeJS.ProcessEnv={...process.env,PRICEFEED_TEST_RPC:'https://fixture.invalid/private-rpc-secret'};delete env.NODE_TEST_CONTEXT;
+    const argv=['watch-monad-lifecycle','--rpc-env','PRICEFEED_TEST_RPC','--config',f.cfg,'--abi',engineAbi,'--db',db,
+      '--interval-ms','1000','--max-checkpoint-age-ms','30000','--duration-seconds','1'];
+    const run=()=>spawnSync(process.execPath,['--import',preload,fileURLToPath(new URL('../src/cli.js',import.meta.url)),...argv],
+      {cwd:f.dir,encoding:'utf8',env,timeout:15000});
+    for(let i=0;i<2;i++){
+      const r=run();assert.equal(r.status,0,r.stderr);assert.ok(!r.stdout.includes('private-rpc-secret'));
+      const outputs=r.stdout.trim().split(/\n(?=\{)/).map(row=>JSON.parse(row)),summary=outputs.at(-1);
+      assert.equal(summary.completed,true);assert.equal(summary.lastMode,'RECORD_ONLY');assert.equal(summary.evidenceValid,true);
+      assert.ok(summary.checks>=1);assert.equal(summary.transactionsSent,0);assert.equal(summary.signaturesProduced,0);
+      assert.equal(outputs[0].lifecycle.checkpoint.chainId,'10143');
+    }
+    const database=new DatabaseSync(db,{readOnly:true});try{
+      assert.equal(database.prepare('SELECT until_ms FROM writers').get()!.until_ms,'0');
+      assert.equal(database.prepare('SELECT fence FROM writers').get()!.fence,2);
+      assert.ok(Number(database.prepare('SELECT count(*) AS n FROM captures').get()!.n)>=2);
+    }finally{database.close();}
+    const health=f.run(['health','--db',db]);assert.equal(health.status,0,health.stderr);
+    assert.equal(JSON.parse(health.stdout)[0].currentStatus,'RECORD_ONLY');
   }finally{f.close();}
 });

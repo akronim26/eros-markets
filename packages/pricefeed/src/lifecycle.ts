@@ -9,29 +9,37 @@ export type LifecycleMode='COLLECTING'|'RECORD_ONLY'|'DEGRADED'|'QUARANTINED'|'S
  * Venue closure, oracle proposals and monitor reduce-only flags are not engine halts. */
 export type LifecycleCheckpoint={chainId:bigint;engine:string;marketId:string;sourceId:string;
   engineCodeHash:string;rulesHash:string;scheduledT:bigint;halted:boolean;
-  blockNumber:bigint;blockHash:string;blockTimestamp:bigint;canonical:boolean};
+  blockNumber:bigint;blockHash:string;blockTimestamp:bigint;canonical:boolean;
+  sourceState?:{lastSequence:bigint;lastObservedAt:bigint}};
 export type LifecycleView={mode:LifecycleMode;reason:string|null;atMs:bigint;
   checkpoint:LifecycleCheckpoint|null;freshCheckpoint:boolean};
 export type LifecycleReader=()=>Promise<LifecycleCheckpoint>;
 
-/** Durable development lifecycle only. No oracle/economic mutation capabilities.
- * Production still requires an approved engine reader, closure policy and operating budget. */
-export class LocalLifecycle {
+function checkedConfig(config:MarketConfig,chainId:bigint):MarketConfig {
+  const cfg=parseConfig(JSON.parse(json(config))),d=cfg.destination;
+  if(cfg.enabled||!d||d.chainId!==chainId.toString())
+    throw new Error(chainId===31337n?'LOCAL_DISABLED_CONFIG_ONLY':'MONAD_DISABLED_TESTNET_CONFIG_REQUIRED');
+  if(cfg.requiredFeedUntil===null||BigInt(cfg.requiredFeedUntil)<BigInt(d.scheduledT)
+    ||BigInt(d.scheduledT)<BigInt(d.listedAt)+86400n
+    ||BigInt(d.scheduledT)+BigInt(d.invalidRule.captureGraceSecs)>BigInt(d.listedAt)+BigInt(d.invalidRule.voidSecs))
+    throw new Error('BAD_LIFECYCLE_HORIZON');
+  return cfg;
+}
+export function validateMonadLifecycleConfig(config:MarketConfig):MarketConfig {return checkedConfig(config,10143n);}
+
+/** Shared persistence/transition logic. Network selection is fixed by the wrappers below. */
+class DurableLifecycle {
   readonly namespace:string;
   private readonly config:MarketConfig;
   private readonly digest:string;
   private view:LifecycleView;
   private current:Promise<LifecycleView>|null=null;
+  private ownedFence:bigint|null=null;
   constructor(config:MarketConfig,private readonly journal:Journal,private readonly owner:string,
     private readonly read:LifecycleReader,private readonly maxCheckpointAgeMs:bigint,
-    private readonly now:()=>bigint=()=>BigInt(Date.now())){
-    this.config=parseConfig(JSON.parse(json(config)));
-    const d=this.config.destination;
-    if(this.config.enabled||!d||d.chainId!=='31337')throw new Error('LOCAL_DISABLED_CONFIG_ONLY');
+    private readonly now:()=>bigint,private readonly chainId:bigint){
+    this.config=checkedConfig(config,chainId);
     if(!owner||maxCheckpointAgeMs<1000n||maxCheckpointAgeMs>30000n)throw new Error('BAD_LIFECYCLE_POLICY');
-    if(this.config.requiredFeedUntil===null||BigInt(this.config.requiredFeedUntil)<BigInt(d.scheduledT)
-      ||BigInt(d.scheduledT)<BigInt(d.listedAt)+86400n
-      ||BigInt(d.scheduledT)+BigInt(d.invalidRule.captureGraceSecs)>BigInt(d.listedAt)+BigInt(d.invalidRule.voidSecs))throw new Error('BAD_LIFECYCLE_HORIZON');
     this.namespace=`lifecycle:${workerNamespace(this.config)}`;
     this.digest=createHash('sha256').update(json(this.config)).digest('hex');
     if(!journal.verify())throw new Error('LIFECYCLE_ARCHIVE_CORRUPT');
@@ -54,8 +62,8 @@ export class LocalLifecycle {
   private decode(value:unknown):LifecycleCheckpoint {
     if(!value||typeof value!=='object')throw new Error('LIFECYCLE_BAD_CHECKPOINT');
     const v=value as Record<string,unknown>;
-    const integer=(key:string)=>{
-      const raw=v[key];
+    const integer=(key:string,from=v)=>{
+      const raw=from[key];
       if(!(typeof raw==='bigint'||typeof raw==='string'&&/^\d{1,20}$/.test(raw)))throw new Error('LIFECYCLE_BAD_CHECKPOINT');
       const n=BigInt(raw);if(n<0n||n>UINT64_MAX)throw new Error('LIFECYCLE_BAD_CHECKPOINT');return n;
     };
@@ -66,11 +74,18 @@ export class LocalLifecycle {
       scheduledT:integer('scheduledT'),halted:v.halted,blockNumber:integer('blockNumber'),
       blockHash:text('blockHash'),blockTimestamp:integer('blockTimestamp'),canonical:v.canonical};
     const d=this.config.destination!;
-    if(c.chainId!==31337n||c.engine.toLowerCase()!==d.engineAddress.toLowerCase()
+    if(c.chainId!==this.chainId||c.engine.toLowerCase()!==d.engineAddress.toLowerCase()
       ||c.marketId.toLowerCase()!==d.marketId.toLowerCase()||c.sourceId.toLowerCase()!==d.sourceId.toLowerCase()
       ||c.engineCodeHash.toLowerCase()!==d.engineCodeHash.toLowerCase()||c.rulesHash.toLowerCase()!==d.sourceRulesHash.toLowerCase()
       ||c.scheduledT!==BigInt(d.scheduledT))throw new Error('LIFECYCLE_PIN_MISMATCH');
     if(!/^0x[0-9a-fA-F]{64}$/.test(c.blockHash)||/^0x0{64}$/.test(c.blockHash))throw new Error('LIFECYCLE_BAD_CHECKPOINT');
+    if(this.chainId===10143n){
+      if(!v.sourceState||typeof v.sourceState!=='object'||Array.isArray(v.sourceState))throw new Error('LIFECYCLE_BAD_CHECKPOINT');
+      const s=v.sourceState as Record<string,unknown>;
+      c.sourceState={lastSequence:integer('lastSequence',s),lastObservedAt:integer('lastObservedAt',s)};
+      if(c.sourceState.lastObservedAt>c.blockTimestamp||(c.sourceState.lastSequence===0n&&c.sourceState.lastObservedAt!==0n))
+        throw new Error('LIFECYCLE_BAD_CHECKPOINT');
+    }
     return c;
   }
   check():Promise<LifecycleView>{
@@ -78,9 +93,15 @@ export class LocalLifecycle {
     const op=this.checkOnce();this.current=op;
     void op.finally(()=>{if(this.current===op)this.current=null;}).catch(()=>{});return op;
   }
+  releaseLease():boolean {
+    if(this.current)throw new Error('LIFECYCLE_CHECK_RUNNING');
+    if(this.ownedFence===null)return false;
+    const released=this.journal.release(this.namespace,this.owner,this.ownedFence);this.ownedFence=null;return released;
+  }
   private async checkOnce():Promise<LifecycleView>{
     if(this.view.mode==='STOPPED'||this.view.mode==='QUARANTINED')return structuredClone({...this.view,freshCheckpoint:false});
     const fence=this.journal.acquire(this.namespace,this.owner,this.now(),60000n);
+    this.ownedFence=fence;
     let checkpoint=this.view.checkpoint,mode:LifecycleMode,reason:string|null=null,freshCheckpoint=false;
     try{
       const c=this.decode(await this.read()),at=this.now(),previous=checkpoint;
@@ -90,6 +111,12 @@ export class LocalLifecycle {
       if(previous&&c.blockNumber===previous.blockNumber&&(c.blockTimestamp!==previous.blockTimestamp||c.halted!==previous.halted))throw new Error('LIFECYCLE_BLOCK_CHANGED');
       if(previous&&c.blockNumber>previous.blockNumber&&c.blockHash.toLowerCase()===previous.blockHash.toLowerCase())throw new Error('LIFECYCLE_BLOCK_CHANGED');
       if(previous?.halted&&!c.halted)throw new Error('LIFECYCLE_HALT_REGRESSION');
+      if(previous?.sourceState&&c.sourceState){
+        const old=previous.sourceState,next=c.sourceState;
+        if(next.lastSequence<old.lastSequence||next.lastObservedAt<old.lastObservedAt)throw new Error('LIFECYCLE_SOURCE_REGRESSION');
+        if((c.blockNumber===previous.blockNumber&&(next.lastSequence!==old.lastSequence||next.lastObservedAt!==old.lastObservedAt))
+          ||(next.lastSequence===old.lastSequence&&next.lastObservedAt!==old.lastObservedAt))throw new Error('LIFECYCLE_SOURCE_CHANGED');
+      }
       if(c.blockTimestamp>at/1000n||at-c.blockTimestamp*1000n>this.maxCheckpointAgeMs)throw new Error('LIFECYCLE_CLOCK_OR_STALE_BLOCK');
       checkpoint=c;freshCheckpoint=true;
       // Include the deadline itself; only a verified block beyond it stops collection.
@@ -98,12 +125,29 @@ export class LocalLifecycle {
       else mode='COLLECTING';
     }catch(error){
       reason=error instanceof Error?error.message:String(error);
-      mode=/^LIFECYCLE_(PIN_MISMATCH|BAD_CHECKPOINT|REORG|BLOCK_REGRESSION|BLOCK_CHANGED|HALT_REGRESSION)$/.test(reason)?'QUARANTINED':'DEGRADED';
+      mode=/^LIFECYCLE_(PIN_MISMATCH|BAD_CHECKPOINT|REORG|BLOCK_REGRESSION|BLOCK_CHANGED|HALT_REGRESSION|SOURCE_REGRESSION|SOURCE_CHANGED)$/.test(reason)?'QUARANTINED':'DEGRADED';
     }
     const next={mode,reason,atMs:this.now(),checkpoint,freshCheckpoint};
     // Store before returning permission to collect/sign. Storage/fencing errors propagate.
     this.journal.append(this.namespace,this.owner,fence,this.now(),{recordType:'LIFECYCLE',schemaVersion:'1',configDigest:this.digest,
       worker:this.config.key,category:this.config.category,maxCheckpointAgeMs:this.maxCheckpointAgeMs,...next});
     this.view=next;return structuredClone(next);
+  }
+}
+
+/** Existing development publication gate: still fixed to disabled local-chain configs. */
+export class LocalLifecycle extends DurableLifecycle {
+  constructor(config:MarketConfig,journal:Journal,owner:string,read:LifecycleReader,maxCheckpointAgeMs:bigint,
+    now:()=>bigint=()=>BigInt(Date.now())){
+    super(config,journal,owner,read,maxCheckpointAgeMs,now,31337n);
+  }
+}
+
+/** Diagnostic monitor only. It has no signing or sending capabilities. */
+export class MonadTestnetLifecycleMonitor extends DurableLifecycle {
+  readonly readOnly=true;
+  constructor(config:MarketConfig,journal:Journal,owner:string,read:LifecycleReader,maxCheckpointAgeMs:bigint,
+    now:()=>bigint=()=>BigInt(Date.now())){
+    super(config,journal,owner,read,maxCheckpointAgeMs,now,10143n);
   }
 }
