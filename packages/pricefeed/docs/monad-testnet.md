@@ -1,9 +1,107 @@
 # Monad testnet integration
 
 The user selected testnet on 04 October 2026 and moved this work ahead of the
-storage/backup drills. Implemented pieces are a **read-only preflight** and a
-**durable lifecycle monitor**. They do not connect the signing/publication
-pipeline to an external chain.
+storage/backup drills. A **standalone diagnostic receiver is now deployed**,
+alongside preflight, a durable lifecycle monitor and automated diagnostic
+publication. Three real Polymarket observations are finalized on testnet,
+including a new-process restart from the five saved journals.
+
+## Completed publication pilot
+
+The bot sender is `0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071`.
+The user funded it with 0.6 test MON. Separate encrypted observation and
+transaction keys now live in ignored owner-only `var/monad-testnet/keys/`.
+Preserve this private directory; do not commit or send its unlock material.
+The observation key remains pinned by the receiver.
+
+The finite pilot reserved at most three transactions, each capped at 0.12 test
+MON, with a total reservation cap of 0.36. Two observations finalized, the
+process stopped cleanly, and a new process finalized the third using sequence
+3 and nonce 2. Existing signed packets and raw transactions remained identical.
+Actual total gas cost was **0.2448 test MON**. Each transaction charged the
+800,000 gas limit at 102 gwei; estimate a tighter limit before a longer campaign.
+All accepted prices match independent Fraction recomputation of archived raw
+books. Exact signatures, digests, accepted logs, canonical finalized blocks and
+final source state were verified. See
+[`publication-pilot.json`](../artifacts/monad-testnet/publication-pilot.json) and
+[`publication-fraction-review.json`](../artifacts/monad-testnet/publication-fraction-review.json).
+
+`serve-monad-testnet` is an explicit disabled-config diagnostic path, fixed to
+chain 10143. It requires concrete receiver pins, separate encrypted keys, an
+explicit spend policy, complete journal set and lifecycle recording horizon.
+It preserves source time, freezes publication time, rechecks lifecycle/freshness
+at publication boundaries, simulates before reserving nonces, retains immutable
+transactions on uncertain sends and confirms against **finalized** blocks.
+Unknown on-chain signed history or inconsistent restored journals fail closed.
+The selected policy and total reservation budget persist across restarts.
+
+The completed runs, from this package, were:
+
+```bash
+export PRICEFEED_MONAD_RPC_URL=https://testnet-rpc.monad.xyz
+npm run cli -- serve-monad-testnet --rpc-env PRICEFEED_MONAD_RPC_URL \
+  --config artifacts/monad-testnet/market-config.json \
+  --rules artifacts/monad-testnet/rules.json \
+  --abi artifacts/monad-testnet/receiver-abi.json \
+  --keys-dir var/monad-testnet/keys --journal-dir var/monad-testnet/pilot \
+  --policy artifacts/monad-testnet/publication-policy.json \
+  --duration-seconds 120 --stop-after-finalized 2 --initialize true
+# Second process: same inputs, --stop-after-finalized 3 --initialize false.
+```
+
+These are completed-run records: initialization now refuses those existing
+journals, and their three-transaction budget is exhausted. Reopening with target
+3 exits without another submission. Never delete journals or enlarge the pinned
+policy to bypass a used budget. A longer campaign needs a separately recorded
+budget and recovery plan retaining the receiver's existing signed history.
+
+The service schedules repeated polls itself; run it as a persistent process
+under a supervisor for the sustained campaign. Cron can start/check a service,
+but an invocation every minute would miss the consumer's 30-second carry limit.
+Diagnostic polling here is five seconds; real RPC work makes actual submissions
+slower, so cadence must be measured. Three samples do **not** prove complete
+300-second TWAP coverage. Sustained coverage is the next planned proof, followed
+by category calibration and hosting/backup/monitoring work.
+
+Checks: 318 package tests, 12 focused new tests included in that count, eight
+owned-Anvil crash/restart cases, wire check and 144 Fraction vectors passed.
+The ten receiver Solidity tests are separate from the package suite.
+
+## Current standalone deployment
+
+The user requested this pricefeed-only receiver in `/tmp` and signed its creation
+with the browser wallet on 04 October 2026.
+
+- Chain: Monad testnet, `10143`.
+- Receiver: `0xd2d82fed32fb9a911300e7d928607755bd101773`.
+- Transaction: `0xd3d23d6a6c301ebe79431987d900690ea623ad1dddf6364bd234664def2a77ea`.
+- Pinned observation signer: `0xF26e7995D8421A8cd16Af704C360c7928F76bb8e`.
+- Preparation directory: `/tmp/eros-pricefeed-monad`.
+- Public manifest/config/ABI/build/source archive/evidence:
+  [`artifacts/monad-testnet/`](../artifacts/monad-testnet/).
+
+Ten separate receiver tests pass under Foundry 1.8.3 with `network=monad` and
+solc 0.8.30. Monad RPC estimated gas before submission. The successful finalized
+receipt and exact constructor transaction, expected created address, runtime
+including the owner immutable, owner/receiver kind and preflight pins were checked.
+Actual gas charge: 2,511,761 gas at 102 gwei = 0.256199622 test MON.
+Runtime is 7,646 bytes. No observation has been submitted by this deployment step.
+
+This receiver uses the existing real signature ingress and TWAP/observation
+storage, without trading economics. The full listing read ABI is compatible;
+unrelated trading fields are zero/disabled. Its owner can irreversibly request a
+diagnostic halt and scheduled halt starts at T; signed recording stays available.
+The politics mapping/rules and seven-day deadline are diagnostic, not a reviewed
+production listing. Production admission and chain-31337 pipeline restrictions
+remain unchanged. Testnet signing/relay/receipt/recovery and publication-boundary
+lifecycle checks are now connected through the separate diagnostic adapters.
+
+The generated observation key is encrypted under the temporary directory's
+owner-only `secrets/`, with separate owner-only unlock material. Neither is served
+by the local deployment page or included in public artifacts. The keys have since
+been moved into ignored owner-only durable package storage; the receiver pins
+this signer and has no rotation path. The browser wallet signed deployment and
+funded the separately generated unattended transaction sender.
 
 ## What works now
 
@@ -55,7 +153,12 @@ must also be measured against the selected endpoint.
    `artifacts/risk/engine-abi.json` exports the **abstract RiskAccountingBridge**
    interface; it cannot be deployed by itself. The concrete CombinedEngine in
    `contracts/test/integration/` uses a mock book and test-only entry points.
-   The local pricefeed demo is also a fixture, not the actual Eros deployment.
+   RealBookEngine in `contracts/test/integration/RealBookIntegration.t.sol`
+   already composes real Book/accounting/risk, but also exposes unrestricted
+   feed and failure-injection helpers. It remains a test fixture. The deployment
+   owner must supply a reviewed concrete artifact and check target-chain size/gas
+   feasibility and the open RB-I01 disposition. The local pricefeed demo is also
+   a fixture, not the actual Eros deployment.
 2. The owner supplies the testnet listing/source/rules/signing-address dossier
    and dependency addresses/parameters. A deployer needs their own testnet wallet
    funded with MON from the faucet. Do not reuse the public local fixture keys.
@@ -69,7 +172,9 @@ must also be measured against the selected endpoint.
    the build, but an abstract ABI or guessed address is not deployment evidence.
 4. Record the deployment transaction, chain ID, concrete source/build identity,
    listing dossier and runtime code hash. The pricefeed workstream does not
-   currently authorize deployments or editing the risk team's deployment wiring.
+   authorize editing the risk team's deployment wiring. The subsequently
+   authorized standalone receiver above is a completed diagnostic deployment,
+   not evidence that the full Eros engine is deployed.
 
 For the deployed engine, prepare a disabled MarketConfig with these pins:
 
@@ -96,8 +201,9 @@ npm run cli -- preflight-monad --rpc-env PRICEFEED_MONAD_RPC_URL \
   --config var/monad-testnet-market.json --abi /path/to/concrete-engine-artifact.json
 ```
 
-The config/ABI options must be supplied together. No engine address, hash, market
-or signer has been fabricated or deployed by this implementation.
+The config/ABI options must be supplied together. The standalone receiver's
+actual address/pins are retained in its public config; full-engine deployment
+inputs must still come from that engine's deployer.
 
 ## Persistently monitor halt, deadline and source progress
 

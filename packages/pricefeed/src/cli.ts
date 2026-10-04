@@ -15,6 +15,7 @@ import { parseRules } from './rules.js';
 import { monadTestnetReadRpc, preflightMonadTestnet } from './monad-preflight.js';
 import { monadLifecycleReader, watchMonadLifecycle } from './monad-lifecycle.js';
 import { MonadTestnetLifecycleMonitor, type LifecycleView } from './lifecycle.js';
+import { parseTestnetRunPolicy, runMonadTestnetService } from './monad-service.js';
 
 function args(argv:string[]):{command:string;options:Map<string,string>} {
   const [command,...rest]=argv;if(!command)throw new Error('COMMAND_REQUIRED');
@@ -30,10 +31,28 @@ async function main():Promise<void> {
   const allowed:Record<string,string[]>={'validate-config':['--config'],'inspect-book':['--config','--db'],'capture':['--configs','--duration-seconds','--db'],'serve':['--configs','--db'],'health':['--db'],'verify-evidence':['--db'],'verify-digest':['--observation','--chain-id','--engine'],
     'build-observation':['--config','--rules','--db','--capture-id','--sequence','--published-at-ms'],
     'preflight-monad':['--rpc-env','--config','--abi'],
-    'watch-monad-lifecycle':['--rpc-env','--config','--abi','--db','--interval-ms','--max-checkpoint-age-ms','--duration-seconds']};
+    'watch-monad-lifecycle':['--rpc-env','--config','--abi','--db','--interval-ms','--max-checkpoint-age-ms','--duration-seconds'],
+    'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
   const need=(key:string)=>{const v=options.get(key);if(!v)throw new Error(`REQUIRED_${key}`);return v;};
+  if(command==='serve-monad-testnet'){
+    const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
+    const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
+    const duration=need('--duration-seconds'),target=need('--stop-after-finalized'),initialize=need('--initialize');
+    if(!/^[1-9]\d*$/.test(duration)||BigInt(duration)>86400n||!/^([1-9]\d*)$/.test(target)||BigInt(target)>100000n
+      ||!['true','false'].includes(initialize))throw new Error('BAD_TESTNET_RUN_LIMIT');
+    const controller=new AbortController(),stop=()=>controller.abort();process.once('SIGINT',stop);process.once('SIGTERM',stop);
+    try{
+      const result=await runMonadTestnetService({config:parseConfig(read(need('--config'))),rules:parseRules(read(need('--rules'))),
+        abi:read(need('--abi')),rpcUrl,keysDirectory:need('--keys-dir'),journalDirectory:need('--journal-dir'),
+        policy:parseTestnetRunPolicy(read(need('--policy'))),durationSeconds:Number(duration),stopAfterFinalized:Number(target),
+        initialize:initialize==='true'},controller.signal,r=>console.log(json({mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',...r})));
+      console.log(json(result));
+      if(!result.evidenceValid||Number(result.finalizedPackets)<Number(target))process.exitCode=2;
+    }finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}
+    return;
+  }
   if(command==='preflight-monad'){
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
