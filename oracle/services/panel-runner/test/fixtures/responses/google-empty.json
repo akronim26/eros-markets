@@ -1,0 +1,21 @@
+{
+  "httpStatus": 200,
+  "headers": {},
+  "body": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ""
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "modelVersion": "gemini-x"
+  }
+}

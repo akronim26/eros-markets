@@ -1,0 +1,128 @@
+{
+  "schema": "eros-validation-gate/1",
+  "derivedFrom": [
+    "train",
+    "calibration"
+  ],
+  "data": {
+    "rowsSha256": "ee3feffc12360bf4a2fce0bf35191b8617f169a30b8aec8c0093df5f124ba288",
+    "splitSha256": "12a32e82fa6f28ef53e7f34f6a044c183b4b95d77add5c67c4bdd58124f6ecc4",
+    "runsSha256": "29c171b1cca16ea4510f75c422c684ca14d2f5d19d10fa76dfc2beea4a2c0c5f",
+    "records": {
+      "train": 5,
+      "calibration": 11,
+      "ran": 10
+    }
+  },
+  "models": [
+    "groq:openai/gpt-oss-120b@2026-10-03",
+    "nvidia:moonshotai/kimi-k3@2026-10-03",
+    "aicredits:google/gemini-3.8-flash@2026-10-04"
+  ],
+  "modelIdHashes": [
+    "0x0f88999d7b3d12fabb30fc17ed3deaae4dea955b3c47c97a3b2937fe3f4ff0e6",
+    "0xde231ad8fec520538ddf8df926723c8f873e7880e1021e668b2544f8c6d5b994",
+    "0xe60fedebae9f2662e68f00284c15c87f049fbfb1c603e834b40942b6b35fa721"
+  ],
+  "modelStats": {
+    "groq:openai/gpt-oss-120b@2026-10-03": {
+      "markets": 10,
+      "known": 0,
+      "correct": 0,
+      "notYet": 9,
+      "abstain": 1
+    },
+    "nvidia:moonshotai/kimi-k3@2026-10-03": {
+      "markets": 10,
+      "known": 1,
+      "correct": 1,
+      "notYet": 9,
+      "abstain": 0
+    },
+    "aicredits:google/gemini-3.8-flash@2026-10-04": {
+      "markets": 10,
+      "known": 0,
+      "correct": 0,
+      "notYet": 9,
+      "abstain": 1
+    }
+  },
+  "errorCorrelation": [
+    {
+      "models": [
+        "groq:openai/gpt-oss-120b@2026-10-03",
+        "nvidia:moonshotai/kimi-k3@2026-10-03"
+      ],
+      "n": 0,
+      "phiSquared": null,
+      "sign": null
+    },
+    {
+      "models": [
+        "groq:openai/gpt-oss-120b@2026-10-03",
+        "aicredits:google/gemini-3.8-flash@2026-10-04"
+      ],
+      "n": 0,
+      "phiSquared": null,
+      "sign": null
+    },
+    {
+      "models": [
+        "nvidia:moonshotai/kimi-k3@2026-10-03",
+        "aicredits:google/gemini-3.8-flash@2026-10-04"
+      ],
+      "n": 0,
+      "phiSquared": null,
+      "sign": null
+    }
+  ],
+  "calibration": {
+    "file": "calibration/maps.json",
+    "minParents": 30,
+    "calibratorHash": "0x3f6d1e70d1d4d85c4de733c056a7273475ad55ff7de3bcbff620867a51034942",
+    "placeholder": [
+      "groq:openai/gpt-oss-120b@2026-10-03",
+      "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "aicredits:google/gemini-3.8-flash@2026-10-04"
+    ]
+  },
+  "highConfBps": 9900,
+  "highConfRule": "no grid value gives a non-empty error-free train bucket: the most conservative grid value",
+  "categories": {
+    "sports": {
+      "categoryId": "0xecf68b55a3148ada593e183bf15435fbd3f76364946ed2169f5e36e27bc9eafd",
+      "promptHash": "0xd4e1459eb8c085de75bcd5bb4c97008561bdc896745e62eba6c28bb3fac70d82",
+      "gateHash": "0x51679a47694eccc83e1e78f5616bed94f54bdf39dff976315cfdc873effd9a87"
+    },
+    "macro": {
+      "categoryId": "0x633c0a510dee69569e885970a8150a53097783b991dacaa795b37c38fa51a31c",
+      "promptHash": "0x8fa86dfdf42ae6f6d99e890589bd57216a237907c3aebdab507faa3c992b7dd5",
+      "gateHash": "0x045705256c13ab7f56c7cf67d08952d15a6c38630cd72556af9857fa625e5809"
+    },
+    "elections": {
+      "categoryId": "0x792bedba023dd36f1e85d308c18b04a5f46709775d3cb22d87e3a64f100f88c0",
+      "promptHash": "0xb159fb6f45d312cf1b833ec52bac83a6fc8e8afe83d9c19630b2be07e7ce2924",
+      "gateHash": "0x0cc5611b970ce9ac038bf00a57e3b459180cc26b6ab7b63bebb3fe6acffdbc6d"
+    },
+    "politics": {
+      "categoryId": "0x244cf72cb284fc7d430637a0d0fe497a88146c8eb8832a06e8aaf72bcb0f75c8",
+      "promptHash": "0x792057f16c13f22de4f812dd9cb71bed18c61446ff17bb2d2805dc9368855ee7",
+      "gateHash": "0xf9d70237b1f0540e00073ec59a073218d4f098c5adc974454a3bb775cc9febc2"
+    },
+    "crypto": {
+      "categoryId": "0x35006686fd78b85ed3fb52493d70cb3f7732177a19f352814df621b506c237a4",
+      "promptHash": "0x1f1ae68717568abea858ad8c9bf417428b86844b1f4d40409be7f52a2556148b",
+      "gateHash": "0x7c5d6b45fc1007f5952ba2e527c98079a4e00fe06c7e388fb0e1b2af0d9112c7"
+    },
+    "companies": {
+      "categoryId": "0xa59c9b8b4feb539d1bda063f59e1f5d3901d8243c55559a3f095f1e00cf32c0f",
+      "promptHash": "0x51f500cab8f1eba4ccd19345df5293ca85693ddd950b1722bd63d80649122803",
+      "gateHash": "0xb179db010df57cf8d9e075034be4e12a9816bc8711308385ebb584e43fbb7002"
+    },
+    "other": {
+      "categoryId": "0x26b60b6bee32c2d284da42d089b795640a977077a3c25b246fe0448f42ce4ec0",
+      "promptHash": "0xe6e03ecd09639ba46c496d7e7a364784326ffd46114b50bb5030e19c1a8b01fe",
+      "gateHash": "0x8069cc5611eb0caed135e83f3ec0a6349e6a706482a0917fdbc9b38e3547fe8d"
+    }
+  }
+}

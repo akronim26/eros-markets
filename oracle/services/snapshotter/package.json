@@ -1,0 +1,16 @@
+{
+  "name": "@eros-oracle/snapshotter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Evidence snapshots for the Layer 2 panel and the committee: fetch, canonical form, IPFS pinning (plan 8.2).",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@eros-oracle/feedspec": "workspace:*",
+    "viem": "2.57.2"
+  }
+}

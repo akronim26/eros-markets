@@ -1,0 +1,22 @@
+{
+  "name": "@eros-oracle/watchdog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent watchdog (plan 9.2): checks every proposal (Layer 1 re-run, a fourth model family), disputes contradictions inside liveness, heartbeat and float accounting.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "bun test --path-ignore-patterns='test/fork/**'",
+    "test:fork": "bun test test/fork",
+    "record": "bun scripts/record.ts",
+    "start": "bun src/main.ts"
+  },
+  "dependencies": {
+    "@eros-oracle/feedspec": "workspace:*",
+    "@eros-oracle/oracle-sdk": "workspace:*",
+    "@eros-oracle/snapshotter": "workspace:*",
+    "viem": "2.57.2",
+    "zod": "4.6.5"
+  }
+}
