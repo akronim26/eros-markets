@@ -1,6 +1,7 @@
 [profile.default]
 src = "src"
 test = "test"
+no_match_path = "test/integration/**"
 script = "script"
 out = "out"
 libs = ["lib"]
@@ -37,3 +38,15 @@ runs = 10000
 runs = 256
 depth = 128
 fail_on_revert = false
+
+[profile.integration]
+test = "test/integration"
+no_match_path = "test/uma/**"
+script = "script/integration"
+solc_version = "0.8.30"
+auto_detect_solc = false
+code_size_limit = 1000000
+
+[profile.integration.fuzz]
+runs = 1000
+seed = "0x45524f53"
