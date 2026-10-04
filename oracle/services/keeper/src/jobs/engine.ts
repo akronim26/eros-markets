@@ -30,7 +30,7 @@ export function engineVersion(oracleVersion: Hex, s: SettlementStatus): Hex {
 
 export function enginePlanner(): Planner {
   return async (v: MarketView): Promise<Job[]> => {
-    if (v.resolution.state !== RState.Final) return []
+    if (v.engineIdentity.kind !== 'book-risk' || v.resolution.state !== RState.Final) return []
     const st = await v.reads.settlementStatus()
     if (st.claimsEnabled || !st.halted) return []
     if (st.recoveryRequired) {

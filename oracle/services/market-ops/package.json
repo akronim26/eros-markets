@@ -1,14 +1,10 @@
 {
-  "name": "@eros-oracle/keeper",
+  "name": "@eros-oracle/market-ops",
   "version": "0.1.0",
   "private": true,
-  "description": "Permissionless, idempotent keeper jobs for the resolution oracle (plan 9.1).",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
   "scripts": {
-    "test": "bun test --path-ignore-patterns='test/fork/**'",
-    "test:fork": "bun test test/fork",
+    "test": "bun test",
     "start": "bun src/main.ts",
     "typecheck": "tsc --noEmit"
   },

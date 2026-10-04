@@ -22,6 +22,7 @@ import {
 } from 'viem'
 import { nonceManager, privateKeyToAccount } from 'viem/accounts'
 import { engineFollowUpAbi } from './engineAbi'
+import { type EngineIdentities, engineIdentityResolver } from './engineIdentity'
 import type { Chain, Job, Resolution, Target } from './types'
 
 const ABIS: Record<Target, Abi> = {
@@ -36,7 +37,7 @@ function engineAddress(job: Job): Hex {
   return job.address
 }
 
-export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: Deployments }): Chain {
+export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: Deployments; engineIdentities: EngineIdentities }): Chain {
   const d = opts.deployments
   const chain = defineChain({
     id: d.chainId,
@@ -59,6 +60,7 @@ export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: 
   })
 
   return {
+    engineIdentity: engineIdentityResolver(pc, opts.engineIdentities, { chainId: d.chainId, registry }),
     async now() {
       return (await pc.getBlock({ blockTag: 'latest' })).timestamp
     },

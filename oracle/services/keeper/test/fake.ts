@@ -3,6 +3,7 @@
 import { type GasTable, loadGas } from '@eros-oracle/oracle-sdk'
 import type { Hex } from 'viem'
 import { keccak256, toHex } from 'viem'
+import type { EngineIdentity } from '../src/engineIdentity'
 import type { AssertionStatus, Chain, DisputeRecord, Job, MarketInfo, Planner, ReceiptStatus, Resolution, SettlementStatus, TreasuryState } from '../src/types'
 
 export const ZERO32 = `0x${'00'.repeat(32)}` as Hex
@@ -41,6 +42,8 @@ export function resolution(over: Partial<Resolution> = {}): Resolution {
 }
 
 export const ENGINE = '0x00000000000000000000000000000000000000ee' as Hex
+export const STUB_IDENTITY: EngineIdentity = { kind: 'stub', runtimeCodehash: keccak256(toHex('stub')), chainId: 10143 }
+export const BOOK_IDENTITY: EngineIdentity = { kind: 'book-risk', runtimeCodehash: keccak256(toHex('book-risk')), chainId: 10143 }
 export const INFO: MarketInfo = { tau: 1000n, hasFeed: true, bufferSecs: 60n, l1TimeoutSecs: 300n, l2DeadlineSecs: 600n, earlyTtlSecs: 600n, engine: ENGINE, groupId: ZERO32, groupExclusive: false }
 
 export const SETTLEMENT: SettlementStatus = {
@@ -50,6 +53,19 @@ export const SETTLEMENT: SettlementStatus = {
 
 /** The real gas.json, so planners' gas keys are checked. */
 export const GAS: GasTable = loadGas()
+
+export function withoutGasLimits(...keys: string[]): GasTable {
+  return { ...GAS, calls: Object.fromEntries(Object.entries(GAS.calls).filter(([key]) => !keys.includes(key))) }
+}
+
+export function testEngineGas(limit: number) {
+  return {
+    limit,
+    engine: 'BookRiskEngine',
+    engineRuntimeCodehashes: [BOOK_IDENTITY.runtimeCodehash],
+    measurement: { chainId: BOOK_IDENTITY.chainId, source: 'in-memory keeper test fixture; not deployment evidence', transactionGas: limit },
+  }
+}
 
 export const bumpPlanner = (cap = 1, gasKey = 'requestResolution'): Planner => (m) =>
   m.resolution.requestCount < cap
@@ -69,6 +85,8 @@ export class FakeChain implements Chain {
   failSend = 0 // the next n sends throw
   failRead = new Set<Hex>()
   info: MarketInfo = INFO
+  infos = new Map<Hex, MarketInfo>()
+  identities = new Map<Hex, EngineIdentity>([[ENGINE, STUB_IDENTITY]])
   infoReads = 0
   status: AssertionStatus = { exists: true, disputed: false, settled: false, truthful: false, expiresAt: 0n }
   ledger = 10_000_000_000n
@@ -93,6 +111,7 @@ export class FakeChain implements Chain {
       now: () => this.now(),
       getResolution: (i) => this.getResolution(i),
       marketInfo: (i) => this.marketInfo(i),
+      engineIdentity: (engine) => this.engineIdentity(engine),
       globalsMinRequestIntervalSecs: (v) => this.globalsMinRequestIntervalSecs(v),
       assertionStatus: (venue, a) => this.assertionStatus(venue, a),
       assertionLedger: () => this.assertionLedger(),
@@ -116,9 +135,14 @@ export class FakeChain implements Chain {
     if (!r) throw new Error(`no market ${i}`)
     return { ...r }
   }
-  async marketInfo(_i: Hex) {
+  async marketInfo(marketId: Hex) {
     this.infoReads++
-    return this.info
+    return this.infos.get(marketId) ?? this.info
+  }
+  async engineIdentity(engine: Hex): Promise<EngineIdentity> {
+    const identity = this.identities.get(engine)
+    if (!identity) throw new Error(`engine ${engine} has unapproved runtime codehash`)
+    return { ...identity }
   }
   async globalsMinRequestIntervalSecs(_v: number) {
     return this.minInterval
