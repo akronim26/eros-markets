@@ -1,0 +1,49 @@
+{
+  "scenario": "O23",
+  "title": "Layer 1 no-write runs: NOT_READY and 429",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:35:45.231Z",
+  "steps": [
+    {
+      "step": "listed not-ready (truth YES, T 2026-10-04T17:47:00.000Z)",
+      "market": "0x47e440b068e6f2bd901e401b8abaa126428b6c683171b9a17296da3cb61d4ead",
+      "tx": "0x99ad160c354cff2e96b4d1b57e9a3f8b452d9b48d2057fdf734f810159cd2633",
+      "detail": {
+        "slug": "eros-e2e-o23-not-ready-849828-home-gt-3-1791136020",
+        "engine": "0x68b65b0338cCE57A46980cf20ed0edFA08d88f69",
+        "spec": {
+          "scenario": "O23",
+          "tag": "not-ready",
+          "game": 849828,
+          "feedGame": 849823,
+          "side": "home",
+          "target": 3,
+          "feed": "mlb",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 600,
+          "voidSecs": 6000
+        }
+      },
+      "block": "68176529",
+      "time": "2026-10-04T17:36:33.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "not-ready: no Layer 1 report written",
+      "ok": true,
+      "detail": "state L2Pending, path 0"
+    },
+    {
+      "check": "http-429: no Layer 1 report written",
+      "ok": true,
+      "detail": "state Open, path 0"
+    }
+  ]
+}

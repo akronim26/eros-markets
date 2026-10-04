@@ -1,0 +1,13 @@
+Eros Markets market 0xdd289d0906f431865d6ff64583489ea779721375434e9c85a22b843a2949790f (chain 10143, oracle 0xa87D6E10a7199666ec9F2e04866201E35AAf36A6).
+Question: Did the Cleveland Guardians score more than 3 runs against the Chicago White Sox in the 2026 ALDS 'B' Game 1 on 3 October 2026 (MLB gamePk 849829)? [testnet E3 test market]
+Rules: TESTNET TEST MARKET for end-to-end scenario E3; the game has already been played.
+
+This market resolves YES if the Cleveland Guardians (home) scored more than 3 runs in MLB game 849829 (gamePk), the 2026 ALDS 'B' Game 1 between the Chicago White Sox (away) and the Cleveland Guardians (home), played on 2026-10-03. It resolves NO if they scored 3 runs or fewer.
+
+Source and finality: the official MLB Stats API schedule entry for gamePk 849829 (https://statsapi.mlb.com/api/v1/schedule?gamePk=849829). The game counts as completed once that entry's status code (dates[0].games[0].status.codedGameState) is "F". The runs counted are the home score (dates[0].games[0].teams.home.score) shown with that status.
+
+Deadline: the scheduled resolution time T is 2026-10-04T17:18:00Z. If no official source shows the game as Final with a numeric Cleveland Guardians score before the void deadline, the market resolves INVALID.
+Scheduled time T: 2026-10-04T17:18:00Z (1791134280)
+Asserted outcome: YES
+Evidence: Layer 1 CRE report, value 0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d, source https://statsapi.mlb.com/api/v1/blocked?gamePk=849829, keccak256 0x0000000000000000000000000000000000000000000000000000000000000000
+This assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.

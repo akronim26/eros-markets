@@ -1,0 +1,23 @@
+local-sim:
+  user-workflow:
+    workflow-name: "eros-resolution-sim"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.local-sim.json"
+    secrets-path: "../secrets.yaml"
+staging:
+  user-workflow:
+    workflow-name: "eros-resolution-stg"
+    deployment-registry: "private"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.staging.json"
+    secrets-path: "../secrets.yaml"
+production:
+  user-workflow:
+    workflow-name: "eros-resolution"
+    deployment-registry: "private"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.production.json"
+    secrets-path: "../secrets.yaml"

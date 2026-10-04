@@ -1,0 +1,39 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+auto_detect_solc = true          # our sources pin 0.8.30; UMA OOv3 pins 0.8.16
+evm_version = "prague"
+optimizer = true
+optimizer_runs = 200
+code_size_limit = 131072         # Monad 128 KiB, same as contracts/
+bytecode_hash = "none"            # Monad explorer (Sourcify) verification; Monad docs call this metadata_hash
+use_literal_content = true
+allow_paths = ["../contracts"]
+fs_permissions = [{ access = "read-write", path = "./deployments" }, { access = "read", path = "./out" }, { access = "read", path = "./vectors" }, { access = "read-write", path = "./vectors/claim.json" }, { access = "read", path = "./listings" }]   # scripts write addresses here; tests read artifacts and vectors (ADJ-28), ClaimVectors regenerates claim.json (O30.3); ListMarket reads listing packs (ADJ-34)
+remappings = [
+  "solady/=lib/solady/src/",
+  "forge-std/=lib/forge-std/src/",
+  "@eros/=../contracts/src/",
+  "@eros-test/=../contracts/test/",
+  "@uma/=lib/uma-protocol/packages/",
+  "@openzeppelin/=lib/openzeppelin-contracts-v4/",
+]
+
+[profile.default.fuzz]
+runs = 1000
+
+[profile.default.invariant]
+runs = 64
+depth = 64
+fail_on_revert = false
+
+[profile.ci.fuzz]
+runs = 10000
+
+[profile.ci.invariant]
+runs = 256
+depth = 128
+fail_on_revert = false

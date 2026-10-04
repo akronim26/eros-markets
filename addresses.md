@@ -8,6 +8,9 @@ No collateral was minted, no actors/coordinator were deployed, and no trading, h
 was executed. Frontend and oracle integration are left to their integration team as requested.
 These are testnet fixtures, not production collateral or a production oracle integration.
 
+The resolution oracle has its own deployment on the same network; see
+[Oracle deployment](#oracle-deployment) at the end of this file.
+
 ## Current addresses
 
 | Contract / role | Verified address |
@@ -121,3 +124,83 @@ Deployment cost: **3.271483332 test MON**. Controller balance after verification
 For the older **closed** market (`0x4ae742676984d2c383645e4745eaf3943b67de72`), use the
 [historical ledger](docs/integration/RISK_BOOK_TRACKER.md#6-testnet-deployment-ledger).
 Do not mix its actors, market ID, ABIs or receipts with this deployment.
+
+## Oracle deployment
+
+Updated **2026-10-04**. Network: **Monad testnet**, chain ID **10143**. Source: `oracle/` on
+`integration/risk`; full record with code hashes and deploy blocks in
+[`oracle/deployments/monad-testnet.json`](oracle/deployments/monad-testnet.json).
+
+**Status: deployed, configured, first market listed.** Markets listed here run on the oracle's
+testnet `ResolutionEngineStub` (via `StubMarketFactory`), **not** on the BookRiskEngine above:
+the two deployments are not connected until a real `MarketFactory` exists (SP-03 / O42).
+
+### Oracle contracts
+
+All deployed at block 67,901,624 (lower bound); every runtime matches its recorded code hash.
+
+| Contract | Address |
+|---|---|
+| ResolutionOracle (engine resolution authority, CRE receiver) | [`0xa87D6E10a7199666ec9F2e04866201E35AAf36A6`](https://testnet.monadscan.com/address/0xa87D6E10a7199666ec9F2e04866201E35AAf36A6) |
+| MarketRegistry | [`0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa`](https://testnet.monadscan.com/address/0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa) |
+| BondTreasury | [`0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a`](https://testnet.monadscan.com/address/0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a) |
+| UmaAdapter (assertion venue) | [`0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1`](https://testnet.monadscan.com/address/0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1) |
+| KeeperRouter | [`0xa04109FfD14C8E2c8303b3F1047Eeb14D78a67A9`](https://testnet.monadscan.com/address/0xa04109FfD14C8E2c8303b3F1047Eeb14D78a67A9) |
+| Timelock (governance, 300 s delay) | [`0xC2095b3DfD54328E59150bb70a3B541e21772F56`](https://testnet.monadscan.com/address/0xC2095b3DfD54328E59150bb70a3B541e21772F56) |
+| StubMarketFactory (testnet only) | [`0xF58833b3b45ca45b5C10F396e39e675678751943`](https://testnet.monadscan.com/address/0xF58833b3b45ca45b5C10F396e39e675678751943) |
+
+### UMA sandbox, bond token and CRE
+
+| Contract | Address |
+|---|---|
+| UMA OptimisticOracleV3 (sandbox) | [`0xdE3B884250333652aC2Bf27fE10A6483a50B0a26`](https://testnet.monadscan.com/address/0xdE3B884250333652aC2Bf27fE10A6483a50B0a26) |
+| ErosSandboxOracle (stands in for the DVM; team Safe answers) | [`0x1211A79433CA94bD4cC93d69E615519790467d20`](https://testnet.monadscan.com/address/0x1211A79433CA94bD4cC93d69E615519790467d20) |
+| UMA Finder / Store | [`0x6360e4D58837B5201f5aC8fA31e672c765ae5b08`](https://testnet.monadscan.com/address/0x6360e4D58837B5201f5aC8fA31e672c765ae5b08) / [`0xb4bf9609ceaF1D5565682737CaB9AF06947f0377`](https://testnet.monadscan.com/address/0xb4bf9609ceaF1D5565682737CaB9AF06947f0377) |
+| UMA AddressWhitelist / IdentifierWhitelist | [`0x0aE49CB05eCdDE2A2E2e4Bf80B19B76a38B311F6`](https://testnet.monadscan.com/address/0x0aE49CB05eCdDE2A2E2e4Bf80B19B76a38B311F6) / [`0xc3C05aBCC86A5c12A378AED31d66DB96028e809E`](https://testnet.monadscan.com/address/0xc3C05aBCC86A5c12A378AED31d66DB96028e809E) |
+| TestUSDC (oracle bond token, 6 decimals, open faucet) | [`0xFE854aEB0e1B5B568291f52696E5726c89a8d39e`](https://testnet.monadscan.com/address/0xFE854aEB0e1B5B568291f52696E5726c89a8d39e) |
+| CRE MockKeystoneForwarder (sim mode, active) | [`0xB9F79d863261869B234c481D1f9A7af84AeAd192`](https://testnet.monadscan.com/address/0xB9F79d863261869B234c481D1f9A7af84AeAd192) |
+| CRE KeystoneForwarder (production, not yet trusted) | [`0xF8344CFd5c43616a4366C34E3EEE75af79a74482`](https://testnet.monadscan.com/address/0xF8344CFd5c43616a4366C34E3EEE75af79a74482) |
+
+TestUSDC is a different token from the risk deployment's TestnetRiskCollateral.
+
+### Roles (testnet hot keys; private keys are git-ignored)
+
+| Role | Address |
+|---|---|
+| Team Safe stand-in (Timelock proposer, lister, sandbox owner) | [`0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1`](https://testnet.monadscan.com/address/0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1) |
+| Guardian (revoke only) | [`0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d`](https://testnet.monadscan.com/address/0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d) |
+| Deployer (holds no role) | [`0x676c3Dfd23c742bb6F0CFFd7a108d69ae674f49e`](https://testnet.monadscan.com/address/0x676c3Dfd23c742bb6F0CFFd7a108d69ae674f49e) |
+| Committee (2-of-3) | [`0x068eD0017f2d18f5BcbDfF2157DA00Dd877Cd71b`](https://testnet.monadscan.com/address/0x068eD0017f2d18f5BcbDfF2157DA00Dd877Cd71b), [`0x179D2025d3afB902598dbB1F0e8234e99088139F`](https://testnet.monadscan.com/address/0x179D2025d3afB902598dbB1F0e8234e99088139F), [`0xED10ce281361Baf48c617a0B19d8217f23a20593`](https://testnet.monadscan.com/address/0xED10ce281361Baf48c617a0B19d8217f23a20593) |
+| Panel runner attestor | [`0xAdB4aB1A632fad6D41d49bcD9DEf374084B286B0`](https://testnet.monadscan.com/address/0xAdB4aB1A632fad6D41d49bcD9DEf374084B286B0) |
+| Watchdog | [`0x89F4b643a05915918c2459d04Da494598985264C`](https://testnet.monadscan.com/address/0x89F4b643a05915918c2459d04Da494598985264C) |
+| Keepers | [`0xCbf737ea4D798a74a2988fC3294910d5a581A85c`](https://testnet.monadscan.com/address/0xCbf737ea4D798a74a2988fC3294910d5a581A85c), [`0xB5E7E230Cf6a7C2479aA68f01Cd68795f1a270eb`](https://testnet.monadscan.com/address/0xB5E7E230Cf6a7C2479aA68f01Cd68795f1a270eb) |
+| CRE sim relayer | [`0x0f27bf7D22A563475c62Ef68Bd41c72f359124C5`](https://testnet.monadscan.com/address/0x0f27bf7D22A563475c62Ef68Bd41c72f359124C5) |
+
+### Configuration and first market
+
+- Trust set **1** (sim) active; globals version **1**; provider `statsapi.mlb.com`; auth ref `SPORTSDATA_V1`.
+- Treasury limits **100 USDC** per market, **20** open disputes; **1,000 USDC** each in the ASSERTION and
+  WATCHDOG_FLOAT ledgers.
+- First market `0xbb40e8e0ece7adae065af4f5a16f87abe4a912db0ada1696171ac7ef6b3be5ea` (MLB ALDS Game 3,
+  White Sox runs > 3), engine [`0x597C3744E6C91Ce93e82856A5066FC213c2f21e9`](https://testnet.monadscan.com/address/0x597C3744E6C91Ce93e82856A5066FC213c2f21e9), scheduled halt
+  `T` = **2026-10-08 01:00 UTC**; listed in [`0xee55d0c0…5a06`](https://testnet.monadscan.com/tx/0xee55d0c0f1aada1dfd02ccf0342452365af0bac7271d249bb593f58133645a06)
+  (block 68,099,870, 4,149,249 gas).
+
+| Timelock operation | Propose | Execute |
+|---|---|---|
+| Trust set | [`0x7eac76b3…6bca`](https://testnet.monadscan.com/tx/0x7eac76b3bb7838bfbd7bd2fb28e9055a8dae602217e23113de748f0bd3416bca) | [`0x5419106d…c6c3`](https://testnet.monadscan.com/tx/0x5419106d456ab816699d2e0fe2d16de52ebad32112cfed740da0b4f6c8eac6c3) |
+| Registry setup | [`0x7992d4e9…83ef`](https://testnet.monadscan.com/tx/0x7992d4e9a22644acf2d0433fc910460fdc3301e68630e527b0cb6d38e95d83ef) | [`0x46e790bb…4c86`](https://testnet.monadscan.com/tx/0x46e790bbc007d6e3fd7d07b2723d48411f2439c1fac5a73e53ab3f2d69414c86) |
+| Treasury limits | [`0xaebab583…ec17`](https://testnet.monadscan.com/tx/0xaebab583bbf853a38a99708e1036b632ca4dd3faa91bd361debd0c048624ec17) | [`0xc9f6d6aa…01db`](https://testnet.monadscan.com/tx/0xc9f6d6aa609d18f736de39fea42816121481324bb58d34ad8bbb2ed8274201db) |
+
+The treasury deposit transactions are in `oracle/broadcast/FundTreasury.s.sol/10143/run-latest.json`.
+
+```dotenv
+ORACLE_RESOLUTION_ORACLE_ADDRESS=0xa87D6E10a7199666ec9F2e04866201E35AAf36A6
+ORACLE_MARKET_REGISTRY_ADDRESS=0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa
+ORACLE_BOND_TREASURY_ADDRESS=0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a
+ORACLE_KEEPER_ROUTER_ADDRESS=0xa04109FfD14C8E2c8303b3F1047Eeb14D78a67A9
+ORACLE_BOND_TOKEN_ADDRESS=0xFE854aEB0e1B5B568291f52696E5726c89a8d39e
+```
+
+As above, these names are inventory conveniences; the oracle services read
+`oracle/deployments/monad-testnet.json`.
