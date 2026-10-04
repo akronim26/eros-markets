@@ -8,7 +8,7 @@
 //                        groq:openai/gpt-oss-120b@2026-10-03,nvidia:moonshotai/kimi-k3@2026-10-03,aicredits:anthropic/claude-sonnet-5.5@2026-10-04
 //   <PROVIDER>_API_KEY   one per provider (oracle-sdk KEYS); GROQ_API_KEY also runs the injection classifier
 //   CALIBRATION          JSON file of calibration maps (default: the placeholder maps)
-//   SOURCES              optional JSON file {marketId: [page URLs]}
+//   SOURCES              optional JSON file {marketId: [page URLs]}, re-read on every run
 //   SNAPSHOT_DIR         default ./snapshots
 //   POLL_MS              tick interval (default 30000)
 //   FROM_BLOCK           where the StateChanged scan starts (default the oracle's deploy block)
@@ -46,7 +46,9 @@ const log = (level: 'info' | 'warn' | 'error', msg: string, data: Record<string,
 
 const models = env.PANEL_MODELS.split(',').map((m) => m.trim())
 const maps: CalibrationMap[] = env.CALIBRATION ? JSON.parse(readFileSync(env.CALIBRATION, 'utf8')) : placeholderMaps(models)
-const sources: Record<string, string[]> = env.SOURCES && existsSync(env.SOURCES) ? JSON.parse(readFileSync(env.SOURCES, 'utf8')) : {}
+// Re-read on every lookup, so pages for a new market can be added without a restart.
+const sourcesFor = (id: string): string[] =>
+  env.SOURCES && existsSync(env.SOURCES) ? ((JSON.parse(readFileSync(env.SOURCES, 'utf8')) as Record<string, string[]>)[id.toLowerCase()] ?? []) : []
 const runner = new PanelRunner({
   chain: viemPanelChain({ rpcUrl: env.RPC_URL, relayerKey: env.RELAYER_PRIVATE_KEY as Hex, deployments: loadDeployments(env.NETWORK), fromBlock: env.FROM_BLOCK }),
   signer: signerFromEnv(),
@@ -57,7 +59,7 @@ const runner = new PanelRunner({
   takeSnapshot: (req) => takeSnapshot(req),
   scan: (s, p) => scanSnapshot(s, p),
   askPanel: (m, call, items) => askPanel(m, call, items),
-  pagesFor: (id) => sources[id.toLowerCase()] ?? [],
+  pagesFor: (id) => sourcesFor(id),
   snapshotDir: env.SNAPSHOT_DIR,
   log,
 })

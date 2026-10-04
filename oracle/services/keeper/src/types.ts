@@ -46,6 +46,8 @@ export type MarketInfo = {
   l2DeadlineSecs: bigint
   earlyTtlSecs: bigint
   engine: Hex
+  groupId: Hex // 0 = none
+  groupExclusive: boolean
 }
 
 export type AssertionStatus = { exists: boolean; disputed: boolean; settled: boolean; truthful: boolean; expiresAt: bigint }
@@ -58,6 +60,8 @@ export interface MarketReads {
   bondFor(): Promise<bigint>
   /** From the globals version the market pinned. */
   minRequestIntervalSecs(): Promise<bigint>
+  /** The market that finalized YES in this market's exclusive group (0 = none). */
+  groupFinalYes(): Promise<Hex>
   settlementStatus(): Promise<SettlementStatus>
 }
 
@@ -126,6 +130,7 @@ export interface Chain {
   assertionStatus(venue: Hex, assertionId: Hex): Promise<AssertionStatus>
   assertionLedger(): Promise<bigint>
   bondFor(id: Hex): Promise<bigint>
+  groupFinalYes(groupId: Hex): Promise<Hex>
   settlementStatus(engine: Hex): Promise<SettlementStatus>
   treasuryDispute(assertionId: Hex): Promise<DisputeRecord>
   treasuryState(): Promise<TreasuryState>

@@ -8,6 +8,8 @@
 //   request L1   L1Pending, feed, now >= T + bufferSecs, every 5 min     requestResolution (onchain floor: minRequestIntervalSecs)
 //   open         L2Pending/Review, now >= T and >= retryOpensAt or l2StartedAt + l2DeadlineSecs   openAfterDeadline
 //   assert       Proposed, no live assertion, the ASSERTION ledger holds the bond (else alert)   assertProposal
+//   conflict     Proposed YES in an exclusive group that already has a Final YES                  assertProposal
+//                (it moves the market to Review and returns false, so false is not a no-op here)
 //   sync dispute Proposed, the venue shows the assertion disputed and unsettled                   syncAssertion
 //   finalize     Proposed past expiresAt or settled on the venue; Disputed (the DVM may have answered)
 //                finalizeMarket, or KeeperRouter.finalizeMany for up to 4 markets in one tick
@@ -24,6 +26,7 @@ export const RState = {
 export const FinalizeStatus = { NOT_READY: 0, FINAL: 1, REJECTED: 2, DISPUTED: 3 } as const
 
 const A_MAX = 3
+const OUTCOME_YES = 1 // Outcome.YES
 const ZERO32 = `0x${'00'.repeat(32)}`
 export const REQUEST_EVERY_SECS = 300n // the contract's own floor is minRequestIntervalSecs
 export const FINALIZE_BATCH_MAX = 4 // finalizeMany4 is the largest batch measured
@@ -83,6 +86,9 @@ export function resolutionPlanner(opts: ResolutionPlannerOptions): Planner {
       return now >= opensAt ? job('open', 'openAfterDeadline', 'openAfterDeadline') : []
     }
     if (s === RState.Proposed && !live) {
+      if (r.proposed === OUTCOME_YES && info.groupExclusive && info.groupId !== ZERO32 && (await v.reads.groupFinalYes()) !== ZERO32) {
+        return job('group-conflict', 'assertProposal', 'assertProposal', { isNoop: () => false })
+      }
       if (r.attempts >= A_MAX) {
         v.alert('Proposed with every assertion attempt used', { attempts: r.attempts })
         return []

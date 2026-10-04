@@ -84,6 +84,8 @@ export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: 
         l2DeadlineSecs: BigInt(c.l2DeadlineSecs),
         earlyTtlSecs: BigInt(c.earlyTtlSecs),
         engine: c.engine,
+        groupId: c.groupId,
+        groupExclusive: c.groupExclusive,
       }
     },
     async globalsMinRequestIntervalSecs(version) {
@@ -102,6 +104,10 @@ export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: 
     },
     async bondFor(id) {
       return pc.readContract({ address: oracle, abi: ResolutionOracleAbi, functionName: 'bondFor', args: [id], blockTag: 'latest' })
+    },
+    async groupFinalYes(groupId) {
+      const g = await pc.readContract({ address: oracle, abi: ResolutionOracleAbi, functionName: 'groupState', args: [groupId], blockTag: 'latest' })
+      return g.finalYes
     },
     async settlementStatus(engine) {
       const v = await pc.readContract({ address: engine, abi: ResolutionEngineStubAbi, functionName: 'getSettlementStatus', blockTag: 'latest' })

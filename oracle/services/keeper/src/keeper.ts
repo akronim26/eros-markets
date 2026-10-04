@@ -150,6 +150,7 @@ export class Keeper {
       assertionStatus: () => chain.assertionStatus(r.assertionVenue as Hex, r.assertionId as Hex),
       assertionLedger: () => chain.assertionLedger(),
       bondFor: () => chain.bondFor(id),
+      groupFinalYes: () => chain.groupFinalYes(info.groupId),
       minRequestIntervalSecs: async () => {
         const v = r.globalsVersion
         let x = this.intervals.get(v)
