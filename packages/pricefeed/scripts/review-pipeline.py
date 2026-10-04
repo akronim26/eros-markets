@@ -54,7 +54,10 @@ def review(path):
     assert report['productionApproved'] is False and report['config']['enabled'] is False
     archive = (PACKAGE / report['archive']).resolve()
     assert archive.is_relative_to(PACKAGE / 'var'), 'archive outside package var'
-    for name in ('source.sqlite', 'packets.sqlite', 'signer.sqlite', 'relay.sqlite'):
+    names = ['source.sqlite', 'packets.sqlite', 'signer.sqlite', 'relay.sqlite']
+    if 'transactions.sqlite' in report['archiveSha256']:
+        names.append('transactions.sqlite')
+    for name in names:
         assert hashlib.sha256((archive / name).read_bytes()).hexdigest() == report['archiveSha256'][name], name
     sources = list(records(archive / 'source.sqlite', 'captures', 'payload'))
     packets = list(records(archive / 'packets.sqlite', 'packets', 'body'))

@@ -53,6 +53,8 @@ export class LocalRelay {
       CREATE TABLE IF NOT EXISTS relay_signer(sender TEXT PRIMARY KEY,journal_id TEXT NOT NULL) STRICT;
       CREATE TABLE IF NOT EXISTS deliveries(key TEXT PRIMARY KEY,ns TEXT NOT NULL,nonce TEXT NOT NULL UNIQUE,body TEXT NOT NULL,sha256 TEXT NOT NULL) STRICT;`);
     const accounts=this.db.prepare('SELECT sender,initial_nonce,next_nonce FROM relay_nonce').all();
+    const signerPins=this.db.prepare('SELECT sender FROM relay_signer').all();
+    if(signerPins.length>1||signerPins.some(r=>r.sender!==transport.sender.toLowerCase())){this.db.close();throw new Error('RELAY_ACCOUNT_CHANGED');}
     if(accounts.length>1||accounts.some(r=>r.sender!==transport.sender.toLowerCase())){this.db.close();throw new Error('RELAY_ACCOUNT_CHANGED');}
     try{for(const r of this.db.prepare('SELECT * FROM deliveries').all())this.parse(String(r.body),String(r.sha256));}
     catch(error){this.db.close();throw error;}
@@ -117,6 +119,7 @@ export class LocalRelay {
   private parse(body:string,sha:string):DeliveryRecord {
     if(checksum(body)!==sha)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
     const r=JSON.parse(body);
+    if(r.request&&parseTransactionRequest(r.request).nonce!==BigInt(r.nonce))throw new Error('DELIVERY_JOURNAL_INTEGRITY');
     return {...r,sequence:BigInt(r.sequence),nonce:BigInt(r.nonce),accepted:r.accepted?{...r.accepted,
       blockNumber:BigInt(r.accepted.blockNumber),acceptedAt:BigInt(r.accepted.acceptedAt),priceWad:BigInt(r.accepted.priceWad)}:null,
       ...(r.request?{request:parseTransactionRequest(r.request)}:{})} as DeliveryRecord;

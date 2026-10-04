@@ -1,8 +1,8 @@
 # Pricefeed plan status — 04 October 2026
 
 Source of requirements: `docs/requests/polymarket-event-price-feed-implementation-plan.pdf`,
-v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 987c6fc and the
-current load/queue-expiry and joined Anvil crash additions. This is an implementation/evidence audit, not human gate
+v1.0, backlog PF001–PF028 (pages 21–27). Updated against commit 558f234 and the
+current durable transaction-journal and restore/demo integration additions. This is an implementation/evidence audit, not human gate
 acceptance. No PF-G0–PF-G7 acceptance is claimed.
 
 “Built” below describes local code/evidence only. A task with approvals, missing
@@ -33,15 +33,15 @@ calibration, monitoring, backup controls and named acceptance.
 | PF013 Storage | Raw valid/invalid/gap archive; fenced WAL/FULL packet journal; atomic sequence allocation, checksums and local delivery journal | Approved retention/migrations and broader permission/storage-failure drills; independent transaction-signer backup/restore controls |
 | PF014 Builder | Raw-book/metadata recomputation, rule/domain binding, frozen times/headroom; joined local builder; selected local fresh invalid-depth checkpoints preserve depths/times with zero price/impacts; explicit development lifecycle gates | Production invalid/closure/coalescing/lifecycle policy and concrete lifecycle reader; operational admission; unknown time remains unavailable |
 | PF015 Signer | Raw digest, recovery, low-s/v/serialization checks; independent durable public local-test signer journal | Approved production key backend, identity policy and risk/security review; test key is not an operational signer |
-| PF016 Recovery | Sequence/lease/fence/immutable retry and lagging-restore tests; real-source/local-chain graceful reopen; thirteen OS SIGKILL journal boundaries with scripted counterparts; seven joined LocalPipeline.run/owned-Anvil kill boundaries (five resume, two safe blocks); stale restore and lease/expiry checks | interrupted DB transaction/disk/power-failure drills, production transaction-signer backup controls and supervisor startup reconciliation |
+| PF016 Recovery | Sequence/lease/fence/immutable retry and lagging-restore tests; real-source/local-chain graceful reopen; thirteen OS SIGKILL journal boundaries with scripted counterparts; eight joined LocalPipeline.run/owned-Anvil kill boundaries (all resume with checked durable transaction journal); signer/relay snapshot mismatch, stale restore and lease/expiry checks | interrupted DB transaction/disk/power-failure drills, production transaction-signer backup controls and supervisor startup reconciliation |
 | PF017 CLI | validate-config, inspect-book, capture, serve, verify-digest, health, verify-evidence and offline build-observation; explicit archive/capture/sequence/replay-time inputs, raw recomputation, fixed-code errors and subprocess misuse/redaction tests | Broader operator review of all collection/storage failure paths; production signing/sending commands remain outside authorized scope |
-| PF018 Relay | Joined local pipeline/loopback adapter; durable ordered nonces, exact simulation/age/spend checks and shared-account quarantine; 25-market two-round scripted RPC delivery with exact nonces 0–49; queue-expired unreserved packets become EXPIRED without service failure; owned-chain crash recovery verifies immutable sends, actual receipt recovery and nonce continuation | Production RPC/key adapters, transaction-signer backup controls, real-chain/cross-market inclusion/load evidence, fee replacement/cancellation and approved budgets |
+| PF018 Relay | Joined local pipeline/loopback adapter; durable ordered nonces, exact simulation/age/spend checks and shared-account quarantine; independent public local transaction journal, pinned ID and exact request/raw-byte reconciliation; 25-market two-round scripted RPC delivery with exact nonces 0–49; queue-expired unreserved packets become EXPIRED without service failure; owned-chain crash recovery verifies immutable sends, actual receipt recovery and nonce continuation | Production RPC/key adapters, transaction-signer backup controls, real-chain/cross-market inclusion/load evidence, fee replacement/cancellation and approved budgets |
 | PF019 Receipts/reorg | Exact raw event/block/digest validation; invalid-depth success distinguished; mined/finalized/orphaned states; local journal/reorg fixtures | Block-labeled authoritative sourceState reconciliation, persistent quarantine of unknown higher state, production finality policy and wider reorg/RPC-disagreement campaign |
 | PF020 Real ingress | Four wire/short-window tests plus four signed 24-hour lifecycle tests importing real ingress/store/INVALID/risk context with scripted counterparts; earlier live-source campaigns remain separate | Full real counterpart economic/guard composition and expanded negative vectors; fixtures are not authentic oracle or live availability evidence |
 | PF021 Live soak | Existing category captures and source-time review; new six-minute durable real-data campaigns with actual journal restarts: crypto 236/300, politics at 10 s 294/300, politics at 5 s 300/300 (72 accepted); independent archive/Fraction replay | Approved duration/availability/load targets, longer quiet/active periods and selected-listing soak; one successful diagnostic window is not an availability guarantee |
 | PF022 Calibration | Exact arithmetic and capture evidence available | Candidate N/spread comparisons, measured cadence/headroom report and signed risk-owner production calibration |
 | PF023 Lifecycle | Durable local block-labeled record-only/deadline controller joined to scheduler/pipeline; source-closure gap and delayed signing/simulation/transaction guards; restart/quarantine tests; four signed accelerated full-24-hour complete/gapped/legacy/thin cases against real risk modules | Approved concrete engine lifecycle RPC reader and production checkpoint/finality/closure/operating policy; authentic oracle join, selected-listing elapsed soak and named risk/oracle review |
-| PF024 Load/chaos | OS-kill journal/restore/expiry drills; seven declared load cases with 3/8/12/20/25/100 workers, RPC timeout/late completion, 31-second queued ageing and fresh recovery, source pressure/drain; timing and headroom measurements retained; joined seven-boundary Anvil crash campaign | Approved throughput/fairness/availability targets; sustained owned-chain/cross-market load, larger books, sustained real-source/RPC calibration, disk/permissions/power-pressure campaign and operational queue/priority design |
+| PF024 Load/chaos | OS-kill journal/restore/expiry drills; seven declared load cases with 3/8/12/20/25/100 workers, RPC timeout/late completion, 31-second queued ageing and fresh recovery, source pressure/drain; timing and headroom measurements retained; joined eight-boundary Anvil crash campaign and signer/relay restore mismatch guards | Approved throughput/fairness/availability targets; sustained owned-chain/cross-market load, larger books, sustained real-source/RPC calibration, disk/permissions/power-pressure campaign and operational queue/priority design |
 | PF025 Monitoring/runbooks | Freshness-aware health; diagnostic states; development recovery runbook and reproducible crash/restore runner | Approved operator procedures, supervisor/backup/storage drills, block-labeled engine health, alerts/metrics ownership and closure/key-failure runbooks |
 | PF026 Security/release | Dependencies pinned, scope guarded, local test keys and production restrictions explicit | Complete reviewed release manifest, real identities, data-terms/security/least-privilege review and all approved inputs |
 | PF027 Handoff/live join | Local real-source and real ingress/store evidence clearly separated from mocks | Authorized deployed engine/chain/key and real signed receipts/readiness recovery; full economics needs actual counterparts; no deployment exists in checked handoff |
@@ -49,10 +49,10 @@ calibration, monitoring, backup controls and named acceptance.
 
 ## Current verification and practical boundary
 
-- Latest package suite: **259 tests pass**, zero failed/skipped/cancelled/todo,
+- Latest package suite: **274 tests pass**, zero failed/skipped/cancelled/todo,
   including seven new load cases, the offline CLI, OS-crash/restore and shared-account
-  expiry regressions and reserved-nonce restart coverage. Evidence:
-  `artifacts/verification/pipeline-crash-unit.json`.
+  expiry regressions, reserved-nonce restart coverage, nine signer and six restore/admission tests. Evidence:
+  `artifacts/verification/transaction-recovery-unit.json`.
   This includes **144 Fraction vectors**, seed 20261002; do not add them again.
 - Focused load/pipeline/service runner passes **26 tests** and retains seven
   measured cases in `artifacts/verification/load.json` and `load.tap`. The 25-market
@@ -62,14 +62,18 @@ calibration, monitoring, backup controls and named acceptance.
 - Focused recovery/relay runner passes **26 tests**, covering thirteen SIGKILL
   boundaries and restore/lease/expiry checks with scripted source/chain replies.
   `artifacts/verification/recovery.json` and `recovery.tap` retain the results.
-  That historical 26-test run is included in the current 259-test suite; the
+  That historical 26-test run is included in the current 274-test suite; the
   added reserved-nonce restart test also passes. It used scripted counterparts.
-- Separately, `npm run test:pipeline-crash` passes seven joined continuous-pipeline
-  OS-kill boundaries against owned Anvil: five restart paths accept exactly two
-  ordered observations; two correctly block missing transaction-signer history.
+- Separately, `npm run test:pipeline-crash` passes eight joined continuous-pipeline
+  OS-kill boundaries against owned Anvil: all eight accept exactly two ordered
+  observations after checked independent transaction-journal recovery.
   Canonical events, immutable packets/raw sends and actual nonce continuation
-  are checked. This fixture-source campaign is outside the 259 unit tests.
+  are checked. This fixture-source campaign is outside the 274 unit tests.
   Evidence: `artifacts/verification/pipeline-crash.json` and `pipeline-crash.log`.
+- Focused `test:transactions` passes **42 tests**, all included in 274. The
+  three-second fixture-source demo reopens five journals, preserves five packets
+  and accepts thirteen overall. Independent archive/Fraction replay passes and
+  correctly reports only 3/300 seconds coverage. No new real-source soak is claimed.
 - Separately, the preceding lifecycle commit recorded **8 passing owned Solidity
   tests**: 4 wire/short-window and 4 signed 24-hour fixtures. They were not rerun
   for these bot-side relay/pipeline changes. Accounting/book/oracle roles are scripted.
@@ -95,6 +99,6 @@ calibration, monitoring, backup controls and named acceptance.
   This adds real-source evidence to PF016/PF020/PF021 without approving cadence,
   a production listing, provider semantics or human gates.
 
-Next implementation work: durable transaction-signer recovery/backup controls and
-interrupted DB/storage failure drills, plus sustained/larger-book load and calibration evidence. Production mapping, calibration, backend,
+Next implementation work: interrupted DB/storage failure and coordinated backup
+drills, plus sustained/larger-book load and calibration evidence. Production mapping, calibration, backend,
 environment, concrete lifecycle reader/policy and independent acceptance must come from the named owners.

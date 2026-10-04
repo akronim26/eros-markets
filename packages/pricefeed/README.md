@@ -101,7 +101,7 @@ the default is synthetic fixture data for controlled failures.
 PRICEFEED_FORGE=/path/to/forge-1.8.3 PRICEFEED_SOLC=/path/to/solc-0.8.30 PRICEFEED_ANVIL=/path/to/anvil-1.8.3 npm run demo:pipeline -- --source polymarket --config config/crypto.example.json --duration-seconds 360 --restart-after-seconds 180 --require-full-window true
 ```
 
-`--restart-after-seconds` closes/reopens all four journals and reconstructs every
+`--restart-after-seconds` closes/reopens all five journals and reconstructs every
 pipeline object while keeping the owned chain alive. It checks immutable bytes
 and resumed chain acceptance. This is a graceful in-process restart, not a forced
 OS-process crash or backup-restore drill. `--require-full-window true` fails if
@@ -136,12 +136,19 @@ and remaining production backup/supervisor work.
 `npm run test:pipeline-crash` separately runs the joined continuous pipeline
 against an owned Anvil chain with the real ingress/store. Set PRICEFEED_FORGE,
 PRICEFEED_ANVIL and PRICEFEED_SOLC to the pinned executables as for the local demo.
-It kills the bot at seven boundaries, waits for actual writer leases to expire,
-and restarts another process while the chain stays alive. Five paths continue
-with immutable packets and exactly two accepted observations; two stop safely
-when a reserved transaction lacks durable raw bytes. The source is a fixture.
+It kills the bot at eight boundaries, waits for actual writer leases to expire,
+and restarts another process while the chain stays alive. All eight paths continue
+with immutable packets and exactly two accepted observations. A separate local
+transaction journal preserves nonce/request reservations and raw signed bytes,
+including a crash between reserving and signing. The source is a fixture.
 Evidence: `artifacts/verification/pipeline-crash.json` and `pipeline-crash.log`.
 This does not complete the production transaction-signer or backup work.
+
+`npm run test:transactions` checks exact retries, nonce conflicts, journal
+integrity and signer/relay restore mismatches alongside existing relay/pipeline
+tests. A missing journal, changed journal identity, history ahead/behind the
+other archive, or expired reserved packet cannot enable fresh sending. Adding
+the new journal to old relay history requires explicit migration review.
 
 `npm run test:load` exercises seven declared many-market/slow-RPC scenarios, with
 actual bot classes and scripted source/chain responses. It tests independent

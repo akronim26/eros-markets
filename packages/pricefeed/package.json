@@ -12,6 +12,7 @@
     "test:lifecycle": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/lifecycle.test.js dist/test/pipeline.test.js dist/test/service.test.js && python3 scripts/test-lifecycle.py",
     "test:recovery": "python3 scripts/test-recovery.py",
     "test:pipeline-crash": "python3 scripts/test-pipeline-crash.py",
+    "test:transactions": "npm run build && node --test --test-isolation=none --test-reporter=tap dist/test/local-transaction-signer.test.js dist/test/transaction-relay.test.js dist/test/local-relay.test.js dist/test/pipeline.test.js",
     "test:load": "python3 scripts/test-load.py",
     "demo:live": "npm run build && python3 scripts/demo-live.py",
     "demo:pipeline": "npm run build && python3 scripts/demo-live.py --pipeline",

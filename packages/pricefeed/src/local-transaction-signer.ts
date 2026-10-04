@@ -39,11 +39,11 @@ export class LocalTransactionSigner implements TransactionJournal {
         CREATE TABLE IF NOT EXISTS transaction_signer(id TEXT PRIMARY KEY,sender TEXT NOT NULL,chain_id TEXT NOT NULL,schema_version INTEGER NOT NULL) STRICT;
         CREATE TABLE IF NOT EXISTS transaction_reservations(nonce TEXT PRIMARY KEY,request TEXT NOT NULL,raw TEXT,tx_hash TEXT,sha256 TEXT NOT NULL) STRICT;`);
       this.tx(()=>{
-      const meta=this.db.prepare('SELECT * FROM transaction_signer').all();
-      if(meta.length===0){
-        if(!create||this.db.prepare('SELECT count(*) AS n FROM transaction_reservations').get()!.n!==0)throw new Error('TRANSACTION_SIGNER_JOURNAL_INTEGRITY');
-        this.db.prepare('INSERT INTO transaction_signer VALUES(?,?,?,1)').run(randomUUID(),this.address.toLowerCase(),'31337');
-      }
+        const meta=this.db.prepare('SELECT * FROM transaction_signer').all();
+        if(meta.length===0){
+          if(!create||this.db.prepare('SELECT count(*) AS n FROM transaction_reservations').get()!.n!==0)throw new Error('TRANSACTION_SIGNER_JOURNAL_INTEGRITY');
+          this.db.prepare('INSERT INTO transaction_signer VALUES(?,?,?,1)').run(randomUUID(),this.address.toLowerCase(),'31337');
+        }
       });
       const meta=this.db.prepare('SELECT * FROM transaction_signer').all();
       if(meta.length!==1||meta[0]!.sender!==this.address.toLowerCase()||meta[0]!.chain_id!=='31337'||meta[0]!.schema_version!==1)throw new Error('TRANSACTION_SIGNER_IDENTITY_MISMATCH');

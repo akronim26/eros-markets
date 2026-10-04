@@ -11,6 +11,7 @@ import { metadataIdentity, verifyEventMembership } from '../src/collector.js';
 import { Journal } from '../src/journal.js';
 import { PacketStore, type PacketDomain } from '../src/packet-store.js';
 import { LocalTestSigner } from '../src/local-test-signer.js';
+import { LocalTransactionSigner } from '../src/local-transaction-signer.js';
 import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
 import { localRpcTransport } from '../src/local-rpc.js';
 import { LocalPipeline, type PipelineResult } from '../src/pipeline.js';
@@ -48,6 +49,7 @@ async function main(){
   const startedAt=Date.now(),directory=`var/pipeline-${startedAt}-${randomUUID()}`;mkdirSync(directory,{recursive:true});
   let journal=new Journal(`${directory}/source.sqlite`),packets=new PacketStore(`${directory}/packets.sqlite`),storesOpen=true;
   let signer:LocalTestSigner|undefined,relay:LocalRelay|undefined,pipeline:LocalPipeline|undefined;
+  let transactionSigner:LocalTransactionSigner|undefined,transactionJournalCreated=false;
   const results:PipelineResult[]=[],report:Record<string,unknown>={mode:mode==='fixture'?'FIXTURE_SOURCE_REAL_LOCAL_INGRESS':'LIVE_SOURCE_REAL_LOCAL_INGRESS',
     source:mode,scenario,chainId:31337,startedAt,archive:directory,results,externalChainTransactions:0,productionApproved:false,
     toolVersions:process.env.PRICEFEED_TOOL_VERSIONS?JSON.parse(process.env.PRICEFEED_TOOL_VERSIONS):null,
@@ -94,13 +96,16 @@ async function main(){
       abiHash:keccak256(stringToHex(JSON.stringify(artifact.abi))),marketId:rules.marketId,sourceId:rules.sourceId,sourceRulesHash:rulesHash(rules),
       signerAddress:fixtureSigner.address,listedAt:String(listedAt),scheduledT:String(T),invalidRule:{fallbackListed:true,captureGraceSecs:'3600',voidSecs:'2592000',fallbackPriceWad:'500000000000000000'}}};
     const domain:PacketDomain={chainId:31337n,engine,marketId:rules.marketId,sourceId:rules.sourceId,rulesHash:rulesHash(rules),signer:fixtureSigner.address};
-    const transport=localRpcTransport(endpoint,artifact.abi);
+    let transport=localRpcTransport(endpoint,artifact.abi);
     // Only fund the public fixture relay on the fresh owned chain.
     await client.request({method:'anvil_setBalance' as never,params:[transport.sender,'0x56BC75E2D63100000'] as never});
     const policy:RelayPolicy={gasCap:1000000n,maxFeePerGas:2000000000n,maxPriorityFeePerGas:1000000000n,maxCostWei:2000000000000000n,
       headroomMs:1000n,confirmations:1n,timeoutMs:5000,maxAttempts:3,leaseMs:60000n};
     const collectorOwner=randomUUID();
     const makePipeline=()=>{
+      transactionSigner=new LocalTransactionSigner(`${directory}/transactions.sqlite`,!transactionJournalCreated);transactionJournalCreated=true;
+      transport=localRpcTransport(endpoint,artifact.abi,transactionSigner);
+      report.transactionJournal={id:transactionSigner.id,file:'transactions.sqlite',publicFixture:true};
       signer=new LocalTestSigner(`${directory}/signer.sqlite`,domain,packets,()=>BigInt(Date.now()));
       relay=new LocalRelay(`${directory}/relay.sqlite`,packets,transport,policy);
       const resumedWorker=new Worker(config,provider,journal,collectorOwner);
@@ -122,9 +127,9 @@ async function main(){
     if(restart&&!stop.signal.aborted){
       const before=immutable(),chainBefore=await transport.identity(domain),restartAt=Date.now();
       assert.ok(before.length>0,'no persisted packet before restart');
-      // Graceful in-process restart: close all four databases and reconstruct every
+      // Graceful in-process restart: close all five databases and reconstruct every
       // worker/signing/relay object. The owned chain stays running; no timestamps are warped.
-      pipeline!.close();relay!.close();signer!.close();packets.close();journal.close();storesOpen=false;
+      pipeline!.close();relay!.close();signer!.close();transactionSigner!.close();packets.close();journal.close();storesOpen=false;
       journal=new Journal(`${directory}/source.sqlite`);packets=new PacketStore(`${directory}/packets.sqlite`);storesOpen=true;
       makePipeline();await pipeline!.start();
       assert.deepEqual(immutable(),before,'restart changed immutable packet/signature/transaction');
@@ -175,8 +180,8 @@ async function main(){
     report.completed=true;
   }catch(error){report.error=error instanceof Error?error.message:String(error);throw error;}
   finally{
-    pipeline?.close();relay?.close();signer?.close();if(storesOpen){packets.close();journal.close();}
-    report.archiveSha256=Object.fromEntries(['source.sqlite','packets.sqlite','signer.sqlite','relay.sqlite']
+    pipeline?.close();relay?.close();signer?.close();transactionSigner?.close();if(storesOpen){packets.close();journal.close();}
+    report.archiveSha256=Object.fromEntries(['source.sqlite','packets.sqlite','signer.sqlite','relay.sqlite','transactions.sqlite']
       .filter(name=>{try{readFileSync(`${directory}/${name}`);return true;}catch{return false;}})
       .map(name=>[name,createHash('sha256').update(readFileSync(`${directory}/${name}`)).digest('hex')]));
     process.removeListener('SIGINT',shutdown);process.removeListener('SIGTERM',shutdown);
