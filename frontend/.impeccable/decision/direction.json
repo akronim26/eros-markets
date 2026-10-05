@@ -1,0 +1,133 @@
+{
+  "title": "Choose the visual world for Eros Markets",
+  "question": "The roll assigned the Depth Ladder: the logo's own grammar grown into the whole terminal. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Depth Ladder",
+      "kicker": "THE ROLL",
+      "lineage": "the Eros mark: stacked ivory bars, one Signal bar for the mark price",
+      "thesis": "The interface is the logo: price drawn as stacked bars, the mark price as one Signal bar that crosses chart, book and your position at the same height.",
+      "palette": ["#0A0A0B", "#F2F1EC", "#FF5A36", "#16171A", "#8E8C84", "#5FB28A", "#E0533D"],
+      "materials": ["solid flat bars", "1-device-pixel hairline rules", "tabular figures", "zero radius"],
+      "viewport": "Market rail left; the chart owns the centre on Ink with the order book docked on the chart's own price axis; one Signal bar marks the mark across both; ticket right; position and margin strip below.",
+      "risk": "If the bars become decoration instead of data, it reads as a logo pattern; every bar must be a real quantity.",
+      "raised": [
+        {"from": "split-flap concourse board", "raise": "Columns never move: every number is tabular and fixed-width, and a changed value flips digit by digit in 150 ms."},
+        {"from": "monochrome product marketing", "raise": "Signal is rationed to three jobs only: the mark price, the primary action, live risk."},
+        {"from": "centre-rail reference setting", "raise": "A ruling discipline: every divider is a 1-device-pixel hairline, states are marks (filled, outlined, struck), no radius anywhere."},
+        {"from": "terminal yellow wayfinding", "raise": "The lifecycle strip shows only the next deadline (T−12h30m, T−12h, T−1h, T) at large scale, re-signed after each one passes."},
+        {"from": "Saville catalog sleeve", "raise": "Unprinted Ink: the chart owns its field with no card chrome, frame or gradient around it."}
+      ],
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "top bar: market, status, wallet", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "market rail", "x": 0, "y": 1, "w": 2, "h": 9},
+        {"label": "chart (owns the field)", "x": 2, "y": 1, "w": 5, "h": 6, "accent": true},
+        {"label": "book on chart's price axis", "x": 7, "y": 1, "w": 2, "h": 6},
+        {"label": "ticket", "x": 9, "y": 1, "w": 3, "h": 6},
+        {"label": "position · margin · orders", "x": 2, "y": 7, "w": 7, "h": 3},
+        {"label": "account", "x": 9, "y": 7, "w": 3, "h": 3}
+      ]}
+    },
+    {
+      "id": "model-pick",
+      "label": "Tote Board",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "racecourse totalisator odds boards",
+      "thesis": "Every market a live odds board: probabilities as big lit numerals that tick, the question as the race card.",
+      "palette": ["#0A0A0B", "#F2F1EC", "#FF5A36", "#1C1B19", "#C9C6BA"],
+      "materials": ["lit numerals", "board grid", "race-card type"],
+      "viewport": "Question and the YES probability at monumental scale over the chart, book and ticket beneath; markets as a board of numerals.",
+      "risk": "Familiar betting-board register; can read as gambling rather than a leveraged derivatives venue.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [
+        {"label": "top bar", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "question + YES % monumental", "x": 0, "y": 1, "w": 9, "h": 3, "accent": true},
+        {"label": "chart", "x": 0, "y": 4, "w": 6, "h": 4},
+        {"label": "book", "x": 6, "y": 4, "w": 3, "h": 4},
+        {"label": "ticket", "x": 9, "y": 1, "w": 3, "h": 7},
+        {"label": "positions", "x": 0, "y": 8, "w": 12, "h": 2}
+      ]}
+    },
+    {
+      "id": "challenger-split-flap",
+      "label": "Split-flap Concourse",
+      "verdict": "declined",
+      "lineage": "rail concourse departure boards",
+      "thesis": "Markets as departures: rows ranked by time to T, values cascading flap by flap.",
+      "palette": ["#111111", "#F2F1EC", "#FFB000", "#9B2B22"],
+      "materials": ["flap cells", "steel frame"],
+      "viewport": "Departure-board market list with countdowns to T.",
+      "case": "Fuses: markets do have scheduled T; loses on clarity for the chart-led trading screen.",
+      "risk": "Flap motion on every tick tires a trader.",
+      "kept": "Columns never move; values flip per digit.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp"
+    },
+    {
+      "id": "challenger-monochrome",
+      "label": "Monochrome Product Marketing",
+      "verdict": "declined",
+      "lineage": "neutral-scale software marketing",
+      "thesis": "One neutral scale, one rare accent, every claim proved by an interface detail.",
+      "palette": ["#0A0A0B", "#F2F1EC", "#FF5A36"],
+      "materials": ["neutral scale", "framed screenshots"],
+      "viewport": "Claim and proof pairs.",
+      "case": "Fuses poorly: a marketing surface, not a working terminal.",
+      "risk": "Ghost buttons and soft gradients break the sharp brand.",
+      "kept": "Signal rationed to three jobs.",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-monochrome-product-marketing-hero.webp"
+    },
+    {
+      "id": "challenger-centre-rail",
+      "label": "Centre-rail Reference Setting",
+      "verdict": "declined",
+      "lineage": "ruled reference editions",
+      "thesis": "A ruling engine draws every hairline and detent at one device pixel.",
+      "palette": ["#141210", "#E9E4D8", "#C2412D"],
+      "materials": ["ruled hairlines", "small caps"],
+      "viewport": "Two columns around a keyed rail.",
+      "case": "Fuses poorly: an edition, not a trading screen.",
+      "risk": "Reads as a book.",
+      "kept": "1-device-pixel ruling, states as marks, no radius.",
+      "hero": "https://impeccable.style/worlds/cards/rw-centre-rail-reference-setting-hero.webp"
+    },
+    {
+      "id": "challenger-wayfinding",
+      "label": "Terminal Yellow Wayfinding",
+      "verdict": "declined",
+      "lineage": "airport sign systems",
+      "thesis": "Show only the next decision, monumental.",
+      "palette": ["#FFD100", "#111111", "#FFFFFF"],
+      "materials": ["sign bands", "pictograms"],
+      "viewport": "Next-decision bands.",
+      "case": "Fuses poorly: yellow is off-brand.",
+      "risk": "Off-brand colour.",
+      "kept": "Lifecycle strip shows only the next deadline.",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-terminal-yellow-wayfinding-hero.webp"
+    },
+    {
+      "id": "challenger-saville",
+      "label": "Factory Catalog Sleeve",
+      "verdict": "declined",
+      "lineage": "Saville record sleeves",
+      "thesis": "Matte black, one white plot owning the field.",
+      "palette": ["#0A0A0B", "#F2F1EC", "#FF5A36"],
+      "materials": ["white line plot", "colour codes"],
+      "viewport": "One plot on black.",
+      "case": "Fuses partly: the chart-owns-the-field idea; coded labels hurt clarity.",
+      "risk": "Coded labels are unreadable to newcomers.",
+      "kept": "Unprinted Ink around the chart.",
+      "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A dark perp-exchange terminal executed impeccably, in Eros colours.",
+    "palette": ["#0A0A0B", "#16171A", "#F2F1EC", "#FF5A36"],
+    "materials": ["panel grid", "tabular data"],
+    "viewport": "Chart centre, book right, ticket far right, positions table below.",
+    "risk": "Indistinguishable from other perp venues by design."
+  },
+  "steer": true
+}
