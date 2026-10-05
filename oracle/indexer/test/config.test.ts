@@ -34,6 +34,19 @@ describe('testnet config', () => {
   })
 
   it('the ABIs are the committed forge-inspect exports', () => {
-    for (const c of config.contracts.filter((x: { abi_file_path?: string }) => x.abi_file_path)) expect(c.abi_file_path).toBe(`../abi/${c.name}.json`)
+    for (const c of config.contracts.filter((x: { abi_file_path?: string }) => x.abi_file_path)) {
+      if (c.name.startsWith('Trading')) {
+        const artifact = c.name === 'TradingEngine' ? 'book-risk-engine-abi' : 'vault-abi'
+        const original = JSON.parse(readFileSync(`${ROOT}../artifacts/risk/${artifact}.json`, 'utf8')).abi
+        const actual = JSON.parse(readFileSync(new URL(`../${c.abi_file_path}`, import.meta.url), 'utf8'))
+        for (const event of actual) expect(event).toEqual(original.find((v: { type: string; name: string }) => v.type === 'event' && v.name === event.name))
+      } else expect(c.abi_file_path).toBe(`../abi/${c.name}.json`)
+    }
   })
+})
+
+// Shared handler registrations must be present in either network configuration.
+it('mainnet and testnet expose the same contracts and event definitions', () => {
+  const mainnet = parse(readFileSync(new URL('../config.mainnet.yaml', import.meta.url), 'utf8'))
+  expect(mainnet.contracts).toEqual(config.contracts)
 })

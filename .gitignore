@@ -2,3 +2,7 @@
 .env.*
 !.env.example
 .playwright-mcp
+
+# Local signing/protection persistence
+frontend/var/
+services/automation/var/

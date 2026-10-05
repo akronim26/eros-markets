@@ -137,7 +137,7 @@ export function WalletPickerProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WalletSessionContext.Provider value={{ configured: true, ready, authenticated, busy,
+    <WalletSessionContext.Provider value={{ configured: true, ready, authenticated, busy, embedded: wallets.some((w) => w.address.toLowerCase() === snapshot.address?.toLowerCase() && ["privy", "privy-v2"].includes(w.walletClientType)),
       address: snapshot.ready ? snapshot.address : undefined, error, open, logout, getSnapshot }}>
       {children}
       <WalletDialog dialogRef={dialog} wallets={wallets} activeAddress={connection.address}

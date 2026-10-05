@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useHead, useMarket, useTrader } from "@/lib/reads";
-import { markets, type MarketManifest } from "@/config/deployment";
+import { type MarketManifest } from "@/config/deployment";
+import { useMarketList } from "@/lib/market-list";
 import { atomsToUsdc, lotsToClaims, qToMoney } from "@/lib/units";
 import { HEALTH } from "@/lib/enums";
 import { chipFor } from "./market-parts";
@@ -44,6 +45,7 @@ function LoggedOut() {
 }
 
 export function PortfolioPage() {
+  const { markets } = useMarketList();
   const owner = useOwner();
   const head = useHead();
   return (

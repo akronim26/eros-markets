@@ -1,19 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { useHead, useLadder, useLiveSeries, useMarket, useTrader } from "@/lib/reads";
+import { useHead, useLadder, useMarket, useTrader } from "@/lib/reads";
+import { usePriceSeries } from "@/lib/price-history";
 import type { MarketManifest } from "@/config/deployment";
 import { wadToUnit } from "@/lib/units";
 import { PriceAxis } from "./price-axis";
+import { closeIntent, type CloseIntent } from "@/lib/trade-intent";
 import { Ticket } from "./ticket";
 import { AccountPanel, DeadlineStrip, MarketHeader, MarketInfo, PositionPanel } from "./market-parts";
 import { useOwner } from "./wallet";
 import { cx } from "./ui";
 import styles from "./terminal.module.css";
+import { OpenOrders } from "./open-orders";
+import { ProtectionPanel } from "./protection-panel";
+import { RiskPanel } from "./risk-panel";
+import { ReservePanel } from "./reserve-panel";
+import { OperationsPanel } from "./operations-panel";
+import { OracleMarket } from "./resolution";
+import { AccountHistory } from "./account-history";
 
-const TABS = ["Position", "Market info", "Open orders"] as const;
+const TABS = ["Position", "Market info", "Open orders", "History", "Protection", "Risk", "Liquidity", "Operations", "Resolution"] as const;
 
 export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const head = useHead();
@@ -22,7 +31,9 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const owner = useOwner();
   const t = useTrader(manifest.engine, owner.address, block);
   const ladder = useLadder(manifest.engine, block, m.data?.bestBid ?? 0, m.data?.bestAsk ?? 0);
-  const live = useLiveSeries(manifest.engine, block);
+  const live = usePriceSeries(manifest.engine, block);
+  const [intent, setIntent] = useState<CloseIntent>();
+  useEffect(() => setIntent(undefined), [owner.address]);
   const [picked, setTab] = useState<(typeof TABS)[number] | null>(null);
   const tab = picked ?? (owner.connected ? "Position" : "Market info");
 
@@ -32,7 +43,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
     : !md.active
       ? "This market is not active yet. The index, book price and trades will appear here as they become available."
       : md.risk.indexAvailable
-        ? "Index is live; price history accumulates here while this page is open. Full history arrives with the indexer."
+        ? "Index is live. Price observations will appear here as they arrive."
         : "Waiting for a fresh signed index window (300 seconds of valid observations).";
 
   return (
@@ -46,6 +57,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       </div>
       <div className={cx(styles.content, "flex min-w-0 flex-col")}>
         <MarketHeader manifest={manifest} m={md} />
+        {(m.isError || t.isError || head.isError) && <p role="alert" className="hair-b px-4 py-2 text-xs text-signal-text">Live reads failed. Any displayed snapshot retains its original block; transactions are checked again before signing. <button className="underline" onClick={() => { void head.refetch(); void m.refetch(); if (owner.address) void t.refetch(); }}>Retry</button></p>}
         <div className="label hair-b flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 text-fg-3">
           <span className="flex items-center gap-1.5"><span className={cx("h-[2px] w-4", md?.risk.indexAvailable ? "bg-fg" : "bg-fg-4 [mask:repeating-linear-gradient(90deg,#000_0_2px,transparent_2px_4px)]")} aria-hidden />Index</span>
           <span className="flex items-center gap-1.5"><span className="h-px w-4 border-t border-dashed border-ivory-3" aria-hidden />Book price</span>
@@ -53,7 +65,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
           <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-bid" aria-hidden />Bids</span>
           <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-ask" aria-hidden />Asks</span>
           <span className="ml-auto tnum max-md:hidden">
-            {live.since !== undefined ? `Live since block ${live.since.toString()}` : "Connecting…"}
+            {live.since !== undefined ? `${live.historyStatus} · Live ${live.since}` : "Connecting…"}
             {live.error ? " · log read failed, retrying" : ""}
           </span>
         </div>
@@ -74,19 +86,19 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
         <DeadlineStrip m={md} now={head.data?.timestamp} />
         <div className="flex flex-col lg:hidden">
           <div className="hair-b">
-            <Ticket engine={manifest.engine} market={md} trader={t.data} />
+            <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} />
           </div>
           <AccountPanel engine={manifest.engine} m={md} t={t.data} />
         </div>
         <div className="flex flex-col">
-          <div className="hair-b flex h-9 items-stretch px-2" role="tablist" aria-label="Details">
+          <div className="hair-b flex min-h-9 flex-wrap items-stretch px-2" role="tablist" aria-label="Details">
             {TABS.map((x) => (
               <button
                 key={x}
                 role="tab"
                 aria-selected={tab === x}
                 onClick={() => setTab(x)}
-                className={cx("label relative px-2 sm:px-3", tab === x ? "text-fg" : "text-fg-3 hover:text-fg")}
+                className={cx("label relative min-h-9 px-2 sm:px-3", tab === x ? "text-fg" : "text-fg-3 hover:text-fg")}
               >
                 {x}
                 {tab === x && <span className="absolute inset-x-3 bottom-0 h-[2px] bg-signal" aria-hidden />}
@@ -94,22 +106,30 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
             ))}
           </div>
           {tab === "Position" ? (
-            <PositionPanel m={md} t={t.data} />
+            <PositionPanel m={md} t={t.data} onReduce={(bps) => { if (md && t.data?.account?.preview.positionLots) { setIntent(closeIntent(t.data.account.preview.positionLots, md.bestBid, md.bestAsk, bps)); document.querySelector<HTMLElement>(window.innerWidth >= 1024 ? 'aside[aria-label="Trade"]' : 'section[aria-label="Order ticket"]')?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} />
           ) : tab === "Market info" ? (
             <MarketInfo manifest={manifest} m={md} />
+          ) : tab === "Open orders" ? (
+            <OpenOrders engine={manifest.engine} traderId={t.data?.traderId} block={block} />
+          ) : tab === "Protection" ? (
+            md ? <ProtectionPanel key={owner.address ?? "disconnected"} engine={manifest.engine} m={md} t={t.data} /> : <p className="p-4">Reading market…</p>
+          ) : tab === "Risk" ? (
+            md ? <RiskPanel m={md} t={t.data} /> : <p className="p-4">Reading market risk…</p>
+          ) : tab === "Liquidity" ? (
+            md ? <ReservePanel engine={manifest.engine} m={md} t={t.data} /> : <p className="p-4">Reading reserve…</p>
+          ) : tab === "Operations" ? (
+            md ? <OperationsPanel engine={manifest.engine} m={md} /> : <p className="p-4">Reading market…</p>
+          ) : tab === "Resolution" ? (
+            manifest.oracleMarketId ? <OracleMarket id={manifest.oracleMarketId} /> : <p className="p-4 text-sm text-fg-3">This fixture resolves through its manual test authority. It has no oracle proposal or dispute flow.</p>
           ) : (
-            <p className="max-w-xl px-4 py-4 text-sm leading-relaxed text-fg-3">
-              {owner.connected
-                ? "You have no resting orders on this market. Orders you place appear here with their fill state; order history arrives with the indexer."
-                : "Log in to see your resting orders."}
-            </p>
+            <AccountHistory engine={manifest.engine} traderId={t.data?.traderId} block={block} />
           )}
         </div>
       </div>
 
       <aside className="hidden flex-col border-l border-line-strong lg:flex" aria-label="Trade">
         <div className="hair-b">
-          <Ticket engine={manifest.engine} market={md} trader={t.data} />
+          <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} />
         </div>
         <div className="flex min-h-0 flex-1 flex-col">
           <AccountPanel engine={manifest.engine} m={md} t={t.data} />

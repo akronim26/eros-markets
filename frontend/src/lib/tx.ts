@@ -12,6 +12,8 @@ import { lotsToClaims } from "./units";
 import { chain } from "@/config/chain";
 import { useWalletSession } from "@/components/wallet-session";
 import { createWalletGuard, runWalletCalls } from "./wallet-safety";
+import { privyRequest } from "./privy-api";
+import { rememberOrders } from "./orders";
 
 export type TxState =
   | { status: "idle" }
@@ -30,7 +32,7 @@ export function revertMessage(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string };
+type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string; validate?: () => Promise<void> };
 
 /** preview → simulate → explicit gas (estimate × 1.10, Monad charges the limit) → send → receipt. */
 export function useTx() {
@@ -43,7 +45,7 @@ export function useTx() {
   const scope = `${current.address?.toLowerCase()}:${current.connectorUid}:${current.version}`;
   const state: TxState = result.scope === scope ? result.state : { status: "idle" };
 
-  async function run(account: Address, calls: Call[], summarize?: (logs: readonly unknown[]) => { summary: string; tone: "bid" | "ask" | "neutral" }) {
+  async function run(account: Address, calls: Call[], summarize?: (logs: readonly unknown[]) => { summary: string; tone: "bid" | "ask" | "neutral" }, delegated?: { previewBlock: bigint }) {
     if (running.current) return;
     running.current = true;
     const setState = (state: TxState) => setResult({ scope, state });
@@ -58,15 +60,25 @@ export function useTx() {
         assertCurrent: guard.assertCurrent,
         prepare: async (c) => {
           setState({ status: "pending", step: `Simulating ${c.label}` });
+          await c.validate?.();
           const sim = await client.simulateContract({ ...c, account } as never);
           guard.assertCurrent();
           const gas = await client.estimateContractGas({ ...c, account } as never);
+          const [balance, gasPrice] = await Promise.all([client.getBalance({ address: account }), client.getGasPrice()]);
+          if (balance < gas * 110n / 100n * gasPrice) throw new Error("Insufficient testnet MON for estimated gas. Open your wallet menu and choose Get test MON.");
           return { request: (sim as { request: object }).request, gas };
         },
         send: async ({ request, gas }, c) => {
           setState({ status: "pending", step: `Confirm ${c.label} in your wallet` });
           // Explicitly bind the signer and chain instead of using whichever connector is now active.
-          const hash = await writeContract(config, { ...request, account, connector, chainId: chain.id, gas: (gas * 110n) / 100n } as never);
+          let hash: Hash;
+          if (delegated) {
+            if (calls.length !== 1 || !["placeOrder", "cancel", "cancelAll"].includes(c.functionName)) throw new Error("This action requires wallet confirmation.");
+            setState({ status: "pending", step: "Signing with your Privy trading permission" });
+            const response = await privyRequest<{ hash: Hash }>("/api/trade", { wallet: account, engine: c.address, previewBlock: delegated.previewBlock.toString(), clientNonce: crypto.randomUUID(), action: c.functionName,
+              ...(c.functionName === "placeOrder" ? { place: c.args?.[0] } : c.functionName === "cancel" ? { orderId: c.args?.[0] } : {}) }, guard.assertCurrent);
+            hash = response.hash;
+          } else hash = await writeContract(config, { ...request, account, connector, chainId: chain.id, gas: (gas * 110n) / 100n } as never);
           last = hash;
           return hash;
         },
@@ -74,6 +86,8 @@ export function useTx() {
           setState({ status: "sent", hash, step: `${c.label}: waiting for inclusion` });
           const receipt = await client.waitForTransactionReceipt({ hash });
           if (receipt.status !== "success") throw new Error(`${c.label} reverted in block ${receipt.blockNumber}`);
+          const orders = parseEventLogs({ abi: engineAbi, eventName: "OrderPlaced", logs: receipt.logs.filter((l) => l.address.toLowerCase() === c.address.toLowerCase()) });
+          rememberOrders(chain.id, c.address, account, orders.map((l) => l.args.id));
           guard.assertCurrent();
           if (final) {
             const out = summarize ? summarize(receipt.logs) : { summary: `${c.label} confirmed`, tone: "neutral" as const };

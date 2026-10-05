@@ -69,22 +69,22 @@ export function PriceAxis(p: Props) {
   }, [range]);
 
   const series = useMemo(() => {
-    const pts = [...p.index, ...p.perp];
+    const pts = [...p.index, ...p.perp, ...p.trades];
     if (pts.length === 0) return null;
     const t0 = Math.min(...pts.map((x) => x.t));
     const t1 = Math.max(...pts.map((x) => x.t), t0 + 1);
     const x = (t: number) => ((t - t0) / (t1 - t0)) * (chartW - 12) + 6;
     const path = (s: Point[]) => s.map((pt, i) => `${i ? "L" : "M"}${x(pt.t).toFixed(1)},${y(pt.v).toFixed(1)}`).join("");
-    return { index: path(p.index), perp: path(p.perp) };
+    return { index: path(p.index), perp: path(p.perp), x };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.index, p.perp, chartW, h, range]);
+  }, [p.index, p.perp, p.trades, chartW, h, range]);
 
   const maxLots = useMemo(
     () => p.levels.reduce((m, l) => (l.bidLots > m ? l.bidLots : l.askLots > m ? l.askLots : m), 0n),
     [p.levels],
   );
   const rowH = Math.max(2, Math.min(12, ((h - PAD_TOP - PAD_Y) / ((range.hi - range.lo) * 1000)) * 0.8));
-  const hasSeries = !!series && (p.index.length > 1 || p.perp.length > 1);
+  const hasSeries = !!series && (p.index.length > 1 || p.perp.length > 1 || p.trades.length > 0);
   const hasBook = maxLots > 0n;
   const compactEmpty = w > 0 && w < 480 && !hasBook;
 
@@ -109,6 +109,7 @@ export function PriceAxis(p: Props) {
             <>
               <path d={series!.perp} fill="none" stroke="var(--color-fg-3)" strokeWidth={1} strokeDasharray="3 3" />
               <path d={series!.index} fill="none" stroke="var(--color-fg)" strokeWidth={1.5} />
+              {p.trades.map((trade, i) => <circle key={`${trade.tx}-${i}`} cx={series!.x(trade.t)} cy={y(trade.tick / 1000)} r={2.5} fill="var(--color-signal)"><title>Trade at {(trade.tick / 1000).toFixed(3)}</title></circle>)}
             </>
           )}
 

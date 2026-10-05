@@ -11,9 +11,14 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "gen:abis": "node scripts/gen-abis.mjs"
+    "gen:abis": "node scripts/gen-abis.mjs",
+    "automation": "node --env-file=.env.local --import tsx ../services/automation/worker.ts",
+    "test:integration": "tsx --test tests/integration/*.test.ts",
+    "privy:policies": "tsx scripts/privy-policies.ts",
+    "automation:reconcile": "node --env-file=.env.local --import tsx scripts/reconcile-request.ts"
   },
   "dependencies": {
+    "@privy-io/node": "0.35.0",
     "@privy-io/react-auth": "3.47.0",
     "@privy-io/wagmi": "4.0.18",
     "@stripe/stripe-js": "1.54.2",
@@ -32,6 +37,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
     "typescript": "5.9.3"
   }
 }

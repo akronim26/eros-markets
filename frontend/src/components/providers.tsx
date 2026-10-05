@@ -16,7 +16,7 @@ const readOnlyWagmi = createConfig({ chains: [chain], connectors: [], multiInjec
 
 export function Providers({ children }: { children: ReactNode }) {
   const { resolved } = useTheme();
-  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: 2, refetchOnWindowFocus: false } } }));
+  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 3500, refetchOnWindowFocus: false } } }));
 
   if (!PRIVY_ENABLED) {
     return (
