@@ -15,6 +15,18 @@ an earlier passing report does not certify later changes.
 
 ## Current verification status
 
+The final merged backend run passed in `tmp/local-leverage-20261005-231654`:
+26 successful command steps, 129 canonical lifecycle receipts, independent owner
+SDK transactions, matched leveraged positions, helper-based rollover, terminal
+oracle/keeper preparation and owner claims, a subsequent valid book sample and
+the read-API probe. All 661 launch inputs and the archived runtime artifacts passed
+the integrity check. The publisher closed its journals and all recorded local
+service roots were verified stopped. The committed
+[`backend-flow-2026-10-06.json`](../../artifacts/integration/backend-flow-2026-10-06.json)
+contains the public manifest, receipt audit, snapshots, commands and evidence hashes.
+This fresh run leaves the leveraged demo open; the separate full-closure proof
+below remains its settlement evidence.
+
 The connected deterministic lifecycle passed in
 `tmp/local-leverage-20261005-212720`: 148 canonical transaction receipts,
 independent owner SDK transactions, matched 5x positions, bounded oracle/keeper

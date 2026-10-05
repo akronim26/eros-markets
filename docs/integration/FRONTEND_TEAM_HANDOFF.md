@@ -65,6 +65,24 @@ when using direct calls. Restart/rebuild the frontend after public configuration
 changes. Frontend build, browser and wallet validation are deferred at the user's
 request; backend checks do not certify the merged UI's integration.
 
+Specific frontend files to adapt after deployment:
+
+- `src/config/deployment.ts` and `chain.ts`: replace the old manual fixture and
+  separate oracle stub with the verified integrated deployment and selected chain.
+- `src/lib/capabilities.ts`, `ticket.tsx` and `risk-panel.tsx`: the profile map is
+  empty in the merged frontend. Read actual directional engine caps; do not infer
+  a permanent 1x limit from missing display-profile data. Only enable the optional
+  margin lens when exact, hash-verified profile parameters are available.
+- `src/lib/public-client.ts`: configure an available Multicall3, deployless reads,
+  or block-pinned direct reads for the selected chain. A fresh local stack does
+  not deploy Multicall3.
+- `src/lib/tx.ts`: retain owner/connector/network guards, use the intended block
+  for simulation and gas estimation, and reconcile the exact canonical finalized
+  receipt before advancing dependent operations.
+- `src/components/providers.tsx`: configure Privy for the intended public chain,
+  or implement an explicit local injected-wallet path. A blank Privy App ID leaves
+  the merged frontend's wallet actions unavailable.
+
 ## Deployment inputs and operating policy
 
 Use the [deployment runbook](DEPLOYMENT_RUNBOOK.md) for the actual sequence:
