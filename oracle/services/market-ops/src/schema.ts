@@ -18,12 +18,22 @@ export const manifestSchema = z.object({
   oracle: address,
   oracleCodeHash: bytes32,
   sender: address,
+  rolloverHelper: z.object({
+    address,
+    codeHash: bytes32,
+    maxPages: z.number().int().min(1).max(32).default(32),
+    gasCeiling: gas.default(30_000_000),
+  }).strict().optional(),
   sampleEveryBlocks: decimal.refine(value => value > 0n).default(1n),
   gas: z.object({
     samplePerp: gas.optional(),
     requestReduceOnly: gas.optional(),
     requestEarlyCheck: gas.optional(),
     submitObservation: gas.optional(),
+    liquidate: gas.optional(),
+    beginRollover: gas.optional(),
+    rollPage: gas.optional(),
+    finishRollover: gas.optional(),
   }).strict(),
 }).strict()
 
@@ -79,9 +89,14 @@ export function incidentId(incident: Incident): Hex {
 }
 
 export function binding(manifest: Manifest): Hex {
-  return keccak256(encodeAbiParameters(parseAbiParameters('uint256, address, address, address, bytes32, bytes32, bytes32, bytes32'), [
+  const legacy = keccak256(encodeAbiParameters(parseAbiParameters('uint256, address, address, address, bytes32, bytes32, bytes32, bytes32'), [
     BigInt(manifest.chainId), manifest.engine, manifest.oracle, manifest.sender, manifest.marketId,
     manifest.listingHash, manifest.engineCodeHash, manifest.oracleCodeHash,
+  ]))
+  if (!manifest.rolloverHelper) return legacy
+  return keccak256(encodeAbiParameters(parseAbiParameters('bytes32, bytes32, address, bytes32'), [
+    keccak256(stringToHex('eros-market-ops-rollover-helper-v1')), legacy,
+    manifest.rolloverHelper.address, manifest.rolloverHelper.codeHash,
   ]))
 }
 

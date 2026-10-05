@@ -3,6 +3,7 @@
 import { type PanelResult } from '@eros-oracle/oracle-sdk'
 import { describe, expect, test } from 'bun:test'
 import { readFileSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { type Hex, keccak256, recoverAddress, stringToBytes } from 'viem'
 import { HALF_N, localSigner, SignerError, signerFromEnv, signPanelResult } from '../src/signer'
 
@@ -10,7 +11,7 @@ const KEY = '0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6'
 const ATTESTOR = '0xa0Ee7A142d267C1f36714E4a8F75612F20a79720'
 const CHAIN_ID = 10143
 const ORACLE = '0x837a41023CF81234f89F956C94D676918b4791c1'
-const VECTORS = new URL('../../../vectors/panel-sig.json', import.meta.url).pathname
+const VECTORS = fileURLToPath(new URL('../../../vectors/panel-sig.json', import.meta.url))
 
 const result = (over: Partial<PanelResult> = {}): PanelResult => ({
   marketId: keccak256(stringToBytes('market-1')),
@@ -69,6 +70,6 @@ describe('vectors/panel-sig.json', () => {
   test('the committed vectors are what the signer produces now', async () => {
     const text = JSON.stringify(await vectors(), null, 2) + '\n'
     if (process.env.WRITE_PANEL_SIG_VECTORS) writeFileSync(VECTORS, text)
-    expect(readFileSync(VECTORS, 'utf8')).toBe(text)
+    expect(readFileSync(VECTORS, 'utf8').replaceAll('\r\n', '\n')).toBe(text)
   })
 })

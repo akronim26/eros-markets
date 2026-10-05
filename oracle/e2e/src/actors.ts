@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { type Address, encodeAbiParameters, encodePacked, type Hex, keccak256, parseAbi, parseAbiParameters, stringToBytes, type TransactionReceipt } from 'viem'
 import { resolution } from './market'
 import { addr, at, d, env, key, pc, type Role, send, withLock } from './stack'
+import { engineAdapter } from './engine'
 
 const usdc = d.usdc as Address
 const oov3 = d.uma.oov3 as Address
@@ -53,7 +54,8 @@ export async function dvmRequestForLiveAssertion(id: Hex, fromBlock: bigint): Pr
 
 /** The monitor (the market's listing.monitor) restricts the engine and requests an early check. */
 export async function earlyCheck(id: Hex, engine: Address, monitor: Role) {
-  const a = await send(monitor, engine, ResolutionEngineStubAbi, 'setMonitorRestricted', [true])
+  const call = await engineAdapter.restriction(engine, keccak256(stringToBytes(`e2e:${id}:early-check`)))
+  const a = await send(monitor, engine, call.abi, call.functionName, call.args)
   const b = await send(monitor, at('ResolutionOracle'), ResolutionOracleAbi, 'requestEarlyCheck', [id])
   return [a, b]
 }

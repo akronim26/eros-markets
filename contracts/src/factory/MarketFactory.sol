@@ -23,7 +23,9 @@ contract MarketFactory {
     address public immutable governance;
     address public immutable treasury;
     address public immutable codeStore;
+    address public immutable codeStoreTail;
     bytes32 public immutable codeStoreHash;
+    bytes32 public immutable codeStoreTailHash;
     bytes32 public immutable creationCodeHash;
     CollateralVault public immutable collateralVault;
     mapping(bytes32 marketId => address engine) public engineOf;
@@ -37,6 +39,7 @@ contract MarketFactory {
         address token,
         address treasury_,
         address codeStore_,
+        address codeStoreTail_,
         bytes32 creationCodeHash_
     ) {
         if (registry_.code.length == 0 || token.code.length == 0 || treasury_ == address(0)) {
@@ -45,24 +48,38 @@ contract MarketFactory {
         address authority = IFactoryRegistry(registry_).oracle();
         address governor = IFactoryRegistry(registry_).governance();
         if (authority.code.length == 0 || governor == address(0)) revert InvalidDependency();
-        bytes memory stored = codeStore_.code;
-        if (
-            stored.length < 2 || stored.length > 131072 || stored[0] != bytes1(0)
-                || creationCodeHash_ == bytes32(0)
-        ) revert InvalidEngineCode();
-        bytes32 actualHash;
-        assembly ("memory-safe") {
-            actualHash := keccak256(add(stored, 33), sub(mload(stored), 1))
+        _checkStore(codeStore_);
+        if (codeStoreTail_ != address(0)) _checkStore(codeStoreTail_);
+        bytes memory stored = _readCode(codeStore_, codeStoreTail_);
+        if (creationCodeHash_ == bytes32(0) || keccak256(stored) != creationCodeHash_) {
+            revert InvalidEngineCode();
         }
-        if (actualHash != creationCodeHash_) revert InvalidEngineCode();
         registry = registry_;
         resolutionAuthority = authority;
         governance = governor;
         treasury = treasury_;
         codeStore = codeStore_;
-        codeStoreHash = keccak256(stored);
+        codeStoreTail = codeStoreTail_;
+        codeStoreHash = codeStore_.codehash;
+        codeStoreTailHash = codeStoreTail_.codehash;
         creationCodeHash = creationCodeHash_;
         collateralVault = new CollateralVault(token, address(this));
+    }
+
+    function _checkStore(address store) private view {
+        bytes memory data = store.code;
+        if (data.length < 2 || data.length > 131072 || data[0] != bytes1(0)) revert InvalidEngineCode();
+    }
+
+    /// @dev At most two STOP-prefixed immutable chunks; no callable initializer or delegatecall.
+    function _readCode(address first, address second) private view returns (bytes memory code) {
+        uint256 firstLength = first.code.length - 1;
+        uint256 secondLength = second == address(0) ? 0 : second.code.length - 1;
+        code = new bytes(firstLength + secondLength);
+        assembly ("memory-safe") {
+            extcodecopy(first, add(code, 32), 1, firstLength)
+            if secondLength { extcodecopy(second, add(add(code, 32), firstLength), 1, secondLength) }
+        }
     }
 
     function deployMarket(IMarketConfig.Listing calldata listing, bytes calldata engineInit)
@@ -77,14 +94,13 @@ contract MarketFactory {
                 || listing.token != address(collateralVault.token())
         ) revert InvalidListing();
         if (engineOf[listing.marketId] != address(0)) revert MarketExists();
-        if (codeStore.codehash != codeStoreHash) revert InvalidEngineCode();
-        uint256 codeLength = codeStore.code.length - 1;
-        bytes memory creationCode = new bytes(codeLength);
-        address storeAddress = codeStore;
-        assembly ("memory-safe") {
-            extcodecopy(storeAddress, add(creationCode, 32), 1, codeLength)
-        }
+        if (
+            codeStore.codehash != codeStoreHash
+                || (codeStoreTail != address(0) && codeStoreTail.codehash != codeStoreTailHash)
+        ) revert InvalidEngineCode();
+        bytes memory creationCode = _readCode(codeStore, codeStoreTail);
         bytes memory initCode = bytes.concat(creationCode, abi.encode(collateralVault, treasury, listing));
+        if (initCode.length > 262144) revert InvalidEngineCode();
         engineOf[listing.marketId] = address(1);
         assembly ("memory-safe") {
             engine := create(0, add(initCode, 32), mload(initCode))

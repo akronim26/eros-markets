@@ -3,12 +3,13 @@ import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { keccak256, toBytes } from 'viem'
 import { ambiguity, ambiguityPrompt, ANSWER_RETRIES, applyTriage, parseUndecided, PROMPT_PATH } from '../src/ambiguity'
 import { list } from '../src/list'
 import { type CallModel, httpModelClient, type ModelCall, modelRequest, responseText, retryDelayMs, temperatureFor } from '../src/models'
 
-const FIX = new URL('./fixtures/', import.meta.url).pathname
+const FIX = fileURLToPath(new URL('./fixtures/', import.meta.url))
 const sample = JSON.parse(readFileSync(join(FIX, 'sample-listing.json'), 'utf8'))
 const MODELS = ['anthropic:claude-test@2026-01-01', 'openai:gpt-test@2026-01-01', 'google:gemini-test@2026-01-01']
 const ZERO32 = `0x${'00'.repeat(32)}`
@@ -201,6 +202,14 @@ describe('triage (ADJ-37)', () => {
 })
 
 describe('prompt and answer', () => {
+  test('LF and CRLF prompt checkouts produce the same call while inserted user text stays literal', () => {
+    const lf = 'SYSTEM\nReview the rules.\n\nUSER\nQuestion: {{QUESTION}}\nRules: {{RULES}}\n'
+    const question = 'First line\r\nSecond $& line', rules = 'Literal $1 rules'
+    const expected = { system: 'Review the rules.', user: `Question: ${question}\nRules: ${rules}` }
+    expect(ambiguityPrompt(lf, question, rules)).toEqual(expected)
+    expect(ambiguityPrompt(lf.replaceAll('\n', '\r\n'), question, rules)).toEqual(expected)
+  })
+
   test('the prompt substitutes the text literally ($ patterns included)', () => {
     const p = ambiguityPrompt(readFileSync(PROMPT_PATH, 'utf8'), 'Q $& $1?', 'R $` $\'.')
     expect(p.user).toContain("Question: Q $& $1?\nRules: R $` $'.\n")

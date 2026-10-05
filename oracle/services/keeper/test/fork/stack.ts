@@ -15,8 +15,9 @@ import {
   TestUSDCAbi,
   type Deployments,
 } from '@eros-oracle/oracle-sdk'
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { assertForkChildAlive, assertForkUrl, assertFreeForkPort, assertOwnedForkNode, createForkDirectory, forkEnvironment, type LocalChild } from './safety'
 import {
   type Address,
   createPublicClient,
@@ -54,6 +55,9 @@ const FORWARDER_ABI = parseAbi(['function report(address receiver, bytes raw) re
 
 export type Stack = {
   rpcUrl: string
+  /** Unique retained evidence directory relative to ORACLE_ROOT. */
+  directory: string
+  assertOwned(): Promise<void>
   deployments: Deployments
   pc: PublicClient
   /** The example pack's market id. */
@@ -63,10 +67,18 @@ export type Stack = {
   stop(): Promise<void>
 }
 
-function forge(args: string[], env: Record<string, string>): string {
+const ownedChildren = new Map<string, LocalChild>()
+async function assertOwned(url: string) {
+  const child = ownedChildren.get(url)
+  if (!child) throw new Error('FORK_UNOWNED_ENDPOINT')
+  await assertOwnedForkNode(url, child, rpc)
+}
+
+async function forge(args: string[], env: Record<string, string>, rpcUrl: string): Promise<string> {
+  await assertOwned(rpcUrl)
   const p = Bun.spawnSync(['forge', ...args], {
     cwd: ORACLE_ROOT,
-    env: { ...process.env, ...env },
+    env: forkEnvironment(rpcUrl, process.env, env),
     stdout: 'pipe',
     stderr: 'pipe',
     timeout: FORGE_TIMEOUT_MS,
@@ -89,18 +101,26 @@ function printed(out: string, label: string): Hex[] {
 async function waitForRpc(url: string, tries = 100) {
   for (let i = 0; i < tries; i++) {
     try {
-      const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' })
-      if (res.ok) return
-    } catch {}
+      await assertOwned(url)
+      return
+    } catch (error) {
+      if (error instanceof Error && /^FORK_/.test(error.message)) throw error
+    }
     await Bun.sleep(100)
   }
   throw new Error(`anvil at ${url} did not start`)
 }
 
 export async function rpc(url: string, method: string, params: unknown[] = []): Promise<unknown> {
-  const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) })
+  assertForkUrl(url)
+  const child = ownedChildren.get(url)
+  if (!child) throw new Error('FORK_UNOWNED_ENDPOINT')
+  assertForkChildAlive(child)
+  const res = await fetch(url, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(1500), headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) })
+  if (!res.ok) throw new Error(`Local RPC HTTP ${res.status}`)
   const body = (await res.json()) as { result?: unknown; error?: { message: string } }
   if (body.error) throw new Error(`${method}: ${body.error.message}`)
+  assertForkChildAlive(child)
   return body.result
 }
 
@@ -121,13 +141,15 @@ export type StackOptions = {
 
 export async function deployStack(port: number, opts: StackOptions = {}): Promise<Stack> {
   const rpcUrl = `http://127.0.0.1:${port}`
-  const anvil = Bun.spawn(['anvil', '--port', String(port), '--code-size-limit', '131072', '--silent', ...(opts.startTimestamp ? ['--timestamp', String(opts.startTimestamp)] : [])], { stdout: 'ignore', stderr: 'ignore' })
-  const dir = `deployments/dryrun/keeper-fork-${port}` // gitignored; scripts may write under ./deployments
-  const abs = join(ORACLE_ROOT, dir)
+  await assertFreeForkPort(port)
+  const { absolute: abs, relative: dir } = createForkDirectory(ORACLE_ROOT, port)
+  const anvil = Bun.spawn(['anvil', '--host', '127.0.0.1', '--chain-id', '31337', '--hardfork', 'prague', '--port', String(port), '--code-size-limit', '131072', '--silent', ...(opts.startTimestamp ? ['--timestamp', String(opts.startTimestamp)] : [])], {
+    env: forkEnvironment(rpcUrl, process.env), stdout: Bun.file(join(abs, 'anvil.log')), stderr: Bun.file(join(abs, 'anvil-error.log')),
+  })
+  ownedChildren.set(rpcUrl, anvil)
   try {
     await waitForRpc(rpcUrl)
-    rmSync(abs, { recursive: true, force: true })
-    mkdirSync(abs, { recursive: true })
+    writeFileSync(join(abs, 'owned-node.json'), JSON.stringify({ rpcUrl, chainId: 31337, hardfork: 'prague', pid: anvil.pid, directory: dir, publicTransactions: 0 }, null, 2))
 
     const params = JSON.parse(readFileSync(join(ORACLE_ROOT, 'deployments/params.monad-testnet.json'), 'utf8'))
     params.providers = ['api.example-sports.com', 'stats.example-data.org', ...(opts.providers ?? [])] // the example pack's hosts
@@ -146,16 +168,17 @@ export async function deployStack(port: number, opts: StackOptions = {}): Promis
       COMMITTEE: (opts.committee ?? ['0x0000000000000000000000000000000000000C01', '0x0000000000000000000000000000000000000C02', '0x0000000000000000000000000000000000000C03']).join(','),
     }
     const script = (name: string, extra: Record<string, string> = {}, broadcast = false) =>
-      forge(['script', `script/${name}.s.sol`, '--rpc-url', rpcUrl, ...(broadcast ? ['--broadcast', '--private-key', KEYS.deployer, '--code-size-limit', '131072', '--non-interactive'] : [])], { ...env, ...extra })
+      forge(['script', `script/${name}.s.sol`, '--rpc-url', rpcUrl, '--no-proxy', ...(broadcast ? ['--broadcast', '--private-key', KEYS.deployer, '--code-size-limit', '131072', '--non-interactive'] : [])], { ...env, ...extra }, rpcUrl)
 
-    forge(['build'], {}) // the sandbox script loads UMA's 0.8.16 artifacts; the forwarder's comes from out/
-    script('DeployUmaSandbox', {}, true)
-    script('DeployOracle', {}, true)
+    await forge(['build'], {}, rpcUrl) // the sandbox script loads UMA's 0.8.16 artifacts; the forwarder's comes from out/
+    await script('DeployUmaSandbox', {}, true)
+    await script('DeployOracle', {}, true)
     const deployments = loadDeployments('anvil', { path: join(abs, 'anvil.json'), expectChainId: 31337 })
 
     const pc = createPublicClient({ chain: foundry, transport: http(rpcUrl) }) as PublicClient
     const wallet = (k: keyof typeof KEYS) => createWalletClient({ chain: foundry, transport: http(rpcUrl), account: privateKeyToAccount(KEYS[k]) })
     const send = async (k: keyof typeof KEYS, to: Address, data: Hex) => {
+      await assertOwned(rpcUrl)
       const hash = await wallet(k).sendTransaction({ to, data })
       const r = await pc.waitForTransactionReceipt({ hash })
       if (r.status !== 'success') throw new Error(`${k} → ${to}: reverted`)
@@ -173,8 +196,8 @@ export async function deployStack(port: number, opts: StackOptions = {}): Promis
         await send('executor', timelock, executions[i])
       }
     }
-    await throughTimelock(script('CreateTrustSet')) // the sim trust set, then globals, providers, auth refs
-    await throughTimelock(script('FundTreasury', { DEPOSIT: 'true', MINT: 'true' }, true)) // limits; deposits broadcast
+    await throughTimelock(await script('CreateTrustSet')) // the sim trust set, then globals, providers, auth refs
+    await throughTimelock(await script('FundTreasury', { DEPOSIT: 'true', MINT: 'true' }, true)) // limits; deposits broadcast
 
     // The CRE sim bridge: CreateTrustSet pointed the oracle at params.cre.mockForwarder.
     const artifact = JSON.parse(readFileSync(resolve(ORACLE_ROOT, process.env.FOUNDRY_OUT ?? 'out', 'MockKeystoneForwarderLite.sol/MockKeystoneForwarderLite.json'), 'utf8'))
@@ -183,19 +206,22 @@ export async function deployStack(port: number, opts: StackOptions = {}): Promis
     const pack = JSON.parse(readFileSync(join(ORACLE_ROOT, PACK), 'utf8'))
     return {
       rpcUrl,
+      directory: dir,
+      assertOwned: () => assertOwned(rpcUrl),
       deployments,
       pc,
       marketId: pack.marketInput.marketId as Hex,
-      governance: async (name: string, extra: Record<string, string> = {}) => throughTimelock(script(name, extra)),
+      governance: async (name: string, extra: Record<string, string> = {}) => throughTimelock(await script(name, extra)),
       async stop() {
         anvil.kill()
         await anvil.exited
-        rmSync(abs, { recursive: true, force: true })
+        ownedChildren.delete(rpcUrl)
       },
     }
   } catch (e) {
     anvil.kill()
-    rmSync(abs, { recursive: true, force: true })
+    await anvil.exited
+    ownedChildren.delete(rpcUrl)
     throw e
   }
 }
@@ -206,7 +232,8 @@ export async function deployStack(port: number, opts: StackOptions = {}): Promis
  * to the chain's now, listed by the Safe's transaction from ListMarket.
  */
 export async function listExample(s: Stack, edit?: (pack: any) => void): Promise<Hex> {
-  const dir = `deployments/dryrun/keeper-fork-${new URL(s.rpcUrl).port}`
+  await s.assertOwned()
+  const dir = s.directory
   let packPath = PACK
   let marketId = s.marketId
   if (edit) {
@@ -216,12 +243,12 @@ export async function listExample(s: Stack, edit?: (pack: any) => void): Promise
     writeFileSync(join(ORACLE_ROOT, packPath), JSON.stringify(pack, null, 2))
     marketId = pack.marketInput.marketId
   }
-  const out = forge(['script', 'script/ListMarket.s.sol', '--rpc-url', s.rpcUrl], {
+  const out = await forge(['script', 'script/ListMarket.s.sol', '--rpc-url', s.rpcUrl, '--no-proxy'], {
     DEPLOYMENTS: `${dir}/anvil.json`,
     PARAMS: `${dir}/params.json`,
     PACK: packPath,
     SHIFT_TO_NOW: 'true',
-  })
+  }, s.rpcUrl)
   const [data] = printed(out, 'Lister transaction (the team Safe)')
   const to = s.deployments.contracts.MarketRegistry.address as Address
   await sendFrom(s, 'safe', to, data)
@@ -229,6 +256,7 @@ export async function listExample(s: Stack, edit?: (pack: any) => void): Promise
 }
 
 async function sendFrom(s: Stack, k: keyof typeof KEYS, to: Address, data: Hex) {
+  await s.assertOwned()
   const w = createWalletClient({ chain: foundry, transport: http(s.rpcUrl), account: privateKeyToAccount(KEYS[k]) })
   const r = await s.pc.waitForTransactionReceipt({ hash: await w.sendTransaction({ to, data }) })
   if (r.status !== 'success') throw new Error(`${k} → ${to}: reverted`)
@@ -275,6 +303,7 @@ export async function venueStatus(s: Stack, id: Hex) {
  * sim relayer. Throws unless the oracle accepted it.
  */
 export async function reportL1(s: Stack, id: Hex, outcome: 1 | 2, observedAt: bigint) {
+  await s.assertOwned()
   const specHash = await s.pc.readContract({ address: s.deployments.contracts.MarketRegistry.address as Address, abi: MarketRegistryAbi, functionName: 'getSpecHash', args: [id] })
   const report = encodeAbiParameters(parseAbiParameters('uint256, uint256, uint256, bytes32, uint256, uint256, bytes32, bytes32'), [
     1n,
@@ -306,6 +335,7 @@ export async function reportL1(s: Stack, id: Hex, outcome: 1 | 2, observedAt: bi
 
 /** A third party disputes the live assertion on UMA's OOv3 with their own bond. */
 export async function dispute(s: Stack, id: Hex) {
+  await s.assertOwned()
   const r = await resolution(s, id)
   const usdc = s.deployments.usdc as Address
   const oov3 = s.deployments.uma.oov3 as Address
@@ -322,6 +352,7 @@ export async function dispute(s: Stack, id: Hex) {
 
 /** The DVM answers the dispute's price request: the sandbox oracle's owner (the Safe) pushes `truthful`. */
 export async function dvmAnswer(s: Stack, truthful: boolean) {
+  await s.assertOwned()
   const sandbox = s.deployments.uma.sandboxOracle as Address
   const logs = await s.pc.getContractEvents({ address: sandbox, abi: ErosSandboxOracleAbi, eventName: 'PriceRequested', fromBlock: 0n })
   const requestId = logs.at(-1)!.args.requestId as Hex

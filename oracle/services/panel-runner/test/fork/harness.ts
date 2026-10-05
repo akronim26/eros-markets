@@ -6,6 +6,7 @@ import { expect } from 'bun:test'
 import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { type Address, createWalletClient, decodeFunctionData, type Hex, http, parseEventLogs } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { foundry } from 'viem/chains'
@@ -21,7 +22,7 @@ import { localSigner } from '../../src/signer'
 export const ATTESTOR_KEY = '0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6' // anvil #9, a public test key
 export const ATTESTOR = privateKeyToAccount(ATTESTOR_KEY).address
 export const MODELS = ['groq:openai/gpt-oss-120b@2026-10-03', 'nvidia:moonshotai/kimi-k3@2026-10-03', 'google:gemini-3.8-flash@2026-10-03']
-const RECORDED = new URL('../fixtures/recorded/', import.meta.url).pathname
+const RECORDED = fileURLToPath(new URL('../fixtures/recorded/', import.meta.url))
 const prompts = loadPrompts()
 const sports = prompts.find((p) => p.category === 'sports')!
 export const STATS_PAGE = 'https://stats.example-data.org/match/evt_1'
@@ -142,6 +143,7 @@ export async function runPanel(s: Stack, r: PanelRunner): Promise<{ run: RunResu
   expect(receipt.status).toBe('success')
   const [ev] = parseEventLogs({ abi: ResolutionOracleAbi, eventName: 'PanelResultAccepted', logs: receipt.logs })
   const tx = await s.pc.getTransaction({ hash: run.sent! })
-  const { args } = decodeFunctionData({ abi: ResolutionOracleAbi, data: tx.input }) as { args: any[] }
-  return { run, routedTo: Number((ev.args as any).routedTo), flags: Number(args[1].flags) }
+  const decoded = decodeFunctionData({ abi: ResolutionOracleAbi, data: tx.input })
+  if (decoded.functionName !== 'submitPanelResult') throw new Error('Expected submitPanelResult transaction')
+  return { run, routedTo: Number(ev.args.routedTo), flags: Number(decoded.args[1].flags) }
 }

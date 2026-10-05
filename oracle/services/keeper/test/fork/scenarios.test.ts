@@ -44,19 +44,21 @@ type Instance = {
 
 let s: Stack
 let base: Hex
-let engineRuntimeCodehash: Hex
 
 /** Wired as main.ts does, with a fresh funded key. */
-async function instance(delayMs = 0): Promise<Instance> {
+async function instance(marketId: Hex, delayMs = 0): Promise<Instance> {
   const key = generatePrivateKey()
   const address = privateKeyToAccount(key).address
   await fund(s, address)
   const registry = s.deployments.contracts.MarketRegistry.address
+  const market = await s.pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [marketId] })
+  const runtime = await s.pc.getCode({ address: market.engine })
+  if (!runtime || runtime === '0x') throw new Error('local fixture engine has no runtime code')
   const engineIdentities = {
     version: 1 as const,
     chainId: s.deployments.chainId,
     registry,
-    profiles: [{ kind: 'stub' as const, runtimeCodehash: engineRuntimeCodehash }],
+    profiles: [{ kind: 'stub' as const, runtimeCodehash: keccak256(runtime) }],
   }
   const chain = viemChain({ rpcUrl: s.rpcUrl, privateKey: key, deployments: s.deployments, engineIdentities })
   const sent: Instance['sent'] = []
@@ -107,8 +109,7 @@ async function core(id: Hex) {
   return { tau: c.tau, buffer: BigInt(f.bufferSecs), l1Timeout: BigInt(f.l1TimeoutSecs), l2Deadline: BigInt(c.l2DeadlineSecs) }
 }
 
-async function toAsserted(k: Instance, outcome: 1 | 2 = YES): Promise<Hex> {
-  const id = await listExample(s)
+async function toAsserted(k: Instance, id: Hex, outcome: 1 | 2 = YES): Promise<Hex> {
   const c = await core(id)
   expect(await tick(k)).toEqual([]) // before T: nothing is due
   await warpTo(s, c.tau)
@@ -129,17 +130,6 @@ async function toAsserted(k: Instance, outcome: 1 | 2 = YES): Promise<Hex> {
 
 beforeAll(async () => {
   s = await deployStack(20_000 + (process.pid % 20_000))
-  // Instances start before each scenario lists its market. Derive the approved
-  // runtime from a temporary real fixture, then restore the unlisted baseline.
-  // All local stubs share this factory immutable; the keeper still checks each
-  // subsequently listed engine against this hash before sending.
-  const unlisted = await snapshot(s)
-  const id = await listExample(s)
-  const market = await s.pc.readContract({ address: s.deployments.contracts.MarketRegistry.address, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [id] })
-  const runtime = await s.pc.getCode({ address: market.engine })
-  if (!runtime || runtime === '0x') throw new Error('local fixture engine has no runtime code')
-  engineRuntimeCodehash = keccak256(runtime)
-  await revertTo(s, unlisted)
   base = await snapshot(s)
 }, DEPLOY_MS)
 
@@ -154,8 +144,9 @@ beforeEach(async () => {
 
 describe('keeper on a local deploy', () => {
   test('L1 path: halt, request, assert, finalize → Final YES (ASSERTED_TRUE)', async () => {
-    const k = await instance()
-    const id = await toAsserted(k)
+    const id = await listExample(s)
+    const k = await instance(id)
+    await toAsserted(k, id)
     expect(await tick(k)).toEqual([]) // liveness running
     await warpTo(s, (await venueStatus(s, id)).expiresAt)
     expect(await tick(k)).toEqual(['finalize'])
@@ -169,8 +160,9 @@ describe('keeper on a local deploy', () => {
   }, SCENARIO_MS)
 
   test('rejection: dispute, sync, DVM says false, finalize → Review; open at retryOpensAt', async () => {
-    const k = await instance()
-    const id = await toAsserted(k)
+    const id = await listExample(s)
+    const k = await instance(id)
+    await toAsserted(k, id)
     await dispute(s, id)
     expect(await tick(k)).toEqual(['sync'])
     expect((await resolution(s, id)).state).toBe(RState.Disputed)
@@ -190,8 +182,8 @@ describe('keeper on a local deploy', () => {
   }, SCENARIO_MS)
 
   test('no answer: request, escalate, open, then void at the deadline → Final INVALID (VOID_DEADLINE)', async () => {
-    const k = await instance()
     const id = await listExample(s)
+    const k = await instance(id)
     const c = await core(id)
     await warpTo(s, c.tau)
     expect(await tick(k)).toEqual(['halt'])
@@ -219,8 +211,9 @@ describe('keeper on a local deploy', () => {
   }, SCENARIO_MS)
 
   test('void at the deadline with a disputed assertion the DVM never answers → Final INVALID, bond stuck', async () => {
-    const k = await instance()
-    const id = await toAsserted(k, NO)
+    const id = await listExample(s)
+    const k = await instance(id)
+    await toAsserted(k, id, NO)
     await dispute(s, id)
     expect(await tick(k)).toEqual(['sync'])
     const r1 = await resolution(s, id)
@@ -235,9 +228,9 @@ describe('keeper on a local deploy', () => {
   }, SCENARIO_MS)
 
   test('two instances, the second offset (production): each job is sent once, the other sees it stale', async () => {
-    const a = await instance()
-    const b = await instance(250)
     const id = await listExample(s)
+    const a = await instance(id)
+    const b = await instance(id, 250)
     const c = await core(id)
     await warpTo(s, c.tau)
     expect(await tick(a, b)).toEqual(['halt'])
@@ -257,9 +250,9 @@ describe('keeper on a local deploy', () => {
   }, SCENARIO_MS)
 
   test('two instances with no offset: duplicates may both land, as no-ops, never reverts', async () => {
-    const a = await instance()
-    const b = await instance()
     const id = await listExample(s)
+    const a = await instance(id)
+    const b = await instance(id)
     const c = await core(id)
     const once = (actions: string[], action: string) => {
       expect(actions.length).toBeGreaterThanOrEqual(1)

@@ -6,15 +6,15 @@
   "spec_version": "1.1",
   "economic_baseline": "1.0",
   "interface_version": "risk-integration-1",
-  "recorded_at": "2026-10-04T20:21:31.976117+00:00",
-  "source_commit": "0ff2b69e4cdf65a182b76dc7a2adac23ba77112d",
+  "recorded_at": "2026-10-05T20:55:06.232811+00:00",
+  "source_commit": "dbab6128904dcd990ce5ef38b5a5274d29fa8a99",
   "worktree_dirty": true,
   "toolchain": {
     "python": "3.12.10",
     "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",
     "solc_declared": "0.8.30",
     "foundry_profile": "risk",
-    "dependency_status": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219 contracts/lib/forge-std (v1.17.0)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 contracts/lib/solady (v0.1.26-36-g2afba69b)\n f3dae6e6ee381f25eb6a246f7da9b85c91a68219 oracle/lib/forge-std (v1.17.0)\n dc44c9f1a4c3b10af99492eed84f83ed244203f6 oracle/lib/openzeppelin-contracts-v4 (v4.9.5-2-gdc44c9f1)\n 2afba69bf67b78dd4abeadcc696052b3a6f71499 oracle/lib/solady (v0.1.26-36-g2afba69)\n d1a2373e2e0a3cbb28bce48ca72379a2abb97c69 oracle/lib/uma-protocol (heads/master)",
+    "dependency_status": null,
     "typescript": "5.9.3"
   },
   "seed": "0x45524f53",
@@ -71,7 +71,7 @@
     "contracts/src/risk/OrderRisk.sol": "8167f5470e2766968e26375de3eba39a1d987823b1bbdc84fb0c8a28b2398281",
     "contracts/src/risk/PremiumAccounting.sol": "7681f7fb0f5a7fd7cd219ed9c5179a175011b1dd05c4311c44f936023fa5ff29",
     "contracts/src/risk/ReserveAccounting.sol": "5da803993cbb1f1cb6f91e2dc63bf9aaa6bf6b83aff5dffa9876a8f92e1f850c",
-    "contracts/src/risk/RiskContextPort.sol": "680bc1c29a04ec1a3b822e82a4cf74dfea03d2b3cb4bc76616fe310bd15829a0",
+    "contracts/src/risk/RiskContextPort.sol": "4cbde77875fc90c9d260109882d02b98d461c9fe82547ef82c254c68f190e2bd",
     "contracts/src/risk/RiskLifecycle.sol": "54a8c0fe36c514790558287eae9b9ac1f00b02b62b41691d87b9291761f8da23",
     "contracts/src/risk/RiskLiquidation.sol": "1e91a6ea2d2577c534ef263632e215f733925082afdcfb927282e47638859829",
     "contracts/src/risk/RiskStorage.sol": "82bdf7df55df3d55fe9a65472062fd420b9983664fb8d54133fc0d7d8f50b479",
@@ -88,7 +88,7 @@
     "contracts/src/settlement/RecoveryAccounting.sol": "d6a3af6eaf2c10dd0df8ed7a7c76770301f55703793a72a26b8b4e59ec5725ed",
     "contracts/src/settlement/ReserveClaims.sol": "7acdd5a78a34e101a77c3dfe22a113d062a1758affaa1e19cf1e65c5db7c8b29",
     "contracts/src/settlement/ResolutionIngress.sol": "78b94841433e8ffcc15b055ae2416c3570191bba44d0e41d94a3141599030a85",
-    "contracts/src/settlement/SettlementController.sol": "16828c0f5327c133dd6d87c978ceba35f4513f3438c3e68cea2ed2832d29d43c",
+    "contracts/src/settlement/SettlementController.sol": "b5fd32155114b64e2b77db6fc6e17fc8ab03fc8bd4180bc748bd8f3ddf3508b9",
     "contracts/src/settlement/SnapshotLedger.sol": "1d1f83965bd940582a16bb48e2def20042d4208c210e43537cce78e4de225c56",
     "contracts/test/harness/A/AccountingHarness.sol": "65d3f9c696a9861fc3e4a912c48d3915eff82a822b6b21f54878c641d1702b53",
     "contracts/test/mocks/A/MockRiskDecision.sol": "f16e9551d98b85a831f7047092626b5651f7bfd690d0d255671b96f744be4659",
@@ -119,7 +119,7 @@
     "contracts/test/risk/A/A039.t.sol": "1bd718d785115cdb09111da8a4d93cb9b2af81861776e076484485d606102b69",
     "contracts/test/risk/A/AccountingTestBase.sol": "0c9180c0db225545ca1f2c3215aec8adab125c319fe0237391b5632f0adf04cc",
     "contracts/test/risk/A/LiquidationAccounting.t.sol": "cd06d817bbc7c5138e553b3f7892968bd402cdd8cc49f449416630eae13d6738",
-    "contracts/test/risk/A/ParticipantIdentity.t.sol": "b5f8b79d8341461699e69a2efbd303a3a1b0539f64e2c07bccf2474b2b76ffc4",
+    "contracts/test/risk/A/ParticipantIdentity.t.sol": "696d786fcb627372c52456e4c0e467a4414db70ac4a9a11a8b22dd2f6ddfea36",
     "contracts/test/risk/A/SettlementConservation.t.sol": "81a9adeb42a9f972f72a6e4c3332e983f42344744a4750f2ea910b507212f91f",
     "contracts/test/risk/A/TradeAccountingInvariant.t.sol": "4a5c3160b154a85058494aeae4b47fe0c54999561017b0b3b1d57f663d2ce4ad",
     "contracts/test/invariant/A/AccountingInvariants.t.sol": "fbc4760777de4113b91b1e9675e8e7b8e91417b2fc3fda887f3014e0e8351807",
@@ -134,7 +134,7 @@
     "packages/risk-sdk/test/accounting.test.ts": "5c81de1d7c19ee3d5ef11aea2cf70896a6d9af79bc92c150e132dfb8b796066f",
     "packages/risk-sdk/test/read-model.test.ts": "c87508015f69c349af442a5ba3467e210c21619cbf002b47d22fb44c74815a59",
     "contracts/foundry.toml": "4361748843a36b7e986c65236d64bdc6ad05c161296160ad31ee02e1f5b81ac6",
-    "scripts/check-task.sh": "14e866312cb22c48471536ec97ff7ae6e8f1d903b4eff60c2c7bbe0a10fc811a",
+    "scripts/check-task.sh": "f7ee22e32c12bc301f4a74e67be952558beeed069fc4890839f655c36cf13ecc",
     ".gitmodules": "70fd4e5f56b7e18f937777ae6e00af0622a4c6330feaf9eb57aa28b6f199b48b",
     "docs/app-state-fixtures.json": "b4b27123971066d711c13abe1826ec87a4012eef984fb613db5a3eba8c397c7c"
   },
@@ -193,7 +193,7 @@
       "cwd": ".",
       "exit_code": 0,
       "execution": "subprocess",
-      "output": "TAP version 13\n# Subtest: accounts decode with units, identity and labelled projections\nok 1 - accounts decode with units, identity and labelled projections\n  ---\n  duration_ms: 7.1045\n  type: 'test'\n  ...\n# Subtest: projection does not change the withdrawable amount\nok 2 - projection does not change the withdrawable amount\n  ---\n  duration_ms: 0.5801\n  type: 'test'\n  ...\n# Subtest: markets decode stage, pricing and pending work\nok 3 - markets decode stage, pricing and pending work\n  ---\n  duration_ms: 3.7177\n  type: 'test'\n  ...\n# Subtest: every settlement state is distinct and claimable only with claimsEnabled\nok 4 - every settlement state is distinct and claimable only with claimsEnabled\n  ---\n  duration_ms: 0.6795\n  type: 'test'\n  ...\n# Subtest: oracle finality alone is never claimable\nok 5 - oracle finality alone is never claimable\n  ---\n  duration_ms: 0.2926\n  type: 'test'\n  ...\n# Subtest: unit helpers floor Q to atoms toward negative infinity\nok 6 - unit helpers floor Q to atoms toward negative infinity\n  ---\n  duration_ms: 0.3272\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 202.6289\n"
+      "output": "TAP version 13\n# Subtest: accounts decode with units, identity and labelled projections\nok 1 - accounts decode with units, identity and labelled projections\n  ---\n  duration_ms: 5.1991\n  type: 'test'\n  ...\n# Subtest: projection does not change the withdrawable amount\nok 2 - projection does not change the withdrawable amount\n  ---\n  duration_ms: 0.5599\n  type: 'test'\n  ...\n# Subtest: markets decode stage, pricing and pending work\nok 3 - markets decode stage, pricing and pending work\n  ---\n  duration_ms: 3.5415\n  type: 'test'\n  ...\n# Subtest: every settlement state is distinct and claimable only with claimsEnabled\nok 4 - every settlement state is distinct and claimable only with claimsEnabled\n  ---\n  duration_ms: 1.2605\n  type: 'test'\n  ...\n# Subtest: oracle finality alone is never claimable\nok 5 - oracle finality alone is never claimable\n  ---\n  duration_ms: 0.353\n  type: 'test'\n  ...\n# Subtest: unit helpers floor Q to atoms toward negative infinity\nok 6 - unit helpers floor Q to atoms toward negative infinity\n  ---\n  duration_ms: 0.3103\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 185.461\n"
     }
   ],
   "test_count": 8,

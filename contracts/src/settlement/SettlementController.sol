@@ -124,6 +124,7 @@ abstract contract SettlementController is InvalidPrice {
         v.payoutCursor = _payJob.cursor;
         v.accountCount = _halt.frozenAccountCount;
         v.totalTraderPayoutAtoms = _totalPayoutAtoms;
+        v.totalDeficitQ = _acctTotalDeficitQ();
         v.claimsEnabled = _claimsEnabled;
         v.accountingComplete = _snapJob.done && _payJob.done;
         v.recoveryRequired = _recoveryRequired;

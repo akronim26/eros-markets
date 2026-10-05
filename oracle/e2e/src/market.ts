@@ -153,6 +153,7 @@ export async function resolution(id: Hex) {
     rejectedMask: number
     outcome: number
     finalReason: number
+    voided: boolean
     haltedAt: bigint
     voidDeadline: bigint
     l2StartedAt: bigint

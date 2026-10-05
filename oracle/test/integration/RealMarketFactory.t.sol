@@ -105,7 +105,7 @@ contract RealMarketFactoryTest is RealMarketFixture {
         vm.stopPrank();
     }
 
-    function testConstructorChecksStillRejectLeverageAndShortHorizon() public {
+    function testConstructorRejectsUnpacedLeverageAndShortHorizon() public {
         MarketInput memory market = _input(MARKET_ID, false);
         IMarketConfig.Listing memory configuration = _listing();
         configuration.deploymentCapX = 5;
@@ -156,7 +156,36 @@ contract RealMarketFactoryTest is RealMarketFixture {
 
     function testWrongCreationCodeHashRejected() public {
         vm.expectRevert(MarketFactory.InvalidEngineCode.selector);
-        new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStore, keccak256("wrong"));
+        new MarketFactory(
+            address(registry), usdc, reserveTreasury, engineCodeStore, engineCodeStoreTail, keccak256("wrong")
+        );
+    }
+
+    function testTailIsNonExecutableAndTamperingRollsBackListing() public {
+        assertGt(engineCodeStoreTail.code.length, 1);
+        (bool success, bytes memory returned) = engineCodeStoreTail.call(hex"12345678");
+        assertTrue(success);
+        assertEq(returned.length, 0);
+        assertEq(realFactory.codeStoreTailHash(), engineCodeStoreTail.codehash);
+        vm.etch(engineCodeStoreTail, hex"0000");
+        MarketInput memory market = _input(MARKET_ID, false);
+        IMarketConfig.Listing memory configuration = _listing();
+        vm.prank(lister);
+        vm.expectRevert(MarketFactory.InvalidEngineCode.selector);
+        registry.createMarket(market, configuration, "");
+        assertEq(realFactory.engineOf(MARKET_ID), address(0));
+        assertEq(bondTreasury.committedListing(MARKET_ID), 0);
+    }
+
+    function testMissingReorderedAndExecutableChunksAreRejected() public {
+        bytes32 approved = realFactory.creationCodeHash();
+        vm.expectRevert(MarketFactory.InvalidEngineCode.selector);
+        new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStore, address(0), approved);
+        vm.expectRevert(MarketFactory.InvalidEngineCode.selector);
+        new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStoreTail, engineCodeStore, approved);
+        vm.etch(engineCodeStoreTail, hex"5b00");
+        vm.expectRevert(MarketFactory.InvalidEngineCode.selector);
+        new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStore, engineCodeStoreTail, approved);
     }
 
     function testCodeStoreBounds() public {

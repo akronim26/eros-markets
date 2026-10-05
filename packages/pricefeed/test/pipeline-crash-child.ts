@@ -15,6 +15,7 @@ import { LocalPipeline } from '../src/pipeline.js';
 import { LocalTransactionSigner, type RelayTransactionRequest } from '../src/local-transaction-signer.js';
 import { Worker, type Provider } from '../src/worker.js';
 import { json } from '../src/math.js';
+import { crashedLeaseDeadline, waitForExpiredLease } from '../scripts/crash-lease-wait.js';
 
 async function main(){
   const [dir,mode,stage]=process.argv.slice(2);if(!dir||!['crash','resume','early'].includes(mode??'')||!stage)throw new Error('BAD_CRASH_ARGUMENTS');
@@ -53,6 +54,9 @@ async function main(){
   const worker=new Worker(config,provider,journal,randomUUID());
   const relay=new LocalRelay(path('relay'),packets,transport,policy);
   const pipeline=new LocalPipeline([{worker,rules,signer}],packets,relay,transport,policy);
+  // Check with this process's actual wall clock too; WSL timer/clock adjustments
+  // can occur between the parent's wait and child startup. Keep the early case early.
+  if(mode==='resume')await waitForExpiredLease(()=>crashedLeaseDeadline(dir));
   const stop=new AbortController(),timer=setTimeout(()=>stop.abort(),12000);
   try{
     await pipeline.start();

@@ -1,0 +1,109 @@
+[
+  {
+    "type": "function",
+    "name": "rollover",
+    "inputs": [
+      {
+        "name": "engine",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "expectedEpoch",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "expectedWork",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "expectedCursor",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxPages",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "pages",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "completed",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "RolloverAdvanced",
+    "inputs": [
+      {
+        "name": "engine",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "epoch",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "cursor",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "count",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pages",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "completed",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "InvalidBounds",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidProgress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidTarget",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "StaleSnapshot",
+    "inputs": []
+  }
+]

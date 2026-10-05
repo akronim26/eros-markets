@@ -11,7 +11,7 @@ import { EvidenceStore } from '../src/backend/store'
 import { ProposalError } from '../src/sign/bundle'
 import { CommitteeConsole, parseChoice } from '../src/ui/console'
 import { renderCase } from '../src/ui/render'
-import { dueAlerts, serviceAlerts } from '../src/ui/service'
+import { dueAlerts, serviceAlerts, type ServiceAlert } from '../src/ui/service'
 import { FakeChain, loadRecorded, MEMBER_KEYS, RECORDED } from './fake'
 
 const rec = loadRecorded()
@@ -123,12 +123,13 @@ describe('service level', () => {
     const l2 = BigInt(rec.resolution.l2StartedAt) + BigInt(rec.core.l2DeadlineSecs as string)
     chain.res.retryOpensAt = since + 86_400n
     const c = await con.case(ID)
+    const expected: Array<[ServiceAlert['kind'], bigint, ServiceAlert['severity']]> = [
+      ['REVIEW_SERVICE_LEVEL', since + 7200n, 'alert'],
+      ['L2_DEADLINE_SOON', l2 - 7200n, 'page'],
+      ['RETRY_OPENS_SOON', since + 86_400n - 7200n, 'page'],
+    ]
     expect(serviceAlerts(c).map((a) => [a.kind, a.at, a.severity])).toEqual(
-      [
-        ['REVIEW_SERVICE_LEVEL', since + 7200n, 'alert'],
-        ['L2_DEADLINE_SOON', l2 - 7200n, 'page'],
-        ['RETRY_OPENS_SOON', since + 86_400n - 7200n, 'page'],
-      ].sort((x, y) => ((x[1] as bigint) < (y[1] as bigint) ? -1 : 1)),
+      expected.sort((first, second) => (first[1] < second[1] ? -1 : 1)),
     )
     // nothing due just after entering review except what is already within 2 h of a deadline
     expect(dueAlerts(c, since - 1n).map((a) => a.kind)).toEqual(l2 - 7200n <= since - 1n ? ['L2_DEADLINE_SOON'] : [])

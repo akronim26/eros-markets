@@ -1,6 +1,7 @@
 // createMarket dry-run for `oracle-cli list` (forge/CheckPack.s.sol), run locally without an RPC.
+import { fileURLToPath } from 'node:url'
 
-export const ORACLE_ROOT = new URL('../../../', import.meta.url).pathname
+export const ORACLE_ROOT = fileURLToPath(new URL('../../../', import.meta.url))
 const FORGE_DIR = 'packages/oracle-cli/forge'
 
 export class ForgeError extends Error {

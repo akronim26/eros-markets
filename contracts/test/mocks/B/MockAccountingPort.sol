@@ -411,6 +411,10 @@ abstract contract MockAccountingPort is IAccountingPort {
         return _mFinish;
     }
 
+    function _acctTotalDeficitQ() internal pure virtual override returns (uint256) {
+        return 0;
+    }
+
     uint64 internal _mEpochEnd = type(uint64).max;
     uint64 internal _mFrozenRollover;
     bool internal _mClaimsComplete;

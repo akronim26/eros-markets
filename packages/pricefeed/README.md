@@ -97,6 +97,81 @@ lifecycle reader and production policy are still required. See
 pinned Forge/solc paths. Four signed accelerated 24-hour fixtures import the real
 ingress/store/INVALID modules; they are separate from live-source soak evidence.
 
+## Real-source full-engine local integration
+
+The repository runner joins this package to the deployed factory, BookRiskEngine,
+orderbook and local oracle. From the repository root:
+
+```bash
+python scripts/integration/local-stack.py run --scenario leveraged --source polymarket --max-duration-seconds 7200
+```
+
+This discovers a binary Yes/No source with a genuine 25-hour to 29-day horizon,
+archives discovery and a continuous 120-second source probe, and fixes the source,
+rules and listing before deployment. Existing selection files can be supplied with
+`--source-config`; they receive fresh metadata/rules/age validation before use.
+For a full repeat probe of an existing immutable selection, use the publisher
+CLI's `--mode probe --source <selection> --directory <new-archive-directory>
+--output <new-report>`; it retains 120 seconds of fresh source captures.
+Unavailable candidates remain archived. The runner never substitutes fixture
+prices, changes vendor timestamps or advances the live chain clock.
+
+Before discovery, validation or a full probe, a read-only clock gate checks three
+actual Polymarket `/time` responses and independent public Monad testnet blocks.
+It archives exact response bodies, transport timing and conservative offset
+bounds. Each time response must take at most 1,000 ms, and its entire offset
+interval (including request timing and one-second precision) must fit within
+±1,500 ms. The independent endpoint must identify chain 10143 and return recent
+blocks. Unavailable, ambiguous or excessive-skew evidence fails before deployment.
+Run only this check with `--mode clock --output <new-report>`.
+If the host is unsynchronized, an administrator must synchronize Windows time
+before starting a fresh run; the runner never changes system or chain clocks.
+New source selections poll every second, retaining genuine vendor timestamps;
+old immutable selections keep their recorded poll configuration.
+
+`scripts/live-factory-integration.ts` uses the existing source, packet, signer,
+transaction and relay SQLite journals. A durable LocalLifecycle gate shares the
+source journal. Its separate sampler journal uses the market-ops operator with
+public local actor 11. INDEX publication continues while sampling is paused for
+book changes. A capture is sealed only after a genuinely newer INDEX timestamp;
+older source snapshots remain archived without rewriting the captured prefix.
+An exact canonical mined capture can protect strict-newer INDEX publication
+while its sampler receipt awaits finality. Missing, reverted, reorged or
+ambiguous capture evidence blocks that overlap. Sampler custody, sample counts,
+pause acknowledgements and the next sampler call still wait for finality.
+The atomic report includes canonical-block INDEX300, PERP60, BASIS900, risk mode,
+leverage caps, active profile, sampler receipts and source health.
+
+Pause controls carry a unique `pauseRequestId`; the publisher acknowledges that
+same ID only after pending sampler work drains. Before a warm epoch rollover,
+the actor arms `minimumCaptureTime=epochEnd-15` and `epochEnd`. Sampling continues
+until a valid finalized sample meets that capture window and was sealed before
+the boundary, then the publisher immediately reports the matching pause. The
+sampler reserves a short drain interval before its target capture and retains
+the accounting-state and pre-boundary safety guards. Missing the target fails
+the prerequisite; no stale acknowledgement or post-boundary sample substitutes
+for it. The contract still checks the full pricing windows when rollover ends.
+
+The 7,200-second budget starts at actual activation and cannot renew on restart.
+Full readiness depends on continuous source coverage and an ordinary epoch
+rollover; elapsed time alone does not constitute a passing leverage result.
+Risk calibration and collateral remain explicit test fixtures. This local proof
+does not exercise real external adjudication or authorize public transactions.
+
+After a clean stop, the runner audits canonical publisher/sampler receipts and
+independently replays the raw source books with Python Fraction arithmetic:
+
+```bash
+node dist/scripts/live-factory-integration.js --mode audit --rpc http://127.0.0.1:18546 --abi ../../oracle/out/RegistryBookRiskEngine.sol/RegistryBookRiskEngine.json --directory /path/to/run/live-pricefeed --report /path/to/run/live-pricefeed.json --output /path/to/run/pricefeed-audit.json
+python scripts/review-live-factory.py /path/to/run/pricefeed-audit.json
+```
+
+Run the complete Node suite on Linux/WSL with pinned Node 24.21.0. Public-key local
+recovery tests also support Windows process-termination metadata and ESM file
+URLs. Production key-file ownership, modes and process custody retain their POSIX
+requirements; those safeguards are not weakened to make native Windows a
+supported production signer environment.
+
 ## Live-data local demo
 
 The separately authorized demo connects real Polymarket data to an owned local
@@ -291,6 +366,21 @@ verification. The integration test imports the existing real ingress/store
 read-only, with a local initialization harness; it neither changes counterpart
 code nor certifies a live counterpart join. Machine reports describe a working
 tree and must not be interpreted as human PF gate acceptance.
+
+For the current cross-component integration, run `npm run verify:integration`
+with the same pinned tool variables. Its `check:scope:integration` step checks
+`config/integration-scope-2026-10-06.json`: the exact reviewed code/config/ABI/test
+inputs, unchanged dependency checkouts and the exact Git blob/checksum of the
+preserved historical baseline. Source/config/generated text hashes normalize
+only CRLF/LF checkout differences. Raw bodies, signed payloads and binary
+fixtures retain exact byte hashes; the live audit separately hashes raw journals
+and source bodies without normalization. Historical checkout formatting may
+differ only by CRLF/LF, while its committed bytes and contained hashes stay
+unchanged. It records `artifacts/verification/integration-checks.json`.
+Changes to these inputs require a reviewed, versioned manifest update; the
+checker cannot rewrite its baseline. Unrelated user documents are outside this
+source inventory. `check:scope` and `verify:all` retain their original historical
+pricefeed-only isolation semantics and are not the current branch release gate.
 
 ## Remaining implementation
 

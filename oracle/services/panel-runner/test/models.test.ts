@@ -4,12 +4,13 @@ import type { Item } from '@eros-oracle/snapshotter'
 import { describe, expect, test } from 'bun:test'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { keccak256, stringToBytes } from 'viem'
 import { checkCitations, InvalidAnswer, parseAnswer, RATIONALE_MAX_CHARS } from '../src/models/answer'
 import { askModel, type ClientDeps } from '../src/models/client'
 import { askPanel, checkPanel, PanelConfigError } from '../src/models/panel'
 
-const FIX = new URL('./fixtures/', import.meta.url).pathname
+const FIX = fileURLToPath(new URL('./fixtures/', import.meta.url))
 type Fixture = { httpStatus: number; headers: Record<string, string>; body: unknown }
 const fixture = (name: string): Fixture => JSON.parse(readFileSync(join(FIX, 'responses', `${name}.json`), 'utf8'))
 const respond = (f: Fixture) => new Response(typeof f.body === 'string' ? f.body : JSON.stringify(f.body), { status: f.httpStatus, headers: f.headers })
@@ -155,8 +156,13 @@ describe('one model', () => {
   })
 
   test('a network error or a timeout is retried', async () => {
-    const hang = (init: RequestInit) =>
-      new Promise<Response>((_, reject) => init.signal!.addEventListener('abort', () => reject(init.signal!.reason)))
+    const hang = (init: RequestInit) => new Promise<Response>((_, reject) => {
+      const inFlightHandle = setInterval(() => {}, 10)
+      init.signal!.addEventListener('abort', () => {
+        clearInterval(inFlightHandle)
+        reject(init.signal!.reason)
+      }, { once: true })
+    })
     const s = scripted(new TypeError('fetch failed'), hang, fixture('groq-ok'))
     const o = await askModel(GROQ, CALL, ITEMS, { ...s.deps, timeoutMs: 50 })
     expect(o.label).toBe('YES')

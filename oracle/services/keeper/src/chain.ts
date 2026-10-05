@@ -3,7 +3,6 @@
 import {
   BondTreasuryAbi,
   contractAddress,
-  type Deployments,
   IAssertionVenueAbi,
   KeeperRouterAbi,
   MarketRegistryAbi,
@@ -21,6 +20,7 @@ import {
   TransactionReceiptNotFoundError,
 } from 'viem'
 import { nonceManager, privateKeyToAccount } from 'viem/accounts'
+import type { KeeperDeployments } from './config'
 import { engineFollowUpAbi } from './engineAbi'
 import { type EngineIdentities, engineIdentityResolver } from './engineIdentity'
 import type { Chain, Job, Resolution, Target } from './types'
@@ -37,7 +37,7 @@ function engineAddress(job: Job): Hex {
   return job.address
 }
 
-export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: Deployments; engineIdentities: EngineIdentities }): Chain {
+export function viemChain(opts: { rpcUrl: string; privateKey: Hex; deployments: KeeperDeployments; engineIdentities: EngineIdentities }): Chain {
   const d = opts.deployments
   const chain = defineChain({
     id: d.chainId,

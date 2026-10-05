@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 import {BookRiskEngine} from "@eros/engine/BookRiskEngine.sol";
 import {Book} from "@eros/Book.sol";
 import {EngineCodeStore} from "@eros/factory/EngineCodeStore.sol";
+import {EngineCodeParts} from "@eros/factory/EngineCodeParts.sol";
 import {MarketFactory} from "@eros/factory/MarketFactory.sol";
 import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";
 import {IBookRiskHooks} from "@eros/interfaces/IBookRiskHooks.sol";
@@ -143,7 +144,8 @@ contract FactoryEngineJobsGasTest is RealMarketFixture {
 
 contract FactoryGasTest is RegistryFixture {
     uint256 internal constant TRANSACTION_GAS_LIMIT = 30_000_000;
-    uint256 internal constant REGISTRY_EXECUTION_BUDGET = 29_000_000;
+    // Leave 500k for intrinsic gas while accommodating the new constructor checks.
+    uint256 internal constant REGISTRY_EXECUTION_BUDGET = 29_500_000;
     uint256 internal constant RUNTIME_BYTE_LIMIT = 131_072;
     uint256 internal constant INITCODE_BYTE_LIMIT = 262_144;
 
@@ -154,13 +156,17 @@ contract FactoryGasTest is RegistryFixture {
     MockAssertionVenue internal assertionVenue;
     MarketFactory internal factory;
     EngineCodeStore internal codeStore;
+    EngineCodeStore internal codeStoreTail;
     FactoryGasNoop internal noop;
     address internal lister = makeAddr("real-factory-lister");
     uint256 internal codeStoreDeploymentGas;
+    uint256 internal codeStoreTailDeploymentGas;
     uint256 internal factoryDeploymentGas;
     uint256 internal engineCreationBytes;
     uint256 internal codeStoreInitcodeBytes;
+    uint256 internal codeStoreTailInitcodeBytes;
     uint256 internal factoryInitcodeBytes;
+    uint256 internal measuredFrameGas;
 
     function setUp() public {
         vm.chainId(10143);
@@ -179,16 +185,22 @@ contract FactoryGasTest is RegistryFixture {
         registry = new MarketRegistry(oracleAddress, treasuryAddress, address(0), usdc, gov, lister);
         bytes memory engineCreation = vm.getCode("RegistryBookRiskEngine.sol:RegistryBookRiskEngine");
         engineCreationBytes = engineCreation.length;
-        codeStoreInitcodeBytes =
-            vm.getCode("EngineCodeStore.sol:EngineCodeStore").length + abi.encode(engineCreation).length;
+        (bytes memory first, bytes memory second) = EngineCodeParts.split(engineCreation);
+        codeStoreInitcodeBytes = vm.getCode("EngineCodeStore.sol:EngineCodeStore").length + abi.encode(first).length;
+        codeStoreTailInitcodeBytes =
+            vm.getCode("EngineCodeStore.sol:EngineCodeStore").length + abi.encode(second).length;
         uint256 beforeGas = gasleft();
-        codeStore = new EngineCodeStore(engineCreation);
+        codeStore = new EngineCodeStore(first);
         codeStoreDeploymentGas = beforeGas - gasleft();
+        beforeGas = gasleft();
+        codeStoreTail = new EngineCodeStore(second);
+        codeStoreTailDeploymentGas = beforeGas - gasleft();
         bytes32 creationHash = keccak256(engineCreation);
         factoryInitcodeBytes = vm.getCode("MarketFactory.sol:MarketFactory").length
-            + abi.encode(address(registry), usdc, gov, address(codeStore), creationHash).length;
+            + abi.encode(address(registry), usdc, gov, address(codeStore), address(codeStoreTail), creationHash).length;
         beforeGas = gasleft();
-        factory = new MarketFactory(address(registry), usdc, gov, address(codeStore), creationHash);
+        factory =
+            new MarketFactory(address(registry), usdc, gov, address(codeStore), address(codeStoreTail), creationHash);
         factoryDeploymentGas = beforeGas - gasleft();
         noop = new FactoryGasNoop();
         _configureOracle();
@@ -222,35 +234,44 @@ contract FactoryGasTest is RegistryFixture {
 
     function test_factoryAndCodeStoreDeploymentBounds() public {
         emit log_named_uint("code store deployment gas", codeStoreDeploymentGas);
+        emit log_named_uint("code store tail deployment gas", codeStoreTailDeploymentGas);
         emit log_named_uint("factory and collateral vault deployment gas", factoryDeploymentGas);
         emit log_named_uint("code store runtime bytes", address(codeStore).code.length);
+        emit log_named_uint("code store tail runtime bytes", address(codeStoreTail).code.length);
         emit log_named_uint("factory runtime bytes", address(factory).code.length);
         emit log_named_uint("collateral vault runtime bytes", address(factory.collateralVault()).code.length);
         emit log_named_uint("code store initcode bytes", codeStoreInitcodeBytes);
         emit log_named_uint("factory initcode bytes", factoryInitcodeBytes);
         assertLe(codeStoreDeploymentGas, TRANSACTION_GAS_LIMIT);
+        assertLe(codeStoreTailDeploymentGas, TRANSACTION_GAS_LIMIT);
         assertLe(factoryDeploymentGas, TRANSACTION_GAS_LIMIT);
         assertLe(address(codeStore).code.length, RUNTIME_BYTE_LIMIT);
+        assertLe(address(codeStoreTail).code.length, RUNTIME_BYTE_LIMIT);
         assertLe(address(factory).code.length, RUNTIME_BYTE_LIMIT);
         assertLe(address(factory.collateralVault()).code.length, RUNTIME_BYTE_LIMIT);
         assertLe(codeStoreInitcodeBytes, INITCODE_BYTE_LIMIT);
+        assertLe(codeStoreTailInitcodeBytes, INITCODE_BYTE_LIMIT);
         assertLe(factoryInitcodeBytes, INITCODE_BYTE_LIMIT);
         assertEq(factory.collateralVault().governor(), address(factory));
     }
 
     function test_createMarketSmallTextWithinTransactionLimit() public {
-        _measureListing(0, true);
+        _measureListing(0, true, false);
+    }
+
+    function test_createLeveragedMarketWithinTransactionLimit() public {
+        _measureListing(0, true, true);
     }
 
     function test_createMarketEightKiBClaimWithinTransactionLimit() public {
-        _measureListing(8_192, true);
+        _measureListing(8_192, true, false);
     }
 
     function test_createMarketOversizedListingRevertsAtomicallyAtExecutionBudget() public {
-        _measureListing(16_384, false);
+        _measureListing(16_384, false, false);
     }
 
-    function _measureListing(uint256 targetClaimLength, bool shouldSucceed) internal {
+    function _measureListing(uint256 targetClaimLength, bool shouldSucceed, bool leveraged) internal {
         MarketInput memory market = _market();
         market.tau = NOW + 25 hours;
         market.windowEnd = market.tau;
@@ -266,6 +287,10 @@ contract FactoryGasTest is RegistryFixture {
             market.rules = string(rules);
         }
         IMarketConfig.Listing memory listing = SeamFixture.pack(usdc, gov);
+        if (leveraged) {
+            listing.deploymentCapX = 5;
+            listing.maxLiqLotsPerBlock = 100_000;
+        }
         bytes memory data = abi.encodeCall(registry.createMarket, (market, listing, ""));
         uint256 intrinsicGas = 21_000;
         for (uint256 index; index < data.length; ++index) {
@@ -281,11 +306,15 @@ contract FactoryGasTest is RegistryFixture {
         vm.cool(address(factory));
         vm.cool(address(factory.collateralVault()));
         vm.cool(address(codeStore));
+        vm.cool(address(codeStoreTail));
         vm.cool(address(token));
         vm.prank(lister);
         uint256 beforeGas = gasleft();
         (bool success, bytes memory result) = address(registry).call{gas: REGISTRY_EXECUTION_BUDGET}(data);
         uint256 usedGas = beforeGas - gasleft();
+        // Isolated Monad calls can report only caller overhead through gasleft().
+        // Check the recorded callee frame as well; code-deposit gas must be present.
+        measuredFrameGas = vm.lastFrameGas().gasTotalUsed;
         if (!shouldSucceed) {
             assertFalse(success);
             assertEq(bytes4(result), bytes4(keccak256("DeploymentFailed()")));
@@ -302,6 +331,9 @@ contract FactoryGasTest is RegistryFixture {
             }
         }
         assertLe(usedGas + intrinsicGas, TRANSACTION_GAS_LIMIT);
+        assertGt(measuredFrameGas, 20_000_000, "creation measurement must include engine code deposit");
+        assertLe(measuredFrameGas + intrinsicGas, TRANSACTION_GAS_LIMIT);
+        emit log_named_uint("registry frame gas", measuredFrameGas);
         emit log_named_uint("createMarket isolated call gas", usedGas);
         emit log_named_uint("standard calldata intrinsic gas", intrinsicGas);
         emit log_named_uint("call gas plus intrinsic allowance", usedGas + intrinsicGas);

@@ -3,10 +3,11 @@ import type { Item, Snapshot } from '@eros-oracle/snapshotter'
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { keccak256, stringToBytes } from 'viem'
+import { fileURLToPath } from 'node:url'
 import { buildCall, CATEGORIES, escapeEvidence, evidenceTexts, loadPrompts, parseTemplate, PromptError, promptFor } from '../src/prompts'
 import { fixtureSnapshot, manifest } from './fixtures/injection/load'
 
-const TEMPLATES = new URL('../src/prompts/templates/', import.meta.url).pathname
+const TEMPLATES = fileURLToPath(new URL('../src/prompts/templates/', import.meta.url))
 const prompts = loadPrompts()
 const sports = prompts.find((p) => p.category === 'sports')!
 const MARKET = { question: 'Will the home team score more than 2 goals?', rules: 'YES if the final home score is above 2; NO otherwise.', tau: 1_800_001_800 }

@@ -13,6 +13,21 @@ function pause(ms:number,signal:AbortSignal):Promise<void>{
   return new Promise(resolve=>{const done=()=>{clearTimeout(timer);signal.removeEventListener('abort',done);resolve();};
     const timer=setTimeout(done,ms);signal.addEventListener('abort',done,{once:true});if(signal.aborted)done();});
 }
+/** Elapsed timers cannot prove a persisted wall-clock lease has expired. */
+export async function waitForSourceLease(readWait:()=>bigint,signal:AbortSignal,emit:(event:SupervisorEvent)=>void,
+  options:{sleep?:(ms:number,signal:AbortSignal)=>Promise<void>;elapsed?:()=>number;timeoutMs?:number}={}):Promise<void>{
+  const sleep=options.sleep??pause,elapsed=options.elapsed??(()=>performance.now()),started=elapsed();
+  const timeout=options.timeoutMs??3601000;
+  while(!signal.aborted){
+    const wait=readWait();
+    if(wait>3600000n)throw new Error('SERVICE_LEASE_WAIT_TOO_LONG');
+    if(wait<=0n)return;
+    const remaining=timeout-(elapsed()-started);
+    if(remaining<=0)throw new Error('SERVICE_LEASE_EXPIRY_WAIT_TIMEOUT');
+    const delay=Math.min(Number(wait)+1,1000,remaining);
+    emit({event:'LEASE_WAIT',delayMs:delay});await sleep(delay,signal);
+  }
+}
 export async function supervise(profilePath:string,signal:AbortSignal,emit:(event:SupervisorEvent)=>void):Promise<number>{
   const profile=loadDeploymentProfile(profilePath),saved=readSupervision(profile);
   if(saved.phase==='OPERATOR_STOP'){emit({event:'OPERATOR_STOP',reason:saved.reason??'SERVICE_OPERATOR_REVIEW_REQUIRED'});return SERVICE_OPERATOR_STOP;}
@@ -22,9 +37,9 @@ export async function supervise(profilePath:string,signal:AbortSignal,emit:(even
   if(restarts>profile.restart.maxRestarts)return operatorStop('SERVICE_RESTART_LIMIT');
   while(!signal.aborted){
     checkDeployment(profile);
-    const wait=sourceLeaseWaitMs(profile);
-    if(wait>3600000n)throw new Error('SERVICE_LEASE_WAIT_TOO_LONG');
-    if(wait>0n){emit({event:'LEASE_WAIT',delayMs:Number(wait)});await pause(Number(wait)+1,signal);if(signal.aborted)break;checkDeployment(profile);}
+    await waitForSourceLease(()=>sourceLeaseWaitMs(profile),signal,emit);
+    if(signal.aborted)break;
+    checkDeployment(profile);
     writeSupervision(profile,{phase:'RUNNING',restarts,reason:null});
     const child=spawn(process.execPath,['--disable-warning=ExperimentalWarning',fileURLToPath(new URL('../scripts/supervised-worker.js',import.meta.url)),profilePath],
       {stdio:['ignore','inherit','pipe',3]});

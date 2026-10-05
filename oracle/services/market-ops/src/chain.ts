@@ -4,6 +4,8 @@ import { createPublicClient, createWalletClient, defineChain, encodeFunctionData
 import { privateKeyToAccount } from 'viem/accounts'
 import type { Call, Snapshot, Transport } from './operations'
 import { equalHex, type Manifest } from './schema'
+import { broadcastTracked } from './broadcast'
+import { BatchEstimateOpaqueRevert, BatchGasLimitExceeded, isBatchGasLimitError, isOpaqueBatchEstimateRevert, RolloverBatcherAbi, verifyRolloverHelper } from './rollover-batch'
 
 const engineAbi = JSON.parse(readFileSync(new URL('../../../../artifacts/risk/book-risk-engine-abi.json', import.meta.url), 'utf8')).abi as Abi
 
@@ -23,7 +25,8 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
   const client = createPublicClient({ chain, transport: http(rpcUrl) })
   const account = privateKey ? privateKeyToAccount(privateKey) : undefined
   if (account && !equalHex(account.address, manifest.sender)) throw new Error('Signing account does not match manifest.sender')
-  const callAbi = (call: Call): Abi => call.functionName === 'requestEarlyCheck' ? ResolutionOracleAbi : engineAbi
+  const callAbi = (call: Pick<Call, 'functionName'>): Abi => call.functionName === 'rollover' ? RolloverBatcherAbi
+    : call.functionName === 'requestEarlyCheck' ? ResolutionOracleAbi : engineAbi
   const readEngine = (functionName: string, args: readonly unknown[] = [], blockNumber?: bigint) => client.readContract({ address: manifest.engine, abi: engineAbi, functionName, args, blockNumber })
 
   return {
@@ -31,16 +34,23 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       if (await client.getChainId() !== manifest.chainId) throw new Error('RPC chain does not match manifest')
       const block = await client.getBlock({ blockTag: 'latest' })
       const blockNumber = block.number
-      const [engineCode, oracleCode, listingHash, rawListing, halt, risk] = await Promise.all([
+      const [engineCode, oracleCode, listingHash, rawListing, halt, risk, participants, epoch, work, cursor, count] = await Promise.all([
         client.getCode({ address: manifest.engine, blockNumber }),
         client.getCode({ address: manifest.oracle, blockNumber }),
         readEngine('listingHash', [], blockNumber),
         readEngine('listing', [], blockNumber),
         readEngine('getHaltSnapshot', [], blockNumber),
         readEngine('marketRiskView', [], blockNumber),
+        readEngine('participantCount', [], blockNumber),
+        readEngine('epoch', [], blockNumber),
+        readEngine('work', [], blockNumber),
+        readEngine('cursor', [], blockNumber),
+        readEngine('sweepCount', [], blockNumber),
       ])
       if (!engineCode || !equalHex(keccak256(engineCode), manifest.engineCodeHash)) throw new Error('Engine runtime hash mismatch')
       if (!oracleCode || !equalHex(keccak256(oracleCode), manifest.oracleCodeHash)) throw new Error('Oracle runtime hash mismatch')
+      await verifyRolloverHelper(manifest.rolloverHelper, blockNumber,
+        (address, blockNumber) => client.getCode({ address, blockNumber }))
       if (!equalHex(listingHash as Hex, manifest.listingHash)) throw new Error('Listing hash mismatch')
       const listing = rawListing as Listing
       if (!equalHex(listing.marketId, manifest.marketId) || !equalHex(listing.resolutionAuthority, manifest.oracle)) throw new Error('Listing market or oracle mismatch')
@@ -52,11 +62,18 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       if (!equalHex(core.engine, manifest.engine) || !equalHex(core.monitor, listing.monitor)) throw new Error('Registry and engine identity mismatch')
       const sourceState = source as Omit<Snapshot['source'], 'id'>
       if (!equalHex(sourceState.signer, listing.indexSigner) || !equalHex(sourceState.rulesHash, listing.indexRulesHash)) throw new Error('Source differs from immutable listing')
+      if ((await client.getBlock({ blockNumber })).hash !== block.hash) throw new Error('Snapshot block changed')
+      const liquidationRisk = risk as { accountingState: number; liquidationCapLots: bigint; liquidationRemainingLots: bigint }
       return {
         block: blockNumber, timestamp: block.timestamp, halted: (halt as { halted: boolean }).halted,
         scheduledT: listing.scheduledT, monitor: listing.monitor,
         monitorRestricted: (risk as { monitorRestricted: boolean }).monitorRestricted,
         oracleState: resolution.state, source: { ...sourceState, id: listing.indexSourceId },
+        liquidation: { participants: Number(participants), accountingState: liquidationRisk.accountingState,
+          capLots: liquidationRisk.liquidationCapLots, remainingLots: liquidationRisk.liquidationRemainingLots },
+        rollover: { timestamp: block.timestamp, scheduledT: listing.scheduledT, halted: (halt as { halted: boolean }).halted,
+          epochId: (epoch as readonly bigint[])[0], epochEnd: (epoch as readonly bigint[])[2],
+          work: Number(work), cursor: cursor as bigint, count: count as bigint },
       }
     },
     async digest(observation, block) {
@@ -65,6 +82,21 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
     async simulate(call) {
       const { result } = await client.simulateContract({ address: call.target, abi: callAbi(call), functionName: call.functionName, args: call.args, account: manifest.sender, gas: call.gas })
       return result
+    },
+    async estimateGas(call, blockNumber) {
+      if (call.functionName !== 'rollover' || !manifest.rolloverHelper
+        || !equalHex(call.target, manifest.rolloverHelper.address)) throw new Error('Only enrolled rollover batches use dynamic gas estimation')
+      try {
+        return await client.estimateContractGas({ address: call.target, abi: callAbi(call), functionName: call.functionName,
+          args: call.args, account: manifest.sender, blockNumber, gas: BigInt(manifest.rolloverHelper.gasCeiling) })
+      } catch (error) {
+        // Do not turn stale epoch/identity/custom reverts or transport errors into a smaller transaction.
+        if (isBatchGasLimitError(error)) {
+          throw new BatchGasLimitExceeded('Rollover batch estimate exceeds execution gas ceiling', { cause: error })
+        }
+        if (isOpaqueBatchEstimateRevert(error)) throw new BatchEstimateOpaqueRevert('Larger batch has an opaque empty RPC revert; no gas conclusion', { cause: error })
+        throw error
+      }
     },
     async prepare(call) {
       if (!account) throw new Error('Broadcast requires MARKET_OPS_PRIVATE_KEY')
@@ -80,12 +112,7 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       return { rawTransaction, hash: keccak256(rawTransaction) }
     },
     async broadcast(rawTransaction) {
-      try {
-        return await client.sendRawTransaction({ serializedTransaction: rawTransaction })
-      } catch (error) {
-        if (/already known|known transaction|already imported/i.test(String(error))) return keccak256(rawTransaction)
-        throw error
-      }
+      return broadcastTracked(rawTransaction, client)
     },
     async receipt(hash) {
       try {
