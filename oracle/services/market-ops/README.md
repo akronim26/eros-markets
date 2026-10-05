@@ -1,6 +1,6 @@
 # Real-market operations helpers
 
-Local integration tooling for a real, registry-listed `BookRiskEngine`. This package does not deploy contracts, fetch prices, sign INDEX observations, detect early outcomes, or host services. The independent pricefeed implementation is not present in this checkout or its locally available remote branch trees. Live operation remains pending the real deployment, source owner, source rules, externally signed observations, funded accounts and measured gas limits.
+Operations tooling for a real, registry-listed `BookRiskEngine`. The independent INDEX publisher lives in `packages/pricefeed`; this package handles sampling, observation relay, liquidation and authenticated early-check requests. The local fixture orchestration is documented in [LEVERAGE_INTEGRATION.md](../../../docs/integration/LEVERAGE_INTEGRATION.md). Public operation still requires a real deployment, source owner and rules, funded accounts and measured gas limits.
 
 The CLI defaults to simulation. `--broadcast` explicitly enables signing transactions with `MARKET_OPS_PRIVATE_KEY`; its address must equal the manifest sender. Sampler/relay senders are permissionless. Early-check requests require the actual `listing.monitor` key. A relay sender does not need the INDEX source signing key. No keys belong in manifest, incident, envelope or journal files.
 
@@ -19,7 +19,7 @@ oracleCodeHash: keccak256 of its deployed runtime
 sender: dedicated transaction account address
 sampleEveryBlocks: positive decimal string (default "1")
 gas: object containing only measured integer limits, as needed:
-  samplePerp, requestReduceOnly, requestEarlyCheck, submitObservation
+  samplePerp, requestReduceOnly, requestEarlyCheck, submitObservation, liquidate
 ```
 
 Missing gas limits refuse execution, including simulation. Read-only startup checks chain ID, runtime hashes, immutable listing identity, registry engine/monitor and pinned INDEX signer/rules at one block. The ABI is loaded from the repository's existing `artifacts/risk/book-risk-engine-abi.json` using a file URL, which works on Windows and Unix.
@@ -27,6 +27,7 @@ Missing gas limits refuse execution, including simulation. Read-only startup che
 ```sh
 bun src/main.ts sample manifest.json journal.json
 bun src/main.ts sample manifest.json journal.json --broadcast --watch
+bun src/main.ts liquidate manifest.json journal.json --broadcast --watch
 bun src/main.ts early-check manifest.json journal.json incident.json --broadcast --watch
 bun src/main.ts relay manifest.json journal.json envelope.json --broadcast --watch
 ```
@@ -38,6 +39,14 @@ An incident file is `{ "incident": "operator-assigned-unique-incident", "reason"
 An envelope file contains `chainId`, `engine`, `signature` and an `observation` with `marketId`, `sourceId`, `sequence`, `observedAt`, `publishedAt`, `priceWad`, `impactBidWad`, `impactAskWad`, `bidDepthLots`, `askDepthLots`, `sourceRulesHash`. All observation integers are decimal strings; times are Unix seconds, prices WAD, depths lots. The relay verifies source/rules, ordered sequence/time, chain/engine/market domain, the onchain digest and the signature from the immutable source signer. The digest is raw `keccak256(abi.encode(TYPEHASH, fields..., chainId, engine))`, not `personal_sign` or EIP-712. Contract simulation additionally checks depth/impact-mid rules. Delayed observations remain historical; the relay never substitutes current timestamps or a fabricated price.
 
 ## Restart and account ownership
+
+Liquidation checks at most 32 participants per tick with a persistent circular
+cursor. The actual contract simulation includes accrued premium, eligibility, book
+liquidity, reserve cover and pacing. Only productive reductions or authorized
+takeovers are sent. Missing price, healthy accounts and positive equity without
+liquidity produce no work. There is no automatic pair-partner selection. Epoch
+rollover remains a separate operator responsibility. Supply measured `gas.liquidate`
+and a dedicated sender; no public gas calibration is inferred from local fixtures.
 
 Use one durable journal and one dedicated sender across all commands for a market. Only one transaction may be outstanding. Signed transaction bytes and their hash are fsynced to the journal before broadcast. Restart or RPC failure rebroadcasts the same signed bytes; it never prepares a replacement transaction for an unresolved journal entry. Canonical receipts must reach `finalized` before the next action. A reverted transaction stops the tick. A sender with unknown pending transactions is refused.
 

@@ -13,7 +13,7 @@ import { FakeChain, loadRecorded, RECORDED } from './fake'
 
 const rec = loadRecorded()
 const ID = rec.marketId
-const pack = JSON.parse(readFileSync(new URL('../../../listings/example/pack.json', import.meta.url).pathname, 'utf8'))
+const pack = JSON.parse(readFileSync(new URL('../../../listings/example/pack.json', import.meta.url), 'utf8'))
 const panelHash = rec.lastPanelResult.evidenceHash as Hex
 
 let chain: FakeChain

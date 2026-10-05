@@ -2,11 +2,12 @@
 // test/fixtures/injection/classifier-recorded.json, keyed by chunk sha256, for offline replay.
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { CLASSIFIER_MODEL, chunks } from '../src/injection/classifier'
 import { evidenceTexts, loadPrompts } from '../src/prompts'
 import { fixtureSnapshot } from '../test/fixtures/injection/load'
 
-const OUT = new URL('../test/fixtures/injection/classifier-recorded.json', import.meta.url).pathname
+const OUT = fileURLToPath(new URL('../test/fixtures/injection/classifier-recorded.json', import.meta.url))
 const key = process.env.GROQ_API_KEY
 if (!key) throw new Error('set GROQ_API_KEY')
 const prompt = loadPrompts().find((p) => p.category === 'sports')!

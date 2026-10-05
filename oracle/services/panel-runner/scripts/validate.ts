@@ -15,6 +15,7 @@ import { askWatchdogModel, modelSignal, WATCHDOG_MODEL, watchdogCall } from '../
 import { canonicalBytes, evidenceHash, type Snapshot, takeSnapshot } from '@eros-oracle/snapshotter'
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { askModel, askPanel, buildCall, type Category, loadPrompts, type ModelOutcome } from '../src'
 
 // VALIDATION_RUN=crypto-price (ADJ-50): its own sample, panel and quotas, and a cascade. A market counts for the gate
@@ -28,7 +29,7 @@ export const PANEL = CRYPTO
   : ['groq:openai/gpt-oss-120b@2026-10-03', 'nvidia:moonshotai/kimi-k3@2026-10-03', 'aicredits:google/gemini-3.8-flash@2026-10-04']
 const QUOTA: Record<string, number> = CRYPTO ? { train: 15, calibration: 30, holdout: 123 } : { train: 2, calibration: 3, holdout: 3 }
 
-const RUNS = new URL('../../../validation/gate/runs/', import.meta.url).pathname
+const RUNS = fileURLToPath(new URL('../../../validation/gate/runs/', import.meta.url))
 const OUT = join(RUNS, CRYPTO ? 'crypto-price.jsonl' : 'panel.jsonl')
 const SAMPLE = join(RUNS, CRYPTO ? 'crypto-price-sample.jsonl' : 'sample.jsonl')
 const SNAPSHOTS = join(RUNS, 'snapshots')

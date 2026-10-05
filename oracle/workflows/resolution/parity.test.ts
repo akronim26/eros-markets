@@ -22,7 +22,7 @@ test('STATE_L1_PENDING is RState.L1Pending, 3', () => {
   const body = /enum RState \{([^}]*)\}/.exec(types)?.[1]
   expect(body).toBeDefined()
   const members = body!
-    .split('\n')
+    .split(/\r?\n/)
     .map((l) => l.replace(/\/\/.*$/, '').trim().replace(/,$/, ''))
     .filter((m) => m.length > 0)
   expect(members.indexOf('L1Pending')).toBe(3)

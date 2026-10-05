@@ -132,6 +132,7 @@ abstract contract RiskContextPort is RiskPricing, IMarketConfig {
     function _validateRiskProfile(Listing memory marketListing, MarginMath.RiskParams memory params)
         internal
         pure
+        virtual
     {
         if (
             params.deploymentCapX == 0 || params.deploymentCapX > marketListing.deploymentCapX

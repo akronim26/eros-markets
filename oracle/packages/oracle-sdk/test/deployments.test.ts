@@ -3,9 +3,10 @@ import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { contractAddress, DeploymentsError, gasLimit, loadDeployments, loadGas } from '../src/deployments'
 
-const FIXTURE = new URL('./fixtures/deployments.monad-testnet.json', import.meta.url).pathname
+const FIXTURE = fileURLToPath(new URL('./fixtures/deployments.monad-testnet.json', import.meta.url))
 const raw = () => JSON.parse(readFileSync(FIXTURE, 'utf8'))
 function variant(edit: (d: any) => void): string {
   const d = raw()

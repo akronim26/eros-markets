@@ -4,9 +4,10 @@ import { KEYS, modelRequest, parseModel } from '@eros-oracle/oracle-sdk'
 import { canonicalBytes, takeSnapshot } from '@eros-oracle/snapshotter'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { WATCHDOG_MODEL, watchdogCall } from '../src/model'
 
-const ROOT = new URL('../test/fixtures/', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('../test/fixtures/', import.meta.url))
 export const MARKET = {
   id: '0xe085067fb3e1eba632de103ba472329d833cddefdb9296cc70569d9b080d5fcf',
   question: 'Will the home team score more than 2 goals?',

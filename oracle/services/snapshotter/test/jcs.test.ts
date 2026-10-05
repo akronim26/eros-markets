@@ -3,12 +3,13 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { keccak256, stringToBytes } from 'viem'
 import { takeSnapshot } from '../src/fetcher'
 import { canonicalBytes, canonicalize, evidenceHash, JcsError } from '../src/jcs'
 import { startFixture } from './fixture'
 
-const VECTORS = new URL('./vectors/jcs/', import.meta.url).pathname
+const VECTORS = fileURLToPath(new URL('./vectors/jcs/', import.meta.url))
 const hex = (b: Uint8Array) => Buffer.from(b).toString('hex')
 const fromIeee = (h: string) => new DataView(Buffer.from(h.padStart(16, '0'), 'hex').buffer).getFloat64(0)
 
@@ -95,7 +96,7 @@ describe('reference test data', () => {
   }
 
   test('ES6 number serialization: 10,000 lines of the reference file', () => {
-    const lines = readFileSync(join(VECTORS, 'es6-numbers-10k.txt'), 'utf8').split('\n').filter((l) => l !== '')
+    const lines = readFileSync(join(VECTORS, 'es6-numbers-10k.txt'), 'utf8').split(/\r?\n/).filter((l) => l !== '')
     expect(lines.length).toBe(10_000)
     const wrong: string[] = []
     for (const line of lines) {

@@ -4,6 +4,7 @@ import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { type Hex, keccak256 } from 'viem'
 import {
   askWatchdogModel,
@@ -19,7 +20,7 @@ import {
 import type { Proposal } from '../src/types'
 import { event, FakeChain, ID, L1_URL, MARKET, tableFetch } from './fake'
 
-const FIX = new URL('./fixtures/', import.meta.url).pathname
+const FIX = fileURLToPath(new URL('./fixtures/', import.meta.url))
 const snapBytes = (name: string) => readFileSync(join(FIX, 'snapshots', `${name}.json`))
 const snap = (name: string): Snapshot => JSON.parse(snapBytes(name).toString('utf8'))
 const recorded = (name: string) => JSON.parse(readFileSync(join(FIX, 'recorded', `google__gemini-3.8-flash__${name}.json`), 'utf8'))

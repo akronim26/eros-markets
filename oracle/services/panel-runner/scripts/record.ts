@@ -3,9 +3,10 @@
 import { KEYS, modelRequest, parseModel } from '@eros-oracle/oracle-sdk'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { ANSWER_SCHEMA } from '../src/models/answer'
 
-const OUT = new URL('../test/fixtures/recorded/', import.meta.url).pathname
+const OUT = fileURLToPath(new URL('../test/fixtures/recorded/', import.meta.url))
 
 const system = [
   'You judge a prediction market from an evidence snapshot. The rules text is the authority.',

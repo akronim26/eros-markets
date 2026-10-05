@@ -8,20 +8,84 @@ new gate acceptance is inferred. Existing untracked files are preserved.
 
 ## Work ledger
 
+The current reserve-funded leverage extension is documented in
+[LEVERAGE_INTEGRATION.md](LEVERAGE_INTEGRATION.md). It supersedes the original
+single-store deployment sizes and 1x-only constructor restriction below; the dated
+measurements remain evidence for their original source revisions.
+
 | ID | Work | Status |
 | --- | --- | --- |
 | RF-01 | Full atomic factory feasibility, implementation and authorization tests | Done locally; actual listing/deployment estimates remain mandatory |
 | RF-02 | Per-market keeper identity and real-engine gas readiness | Guards and tests done; live runtime enrollment/gas profiles pending |
-| RF-03 | Sampler, signed INDEX delivery boundary and explicit monitor operations | Helpers and tests done; publisher and hosted operations not supplied |
-| RF-04 | Real registry/oracle/book/risk cash lifecycle and failure regressions | 37 local integration tests pass; live lifecycle not performed |
+| RF-03 | Sampler, signed INDEX delivery boundary and explicit monitor operations | Real publisher pipeline and book sampler exercised locally; approved external source/hosted operations pending |
+| RF-04 | Real registry/oracle/book/risk cash lifecycle and failure regressions | 41 local integration tests pass; actual local transactions through keeper/claims; public lifecycle not performed |
 | RF-05 | Enforce registry OI cap and execution-capacity-aware depth | Implemented and regression-tested |
+| RF-06 | Reproducible local stack, source bundle and team read interface | Implemented locally; detailed handoff intentionally uncommitted |
 | RF-LIVE | Correctly authorized testnet factory switch and real-market lifecycle | Blocked by oracle operator access, actual configuration and independent publisher |
+
+## Joined local execution — 2026-10-05
+
+The combined base is `b7b8442` after fast-forwarding the existing pricefeed branch.
+The runner and compatibility changes are included in the RF-06 source checkpoint. Run
+`python scripts/integration/local-stack.py run --keep-running` after installing the
+pinned dependencies using the [committed setup instructions](LEVERAGE_INTEGRATION.md#local-scenario).
+The additional addresses, configuration mapping,
+service access and source-sharing procedure are in the deliberately uncommitted
+root `LOCAL_INTEGRATION_HANDOFF.md`. No private dotenv files are exported.
+
+The successful local sequence uses actual Timelock/registry/factory/oracle engines,
+owner funding, partial fills, cancellation, release/withdrawal, authenticated source
+observations, real book sampling, early terminal resolution, actual keeper transactions
+and fixed-owner cash claims. Buyer/seller terminal payouts are 105/95 fixture tokens.
+The second market remains unhalted. Receipt reconciliation verifies 86 script and
+5 keeper transactions against canonical RPC blocks. Script gas limits remain below
+the configured 30M cap; see the run's receipt audit for exact measurements.
+Pricefeed/sampler receipts are additional.
+
+The final clean run at `tmp/local-integration-verified-20261005/` passes all 19
+orchestration steps and 11 real HTTP interface checks. It audits 101 distinct script,
+keeper and upkeep transactions in total, with a maximum script gas limit of 28,767,604.
+The local read API remains at `http://127.0.0.1:8787`; the committed source lets other
+teams reproduce it without sharing private env files or runtime journals.
+
+Hourly accounting maintenance is part of the joined run, not an assumed external job:
+the local operator calls `beginRollover`, bounded `rollPage(32)` and `finishRollover`.
+Explicit fixture owners batch-cancel stale orders and place fresh POST_ONLY quotes.
+A deliberate hour crossing verifies both markets return to READY and sampling resumes;
+10 additional canonical upkeep transactions cover both markets. Without this job,
+accounting correctly stops new liquidity at the epoch boundary. No READY/pricing guard
+is weakened. Public deployment still needs a real epoch operator and owner-authorized
+liquidity strategy rather than these disposable fixture signers.
+
+Anvil 1.8.3 uses MonadTen execution, 128 KiB runtime limit and a deterministic local
+clock (one-second blocks/timestamp increments, four-block simulated finality).
+Virtual timestamp advances test windows/liveness, not measured public-chain latency.
+Real INDEX availability and valid book PERP samples are checked; mark availability
+still requires its own 900-second basis history. No availability guard is bypassed.
+The local read API offers coherent snapshots, ABI discovery and paginated raw events,
+not a production indexer. Both normal and one-shot runs require a valid book sample.
+
+Fresh validation includes 832 passing risk/book tests under the accepted Prague
+profile, 41 factory/integration tests, 95 keeper tests, 56 oracle SDK tests, 18
+market-operation tests and 249 offline oracle service/workflow tests. Python A/B/
+audit/integration passes 46/156/8/7. Focused pricefeed checks pass 48 tests. Exact
+commands, local harness counts and logs are in the uncommitted handoff.
+
+Two broader-suite limits remain visible: the full risk suite under MonadTen has one
+legacy 10,000-gas assertion failure (11,071 observed), and native-Windows pricefeed
+testing has 75 failures out of 420 on custody/POSIX/process assumptions. Those guards
+are not weakened and a fully green cross-platform release is not claimed.
+
+All source data/evidence/adjudication are controlled fixtures. No supplied public
+private keys or paid-provider credentials were required or consumed. Shared public
+operator configuration still requires actual role checks and real-source approval.
+Root `addresses.md`, public deployments and previous acceptance records are unchanged.
 
 ## Implemented factory design
 
 Preserve `BookRiskEngine` and its inherited constructors. Deploy its pinned creation
-bytecode once in a STOP-prefixed, non-executable code-data contract. A small factory
-copies that code, appends the existing constructor arguments and creates the engine
+bytecode in two STOP-prefixed, non-executable code-data contracts. A small factory
+verifies and joins that code, appends the existing constructor arguments and creates the engine
 atomically inside `MarketRegistry.createMarket`. This is not an upgradeable proxy.
 Every engine retains its own immutable configuration and separately authorized reserve.
 
@@ -39,8 +103,9 @@ PERP depth is unavailable if remaining OI capacity cannot support the full requi
 depth N. This deliberately avoids inventing executable liquidity at the cap; it can
 also exclude potentially safe closing liquidity. The independent INDEX and exactly
 backed bootstrap/reducing trades remain governed by the original rules. The only base
-engine edit makes the internal depth hook virtual; it does not change standalone
-`BookRiskEngine` behavior or its public ABI. No existing deployment is upgraded.
+engine edit in RF-05 made the internal depth hook virtual. The later leverage
+extension adds constructor/profile guards and a ceiling view as documented above.
+No existing deployment is upgraded.
 
 The factory creates a dedicated `CollateralVault` with itself as immutable governor.
 Its only registration path registers engines it has just created for its pinned registry.

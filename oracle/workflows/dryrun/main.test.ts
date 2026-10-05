@@ -105,7 +105,7 @@ test('the dry-run has no EVM client and calls no write (source check)', async ()
 })
 
 test('dry-run and resolution build their node-mode fetch from the same shared function', async () => {
-  const shared = /export const fetchAndEvaluate = (nodeFetch<HTTPResponse>\(.*\))\n/
+  const shared = /export const fetchAndEvaluate = (nodeFetch<HTTPResponse>\(.*\))\r?\n/
   const mine = shared.exec(await Bun.file(new URL('./main.ts', import.meta.url)).text())?.[1]
   const theirs = shared.exec(await Bun.file(new URL('../resolution/main.ts', import.meta.url)).text())?.[1]
   expect(mine).toBeDefined()

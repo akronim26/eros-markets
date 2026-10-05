@@ -4,6 +4,7 @@ node_modules/
 .env
 deployments/dryrun/
 deployments/anvil.json
+/deployments/local-integration.json
 broadcast/**/dry-run/
 broadcast/*/31337/
 workflows/**/out.wasm

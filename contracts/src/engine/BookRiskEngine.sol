@@ -3,6 +3,7 @@ pragma solidity ^0.8.30;
 import {IMarketConfig} from "../interfaces/IMarketConfig.sol";
 import {IBookRiskHooks} from "../interfaces/IBookRiskHooks.sol";
 import {MarginMath} from "../math/MarginMath.sol";
+import {HorizonMath} from "../math/HorizonMath.sol";
 import {OrderAdmissionMath} from "../math/OrderAdmissionMath.sol";
 import {PricingMath} from "../math/PricingMath.sol";
 import {AccountingState, Stage} from "../math/RiskTypes.sol";
@@ -17,6 +18,8 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
     error UnsafeInitialConfiguration();
     error InvalidDeploymentDependency();
     error SameBlockBookSample();
+    error InvalidCalibratedProfile();
+    error ReserveSeedRequired();
 
     struct PendingBookSample {
         BookDepthQuote quote;
@@ -40,8 +43,11 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         RiskAccountingBridge(1e18)
     {
         if (
-            configuration.deploymentCapX != 1 || configuration.fundingEnabled
-                || configuration.maxTraders != 1024 || configuration.maxLiqLotsPerBlock != 0
+            configuration.deploymentCapX == 0 || configuration.deploymentCapX > 5 || configuration.fundingEnabled
+                || configuration.maxTraders != 1024
+                || (configuration.deploymentCapX == 1 && configuration.maxLiqLotsPerBlock != 0)
+                || (configuration.deploymentCapX > 1 && configuration.maxLiqLotsPerBlock == 0)
+                || configuration.maxLiqLotsPerBlock > (1 << 40)
         ) {
             revert UnsafeInitialConfiguration();
         }
@@ -55,6 +61,51 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         parameters.deploymentCapX = 1;
         _initMarket(configuration, parameters);
         _initBook(8);
+    }
+
+    /// @notice A higher listing ceiling is only permission to stage calibration later.
+    /// The initial profile remains uncalibrated 1x and all admissions check actual reserve cover.
+    function activateMarket() public override {
+        if (_listing.deploymentCapX > 1 && reserve.cashQ <= 0) revert ReserveSeedRequired();
+        super.activateMarket();
+    }
+
+    /// @dev Structural/numeric validation, not evidence of empirical calibration. Future or
+    /// expired envelopes remain full backing until both are live at the action's timestamp.
+    function _validateRiskProfile(IMarketConfig.Listing memory listing_, MarginMath.RiskParams memory p)
+        internal
+        pure
+        override
+    {
+        super._validateRiskProfile(listing_, p);
+        if (!p.calibrated) return;
+        if (
+            p.h0Secs > type(uint64).max || p.queueSecs > type(uint64).max
+                || p.absorptionClaimsPerMin == 0 || p.absorptionClaimsPerMin > type(uint128).max
+                || p.epsilonWad == 0 || p.epsilonWad >= 1e18 || p.gammaWad < 1e18
+                || p.gammaWad > type(uint128).max || p.sWad > 1e18 || p.lambdaWadPerClaim > 1e18
+        ) revert InvalidCalibratedProfile();
+        _validateEnvelope(p.realized);
+        _validateEnvelope(p.templateEnv);
+    }
+
+    function _validateEnvelope(HorizonMath.Envelope memory e) private pure {
+        if (
+            e.hSecs.length > 32 || !HorizonMath.isValidEnvelope(e) || e.hSecs[0] == 0
+                || e.validUntil <= e.validFrom || e.sigmaWad[e.sigmaWad.length - 1] > 1e18
+        ) revert InvalidCalibratedProfile();
+    }
+
+    /// @notice Directional ceilings under the active calibration and current price/time gates.
+    /// Position size, IM/MM, orders and reserve coverage can require more collateral.
+    function leverageCaps() external view returns (uint256 longCapX, uint256 shortCapX) {
+        RiskContext memory context = _pricingContext();
+        if (!active || !context.markOk || context.fullBackingByTime || context.halted) return (1, 1);
+        MarginMath.RiskParams memory p = _effectiveParams(context.economicTime);
+        return (
+            MarginMath.directionalCap(p.template, true, p.calibrated, p.deploymentCapX),
+            MarginMath.directionalCap(p.template, false, p.calibrated, p.deploymentCapX)
+        );
     }
 
     function _traderOf(address owner) internal override returns (uint32 traderId) {

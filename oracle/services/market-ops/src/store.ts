@@ -6,7 +6,7 @@ import { bytes32, equalHex } from './schema'
 
 const counter = z.string().regex(/^(0|[1-9][0-9]*)$/)
 const pendingSchema = z.object({
-  action: z.enum(['sample', 'restrict', 'early-check', 'relay']),
+  action: z.enum(['sample', 'restrict', 'early-check', 'relay', 'liquidate']),
   requestId: bytes32,
   hash: bytes32,
   rawTransaction: z.string().regex(/^0x([0-9a-fA-F]{2})+$/).transform(value => value as Hex),
@@ -19,6 +19,7 @@ const journalSchema = z.object({
   version: z.literal(1),
   binding: bytes32,
   lastSampleBlock: counter.optional(),
+  liquidationCursor: z.number().int().min(1).max(1024).optional(),
   pending: pendingSchema.optional(),
   completed: z.array(bytes32),
 }).strict()

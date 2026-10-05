@@ -4,6 +4,7 @@ import { createPublicClient, createWalletClient, defineChain, encodeFunctionData
 import { privateKeyToAccount } from 'viem/accounts'
 import type { Call, Snapshot, Transport } from './operations'
 import { equalHex, type Manifest } from './schema'
+import { broadcastTracked } from './broadcast'
 
 const engineAbi = JSON.parse(readFileSync(new URL('../../../../artifacts/risk/book-risk-engine-abi.json', import.meta.url), 'utf8')).abi as Abi
 
@@ -31,13 +32,14 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       if (await client.getChainId() !== manifest.chainId) throw new Error('RPC chain does not match manifest')
       const block = await client.getBlock({ blockTag: 'latest' })
       const blockNumber = block.number
-      const [engineCode, oracleCode, listingHash, rawListing, halt, risk] = await Promise.all([
+      const [engineCode, oracleCode, listingHash, rawListing, halt, risk, participants] = await Promise.all([
         client.getCode({ address: manifest.engine, blockNumber }),
         client.getCode({ address: manifest.oracle, blockNumber }),
         readEngine('listingHash', [], blockNumber),
         readEngine('listing', [], blockNumber),
         readEngine('getHaltSnapshot', [], blockNumber),
         readEngine('marketRiskView', [], blockNumber),
+        readEngine('participantCount', [], blockNumber),
       ])
       if (!engineCode || !equalHex(keccak256(engineCode), manifest.engineCodeHash)) throw new Error('Engine runtime hash mismatch')
       if (!oracleCode || !equalHex(keccak256(oracleCode), manifest.oracleCodeHash)) throw new Error('Oracle runtime hash mismatch')
@@ -52,11 +54,15 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       if (!equalHex(core.engine, manifest.engine) || !equalHex(core.monitor, listing.monitor)) throw new Error('Registry and engine identity mismatch')
       const sourceState = source as Omit<Snapshot['source'], 'id'>
       if (!equalHex(sourceState.signer, listing.indexSigner) || !equalHex(sourceState.rulesHash, listing.indexRulesHash)) throw new Error('Source differs from immutable listing')
+      if ((await client.getBlock({ blockNumber })).hash !== block.hash) throw new Error('Snapshot block changed')
+      const liquidationRisk = risk as { accountingState: number; liquidationCapLots: bigint; liquidationRemainingLots: bigint }
       return {
         block: blockNumber, timestamp: block.timestamp, halted: (halt as { halted: boolean }).halted,
         scheduledT: listing.scheduledT, monitor: listing.monitor,
         monitorRestricted: (risk as { monitorRestricted: boolean }).monitorRestricted,
         oracleState: resolution.state, source: { ...sourceState, id: listing.indexSourceId },
+        liquidation: { participants: Number(participants), accountingState: liquidationRisk.accountingState,
+          capLots: liquidationRisk.liquidationCapLots, remainingLots: liquidationRisk.liquidationRemainingLots },
       }
     },
     async digest(observation, block) {
@@ -80,12 +86,7 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       return { rawTransaction, hash: keccak256(rawTransaction) }
     },
     async broadcast(rawTransaction) {
-      try {
-        return await client.sendRawTransaction({ serializedTransaction: rawTransaction })
-      } catch (error) {
-        if (/already known|known transaction|already imported/i.test(String(error))) return keccak256(rawTransaction)
-        throw error
-      }
+      return broadcastTracked(rawTransaction, client)
     },
     async receipt(hash) {
       try {
