@@ -42,6 +42,6 @@ For the Privy bounty demo:
 4. Connect an existing wallet from the wallet menu. Switch between the two addresses and show their separate balances and positions.
 5. Reload to check session restoration, then log out to check that account data disappears. Test a rejected signature and wrong-network recovery too.
 
-Wallet creation and actual embedded-wallet contract signing demonstrate Privy beyond authentication. The implementation does not add delegated trading, automation, sponsored gas or wallet export; those would be additional integrations. Full transaction verification requires funded wallets and a market that permits trading.
+Wallet creation and actual embedded-wallet contract signing demonstrate Privy beyond authentication. Wallet export is available for the selected embedded wallet. Optional one-click trading and background protection are implemented but remain disabled until server credentials, separate policies/signers and a supervised worker are configured; see [automation setup](../services/automation/README.md). Gas sponsorship is not implemented. Full transaction verification requires funded wallets and a market that permits trading.
 
 References: [Privy wallet onboarding](https://docs.privy.io/wallets/connectors/usage/connect-or-create), [Privy wagmi wallet selection example](https://docs.privy.io/recipes/lens).

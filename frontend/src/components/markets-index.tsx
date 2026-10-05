@@ -22,7 +22,7 @@ function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now
           <span className="text-2xs text-fg-3">{mk.short} · {mk.resolution === "ORACLE" ? "Eros oracle" : "Manual test authority"}</span>
         </Link>
       </td>
-      <td className="pr-6">{chip ? <Chip tone={chip.tone}>{chip.label}</Chip> : <span className="text-fg-4">reading…</span>}</td>
+      <td className="pr-6">{chip ? <Chip tone={chip.tone}>{chip.label}</Chip> : <span className="text-fg-4">{m.isError ? "Unavailable" : "reading…"}</span>}{m.isError && <p role="alert" className="relative z-10 mt-1 text-xs text-ask">Read failed. <button className="underline" onClick={() => m.refetch()}>Retry</button></p>}</td>
       <td className="tnum pr-6 text-right text-sm">{d?.risk.markAvailable ? <span className="text-signal-text"><Num value={wadTo3(d.risk.markWad)} /></span> : <span className="text-fg-3">unavailable</span>}</td>
       <td className="tnum pr-6 text-right text-sm">{d?.risk.indexAvailable ? <Num value={wadTo3(d.risk.indexWad)} /> : <span className="text-fg-3">unavailable</span>}</td>
       <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? lotsToClaims(d.oiLots) : "—"}</td>
@@ -35,7 +35,8 @@ function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now
 
 /** Below md each market is a stacked framed block: no clipped table on a phone. */
 function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
-  const d = useMarket(mk.engine, block).data;
+  const m = useMarket(mk.engine, block);
+  const d = m.data;
   const chip = d ? chipFor(d) : null;
   const toT = d && now !== undefined ? d.listing.scheduledT - now : undefined;
   const rows: [string, React.ReactNode][] = [
@@ -52,6 +53,7 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
         {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
       </div>
       <p className="px-3 pt-3 text-sm font-semibold leading-snug text-fg">{mk.title}</p>
+      {m.isError && <p role="alert" className="relative z-10 px-3 pt-2 text-xs text-ask">Market read failed. <button className="underline" onClick={() => m.refetch()}>Retry</button></p>}
       <dl className="px-3 py-2">
         {rows.map(([k, v]) => (
           <div key={k} className="hair-b flex justify-between py-1.5 text-xs">
@@ -90,6 +92,7 @@ export function MarketsIndex() {
       <div className="mt-10">
         <SectionRule name="LISTED" index={1} />
       </div>
+      {head.isError && <p role="alert" className="mt-4 text-xs text-ask">Live market data is unavailable. <button className="underline" onClick={() => head.refetch()}>Retry connection</button></p>}
       <ul className="mt-4 flex flex-col gap-3 md:hidden">
         {markets.map((mk) => (
           <MarketCard key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />
@@ -118,6 +121,7 @@ export function MarketsIndex() {
       </div>
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
         {discovery.isError ? "Registry discovery is unavailable. Showing the last known markets." : discovery.data?.indexed ? "Markets are discovered from the registry and verified against their trading contracts." : "Showing configured markets while registry discovery loads. Additional markets appear after their contracts are verified."}
+        {discovery.isError && <> <button className="underline" onClick={() => discovery.refetch()}>Retry discovery</button></>}
       </p>
     </main>
   );

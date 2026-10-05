@@ -20,8 +20,8 @@ function Line({ mk, owner, block }: { mk: MarketManifest; owner: `0x${string}`; 
   return (
     <tr className="hair-b">
       <td className="py-3 pr-6 pl-4"><Link href={`/m/${mk.engine}`} className="text-sm font-medium text-fg hover:underline">{mk.short}</Link></td>
-      <td className="pr-6">{chip && <Chip tone={chip.tone}>{chip.label}</Chip>}</td>
-      <td className="tnum pr-6 text-right text-sm">{p ? `${lotsToClaims(p.positionLots)}` : <span className="text-fg-3">not funded</span>}</td>
+      <td className="pr-6">{chip && <Chip tone={chip.tone}>{chip.label}</Chip>}{(m.isError || t.isError) && <p role="alert" className="mt-1 text-xs text-ask">Read failed. <button className="underline" onClick={() => { void m.refetch(); void t.refetch(); }}>Retry</button></p>}</td>
+      <td className="tnum pr-6 text-right text-sm">{p ? `${lotsToClaims(p.positionLots)}` : <span className="text-fg-3">{t.isError ? "unavailable" : t.data ? "not funded" : "Reading…"}</span>}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? two(qToMoney(p.cashQ).usdc) : "—"}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? `${two(qToMoney(p.e1Q).usdc)} / ${two(qToMoney(p.e0Q).usdc)}` : "—"}</td>
       <td className="pr-6 text-sm text-fg-2">{p ? HEALTH[p.status] : "—"}</td>
@@ -45,7 +45,8 @@ function LoggedOut() {
 }
 
 export function PortfolioPage() {
-  const { markets } = useMarketList();
+  const discovery = useMarketList();
+  const { markets } = discovery;
   const owner = useOwner();
   const head = useHead();
   return (
@@ -57,6 +58,7 @@ export function PortfolioPage() {
       <div className="mt-10">
         <SectionRule name="POSITIONS" index={1} />
       </div>
+      {(head.isError || discovery.isError) && <p role="alert" className="mt-4 text-xs text-ask">Some market data is unavailable. This list may be incomplete. <button className="underline" onClick={() => { void head.refetch(); void discovery.refetch(); }}>Retry</button></p>}
       {!owner.address ? (
         <LoggedOut />
       ) : (

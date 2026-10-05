@@ -47,8 +47,8 @@ export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSn
   }
   const claimable = canClaim(m?.settlement, t?.account?.claimable ?? 0n, t?.account?.claimed ?? false);
   return <div className="mt-auto flex flex-col gap-3 border-t border-line p-3">
-    <div role="tablist" aria-label="Manage collateral" className="grid grid-cols-3 gap-px bg-line">
-      {MODES.map((x) => <button key={x} disabled={busy} role="tab" aria-selected={mode === x} className={cx("label h-9", x === mode ? "bg-press text-fg" : "bg-ground text-fg-3")} onClick={() => { setMode(x); setInput(""); tx.reset(); }}>{x}</button>)}
+    <div role="group" aria-label="Manage collateral" className="grid grid-cols-3 gap-px bg-line">
+      {MODES.map((x) => <button key={x} disabled={busy} aria-pressed={mode === x} className={cx("label h-9", x === mode ? "bg-press text-fg" : "bg-ground text-fg-3")} onClick={() => { setMode(x); setInput(""); tx.reset(); }}>{x}</button>)}
     </div>
     <p className="text-xs leading-relaxed text-fg-3">{mode === "Fund" ? "Add collateral to this market. Free vault funds are used first." : mode === "Release" ? "Move excess market collateral into your free vault balance." : "Send free vault collateral back to your selected wallet."}</p>
     <label className="flex flex-col gap-1.5">

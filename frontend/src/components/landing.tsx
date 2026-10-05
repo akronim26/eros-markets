@@ -60,7 +60,8 @@ function Scramble({ text, className }: { text: string; className?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
   return (
-    <span className={className} onMouseEnter={run} aria-label={text}>
+    <span className={className} onMouseEnter={run}>
+      <span className="sr-only">{text}</span>
       <span aria-hidden>{out}</span>
     </span>
   );

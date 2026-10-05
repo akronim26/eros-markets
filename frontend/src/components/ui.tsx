@@ -1,11 +1,23 @@
 "use client";
 
-import { useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useRef, type ButtonHTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import type { Tone } from "@/lib/enums";
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
 export { cx };
+
+/** Roving keyboard selection for tab lists and button-based radio groups. */
+export function selectionKeys(event: KeyboardEvent<HTMLElement>) {
+  if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
+  const items = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled), [role="radio"]:not(:disabled)')];
+  const index = items.indexOf(document.activeElement as HTMLButtonElement);
+  if (index < 0) return;
+  event.preventDefault();
+  const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : (index + (["ArrowLeft", "ArrowUp"].includes(event.key) ? -1 : 1) + items.length) % items.length;
+  items[next].focus();
+  items[next].click();
+}
 
 /** Tabular number whose changed characters flip into place; unchanged columns never move. */
 export function Num({ value, className }: { value: string; className?: string }) {
@@ -13,7 +25,8 @@ export function Num({ value, className }: { value: string; className?: string })
   const old = prev.current;
   prev.current = value;
   return (
-    <span className={cx("tnum whitespace-nowrap", className)} aria-label={value}>
+    <span className={cx("tnum whitespace-nowrap", className)}>
+      <span className="sr-only">{value}</span>
       {Array.from(value).map((ch, i) => {
         const changed = old !== value && old[i] !== ch;
         return (

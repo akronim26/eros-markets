@@ -12,6 +12,7 @@ import { deployment } from "@/config/deployment";
 
 import { client } from "./public-client";
 import { readAssets } from "./market-discovery";
+import { bookTicks } from "./book-depth";
 export { client };
 
 const erc20Abi = [
@@ -138,16 +139,17 @@ export type Level = { tick: number; bidLots: bigint; askLots: bigint };
 
 /** Gross resting size per tick in a window around the touch (may include lazily dead orders). */
 export function useLadder(engine: Address, block: bigint | undefined, bestBid: number, bestAsk: number, span = 30) {
+  return useQuery(ladderOptions(engine, block, bestBid, bestAsk, span));
+}
+
+export function ladderOptions(engine: Address, block: bigint | undefined, bestBid: number, bestAsk: number, span = 30) {
   const empty = bestBid === 0 && bestAsk === 0;
-  return useQuery({
-    queryKey: ["ladder", engine, block?.toString(), bestBid, bestAsk],
-    enabled: block !== undefined && !empty,
-    placeholderData: (prev) => prev,
+  return {
+    queryKey: ["ladder", engine, block?.toString(), bestBid, bestAsk, span],
+    enabled: block !== undefined,
     queryFn: async (): Promise<Level[]> => {
-      const mid = bestBid && bestAsk ? Math.round((bestBid + bestAsk) / 2) : bestBid || bestAsk;
-      const lo = Math.max(1, mid - span);
-      const hi = Math.min(999, mid + span);
-      const ticks = Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
+      if (empty) return [];
+      const ticks = bookTicks(bestBid, bestAsk, span);
       const res = await client.multicall({
         blockNumber: block,
         allowFailure: false,
@@ -158,7 +160,7 @@ export function useLadder(engine: Address, block: bigint | undefined, bestBid: n
       });
       return ticks.map((tick, i) => ({ tick, bidLots: res[i * 2].size, askLots: res[i * 2 + 1].size }));
     },
-  });
+  };
 }
 
 export type Point = { t: number; v: number; block: bigint };

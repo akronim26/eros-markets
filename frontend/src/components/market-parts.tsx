@@ -54,7 +54,7 @@ export function MarketHeader({ manifest, m }: { manifest: MarketManifest; m?: Ma
               <span className="text-ask">{m.bestAsk ? (m.bestAsk / 1000).toFixed(3) : "—"}</span>
             </span>
           ) : (
-            <Unavailable short="book empty" reason="No resting orders on either side" />
+            <Unavailable short={m ? "book empty" : "reading…"} reason={m ? "No resting orders on either side" : "Waiting for market data"} />
           )}
         </Stat>
         <Stat label="Spread">{spread !== null ? <Num value={(spread / 1000).toFixed(3)} /> : <span className="text-fg-3">—</span>}</Stat>
@@ -137,7 +137,7 @@ export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnap
       <dl className="px-3 py-1">
         <Row k={`Wallet (${t?.assets.symbol ?? deployment.risk.collateralSymbol})`} v={t ? atomsToUsdc(t.wallet, 2) : "—"} />
         <Row k="Vault, free" v={t ? atomsToUsdc(t.free, 2) : "—"} />
-        <Row k="Cash in market" v={p ? qToMoney(p.cashQ).usdc.replace(/(\.\d{2})\d+$/, "$1") : "not funded"} hint="Includes projected funding and premium; may be negative when leveraged" />
+        <Row k="Cash in market" v={p ? qToMoney(p.cashQ).usdc.replace(/(\.\d{2})\d+$/, "$1") : t ? "not funded" : "Reading…"} hint="Includes projected funding and premium; may be negative when leveraged" />
         <Row k="Position" v={p ? `${lotsToClaims(p.positionLots)} ${p.positionLots > 0n ? "YES" : p.positionLots < 0n ? "NO" : ""}` : "—"} />
         <Row k="Value if YES / NO" v={p ? `${qToMoney(p.e1Q).usdc.replace(/(\.\d{2})\d+$/, "$1")} / ${qToMoney(p.e0Q).usdc.replace(/(\.\d{2})\d+$/, "$1")}` : "—"} />
         <Row k="Equity at mark" v={p ? (markOk ? qToMoney(p.markEquityQ).usdc.replace(/(\.\d{2})\d+$/, "$1") : <Unavailable reason="No valid mark" />) : "—"} />
@@ -155,7 +155,7 @@ export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnap
 
 /** Listing facts, addresses and capabilities: what this market is and what it allows. */
 export function MarketInfo({ manifest, m }: { manifest: MarketManifest; m?: MarketSnapshot }) {
-  if (!m) return null;
+  if (!m) return <p role="status" className="p-4 text-sm text-fg-3">Waiting for market details…</p>;
   const l = m.listing;
   return (
     <div className={cx(terminalStyles.details, "grid gap-x-8 px-4 py-2")}>
