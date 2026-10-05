@@ -1,0 +1,19 @@
+
+> eros-markets-frontend@0.1.0 test:integration /Users/phantomxsd/eros-markets/frontend
+> tsx --test tests/integration/*.test.ts
+
+✔ server sends only from the authenticated owner's wallet, with exact order, chain, gas and persisted idempotency (21.490208ms)
+✔ revoked grants, widened policies, stale previews and reversed protection never sign (0.946792ms)
+✔ a triggered rule submits once, records its actual receipt, and never repeats an empty IOC (4.124292ms)
+✔ ambiguous signing blocks duplicate and subsequent sends until reconciliation (1.345708ms)
+✔ reconciliation only releases the wallet after the exact Privy reference has a chain receipt (1.36725ms)
+✔ policy check rejects extra allowances, altered decoded arguments and other chains (11.797125ms)
+✔ capabilities require a matching profile, live ordered envelopes and direction-specific limits (2.029792ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1252.881625

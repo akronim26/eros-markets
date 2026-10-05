@@ -1,0 +1,217 @@
+.diagram {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  margin: 2rem auto 1rem;
+}
+
+.canvas {
+  position: relative;
+  height: 176px;
+}
+
+.connections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.track {
+  stroke: var(--color-fg);
+  stroke-opacity: 0.2;
+  stroke-width: 1;
+  transition: stroke 300ms ease, stroke-opacity 300ms ease;
+}
+
+.port {
+  fill: var(--color-fg-4);
+  transition: fill 300ms ease;
+}
+
+.route[data-highlight="true"] .track {
+  stroke: var(--color-signal);
+  stroke-opacity: 0.8;
+}
+
+.route[data-highlight="true"] .port {
+  fill: var(--color-signal);
+}
+
+.packets {
+  opacity: 0.8;
+  transition: opacity 300ms ease;
+}
+
+.route[data-highlight="true"] .packets {
+  opacity: 1;
+}
+
+.node {
+  position: absolute;
+  z-index: 2;
+  width: clamp(80px, 20%, 136px);
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.node[data-side="left"] { left: 0; }
+.node[data-side="right"] { right: 0; }
+
+.nodeFace {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  width: 100%;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-ground);
+  color: var(--color-fg);
+  font-size: clamp(9px, 1.5vw, 11px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: transform 320ms var(--ease-out-expo), border-color 250ms ease, background-color 250ms ease, box-shadow 320ms var(--ease-out-expo);
+}
+
+.nodeDot {
+  position: absolute;
+  bottom: -2px;
+  left: -2px;
+  width: 4px;
+  height: 4px;
+  background: var(--color-signal);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+
+.node[data-highlight="true"] .nodeFace {
+  border-color: var(--color-signal-text);
+  background: var(--color-panel);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 0 var(--color-line);
+}
+
+.node[data-highlight="true"] .nodeDot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hub {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: clamp(64px, 13.125%, 84px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+
+.hubFace {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-panel);
+  transform: perspective(400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transition: transform 500ms var(--ease-out-expo), border-color 300ms ease, box-shadow 300ms ease;
+}
+
+.mark {
+  width: 56%;
+  height: 56%;
+  transition: transform 450ms var(--ease-out-expo);
+}
+
+.hub:hover .mark { transform: scale(1.06); }
+
+.diagram[data-active="true"] .hubFace,
+.hub:hover .hubFace {
+  border-color: var(--color-signal-text);
+  box-shadow: 0 4px 0 var(--color-line);
+}
+
+.corners {
+  position: absolute;
+  inset: -7px;
+  width: calc(100% + 14px);
+  height: calc(100% + 14px);
+  color: var(--color-signal);
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+.diagram[data-active="true"] .corners { opacity: 1; }
+
+.halo {
+  position: absolute;
+  inset: -7px;
+  border: 1px solid var(--color-signal);
+  opacity: 0;
+  animation: radiate 5.6s linear infinite;
+  pointer-events: none;
+}
+
+.haloDelayed { animation-delay: -2.8s; }
+
+@keyframes radiate {
+  0% { transform: scale(0.98); opacity: 0; }
+  18% { opacity: 0.18; }
+  85%, 100% { transform: scale(1.3); opacity: 0; }
+}
+
+.diagram[data-motion="off"] .halo { animation-play-state: paused; }
+
+.footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 44px;
+}
+
+.caption {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--color-fg-3);
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 220ms ease, transform 300ms var(--ease-out-expo);
+}
+
+.caption[data-visible="true"] { opacity: 1; transform: translateY(0); }
+
+.pause {
+  position: absolute;
+  right: 0;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: var(--color-fg-4);
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.pause:hover { color: var(--color-signal-text); }
+.pause:disabled { opacity: 0.4; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .halo { animation: none; }
+  .nodeFace, .nodeDot, .hubFace, .mark, .caption, .corners, .track, .port, .packets, .pause { transition: none; }
+  .node[data-highlight="true"] .nodeFace, .hubFace, .hub:hover .mark, .caption { transform: none; }
+}

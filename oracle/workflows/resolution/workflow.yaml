@@ -4,7 +4,7 @@ local-sim:
   workflow-artifacts:
     workflow-path: "./main.ts"
     config-path: "./config.local-sim.json"
-    secrets-path: "../secrets.yaml"
+    secrets-path: "../secrets.local-sim.yaml"
 staging:
   user-workflow:
     workflow-name: "eros-resolution-stg"

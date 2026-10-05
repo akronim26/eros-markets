@@ -1,0 +1,46 @@
+{
+  "name": "eros-markets-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "gen:abis": "node scripts/gen-abis.mjs",
+    "automation": "node --env-file=.env.local --import tsx ../services/automation/worker.ts",
+    "test:integration": "tsx --test tests/integration/*.test.ts",
+    "privy:policies": "tsx scripts/privy-policies.ts",
+    "automation:reconcile": "node --env-file=.env.local --import tsx scripts/reconcile-request.ts"
+  },
+  "dependencies": {
+    "@privy-io/node": "0.35.0",
+    "@privy-io/react-auth": "3.47.0",
+    "@privy-io/wagmi": "4.0.18",
+    "@stripe/stripe-js": "1.54.2",
+    "@tanstack/react-query": "5.104.1",
+    "geist": "1.7.2",
+    "lucide-react": "^1.52.0",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "viem": "2.57.2",
+    "wagmi": "3.7.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.10.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "ws@^8.0.0": "8.21.3"
+  }
+}

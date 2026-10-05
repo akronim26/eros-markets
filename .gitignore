@@ -6,3 +6,8 @@
 /tmp/
 __pycache__/
 *.py[cod]
+.playwright-mcp
+
+# Local signing/protection persistence
+frontend/var/
+services/automation/var/

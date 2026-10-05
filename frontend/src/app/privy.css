@@ -1,0 +1,151 @@
+/* Privy's portal lives outside the page shell. Scope the Eros tokens to its stable
+   dialog IDs; avoid generated SDK class names so wallet and verification screens
+   inherit the same palette. Recheck these selectors when upgrading the SDK. */
+#privy-dialog {
+  --privy-color-background: var(--color-ground);
+  --privy-color-background-2: var(--color-hover);
+  --privy-color-background-3: var(--color-press);
+  --privy-color-foreground: var(--color-fg);
+  --privy-color-foreground-2: var(--color-fg-2);
+  --privy-color-foreground-3: var(--color-fg-3);
+  --privy-color-foreground-4: var(--color-line-strong);
+  --privy-color-foreground-accent: var(--color-on-signal);
+  --privy-color-foreground-disabled: var(--color-fg-4);
+  --privy-color-accent: var(--color-signal);
+  --privy-color-accent-light: var(--color-hover);
+  --privy-color-accent-dark: var(--color-signal);
+  --privy-color-accent-darkest: var(--color-line-strong);
+  --privy-color-border-default: var(--color-line-strong);
+  --privy-color-border-hover: var(--color-line-strong);
+  --privy-color-border-focus: var(--color-signal);
+  --privy-color-border-interactive: var(--color-line-strong);
+  --privy-color-background-hover: var(--color-hover);
+  --privy-color-background-clicked: var(--color-press);
+  --privy-color-background-disabled: var(--color-press);
+  --privy-color-icon-default: var(--color-fg);
+  --privy-color-icon-muted: var(--color-fg-3);
+  --privy-color-icon-subtle: var(--color-fg-4);
+  --privy-color-icon-interactive: var(--color-signal-text);
+  --privy-border-radius-xs: 0;
+  --privy-border-radius-sm: 0;
+  --privy-border-radius-md: 0;
+  --privy-border-radius-mdlg: 0;
+  --privy-border-radius-lg: 0;
+  --privy-border-radius-full: 0;
+  --privy-shadow-modal: 6px 6px 0 var(--color-line-strong);
+  --privy-shadow-sheet: 0 -4px 0 var(--color-line-strong);
+  --privy-shadow-focus-ring: 0 0 0 2px var(--color-signal);
+}
+
+#privy-dialog-backdrop {
+  background: rgb(10 10 11 / 40%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+#privy-modal-content {
+  border: 1px solid var(--color-line-strong);
+  border-top: 3px solid var(--color-signal);
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+}
+
+#privy-modal-content :is(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+#privy-modal-content :is(h1, h2, h3, #privy-dialog-title) {
+  font-family: var(--font-pixel);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+}
+
+#privy-modal-content :is(h4, h5, h6) {
+  font-family: var(--font-mono);
+}
+
+#privy-modal-content button.login-method-button,
+#privy-modal-content label:has(> input) {
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-panel);
+  color: var(--color-fg);
+}
+
+#privy-modal-content button.login-method-button {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#privy-modal-content button.login-method-button:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+#privy-modal-content label:has(> input):focus-within {
+  border-color: var(--color-signal);
+  box-shadow: var(--privy-shadow-focus-ring);
+}
+
+#privy-modal-content input::placeholder {
+  color: var(--color-fg-4);
+  opacity: 1;
+}
+
+#privy-modal-content label:has(> input) > button:not(:disabled) {
+  color: var(--color-signal-text);
+}
+
+/* The wallet action follows the site's ink button with an orange icon tile. */
+#privy-modal-content button.login-method-button:has(.lucide-wallet) {
+  background: var(--color-action);
+  color: var(--color-on-action);
+}
+
+#privy-modal-content button.login-method-button:has(.lucide-wallet):hover:not(:disabled) {
+  background: var(--color-action-hover);
+}
+
+#privy-modal-content button.login-method-button > div:has(> .lucide-wallet) {
+  background: var(--color-signal);
+  color: var(--color-on-signal);
+}
+
+/* Recolor only the Google icon's tile, keeping its brand mark intact. */
+#privy-modal-content .login-method-button svg > rect[fill="#F1F2F9"] {
+  fill: var(--color-hover);
+}
+
+#privy-modal-content button[aria-label="close modal"] {
+  padding: 6px;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-ground);
+  opacity: 1;
+}
+
+#privy-modal-content button[aria-label="close modal"]:hover {
+  background: var(--color-hover);
+}
+
+#privy-modal-content :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+}
+
+#privy-modal-content:has(#email-input) #privy-content-footer-container {
+  border-top: 1px solid var(--color-line);
+}
+
+#privy-modal-content #protected-by-privy {
+  color: var(--color-fg-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #privy-dialog *,
+  #privy-dialog-backdrop {
+    transition: none !important;
+  }
+}

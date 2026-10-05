@@ -37,6 +37,7 @@ contracts:
     events:
       - event: MarketListed
       - event: CategorySet
+      - event: FactorySet
   - name: BondTreasury
     abi_file_path: ../abi/BondTreasury.json
     events:
@@ -73,6 +74,42 @@ contracts:
     events:
       - event: PriceRequested
       - event: PricePushed
+  - name: TradingEngine
+    abi_file_path: abis/TradingEngine.json
+    events:
+      - event: AccountRegistered
+      - event: AccountSynced
+      - event: AccountTakenOver
+      - event: AllOrdersCancelled
+      - event: CashAllocated
+      - event: Fill
+      - event: FloorOrdersInvalidated
+      - event: LiquidationOutcome
+      - event: ObservationAccepted
+      - event: OrderCancelled
+      - event: OrderPlaced
+      - event: OrderRejected
+      - event: OrdersInvalidated
+      - event: PairReduction
+      - event: PairedPosting
+      - event: PerpObservationRecorded
+  - name: TradingVault
+    abi_file_path: abis/TradingVault.json
+    events:
+      - event: Allocation
+      - event: Deposit
+      - event: Escrowed
+      - event: FeesPaid
+      - event: FeesReclassified
+      - event: KeeperFeeAssigned
+      - event: Paid
+      - event: Released
+  - name: TradingFactory
+    events:
+      - event: "MarketDeployed(bytes32 indexed marketId, address indexed engine, address indexed vault, bytes32 listingHash)"
+  - name: CollateralToken
+    events:
+      - event: "Transfer(address indexed from, address indexed to, uint256 value)"
 chains:
   - id: 143 # Monad mainnet (HyperSync https://monad.hypersync.xyz)
     start_block: ${ENVIO_START_BLOCK}
@@ -89,3 +126,13 @@ chains:
         address: "${ENVIO_OOV3_ADDRESS}"
       - name: KeystoneForwarder
         address: "${ENVIO_FORWARDER_ADDRESS}" # the production KeystoneForwarder (reports from the DON)
+
+      # Discovered from registry/factory events starting at ENVIO_START_BLOCK.
+      - name: TradingEngine
+        address: []
+      - name: TradingVault
+        address: []
+      - name: TradingFactory
+        address: []
+      - name: CollateralToken
+        address: []

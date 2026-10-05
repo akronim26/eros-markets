@@ -1,0 +1,240 @@
+@import "tailwindcss";
+@import "./privy.css";
+
+/*
+ * Eros Markets — industrial light and dark themes.
+ * Brand: Ink #0A0A0B, Ivory #F2F1EC, Signal #FF5A36. Ivory dot-grid ground, hard 1px Ink frames,
+ * Geist Pixel display, Geist Mono for labels and data. Zero radius everywhere.
+ */
+@theme {
+  --color-ground: #f2f1ec; /* Ivory: page ground */
+  --color-panel: #f7f6f2; /* raised panel inside a frame */
+  --color-hover: #e9e7e0;
+  --color-press: #dfdcd3;
+  --color-ink: #0a0a0b; /* frames, text, inverted panels */
+  --color-ink-2: #18181a; /* hover on inverted panels */
+  --color-fg: #0a0a0b; /* 17.5:1 */
+  --color-fg-2: #3d3b37; /* 9.9:1 */
+  --color-fg-3: #57544e; /* 6.7:1 */
+  --color-fg-4: #6b6862; /* 4.9:1 — axis ticks, placeholders */
+  --color-ivory: #f2f1ec; /* text on Ink */
+  --color-ivory-3: #a8a59d; /* secondary text on Ink, 8.1:1 */
+  --color-line: #d2cec5; /* inner rules */
+  --color-line-strong: #0a0a0b; /* frames */
+  --color-dot: #c9c5bb; /* dot grid */
+  --color-signal: #ff5a36; /* mark price, primary action, live risk — fills and large type */
+  --color-signal-text: #c2401c; /* small Signal text on Ivory, 4.6:1 */
+  --color-on-signal: #0a0a0b; /* 6.4:1 on Signal */
+  --color-bid: #17784e; /* side and P&L only */
+  --color-ask: #b02a45; /* side and P&L only */
+  --color-action: #0a0a0b;
+  --color-action-hover: #18181a;
+  --color-on-action: #f2f1ec;
+  --color-on-bid: #f2f1ec;
+  --color-on-ask: #f2f1ec;
+
+  --font-sans: var(--font-geist-mono), ui-monospace, monospace;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-pixel: var(--font-geist-pixel-grid), var(--font-geist-mono), monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
+  --radius-full: 0;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-theme="dark"] {
+  --color-ground: #101112;
+  --color-panel: #191a1b;
+  --color-hover: #252729;
+  --color-press: #303235;
+  --color-fg: #f2f1ec;
+  --color-fg-2: #d2d0c9;
+  --color-fg-3: #aaa8a0;
+  --color-fg-4: #96938b;
+  --color-line: #353739;
+  --color-line-strong: #626461;
+  --color-dot: #2b2d2e;
+  --color-signal-text: #ff795b;
+  --color-bid: #66d8a2;
+  --color-ask: #ff8096;
+  --color-action: #f2f1ec;
+  --color-action-hover: #dcdad2;
+  --color-on-action: #0a0a0b;
+  --color-on-bid: #0a0a0b;
+  --color-on-ask: #0a0a0b;
+}
+
+.brand-image { display: inline-grid; flex-shrink: 0; }
+.brand-image img { grid-area: 1 / 1; width: 100%; height: 100%; transition: opacity 180ms ease; }
+.brand-dark { opacity: 0; }
+html[data-theme="dark"] .brand-light { opacity: 0; }
+html[data-theme="dark"] .brand-dark { opacity: 1; }
+
+@layer base {
+  /* Brief color-only transitions preserve each component's own motion and layout. */
+  html[data-theme-transition],
+  html[data-theme-transition] *,
+  html[data-theme-transition] *::before,
+  html[data-theme-transition] *::after {
+    transition-property: background-color, color, border-color, box-shadow, fill, stroke;
+    transition-duration: 180ms;
+    transition-timing-function: ease;
+  }
+
+  /* No rounded corners anywhere, third-party UI included. */
+  *,
+  *::before,
+  *::after {
+    border-radius: 0 !important;
+  }
+
+  html {
+    color-scheme: light;
+    background: var(--color-ground);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* The ground is a dot grid, as on an engineering sheet. */
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-ground);
+    background-image: radial-gradient(var(--color-dot) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    background-position: 11px 11px;
+  }
+
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-on-signal);
+  }
+
+  input,
+  textarea,
+  select {
+    caret-color: var(--color-signal);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+  }
+
+  a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-fg-4) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-fg-4);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .hair-b {
+    box-shadow: inset 0 -1px 0 var(--color-line);
+  }
+  /* A real border, not an inset shadow: child backgrounds must never paint over the frame. */
+  .frame {
+    border: 1px solid var(--color-line-strong);
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pixel {
+    font-family: var(--font-pixel);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* A changed digit flips into place (150 ms); columns never move. */
+@keyframes digit-flip {
+  from {
+    transform: translateY(-40%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.digit-new {
+  display: inline-block;
+  animation: digit-flip 150ms var(--ease-out-expo);
+}
+
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  animation: marquee 40s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; }
+  .digit-new,
+  .caret::after,
+  .marquee {
+    animation: none;
+  }
+}
