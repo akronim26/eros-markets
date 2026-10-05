@@ -1,0 +1,14 @@
+bun test v1.3.13 (bf2e2cec)
+
+services/keeper/test/fork/scenarios.test.ts:
+(pass) keeper on a local deploy > L1 path: halt, request, assert, finalize → Final YES (ASSERTED_TRUE) [12104.82ms]
+(pass) keeper on a local deploy > rejection: dispute, sync, DVM says false, finalize → Review; open at retryOpensAt [14191.85ms]
+(pass) keeper on a local deploy > no answer: request, escalate, open, then void at the deadline → Final INVALID (VOID_DEADLINE) [14159.55ms]
+(pass) keeper on a local deploy > void at the deadline with a disputed assertion the DVM never answers → Final INVALID, bond stuck [15164.55ms]
+(pass) keeper on a local deploy > two instances, the second offset (production): each job is sent once, the other sees it stale [16703.84ms]
+(pass) keeper on a local deploy > two instances with no offset: duplicates may both land, as no-ops, never reverts [14333.64ms]
+
+ 6 pass
+ 0 fail
+ 183 expect() calls
+Ran 6 tests across 1 file. [151.47s]

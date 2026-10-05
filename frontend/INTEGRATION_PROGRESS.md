@@ -84,3 +84,34 @@ Each step records implementation, commands/results, and remaining dependencies b
 - Optional server signing, worker and recovery instructions: [automation README](../services/automation/README.md).
 
 **Implementation and local verification are complete. The project is not yet a fully live trading demo.** Remaining external work is operator activation/funding/INDEX publication, an actual oracle-backed market deployment, approved leverage calibration, and user-involved Privy wallet/signing checks. Optional delegation additionally requires server credentials, separate real policies/signers and a supervised worker. The provided App ID and Envio token are already in use and do not need to be supplied again.
+
+## CRE service verification — 6 October 2026
+
+- Found the old CRE listener repeatedly exceeding Monad's 100-block log limit.
+  Replaced it with bounded finalized-log polling, a persistent checkpoint/queue,
+  and real CRE CLI execution per request. The service now runs from this checkout;
+  it remains caught up after a graceful restart. Existing keeper/panel services
+  were preserved.
+- Removed the unused SportsData-secret requirement from the public-data local
+  simulation target. The configured relayer is authorized and funded.
+- A fresh actual CLI simulation fetched the MLB API and delivered an accepted
+  report to deployed contract code on an isolated Monad fork. Assertion, liveness
+  and final YES settlement with claims enabled passed. These were fork-only
+  transactions against the deployed test engine, not public trader payouts.
+- First-party TypeScript tests: **555 passed**. Local service lifecycle tests:
+  **14 passed**. Oracle contract suites: **39 passed** under pinned Foundry 1.8.3,
+  whose aggregate reports **342 tests**, with all named invariants passing.
+  Real engine/factory/oracle tests under Monad execution rules: **37 passed**.
+  Frontend **28 + 7** and indexer **38** tests pass again; frontend typecheck passes.
+- Fixed macOS path and UMA-artifact test setup, and keeper fixture enrollment
+  before a market exists. Engine identity checks remain enforced.
+- The current public registry still uses the test stub factory. A live watchdog
+  process was not found. Live real-engine activation and the earlier optional
+  Privy delegation dependencies remain outstanding.
+- The bounty's CLI-simulation route does not need Chainlink DON deployment
+  approval. The required submission video still needs to be recorded/verified;
+  unattended operation also needs an always-on host.
+
+Full commands, public-read checks, limitations and logs:
+[CRE verification report](../docs_oracle/evidence/hack-verification-2026-10-06/README.md).
+Repeat the isolated lifecycle with `cd oracle/e2e && bun src/verify-cre-fork.ts`.

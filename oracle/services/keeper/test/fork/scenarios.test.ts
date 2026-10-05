@@ -44,6 +44,7 @@ type Instance = {
 
 let s: Stack
 let base: Hex
+let engineRuntimeCodehash: Hex
 
 /** Wired as main.ts does, with a fresh funded key. */
 async function instance(delayMs = 0): Promise<Instance> {
@@ -51,14 +52,11 @@ async function instance(delayMs = 0): Promise<Instance> {
   const address = privateKeyToAccount(key).address
   await fund(s, address)
   const registry = s.deployments.contracts.MarketRegistry.address
-  const market = await s.pc.readContract({ address: registry, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [s.marketId] })
-  const runtime = await s.pc.getCode({ address: market.engine })
-  if (!runtime || runtime === '0x') throw new Error('local fixture engine has no runtime code')
   const engineIdentities = {
     version: 1 as const,
     chainId: s.deployments.chainId,
     registry,
-    profiles: [{ kind: 'stub' as const, runtimeCodehash: keccak256(runtime) }],
+    profiles: [{ kind: 'stub' as const, runtimeCodehash: engineRuntimeCodehash }],
   }
   const chain = viemChain({ rpcUrl: s.rpcUrl, privateKey: key, deployments: s.deployments, engineIdentities })
   const sent: Instance['sent'] = []
@@ -131,6 +129,17 @@ async function toAsserted(k: Instance, outcome: 1 | 2 = YES): Promise<Hex> {
 
 beforeAll(async () => {
   s = await deployStack(20_000 + (process.pid % 20_000))
+  // Instances start before each scenario lists its market. Derive the approved
+  // runtime from a temporary real fixture, then restore the unlisted baseline.
+  // All local stubs share this factory immutable; the keeper still checks each
+  // subsequently listed engine against this hash before sending.
+  const unlisted = await snapshot(s)
+  const id = await listExample(s)
+  const market = await s.pc.readContract({ address: s.deployments.contracts.MarketRegistry.address, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [id] })
+  const runtime = await s.pc.getCode({ address: market.engine })
+  if (!runtime || runtime === '0x') throw new Error('local fixture engine has no runtime code')
+  engineRuntimeCodehash = keccak256(runtime)
+  await revertTo(s, unlisted)
   base = await snapshot(s)
 }, DEPLOY_MS)
 

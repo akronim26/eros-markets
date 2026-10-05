@@ -1,0 +1,579 @@
+Compiling 211 files with Solc 0.8.33
+Solc 0.8.33 finished in 40.42s
+Compiler run successful with warnings:
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+  --> lib/solady/src/accounts/Receiver.sol:36:5:
+   |
+36 |     modifier receiverFallback() virtual {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+   --> lib/solady/src/auth/EnumerableRoles.sol:262:5:
+    |
+262 |     modifier onlyRole(uint256 role) virtual {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+   --> lib/solady/src/auth/EnumerableRoles.sol:269:5:
+    |
+269 |     modifier onlyRoles(bytes memory encodedRoles) virtual {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+   --> lib/solady/src/auth/EnumerableRoles.sol:275:5:
+    |
+275 |     modifier onlyOwnerOrRole(uint256 role) virtual {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+   --> lib/solady/src/auth/EnumerableRoles.sol:284:5:
+    |
+284 |     modifier onlyOwnerOrRoles(bytes memory encodedRoles) virtual {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+   --> lib/solady/src/auth/Ownable.sol:274:5:
+    |
+274 |     modifier onlyOwner() virtual {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+  --> lib/solady/src/utils/ReentrancyGuard.sol:28:5:
+   |
+28 |     modifier nonReentrant() virtual {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (8429): Virtual modifiers are deprecated and scheduled for removal.
+  --> lib/solady/src/utils/ReentrancyGuard.sol:45:5:
+   |
+45 |     modifier nonReadReentrant() virtual {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2519): This declaration shadows an existing declaration.
+   --> test/unit/RegistryCreateMarket.t.sol:223:13:
+    |
+223 |             uint256 snap = vm.snapshotState();
+    |             ^^^^^^^^^^^^
+Note: The shadowed declaration is here:
+   --> test/unit/RegistryCreateMarket.t.sol:120:9:
+    |
+120 |         uint256 snap = vm.snapshotState();
+    |         ^^^^^^^^^^^^
+
+Warning (4591): There are more than 256 warnings. Ignoring the rest.
+
+Ran 5 tests for test/vectors/Constants.t.sol:ConstantsTest
+[PASS] test_getL1JobSelector() (gas: 272)
+[PASS] test_l1PendingIsThree() (gas: 367)
+[PASS] test_receiverInterfaceId() (gas: 400)
+[PASS] test_resolutionRequestedTopic() (gas: 223)
+[PASS] test_typehashes() (gas: 309636)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 8.47ms (1.95ms CPU time)
+
+Ran 3 tests for test/unit/ErosSandboxOracle.t.sol:ErosSandboxOracleTest
+[PASS] test_answer() (gas: 1238422)
+[PASS] test_request() (gas: 436709)
+[PASS] test_requester() (gas: 106362)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 2.77ms (1.81ms CPU time)
+
+Ran 11 tests for ../contracts/test/risk/B/B019.t.sol:B019Test
+[PASS] test_boundsAndAddresses() (gas: 172090)
+[PASS] test_calibrationVersionedAtEpoch() (gas: 2336757)
+[PASS] test_cutoffPort() (gas: 1360341)
+[PASS] test_fallbackRuleFixed() (gas: 68392)
+[PASS] test_listingHorizonGate() (gas: 78586)
+[PASS] test_oracleCannotRewriteRulesOrCalibration() (gas: 1411904)
+[PASS] test_outcomeMappingNeverCasts() (gas: 1397726)
+[PASS] test_releaseDecision() (gas: 9781536)
+[PASS] test_resolutionAbiMatchesSpec() (gas: 654)
+[PASS] test_validListingInitializesOnce() (gas: 1566876)
+[PASS] test_wrongRoleCannotChooseOutcome() (gas: 1395588)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 12.52ms (6.64ms CPU time)
+
+Ran 5 tests for test/unit/Mocks.t.sol:MocksTest
+[PASS] test_engine() (gas: 7836530)
+[PASS] test_factory() (gas: 9233852)
+[PASS] test_oracleView() (gas: 3433221)
+[PASS] test_treasury_commitments() (gas: 530766)
+[PASS] test_venue() (gas: 8688033)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 6.17ms (5.63ms CPU time)
+
+Ran 4 tests for test/unit/OracleEip712.t.sol:OracleEip712Test
+[PASS] test_digests() (gas: 1916883)
+[PASS] test_domain() (gas: 4535234)
+[PASS] test_signedExamples() (gas: 1568701)
+[PASS] test_viewsAreWhatTheOracleVerifies() (gas: 8599440)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 37.35ms (27.36ms CPU time)
+
+Ran 2 tests for test/vectors/ClaimVectors.t.sol:ClaimVectorsTest
+[PASS] test_claimVectors() (gas: 13096751)
+[PASS] test_exampleRendersAsExpected() (gas: 146849)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 43.95ms (38.79ms CPU time)
+
+Ran 7 tests for test/unit/BondMath.t.sol:BondMathTest
+[PASS] testFuzz_bond_ceilNeverUnderSizes(uint64,uint16) (runs: 1000, μ: 1577, ~: 1610)
+[PASS] testFuzz_bond_floorsAndMonotone(uint64,uint64,uint16,uint64,uint64) (runs: 1000, μ: 2511, ~: 2512)
+[PASS] testFuzz_voidBound_monotoneInEachInput((bool,uint32,uint32,uint64,uint8,uint32,uint32,uint32,uint32),uint8,uint32) (runs: 1000, μ: 4304, ~: 4341)
+[PASS] test_bond() (gas: 14968)
+[PASS] test_liveness() (gas: 8456)
+[PASS] test_voidBound() (gas: 36400)
+[PASS] test_watchdogFreshness() (gas: 2111)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 76.49ms (70.96ms CPU time)
+
+Ran 5 tests for test/seam/Seam.t.sol:SeamTest
+[PASS] test_conflictingDeliveryRevertsTheOracle() (gas: 22478502)
+[PASS] test_earlyInvalidPendingUntilTCapture() (gas: 22668748)
+[PASS] test_earlyYesClaimableBeforeT() (gas: 22863479)
+[PASS] test_engineTrustsOnlyTheOracle() (gas: 20118732)
+[PASS] test_lateScheduledHaltIsAtT() (gas: 20494256)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 70.86ms (62.64ms CPU time)
+
+Ran 4 tests for test/unit/SigLib.t.sol:SigLibTest
+[PASS] test_committee_accepted() (gas: 277510)
+[PASS] test_committee_failureModes() (gas: 424565)
+[PASS] test_digests() (gas: 24926)
+[PASS] test_panelSignature() (gas: 46802)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 5.81ms (5.45ms CPU time)
+
+Ran 7 tests for test/unit/OraclePanel.t.sol:OraclePanelTest
+[PASS] test_earlyCheck() (gas: 17896766)
+[PASS] test_earlyPanel() (gas: 24376046)
+[PASS] test_early_committeeHaltsThenRejectionWaitsForT() (gas: 6041655)
+[PASS] test_gate() (gas: 53697076)
+[PASS] test_gateHashIsTheMarkets() (gas: 3744423)
+[PASS] test_l2Routing() (gas: 18974399)
+[PASS] test_panel_rejections() (gas: 8984729)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 187.03ms (177.17ms CPU time)
+
+Ran 12 tests for /Users/phantomxsd/eros-markets/contracts/test/math/B/B011.t.sol:B011Test
+[PASS] testFuzz_imMonotoneAndBounded(uint40,uint40,bool,uint64,uint32) (runs: 1000, μ: 25860, ~: 27775)
+[PASS] test_directFiveXLong() (gas: 13987)
+[PASS] test_expiredEnvelopeIsFullBacking() (gas: 9660)
+[PASS] test_flatIsZero() (gas: 5755)
+[PASS] test_longWith120IsHealthyAt5x() (gas: 16084)
+[PASS] test_missingCalibrationIs1x() (gas: 3705)
+[PASS] test_negativeEquityNeverDivides() (gas: 15708)
+[PASS] test_oneXUsesExactEndpoints() (gas: 7790)
+[PASS] test_referenceGrid() (gas: 69171)
+[PASS] test_short80Fails100Passes() (gas: 17617)
+[PASS] test_shortIm95894() (gas: 14077)
+[PASS] test_templateCaps() (gas: 2315)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 188.63ms (183.12ms CPU time)
+
+Ran 16 tests for test/unit/StubEngine.t.sol:StubEngineTest
+[PASS] test_errorSelectorsMatchTheRealEngine() (gas: 566)
+[PASS] test_factory() (gas: 4225)
+[PASS] test_fixture_conflictingOutcome() (gas: 190563)
+[PASS] test_fixture_earlyBinaryClaimableBeforeT() (gas: 141355)
+[PASS] test_fixture_earlyHalt() (gas: 121352)
+[PASS] test_fixture_earlyInvalidWaitsForT() (gas: 166594)
+[PASS] test_fixture_failedDeliveryLeavesStateRetryable() (gas: 180677)
+[PASS] test_fixture_invalidThenBinaryConflicts() (gas: 188636)
+[PASS] test_fixture_sameOutcomeRepeat() (gas: 170210)
+[PASS] test_fixture_scheduledLateKeeper() (gas: 116832)
+[PASS] test_fixture_settleBeforeHalt() (gas: 163801)
+[PASS] test_fixture_unauthorizedCaller() (gas: 258299)
+[PASS] test_haltTiming() (gas: 386474)
+[PASS] test_listing() (gas: 5516787)
+[PASS] test_monitorFlag() (gas: 107327)
+[PASS] test_onlyZeroOrOneY() (gas: 114543)
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 2.89ms (1.88ms CPU time)
+
+Ran 2 tests for test/unit/TestUSDC.t.sol:TestUSDCTest
+[PASS] test_refusesMainnet() (gas: 3774)
+[PASS] test_token() (gas: 176308)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 395.17µs (309.75µs CPU time)
+
+Ran 4 tests for test/unit/TimelockRecipe.t.sol:TimelockRecipeTest
+[PASS] test_cancel() (gas: 177315)
+[PASS] test_encodingMatchesTheCastRecipe() (gas: 18972)
+[PASS] test_recipe() (gas: 372818)
+[PASS] test_rolesOnlyThroughTheTimelock() (gas: 152827)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 1.59ms (516.50µs CPU time)
+
+Ran 6 tests for test/unit/OracleCommitteeSigs.t.sol:OracleCommitteeSigsTest
+[PASS] test_acceptedSignatureForms() (gas: 9140370)
+[PASS] test_afterRejectedEarlyProposal() (gas: 7296506)
+[PASS] test_erc1271Member() (gas: 6090806)
+[PASS] test_payloadRejections() (gas: 19151075)
+[PASS] test_signatureRejections() (gas: 34319860)
+[PASS] test_trustSets() (gas: 10433011)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 156.43ms (160.55ms CPU time)
+
+Ran 10 tests for test/unit/OracleAssertions.t.sol:OracleAssertionsTest
+[PASS] test_afterFinal_nothingChanges() (gas: 5961980)
+[PASS] test_assert() (gas: 32574268)
+[PASS] test_finalize() (gas: 44230625)
+[PASS] test_liveness() (gas: 11653814)
+[PASS] test_permissionless() (gas: 16996534)
+[PASS] test_reject() (gas: 26846582)
+[PASS] test_sync_disputed() (gas: 9913056)
+[PASS] test_views() (gas: 4673291)
+[PASS] test_void() (gas: 25320848)
+[PASS] test_void_livePermissionlessBooksNothing() (gas: 5604760)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 199.36ms (199.30ms CPU time)
+
+Ran 4 tests for test/unit/KeeperRouter.t.sol:KeeperRouterTest
+[PASS] test_assertMany() (gas: 18093549)
+[PASS] test_constructor() (gas: 11285)
+[PASS] test_finalizeMany() (gas: 26247462)
+[PASS] test_haltAndRequest() (gas: 8356001)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 39.11ms (40.02ms CPU time)
+
+Ran 22 tests for test/unit/OracleTrustSets.t.sol:OracleTrustSetsTest
+[PASS] test_activate() (gas: 1484878)
+[PASS] test_constructor() (gas: 287661)
+[PASS] test_create_code1_forwarder() (gas: 68364)
+[PASS] test_create_code2_productionNeedsWorkflowId() (gas: 424396)
+[PASS] test_create_code3_productionNeedsOwner() (gas: 70477)
+[PASS] test_create_code4_attestor() (gas: 68905)
+[PASS] test_create_code5_committee() (gas: 228977)
+[PASS] test_create_code6_threshold() (gas: 439359)
+[PASS] test_create_code7_watchdog() (gas: 71243)
+[PASS] test_create_code8_venue() (gas: 71357)
+[PASS] test_create_code9_currency() (gas: 929768)
+[PASS] test_create_governanceOnly() (gas: 175945)
+[PASS] test_create_storesAndCounts() (gas: 720259)
+[PASS] test_heartbeat() (gas: 1254982)
+[PASS] test_initResolution() (gas: 302912)
+[PASS] test_revokeAttestor() (gas: 408418)
+[PASS] test_revokeCommitteeMember() (gas: 459278)
+[PASS] test_revokeWatchdog() (gas: 409258)
+[PASS] test_revokeWorkflowId() (gas: 1243680)
+[PASS] test_revoke_access() (gas: 817361)
+[PASS] test_unknownSetReadsEmpty() (gas: 41309)
+[PASS] test_watchdogOf_pinnedSetOnly() (gas: 586222)
+Suite result: ok. 22 passed; 0 failed; 0 skipped; finished in 7.77ms (5.73ms CPU time)
+
+Ran 29 tests for test/gas/OracleGas.t.sol:OracleGasTest
+[PASS] test_gas_assertProposal() (gas: 1909650)
+[PASS] test_gas_assertProposal_maxClaim() (gas: 2236378)
+[PASS] test_gas_closeDispute() (gas: 1341788)
+[PASS] test_gas_createMarket() (gas: 10792681)
+[PASS] test_gas_createMarket_realEngine() (gas: 26705388)
+[PASS] test_gas_disputeViaVenue() (gas: 1445770)
+[PASS] test_gas_escalateToL2() (gas: 1093879)
+[PASS] test_gas_expireEarly() (gas: 1056596)
+[PASS] test_gas_finalizeMany_four() (gas: 1839242)
+[PASS] test_gas_finalizeMany_one() (gas: 1231596)
+[PASS] test_gas_finalizeMarket() (gas: 1303922)
+[PASS] test_gas_finalizeMarket_realEngine() (gas: 1310660)
+[PASS] test_gas_haltScheduled() (gas: 1519753)
+[PASS] test_gas_haltScheduled_realEngine() (gas: 2029910)
+[PASS] test_gas_onReport() (gas: 1202189)
+[PASS] test_gas_onReport_viaForwarder() (gas: 1246457)
+[PASS] test_gas_openAfterDeadline() (gas: 1062634)
+[PASS] test_gas_requestResolution() (gas: 1096325)
+[PASS] test_gas_skim() (gas: 1047024)
+[PASS] test_gas_submitPanelResult_autoPropose() (gas: 1557900)
+[PASS] test_gas_submitPanelResult_earlyNone() (gas: 1300299)
+[PASS] test_gas_submitPanelResult_earlyReview() (gas: 1309446)
+[PASS] test_gas_submitPanelResult_review() (gas: 1325894)
+[PASS] test_gas_submitReviewedProposal_early() (gas: 1715847)
+[PASS] test_gas_submitReviewedProposal_review() (gas: 1522992)
+[PASS] test_gas_syncAssertion() (gas: 1065270)
+[PASS] test_gas_voidMarket() (gas: 1160308)
+[PASS] test_gas_voidMarket_stuck() (gas: 1235936)
+[PASS] test_gas_watchdogHeartbeat() (gas: 1028960)
+Suite result: ok. 29 passed; 0 failed; 0 skipped; finished in 215.69ms (64.97ms CPU time)
+
+Ran 1 test for test/vectors/PanelSigVectors.t.sol:PanelSigVectorsTest
+[PASS] test_runnerSignaturesAccepted() (gas: 167520)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 3.27ms (3.16ms CPU time)
+
+Ran 5 tests for test/unit/OraclePanelSigs.t.sol:OraclePanelSigsTest
+[PASS] test_gateRejections() (gas: 31228471)
+[PASS] test_payloadRejections() (gas: 18672439)
+[PASS] test_signatureRejections() (gas: 19254510)
+[PASS] test_trustSets() (gas: 32646884)
+[PASS] test_wrongState() (gas: 21710284)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 118.90ms (114.69ms CPU time)
+
+Ran 9 tests for test/unit/RegistryCreateMarket.t.sol:RegistryCreateMarketTest
+[PASS] test_duplicateAfterListing() (gas: 4262144)
+[PASS] test_failedListingLeavesNothingBehind() (gas: 498180)
+[PASS] test_listingRefusals() (gas: 11346285)
+[PASS] test_listsThroughStubMarketFactory() (gas: 3702705)
+[PASS] test_noFeedMarketStoresHashOfZeroSpec() (gas: 3956210)
+[PASS] test_roundTrip() (gas: 25643011)
+[PASS] test_rulesStillApply() (gas: 248122)
+[PASS] test_setFactoryAffectsOnlyLaterListings() (gas: 11078654)
+[PASS] test_unlistedIdReadsEmpty() (gas: 163159)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 52.80ms (50.73ms CPU time)
+
+Ran 7 tests for test/unit/OracleGroups.t.sol:OracleGroupsTest
+[PASS] test_conflict() (gas: 30735398)
+[PASS] test_finalYes() (gas: 11417421)
+[PASS] test_groupedListingAccepted() (gas: 3795381)
+[PASS] test_lock() (gas: 36165307)
+[PASS] test_lockRelease() (gas: 28457544)
+[PASS] test_nonExclusiveGroupHasNoLock() (gas: 10689480)
+[PASS] test_permissionless() (gas: 25190546)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 126.91ms (123.59ms CPU time)
+
+Ran 8 tests for test/unit/OracleProposals.t.sol:OracleProposalsTest
+[PASS] test_committee_accepted() (gas: 8811699)
+[PASS] test_committee_early() (gas: 16735027)
+[PASS] test_committee_payload() (gas: 18621145)
+[PASS] test_committee_signatures() (gas: 4773658)
+[PASS] test_committee_usesThePinnedSet() (gas: 4804084)
+[PASS] test_committee_wrongState() (gas: 5072964)
+[PASS] test_permissionless_guards() (gas: 23868900)
+[PASS] test_permissionless_records() (gas: 16778734)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 77.64ms (72.66ms CPU time)
+
+Ran 9 tests for test/unit/OracleReport.t.sol:OracleReportTest
+[PASS] test_accept() (gas: 2674567)
+[PASS] test_auth_forwarderAndSet() (gas: 1833093)
+[PASS] test_auth_metadata() (gas: 2255565)
+[PASS] test_forwarder() (gas: 1297989)
+[PASS] test_gas_independentOfFeedSpecSize() (gas: 9140771)
+[PASS] test_gas_underBudget() (gas: 160025)
+[PASS] test_reportContent() (gas: 1266406)
+[PASS] test_state() (gas: 2135846)
+[PASS] test_supportsInterface() (gas: 28513)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 25.70ms (17.92ms CPU time)
+
+Ran 6 tests for test/unit/OracleSimMode.t.sol:OracleSimModeTest
+[PASS] test_lockProduction() (gas: 5740173)
+[PASS] test_mainnet_noSimMode() (gas: 626977)
+[PASS] test_productionWhileSimModeOn() (gas: 476024)
+[PASS] test_setters() (gas: 499196)
+[PASS] test_simPath_accepted() (gas: 1568714)
+[PASS] test_simPath_refused() (gas: 505669)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 33.08ms (13.02ms CPU time)
+
+Ran 47 tests for test/unit/RegistryCreateRules.t.sol:RegistryCreateRulesTest
+[PASS] test_rule1_duplicateMarket() (gas: 138885)
+[PASS] test_rule1_groupMismatch() (gas: 1239823)
+[PASS] test_rule1_noActiveTrustSet() (gas: 121067)
+[PASS] test_rule1_noGlobalsYet() (gas: 6426003)
+[PASS] test_rule1_zeroMarketId() (gas: 93384)
+[PASS] test_rule2_code1_horizonLower() (gas: 424352)
+[PASS] test_rule2_code1_horizonUpper() (gas: 568063)
+[PASS] test_rule2_code2_window() (gas: 512260)
+[PASS] test_rule2_code3_l2Deadline() (gas: 835635)
+[PASS] test_rule2_code4_voidBound() (gas: 424038)
+[PASS] test_rule2_code4_voidBoundWithoutFeedOmitsL1Timeout() (gas: 358156)
+[PASS] test_rule2_code5_voidAboveMax() (gas: 424103)
+[PASS] test_rule2_code6_engineGate() (gas: 424210)
+[PASS] test_rule3_code10_target() (gas: 167846)
+[PASS] test_rule3_code11_timing() (gas: 478294)
+[PASS] test_rule3_code12_authRef() (gas: 552200)
+[PASS] test_rule3_code13_specWithoutFeed() (gas: 93935)
+[PASS] test_rule3_code1_https() (gas: 95585)
+[PASS] test_rule3_code2_host() (gas: 117340)
+[PASS] test_rule3_code3_id() (gas: 119298)
+[PASS] test_rule3_code4_urlParam() (gas: 129086)
+[PASS] test_rule3_code5_feedWithEmptyAllowList() (gas: 153086)
+[PASS] test_rule3_code5_l1HostNotFirst() (gas: 155750)
+[PASS] test_rule3_code6_path() (gas: 165084)
+[PASS] test_rule3_code7_finalValue() (gas: 166092)
+[PASS] test_rule3_code8_opForType() (gas: 166563)
+[PASS] test_rule3_code9_decimals() (gas: 166548)
+[PASS] test_rule4_code1_empty() (gas: 92324)
+[PASS] test_rule4_code2_badHost() (gas: 181942)
+[PASS] test_rule4_code3_providerNotAllowed() (gas: 410647)
+[PASS] test_rule4_codeOrder() (gas: 106560)
+[PASS] test_rule5_code1_modelHashes() (gas: 572497)
+[PASS] test_rule5_code2_prompt() (gas: 198824)
+[PASS] test_rule5_code3_calibrator() (gas: 198876)
+[PASS] test_rule5_code4_category() (gas: 198917)
+[PASS] test_rule5_code5_highConf() (gas: 1045403)
+[PASS] test_rule6_code1_currency() (gas: 235188)
+[PASS] test_rule6_code2_minBondBelowVenue() (gas: 233774)
+[PASS] test_rule6_code2_venueOfTheActiveTrustSet() (gas: 1859384)
+[PASS] test_rule6_code3_bondBps() (gas: 233949)
+[PASS] test_rule6_code4_liveness() (gas: 1249735)
+[PASS] test_rule6_code5_templateTokens() (gas: 235241)
+[PASS] test_rule6_code6_claimTooLong() (gas: 5668950)
+[PASS] test_rule6_code6_longL1UrlCounts() (gas: 5691576)
+[PASS] test_rulesRunInOrder() (gas: 93878)
+[PASS] test_validMarketPasses() (gas: 340433)
+[PASS] test_validNoFeedMarketPasses() (gas: 261382)
+Suite result: ok. 47 passed; 0 failed; 0 skipped; finished in 142.66ms (141.30ms CPU time)
+
+Ran 8 tests for test/unit/OracleHalt.t.sol:OracleHaltTest
+[PASS] test_escalate_atL1Timeout() (gas: 4584387)
+[PASS] test_getL1Job() (gas: 4405546)
+[PASS] test_halt() (gas: 46227305)
+[PASS] test_halt_engineRevertBubbles() (gas: 4135736)
+[PASS] test_halt_unhaltedSnapshotRefused() (gas: 4107071)
+[PASS] test_open() (gas: 20753343)
+[PASS] test_request() (gas: 26226570)
+[PASS] test_unknownMarketReverts() (gas: 131373)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 96.46ms (92.25ms CPU time)
+
+Ran 25 tests for test/unit/RegistryGlobals.t.sol:RegistryGlobalsTest
+[PASS] test_bound1() (gas: 812201)
+[PASS] test_bound10() (gas: 390878)
+[PASS] test_bound11() (gas: 390898)
+[PASS] test_bound12() (gas: 551975)
+[PASS] test_bound13() (gas: 761359)
+[PASS] test_bound14_minRequestInterval() (gas: 395968)
+[PASS] test_bound15_heartbeatMaxAge() (gas: 395918)
+[PASS] test_bound16() (gas: 771147)
+[PASS] test_bound17_proposerReward() (gas: 402978)
+[PASS] test_bound2() (gas: 727408)
+[PASS] test_bound3_buffer() (gas: 396599)
+[PASS] test_bound4_l1Timeout() (gas: 395909)
+[PASS] test_bound5_maxVoidSecs() (gas: 402536)
+[PASS] test_bound6() (gas: 552138)
+[PASS] test_bound7() (gas: 552065)
+[PASS] test_bound8() (gas: 552115)
+[PASS] test_bound9_maxClaimBytes() (gas: 402511)
+[PASS] test_columns() (gas: 520053)
+[PASS] test_constructor() (gas: 12451212)
+[PASS] test_firstFailingCodeWins() (gas: 44206)
+[PASS] test_reviewLimitAtoms_unbounded() (gas: 315818)
+[PASS] test_setters() (gas: 1157765)
+[PASS] test_textRoundTrip() (gas: 14517176)
+[PASS] test_unknownGroupAndCategoryAreEmpty() (gas: 18812)
+[PASS] test_versions() (gas: 703074)
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 42.27ms (39.20ms CPU time)
+
+Ran 6 tests for test/unit/TreasuryBonds.t.sol:TreasuryBondsTest
+[PASS] testFuzz_reward_neverReverts(uint64,uint64,bool) (runs: 1000, μ: 318593, ~: 309292)
+[PASS] test_bookingHooks() (gas: 3089131)
+[PASS] test_claimOwed() (gas: 379970)
+[PASS] test_fund() (gas: 2366244)
+[PASS] test_oracleOnly() (gas: 447507)
+[PASS] test_reward() (gas: 551655)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 352.63ms (351.51ms CPU time)
+
+Ran 6 tests for test/unit/TreasuryDisputes.t.sol:TreasuryDisputesTest
+[PASS] testFuzz_skimNeverOverCredits(uint64,uint64,bool,bool) (runs: 1000, μ: 592149, ~: 464434)
+[PASS] test_close() (gas: 4687730)
+[PASS] test_dispute_records() (gas: 2228705)
+[PASS] test_dispute_refusals() (gas: 6358691)
+[PASS] test_implementsIBondTreasury() (gas: 13077)
+[PASS] test_skim() (gas: 1861010)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 388.11ms (385.41ms CPU time)
+
+Ran 6 tests for test/integration-uma/UmaVenue.t.sol:UmaVenueTest
+[PASS] test_callbacksFromStrangersDoNothingAndNeverRevert() (gas: 400093)
+[PASS] test_disputedFalsePaysDisputerAndOnlyTeamCanAnswer() (gas: 1129211)
+[PASS] test_minimumBondIsTwiceFinalFee() (gas: 13309)
+[PASS] test_neverAnsweredDisputeStaysUnsettled() (gas: 802668)
+[PASS] test_onlyOracleCanAssert() (gas: 36086)
+[PASS] test_undisputedTrueReturnsBondToTreasury() (gas: 578330)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 17.96ms (6.65ms CPU time)
+
+Ran 12 tests for test/integration-uma/UmaVenueExtended.t.sol:UmaVenueExtendedTest
+[PASS] test_bondCurrencyAndIdentifier() (gas: 23524)
+[PASS] test_disputeAfterExpiryRefusedByOov3() (gas: 511663)
+[PASS] test_disputeForIsTreasuryOnly() (gas: 422372)
+[PASS] test_disputeForUnknownAssertion() (gas: 59030)
+[PASS] test_disputeFor_payerFundsDisputerWins() (gas: 1141937)
+[PASS] test_finalFeeChangeReachesMinimumBondAfterSync() (gas: 643999)
+[PASS] test_neverAnsweredDispute_settleRevertsTrySettleDoesNot() (gas: 1422967)
+[PASS] test_payerFundsAndAsserterIsRepaid() (gas: 531561)
+[PASS] test_permissionlessAsserterIsPaidBack() (gas: 520133)
+[PASS] test_settledDirectlyOnOov3IsReadThroughStatus() (gas: 533612)
+[PASS] test_treasuryDisputeLosesItsBond() (gas: 1081943)
+[PASS] test_treasuryDisputeWinsTwoBondsLessBurn() (gas: 1085842)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 11.72ms (5.68ms CPU time)
+
+Ran 8 tests for test/unit/TreasuryLedgers.t.sol:TreasuryLedgersTest
+[PASS] testFuzz_isolationAndSolvency(uint64,uint64,uint64,uint8,uint64) (runs: 1000, μ: 434840, ~: 438753)
+[PASS] test_commit() (gas: 1255583)
+[PASS] test_constructor() (gas: 232206)
+[PASS] test_deposit() (gas: 839783)
+[PASS] test_governanceOnly() (gas: 355649)
+[PASS] test_release() (gas: 1344408)
+[PASS] test_setLimits() (gas: 112053)
+[PASS] test_withdraw() (gas: 1112635)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 345.00ms (339.84ms CPU time)
+
+Ran 3 tests for test/unit/FeedSpecLib.t.sol:FeedSpecLibTest
+[PASS] test_isZero() (gas: 3219992)
+[PASS] test_vectors_specHash() (gas: 863389)
+[PASS] test_vectors_validationCodes() (gas: 397740401)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 1.34s (1.33s CPU time)
+
+Ran 7 tests for test/unit/HostLib.t.sol:HostLibTest
+[PASS] testFuzz_acceptedUrlKeepsValidHost(uint256,uint256,uint8,uint8,bytes,bytes) (runs: 1000, μ: 152864, ~: 114848)
+[PASS] testFuzz_generatedHostAccepted(uint8,uint256) (runs: 1000, μ: 357534, ~: 341911)
+[PASS] test_host() (gas: 296921)
+[PASS] test_id() (gas: 124889)
+[PASS] test_scheme() (gas: 33838)
+[PASS] test_substitute() (gas: 31841)
+[PASS] test_urlParam() (gas: 99428)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 2.29s (2.29s CPU time)
+
+Ran 4 tests for test/parity/ClaimRendererParity.t.sol:ClaimRendererParityTest
+[PASS] testFuzz_arbitraryTemplates(uint256,bytes32,uint64,uint8,bytes) (runs: 1000, μ: 162315, ~: 139580)
+[PASS] testFuzz_defaultTemplate(bytes32,uint64,address,bytes,bytes,uint64,uint8,bytes,bytes32) (runs: 1000, μ: 905252, ~: 974241)
+[PASS] testFuzz_validTemplates(uint256,bytes32,uint64,uint8,bytes) (runs: 1000, μ: 817370, ~: 817557)
+[PASS] test_edgeTemplates() (gas: 12303661)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 18.28s (20.91s CPU time)
+
+Ran 5 tests for test/unit/ClaimRenderer.t.sol:ClaimRendererTest
+[PASS] testFuzz_renderedLengthWithinBound(bytes,bytes,bytes,bytes,bool,uint64,uint64,address,bytes32,bytes32,uint8) (runs: 1000, μ: 140585, ~: 139781)
+[PASS] test_render() (gas: 1314700)
+[PASS] test_render_reverts() (gas: 104406)
+[PASS] test_templateRules() (gas: 1049241)
+[PASS] test_worstCaseLength() (gas: 275702)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 18.28s (18.31s CPU time)
+
+Ran 2 tests for test/invariant/OracleInvariants.t.sol:OracleInvariantsTest
+[PASS]
+OracleInvariantsTest invariants:
+[PASS] invariant_D20_noUnauthorizedCall
+[PASS] invariant_ORC10_ledgerOutflows
+[PASS] invariant_ORC11_haltMatchesEngine
+[PASS] invariant_ORC12_voidDeadline
+[PASS] invariant_ORC13_trustSetPinned
+[PASS] invariant_ORC14_treasurySolvent
+[PASS] invariant_ORC15_earlyIsReviewed
+[PASS] invariant_ORC1_registryFieldsImmutable
+[PASS] invariant_ORC2_settleOnceOnlyInFinal
+[PASS] invariant_ORC3_finalOnlyByTruthOrVoid
+[PASS] invariant_ORC4_reportOnlyInL1Pending
+[PASS] invariant_ORC5_oneLiveAssertion
+[PASS] invariant_ORC6_noRejectedOutcomeProposed
+[PASS] invariant_ORC7_groupHasOneYes
+[PASS] invariant_ORC8_finalIsFrozen
+[PASS] invariant_ORC9_finalWithoutPrivilege
+ OracleInvariantsTest invariants (runs: 64, calls: 4096, reverts: 0)
+
+╭---------------+------------------------+-------+---------+----------╮
+| Contract      | Selector               | Calls | Reverts | Discards |
++=====================================================================+
+| OracleHandler | admin                  | 264   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | closeDispute           | 258   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | createMarket           | 234   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | disputeViaVenue        | 276   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | keeper                 | 260   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | keeperTick             | 254   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | pokeFinal              | 218   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | proposePermissionless  | 270   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | report                 | 266   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | requestEarlyCheck      | 239   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | submitPanel            | 244   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | submitReviewedProposal | 270   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | treasuryAction         | 252   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | venueOutcome           | 281   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | warp                   | 258   | 0       | 0        |
+|---------------+------------------------+-------+---------+----------|
+| OracleHandler | watchdogHeartbeat      | 252   | 0       | 0        |
+╰---------------+------------------------+-------+---------+----------╯
+
+[PASS] test_handlerReach() (gas: 3071)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 22.41s (38.95s CPU time)
+
+Ran 39 test suites in 22.90s (65.70s CPU time): 342 tests passed, 0 failed, 0 skipped (342 total tests)
