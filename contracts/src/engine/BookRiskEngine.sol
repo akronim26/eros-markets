@@ -43,8 +43,8 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         RiskAccountingBridge(1e18)
     {
         if (
-            configuration.deploymentCapX == 0 || configuration.deploymentCapX > 5 || configuration.fundingEnabled
-                || configuration.maxTraders != 1024
+            configuration.deploymentCapX == 0 || configuration.deploymentCapX > 5
+                || configuration.fundingEnabled || configuration.maxTraders != 1024
                 || (configuration.deploymentCapX == 1 && configuration.maxLiqLotsPerBlock != 0)
                 || (configuration.deploymentCapX > 1 && configuration.maxLiqLotsPerBlock == 0)
                 || configuration.maxLiqLotsPerBlock > (1 << 40)
@@ -80,10 +80,10 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         super._validateRiskProfile(listing_, p);
         if (!p.calibrated) return;
         if (
-            p.h0Secs > type(uint64).max || p.queueSecs > type(uint64).max
-                || p.absorptionClaimsPerMin == 0 || p.absorptionClaimsPerMin > type(uint128).max
-                || p.epsilonWad == 0 || p.epsilonWad >= 1e18 || p.gammaWad < 1e18
-                || p.gammaWad > type(uint128).max || p.sWad > 1e18 || p.lambdaWadPerClaim > 1e18
+            p.h0Secs > type(uint64).max || p.queueSecs > type(uint64).max || p.absorptionClaimsPerMin == 0
+                || p.absorptionClaimsPerMin > type(uint128).max || p.epsilonWad == 0 || p.epsilonWad >= 1e18
+                || p.gammaWad < 1e18 || p.gammaWad > type(uint128).max || p.sWad > 1e18
+                || p.lambdaWadPerClaim > 1e18
         ) revert InvalidCalibratedProfile();
         _validateEnvelope(p.realized);
         _validateEnvelope(p.templateEnv);
@@ -129,7 +129,12 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         return _bookDepth(_pricingContext());
     }
 
-    function _bookDepth(RiskContext memory context) internal view virtual returns (BookDepthQuote memory quote) {
+    function _bookDepth(RiskContext memory context)
+        internal
+        view
+        virtual
+        returns (BookDepthQuote memory quote)
+    {
         if (
             !active || context.halted || !context.indexOk || context.stage == Stage.REDUCE_ONLY
                 || (context.fundingFrozen && !_floorOrdersInvalidated)
