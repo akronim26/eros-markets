@@ -677,3 +677,36 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Full findings and remaining work: `frontend/AUDIT.md`; integration progress
   updated. This is technical validation, not independent security review or new
   gate acceptance. Commit/push scoped to the active feature branch; main untouched.
+
+
+### 2026-10-06 — CI-02: verify repeated GitHub failures
+
+- User reported CI still failing. Baseline `0112a099dd467952481c2e8b361c0de9c84b5c71`
+  on `feat/pricefeed`; fetched origin and verified a clean, synchronized tree.
+- Inspected current runs and individual check annotations, rather than assuming
+  the earlier formatting defect persisted. Latest oracle run `37370979597` at
+  `8c73266` passed Forge (format/build/full suite), real integration and the CRE
+  resolution workflow (install/test/typecheck/build/outcome-path check).
+- Its four remaining jobs (packages, indexer, validation, dryrun) never started:
+  every check records `The job was not acquired by Runner of type hosted even
+  after multiple attempts`. Failed-log download exits 0 with no test log because
+  no runner executed these jobs. Preceding oracle run `37370813833` has the same
+  runner-assignment error on its unstarted jobs; its five executed jobs passed.
+- GitHub's official status API still reports Actions degraded and incident
+  `3q1yb5m7ltvb` investigating hosted-runner assignment delays, as checked at
+  2026-10-05 21:02 UTC (2026-10-06 02:32 IST):
+  https://www.githubstatus.com/api/v2/summary.json.
+- `gh run rerun 37370979597 --failed` exits 0; attempt 2 retries only the four
+  jobs that lacked runners and preserves the three successful jobs. The retry
+  is queued at this checkpoint. No obsolete run was retried.
+- Contracts run `37370813810` passed formatting and build; its full test step is
+  still running. Frontend run `37372711259` is queued awaiting its first runner.
+  These are pending, not successful remote validations. The earlier local
+  CI-01/FE-AUDIT test results remain the local evidence; no redundant local test
+  run or application/workflow change was made for a hosting failure.
+- Commands to inspect runs/check annotations, download logs and request retry
+  exit 0. Documentation-only checkpoint; no checks weakened, gas baselines
+  refreshed, deployments performed or new gate acceptance recorded.
+- Remaining dependency: GitHub must assign runners and finish the pending jobs.
+  Historical red runs remain historical failures; retry progress is available
+  at https://github.com/akronim26/eros-markets/actions/runs/37370979597.
