@@ -12,7 +12,12 @@ deferred at its actual 268/300 result.
 
 [`deploy/render.yaml`](../deploy/render.yaml) defines one Node background worker,
 one 1 GB persistent disk mounted at `/var/data`, manual deploys, pinned Node
-24.21.0, and a 120-second graceful shutdown allowance. It builds only this package
+24.21.0. A disk-backed service cannot set `maxShutdownDelaySeconds`: Render's
+dashboard rejects that combination even when its generic JSON schema accepts it.
+The Blueprint omits that field and new read-only profiles use a 20-second internal
+stop limit, leaving headroom within Render's documented default 30-second host
+shutdown window. Actual hosted shutdown timing still needs verification.
+It builds only this package
 using the lockfile and its pinned TypeScript compiler. No incoming HTTP port,
 cron, replicas, automatic schema initialization or public RPC/key value is added.
 No root/counterpart files or Git workflow records are changed.
@@ -36,6 +41,12 @@ published pricefeed branch explicitly. It never authorizes pushing or deploying
 `packages/pricefeed/deploy/render.yaml` rather than moving it to the repo root.
 The committed source must contain the new implementation before Render can build
 it. User commit/push remain manual. [Blueprint setup/reference](https://render.com/docs/blueprint-spec).
+
+`autoDeployTrigger: "off"` disables code auto-deploys, but Blueprint configuration
+sync is a separate control. Set **Auto Sync to No** on the Blueprint's Settings
+page and use **Manual Sync** for reviewed configuration changes. The creation
+notice about future automatic changes/costs refers to that control.
+[Render automatic-sync controls](https://render.com/docs/infrastructure-as-code#disabling-automatic-sync).
 
 ## Start and one-time initialization
 
@@ -86,7 +97,12 @@ hardlink aliases. Operator-owned files remain a trusted OS-user boundary.
 the portable Linux entry points. Profiles require absolute paths, explicit mode,
 input hashes, restart delay/limit/shutdown bounds and stream-hint selection.
 The Render preparation uses read-only mode, stream hints off, 60-second restart
-delay, three unexpected restarts, and a 90-second internal stop allowance.
+delay, three unexpected restarts, and a 20-second internal stop allowance.
+This limit bounds the supervisor's wait before forcing termination; it does not
+guarantee every source request drains gracefully. Forced termination preserves
+crash/lease recovery requirements. Existing prepared profiles are not rewritten by
+a code deploy; review them separately without deleting or reinitializing state.
+[Render shutdown behavior](https://render.com/docs/deploys#graceful-shutdown).
 
 The launcher acquires an OS `flock` through inherited fd 3. The supervisor and
 worker both retain the same open file description. A duplicate launcher cannot
@@ -155,6 +171,8 @@ the Blueprint with PyYAML/jsonschema against Render's retained
 [official schema](https://render.com/schema/render.yaml.json). It is local schema
 validation, not Render account/API launch acceptance. Raw schema/TAP stay ignored
 in `var/verification/deployment/`; compact verification records hashes and outcomes.
+The verifier additionally rejects custom shutdown delays on disk-backed services,
+independently of schema validation, based on the observed dashboard rejection.
 
 To activate, the remaining user inputs are: Render account/repository access,
 approval of the proposed recurring worker/disk charge, the published branch and
