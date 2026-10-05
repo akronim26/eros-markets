@@ -164,7 +164,7 @@ export function PriceAxis(p: Props) {
           style={{ width: chartW || "60%" }}
         >
           <div className="frame max-w-sm bg-ground">
-            <p className="label px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-ink)]">STATE.PRICE</p>
+            <p className="label px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">STATE.PRICE</p>
             <div className="p-4">
               <p className="text-lg font-medium text-fg">{p.emptyTitle}</p>
               <p className="mt-2 text-sm leading-relaxed text-fg-3">{p.emptyReason}</p>

@@ -75,7 +75,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
 
   return (
     <main className="frame mx-3 mb-3 grid min-h-[calc(100dvh-120px)] grid-cols-1 bg-ground max-md:mx-2 lg:grid-cols-[232px_minmax(0,1fr)_300px]">
-      <div className="hidden border-r border-ink lg:block">
+      <div className="hidden border-r border-line-strong lg:block">
         <MarketRail current={manifest.engine} />
       </div>
 
@@ -142,7 +142,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
         </div>
       </div>
 
-      <aside className="hidden flex-col border-l border-ink lg:flex" aria-label="Trade">
+      <aside className="hidden flex-col border-l border-line-strong lg:flex" aria-label="Trade">
         <div className="hair-b">
           <Ticket engine={manifest.engine} market={md} trader={t.data} />
         </div>

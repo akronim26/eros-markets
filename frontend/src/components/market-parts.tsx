@@ -177,11 +177,12 @@ export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnap
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
-            <Button size="md" disabled={!amount || !t || t.wallet === 0n || tx.state.status === "pending" || tx.state.status === "sent"} onClick={fund}>
+            <Button size="md" disabled={owner.wrongChain || !amount || !t || t.wallet === 0n || tx.state.status === "pending" || tx.state.status === "sent"} onClick={fund}>
               Fund
             </Button>
           </div>
         </label>
+        {owner.wrongChain && <p className="text-2xs text-signal-text">Open your wallet menu and switch to Monad testnet to fund this market.</p>}
         {t && t.wallet === 0n && (
           <p className="text-2xs leading-relaxed text-fg-3">This wallet holds no test collateral. It is minted by the testnet operator; ask the team for an allocation.</p>
         )}

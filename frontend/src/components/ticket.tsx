@@ -117,8 +117,8 @@ export function Ticket({ engine, market, trader }: { engine: Address; market?: M
                 "h-9 text-sm font-semibold transition-colors duration-150",
                 side === s
                   ? s === "buy"
-                    ? "bg-bid text-ivory"
-                    : "bg-ask text-ivory"
+                    ? "bg-bid text-on-bid"
+                    : "bg-ask text-on-ask"
                   : "text-fg-3 shadow-[inset_0_0_0_1px_var(--color-line-strong)] hover:text-fg",
               )}
             >
@@ -171,9 +171,9 @@ export function Ticket({ engine, market, trader }: { engine: Address; market?: M
               type="checkbox"
               checked={reduceOnly}
               onChange={(e) => setReduceOnly(e.target.checked)}
-              className="peer absolute inset-0 m-0 h-full w-full cursor-pointer appearance-none border border-ink bg-ground checked:bg-ink"
+              className="peer absolute inset-0 m-0 h-full w-full cursor-pointer appearance-none border border-line-strong bg-ground checked:bg-action"
             />
-            <Check size={11} strokeWidth={3} className="pointer-events-none relative hidden text-ivory peer-checked:block" aria-hidden />
+            <Check size={11} strokeWidth={3} className="pointer-events-none relative hidden text-on-action peer-checked:block" aria-hidden />
           </span>
           Reduce only
         </label>

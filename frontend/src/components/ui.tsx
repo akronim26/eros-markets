@@ -28,8 +28,8 @@ export function Num({ value, className }: { value: string; className?: string })
 
 const TONE: Record<Tone, string> = {
   signal: "text-signal-text shadow-[inset_0_0_0_1px_var(--color-signal)]",
-  warn: "text-fg shadow-[inset_0_0_0_1px_var(--color-ink)]",
-  neutral: "text-fg shadow-[inset_0_0_0_1px_var(--color-ink)]",
+  warn: "text-fg shadow-[inset_0_0_0_1px_var(--color-line-strong)]",
+  neutral: "text-fg shadow-[inset_0_0_0_1px_var(--color-line-strong)]",
   bid: "text-bid shadow-[inset_0_0_0_1px_var(--color-bid)]",
   ask: "text-ask shadow-[inset_0_0_0_1px_var(--color-ask)]",
   muted: "text-fg-3 shadow-[inset_0_0_0_1px_var(--color-line)]",
@@ -46,7 +46,7 @@ export function Chip({ tone = "neutral", children, className }: { tone?: Tone; c
 /** Region header: a mono label row (e.g. ORDER.TICKET) ruled by a hard line. */
 export function RegionHead({ title, children, className }: { title: ReactNode; children?: ReactNode; className?: string }) {
   return (
-    <div className={cx("flex h-9 shrink-0 items-center justify-between gap-3 px-3 shadow-[inset_0_-1px_0_var(--color-ink)]", className)}>
+    <div className={cx("flex h-9 shrink-0 items-center justify-between gap-3 px-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]", className)}>
       <h2 className="label font-medium text-fg">{title}</h2>
       {children && <div className="label flex items-center gap-2 text-fg-3">{children}</div>}
     </div>
@@ -72,11 +72,11 @@ type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const VARIANT = {
-  primary: "bg-ink text-ivory hover:bg-ink-2 disabled:bg-press disabled:text-fg-4",
-  secondary: "text-fg shadow-[inset_0_0_0_1px_var(--color-ink)] hover:bg-hover active:bg-press disabled:text-fg-4 disabled:hover:bg-transparent",
+  primary: "bg-action text-on-action hover:bg-action-hover disabled:bg-press disabled:text-fg-4",
+  secondary: "text-fg shadow-[inset_0_0_0_1px_var(--color-line-strong)] hover:bg-hover active:bg-press disabled:text-fg-4 disabled:hover:bg-transparent",
   ghost: "text-fg-2 hover:bg-hover hover:text-fg active:bg-press disabled:text-fg-4",
-  bid: "bg-bid text-ivory hover:brightness-110 disabled:bg-press disabled:text-fg-4",
-  ask: "bg-ask text-ivory hover:brightness-110 disabled:bg-press disabled:text-fg-4",
+  bid: "bg-bid text-on-bid hover:brightness-110 disabled:bg-press disabled:text-fg-4",
+  ask: "bg-ask text-on-ask hover:brightness-110 disabled:bg-press disabled:text-fg-4",
 };
 const SIZE = { sm: "h-7 px-2.5", md: "h-8 px-3", lg: "h-10 px-4" };
 
