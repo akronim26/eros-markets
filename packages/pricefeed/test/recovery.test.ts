@@ -13,6 +13,15 @@ const env={...process.env};delete env.NODE_TEST_CONTEXT;
 const run=(dir:string,mode:string,stage:string)=>spawnSync(process.execPath,
   [fileURLToPath(new URL('./recovery-child.js',import.meta.url)),dir,mode,stage],
   {env,encoding:'utf8',timeout:15000});
+function assertKilled(result:ReturnType<typeof run>,stage:string) {
+  assert.equal(result.error,undefined);
+  assert.equal(JSON.parse(result.stdout).crashedAt,stage,'child must reach the exact durable crash boundary');
+  assert.doesNotMatch(result.stderr,/SIGKILL_DID_NOT_TERMINATE/);
+  // Node maps self-SIGKILL to TerminateProcess on Windows: exit 1, no POSIX signal.
+  // The child still performs a real abrupt OS termination, bypassing all finally blocks.
+  if(process.platform==='win32') { assert.equal(result.signal,null); assert.equal(result.status,1,result.stderr); }
+  else { assert.equal(result.signal,'SIGKILL',result.stderr); assert.equal(result.status,null); }
+}
 function inventory(dir:string) {
   const db=new DatabaseSync(join(dir,'packets.sqlite'),{readOnly:true});
   try{return db.prepare('SELECT body,digest,signature,state FROM packets ORDER BY length(sequence),sequence').all();}
@@ -20,8 +29,7 @@ function inventory(dir:string) {
 }
 for(const stage of stages)test(`SIGKILL at ${stage} preserves identities and resumes two ordered deliveries`,()=>{
   const dir=mkdtempSync(join(tmpdir(),'pricefeed-crash-'));try{
-    const killed=run(dir,'crash',stage);assert.equal(killed.signal,'SIGKILL',killed.stderr);
-    assert.equal(JSON.parse(killed.stdout).crashedAt,stage);
+    assertKilled(run(dir,'crash',stage),stage);
     const before=inventory(dir);
     if(stage==='SIGNER_RESERVED'||stage==='SIGNER_SIGNED'){
       const db=new DatabaseSync(join(dir,'signer.sqlite'),{readOnly:true});try{
@@ -48,7 +56,7 @@ for(const stage of stages)test(`SIGKILL at ${stage} preserves identities and res
 
 test('crashed writer lease prevents immediate restart rather than forcing takeover',()=>{
   const dir=mkdtempSync(join(tmpdir(),'pricefeed-lease-crash-'));try{
-    assert.equal(run(dir,'crash','SIGNED').signal,'SIGKILL');
+    assertKilled(run(dir,'crash','SIGNED'),'SIGNED');
     const early=run(dir,'early','SIGNED');assert.equal(early.status,1);assert.match(early.stderr,/WRITER_BUSY/);
     assert.equal(inventory(dir).length,1);assert.equal(run(dir,'resume','SIGNED').status,0);
   }finally{rmSync(dir,{recursive:true,force:true});}
@@ -57,7 +65,7 @@ test('crashed writer lease prevents immediate restart rather than forcing takeov
 test('restored old packet snapshot is blocked by signer reservations surviving SIGKILL',()=>{
   for(const stage of ['SIGNER_RESERVED','SIGNER_SIGNED','SIGNED']){
     const dir=mkdtempSync(join(tmpdir(),'pricefeed-restore-crash-'));try{
-      assert.equal(run(dir,'crash',stage).signal,'SIGKILL');
+      assertKilled(run(dir,'crash',stage),stage);
       const restored=run(dir,'restore-packets',stage);assert.equal(restored.status,1);assert.match(restored.stderr,/SIGNER_JOURNAL_AHEAD_OR_MISMATCH/);
       const db=new DatabaseSync(join(dir,'restored-packets.sqlite'),{readOnly:true});
       try{assert.equal(db.prepare('SELECT count(*) AS n FROM packets').get()!.n,0);}finally{db.close();}
@@ -67,7 +75,7 @@ test('restored old packet snapshot is blocked by signer reservations surviving S
 
 test('restored relay snapshot behind accepted nonce cannot reserve or broadcast again',()=>{
   const dir=mkdtempSync(join(tmpdir(),'pricefeed-relay-restore-'));try{
-    assert.equal(run(dir,'crash','BROADCAST').signal,'SIGKILL');
+    assertKilled(run(dir,'crash','BROADCAST'),'BROADCAST');
     const restored=run(dir,'restore-relay','BROADCAST');assert.equal(restored.status,1);assert.match(restored.stderr,/UNKNOWN_RELAY_NONCE/);
     const db=new DatabaseSync(join(dir,'counterpart.sqlite'),{readOnly:true});
     try{assert.equal(db.prepare('SELECT sum(calls) AS n FROM sends').get()!.n,1);}finally{db.close();}
@@ -77,7 +85,7 @@ test('restored relay snapshot behind accepted nonce cannot reserve or broadcast 
 test('restart cannot refresh an expired signed packet or broadcast its reserved transaction',()=>{
   for(const stage of ['PREPARING','READY','UNKNOWN']){
   const dir=mkdtempSync(join(tmpdir(),'pricefeed-expiry-crash-'));try{
-    assert.equal(run(dir,'crash',stage).signal,'SIGKILL');const before=inventory(dir)[0]!;
+    assertKilled(run(dir,'crash',stage),stage);const before=inventory(dir)[0]!;
     const expired=run(dir,'expired',stage);assert.equal(expired.status,1);assert.match(expired.stderr,/HEADROOM_EXPIRED/);
     assert.equal(inventory(dir)[0]!.body,before.body);
     const relay=new DatabaseSync(join(dir,'relay.sqlite'),{readOnly:true});try{

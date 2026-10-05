@@ -70,6 +70,33 @@ test('slow lifecycle guard cannot consume source headroom unnoticed before nonce
     }finally{s.close();}
   }
 });
+
+test('an unknown send mined during identity or retry simulation reconciles the original canonical receipt',async()=>{
+  for(const boundary of ['identity','simulation']){
+    const s=await setup();try{
+      const original=await s.relay.deliver(config,'owner',s.fence,1n);
+      if(boundary==='identity'){
+        const identity=s.transport.identity;
+        s.transport.identity=async domain=>{s.accepted(original.txHash!);return {...await identity(domain),lastSequence:1n,lastObservedAt:1000n};};
+      }else s.transport.simulate=async()=>{s.accepted(original.txHash!);throw new Error('DuplicateOrOldSequence');};
+      const result=await s.relay.deliver(config,'owner',s.fence,1n);
+      assert.equal(result.state,'MINED');assert.equal(result.txHash,original.txHash);
+      assert.equal(result.raw,original.raw);assert.equal(result.nonce,original.nonce);
+      assert.equal(s.sent.length,1);assert.equal(s.prepareCalls(),1);
+    }finally{s.close();}
+  }
+});
+
+test('a retry simulation failure without its exact receipt does not claim acceptance or send again',async()=>{
+  const s=await setup();try{
+    const original=await s.relay.deliver(config,'owner',s.fence,1n);
+    s.transport.simulate=async()=>{throw new Error('SIMULATION_REJECTED');};
+    await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/SIMULATION_REJECTED/);
+    const unchanged=s.relay.get(s.domain,1n)!;
+    assert.equal(unchanged.state,'UNKNOWN');assert.equal(unchanged.raw,original.raw);
+    assert.equal(unchanged.accepted,null);assert.equal(s.sent.length,1);assert.equal(s.prepareCalls(),1);
+  }finally{s.close();}
+});
 test('older unknown packet blocks newer source sequence and shared nonce survives restart',async()=>{
   const s=await setup();let replacement:LocalRelay|undefined;
   try{

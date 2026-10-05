@@ -2834,3 +2834,173 @@ Render account acceptance or full-suite rerun is claimed. Compact source/log has
 are in `artifacts/verification/render-blueprint-fix.json`; raw logs remain ignored.
 No commit, push, hosted resource, actual key access, signature or live transaction
 was performed. The user must publish this fix before retrying Blueprint setup.
+
+## Pending — 06 October 2026: real-source full-engine local integration
+
+The user authorized completing joined orderbook/risk/oracle integration,
+including a full leveraged run with genuine Polymarket prices on an owned local
+chain. Monad scope is read-only preflight. This extends local integration
+evidence; it does not approve historical PF gates, production source mapping,
+empirical risk calibration, custody policy or additional MON spending.
+
+**Implementation.** Added discovery/probe/preflight, the five-journal LocalPipeline
+driver, authenticated LocalLifecycle checks and factory-engine capture/seal
+coordination. Sources require actual binary mapping, retained rules and a genuine
+25-hour to 29-day horizon. Discovery probes continuously for 120 seconds before
+fixing listing identity; existing selections receive fresh validation and can
+receive a full repeat probe. Failed candidates remain archived. No synthetic
+fallback, vendor-clock rewrite or live-chain time acceleration is used.
+
+A pending capture requires a genuinely newer INDEX timestamp. Reports expose
+canonical INDEX300/PERP60/BASIS900, risk mode/caps, active profile, source health
+and sampler receipts. The 120-minute limit starts at actual activation and cannot
+renew on restart. Calibration, collateral and local actors remain test fixtures.
+The final auditor checks five closed journal hashes/integrity, signed payloads,
+immutable transactions, canonical finalized receipts and ABI/engine/checkpoint
+identity. Independent Python Fraction replay checks raw book price/depth/rules
+and historical INDEX integration, including authentic gaps and same-second
+updates at their actual acceptance blocks. Audit finality waits ordinary blocks
+for at most 30 seconds.
+
+**Defects repaired.** Windows ESM preloads use file URLs. Seventeen abrupt-kill
+recovery cases accept Windows termination metadata only with the exact durable
+crash marker; POSIX custody/ownership safeguards remain intact. Atomic Windows
+report replacement retries brief sharing violations without deleting the prior
+complete report. A live UNKNOWN-send race now reconciles the exact canonical
+receipt when a transaction mines between receipt/identity checks and simulation;
+nonce, signed bytes and acceptance conditions remain unchanged.
+
+The joined crash campaign exposed an elapsed timer completing 1.265 seconds
+before its stored wall-clock lease expired. WRITER_BUSY correctly blocked it.
+The harness now repeatedly reads deadlines in parent and resumed child, with a
+bounded monotonic wait, without editing leases or packet times. The same one-shot
+wait existed in the production supervisor; it now rechecks expiry before launch
+without consuming a premature restart. Four harness and three supervisor clock
+regressions pass, as does the actual OS-kill restart with exactly one restart.
+
+Pause reports acknowledge a unique request ID only after pending sampler work
+drains. A warm rollover also exposed an operator timing defect: the last PERP
+capture expired four seconds before finishRollover, so the engine correctly
+retained bootstrap caps. The actor now arms a pause during the final 30 seconds
+with minimumCaptureTime=epochEnd−15 and the exact epoch end. The publisher keeps
+sampling until a valid pre-boundary seal meets that target, drains the sampler
+and reports the matching acknowledgement immediately. It reserves a brief drain
+interval before the target capture. Accounting state, sampler safety cutoff,
+contract TTL and complete pricing-window checks remain unchanged. Missing the
+target fails the prerequisite. Three pause-ID and three armed-window publisher
+regressions pass; the actor has matching bounded freshness checks.
+
+Further read-only timing measurements showed that serialized INDEX work plus
+sampler finality could consume the target window. The publisher now uses an exact
+canonical mined capture provisionally to protect strict-newer INDEX publication
+while that sampler receipt awaits finality. Pending custody, sample counts, pause
+acknowledgements and the next sample still require finality. Missing, reverted,
+reorged or ambiguous captures cannot authorize overlap. Eight new regressions
+pass; an independent agent reviewed these paths. Timing improvement requires a
+fresh run. The combined focused suite passes **27/27**. A native **448/449**
+attempt had one unrelated watcher CLI return an explicit degraded/quarantined
+exit; its old assertion omitted JSON output, so the exact cause is unconfirmed.
+Diagnostics now retain that redacted fixture output. Five isolated repeats of
+both watcher cases pass **10/10**, with all freshness/lease guards unchanged.
+The failed full attempt is preserved. The pre-clock-gate native rerun passes **449/449**,
+with zero failures/cancellations/skips/todo, in 337.477 seconds. All 115 tested
+TypeScript files match the current main-workspace bytes, and all 157 package
+code/test/reference inputs match the native snapshot. Final TAP/source hashes
+are `tmp/pricefeed-linux-final-449.tap` and
+`tmp/pricefeed-linux-final-449-source-sha256.txt`. The compact integration artifact
+has been refreshed to these final fingerprints and all retained failed attempts.
+
+**Verification.** The pre-overlap native-Linux suite passes **441/441**, with zero
+failures/cancellations/skips/todo, in 260.493 seconds using Node 24.21.0 and a
+bounded heap. All 115 tested TypeScript files matched that workspace revision;
+all 157 package code/test/reference inputs matched the native snapshot. Its TAP
+and hashes are `tmp/pricefeed-linux-final-441.tap` and
+`tmp/pricefeed-linux-final-441-source-sha256.txt`. The earlier **428/428** pass is
+retained as prior-revision evidence in `tmp/pricefeed-linux-final.tap`.
+
+Native Windows recovery passes **17/17**, the ESM process cases **2/2**, focused
+relay/pipeline/live cases **35/35**, and final live/crash-wait/supervisor-wait
+regressions **19/19**. Native Python backup/restore passes **11/11**, independent
+live replay **3/3**, historical Monad coverage replay **5/5**, and all **144**
+impact vectors. Wire checks confirm the exact eleven-field ABI, raw digest and
+accepted event. Native recovery wrapper passes **29/29** and all 13 real SIGKILL
+boundaries; load wrapper passes **28/28** and its seven declared scenarios.
+Ingress wrapper passes **8/8** against actual ingress/store/invalid-price code;
+the separate 24-hour signed lifecycle wrapper passes the same **4/4** lifecycle
+scenarios. These use fixture counterparts and Foundry time. The real-Anvil
+pipeline crash campaign passes all **8/8** joined restart stages using actual
+host/Anvil time and durable transaction signing, with no forced lease takeover.
+
+Two intermediate complete Node435 attempts each passed **434/435**. The first
+failed because a read-only test observer lacked SQLite busy waiting; it now uses
+the production Journal-equivalent one-second bound. The second exposed the
+supervisor lease timing defect described above. Both failed TAPs and the earlier
+crash failure remain under `tmp/pricefeed-*`; no failed attempt is relabeled as a
+pass. Compact exact commands/counts, toolchain, source fingerprints and raw-log
+hashes are in `artifacts/integration/pricefeed-2026-10-06.json`. Commands were run
+separately; no aggregate verify:integration invocation is claimed.
+
+**Versioned scope.** Historical check:scope/verify:all retain their original
+pricefeed-only isolation rules and preserved protected-file report. The new
+check:scope:integration/verify:integration gate uses a separate authorized input
+inventory, unchanged dependency revisions and the exact historical Git blob and
+checksum. It excludes unrelated user documents. Eight tests cover real LF/CRLF
+Git clones and rejection of missing/added/altered sources plus binary/text raw-body
+mutations. Only declared source/config/generated text normalizes line endings;
+source bodies, signed custody bytes and journals remain exact. The earlier gate
+passed 1,127 inputs and six dependency checkouts. Final coordinating capture waits
+for all source lanes to freeze; it is not PF or production acceptance.
+
+**Real-source proof remains separate.** Source market 4641065 was selected after
+an actual 120.167-second probe with 24 captures, 20 timestamp advances and a
+9.171-second maximum gap. Run 193645 was intentionally superseded when subsequent
+engine reporting fixes changed runtime. Its offline replay verifies all 163
+signed packets against 2,322 captures and all five SQLite integrity/hash checks;
+canonical receipt verification is explicitly absent after its RPC closed.
+
+Run 201156 failed warm rollover freshness and was stopped cleanly. Its offline
+Fraction replay verifies all **323** signed packets against **4,730** captures
+and all five SQLite integrity/hash checks. It does not claim a canonical receipt
+audit or complete leverage proof. Earlier source/Unicode/OOM/Windows/relay-race
+attempts are also retained.
+
+Run `tmp/local-live-leverage-20261005-212226` was superseded before rollover after
+the timing review above. Its cleanly closed offline replay verifies **130** signed
+packets against **1,784** source captures and all five journal integrity/hashes;
+it is explicitly incomplete, with no canonical receipt audit. The replacement
+was `tmp/local-live-leverage-20261005-215402`, with a fresh 120.421-second probe of
+the same immutable selection: 24 captures,
+23 actual advances and an 8.534-second maximum gap. It was retired cleanly before
+the decisive rollover after read-only NTP, Polymarket `/time` and independent Monad
+timestamps confirmed the host clock was approximately 4.18 seconds ahead. Its
+offline Fraction replay verifies **134** packets against **2,031** source captures
+and all five closed journal integrity/hashes; no canonical receipt audit or full
+leverage pass is claimed. External-chain transactions remain zero.
+
+A separate 120.884-second read-only probe collected 120 healthy one-second polls.
+Compared with concurrent five-second collection, the median delay to receive an
+authentic timestamp strictly newer than a hypothetical capture fell from 9.210
+to 6.994 seconds. This acquisition measurement does not establish full boundary
+timing. New selections now use one-second polling; the original source/config
+and the diagnostic journals remain preserved.
+
+The new portable predeployment clock gate retains three exact HTTPS `/time`
+responses, complete RTT/one-second quantization bounds and independent chain-10143
+latest-block corroboration. Responses slower than 1,000 ms, offset bounds outside
+±1,500 ms, local wallclock changes during requests, wrong units, invalid/unavailable
+sources or stale/future chain evidence fail closed. Seven focused clock cases and
+the twenty live-coordination cases pass **27/27** with a clean TypeScript build.
+The actual pre-sync CLI correctly fails with retained host-skew evidence. The fresh
+native full-suite rerun passes **456/456** (zero failures, cancellations, skips or
+todos), with all **117** tested TypeScript inputs matching exact local bytes and
+**159** package inputs matching normalized native fingerprints. Retained logs are
+`tmp/pricefeed-linux-final-456.tap` and its source SHA256 list. The user subsequently
+confirmed manual clock synchronization. Independent root and source clock gates
+passed, followed by a fresh **120.111-second** one-second source qualification:
+**119** healthy captures, **41** actual timestamp advances and a **10.605-second**
+maximum advance gap. The immutable v5 source and qualified dossier retain all
+prior selection/config/probe hashes. No agent changed system clocks or source
+timestamps. The fresh full leveraged run remains separate coordinating evidence.
+
+Raw logs, source captures and journals remain ignored local evidence. No commit,
+push, public transaction or production approval is performed by this package work.

@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import { checkDeployment, deploymentDeadline, parseDeploymentProfile, prepareDeployment, readSupervision, writeSupervision,
@@ -38,7 +38,7 @@ function fixture(sourceDelayMs=0){
       return new Response(JSON.stringify(value),{headers:{'content-type':'application/json'}});
     };
   `);
-  const env:NodeJS.ProcessEnv={...process.env,NODE_OPTIONS:'--import='+preload};delete env.NODE_TEST_CONTEXT;
+  const env:NodeJS.ProcessEnv={...process.env,NODE_OPTIONS:'--import='+pathToFileURL(preload).href};delete env.NODE_TEST_CONTEXT;
   const children:Running[]=[];
   function launch(args=['run',profileFile],script=supervisor,customEnv:NodeJS.ProcessEnv=env):Running{
     const child=spawn(process.execPath,['--disable-warning=ExperimentalWarning',script,...args],{env:customEnv,stdio:['ignore','pipe','pipe']});
@@ -51,7 +51,9 @@ function fixture(sourceDelayMs=0){
       while(!check()){if(Date.now()>end)throw new Error('DEPLOYMENT_FIXTURE_TIMEOUT '+child.exitCode+' '+child.signalCode+' '+stdout+' '+stderr);await pause(10);}};
     const value={child,records,completion,until,output:()=>({stdout,stderr})};children.push(value);return value;
   }
-  const source=()=>new DatabaseSync(join(state,'source.sqlite'),{readOnly:true});
+  // The observer can meet a worker's short WAL/schema transaction during restart.
+  // Wait within the production Journal's existing busy bound; never bypass locks.
+  const source=()=>new DatabaseSync(join(state,'source.sqlite'),{readOnly:true,timeout:1000});
   const rows=()=>{const db=source();try{return Number(db.prepare('SELECT count(*) n FROM captures').get()!.n);}finally{db.close();}};
   const stop=async(s:ReturnType<typeof launch>)=>{if(s.child.exitCode===null&&s.child.signalCode===null)s.child.kill('SIGTERM');await s.completion;};
   const close=async()=>{
@@ -119,7 +121,7 @@ test('an OS-killed worker restarts after its real source lease expires with pers
     const pid=run.records.find(e=>e.event==='WORKER_STARTED')!.pid as number,before=f.rows();process.kill(pid,'SIGKILL');
     await run.until(()=>run.records.filter(e=>e.event==='WORKER_STARTED').length===2,25000);
     await run.until(()=>f.rows()>before,10000);await f.stop(run);
-    assert.ok(run.records.some(e=>e.event==='LEASE_WAIT'));assert.equal(readSupervision(f.profile).restarts,1);
+    assert.ok(run.records.some(e=>e.event==='LEASE_WAIT'));assert.equal(readSupervision(f.profile).restarts,1,JSON.stringify(run.records));
     assert.equal(readSupervision(f.profile).phase,'STOPPED');
     console.log('DEPLOYMENT_CASE '+JSON.stringify({scenario:'sigkill-worker-lease-recovery',capturesBefore:before,capturesAfter:f.rows(),restarts:1,leaseForced:false,transactionsSent:0}));
   }finally{await f.close();}
