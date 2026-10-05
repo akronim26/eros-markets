@@ -8,6 +8,7 @@ import { oracleMarkets } from "@/config/deployment";
 import { explorerAddress } from "@/config/chain";
 import { ORACLE_OUTCOME, ORACLE_PATH, ORACLE_STATE } from "@/lib/enums";
 import { fmtUtc, shortAddr } from "@/lib/units";
+import { LoadingPanel, ReadError } from "./feedback";
 import { OracleActions } from "./oracle-actions";
 import { useMarketList } from "@/lib/market-list";
 import Link from "next/link";
@@ -17,8 +18,8 @@ const LIVE_STATES = new Set([5, 6, 7, 8]);
 
 export function OracleMarket({ id, note = "", engine }: { id: Hex; note?: string; engine?: string }) {
   const q = useOracleMarket(id);
-  if (q.isLoading) return <div className="hair-b px-4 py-6 text-sm text-fg-3">Reading the resolution oracle…</div>;
-  if (q.isError || !q.data) return <div className="hair-b px-4 py-6 text-sm text-ask">Could not read this market from the oracle. Retrying.</div>;
+  if (q.isLoading) return <LoadingPanel label="Reading the resolution oracle" />;
+  if (q.isError || !q.data) return <ReadError message="Could not read this market from the oracle." retry={() => { void q.refetch(); }} />;
   const { question, rules, core, resolution: r, evidenceURI, block } = q.data;
   const state = Number(r.state);
   const rejected = [1, 2, 3].filter((o) => (Number(r.rejectedMask) >> o) & 1).map((o) => ORACLE_OUTCOME[o]);

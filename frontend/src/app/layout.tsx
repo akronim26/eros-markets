@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistPixelGrid } from "geist/font/pixel";
+import { SiteFooter } from "@/components/site-footer";
+import { CookieBanner } from "@/components/cookie-banner";
 import { Providers } from "@/components/providers";
 import { TopBar, TestnetStrip } from "@/components/shell";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -24,6 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <TopBar />
             <TestnetStrip />
             {children}
+            <SiteFooter />
+            <CookieBanner />
           </Providers>
         </ThemeProvider>
       </body>

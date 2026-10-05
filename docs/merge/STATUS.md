@@ -817,3 +817,43 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   panels are absent, both remaining panels render, 320/1440 px layouts have no
   horizontal overflow, and no runtime exceptions occur. Production preview
   restarted at localhost:3100. Evidence: `/tmp/eros-panel-removal-*`.
+
+### 2026-10-06 — FE-STATES: feedback, confirmation and policy pages
+
+- User requested loading states, form errors, a thank-you page, privacy policy,
+  terms and a cookie banner. Baseline `a0823dc` on `feat/pricefeed`, initially
+  clean. Changes are local and uncommitted/unpushed. Leverage/deployment work
+  remains paused; this item changes frontend presentation and validation feedback.
+- Added shared skeleton/pending/retry components and a root route error boundary.
+  Loading feedback covers markets, terminal, portfolio, oracle, reserve, order
+  history, open orders, wallet permissions and protection configuration. Pending
+  configuration reads no longer prematurely claim a service is unconfigured.
+- Added blur-triggered field errors with accessible associations and invalid
+  styling for price, size, expiry, collateral, reserve, protection and evidence
+  fields. Errors clear on correction; protection submission reveals errors and
+  focuses the first invalid field. Existing contract preview/signing guards remain.
+- Unified transaction progress/error/result feedback. Successful, non-rejected
+  results link to `/thank-you?tx=...`; no automatic trading-flow redirect. The
+  page checks Monad receipts, distinguishes missing/invalid/reverted results,
+  and does not equate transaction confirmation with a filled order. Direct
+  `/thank-you` visits show a general thank-you with no transaction-success claim.
+- Added `/privacy` and `/terms`, a shared footer, and Privy modal policy links.
+  Policy copy reflects the current testnet, manual fixture, local storage,
+  third-party providers and optional automation database. No legal compliance
+  certification is claimed. Public operator identity/contact email were requested
+  but not supplied; copy currently directs requests to the project access channel.
+- Added a dismissible cookies/storage notice, 180-day acknowledgement, footer
+  reopen, keyboard focus restoration, cross-tab acknowledgement sync and blocked
+  storage fallback. No optional trackers are configured or added, so this is an
+  informational notice rather than an ineffective accept/reject tracking switch.
+- Verification: production build including TypeScript exits 0 (existing upstream
+  viem/ox warning); 31 unit and 10 integration tests pass. Browser checks pass for
+  all three pages in light/dark at 320/768/1024/1440 px, no horizontal overflow,
+  zero axe WCAG A/AA violations, cookie persistence/reopen/focus, input errors and
+  correction, actual Privy modal policy links, and no runtime exceptions.
+- Recovery checks pass: an existing real testnet receipt confirms; missing or
+  malformed hashes never confirm; a mocked reverted receipt shows failure;
+  blocked RPC shows loading then error and recovers after retry; reduced motion
+  disables loading animation; blocked local storage still permits dismissal.
+  No transactions were submitted. Evidence: `/tmp/eros-states-*`. Production
+  preview is rebuilt and running at localhost:3100.
