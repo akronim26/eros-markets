@@ -1,0 +1,47 @@
+.terminal {
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1.125rem;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.625rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.75rem;
+}
+
+.terminal :global(.label) {
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  letter-spacing: 0.06em;
+}
+
+.content {
+  container: terminal-content / inline-size;
+}
+
+/* Details follow the available width beside the order panel. */
+.details {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+}
+
+.deadlineList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.deadlineList :global(.tnum) {
+  white-space: normal;
+}
+
+@container terminal-content (min-width: 42rem) {
+  .deadlineList {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container terminal-content (min-width: 64rem) {
+  .deadlines {
+    grid-template-columns: minmax(16rem, 1fr) 2fr;
+  }
+}

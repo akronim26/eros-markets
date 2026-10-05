@@ -1,0 +1,168 @@
+.root {
+  margin-top: 2rem;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-panel);
+}
+
+.toolbar, .footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.5rem;
+}
+
+.toolbar { min-height: 52px; border-bottom: 1px solid var(--color-line); }
+.statusMark { width: 5px; height: 5px; background: var(--color-signal); }
+
+.motionButton {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+  color: var(--color-fg-3);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.motionButton:hover { color: var(--color-signal-text); }
+.motionButton:disabled { cursor: default; color: var(--color-fg-4); }
+
+.content { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.visual {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden;
+  background: var(--color-ground);
+  background-image: radial-gradient(var(--color-dot) 0.7px, transparent 0.8px);
+  background-size: 22px 22px;
+  border-right: 1px solid var(--color-line);
+}
+.registration {
+  position: absolute;
+  z-index: 1;
+  top: 1.25rem;
+  right: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--color-fg-4);
+  pointer-events: none;
+}
+.scene {
+  transform: translate(var(--oracle-x, 0px), var(--oracle-y, 0px)) rotate(var(--oracle-turn, 0deg));
+  transition: transform 700ms var(--ease-out-expo);
+}
+.illustration { display: block; width: 100%; max-height: 540px; overflow: visible; }
+.stack { animation: stack-drift 16s ease-in-out infinite; transform-origin: 50% 50%; }
+.spine { fill: none; stroke: var(--color-fg-4); stroke-width: 0.7; stroke-dasharray: 2 6; opacity: 0.35; }
+.plane { cursor: pointer; transition: transform 700ms var(--ease-out-expo); }
+.plane[data-active="true"] { transform: translateY(-7px); }
+.float { animation: plane-float 7.5s ease-in-out var(--float-delay) infinite; }
+.surface { fill: var(--color-panel); fill-opacity: 0.16; stroke: var(--color-fg-3); stroke-opacity: 0.4; stroke-width: 0.8; transition: stroke 500ms ease, stroke-opacity 500ms ease, fill 180ms ease; }
+.plane[data-active="true"] .surface { stroke: var(--color-signal-text); stroke-opacity: 0.9; }
+.corners { fill: none; stroke: var(--color-fg-3); stroke-width: 1.2; transition: stroke 400ms ease; }
+.plane[data-active="true"] .corners { stroke: var(--color-signal); }
+.planeLabel { fill: var(--color-fg-3); font-size: 8px; letter-spacing: 0.12em; }
+.dataRow { fill: var(--color-fg); animation: data-breathe 4.8s ease-in-out var(--row-delay) infinite; }
+.scan { animation: scan 6s ease-in-out infinite; }
+.network { fill: none; stroke: var(--color-fg-3); stroke-width: 1; }
+.networkInner { fill: none; stroke: var(--color-fg-3); stroke-width: 0.7; stroke-dasharray: 2 5; opacity: 0.5; }
+.modelNode { fill: var(--color-fg); }
+.nodeRing { fill: none; stroke: var(--color-signal); stroke-width: 0.8; animation: node-breathe 5.1s ease-in-out var(--node-delay) infinite; }
+.consensus { fill: var(--color-signal); }
+.orbitOuter { fill: none; stroke: var(--color-fg-4); stroke-opacity: 0.45; stroke-width: 0.6; stroke-dasharray: 1 7; }
+.orbitTrack { fill: none; stroke: var(--color-fg-3); stroke-width: 0.8; stroke-opacity: 0.6; }
+.orbit { transform-origin: 150px 95px; animation: orbit 16s linear infinite; }
+.crosshair { fill: none; stroke: var(--color-fg); stroke-width: 1.5; }
+.visualHint { position: absolute; right: 1.5rem; bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--color-fg-4); font-size: 10px; pointer-events: none; }
+
+.layers { display: grid; grid-template-rows: repeat(3, 1fr); padding: 0 1.5rem; }
+.layer {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 16px;
+  align-items: start;
+  column-gap: 1rem;
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+  cursor: pointer;
+}
+.layer:last-child { border-bottom: 0; }
+.layer::before { content: ""; position: absolute; inset: 1.25rem -0.75rem; border-left: 2px solid var(--color-signal); background: var(--color-hover); opacity: 0; transition: opacity 300ms ease; }
+.layer[data-active="true"]::before { opacity: 1; }
+.layerNumber, .layerText, .layerArrow { position: relative; }
+.layerNumber { color: var(--color-fg-4); font-size: 11px; line-height: 16px; transition: color 250ms ease; }
+.layer[data-active="true"] .layerNumber { color: var(--color-signal-text); }
+.layerText { display: flex; flex-direction: column; }
+.layerTag { color: var(--color-fg-3); font-size: 9px; line-height: 16px; letter-spacing: 0.06em; text-transform: uppercase; }
+.layerTitle { margin-top: 0.5rem; font-size: clamp(1rem, 1.6vw, 1.375rem); font-weight: 500; line-height: 1.3; letter-spacing: -0.04em; color: var(--color-fg); }
+.layerDescription { margin-top: 0.75rem; max-width: 38ch; font-size: 12px; line-height: 1.65; color: var(--color-fg-3); }
+.layerArrow { color: var(--color-signal-text); margin-top: 1.6rem; opacity: 0; transform: translateX(-5px); transition: opacity 300ms ease, transform 400ms var(--ease-out-expo); }
+.layer[data-active="true"] .layerArrow { opacity: 1; transform: none; }
+
+.footer { min-height: 64px; border-top: 1px solid var(--color-line); }
+.footer p { color: var(--color-fg-3); font-size: 11px; line-height: 1.6; }
+.detailsLink { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 0.75rem; color: var(--color-fg); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.detailsLink:hover { color: var(--color-signal-text); }
+.detailsLink svg { transition: transform 250ms ease; }
+.detailsLink:hover svg { transform: translateX(3px); }
+
+@keyframes stack-drift { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+@keyframes plane-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes data-breathe { 0%, 100% { opacity: 0.3; } 45%, 60% { opacity: 0.85; } }
+@keyframes scan { 0%, 12% { transform: translateY(0); opacity: 0; } 22% { opacity: 1; } 78% { opacity: 1; } 92%, 100% { transform: translateY(118px); opacity: 0; } }
+@keyframes node-breathe { 0%, 100% { opacity: 0.1; } 35%, 55% { opacity: 0.7; } }
+@keyframes orbit { to { transform: rotate(360deg); } }
+
+.root[data-motion="off"] .stack,
+.root[data-motion="off"] .float,
+.root[data-motion="off"] .dataRow,
+.root[data-motion="off"] .scan,
+.root[data-motion="off"] .nodeRing,
+.root[data-motion="off"] .orbit { animation-play-state: paused; }
+.root[data-reduced="true"] .scan { display: none; }
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .layers { padding-inline: 1.25rem; }
+  .layer { grid-template-columns: 18px minmax(0, 1fr); column-gap: 0.5rem; padding-block: 1.25rem; }
+  .layerArrow { display: none; }
+  .layer::before { inset-block: 0.75rem; }
+}
+
+@media (max-width: 767px) {
+  .content { grid-template-columns: 1fr; }
+  .visual { border-right: 0; border-bottom: 1px solid var(--color-line); }
+  .illustration { max-height: 430px; }
+  .visualHint { display: none; }
+  .layers { grid-template-rows: none; padding: 0 1.5rem; }
+  .layer { padding: 1.5rem 0; }
+  .layerTitle { font-size: 18px; }
+  .layerDescription { max-width: none; }
+  .layer::before { inset-block: 0.75rem; }
+  .footer { align-items: flex-start; flex-direction: column; gap: 0.25rem; padding-block: 1rem; }
+  .detailsLink { justify-content: flex-start; }
+}
+
+@media (max-width: 400px) {
+  .toolbar, .footer { padding-inline: 1rem; }
+  .toolbar > span { font-size: 9px; letter-spacing: 0.02em; }
+  .registration { top: 1rem; right: 1rem; left: 1rem; font-size: 8px; }
+  .layer { grid-template-columns: 20px minmax(0, 1fr); column-gap: 0.5rem; }
+  .layerArrow { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack, .float, .dataRow, .scan, .nodeRing, .orbit { animation: none; }
+  .scene, .plane[data-active="true"], .layerArrow, .detailsLink:hover svg { transform: none; }
+  .scan { display: none; }
+  .dataRow { opacity: 0.6; }
+  .nodeRing { opacity: 0.4; }
+}

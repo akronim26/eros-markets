@@ -14,9 +14,9 @@ function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now
   const chip = d ? chipFor(d) : null;
   const toT = d && now !== undefined ? d.listing.scheduledT - now : undefined;
   return (
-    <tr className="hair-b group hover:bg-hover">
+    <tr className="hair-b group relative cursor-pointer hover:bg-hover focus-within:bg-hover">
       <td className="py-4 pr-6 pl-4">
-        <Link href={`/m/${mk.engine}`} className="flex flex-col gap-1 after:absolute after:inset-0">
+        <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} trading terminal`} className="flex flex-col gap-1 after:absolute after:inset-0">
           <span className="text-sm font-semibold text-fg">{mk.title}</span>
           <span className="text-2xs text-fg-3">{mk.short} · {mk.resolution === "ORACLE" ? "Eros oracle" : "Manual test authority"}</span>
         </Link>
@@ -45,7 +45,7 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
     ["To halt", toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"],
   ];
   return (
-    <li className="frame bg-ground">
+    <li className="frame relative bg-ground hover:bg-hover focus-within:bg-hover">
       <div className="label flex items-center justify-between px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">
         <span>{mk.short}</span>
         {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
@@ -59,8 +59,8 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
           </div>
         ))}
       </dl>
-      <Link href={`/m/${mk.engine}`} className="group m-3 flex h-10 items-stretch">
-        <span className="flex w-10 items-center justify-center bg-signal text-on-signal" aria-hidden>
+      <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} trading terminal`} className="group m-3 flex min-h-11 items-stretch after:absolute after:inset-0">
+        <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
           <ArrowRight size={15} strokeWidth={2} />
         </span>
         <span className="label flex flex-1 items-center bg-action px-4 text-on-action group-hover:bg-action-hover">Open market</span>
@@ -106,7 +106,7 @@ export function MarketsIndex() {
               <th className="pr-4" aria-label="Open" />
             </tr>
           </thead>
-          <tbody className="relative">
+          <tbody>
             {markets.map((mk) => (
               <MarketRow key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />
             ))}

@@ -13,6 +13,7 @@ import { deployment, type MarketManifest } from "@/config/deployment";
 import { explorerAddress, explorerTx } from "@/config/chain";
 import { useOwner } from "./wallet";
 import { Button, Chip, Num, RegionHead, Row, Stat, Unavailable, cx } from "./ui";
+import terminalStyles from "./terminal.module.css";
 
 export function chipFor(m: MarketSnapshot) {
   return marketChip({
@@ -82,7 +83,7 @@ export function DeadlineStrip({ m, now }: { m?: MarketSnapshot; now?: bigint }) 
   // Signal only when the final-day window is live risk; before that the next deadline is an Ivory mark.
   const finalDay = now >= T - 45_000n;
   return (
-    <div className="hair-b grid min-h-[76px] grid-cols-1 items-center gap-4 px-4 py-3 md:grid-cols-[minmax(260px,1fr)_2fr]">
+    <div className={cx(terminalStyles.deadlines, "hair-b grid min-h-[76px] grid-cols-1 items-center gap-4 px-4 py-3")}>
       <div>
         {next ? (
           <>
@@ -99,7 +100,7 @@ export function DeadlineStrip({ m, now }: { m?: MarketSnapshot; now?: bigint }) 
           </>
         )}
       </div>
-      <ol className="grid grid-cols-4 gap-px bg-line" aria-label="Market deadlines">
+      <ol className={cx(terminalStyles.deadlineList, "grid gap-px bg-line")} aria-label="Market deadlines">
         {all.map((d) => (
           <li key={d.label} className={cx("flex flex-col gap-0.5 bg-ground px-3 py-2", next?.label === d.label && "bg-hover")}>
             <span className={cx("h-[3px] w-full", d.passed ? "bg-fg-4" : next?.label === d.label ? (finalDay ? "bg-signal" : "bg-fg") : "bg-line-strong")} aria-hidden />
@@ -203,7 +204,7 @@ export function MarketInfo({ manifest, m }: { manifest: MarketManifest; m?: Mark
   if (!m) return null;
   const l = m.listing;
   return (
-    <div className="grid grid-cols-1 gap-x-8 px-4 py-2 md:grid-cols-3">
+    <div className={cx(terminalStyles.details, "grid gap-x-8 px-4 py-2")}>
       <dl>
         <Row k="Stage" v={STAGE[m.risk.stage]} />
         <Row k="Pricing" v={PRICING[m.risk.pricingMode]} />
@@ -250,7 +251,7 @@ export function PositionPanel({ m, t }: { m?: MarketSnapshot; t?: TraderSnapshot
   const exposureQ = (p.positionLots < 0n ? -p.positionLots : p.positionLots) * 1000n * w;
   const lev = markOk && p.markEquityQ > 0n && p.positionLots !== 0n ? (exposureQ * 100n) / p.markEquityQ : undefined;
   return (
-    <div className="grid grid-cols-1 gap-x-8 px-4 py-2 md:grid-cols-3">
+    <div className={cx(terminalStyles.details, "grid gap-x-8 px-4 py-2")}>
       <dl>
         <Row k="Position" v={`${lotsToClaims(p.positionLots)} ${p.positionLots > 0n ? "YES" : p.positionLots < 0n ? "NO" : ""}`} />
         <Row k="Cash in market" v={usd2(p.cashQ)} hint="Already includes projected funding and premium; negative when leveraged" />

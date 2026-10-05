@@ -3,15 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useHead } from "@/lib/reads";
-import { markets } from "@/config/deployment";
 import { WalletButton } from "./wallet";
 import { cx } from "./ui";
 import { BrandImage } from "./brand-image";
 import { ThemeSwitcher } from "./theme-switcher";
 
 const NAV = [
-  { href: "/markets", label: "Markets" },
-  { href: `/m/${markets[0].engine}`, label: "Trade", match: "/m/" },
+  { href: "/markets", label: "Markets", match: "/m/" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/resolution", label: "Resolution" },
 ];
@@ -44,16 +42,16 @@ export function TopBar() {
           <BrandImage className="w-full" />
         </Link>
         <nav
-          className="flex h-full items-stretch max-md:col-span-2 max-md:row-start-2 max-md:-mx-3 max-md:mt-1 max-md:grid max-md:h-10 max-md:w-[calc(100%+1.5rem)] max-md:grid-cols-4 max-md:shadow-[inset_0_1px_0_var(--color-line-strong)] md:justify-self-center"
+          className="flex h-full items-stretch max-md:col-span-2 max-md:row-start-2 max-md:-mx-3 max-md:mt-1 max-md:grid max-md:h-10 max-md:w-[calc(100%+1.5rem)] max-md:grid-cols-3 max-md:shadow-[inset_0_1px_0_var(--color-line-strong)] md:justify-self-center"
           aria-label="Primary"
         >
           {NAV.map((n) => {
-            const active = n.match ? path.startsWith(n.match) : path === n.href;
+            const active = path === n.href || (n.match ? path.startsWith(n.match) : false);
             return (
               <Link
                 key={n.label}
                 href={n.href}
-                aria-current={active ? "page" : undefined}
+                aria-current={active ? (path === n.href ? "page" : "location") : undefined}
                 className={cx("label relative flex items-center justify-center px-3 transition-colors duration-150 max-md:px-1", active ? "text-fg" : "text-fg-3 hover:text-fg")}
               >
                 {n.label}

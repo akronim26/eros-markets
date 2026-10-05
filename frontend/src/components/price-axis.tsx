@@ -29,7 +29,7 @@ type Props = {
   ladderEmptyReason: string;
 };
 
-const AXIS_W = 46;
+const AXIS_W = 56;
 const PAD_TOP = 30; // reserves the axis slot where an unavailable mark is stated
 const PAD_Y = 14;
 
@@ -86,6 +86,7 @@ export function PriceAxis(p: Props) {
   const rowH = Math.max(2, Math.min(12, ((h - PAD_TOP - PAD_Y) / ((range.hi - range.lo) * 1000)) * 0.8));
   const hasSeries = !!series && (p.index.length > 1 || p.perp.length > 1);
   const hasBook = maxLots > 0n;
+  const compactEmpty = w > 0 && w < 480 && !hasBook;
 
   return (
     <div ref={ref} className="relative h-full min-h-[280px] w-full select-none">
@@ -95,7 +96,7 @@ export function PriceAxis(p: Props) {
           {ticks.map((v) => (
             <g key={v}>
               <line x1={0} x2={chartW + LADDER_W} y1={Math.round(y(v)) + 0.5} y2={Math.round(y(v)) + 0.5} stroke="var(--color-line)" />
-              <text x={w - 8} y={y(v) + 3.5} textAnchor="end" className="tnum" fontSize={10} fill="var(--color-fg-4)">
+              <text x={w - 8} y={y(v) + 4} textAnchor="end" className="tnum" fontSize={12} fill="var(--color-fg-4)">
                 {v.toFixed(range.step < 0.02 ? 3 : 2)}
               </text>
             </g>
@@ -139,7 +140,7 @@ export function PriceAxis(p: Props) {
           {p.markUnit === undefined && (
             <g>
               <rect x={chartW + LADDER_W + 4.5} y={6.5} width={AXIS_W - 9} height={17} fill="none" stroke="var(--color-signal)" />
-              <text x={chartW + LADDER_W + AXIS_W / 2} y={18.5} textAnchor="middle" fontSize={10} fontWeight={600} fill="var(--color-signal)">
+              <text x={chartW + LADDER_W + AXIS_W / 2} y={19} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-signal)">
                 —
               </text>
             </g>
@@ -150,7 +151,7 @@ export function PriceAxis(p: Props) {
             <g>
               <rect x={0} y={y(p.markUnit) - 1.5} width={chartW + LADDER_W} height={3} fill="var(--color-signal)" />
               <rect x={chartW + LADDER_W} y={y(p.markUnit) - 9} width={AXIS_W} height={18} fill="var(--color-signal)" />
-              <text x={w - 6} y={y(p.markUnit) + 3.5} textAnchor="end" fontSize={10} fontWeight={600} className="tnum" fill="var(--color-on-signal)">
+              <text x={w - 6} y={y(p.markUnit) + 4} textAnchor="end" fontSize={12} fontWeight={600} className="tnum" fill="var(--color-on-signal)">
                 {p.markUnit.toFixed(3)}
               </text>
             </g>
@@ -160,11 +161,11 @@ export function PriceAxis(p: Props) {
 
       {!hasSeries && (
         <div
-          className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center px-5"
-          style={{ width: chartW || "60%" }}
+          className={cx("pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center px-3 sm:px-5", compactEmpty && "pb-12")}
+          style={{ width: compactEmpty ? w - AXIS_W : chartW || "60%" }}
         >
           <div className="frame max-w-sm bg-ground">
-            <p className="label px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">STATE.PRICE</p>
+            {!compactEmpty && <p className="label px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">STATE.PRICE</p>}
             <div className="p-4">
               <p className="text-lg font-medium text-fg">{p.emptyTitle}</p>
               <p className="mt-2 text-sm leading-relaxed text-fg-3">{p.emptyReason}</p>
