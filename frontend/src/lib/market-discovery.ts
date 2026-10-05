@@ -4,6 +4,9 @@ import { engineAbi } from "@/abi/engine";
 import { marketRegistryAbi } from "@/abi/marketRegistry";
 import { deployment, marketByEngine, markets, oracleMarkets, type MarketManifest } from "@/config/deployment";
 import { INDEXER_URL, indexerQuery } from "./history";
+import { isContractRevert, isMissingContract } from "./read-errors";
+
+class UnsupportedMarket extends Error {}
 
 const metadataAbi = parseAbi(["function decimals() view returns (uint8)", "function symbol() view returns (string)", "function token() view returns (address)"]);
 export async function readAssets(engine: Address, block: bigint) {
@@ -16,7 +19,7 @@ export async function readAssets(engine: Address, block: bigint) {
     { address: listing.token, abi: metadataAbi, functionName: "decimals" },
     { address: listing.token, abi: metadataAbi, functionName: "symbol" },
   ] });
-  if (token.toLowerCase() !== listing.token.toLowerCase() || decimals !== 6) throw new Error("Unsupported collateral configuration.");
+  if (token.toLowerCase() !== listing.token.toLowerCase() || decimals !== 6) throw new UnsupportedMarket("Unsupported collateral configuration.");
   return { vault, token, decimals, symbol };
 }
 
@@ -37,7 +40,11 @@ export async function resolveMarket(engine: string, block?: bigint): Promise<Mar
     await readAssets(engine, at);
     return { engine, marketId: listing.marketId, listingHash, deployBlock: deployment.oracle.deployBlock, title,
       short: title.length > 36 ? `${title.slice(0, 33)}…` : title, oracleMarketId: listing.marketId, resolution: "ORACLE", fixture: false, role: "demo" };
-  } catch { return undefined; }
+  } catch (error) {
+    if (error instanceof UnsupportedMarket || isContractRevert(error) || isMissingContract(error)) return undefined;
+    // A timeout or rate limit must offer retry, rather than falsely returning 404.
+    throw error;
+  }
 }
 
 export async function discoverMarkets() {

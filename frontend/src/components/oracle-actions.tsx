@@ -12,6 +12,7 @@ import { useTx } from "@/lib/tx";
 import { useOwner } from "./wallet";
 import { Button, Row } from "./ui";
 import { TxFeedback } from "./tx-feedback";
+import { isContractRevert } from "@/lib/read-errors";
 
 const tokenMeta = parseAbi(["function decimals() view returns (uint8)", "function symbol() view returns (string)"]);
 const ooAbi = parseAbi(["function disputeAssertion(bytes32 assertionId, address disputer)", "function getAssertion(bytes32) view returns (((bool arbitrateViaEscalationManager,bool discardOracle,bool validateDisputers,address assertingCaller,address escalationManager) escalationManagerSettings,address asserter,uint64 assertionTime,bool settled,address currency,uint64 expirationTime,bool settlementResolution,bytes32 domainId,bytes32 identifier,uint256 bond,address callbackRecipient,address disputer))"]);
@@ -31,7 +32,7 @@ export function OracleActions({ data: d }: { data: Data }) {
       try {
         const simulation = await client.simulateContract({ ...oracle, functionName: name, args: [d.id], account: owner.address ?? zeroAddress });
         return simulation.result === true || (name === "finalizeMarket" && Number(simulation.result) > 0);
-      } catch { return false; }
+      } catch (error) { if (isContractRevert(error)) return false; throw error; }
     }));
     if (!venue) return { allowed, bond: undefined };
     const [token, oo, assertion] = await Promise.all([

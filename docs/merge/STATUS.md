@@ -641,3 +641,39 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   snapshot change; the committed baseline remains byte-for-byte unchanged.
 - This is CI maintenance on the user's active feature branch. No main merge,
   deployment, contract permission change or gate-acceptance update is included.
+
+### 2026-10-06 — FE-AUDIT: frontend audit and repair
+
+- User requested a frontend audit, extending the historical deferred frontend
+  scope for this turn. Baseline `8c73266e39d188e1cd052edaad7189b5f3fe481e` on
+  `feat/pricefeed`; initial working tree clean and fetched origin matched HEAD.
+- Fixed depth-bar scaling, wide-spread sampling and cached depth after all orders
+  disappear. Three reproductions failed with the prior geometry/sample logic and
+  pass with the repairs. Added query-observer coverage for populated-to-empty books.
+- Preserve network failures during market resolution and action simulation;
+  provide retry UI instead of false 404/no-action states. Balance/list screens
+  distinguish missing reads from unfunded accounts. Cancel-all no longer depends
+  on successful order discovery; signing and simulation guards remain unchanged.
+- Correct animated-heading/number accessibility and terminal tab relationships,
+  keyboard focus and selection. Preserve the compact terminal and existing themes.
+- Added frontend-only CI checks: locked dependency install, high/critical audit
+  gate, unit/server tests, production build and typecheck. A scoped ws 8.x override
+  fixes the high advisory; 23 moderate package entries in inherited wallet
+  dependencies remain documented for a tested upstream upgrade.
+- Validation exit 0: clean temporary checkout install/tests/build/typecheck;
+  final working-tree `npm ci`, 31 unit tests, 10 integration tests, webpack build,
+  typecheck and high/critical dependency audit. Build retains upstream dependency
+  warnings. `git diff --check` exits 0. No contract source/economic changes.
+- Chrome: 50 route/theme/width checks pass, no overflow/runtime exceptions/failed
+  responses on normal paths; all nine terminal panels, keyboard navigation,
+  All markets return link, system themes, reduced motion and interactive demo
+  pass. Axe reports zero WCAG A/AA violations on tested public pages in both
+  themes. Blocked RPC/history requests show errors and recover through retry.
+- Rebuilt and restarted the production preview on port 3100 after stopping its
+  prior process, preserving other local services. Privy dialogs checked in dark
+  desktop and light mobile; no real login, signature, public-chain write or new
+  deployment. Live activation, funded-wallet demo and optional signer/worker/
+  calibration configuration remain external dependencies.
+- Full findings and remaining work: `frontend/AUDIT.md`; integration progress
+  updated. This is technical validation, not independent security review or new
+  gate acceptance. Commit/push scoped to the active feature branch; main untouched.

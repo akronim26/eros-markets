@@ -115,3 +115,24 @@ Each step records implementation, commands/results, and remaining dependencies b
 Full commands, public-read checks, limitations and logs:
 [CRE verification report](../docs_oracle/evidence/hack-verification-2026-10-06/README.md).
 Repeat the isolated lifecycle with `cd oracle/e2e && bun src/verify-cre-fork.ts`.
+
+## Frontend audit — 6 October 2026
+
+- Fixed depth scaling, wide-spread sampling and stale liquidity after an empty book.
+- Corrected misleading balance/loading states and added discovery/read retries.
+  RPC failures no longer become missing-market results or hidden upkeep failures.
+- Kept account-wide cancellation available when order discovery fails; wallet and
+  transaction guards remain enforced.
+- Repaired animated text accessibility and terminal keyboard navigation.
+- Added a frontend CI workflow and patched the vulnerable transitive WebSocket
+  versions. Dependency audit now has zero high/critical and 23 moderate entries;
+  the remaining wallet-stack advisories are explicitly tracked.
+- Final verification: **31 unit + 10 integration tests**, typecheck, frozen install
+  and production build pass. Chrome: **50 layout checks**, all nine terminal
+  panels, zero automated accessibility violations on tested public pages in both
+  themes, and successful RPC/history outage recovery. Interactive demo and Privy
+  light-mobile/dark-desktop dialogs also pass without authenticating a wallet.
+- Local preview restarted at `http://localhost:3100`. The actual funded-wallet
+  demo, operator setup and optional automation dependencies remain outstanding.
+
+Findings, commands, limitations and remaining work: [AUDIT.md](AUDIT.md).

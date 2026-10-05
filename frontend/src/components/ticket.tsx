@@ -17,7 +17,7 @@ import { Check } from "lucide-react";
 import { useLoginAction, useOwner } from "./wallet";
 import { useSwitchChain } from "wagmi";
 import { chain } from "@/config/chain";
-import { Button, RegionHead, Row, cx } from "./ui";
+import { Button, RegionHead, Row, cx, selectionKeys } from "./ui";
 
 type Side = "buy" | "sell";
 type Parsed = { ok: true; tick: number; lots: bigint } | { ok: false; error: string };
@@ -124,12 +124,11 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
     <section aria-label="Order ticket" className="flex h-full flex-col">
       <RegionHead title="Order" />
       <div className="flex flex-col gap-4 p-3">
-        <div className="grid grid-cols-2" role="tablist" aria-label="Side">
+        <div className="grid grid-cols-2" role="group" aria-label="Side">
           {(["buy", "sell"] as const).map((s) => (
             <button
               key={s}
-              role="tab"
-              aria-selected={side === s}
+              aria-pressed={side === s}
               onClick={() => setSide(s)}
               className={cx(
                 "h-9 text-sm font-semibold transition-colors duration-150",
@@ -145,12 +144,13 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
           ))}
         </div>
 
-        <div className="flex gap-px bg-line" role="radiogroup" aria-label="Order type">
+        <div className="flex gap-px bg-line" role="radiogroup" aria-label="Order type" onKeyDown={selectionKeys}>
           {ORDER_KIND.map((k, i) => (
             <button
               key={k}
               role="radio"
               aria-checked={kind === i}
+              tabIndex={kind === i ? 0 : -1}
               onClick={() => setKind(i)}
               className={cx("label h-7 flex-1", kind === i ? "bg-press text-fg" : "bg-ground text-fg-3 hover:text-fg")}
             >

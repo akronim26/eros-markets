@@ -21,7 +21,7 @@ export function OpenOrders({ engine, traderId, block }: { engine: Address; trade
   return <section aria-label="Open orders" className="min-w-0 p-3">
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
       <p className="text-xs text-fg-3">{q.data ? `Orders checked at block ${q.data.block}` : "Reading your orders…"}</p>
-      <Button disabled={disabled || !traderId} onClick={() => cancel()}>Cancel all</Button>
+      <Button disabled={busy || owner.wrongChain || !traderId} onClick={() => cancel()}>Cancel all</Button>
     </div>
     {q.isError ? <p role="alert" className="text-sm text-ask">Could not read orders. <button className="underline" onClick={() => q.refetch()}>Retry</button></p>
       : !q.data ? <p role="status" className="text-sm text-fg-3">Loading orders…</p>

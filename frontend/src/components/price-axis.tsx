@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Level, Point, Trade } from "@/lib/reads";
 import { cx } from "./ui";
+import { depthBarWidth } from "@/lib/book-depth";
 
 function useSize<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -80,7 +81,7 @@ export function PriceAxis(p: Props) {
   }, [p.index, p.perp, p.trades, chartW, h, range]);
 
   const maxLots = useMemo(
-    () => p.levels.reduce((m, l) => (l.bidLots > m ? l.bidLots : l.askLots > m ? l.askLots : m), 0n),
+    () => p.levels.reduce((m, l) => [m, l.bidLots, l.askLots].reduce((a, b) => a > b ? a : b), 0n),
     [p.levels],
   );
   const rowH = Math.max(2, Math.min(12, ((h - PAD_TOP - PAD_Y) / ((range.hi - range.lo) * 1000)) * 0.8));
@@ -117,7 +118,7 @@ export function PriceAxis(p: Props) {
           {p.levels.map((l) => {
             const lots = l.bidLots > 0n ? l.bidLots : l.askLots;
             if (lots === 0n || maxLots === 0n) return null;
-            const width = Math.max(2, Number((lots * 1000n) / maxLots) / 1000) * (LADDER_W - 8);
+            const width = depthBarWidth(lots, maxLots, LADDER_W - 8);
             return (
               <rect
                 key={l.tick}
@@ -179,7 +180,7 @@ export function PriceAxis(p: Props) {
           className={cx("absolute bottom-0 bg-ground px-3 py-1.5 text-2xs text-fg-3", narrow && "px-1.5")}
           style={{ left: chartW + 1, width: LADDER_W - 1 }}
         >
-          {narrow ? "Book empty" : p.ladderEmptyReason}
+          {p.ladderEmptyReason}
         </div>
       )}
     </div>

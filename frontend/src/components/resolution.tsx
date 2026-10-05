@@ -79,6 +79,7 @@ export function ResolutionPage() {
       <div className="mt-10">
         <SectionRule name="ORACLE_MARKETS" index={1} />
       </div>
+      {list.isError && <p role="alert" className="mt-4 text-xs text-ask">Market discovery is unavailable. Showing the last known oracle records. <button className="underline" onClick={() => list.refetch()}>Retry</button></p>}
       <div className="frame mt-4">
         {ids.map((id) => {
           const market = list.markets.find((m) => m.oracleMarketId === id);

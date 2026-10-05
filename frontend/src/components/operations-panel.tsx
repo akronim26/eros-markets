@@ -8,6 +8,7 @@ import { lotsToClaims, qToMoney } from "@/lib/units";
 import { useOwner } from "./wallet";
 import { Button, Row } from "./ui";
 import { TxFeedback } from "./tx-feedback";
+import { isContractRevert } from "@/lib/read-errors";
 
 export function OperationsPanel({ engine, m }: { engine: Address; m: MarketSnapshot }) {
   const owner = useOwner(), tx = useTx();
@@ -26,7 +27,7 @@ export function OperationsPanel({ engine, m }: { engine: Address; m: MarketSnaps
     { name: "finishPreparation", label: "Open claims", args: [], due: s.oracleFinalityAccepted && s.accountingComplete && !s.claimsEnabled && !s.recoveryRequired },
   ];
   const q = useQuery({ queryKey: ["operations", engine, m.block.toString(), owner.address], queryFn: async () => {
-    const available = await Promise.all(actions.map(async (a) => { if (!a.due) return false; try { const simulation = await client.simulateContract({ address: engine, abi: engineAbi, functionName: a.name, args: a.args, account: owner.address, blockNumber: m.block } as never); return (simulation.result as unknown) !== false; } catch { return false; } }));
+    const available = await Promise.all(actions.map(async (a) => { if (!a.due) return false; try { const simulation = await client.simulateContract({ address: engine, abi: engineAbi, functionName: a.name, args: a.args, account: owner.address, blockNumber: m.block } as never); return (simulation.result as unknown) !== false; } catch (error) { if (isContractRevert(error)) return false; throw error; } }));
     const earnings = owner.address ? await client.readContract({ address: engine, abi: engineAbi, functionName: "keeperQ", args: [owner.address], blockNumber: m.block }) : 0n;
     return { available, earnings };
   }});

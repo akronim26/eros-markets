@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useHead, useLadder, useMarket, useTrader } from "@/lib/reads";
@@ -12,7 +12,7 @@ import { closeIntent, type CloseIntent } from "@/lib/trade-intent";
 import { Ticket } from "./ticket";
 import { AccountPanel, DeadlineStrip, MarketHeader, MarketInfo, PositionPanel } from "./market-parts";
 import { useOwner } from "./wallet";
-import { cx } from "./ui";
+import { cx, selectionKeys } from "./ui";
 import styles from "./terminal.module.css";
 import { OpenOrders } from "./open-orders";
 import { ProtectionPanel } from "./protection-panel";
@@ -25,6 +25,7 @@ import { AccountHistory } from "./account-history";
 const TABS = ["Position", "Market info", "Open orders", "History", "Protection", "Risk", "Liquidity", "Operations", "Resolution"] as const;
 
 export function Terminal({ manifest }: { manifest: MarketManifest }) {
+  const tabsId = useId();
   const head = useHead();
   const block = head.data?.number;
   const m = useMarket(manifest.engine, block);
@@ -57,7 +58,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       </div>
       <div className={cx(styles.content, "flex min-w-0 flex-col")}>
         <MarketHeader manifest={manifest} m={md} />
-        {(m.isError || t.isError || head.isError) && <p role="alert" className="hair-b px-4 py-2 text-xs text-signal-text">Live reads failed. Any displayed snapshot retains its original block; transactions are checked again before signing. <button className="underline" onClick={() => { void head.refetch(); void m.refetch(); if (owner.address) void t.refetch(); }}>Retry</button></p>}
+        {(m.isError || t.isError || head.isError || ladder.isError) && <p role="alert" className="hair-b px-4 py-2 text-xs text-signal-text">Live reads failed. Any displayed snapshot retains its original block; transactions are checked again before signing. <button className="underline" onClick={() => { void head.refetch(); void m.refetch(); void ladder.refetch(); if (owner.address) void t.refetch(); }}>Retry</button></p>}
         <div className="label hair-b flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 text-fg-3">
           <span className="flex items-center gap-1.5"><span className={cx("h-[2px] w-4", md?.risk.indexAvailable ? "bg-fg" : "bg-fg-4 [mask:repeating-linear-gradient(90deg,#000_0_2px,transparent_2px_4px)]")} aria-hidden />Index</span>
           <span className="flex items-center gap-1.5"><span className="h-px w-4 border-t border-dashed border-ivory-3" aria-hidden />Book price</span>
@@ -74,13 +75,13 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
             index={live.index}
             perp={live.perp}
             trades={live.trades}
-            levels={ladder.data ?? []}
+            levels={ladder.isError ? [] : ladder.data ?? []}
             markUnit={md?.risk.markAvailable ? wadToUnit(md.risk.markWad) : undefined}
             bestBid={md?.bestBid ?? 0}
             bestAsk={md?.bestAsk ?? 0}
             emptyTitle={md && !md.active ? "No price yet" : "Waiting for price"}
             emptyReason={emptyReason}
-            ladderEmptyReason="Book empty: no resting orders"
+            ladderEmptyReason={ladder.isError || m.isError || head.isError ? "Book unavailable" : !md || (!ladder.data && !!(md.bestBid || md.bestAsk)) ? "Loading book…" : "Book empty"}
           />
         </div>
         <DeadlineStrip m={md} now={head.data?.timestamp} />
@@ -91,11 +92,14 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
           <AccountPanel engine={manifest.engine} m={md} t={t.data} />
         </div>
         <div className="flex flex-col">
-          <div className="hair-b flex min-h-9 flex-wrap items-stretch px-2" role="tablist" aria-label="Details">
+          <div className="hair-b flex min-h-9 flex-wrap items-stretch px-2" role="tablist" aria-label="Details" onKeyDown={selectionKeys}>
             {TABS.map((x) => (
               <button
                 key={x}
                 role="tab"
+                id={`${tabsId}-${TABS.indexOf(x)}`}
+                aria-controls={`${tabsId}-panel`}
+                tabIndex={tab === x ? 0 : -1}
                 aria-selected={tab === x}
                 onClick={() => setTab(x)}
                 className={cx("label relative min-h-9 px-2 sm:px-3", tab === x ? "text-fg" : "text-fg-3 hover:text-fg")}
@@ -105,6 +109,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
               </button>
             ))}
           </div>
+          <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${TABS.indexOf(tab)}`} tabIndex={0}>
           {tab === "Position" ? (
             <PositionPanel m={md} t={t.data} onReduce={(bps) => { if (md && t.data?.account?.preview.positionLots) { setIntent(closeIntent(t.data.account.preview.positionLots, md.bestBid, md.bestAsk, bps)); document.querySelector<HTMLElement>(window.innerWidth >= 1024 ? 'aside[aria-label="Trade"]' : 'section[aria-label="Order ticket"]')?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} />
           ) : tab === "Market info" ? (
@@ -124,6 +129,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
           ) : (
             <AccountHistory engine={manifest.engine} traderId={t.data?.traderId} block={block} />
           )}
+          </div>
         </div>
       </div>
 
