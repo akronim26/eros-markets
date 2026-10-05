@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   forge:
     runs-on: ubuntu-latest
@@ -24,29 +28,15 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: v1.8.3
-      - name: Format
-        run: forge fmt --check
       - name: Build and contract sizes
         run: forge build --sizes
       - name: Test (unit, fuzz, invariant, real UMA, seam, vectors)
         run: forge test -vvv
       # The local-deploy suites (keeper O31.4, panel runner O33.5) run locally: bun run test:fork in each service.
 
-  real-integration:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: oracle
-    env:
-      FOUNDRY_PROFILE: integration
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: v1.8.3
       - name: Real factory, oracle, risk and book on Monad
+        env:
+          FOUNDRY_PROFILE: integration
         run: forge test --match-path 'test/integration/*.t.sol' --network monad --hardfork monad:MonadTen --isolate -vv
 
   packages:
@@ -76,39 +66,29 @@ jobs:
           bun run --cwd services/keeper typecheck
           bun run --cwd services/market-ops typecheck
 
-  workflow:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
+      # These projects have independent lockfiles; share setup, not dependency installs.
+      - name: CRE resolution workflow
         working-directory: oracle/workflows/resolution
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      - run: bun install --frozen-lockfile
-      - run: bun test
-      - run: bun run typecheck
-      - run: bun run build
-      - name: No withDefault on the outcome path
-        run: "! grep -rn --exclude-dir=node_modules '.withDefault(' --include='*.ts' . ../../packages"
-
-  dryrun:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
+        run: |
+          bun install --frozen-lockfile
+          bun test
+          bun run typecheck
+          bun run build
+      - name: CRE dry-run workflow
         working-directory: oracle/workflows/dryrun
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      - run: bun install --frozen-lockfile
-      - run: bun test
-      - run: bun run typecheck
-      - run: bun run build
-      - name: No withDefault on the outcome path
-        run: "! grep -rn --exclude-dir=node_modules '.withDefault(' --include='*.ts' . ../../packages"
+        run: |
+          bun install --frozen-lockfile
+          bun test
+          bun run typecheck
+          bun run build
+      - name: No withDefault on either outcome path
+        run: |
+          for path in workflows/resolution workflows/dryrun packages; do
+            test -d "$path"
+          done
+          status=0
+          grep -rnF --exclude-dir=node_modules --include='*.ts' '.withDefault(' workflows/resolution workflows/dryrun packages || status=$?
+          test "$status" -eq 1
 
   indexer:
     runs-on: ubuntu-latest

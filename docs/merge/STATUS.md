@@ -710,3 +710,55 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Remaining dependency: GitHub must assign runners and finish the pending jobs.
   Historical red runs remain historical failures; retry progress is available
   at https://github.com/akronim26/eros-markets/actions/runs/37370979597.
+
+
+### 2026-10-06 — CI-03: simplify checks and repair Node 22 installation
+
+- User authorized completing CI repairs and removing unnecessary checks, and
+  explicitly reserved pushing for themselves. Baseline `2b135b2` on
+  `feat/pricefeed`, initially clean. All changes in this turn remain uncommitted
+  and unpushed; this overrides the historical end-of-turn commit/push instruction.
+- Reproduced a real frontend failure in a clean temporary checkout using CI's
+  Node 22: `npm ci` rejects `ws@8.22.0` against the partial-range 8.21.3 override.
+  Local Node 25/npm 11 previously accepted this lockfile. Pin all ws 8.x consumers
+  to the patched 8.21.3, preserve ws 7.x consumers, and regenerate the affected
+  lock entries with Node 22.23.3/npm 10.9.9. Preserve existing platform metadata;
+  no unrelated package versions or application source are changed.
+- Removed formatting-only push gates and the separate frontend npm audit gate.
+  Dependency audit remains available locally; the vulnerability repair remains.
+  Removed the duplicate frontend typecheck because the Next.js production build
+  already checks application/generated-route TypeScript. Test files still execute
+  in CI; preserve the standalone local script for their static checking as well.
+- Folded gas comparison into the full contracts test step with snapshot emission
+  disabled. Removed only the redundant second run of BookGasTest; snapshot values
+  and full fuzz/invariant settings are unchanged.
+- Consolidated oracle real integration with its Forge job, and the two CRE builds
+  with the packages job: seven runner allocations become four. Retain separate
+  frozen installs for the CRE lockfiles, all tests/typechecks/builds, and one
+  outcome-default scan covering both workflows and packages. The scan also rejects
+  missing source paths and grep errors. No failing test is skipped or suppressed.
+- Added workflow/ref concurrency cancellation to all three workflows so a newer
+  relevant push cancels an obsolete run of the same workflow on that ref.
+- Verification so far: actionlint 1.7.12 and `git diff --check` exit 0; clean Node
+  22 install and all 41 frontend tests exit 0; final lockfile dry-run validation
+  with the committed `.npmrc` exits 0 on Node 22/npm 10 and local Node 25/npm 11.
+  Oracle packages/services: 534 tests pass; both integration-service typechecks
+  pass; CRE resolution/dryrun: 12/9 tests, typechecks and WASM builds pass.
+  Outcome guard positive/negative cases pass, including each protected path and
+  missing-directory rejection. Frontend production build, including application
+  and generated-route typechecking, exits 0 on Node 22. The combined oracle Forge
+  job sequence exits 0: build, 342 CI-profile tests across 39 suites, then 37
+  Monad integration tests across four suites; zero failures/skips in both. The
+  full contracts CI-profile run with gas checking exits 0: 834 tests across 131
+  suites, zero failures/skips, 800.73 seconds. The committed gas baseline is
+  unchanged. Full 10,000-run fuzz and 256-by-128 invariant settings are retained.
+- Existing frontend run `37372711259` ultimately failed before executing any step;
+  its check annotation reports the hosted runner was never acquired. Oracle retry
+  `37370979597` was still awaiting remaining runners at the last inspection.
+  Contracts run `37370813810` subsequently completed successfully on GitHub; it
+  validates the earlier committed workflow, not these unpushed simplifications.
+  Local changes cannot repair GitHub's runner allocation or update a remote check
+  before the user pushes them. No remote retry of the known stale lockfile was made.
+- Local logs: `/tmp/eros-ci03-*`; clean checkout path is in
+  `/tmp/eros-ci03-path`. The running frontend preview and operator services are
+  untouched. This is technical CI validation, not a deployment or gate acceptance.
