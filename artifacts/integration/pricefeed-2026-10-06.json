@@ -1,0 +1,769 @@
+{
+  "schema": "eros-pricefeed-integration-evidence/1",
+  "assessment_date": "2026-10-06",
+  "recorded_at_utc": "2026-10-05T22:29:52.871600+00:00",
+  "status": "All listed current pricefeed component checks passed. User clock repair and fresh1s source qualification passed. Full real-source leverage proof and final cross-component scope gate remain separate coordinating release evidence.",
+  "scope": "Implementing-agent automated checks. Components were run separately; no aggregate verify:integration invocation is claimed.",
+  "public_transactions": 0,
+  "production_approval": false,
+  "historical_pf_approval_changed": false,
+  "toolchain": {
+    "node": "24.21.0",
+    "npm": "11.19.0",
+    "python": "3.12.3",
+    "forge": "1.8.3",
+    "anvil": "1.8.3",
+    "solc": "0.8.30",
+    "native_workspace": "/home/yash/eros-live-validation/repo/packages/pricefeed",
+    "node_binary": "/home/yash/eros-live-validation/tools/node-v24.21.0-linux-x64/bin/node",
+    "forge_binary": "/home/yash/eros-live-validation/tools/forge",
+    "solc_binary": "/home/yash/eros-live-validation/tools/solc",
+    "node_options": "--max-old-space-size=512",
+    "RAYON_NUM_THREADS": "1",
+    "note": "Isolated native source copy; missing unrelated repository files may appear as D in its historical wrapper metadata. No main-workspace files were deleted. Forge emitted submodule-install warnings because copied dependency sources lacked nested Git metadata; exact copied sources existed and compilation/tests succeeded."
+  },
+  "source": {
+    "base_commit": "dbab6128904dcd990ce5ef38b5a5274d29fa8a99",
+    "hash_policy": "UTF8 source/config/fixture code CRLF-to-LF only. Raw TAP, reports, runtime source bodies, signed payloads and journals always byte-exact.",
+    "source_sha256_lf": {
+      "packages/pricefeed/fixtures/impact.json": "a6a00ecd3f4b70c670670434afc7b677e1d180f1c889db72b60ddeabf724fa75",
+      "packages/pricefeed/fixtures/monad-coverage-history.json": "8fee297001801cb44effa57ae6ac9a4df1968b858b1a453648341710201e204a",
+      "packages/pricefeed/fixtures/wire.json": "5b2cccfbafbccbabe1c13395ca355295727d92d9b3fea1c6971b6500ea83a489",
+      "packages/pricefeed/package-lock.json": "c1cee7e4f281169768f6c294a62394f733a1b2af2ce5c5992c7d31db4f8dd4cc",
+      "packages/pricefeed/package.json": "77af83a5f096ee14bbe930a66f2a459a45a43e1d5d26a3ea866ca3d0945149c0",
+      "packages/pricefeed/reference/vectors.py": "21b3c18bd5ca985295d48df90bad026c6cb0a294b4d592bfe65adff92e5a9a9d",
+      "packages/pricefeed/scripts/backup-journals.py": "87ea626bd7b0f2988bff985f48a0ddd10d736b8defe8d833270e5aee56e812d7",
+      "packages/pricefeed/scripts/build-status-report.py": "be60d6f72fae9b59d6bc3b173e70a64cc564a9a9f270c74280d9ff0959dec1ee",
+      "packages/pricefeed/scripts/calibrate-readonly.ts": "5a90d807900bb394082a855d9157112a4d2c91713eb3773417c3fa25ec24b9fd",
+      "packages/pricefeed/scripts/capture-monad-coverage.ts": "ef8f3f07e9d3c9edbd35c59dff46eef8af0243f8e036570130aa751058470960",
+      "packages/pricefeed/scripts/check-integration-scope.py": "57fa1f806f9d54286b97f7f80483a5a43d4c27859af5f40548023715808cd011",
+      "packages/pricefeed/scripts/check-scope.py": "268f1fa06ad51f2b7ffc7be5a54578429c0d48b560c11eea46705e0678bd6215",
+      "packages/pricefeed/scripts/check-wire.ts": "32ff7037bc9c582c5603e27dfa89a681bcc3fa4d0321150812dadd2c8e94cfad",
+      "packages/pricefeed/scripts/crash-lease-wait.ts": "8dfea56b374b5e8ab13dc1ae73db1a41bd2667ca08837489d11ab7efb395cd3d",
+      "packages/pricefeed/scripts/demo-live.py": "a3034f775d45b6eae26e82bf5fc11dc3b8b209319f716f25226b9d097a794967",
+      "packages/pricefeed/scripts/demo-live.ts": "76a1db4c3df35ab90b99abd757233cc7a9cdccde69c66b63d759beb15f5dfd2d",
+      "packages/pricefeed/scripts/demo-packet.ts": "2dcbd5cf92f79dfb71b4f10e8aefec9ffa59ce8422173d0159b284cac43a9fd7",
+      "packages/pricefeed/scripts/fixture-wire.ts": "7d86c40ea55c4e9361404dfb13e9d9bacecbbc58eb7066ea332ebc9f4307aee0",
+      "packages/pricefeed/scripts/live-factory-audit.ts": "f1be5b8dc4ff235c256cebe086936a94be620488e7abbc6c34deff219567a356",
+      "packages/pricefeed/scripts/live-factory-integration.ts": "beee2e6cf495114267fd2007829d8a586adf38eb41412fd8a0f6a3c632033a9e",
+      "packages/pricefeed/scripts/live-factory-source.ts": "dacaf037bb5b1d50e9a71bcea83d77d32cb2920e054e41590dc7d8bfb7116a31",
+      "packages/pricefeed/scripts/local-factory-fixture.ts": "bb1e972083a7511948ed09b185b6da5472e399a79217a11b2e2456fb37a84374",
+      "packages/pricefeed/scripts/local-factory-integration.ts": "6b4e4f535e451e31383b21c377a2457f33c74ce15b864fca103311a624e475ce",
+      "packages/pricefeed/scripts/local-sampling-lock.ts": "43a852d77eb71a825a30ce35dfa5d78de32654b2471e4112ef71f0f6b95a9949",
+      "packages/pricefeed/scripts/monad-coverage.ts": "c6870bec0512943ab7d0828e92d30d91ea715896e285a4fea52a3ff3b4baa7dc",
+      "packages/pricefeed/scripts/operations.ts": "4a06c897d93336fd8ee13b66fae744d2c7358a4fc1465a2c491e7c2b4f54a189",
+      "packages/pricefeed/scripts/pdf-requirements.txt": "ecd25e53419b2f5bd024e28c9921802ff61f3c1c67aab75af34b020028391deb",
+      "packages/pricefeed/scripts/pipeline-crash-local.ts": "7ed3f038fd24018fc507e702a63b7c9044730cc6ac3f491916db1ad4af47db66",
+      "packages/pricefeed/scripts/pipeline-local.ts": "3aa168710d0d8c8eb7c7c5e80d81f31200e354501f26f0fa41502c7116bd77e0",
+      "packages/pricefeed/scripts/probe-market-stream.ts": "2c683b5763123968b08641d24a2e61ba69e1f19dbc6da89df2a439aab7d0ac1a",
+      "packages/pricefeed/scripts/render-profile.ts": "06069c01587413461fc733883a0efdca3096967a65de6675724d1ac55995712e",
+      "packages/pricefeed/scripts/render-start.ts": "68f47c5944b38d5128ad825c534e620d5b43994d36fd98c0d14c43ab8ce25dd2",
+      "packages/pricefeed/scripts/report-demo.py": "7874ad862c02ef770c8f975a3692928fa5c7e834b91a5f06e444b0f8cc31b171",
+      "packages/pricefeed/scripts/report-monad-cost.ts": "229e558425796ab29cb192042fa4218e53ec51b75a7fbd5afd3f00e79e329ed7",
+      "packages/pricefeed/scripts/report-monad-coverage-plan.ts": "a6f01ca387e37e2cbbe8dce221783936917521f50bae63d8ecaba65bab269905",
+      "packages/pricefeed/scripts/report-source.py": "da4bedb041d3c519f1f84b0368c2fa72e18e01a532de65dbc1e0141451291c60",
+      "packages/pricefeed/scripts/review-calibration.py": "cdcbd36970c60b0802636372cfbfa546c43b16de21cf81057752dadeb1286cda",
+      "packages/pricefeed/scripts/review-discovery.py": "2a890067120bb85f5237d274497613120697608121553044ff91e138ec79bd6b",
+      "packages/pricefeed/scripts/review-live-factory.py": "76d74cbe4a5c2da177f3ecf738fde0c897f96c599030441192effbb7593f41f6",
+      "packages/pricefeed/scripts/review-market-stream.py": "4e894f415ce3ada741a559bbc2a5c5e5ecfa95b3bf86554812134b6de05e2e79",
+      "packages/pricefeed/scripts/review-monad-coverage.py": "2a33f53a9d1a4d0a1451029d11ebc08bebc2d7378e1dee9afd0816a0c1805356",
+      "packages/pricefeed/scripts/review-monad-gas.py": "6b0dea045f36d67196f15398f9ea8a779ed0d20cbae2f8cf5fb372b96040fc6f",
+      "packages/pricefeed/scripts/review-monad-pilot.py": "33e61d9bf44206bc8c88ec1f16cbdc687b726dcb1e28bc96962d6d8b93783b64",
+      "packages/pricefeed/scripts/review-monad-small-run.py": "98f76cf49ffec9f609f6a21cd32c8e767cc7eb16c4024f738297bdf3b812aae8",
+      "packages/pricefeed/scripts/review-pipeline.py": "bee92747a0610c022a20b129731e4262471b8d6f0f14c04a873c7d2d53b6c869",
+      "packages/pricefeed/scripts/soak-readonly.ts": "971d377de40b7b62debe6e4b3766313dfb1f869d3fec724591c10b2a7aab470d",
+      "packages/pricefeed/scripts/supervise.ts": "9c06fa38ee7dd805fb7e5d392ba8da07ce17717e37df8eb75ef98a66d1d07802",
+      "packages/pricefeed/scripts/supervised-worker.ts": "e9d9b0a2ec67bf9b3ab49b9cc3775ad7633ea60cb7f30a81c983087d42314fff",
+      "packages/pricefeed/scripts/test-engine.py": "7dd7fc7d23ab576393fb3d499e8509c8e885b2080d8f31107005a51752efaf3e",
+      "packages/pricefeed/scripts/test-lifecycle.py": "ffbca63a1f7cf0e41436ad749366e91c0273f11665d7f6bd48ff01eb5b098e4e",
+      "packages/pricefeed/scripts/test-load.py": "d2b5401184a1414f2ea01a7f8f00fe6ff708300c5beae68056ce65409c1c4ce7",
+      "packages/pricefeed/scripts/test-pipeline-crash.py": "b5a55f02dec8e0dbdaf93c2eadbd3f143a6cf398e9b203cf5234dc9029dc84a7",
+      "packages/pricefeed/scripts/test-recovery.py": "c7faa5f7d503c9e4e2c07807c95ee8bfb51757b96ff279bed07a68bdae54b63c",
+      "packages/pricefeed/scripts/verify-deployment.py": "63f7e8099eb7f27387deb450aa04facb21e27a9b2dd9991b48c509364385aeef",
+      "packages/pricefeed/scripts/verify-monad-coverage.ts": "fb71335ca5b07aa9251bcb2cd5de3708fb64139abf07b556dbdc967a9aa81fa6",
+      "packages/pricefeed/scripts/verify-monad-pilot.ts": "e36496ed7f15de41b92186834cf98938ebdd4b94ddb86f967ee93fb1ad91b1e1",
+      "packages/pricefeed/scripts/verify-monad-small-run.ts": "143e7165f54a336cf949012e0fe282278e233c0bd58043433231350c6ee05cd8",
+      "packages/pricefeed/scripts/verify.py": "d4fc5f30136583ba24738470765f627ed44b1f99fc668829062896946c6630a7",
+      "packages/pricefeed/src/book.ts": "5f69dd17e73d6e750fb94a40c911fba275a0c0cd688a6e7c6bda0041cdd3fef6",
+      "packages/pricefeed/src/calibration.ts": "75a2e5044e620755c57928cd6ad253e0670364710f0596d239deb9521d3cca61",
+      "packages/pricefeed/src/cli.ts": "3d750020e2e35d4ce68314d6c2439e79ab2b19ed9752401837ae2001b3fbf2c5",
+      "packages/pricefeed/src/collector.ts": "2c2207e8cd0ee3f7f59209e8e83ea25c30bddd93d35d469aa641f791ff57dce2",
+      "packages/pricefeed/src/config.ts": "1d53559fd0cec942ccf0aff247b533be4c01526b1af872f90cb585f12635dc6b",
+      "packages/pricefeed/src/cost.ts": "3ca53edab41d1efa631e5dc642bfa6f434673c475d02e2d09154018d1893483c",
+      "packages/pricefeed/src/deployment.ts": "eadf593ad125760799669eb90bf45747e376f13419723ac360cb5a8fa6211d60",
+      "packages/pricefeed/src/discovery.ts": "2d8940e99b5723d65413575be76797de048b37c081459addcde6e435c1850054",
+      "packages/pricefeed/src/durable-observation-signer.ts": "70e696d168c51dd82184d7500bf8fdce2f32d451435b2b6b8ca3290992ea5f70",
+      "packages/pricefeed/src/durable-pipeline.ts": "d664d1c34b92c13dbe07e3b35d6e58feed16b981959e5b6752fd452ebe3d1aa6",
+      "packages/pricefeed/src/durable-relay.ts": "17cdbc9b7a7b9b80de01fe263ad94ea86897092fad59db63375455dc260c24d8",
+      "packages/pricefeed/src/durable-transaction-signer.ts": "4929e60e76f696f3d763a8e09dfa4e500fa7ade947e92345d1b17bd7d2b77b62",
+      "packages/pricefeed/src/gas.ts": "d482fa110adfd12cf956d8fa9068b5f1766f766185a8118da6b9f2ae80aca652",
+      "packages/pricefeed/src/health.ts": "4404cac9a22d07089e3d252efbcc4f12357349adfe4909e3d3f9508acd6eeeab",
+      "packages/pricefeed/src/journal.ts": "099d9b4caeb9cdda937269999d965e9b56054b1457b6f97116b297a2b62d5fc8",
+      "packages/pricefeed/src/lifecycle.ts": "154b2ce2871e54abf2325e1fbb32008a9be30247b92c12b5e0d8661bf7901e3b",
+      "packages/pricefeed/src/local-relay.ts": "ccea674b99719f9910a943770ac5e6ce7b26fe38a770566f55092f8e8a7e332a",
+      "packages/pricefeed/src/local-rpc.ts": "bad70ead704244583da5d48cfbc4fe06aadf9ea0834f89d5caa136f88b386932",
+      "packages/pricefeed/src/local-test-signer.ts": "85f721a1ad88e60d14cf15f76229b6f198300353bc4348a5c39aac165d6e6b2f",
+      "packages/pricefeed/src/local-transaction-signer.ts": "1e0644ea8128e5e1ffe2bd404a2783eac3715e559d7288a1738092fd8604e6be",
+      "packages/pricefeed/src/market-stream.ts": "ad81be7cb158e289ec385363710ccbe1bbc610983fa3c95a3d4e452416fb5730",
+      "packages/pricefeed/src/math.ts": "c93f6046c64c1686ee5bf1b6f4338ce241c5bf11f4acc622bc43f572c0a491a2",
+      "packages/pricefeed/src/monad-budget.ts": "62044539902078600561a2293e0f1ba99fb673e319dfdc5a28329aaf4498983d",
+      "packages/pricefeed/src/monad-gas-quote.ts": "24705ef6e2d9750c6c9709b4ab7534a08949c22963a915683e280596d6996908",
+      "packages/pricefeed/src/monad-keys.ts": "56cb387888f443107a08d75d029ce06ea4b9877f146b62b02fc97cc9e50314d6",
+      "packages/pricefeed/src/monad-lifecycle.ts": "afde6110daa61774380f8d17b046d2b501af98d30257f38cbf754a1955507e99",
+      "packages/pricefeed/src/monad-nonce-recovery.ts": "22e3ab4e0f978f8877524ffe9da0090a112b436ff059a8637c8682c480503fa6",
+      "packages/pricefeed/src/monad-pipeline.ts": "7bee77ff978c81d5e1da51526a3796185aa62e10539d1e248d463e54e3b7340c",
+      "packages/pricefeed/src/monad-preflight.ts": "08206eb1cfc254e21a3fb36c5d43c13715a04c2d825c64c412a4baacb13cc17f",
+      "packages/pricefeed/src/monad-rpc.ts": "08f692b51a3e044333ad183f8113d40b18aee7329cb91f7d74bc4d38972ffa4d",
+      "packages/pricefeed/src/monad-service.ts": "16bb601162d7b29803984be36721bb6f6b74ef0adddedaab370aee8b71f09f77",
+      "packages/pricefeed/src/monad-signers.ts": "7092e144513a5e05e48fa750004937716339ef9a05570d812a62f499cd1bf35a",
+      "packages/pricefeed/src/nonce-recovery-journal.ts": "67ef231ac5dc9cea0c27cff3d467c9f9f6f2720853fb0a4e40ed626172f27527",
+      "packages/pricefeed/src/offline-observation.ts": "71ae062805f618f391e40c4f718c79f55ae3013eff025af34d8aaf804b434cb0",
+      "packages/pricefeed/src/operations.ts": "4bda89f2b4464c8fbb9671f823b3cb61c0a85a6aa42f03557e87fe671be65139",
+      "packages/pricefeed/src/packet-store.ts": "1bed30c85568f94c8a61e01ec982d6606fe477a03b1d06e832107d25d12813c3",
+      "packages/pricefeed/src/pipeline.ts": "8a3e678abb6bad7f06f30a9ebe824b9a5842e55314db7616032f64b3f093257f",
+      "packages/pricefeed/src/polymarket.ts": "43bd9cbf8f304468c0c889edd297c17cde75414c415af3fc16e001e595b76683",
+      "packages/pricefeed/src/publication.ts": "a7fa1c906f18f4ee73730f4418be19fafa5a839cb99eb6543279a7c923048764",
+      "packages/pricefeed/src/receipts.ts": "431a5b145fbc1ad6bd9e0ef4f69de59979e75d3309adba71ba1f9b695f149dcc",
+      "packages/pricefeed/src/relay-policy.ts": "417ba930f4eda872859166eb6572eb3769c78ee8763ffb21e2987b4df045e23b",
+      "packages/pricefeed/src/rules.ts": "a667e4a50af5c7ad8588faf459b7f6dde2734879dfb90ef381aa820e5dc90ce0",
+      "packages/pricefeed/src/service.ts": "2ee44ff56281e3f0b3bf3cf333ec2f4011f1f6e7d254cae434814c87b94d35e8",
+      "packages/pricefeed/src/source-buffer.ts": "9393b1650ad69d43a3627339d82a5f6ffdedfc49860ef3f12534f41249a658ed",
+      "packages/pricefeed/src/supervisor.ts": "01134de61baea5a515aad822f532e9ba56ffdc42aa7c9287b458d801ac781efe",
+      "packages/pricefeed/src/time.ts": "8f61edbe2551609043ee200cbac3c3387362224bd6cdcd5d617b8425cd5bd4c8",
+      "packages/pricefeed/src/wire.ts": "579823904d140ef678265200b2123e4f2aa9407a948c016750089dd425c80acb",
+      "packages/pricefeed/src/worker.ts": "acd7ef23089583098f557ab00f99af42871a059add9a509dd1f73cf2878d07aa",
+      "packages/pricefeed/test/backup-journals.test.py": "01850ce2be7e1a1dfa32d8207fbdd53efaaa64a6503b262b3a75453773b79e1a",
+      "packages/pricefeed/test/calibration.test.ts": "d4f8b9111168686208111cdcdaad240f6d48367a913f04e94f7291aae3c98e58",
+      "packages/pricefeed/test/cli.test.ts": "0447633d3a741fa597e8b29f6385cb8b36cc7f2b062ad27e5c49ae1807e87e88",
+      "packages/pricefeed/test/collector.test.ts": "58bf7b78ef8e8211f595e7fb9d354b9b4c959fbbafcc07030a61daeb2bd5786a",
+      "packages/pricefeed/test/config-time.test.ts": "ac982a515073c71f2652043e9aef941116d0dafaf97acae58835b8a3f722aea9",
+      "packages/pricefeed/test/crash-lease-wait.test.ts": "8900b2f73dc1ad34391929159bfecc1cf2c25d80a2d8602d99c1f904e423cded",
+      "packages/pricefeed/test/demo/foundry.toml": "180b5dbf91a04ec13750476012905100d631731485467b3460ec49cf889f2e24",
+      "packages/pricefeed/test/demo/src/LiveDemoMarket.sol": "6f5895edb88da77e3dab2d9af90a753e2b8c710abddcfb00068f7dcd58d39b23",
+      "packages/pricefeed/test/demo/src/PipelineDemoMarket.sol": "7342c82e63d08629e8815121ce0c476021a14e08109b5b32c2eff1e90f61a07e",
+      "packages/pricefeed/test/demo.test.ts": "162fcf3cb9d509d31a1d7bdd901f389b45887d6ad0c34b8c9ad344644c2c10c9",
+      "packages/pricefeed/test/deployment.test.ts": "621fc7d425b3510867c884d34c233f051c9eb2284b89b74780d096c72373fb16",
+      "packages/pricefeed/test/discovery.test.ts": "8fa505de09ecfa1af8ec691b78d825025b22b3150eb94be2bcf438b6304d0bd6",
+      "packages/pricefeed/test/gas-cost.test.ts": "60f471dd7c092c6b1ca975601d4d2b93c8b2c76de7f73fb70bd0f252d6ddcdb8",
+      "packages/pricefeed/test/integration/foundry.toml": "b6729cbb144c65410bc4dce42ffa553cc95c3374e60027ab3f8216c466cbd540",
+      "packages/pricefeed/test/integration/src/FeedHarness.sol": "209c968ca3ca8cf0f35f7acfcf266ac77c4d8f74a11cc97dc21f0c8916402e4c",
+      "packages/pricefeed/test/integration/test/PricefeedIngress.t.sol": "2c160c3d6dbdff3a6fb8c194e5f4bd1effc543b9bab4ce41d33e23506ebab1b6",
+      "packages/pricefeed/test/integration/test/PricefeedLifecycle.t.sol": "eeeb13cc1052ae3ab0242089c542f59961b9d0612cddb4b6e3abf20e553e043c",
+      "packages/pricefeed/test/integration-scope.test.py": "c31c27f12ca9037bc6c46741376df4b21b58857cca9b831d955e91e4b01de996",
+      "packages/pricefeed/test/lifecycle.test.ts": "8572c9aa0625ce63dcde0cda5101cb6a08cd6bddb75e7c3c4fd2e1cbfa6d10dc",
+      "packages/pricefeed/test/live-factory-review.test.py": "59f977a0b62004076db961a8d95cfd09fe91599e2434f4084984fef3af2a8109",
+      "packages/pricefeed/test/live-factory.test.ts": "7dd694de5780660be889cbfead9fca2dcd6d089faf4a75dedb1c3d8c6f9f9f86",
+      "packages/pricefeed/test/load-fixture.ts": "d8ab17e6a46db7e971f6d26349635e84d34f405cb22b72ab263996acb6ddd3e1",
+      "packages/pricefeed/test/load.test.ts": "5906ac816723f0398eee3623a5de1e51099ec771ff589556a42d0a3bd8321a71",
+      "packages/pricefeed/test/local-factory-fixture.test.ts": "1fc526972f6203936ef0c2430f0417f63c46ce2e2d1f9ebbe59b122e0e18cc0c",
+      "packages/pricefeed/test/local-relay.test.ts": "1d38df67a377012db02f99c509e44726d5ee4c5e3f7af7f6cdb474221c9ec426",
+      "packages/pricefeed/test/local-transaction-signer.test.ts": "1f676d1d286fc396bad9fea828f24588117a376b51c24e3c9de93bf5f841aaa8",
+      "packages/pricefeed/test/market-stream.test.ts": "17fc338bb1da9bfa559d74a702293a3a4b03c5d320f59b1603a0e996d6b5c23e",
+      "packages/pricefeed/test/math.test.ts": "1994b5d1a929cb601c52ac555b4826e4e0bcd2e93bbc63ddda9fa0ecf8a1a34d",
+      "packages/pricefeed/test/monad-coverage-reference.py": "1dde9fe6ac3c248f29b0dea83f55a95fc1e37eeda77410bc19351d6c75316be3",
+      "packages/pricefeed/test/monad-coverage.test.ts": "3e903db52aef3dc1d41528e73887b7d391c7e6ec293f58e5d02ca6e7a9003693",
+      "packages/pricefeed/test/monad-keys.test.ts": "3d552b345f4d51e1a06b6e0d82f5ba4631499908102cb6c8df9772728c961a92",
+      "packages/pricefeed/test/monad-lifecycle.test.ts": "f6403f63a720dfa9148ef16b38deafd6f44f853fd14b1384e14451d1dd22e925",
+      "packages/pricefeed/test/monad-preflight.test.ts": "1e5d3ac8cd98d2c6d3879a35da149f58ff482ff280107332971ba37105a3717b",
+      "packages/pricefeed/test/monad-publication.test.ts": "c1289cc91f5a993129e795decfbbba65cfb858360806464b7ddd7559fa2b081d",
+      "packages/pricefeed/test/monad-service.test.ts": "15ab9b0f0f3034251a737e1bc0afea07687e591ee4ba39e82144f9582257bdc1",
+      "packages/pricefeed/test/operations.test.ts": "931d9087b325fda5a78937946b011603bdd539f545e6c6cfdf9f0a1499efc712",
+      "packages/pricefeed/test/pipeline-crash-child.ts": "9d09f173ec58d1dfd86ca5bb8826e6e7422bdb2f8348930eaf17eaf9baf2126e",
+      "packages/pricefeed/test/pipeline.test.ts": "a4858fede5fa950fd8c66d695ac6dca10916b2aaede2fd156708f92e08062a3c",
+      "packages/pricefeed/test/publication-fixture.ts": "ee0496307cd01e789d68d90fb1264f013cd6b590e58e94a53d94a7679fc05cfc",
+      "packages/pricefeed/test/publication.test.ts": "c318ef18ff57975b138cad30635b9d75fc195f085932d580a2b47054df68ec24",
+      "packages/pricefeed/test/receipts.test.ts": "35d63b364aefc937026804de4965fdd5cabb90f3dd606bd1fbf445381a7924e1",
+      "packages/pricefeed/test/recovery-child.ts": "60c7cedc1fb0819b9fd2fec9403fe689ba4806ad6fe0dc80e1f4bb86441fdc51",
+      "packages/pricefeed/test/recovery.test.ts": "450bc5ed23146b94d876b0b1ef68db83cf0ee115e26abc9935f7ad16d2584a61",
+      "packages/pricefeed/test/service.test.ts": "e4e628742a0815ec74b79668ff08da2eff7bda3383d79b5dc1206ed248e7f650",
+      "packages/pricefeed/test/signer-custody.test.ts": "169f288546ef43870fdf6b2d141e3476b13d1f4c7c867c61393d4662cbf44461",
+      "packages/pricefeed/test/source-buffer.test.ts": "3a18a98dae18d861e922d696ae5bb8f880a34c1f517e07f7d9306db1840ba0ba",
+      "packages/pricefeed/test/supervisor-wait.test.ts": "0e49ce9e1bbf8a0ee2aa93aae372ea0784ae381e9202e73a258b4fc73d99dd2c",
+      "packages/pricefeed/test/transaction-relay.test.ts": "a4823e79b513be26106360d566af36c237d3cef899062b0d6c93b8455ed603b0",
+      "packages/pricefeed/test/wire-journal.test.ts": "6df42f2bf8842fe327fdb2d786aecb62f6ab968b750644453f68ba29b1ad850a",
+      "packages/pricefeed/test/worker.test.ts": "d85f2282f11aac3bd0b133c867567ed8568d5b999949709b91cce55dc86ad9f7",
+      "packages/pricefeed/tsconfig.json": "72155586e5fee34b0e2f7a50d3abf6a0a4d62160364760f1f51d3e153fc22c11",
+      "packages/pricefeed/scripts/live-clock.ts": "ccb47d12eca8fa5e8f156c495ffbcb85c3dd424c42f05e5873ce3852b9d9110e",
+      "packages/pricefeed/test/live-clock.test.ts": "c9e647a67a9734baaf2da89a4a2742d85b3d97dc68e7ffb2510be396065c3bd5"
+    },
+    "integration_scope_manifest": "packages/pricefeed/config/integration-scope-2026-10-06.json",
+    "scope_note": "Final coordinating source capture is independently checked after all root lanes freeze; original PF protected baseline remains untouched.",
+    "native_snapshot_verified_inputs": 159,
+    "native_tested_typescript_exact_byte_matches": 117,
+    "solidity_format_only_followup": {
+      "paths": [
+        "contracts/src/engine/BookRiskEngine.sol",
+        "contracts/src/factory/MarketFactory.sol"
+      ],
+      "note": "Root performed format-only cleanup after native ingress/lifecycle/crash evidence; pricing components imported by those harnesses remain unchanged. Root confirmed final engine creation bytecode Keccak256 is unchanged.",
+      "engine_creation_bytecode_keccak256": "0x9169fa825e51d55e608d113aa3733b59f2ca562cb578e6a2875c50a3983d8b2a"
+    }
+  },
+  "checks": [
+    {
+      "command": "node --test --test-concurrency=1 --test-isolation=none --test-reporter=tap dist/test/*.test.js",
+      "environment": "native Linux / WSL Ubuntu",
+      "exit_code": 0,
+      "counts": {
+        "tests": 456,
+        "pass": 456,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 356848.970913
+      },
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-linux-final-456.tap",
+          "sha256_raw": "d2ab5ff118fd3f53254880e641202a65558deb6dacabda60252c2232e8252f88",
+          "bytes": 115042
+        },
+        {
+          "path": "tmp/pricefeed-linux-final-456-source-sha256.txt",
+          "sha256_raw": "688ca6a3ec8fb831b264f3b124b2ed9d4626d2d8bff831c35fe44f579817aeea",
+          "bytes": 10478
+        },
+        {
+          "path": "tmp/pricefeed-linux-final-clock-build.log",
+          "sha256_raw": "e4508280195ac9f1c7fefd796d57ab38c32be47c02c0a6585726d4ea2e70ca14",
+          "bytes": 55
+        }
+      ]
+    },
+    {
+      "command": ".\\node_modules\\node\\bin\\node.exe --test --test-isolation=none --test-reporter=tap dist/test/live-factory.test.js dist/test/crash-lease-wait.test.js dist/test/supervisor-wait.test.js",
+      "environment": "native Windows, pinned Node24.21",
+      "exit_code": 0,
+      "counts": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3261.7506
+      },
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-windows-overlap-focused.tap",
+          "sha256_raw": "ccbb9f0ffb5dfd7d3d9019bc64b665d7b31f44c34167ae50a475d18c3be5bec6",
+          "bytes": 6850
+        }
+      ]
+    },
+    {
+      "command": "python3 test/backup-journals.test.py",
+      "exit_code": 0,
+      "tests": 11,
+      "environment": "native Linux",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-backup.log",
+          "sha256_raw": "235818bbb063a8b83ed5491ed4433e924a8ea8a97fd4ccabcb057141757c940f",
+          "bytes": 404
+        }
+      ]
+    },
+    {
+      "command": "python3 reference/vectors.py --check; python3 test/live-factory-review.test.py; python3 test/monad-coverage-reference.py; python3 test/integration-scope.test.py",
+      "execution": "Four sequential invocations; command string is a compact display, not a claimed aggregate invocation.",
+      "exit_code": 0,
+      "impact_vectors": 144,
+      "live_replay_tests": 3,
+      "historical_monad_coverage_tests": 5,
+      "scope_tests": 8,
+      "environment": "native Linux",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-python-reference-final.log",
+          "sha256_raw": "4c006f4d2eb5e59ffcd5145ad2e330481e485a9b0cb4f111642153fc4afbbfa3",
+          "bytes": 373
+        }
+      ]
+    },
+    {
+      "command": "node dist/scripts/check-wire.js",
+      "exit_code": 0,
+      "checks": "Exact eleven-field ABI, raw digest and accepted-event ABI",
+      "environment": "native Linux",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-toolchain-wire-final.log",
+          "sha256_raw": "ec6bea1054ffef22d4deb4567892ae061f980702df9e8ac61e763ea056c44e7a",
+          "bytes": 379
+        }
+      ]
+    },
+    {
+      "command": "python3 scripts/test-recovery.py",
+      "exit_code": 0,
+      "tests": 29,
+      "real_sigkill_boundaries": 13,
+      "environment": "native Linux",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-recovery-wrapper.log",
+          "sha256_raw": "cf52521daeb97f0e77e9f7a9dcfdeb3e044c9252925246da14e4f44f6f54f203",
+          "bytes": 218
+        },
+        {
+          "path": "tmp/pricefeed-recovery.json",
+          "sha256_raw": "d3be66ea282ad574e68e4079321f8e07f5b3b0a1677ef4799a320a24b0c755b5",
+          "bytes": 119004
+        }
+      ]
+    },
+    {
+      "command": "python3 scripts/test-load.py",
+      "exit_code": 0,
+      "tests": 28,
+      "declared_load_scenarios": 7,
+      "environment": "native Linux",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-load-wrapper.log",
+          "sha256_raw": "b5f0350e4900b9fc74ce76bf01893705d58c6aa26b310f9d3cc05a7578350020",
+          "bytes": 211
+        },
+        {
+          "path": "tmp/pricefeed-load.json",
+          "sha256_raw": "b34b344572841514fa1896f89067b331f5eaf1cc39534635b5748511f1a381ca",
+          "bytes": 33871
+        }
+      ]
+    },
+    {
+      "command": "python3 scripts/test-engine.py",
+      "exit_code": 0,
+      "tests": 8,
+      "environment": "native Linux",
+      "scope": "Four wire/short-window tests plus four signed 24-hour lifecycle tests; actual ingress/store/invalid-price code, fixture counterparts and Foundry VM time.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-engine-final.log",
+          "sha256_raw": "966229d7ff47a09b46aa09a1e6035b10595d351e066ea6ed8aa66c2429ff5a75",
+          "bytes": 76
+        },
+        {
+          "path": "tmp/pricefeed-engine-final.json",
+          "sha256_raw": "59d1cd05f8a25387d7d3832bd4aae50d7b9d84e9c2483e90b01b5294bf49842d",
+          "bytes": 1185
+        }
+      ]
+    },
+    {
+      "command": "python3 scripts/test-lifecycle.py",
+      "exit_code": 0,
+      "tests": 4,
+      "environment": "native Linux",
+      "scope": "Separate wrapper for the same four signed lifecycle scenarios; not four additional unique cases.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-lifecycle-final.log",
+          "sha256_raw": "fa8cb482b1101d4634cf3b1e8ed268ca47db9667de81b5f1912d9b31ccd2514f",
+          "bytes": 91
+        },
+        {
+          "path": "tmp/pricefeed-lifecycle-final.json",
+          "sha256_raw": "5771521276fb2811caabfc97e263f43e33eee1100cb0f6116ed06c5cccad4a55",
+          "bytes": 2450
+        }
+      ]
+    },
+    {
+      "command": "python3 scripts/test-pipeline-crash.py",
+      "exit_code": 0,
+      "joined_anvil_restart_paths": 8,
+      "stages": [
+        "SIGNED",
+        "PREPARING",
+        "TX_RESERVED",
+        "TX_SIGNED",
+        "UNKNOWN",
+        "BROADCAST",
+        "MINED",
+        "FINALIZED"
+      ],
+      "environment": "native Linux",
+      "clock": "Real host/Anvil time, no warp or forced lease acquisition.",
+      "scope": "Actual LocalPipeline, five journals, durable transaction signer, relay, receiver ingress/store and OS kill; scripted source and public fixture keys, not the full economic engine.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-pipeline-crash-final.log",
+          "sha256_raw": "8ee5b0637950c0e360c189ef569eb3c4d1abbdaee4d6c0c1fd33e84a3081f889",
+          "bytes": 2354
+        },
+        {
+          "path": "tmp/pricefeed-pipeline-crash-final.json",
+          "sha256_raw": "94e6e1a0e12afcb6bf6648318a9f0b0eb5e37440a842b6fbec712796da079be8",
+          "bytes": 79660
+        }
+      ]
+    },
+    {
+      "command": "python test/integration-scope.test.py",
+      "exit_code": 0,
+      "tests": 8,
+      "environment": "native Windows",
+      "scope": "Actual LF/CRLF Git clones plus altered/missing/added source and raw binary/body mutation rejection.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-scope-final-windows.log",
+          "sha256_raw": "116bc9ef40f78f1f6df0505227bed7dc393f90589b34ae63d4bb6fb5f38a710c",
+          "bytes": 112
+        }
+      ]
+    },
+    {
+      "command": "npm run build; node --test --test-isolation=none --test-name-pattern=\"Monad watcher CLI\" --test-reporter=tap dist/test/cli.test.js",
+      "execution": "Build once, followed by five separate focused invocations. Both matching cases passed in every invocation.",
+      "environment": "native Linux",
+      "exit_code": 0,
+      "tests_per_invocation": 2,
+      "invocations": 5,
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-watcher-reproduction.log",
+          "sha256_raw": "8b00206a4825a25accc02ccc4fe3782abe488a83bae24994b247b9f54f4d7669",
+          "bytes": 3579
+        }
+      ]
+    },
+    {
+      "command": ".\\node_modules\\node\\bin\\node.exe --test --test-isolation=none --test-reporter=tap dist/test/live-clock.test.js dist/test/live-factory.test.js",
+      "environment": "Windows, pinned Node24.21.0",
+      "exit_code": 0,
+      "counts": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3589.2273
+      },
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-windows-clock-focused.tap",
+          "sha256_raw": "3228d06888cc669876574eba8f296baef47c1ec2675adbf37439f81681007c5e",
+          "bytes": 7096
+        }
+      ]
+    }
+  ],
+  "preserved_failures": [
+    {
+      "attempt": "First Node435",
+      "result": "434 pass, 1 fail; SQLite read-only test observer lacked a busy timeout.",
+      "repair": "Observer uses production Journal-equivalent bounded1000ms wait; lease/lock assertions retained.",
+      "evidence": {
+        "path": "tmp/pricefeed-linux-435-before-observer-fix.tap",
+        "sha256_raw": "1a991952f8418e4ef211606928cb0275ae209bfb943fd0fc4a4ac13857fce36d",
+        "bytes": 110395
+      }
+    },
+    {
+      "attempt": "Second Node435",
+      "result": "434 pass, 1 fail; OS-kill restart consumed2 attempts rather than1.",
+      "repair": "Supervisor rechecks persisted wall-clock lease after every bounded timer; no writer guard or restart budget relaxed. Actual OS-kill case passes in final441.",
+      "evidence": {
+        "path": "tmp/pricefeed-linux-435-before-supervisor-fix.tap",
+        "sha256_raw": "1d468d54c3661ee60b63bc08f8efbe7b8b8fd4598e9a678fabfd2a73bc0eb1ed",
+        "bytes": 110122
+      }
+    },
+    {
+      "attempt": "Initial joined crash campaign",
+      "result": "SIGNED passed, PREPARING failed WRITER_BUSY; elapsed wait completed1.265s before stored wall-clock expiry.",
+      "repair": "Read-only repeated deadline checks in parent and resumed child, monotonic bounded20s wait; no lease/data rewrite.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-pipeline-crash-before-clock-fix.log",
+          "sha256_raw": "41b261916cc333a0d3f702821f66ab8868067187e7e33d7487dcdd89813c60e5",
+          "bytes": 1494
+        },
+        {
+          "path": "tmp/pricefeed-pipeline-crash-before-clock-fix.json",
+          "sha256_raw": "8e3c2dd4f45c2af8df2b63f00f4e10a05c3f5852f30759e1b1c2086f338ec016",
+          "bytes": 23644
+        }
+      ]
+    },
+    {
+      "attempt": "Prior Node428",
+      "result": "428/428 passed before late pause/lease regressions; retained as prior revision, not final coverage.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-linux-final.tap",
+          "sha256_raw": "fc0fa9ab90b20ecbb091c120f88633979130b7abf38e3a87d7bc24e658ca8da9",
+          "bytes": 108299
+        },
+        {
+          "path": "tmp/pricefeed-linux-final-source-sha256.txt",
+          "sha256_raw": "731c866da192fbf10a386043838b3fdd741d3acb71b6fc89dc96955dafa89435",
+          "bytes": 13165
+        }
+      ]
+    },
+    {
+      "attempt": "Native Windows full suite",
+      "result": "Historical failure count included Linux/POSIX-only custody/deployment assumptions; production ownership/mode guards remain enforced.",
+      "repair": "Two genuine ESM drive-path defects fixed with file URLs;17 abrupt-kill cases verify exact durable crash markers while accepting actual Windows TerminateProcess metadata. Full authoritative execution uses native Linux."
+    },
+    {
+      "attempt": "Legacy check:scope",
+      "result": "Original historical pricefeed-only protected/isolation baseline intentionally rejects the now-authorized cross-component integration.",
+      "repair": "Separate versioned current integration entry preserves historical report, Git blob identity, checksum values and all original assertions."
+    },
+    {
+      "attempt": "First Node449 after provisional capture overlap",
+      "result": "448 pass,1 fail; a fixture Monad watcher returned its explicit degraded/quarantined exit2. The old assertion printed only empty stderr, so the exact lifecycle reason is unconfirmed.",
+      "followup": "Only the test assertion diagnostic changed to retain redacted JSON stdout. No clock/freshness/lease guard or production behavior changed. Five isolated repeats passed10/10 and the final complete449 suite passed without skips.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-linux-449-before-watcher-review.tap",
+          "sha256_raw": "25193fffeeeeb3a512f639dfffe81b99dbc7bd21e86aa6845cbb6a600d21f8d8",
+          "bytes": 114058
+        },
+        {
+          "path": "tmp/pricefeed-linux-449-before-watcher-review-source-sha256.txt",
+          "sha256_raw": "e35968217b3e1ccc2596089a0df4037dda7f8ea5fc626bb88a7fd9ade9f747cf",
+          "bytes": 10300
+        }
+      ]
+    },
+    {
+      "attempt": "Pre-overlap Node441",
+      "result": "441/441 passed before the eight provisional-capture regressions and watcher diagnostic-only assertion change.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-linux-final-441.tap",
+          "sha256_raw": "bc379e5957063489a67804c0f7d091de2fd70947e9185b3a55e1d0e669026e9e",
+          "bytes": 111069
+        },
+        {
+          "path": "tmp/pricefeed-linux-final-441-source-sha256.txt",
+          "sha256_raw": "12edec79824bd36f33b90d3004206777b47873baba3b4747aa2db2ad631c2c08",
+          "bytes": 10300
+        }
+      ]
+    },
+    {
+      "attempt": "Pre-clock-gate native449",
+      "result": "449/449 passed before seven new clock preflight regressions and default1s diagnostic polling. All current456 tests pass without skips.",
+      "evidence": [
+        {
+          "path": "tmp/pricefeed-linux-final-449.tap",
+          "sha256_raw": "34c5dc0f8b01f040b9708aa6360b1057818fcdf1c9f0764cff5fe7b2cc0e160a",
+          "bytes": 113180
+        },
+        {
+          "path": "tmp/pricefeed-linux-final-449-source-sha256.txt",
+          "sha256_raw": "4cf1158bfdfd24f5998a41b140025041c03ff146c72376e332c9f2be003ab267",
+          "bytes": 10300
+        }
+      ]
+    }
+  ],
+  "fresh_source_probe": {
+    "source": "tmp/live-source-20261006-v4.json",
+    "external_market_id": "4641065",
+    "probe": {
+      "durationMs": 120111,
+      "captures": 119,
+      "advances": 41,
+      "maximumAdvanceGapMs": "10605"
+    },
+    "transactions_sent": 0,
+    "evidence": {
+      "path": "tmp/live-source-probe-20261006-one-second.json",
+      "sha256_raw": "58091d46888f00a54206d0f15521cfccdda915d4bb761c6ac49f395ac391accf",
+      "bytes": 834
+    },
+    "immutable_selection": {
+      "path": "tmp/live-source-20261006-v5-one-second.json",
+      "sha256_raw": "7da364a7e95da18075f791a50284d9a8dbd86ef382bb56879be5d07ff580317a",
+      "bytes": 6626
+    },
+    "raw_probe_archive": {
+      "path": "tmp/live-source-probe-20261006-one-second/preflight-1791240769433.sqlite",
+      "sha256_raw": "6d9f33c0cb75bc2881122acea11dd2495dadf487c705510bef4800a08b06e536",
+      "bytes": 21950464
+    },
+    "qualified_dossier": {
+      "path": "tmp/live-source-20261006-v5-one-second-qualified-dossier.json",
+      "sha256_raw": "b29e5331a4299b2bd790e2ce1b49fbcfef9a877048ecb80c468d6bab11e3c5c7",
+      "bytes": 1600
+    }
+  },
+  "real_source_runs": [
+    {
+      "directory": "tmp/local-live-leverage-20261005-193645",
+      "status": "Superseded before complete leverage proof because subsequent engine reporting fixes changed runtime.",
+      "offline_replay": {
+        "path": "tmp/local-live-leverage-20261005-193645/partial-offline-pricefeed-review.json",
+        "sha256_raw": "8cd598b95b0de20aa7e7dede8941a0ee40ca7177e04037ea812a1c6be5384ac0",
+        "bytes": 858
+      },
+      "full_integration_passed": false
+    },
+    {
+      "directory": "tmp/local-live-leverage-20261005-201156",
+      "status": "Failed warm rollover freshness: last PERP capture expired4s before finish; core correctly retained bootstrap caps.",
+      "offline_replay": {
+        "path": "tmp/local-live-leverage-20261005-201156/partial-offline-pricefeed-review.json",
+        "sha256_raw": "6c904a60fad92c44a175c14ef1c7ee7ca12f90abcadef25297d20be03d63ef2e",
+        "bytes": 858
+      },
+      "packets_independently_replayed": 323,
+      "source_captures": 4730,
+      "chain_receipt_audit": false,
+      "full_integration_passed": false
+    },
+    {
+      "directory": "tmp/local-live-leverage-20261005-212226",
+      "status": "Superseded before rollover after measured capture-to-seal latency review; diagnostic incomplete, not a claimed failed full proof.",
+      "offline_replay": {
+        "path": "tmp/local-live-leverage-20261005-212226/partial-offline-pricefeed-review.json",
+        "sha256_raw": "35049706af8ded56e6ed2d7e1f5a91225039742a34534885ab7e88edc0ec48f6",
+        "bytes": 858
+      },
+      "packets_independently_replayed": 130,
+      "source_captures": 1784,
+      "chain_receipt_audit": false,
+      "full_integration_passed": false,
+      "publisher_sha256_lf": "bce32e22fd49ff8c0d6127f05dc67c4f2d2cc9c6f14f60504dc8d99e989c5ea2"
+    },
+    {
+      "directory": "tmp/local-live-leverage-20261005-215402",
+      "status": "Retired cleanly before decisive rollover after independently confirmed host clock lead4.18s; diagnostic incomplete, no full leverage proof.",
+      "activation_timestamp": "1791237301",
+      "deadline_timestamp": "1791244501",
+      "publisher_sha256_lf": "306c4ca170572afd051f9a4080fd9c77cecf644fa04f354321aebdc4305626c6",
+      "risk_calibration": "Test fixture, not empirical production calibration",
+      "collateral": "Local mock token",
+      "external_chain_transactions": 0,
+      "offline_replay": {
+        "path": "tmp/local-live-leverage-20261005-215402/partial-offline-pricefeed-review.json",
+        "sha256_raw": "f506ddd121517393d4504f9af863aac96b945c30d013f4b2ff542eba859a702f",
+        "bytes": 858
+      },
+      "packets_independently_replayed": 134,
+      "source_captures": 2031,
+      "chain_receipt_audit": false,
+      "full_integration_passed": false
+    }
+  ],
+  "scope_limits": [
+    "No production source mapping/risk calibration approval.",
+    "No Monad broadcasts or newly funded public wallets.",
+    "Full economic settlement proof is recorded separately by root.",
+    "No frontend branch integration.",
+    "Raw archives/logs remain local ignored evidence, referenced by exact hashes."
+  ],
+  "clock_and_polling_followup": {
+    "status": "User confirmed manual clock synchronization. Independent root clock gate and this fresh source gate passed; new120.111s1s source qualification passed119 healthy captures/41 actual timestamp advances. Fresh full leveraged chain proof remains separate and pending.",
+    "observed_host_lead_seconds": "4.174\u20134.183 against read-only NTP, corroborated by Polymarket /time and public Monad latest timestamps",
+    "predeployment_policy": {
+      "samples": 3,
+      "maximum_rtt_ms": 1000,
+      "entire_server_minus_host_offset_interval_ms": [
+        -1500,
+        1500
+      ],
+      "wall_jump_tolerance_ms": 100,
+      "independent_chain_id": 10143,
+      "maximum_block_age_ms": 5000,
+      "maximum_block_future_ms": 1000
+    },
+    "one_second_probe": {
+      "captures": 120,
+      "duration_ms": 120884.359,
+      "advances": 46,
+      "median_first_newer_book_delay_ms": 6994,
+      "concurrent_five_second_median_ms": 9209.5,
+      "claim": "Read-only acquisition comparison only; no armed-boundary/full leverage proof."
+    },
+    "evidence": [
+      {
+        "path": "tmp/live-clock-ntp-readonly.txt",
+        "sha256_raw": "5b98734f5df71f2cd66eec97ce3c6af7b69b06d484a20d96fac40893546ac235",
+        "bytes": 184
+      },
+      {
+        "path": "tmp/live-clock-external-readonly.json",
+        "sha256_raw": "6a764d2c21a9a8122ff94246338a5e167837e4289ce3f819c70dcafe28dbd805",
+        "bytes": 15519
+      },
+      {
+        "path": "tmp/live-clock-preflight-before-manual-sync.json",
+        "sha256_raw": "868e6d366592a0a5dabc205d8509891efb20e212b08ddb2c309027137dacabc9",
+        "bytes": 10231
+      },
+      {
+        "path": "tmp/live-one-second-probe-20261005-2213/analysis.json",
+        "sha256_raw": "c58906b884d73a574681d53968fb8c82880bc25bbbcc55bf9f369b7e5cc42f03",
+        "bytes": 21269
+      },
+      {
+        "path": "tmp/live-one-second-probe-20261005-2213/probe.json",
+        "sha256_raw": "1a525ee2c874199447ece38e23ee945b9484a707448baf6a6c3334f4ca046c32",
+        "bytes": 49955
+      },
+      {
+        "path": "tmp/live-one-second-probe-20261005-2213/source.sqlite",
+        "sha256_raw": "776d73d955ac1aa731fa3d15addadda43960f31e9e897d0bdab16d1e33ef6a4a",
+        "bytes": 22134784
+      },
+      {
+        "path": "tmp/live-source-20261006-v5-one-second-pending-probe.json",
+        "sha256_raw": "eec948c2dc2ebaf4e658bf4b19d6c70c416cde137dbdaa4e300f1c2fe2efbbe7",
+        "bytes": 6624
+      },
+      {
+        "path": "tmp/live-source-20261006-v5-one-second-provenance.json",
+        "sha256_raw": "921d72e9d8d5e5b43de0aad443a9aa68d919e3fb2895ee9c68f79e282ee79454",
+        "bytes": 1463
+      },
+      {
+        "path": "tmp/live-clock-preflight-after-manual-sync-20261006.json",
+        "sha256_raw": "e39826750bc2b41f2712fe73a12b7c60f85784392cba0d70da7426f65a9ce2df",
+        "bytes": 10050
+      },
+      {
+        "path": "tmp/live-source-probe-20261006-one-second/clock-1791240766876.json",
+        "sha256_raw": "88ffde4388f150660234a04e9268c12a9ac7f9004dd1c275ddfecf60ccbf951e",
+        "bytes": 10562
+      }
+    ]
+  },
+  "prior_source_probes": [
+    {
+      "source": "tmp/live-source-20261006-v4.json",
+      "external_market_id": "4641065",
+      "probe": {
+        "durationMs": 120421,
+        "captures": 24,
+        "advances": 23,
+        "maximumAdvanceGapMs": "8534"
+      },
+      "transactions_sent": 0,
+      "evidence": {
+        "path": "tmp/live-source-probe-20261006-overlap.json",
+        "sha256_raw": "caa893fa7fe05ee4b6cbd06f1364eca4176bd5e4479b5d283a99f50f7d054f38",
+        "bytes": 680
+      },
+      "immutable_selection": {
+        "path": "tmp/live-source-20261006-v4.json",
+        "sha256_raw": "0f9c443d1e56a58cf35851d9133b32d519f78890866957a1367158afa759bb88",
+        "bytes": 6528
+      },
+      "raw_probe_archive": {
+        "path": "tmp/live-source-probe-20261006-overlap/preflight-1791236345880.sqlite",
+        "sha256_raw": "8a5c1acd0a41c3a5bd0b771928f07a21c51531254647a964d1070d3ddbeb3ac9",
+        "bytes": 4440064
+      }
+    }
+  ]
+}

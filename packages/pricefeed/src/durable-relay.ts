@@ -201,7 +201,16 @@ export class DurableRelay {
         ||identity.abiHash.toLowerCase()!==dest.abiHash.toLowerCase()||identity.signer.toLowerCase()!==dest.signerAddress.toLowerCase()
         ||identity.rulesHash.toLowerCase()!==dest.sourceRulesHash.toLowerCase())throw new Error('RELAY_IDENTITY_MISMATCH');
       verifyListing(cfg,identity.listing);
-      if(identity.lastSequence>=seq)throw new Error('RECEIPT_RECONCILIATION_REQUIRED');
+      if(identity.lastSequence>=seq){
+        // A prior UNKNOWN send may mine after the first receipt read. Only its
+        // exact canonical receipt can establish acceptance; never reserve again.
+        if(r?.txHash){
+          r=await this.reconcileDelivery(cfg,seq);
+          if(['MINED','FINALIZED','REVERTED'].includes(r.state))return r;
+          if(r.state==='UNKNOWN')return r;
+        }
+        throw new Error('RECEIPT_RECONCILIATION_REQUIRED');
+      }
       if(identity.lastObservedAt>packet.packet.observation.observedAt)throw new Error('BACKWARDS_CHAIN_SOURCE_TIME');
       const requireFresh=()=>{
         if(this.fresh(packet))return;
@@ -216,7 +225,17 @@ export class DurableRelay {
       if(r?.state==='QUARANTINED')throw new Error('RELAY_RECOVERY_REQUIRED');
       const data=submitCalldata(packet.packet.observation,packet.signature);
       // A rejected simulation must not burn a shared-account nonce before signing.
-      const sizing=await this.bounded(this.transport.simulate(d.engine,data,r?.request?.gas));
+      let sizing:Awaited<ReturnType<LocalRelayTransport['simulate']>>;
+      try{sizing=await this.bounded(this.transport.simulate(d.engine,data,r?.request?.gas));}
+      catch(error){
+        // Inclusion between identity and simulation makes a valid retry revert
+        // as a duplicate. Reconcile the original hash, with all receipt checks.
+        if(r?.txHash){
+          r=await this.reconcileDelivery(cfg,seq);
+          if(['MINED','FINALIZED','REVERTED'].includes(r.state))return r;
+        }
+        throw error;
+      }
       if(this.policy.gasSafetyMarginBps!==undefined&&(!sizing||sizing.gasLimit>this.policy.gasCap
         ||sizing.estimatedGas<21000n||sizing.gasLimit<sizing.estimatedGas
         ||sizing.marginBps!==this.policy.gasSafetyMarginBps))throw new Error('MONAD_GAS_ESTIMATE_REQUIRED');

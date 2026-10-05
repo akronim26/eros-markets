@@ -14,6 +14,7 @@ import { localRpcTransport } from '../src/local-rpc.js';
 import { ACCEPTED_ABI } from '../src/receipts.js';
 import { json } from '../src/math.js';
 import { config as fixture, reviewed, metadata, event, body } from '../test/publication-fixture.js';
+import { crashedLeaseDeadline, waitForExpiredLease } from './crash-lease-wait.js';
 
 const pause=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
 const stages=['SIGNED','PREPARING','TX_RESERVED','TX_SIGNED','UNKNOWN','BROADCAST','MINED','FINALIZED'];
@@ -25,7 +26,7 @@ async function child(dir:string,mode:string,stage:string){
   const env={...process.env};delete env.NODE_TEST_CONTEXT;
   const processChild=spawn(process.execPath,[fileURLToPath(new URL('../test/pipeline-crash-child.js',import.meta.url)),dir,mode,stage],{env,stdio:['ignore','pipe','pipe']});
   let stdout='',stderr='';processChild.stdout.on('data',b=>{stdout+=b;});processChild.stderr.on('data',b=>{stderr+=b;});
-  const timer=setTimeout(()=>processChild.kill('SIGKILL'),20000);
+  const timer=setTimeout(()=>processChild.kill('SIGKILL'),mode==='resume'?40000:20000);
   try{const [code,signal]=await once(processChild,'close');return {code,signal,stdout,stderr};}finally{clearTimeout(timer);}
 }
 async function main(){
@@ -85,9 +86,8 @@ async function main(){
         const early=await child(dir,'early',stage);assert.equal(early.code,1);assert.match(early.stderr,/RELAY_WRITER_BUSY/);earlyBlocked=true;
       }
       // Read the actual crashed-writer lease deadlines; never override them.
-      const leases=[...rows(dir,'source','SELECT until_ms FROM writers'),...rows(dir,'packets','SELECT until_ms FROM packet_workers'),...rows(dir,'relay','SELECT until_ms FROM relay_nonce')];
-      const deadline=leases.reduce((n,r)=>Math.max(n,Number(r.until_ms)),0),waitMs=Math.max(0,deadline-Date.now()+50);
-      console.log(json({stage,waitingForLeaseMs:waitMs}));await pause(waitMs);
+      console.log(json({stage,waitingForLeaseMs:Math.max(0,crashedLeaseDeadline(dir)-Date.now()+50)}));
+      const leaseWait=await waitForExpiredLease(()=>crashedLeaseDeadline(dir)),waitMs=leaseWait.waitedMs;
       const resumed=await child(dir,'resume',stage);
       assert.equal(resumed.code,0,resumed.stderr);const result=JSON.parse(resumed.stdout);
       assert.deepEqual(result.sequences,['1','2']);assert.deepEqual(result.nonces,[String(initialNonce),String(initialNonce+1n)]);
@@ -108,7 +108,7 @@ async function main(){
       assert.ok(logs.every(l=>l.args.depthValid===true&&l.args.priceWad===600000000000000000n));
       assert.deepEqual(logs.map(l=>l.transactionHash),result.deliveries.map((r:{txHash:string})=>r.txHash));
       const after=rows(dir,'relay','SELECT next_nonce FROM relay_nonce')[0]!;assert.equal(String(after.next_nonce),String(initialNonce+2n));
-      cases.push({stage,status:'RESUMED',waitMs,crashDeliveryState:previous?.state??null,earlyBlocked,initialNonce,acceptedEvents:2,immutablePacket:true,immutableTransaction:!!previous?.raw||!!signerBefore[0]?.raw,transactionReservations:signerAfter.length,signerRecoveryVerified:true,...result});
+      cases.push({stage,status:'RESUMED',waitMs,leaseWait,crashDeliveryState:previous?.state??null,earlyBlocked,initialNonce,acceptedEvents:2,immutablePacket:true,immutableTransaction:!!previous?.raw||!!signerBefore[0]?.raw,transactionReservations:signerAfter.length,signerRecoveryVerified:true,...result});
       save();console.log('ANVIL_CRASH_CASE '+JSON.stringify({stage,status:cases.at(-1)!.status,acceptedEvents:cases.at(-1)!.acceptedEvents}));
     }
     report.verified=true;
@@ -116,7 +116,7 @@ async function main(){
   finally{
     const closed=once(anvil,'close');anvil.kill('SIGTERM');await Promise.race([closed,pause(2000)]);
     if(anvil.exitCode===null&&anvil.signalCode===null){anvil.kill('SIGKILL');await closed;}
-    const files=['src/local-relay.ts','src/pipeline.ts','src/local-rpc.ts','test/pipeline-crash-child.ts','scripts/pipeline-crash-local.ts','scripts/test-pipeline-crash.py','test/demo/src/PipelineDemoMarket.sol'];
+    const files=['src/local-relay.ts','src/pipeline.ts','src/local-rpc.ts','test/pipeline-crash-child.ts','scripts/pipeline-crash-local.ts','scripts/crash-lease-wait.ts','scripts/test-pipeline-crash.py','test/demo/src/PipelineDemoMarket.sol'];
     report.fileSha256=Object.fromEntries(files.map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')]));
     report.finishedAtUtc=new Date().toISOString();save();
   }

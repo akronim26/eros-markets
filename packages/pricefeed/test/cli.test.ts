@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import { Journal } from '../src/journal.js';
@@ -244,10 +244,10 @@ test('Monad watcher CLI archives fixture engine state, reports health and cleanl
     const env:NodeJS.ProcessEnv={...process.env,PRICEFEED_TEST_RPC:'https://fixture.invalid/private-rpc-secret'};delete env.NODE_TEST_CONTEXT;
     const argv=['watch-monad-lifecycle','--rpc-env','PRICEFEED_TEST_RPC','--config',f.cfg,'--abi',engineAbi,'--db',db,
       '--interval-ms','1000','--max-checkpoint-age-ms','30000','--duration-seconds','1'];
-    const run=()=>spawnSync(process.execPath,['--import',preload,fileURLToPath(new URL('../src/cli.js',import.meta.url)),...argv],
+    const run=()=>spawnSync(process.execPath,['--import',pathToFileURL(preload).href,fileURLToPath(new URL('../src/cli.js',import.meta.url)),...argv],
       {cwd:f.dir,encoding:'utf8',env,timeout:15000});
     for(let i=0;i<2;i++){
-      const r=run();assert.equal(r.status,0,r.stderr);assert.ok(!r.stdout.includes('private-rpc-secret'));
+      const r=run();assert.equal(r.status,0,r.stderr+'\n'+r.stdout);assert.ok(!r.stdout.includes('private-rpc-secret'));
       const outputs=r.stdout.trim().split(/\n(?=\{)/).map(row=>JSON.parse(row)),summary=outputs.at(-1);
       assert.equal(summary.completed,true);assert.equal(summary.lastMode,'RECORD_ONLY');assert.equal(summary.evidenceValid,true);
       assert.ok(summary.checks>=1);assert.equal(summary.transactionsSent,0);assert.equal(summary.signaturesProduced,0);

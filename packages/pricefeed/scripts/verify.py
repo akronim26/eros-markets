@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Evidence for local checks. A zero-test runner is a failure, never acceptance."""
-import datetime, hashlib, json, re, subprocess
+import datetime, hashlib, json, re, subprocess, sys
 from pathlib import Path
 
 package = Path(__file__).resolve().parents[1]
 checks = []
-for name in ['typecheck', 'test:reference', 'test', 'check:wire', 'check:scope', 'test:engine']:
+assert sys.argv[1:] in ([], ['--integration']), 'usage: verify.py [--integration]'
+integration = sys.argv[1:] == ['--integration']
+scope_check = 'check:scope:integration' if integration else 'check:scope'
+for name in ['typecheck', 'test:reference', 'test', 'check:wire', scope_check, 'test:engine']:
     result = subprocess.run(['npm', 'run', name], cwd=package, text=True, capture_output=True)
     print(result.stdout if name != 'test' or result.returncode else '\n'.join(result.stdout.splitlines()[-9:]))
     if result.stderr: print(result.stderr)
@@ -27,9 +30,10 @@ sources = {str(path.relative_to(package)): hashlib.sha256(path.read_bytes()).hex
            for path in (package/folder).rglob('*') if path.is_file()
            and not any(part in {'out', 'cache', '__pycache__'} for part in path.parts)}
 report = {'checkedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+          'scope': 'current-versioned-integration' if integration else 'historical-pricefeed-only',
           'headCommit': head, 'workingTreeChanges': dirty, 'checks': checks,
           'sourceSha256': sources, 'humanGatesAccepted': False,
           'productionReady': False, 'liveTransactions': 0}
 output = package/'artifacts/verification'; output.mkdir(parents=True, exist_ok=True)
-(output/'checks.json').write_text(json.dumps(report, indent=2)+'\n')
+(output/('integration-checks.json' if integration else 'checks.json')).write_text(json.dumps(report, indent=2)+'\n')
 raise SystemExit(next((check['exitCode'] for check in checks if check['exitCode']), 0))
