@@ -1,5 +1,64 @@
 # Keeper engine enrollment
 
+## Configuration files and local integration
+
+`DEPLOYMENTS_FILE` optionally selects the deployment manifest instead of
+`oracle/deployments/<NETWORK>.json`. `GAS_FILE` optionally selects the measured
+gas table instead of `oracle/deployments/gas.json`. Paths are relative to the
+process working directory or absolute. A supplied deployment still has to match
+`NETWORK`; these overrides do not change network identity or approve gas values.
+The keeper checks the actual RPC chain before starting any jobs.
+
+For a fully local stack set `NETWORK=local-integration`, both file overrides,
+`ENGINE_IDENTITIES_FILE`, `RPC_URL=http://127.0.0.1:8545`, and a local-only
+`KEEPER_PRIVATE_KEY`. The local manifest must say `scope: "local-only"`,
+`network: "local-integration"`, `chainId: 31337`, identify `usdc`, and list the
+real local addresses/code hashes/deployment blocks for `Timelock`,
+`ResolutionOracle`, `MarketRegistry`, `BondTreasury`, `KeeperRouter` and
+`MockAssertionVenue`. Its `assertionVenue` must be
+`{ "kind": "mock", "address": "<MockAssertionVenue address>" }`.
+This separate local shape does not require or fabricate a deployed `UmaAdapter`.
+Normal deployment manifests retain the full SDK schema.
+
+Local mode requires a loopback RPC endpoint; teammates can reproduce the stack
+or use an SSH tunnel. Never expose an unlocked Anvil endpoint to the public
+internet. Use different local sending accounts for keeper, publisher, sampler
+and model relayer to avoid competing nonce managers. Pasted testnet or API keys
+are not required for this local stack. Keep generated manifests and identities
+with their chain state; a reset or redeployment requires regenerating both and
+fresh local gas evidence. Do not copy local measurements into testnet profiles.
+
+### Bounded local settlement driver
+
+After the local integration script has proposed/asserted the terminal outcome,
+Anvil time has reached assertion expiry, and `resolveAssertion(address)` has
+set the explicitly mocked venue result, run from this package:
+
+```sh
+RPC_URL=http://127.0.0.1:18545 bun src/local-integration.ts <local-manifest.json> <local-gas.json> <keeper-report.json>
+```
+
+On PowerShell set `$env:RPC_URL` separately. This driver requires Anvil, chain
+31337 and a loopback endpoint, verifies manifest contract code and registry
+engine bindings, and uses disposable default-Anvil account index 10. It funds
+that account with `anvil_setBalance`; no real MON or supplied testnet key is used.
+
+The ordinary keeper planners and core execute finalization and bounded clearing.
+An explicit local preflight measures currently simulatable jobs, records their
+block identity and `eth_estimateGas`, and gives them 25% plus 10,000 gas headroom
+(capped at 30 million). Reverting/no-op candidates do not get fabricated gas
+measurements. Successful receipts replace estimate provenance for sent actions;
+the report retains both, runtime identities, tick results and local refusals.
+This is local fixture-state evidence, not production worst-case gas calibration.
+
+The driver stops only when terminal claims are enabled, requires the continuing
+demo market to remain unhalted, and fails on a no-progress tick or after 32 ticks.
+The report's `engineIdentities` object can be saved separately for the ordinary
+keeper's `ENGINE_IDENTITIES_FILE`. Claim delivery remains a separate explicit
+local script call, so finality, preparation and owner payment are not conflated.
+
+## Runtime identities
+
 The keeper requires `ENGINE_IDENTITIES_FILE`, a JSON file bound to the deployment's
 `chainId` and `MarketRegistry` address. Its fields are:
 

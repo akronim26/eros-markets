@@ -10,6 +10,8 @@
 import type { ModelCall } from '@eros-oracle/oracle-sdk'
 import { promptText, type Snapshot } from '@eros-oracle/snapshotter'
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { type Hex, keccak256, stringToBytes } from 'viem'
 
 export const CATEGORIES = ['sports', 'macro', 'elections', 'politics', 'crypto', 'companies', 'other', 'crypto-price'] as const
@@ -40,11 +42,11 @@ export function parseTemplate(category: Category, template: string): PinnedPromp
   }
 }
 
-const TEMPLATES = new URL('./templates/', import.meta.url).pathname
+const TEMPLATES = fileURLToPath(new URL('./templates/', import.meta.url))
 
 /** Every category's pinned prompt, read from templates/. */
 export function loadPrompts(dir = TEMPLATES): PinnedPrompt[] {
-  return CATEGORIES.map((c) => parseTemplate(c, readFileSync(`${dir}${c}.txt`, 'utf8')))
+  return CATEGORIES.map((c) => parseTemplate(c, readFileSync(join(dir, `${c}.txt`), 'utf8')))
 }
 
 /** The prompt a market's AIConfig pins: its categoryId and promptHash must both match a template. */

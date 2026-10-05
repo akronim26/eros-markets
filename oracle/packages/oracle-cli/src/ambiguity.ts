@@ -3,12 +3,13 @@
 // otherwise it stays zero.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { type Hex, keccak256, toBytes } from 'viem'
 import { ListError, packDir, readListing, ZERO32 } from './list'
 import type { Listing } from './schema'
 import { type CallModel, httpModelClient, type ModelCall, temperatureFor } from './models'
 
-export const PROMPT_PATH = new URL('../prompts/ambiguity.txt', import.meta.url).pathname
+export const PROMPT_PATH = fileURLToPath(new URL('../prompts/ambiguity.txt', import.meta.url))
 
 export type AmbiguityOptions = {
   input: string
@@ -42,7 +43,7 @@ export type AmbiguityResult = {
 
 /** The pinned prompt's SYSTEM and USER parts, with the market text substituted. */
 export function ambiguityPrompt(template: string, question: string, rules: string): ModelCall {
-  const m = /^SYSTEM\n([\s\S]*?)\n\nUSER\n([\s\S]*)$/.exec(template)
+  const m = /^SYSTEM\n([\s\S]*?)\n\nUSER\n([\s\S]*)$/.exec(template.replaceAll('\r\n', '\n'))
   if (!m) throw new ListError('prompts/ambiguity.txt must be "SYSTEM\\n...\\n\\nUSER\\n..."')
   return { system: m[1].trim(), user: m[2].replace('{{QUESTION}}', () => question).replace('{{RULES}}', () => rules).trim() }
 }

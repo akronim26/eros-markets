@@ -2,10 +2,11 @@
 import type { ReviewedProposal } from '@eros-oracle/oracle-sdk'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { type Address, getAddress, type Hex } from 'viem'
 import type { CaseChain, Committee, CoreView, PanelEvent, ResolutionView, Sig } from '../src/backend/types'
 
-export const RECORDED = new URL('./fixtures/recorded-review/', import.meta.url).pathname
+export const RECORDED = fileURLToPath(new URL('./fixtures/recorded-review/', import.meta.url))
 
 /** Anvil's public test keys #6-#8, the fork test's committee. */
 export const MEMBER_KEYS = [

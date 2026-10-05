@@ -119,7 +119,7 @@ export function gasLimit(gas: GasTable, call: string): bigint {
 }
 
 /** A deployed contract's address; throws for a contract the network does not have. */
-export function contractAddress(d: Deployments, name: string): `0x${string}` {
+export function contractAddress(d: Pick<Deployments, 'network' | 'contracts'>, name: string): `0x${string}` {
   const c = d.contracts[name]
   if (!c) throw new DeploymentsError(`${d.network} has no ${name}`)
   return c.address as `0x${string}`

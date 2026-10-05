@@ -1,6 +1,11 @@
 .env
 .env.*
 !.env.example
+
+# Local integration runs and Python caches.
+/tmp/
+__pycache__/
+*.py[cod]
 .playwright-mcp
 
 # Local signing/protection persistence

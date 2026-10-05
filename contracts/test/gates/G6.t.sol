@@ -11,6 +11,7 @@ import {MathTypes} from "../../src/math/MathTypes.sol";
 import {PricingMode, ClearingPhase} from "../../src/math/RiskTypes.sol";
 import {CollateralVault} from "../../src/vaults/CollateralVault.sol";
 import {RiskStorage} from "../../src/risk/RiskStorage.sol";
+import {Vm} from "forge-std/Vm.sol";
 
 /// @notice G6 — resolution to cash joined: real B finality / INVALID capture / settlement
 ///         controller over real A snapshot, payout, escrow, claims and reserve exit.
@@ -47,8 +48,38 @@ contract G6Test is CombinedBase {
 
     function _prepare(uint8 page) internal {
         while (!e.prepareSnapshotChunk(page).done) {}
-        while (!e.preparePayoutChunk(page).done) {}
+        assertEq(e.getSettlementStatus().totalDeficitQ, 0, "unscanned deficit is unavailable");
+        while (!e.preparePayoutChunk(page).done) {
+            if (!e.payoutScanComplete()) assertEq(e.getSettlementStatus().totalDeficitQ, 0);
+        }
+        vm.recordLogs();
         assertTrue(e.finishPreparation());
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        (uint256 deficit, uint256 roundingDust) = _independentDeficit(e.settlementPriceWad());
+        uint256 consumedQ = deficit > roundingDust ? deficit - roundingDust : 0;
+        bool found;
+        for (uint256 i; i < logs.length; ++i) {
+            if (
+                logs[i].emitter != address(e)
+                    || logs[i].topics[0]
+                        != keccak256("ClaimsEnabled(bytes32,bytes32,uint8,uint256,uint256,uint256)")
+            ) continue;
+            (,,, uint256 payout, uint256 contribution) =
+                abi.decode(logs[i].data, (bytes32, uint8, uint256, uint256, uint256));
+            assertEq(payout, e.totalTraderAtoms());
+            assertEq(contribution, consumedQ / Q, "net whole reserve atoms after trader rounding dust");
+            found = true;
+        }
+        assertTrue(found, "ClaimsEnabled event missing");
+    }
+
+    function _independentDeficit(uint256 priceWad) internal view returns (uint256 deficit, uint256 dust) {
+        for (uint256 i; i < e.participantCount(); ++i) {
+            (int128 lots, int256 cash) = e.frozen(e.participants(i));
+            int256 equity = cash + int256(lots) * 1000 * int256(priceWad);
+            if (equity < 0) deficit += uint256(-equity);
+            else dust += uint256(equity) % Q;
+        }
     }
 
     function _expectedAtoms(address who, uint256 priceWad) internal view returns (uint256) {
@@ -83,6 +114,8 @@ contract G6Test is CombinedBase {
         assertFalse(e.recoveryEnabled(), "recovery disabled");
         assertTrue(e.claimsEnabled());
         assertEq(e.settlementPriceWad(), priceWad);
+        (uint256 deficit,) = _independentDeficit(priceWad);
+        assertEq(e.getSettlementStatus().totalDeficitQ, deficit, "exact final trader deficit");
     }
 
     // ------------------------------------------------------------------------------------------

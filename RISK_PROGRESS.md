@@ -1,5 +1,39 @@
 # Risk and Order Book implementation progress
 
+## Reserve-funded leverage — 2026-10-05
+
+The user authorized implementing the funded-reserve bad-debt policy and replacing
+the earlier local 1x setup where needed. Fresh engines accept ceilings up to 5x
+with mandatory reserve seeding, bounded liquidation pacing, governance-staged
+calibration and existing full-backing fallbacks. Winning payouts stay whole;
+funding/recovery/conversion remain disabled. Two pinned code-data stores preserve
+constructor-based deployment within Monad limits. A separate local leverage run
+and bounded persistent liquidation worker exercise this composition. Old 1x
+receipts are referenced for unrelated behavior instead of a separate repeat run.
+See [LEVERAGE_INTEGRATION.md](docs/integration/LEVERAGE_INTEGRATION.md) for commands,
+limits and current evidence. The RF-06 checkpoint includes the implementation,
+tests, ABIs and evidence. No push, public deployment or acceptance change.
+
+## Joined local product stack — 2026-10-05
+
+The existing pricefeed work is now combined at `integration/risk@b7b8442`.
+The RF-06 additions provide a reproducible local factory/oracle/book/risk/pricefeed/
+sampler/keeper stack and a read-only team API. Two owners trade; actual keeper
+transactions prepare terminal claims and pay 105/95 fixture tokens; a separate demo
+market stays active. 86 script receipts and 5 keeper receipts are canonical-checked.
+The local worker also exercises hourly bounded rollover and fixture-owner re-quoting
+(10 additional receipts), preventing the accounting-epoch stall found in longer tests.
+The external source, collateral and assertion venue remain controlled fixtures.
+
+Fresh Prague risk/book tests pass **832/832**, factory/integration **41/41**,
+keeper **95/95**, oracle SDK **56/56**, and offline oracle services/workflows **249/249**.
+The full MonadTen suite's one legacy gas assertion and native-Windows pricefeed's
+75 platform-sensitive failures remain documented, not hidden or waived.
+See [REAL_FACTORY_INTEGRATION.md](docs/integration/REAL_FACTORY_INTEGRATION.md).
+Full team instructions are in root `LOCAL_INTEGRATION_HANDOFF.md`, intentionally
+uncommitted and distributed with the source bundle. No public deployment, main
+merge, push or new G7/OG3b acceptance occurs in this local integration turn.
+
 ## Real factory integration — 2026-10-05
 
 Oracle is now in the combined checkout (`db11e46` baseline). The current work is

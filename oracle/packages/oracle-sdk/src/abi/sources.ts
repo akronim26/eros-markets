@@ -25,4 +25,8 @@ export const SOURCES: { name: string; source: string; kind: 'interface' | 'contr
   { name: 'TestUSDC', source: 'src/testnet/TestUSDC.sol', kind: 'contract' },
   { name: 'StubMarketFactory', source: 'src/testnet/StubMarketFactory.sol', kind: 'contract' },
   { name: 'ResolutionEngineStub', source: 'src/testnet/ResolutionEngineStub.sol', kind: 'contract' },
+  { name: 'RegistryBookRiskEngine', source: 'src/integration/RegistryBookRiskEngine.sol', kind: 'contract' },
+  { name: 'MarketFactory', source: '../contracts/src/factory/MarketFactory.sol', kind: 'contract' },
+  { name: 'CollateralVault', source: '../contracts/src/vaults/CollateralVault.sol', kind: 'contract' },
+  { name: 'RolloverBatcher', source: 'src/integration/RolloverBatcher.sol', kind: 'contract' },
 ]

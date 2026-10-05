@@ -1,10 +1,53 @@
 # Risk & Clearing — STATUS
 
-- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-05.
+- Shared branch: `integration/risk`; integration follow-up updated on 2026-10-06.
 - Unified Risk and Order Book ownership and automated validation: `CLAUDE.md` and `docs/merge/UNIFIED_WORKFLOW.md`.
 - Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
 ## Current summary
+
+**Integrated backend follow-up, 2026-10-06:** current entrypoints and boundaries
+are documented in [INTEGRATION_READINESS.md](../integration/INTEGRATION_READINESS.md),
+with a versioned frontend SDK/read handoff and the integrated deployment runbook.
+The current work includes generic bounded rollover, real-engine oracle service
+adapters, genuine-source local execution, owner transaction builders, canonical
+receipt/state audits and deployment preparation for two code stores plus the
+factory/vault/registry sequence. Final validation is recorded separately from the
+historical checkpoints below. Public deployment and frontend branch merging
+remain deferred; no prior human gate approval is renewed.
+
+The leveraged settlement proof exposed a reporting-only defect: the accounting
+ledger paid full claims, but the status/event omitted the reserve-funded deficit.
+The bridge now derives exact final deficit and net whole reserve contribution
+from frozen accounting aggregates. Original claims, custody and coverage rules
+remain enforced. Because this changes engine bytecode, final deployment/live
+proofs must identify the rebuilt runtime, rather than reuse an earlier address.
+
+**Reserve-funded leverage, 2026-10-05 (RF-06 checkpoint):** constructor-bound listings
+now support up to 5x under the existing template, margin and reserve rules. Reserve
+capital must precede activation; the frozen 2% account deficit cap and full winner
+payouts remain enforced. Calibration/fresh prices gate leverage; funding, recovery
+haircuts and conversion stay disabled. Deployment uses two pinned code stores.
+A separate leverage scenario and persistent bounded liquidator are documented in
+[LEVERAGE_INTEGRATION.md](../integration/LEVERAGE_INTEGRATION.md). Fresh risk/book
+832/832, leverage 12/12 and isolated deployment gas 5/5 checks pass. Earlier 1x
+receipts remain historical references. No new gate acceptance or public deployment.
+
+**Local joined stack, 2026-10-05:** `integration/risk` now contains the existing
+pricefeed checkpoint `b7b8442` by fast-forward. RF-06 integration additions join
+the actual factory, registry, oracle, book/risk engines, vault, pricefeed pipeline,
+sampler and keeper on an isolated chain 31337. A full run deploys two markets, funds
+two owners, partially fills/cancels orders, exercises release/withdrawal, and resolves
+and pays the terminal market while leaving the demo active. Canonical receipt audit:
+86 script transactions plus 5 keeper transactions; no public-chain transactions.
+Longer-running checks exposed a missing hourly operational step: the local stack now
+performs bounded epoch rollover and explicit fixture-owner re-quoting, with 10 actual
+transactions across the two markets in its deliberate hour-boundary regression.
+External price data, collateral and assertion adjudication are explicitly fixtures.
+See the new local execution section of
+[REAL_FACTORY_INTEGRATION.md](../integration/REAL_FACTORY_INTEGRATION.md).
+The detailed root `LOCAL_INTEGRATION_HANDOFF.md` is intentionally uncommitted and
+shared in a source bundle, not published by Git. No new G7/OG3b acceptance is inferred.
 
 **RF-01 through RF-05, local implementation:** after pulling the oracle work, the user
 authorized real factory/oracle/risk/book integration, deferring sponsors and frontend.
@@ -20,8 +63,9 @@ on a presumed need for proxies or clones. Each actual pack still needs a full es
 and creation-code-store headroom is narrow. Registry OI cap enforcement is required to
 keep halted exposure within the listing's resolution-bond sizing assumptions.
 
-**RF-LIVE remains blocked:** the user confirms no local account controls the existing
-oracle testnet stack and the independent INDEX publisher is unfinished. No live factory
+**RF-LIVE remains blocked:** control of the required public governance/lister roles and
+approved continuous real-source INDEX publication have not been established. The
+publisher code is now present and locally exercised; this is not live feed approval. No live factory
 switch, deployment, oracle administration, address update, O42 completion or new gate
 acceptance is performed. Existing deployment addresses and historical G7 acceptance
 remain unchanged. The new relay is not a fabricated or substitute pricefeed.
@@ -615,6 +659,33 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Next: hand the pinned implementation and operator checklist to the existing
   oracle governance/lister operator; complete the independent source before a live demo.
 
+### 2026-10-05 — RF-06 local stack and reserve-funded leverage checkpoint
+
+- User requested committing the completed integration and its dependencies. This
+  checkpoint includes the local stack, Windows compatibility fixes, reserve-funded
+  leverage, two-store factory deployment, liquidation operations, tests, ABI exports
+  and evidence. The private handoff, runtime data and unrelated historical A-to-B
+  review draft remain outside this commit. No push or main merge is performed.
+- Validation already recorded for the implementation: 832 risk/book tests, 56 unique
+  integration tests across the documented runs, 51 local/market-ops tests and 28
+  focused runner checks. G3 technical checks and ABI freshness pass; historical gate
+  acceptance and known broader-suite failures are unchanged. These suites were not
+  repeated solely to commit their unchanged sources.
+- Canonical leveraged proof: 103 script, 5 keeper and 20 upkeep receipts; two
+  100-claim positions at 0.50 with 10 fixture tokens per owner, 100,000 reserve and
+  99,960 coverage slack for either outcome. Owned services are stopped. The proof
+  resumed its maturity/trade tail after a readiness timing repair; it does not prove
+  an uninterrupted run of the final orchestrator.
+- Commit preparation adds committed setup instructions and runtime/cache ignores,
+  and corrects the runner's Git-state label. All 40 integration-script discovery
+  tests pass after that metadata-only correction. The original 119 validation
+  fingerprints and their single metadata delta are retained in
+  `artifacts/integration/reserve-funded-leverage.json`.
+- Next: run the final leveraged scenario uninterrupted from this checkpoint.
+  Public activation still needs empirical calibration, reserve funding, continuous
+  real-source INDEX, authorized operator roles and network-specific gas evidence.
+  Owner-correct transaction client/frontend and selected sponsor work remain the
+  subsequent product scope; unrelated earlier 1x evidence can be reused.
 ### 2026-10-06 — CI-01: push failures on feat/pricefeed
 
 - User requested investigation and repair of failing GitHub CI. Baseline
@@ -857,3 +928,21 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   disables loading animation; blocked local storage still permits dismissal.
   No transactions were submitted. Evidence: `/tmp/eros-states-*`. Production
   preview is rebuilt and running at localhost:3100.
+
+### 2026-10-06 — MERGE-RISK: refresh frontend branch from integration/risk
+
+- User explicitly requested merging the new integration/risk pushes into the
+  current branch. Fetched `origin/integration/risk` at `5fc751d` and merged its
+  eight missing commits into `feat/pricefeed`, starting at `3671ec0` with a clean
+  working tree. The merge is conflict-free; both branches' status entries survive.
+- Frontend, risk-sdk and automation source trees match the pre-merge frontend
+  branch exactly. Backend source matches the incoming integration branch; only
+  the retained frontend work and combined status log differ from that branch.
+  No deployment addresses, environment files or running services are changed.
+- Post-merge verification: `git diff --cached --check`, 31 frontend unit tests,
+  10 frontend integration tests and TypeScript all exit 0. The backend lifecycle
+  evidence is imported from integration/risk, not claimed as rerun here. Logs:
+  `/tmp/eros-merge-risk-{unit,integration,types}.log`.
+- A local merge commit completes the requested branch merge. No push or public
+  transaction is performed. Deployment/frontend integration policies remain in
+  `docs/integration/FRONTEND_TEAM_HANDOFF.md` and `DEPLOYMENT_RUNBOOK.md`.

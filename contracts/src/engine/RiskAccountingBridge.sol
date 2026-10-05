@@ -511,7 +511,24 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
         while (!claimsEnabled) _prepareReservePage(32);
         r.claimsEnabled = true;
         r.totalTraderPayoutAtoms = totalTraderAtoms;
-        r.reserveContributionAtoms = 0;
+        // Compare the reserve's frozen settlement equity, not its original seed:
+        // premiums and reserve positions are already reflected in that equity.
+        // Payout rounding dust belongs to the reserve. Report only whole atoms
+        // consumed after that dust; totalDeficitQ separately preserves exact Q.
+        uint256 reserveEquityQ = QMath.positive(L.equity(frozenReserve, settlementPriceWad));
+        if (reserveEquityQ > reserveResidualQ) {
+            r.reserveContributionAtoms = (reserveEquityQ - reserveResidualQ) / 1e18;
+        }
+    }
+
+    function _acctTotalDeficitQ() internal view virtual override returns (uint256) {
+        if (!payoutScanComplete) return 0;
+        // sum(max(equity, 0)) - sum(equity) = sum(max(-equity, 0)).
+        // Both aggregates come from the existing bounded snapshot/payout jobs.
+        // Aggregate cash may exceed the per-account bound, so do not cast it
+        // into a single account or impose that account's cash/position limits.
+        int256 equityQ = snapshotCashQ + snapshotLots * 1000 * int256(settlementPriceWad);
+        return equityQ < 0 ? totalRawClaimQ + QMath.abs(equityQ) : totalRawClaimQ - uint256(equityQ);
     }
 
     /// @dev COMPLETE follows A's counter of allocated trader entitlements still unpaid (R-10).
@@ -553,7 +570,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     }
 
     /// @notice Governance activation after the reserve seed (DEC-06: shares issue only before this).
-    function activateMarket() external nonReentrant {
+    function activateMarket() public virtual nonReentrant {
         _onlyGovernance();
         _riskEpochOpenedWithGuards();
         _activate(0, _currentTariff());

@@ -4,7 +4,7 @@
   "src/engine/BookRiskEngine.sol": "BookRiskEngine"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "060f77dd31a15987c818b7059b9e3f52e6c3d5155b6e9b516f46a3bec83081f8",
+ "source_sha256": "098d998694fd401e7178f763962147fdca9126a22bdfca39774278681fa989ef",
  "abi": [
   {
    "type": "constructor",
@@ -2111,6 +2111,24 @@
    "outputs": [
     {
      "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "leverageCaps",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "longCapX",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "shortCapX",
      "type": "uint256",
      "internalType": "uint256"
     }
@@ -6592,6 +6610,11 @@
   },
   {
    "type": "error",
+   "name": "InvalidCalibratedProfile",
+   "inputs": []
+  },
+  {
+   "type": "error",
    "name": "InvalidDeploymentDependency",
    "inputs": []
   },
@@ -6678,6 +6701,11 @@
   {
    "type": "error",
    "name": "ReservationUnderflow",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "ReserveSeedRequired",
    "inputs": []
   },
   {
