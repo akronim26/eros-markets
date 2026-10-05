@@ -20,7 +20,9 @@ The frontend scopes balances to the selected address and pins writes to its acco
 
 ## Appearance
 
-Use the theme icon in the header to select **Light**, **Dark**, or **System** (the default). The choice is stored locally and synchronized across tabs. System follows device appearance changes. A small script applies the saved palette before the page paints, and theme changes update the existing page and Privy provider without remounting them. Colors, logos, charts and wallet dialogs share the theme; reduced-motion settings disable the theme fade and the hero diagram's ambient animation.
+Use the theme icon in the header to select **Light**, **Dark**, or **System** (the default). The choice is stored locally and synchronized across tabs. System follows device appearance changes. A small script applies the saved palette before the page paints, and theme changes update the existing page and Privy provider without remounting them. Colors, logos, charts and wallet dialogs share the theme; reduced-motion settings disable the theme fade and the diagrams' ambient animation.
+
+The landing page's oracle illustration uses local SVG and CSS, with no video download or animation dependency. It cycles through the three architectural layers; hover, keyboard focus or touch selection lets visitors inspect a layer. The pause control stops motion, and both diagrams pause when offscreen or when the tab is hidden. Reduced motion keeps the illustration static while retaining manual layer selection. This illustration does not represent live oracle activity.
 
 ## Verification and demo
 

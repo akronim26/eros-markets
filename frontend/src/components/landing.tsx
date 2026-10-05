@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandImage } from "./brand-image";
-import { ArrowRight, Check, Minus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
 import { markets } from "@/config/deployment";
 import { PRICING, STAGE } from "@/lib/enums";
@@ -11,6 +11,7 @@ import { fmtDuration, fmtUtc, lotsToClaims, shortAddr } from "@/lib/units";
 import { Num, SectionRule, cx } from "./ui";
 import { EventPerpDemo } from "./event-perp-demo";
 import { MarketLifecycle } from "./market-lifecycle";
+import { OracleLayers } from "./oracle-layers";
 
 const ENGINE = markets[0].engine;
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -112,11 +113,11 @@ function Hero() {
         powered by a fully on-chain order book.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Link href={`/m/${ENGINE}`} className="group inline-flex min-h-11 items-stretch">
+        <Link href="/markets" className="group inline-flex min-h-11 items-stretch">
           <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
             <ArrowRight size={15} strokeWidth={2} />
           </span>
-          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Explore the testnet</span>
+          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Explore markets</span>
         </Link>
         <Link href="#how-it-works" className="label frame inline-flex min-h-11 items-center px-5 text-fg hover:bg-hover">
           How event perps work
@@ -345,90 +346,19 @@ function Mechanism() {
 
 /* ------------------------------------------------------------------ resolution layers */
 
-const LAYERS = [
-  {
-    id: "LAYER_01",
-    title: "Data feed",
-    sub: "Chainlink CRE reads the listed source after the market halts.",
-    yes: ["Reads the pinned source at T", "Proposes YES or NO with a value hash", "Bonded assertion, open to dispute"],
-    no: ["Decides questions without a feed"],
-  },
-  {
-    id: "LAYER_02",
-    title: "Panel + committee",
-    sub: "Three model families judge a public evidence snapshot; humans sign.",
-    yes: ["Evidence pinned to IPFS by hash", "2-of-3 committee signs the proposal", "Injection flags route to human review"],
-    no: ["Auto-proposes before validation"],
-    dark: true,
-  },
-  {
-    id: "LAYER_03",
-    title: "Disputes",
-    sub: "Any proposal can be disputed with a bond before it becomes final.",
-    yes: ["Optimistic oracle settles disputes", "Void deadline guarantees a final outcome", "INVALID pays the captured price"],
-    no: ["Pays out before claims are prepared"],
-  },
-];
-
 function Resolution() {
   return (
     <section id="resolution" className="mx-auto max-w-[1280px] scroll-mt-28 px-4 pb-24 md:px-8">
       <SectionRule name="RESOLUTION" index={3} />
       <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Know how your market settles</h2>
-          <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-fg-2">
-            Every event needs a clear answer. After trading halts, evidence supports a proposed outcome,
-            with time to challenge it before settlement. Here is how the resolution system works.
+          <h2 className="pixel text-[clamp(2rem,4vw,3.5rem)] leading-tight text-fg uppercase">An oracle of its own.</h2>
+          <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-fg-2">
+            From evidence to outcome. Explore the layers that decide how your market settles.
           </p>
         </div>
-        <span className="label flex items-center gap-2 text-fg-3">
-          <span className="h-2 w-2 bg-signal" aria-hidden />
-          Every halted market reaches a final outcome
-        </span>
       </div>
-      <div className="frame mt-6 grid grid-cols-1 md:grid-cols-3">
-        {LAYERS.map((l, i) => (
-          <div
-            key={l.id}
-            className={cx(
-              "flex flex-col",
-              l.dark ? "bg-ink text-ivory" : "bg-ground",
-              i > 0 && "max-md:shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-[inset_1px_0_0_var(--color-line-strong)]",
-            )}
-          >
-            <PanelHead dark={l.dark} left={l.id} right={<span className="tnum">{`0${i + 1}`}</span>} />
-            <div className={cx("p-5", l.dark ? "shadow-[inset_0_-1px_0_#2a2a2c]" : "shadow-[inset_0_-1px_0_var(--color-line-strong)]")}>
-              <p className="text-2xl font-semibold tracking-[-0.02em] uppercase">{l.title}</p>
-              <p className={cx("mt-2 text-xs leading-relaxed", l.dark ? "text-ivory-3" : "text-fg-3")}>{l.sub}</p>
-            </div>
-            <ul className="flex flex-1 flex-col gap-3 p-5 text-xs">
-              {l.yes.map((y) => (
-                <li key={y} className="flex items-start gap-2.5">
-                  <Check size={14} strokeWidth={2} className="mt-px shrink-0 text-signal" aria-hidden />
-                  {y}
-                </li>
-              ))}
-              {l.no.map((n) => (
-                <li key={n} className={cx("flex items-start gap-2.5 line-through", l.dark ? "text-ivory-3" : "text-fg-4")}>
-                  <Minus size={14} strokeWidth={2} className="mt-px shrink-0" aria-hidden />
-                  {n}
-                </li>
-              ))}
-            </ul>
-            <div className="p-5 pt-0">
-              <Link href="/resolution" className="group flex h-9 items-stretch">
-                <span className="flex w-9 items-center justify-center bg-signal text-on-signal" aria-hidden>
-                  <ArrowRight size={14} strokeWidth={2} />
-                </span>
-                <span className={cx("label flex flex-1 items-center justify-center", l.dark ? "bg-ivory text-ink group-hover:bg-[#dcdad2]" : "bg-action text-on-action group-hover:bg-action-hover")}>
-                  View resolution
-                </span>
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
+      <OracleLayers />
       <p className="label mt-4 text-fg-3">* Testnet: Layer 1 runs on a single simulation node, not a Chainlink DON; disputes are decided by the Eros team through a sandbox oracle, not by UMA voters.</p>
     </section>
   );
@@ -466,9 +396,9 @@ function LiveTicker() {
             Explore event perpetual futures on Monad testnet. Connect your wallet, or sign in with email to create one.
           </p>
         </div>
-        <Link href={`/m/${ENGINE}`} className="group inline-flex min-h-11 items-stretch">
+        <Link href="/markets" className="group inline-flex min-h-11 items-stretch">
           <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={15} strokeWidth={2} /></span>
-          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Open testnet terminal</span>
+          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Browse all markets</span>
         </Link>
       </div>
       <div className="frame mt-6 overflow-hidden">
@@ -497,7 +427,6 @@ function Footer() {
         </div>
         <nav className="label flex gap-6 text-fg-3" aria-label="Footer">
           <Link href="/markets" className="hover:text-fg">Markets</Link>
-          <Link href={`/m/${ENGINE}`} className="hover:text-fg">Trade</Link>
           <Link href="/resolution" className="hover:text-fg">Resolution</Link>
           <Link href="/portfolio" className="hover:text-fg">Portfolio</Link>
         </nav>
