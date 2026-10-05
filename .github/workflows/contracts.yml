@@ -17,6 +17,8 @@ jobs:
         working-directory: contracts
     env:
       FOUNDRY_PROFILE: ci
+      # Preserve the committed baseline before the later gas comparison.
+      FORGE_SNAPSHOT_EMIT: "false"
     steps:
       - uses: actions/checkout@v4
         with:

@@ -614,3 +614,30 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   deployed-address edits, main merge or new gate acceptance in this turn.
 - Next: hand the pinned implementation and operator checklist to the existing
   oracle governance/lister operator; complete the independent source before a live demo.
+
+### 2026-10-06 — CI-01: push failures on feat/pricefeed
+
+- User requested investigation and repair of failing GitHub CI. Baseline
+  `b2c9100931e63aa285a2e5eb5c4d1465e235b758`; fetched origin and verified the current
+  feature branch matches its remote. Earlier CRE/service edits remain separate.
+- Latest runs `37366215962` (oracle) and `37366215860` (contracts) could not acquire
+  hosted runners for most jobs. No test step ran in those jobs. The oracle Forge
+  and real-integration jobs both passed. GitHub confirmed the runner-assignment
+  incident at https://www.githubstatus.com/incidents/3q1yb5m7ltvb. Retried only the
+  jobs that had failed to start; hosting availability is outside this patch.
+- Earlier contracts run `37246660727` failed `forge fmt --check`. Reproduced on
+  the current tree with CI-pinned Foundry 1.8.3: `BookRiskEngine.sol`, `MarginLens.sol`
+  and its test needed formatting. Applied the pinned formatter; no economic rule
+  or assertion was changed.
+- Set `FORGE_SNAPSHOT_EMIT=false` for the contracts job so its test step cannot
+  overwrite the committed gas baseline before the later comparison. An isolated
+  verification accepted the committed snapshot, rejected a one-unit mismatch,
+  and left both files byte-for-byte unchanged. No gas baseline was refreshed.
+- Local validation: contracts and oracle formatting checks exit 0; contracts
+  `FOUNDRY_PROFILE=ci forge build --sizes` exits 0; snapshot check exits 0 (12 tests);
+  deliberate snapshot mismatch exits 1 as expected. Full CI contract tests exit 0:
+  834 passed, 0 failed, 0 skipped across 131 suites, including 10,000-run fuzz
+  campaigns and 256-run invariants. Restored the test-generated newline-only
+  snapshot change; the committed baseline remains byte-for-byte unchanged.
+- This is CI maintenance on the user's active feature branch. No main merge,
+  deployment, contract permission change or gate-acceptance update is included.
