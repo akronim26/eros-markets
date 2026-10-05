@@ -51,7 +51,9 @@ contract MarketFactory {
         _checkStore(codeStore_);
         if (codeStoreTail_ != address(0)) _checkStore(codeStoreTail_);
         bytes memory stored = _readCode(codeStore_, codeStoreTail_);
-        if (creationCodeHash_ == bytes32(0) || keccak256(stored) != creationCodeHash_) revert InvalidEngineCode();
+        if (creationCodeHash_ == bytes32(0) || keccak256(stored) != creationCodeHash_) {
+            revert InvalidEngineCode();
+        }
         registry = registry_;
         resolutionAuthority = authority;
         governance = governor;
@@ -92,7 +94,10 @@ contract MarketFactory {
                 || listing.token != address(collateralVault.token())
         ) revert InvalidListing();
         if (engineOf[listing.marketId] != address(0)) revert MarketExists();
-        if (codeStore.codehash != codeStoreHash || (codeStoreTail != address(0) && codeStoreTail.codehash != codeStoreTailHash)) revert InvalidEngineCode();
+        if (
+            codeStore.codehash != codeStoreHash
+                || (codeStoreTail != address(0) && codeStoreTail.codehash != codeStoreTailHash)
+        ) revert InvalidEngineCode();
         bytes memory creationCode = _readCode(codeStore, codeStoreTail);
         bytes memory initCode = bytes.concat(creationCode, abi.encode(collateralVault, treasury, listing));
         if (initCode.length > 262144) revert InvalidEngineCode();

@@ -174,6 +174,9 @@ abstract contract IAccountingPort {
 
     function _acctFinishPreparation() internal virtual returns (FinishResult memory);
 
+    /// @notice Exact negative trader equity at the final price, available after the payout scan.
+    function _acctTotalDeficitQ() internal view virtual returns (uint256);
+
     /// @dev Active accounting epoch end and any already-frozen rollover cutoff (0 = none), so the
     ///      halt can use accrualCutoff = min(economicHaltAt, end, frozen) (A025/A030).
     function _acctEpochBounds()
