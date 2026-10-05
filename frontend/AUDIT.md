@@ -31,8 +31,8 @@ completion audit. This is technical validation, not an independent security audi
 | Cancel-all depended on successful order discovery | A history/log outage blocked the account-wide escape action | Allow cancel-all for a known trader; retain transaction simulation and wallet guards |
 | Animated text used prohibited labels on generic spans | Screen readers could miss headings and values | Provide stable screen-reader text separately from the animation |
 | Terminal tabs lacked keyboard selection and panel relationships | Arrow-key navigation did not work | Roving focus, arrow/Home/End controls and labelled panels |
-| No frontend CI workflow | Frontend-only pushes bypassed all app checks | Frozen install, unit/server tests, production build and TypeScript checks |
-| Vulnerable transitive `ws` 8.x versions | Dependency audit reported one high-severity advisory | Narrow override to patched 8.21.3; CI rejects future high/critical advisories |
+| No frontend CI workflow | Frontend-only pushes bypassed all app checks | Frozen install, unit/server tests and production build with built-in TypeScript checks |
+| Vulnerable transitive `ws` 8.x versions | Dependency audit reported one high-severity advisory | Override ws 8.x to patched 8.21.3; dependency audit remains available locally |
 
 ## Dependency follow-up
 
@@ -107,3 +107,20 @@ with a condition-based wait. No failed application assertion was discarded.
 5. Optional features remain gated: calibrated leverage, delegated one-click
    trading and the protection worker require their documented configuration.
    The public Privy App ID and existing Envio token are already configured.
+
+
+## CI simplification follow-up
+
+The clean CI reproduction on Node 22 exposed an npm 10 lockfile incompatibility
+with the original version-range override. The ws override now pins all 8.x
+consumers to 8.21.3, while retaining ws 7.x for consumers that require that major.
+The lockfile is regenerated with Node 22's npm and validated with a clean install.
+
+The frontend push checks retain frozen installation, unit/integration tests and
+the production build. Next.js checks application and generated-route TypeScript
+during that build, so the separate typecheck is removed. Tests still execute in
+CI; their separate static typecheck remains available locally. The blocking
+dependency advisory check is removed at the user's request to simplify CI;
+`npm audit --audit-level=high` remains available for dependency reviews. The
+existing vulnerability patch stays in place. Each workflow cancels superseded
+runs on the same ref.
