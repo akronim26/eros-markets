@@ -331,20 +331,21 @@ contract RealBookIntegrationTest is Test {
         _assertAccounting();
     }
 
-    function testReductionPermitStopsAfterOwnPositionVersionChanges() public {
+    function testReductionPermitContinuesAcrossItsOwnPositionVersionChanges() public {
         _openLong();
         uint32 firstBid = _post(3, true, 600, 250_000);
         uint32 secondBid = _post(4, true, 600, 250_000);
         uint64 versionBefore = engine.account(_trader(1)).positionVersion;
         _place(1, IBookRiskHooks.OrderKind.IOC, false, 600, 500_000, true, 0);
-        assertEq(_lots(1), 750_000);
-        assertEq(_cash(1), -int256(330 * USDC_Q));
-        assertEq(engine.account(_trader(1)).positionVersion, versionBefore + 1);
+        assertEq(_lots(1), 500_000);
+        assertEq(_cash(1), -int256(180 * USDC_Q));
+        assertEq(engine.account(_trader(1)).positionVersion, versionBefore + 2);
         assertEq(engine.getOrder(firstBid).size, 0);
-        assertEq(engine.getOrder(secondBid).size, 250_000);
-        assertEq(_lots(4), 0);
-        assertEq(_orders(4).bidLots, 250_000);
+        assertEq(engine.getOrder(secondBid).size, 0);
+        assertEq(_lots(4), 250_000);
         _assertEmptyReservation(1);
+        _assertEmptyReservation(3);
+        _assertEmptyReservation(4);
         _assertAccounting();
     }
 
@@ -360,20 +361,111 @@ contract RealBookIntegrationTest is Test {
         _assertAccounting();
     }
 
-    function testPartiallyFilledReduceOnlyLimitRestKeepsItsAdmissionVersion() public {
+    function testReductionAcrossMakersStillStopsBeforeUnsafeSecondFill() public {
+        _openLong();
+        uint32 firstBid = _post(3, true, 600, 250_000);
+        uint32 unsafeBid = _post(4, true, 1, 250_000);
+        _place(1, IBookRiskHooks.OrderKind.IOC, false, 1, 500_000, true, 0);
+        assertEq(_lots(1), 750_000);
+        assertEq(_cash(1), -int256(330 * USDC_Q));
+        assertEq(engine.getOrder(firstBid).size, 0);
+        assertEq(engine.getOrder(unsafeBid).size, 250_000);
+        assertEq(_lots(4), 0);
+        _assertEmptyReservation(1);
+        _assertAccounting();
+    }
+
+    function testReductionAcrossMakersClipsAtFlatWithoutFlipping() public {
+        _openLong();
+        uint32 firstBid = _post(3, true, 600, 600_000);
+        uint32 secondBid = _post(4, true, 600, 600_000);
+        _place(1, IBookRiskHooks.OrderKind.IOC, false, 600, 2_000_000, true, 0);
+        assertEq(_lots(1), 0);
+        assertEq(_cash(1), int256(120 * USDC_Q));
+        assertEq(engine.getOrder(firstBid).size, 0);
+        assertEq(engine.getOrder(secondBid).size, 200_000);
+        assertEq(_lots(3), 600_000);
+        assertEq(_lots(4), 400_000);
+        _assertEmptyReservation(1);
+        _assertAccounting();
+    }
+
+    function testOwnTakerFillDoesNotRefreshAnOlderRestingReduction() public {
+        _openLong();
+        uint64 versionBefore = engine.account(_trader(1)).positionVersion;
+        uint32 olderAsk = _place(1, IBookRiskHooks.OrderKind.POST_ONLY, false, 650, 100_000, true, 0);
+        _post(3, true, 600, 100_000);
+        _place(1, IBookRiskHooks.OrderKind.IOC, false, 600, 100_000, true, 0);
+        assertEq(engine.getOrder(olderAsk).reduceVersion, versionBefore);
+        assertEq(engine.account(_trader(1)).positionVersion, versionBefore + 1);
+        _ioc(4, true, 650, 100_000);
+        assertEq(engine.getOrder(olderAsk).size, 0);
+        assertEq(_lots(1), 900_000);
+        assertEq(_lots(4), 0);
+        _assertEmptyReservation(1);
+        _assertEmptyReservation(4);
+        _assertAccounting();
+    }
+
+    function testPartiallyFilledReduceOnlyLimitRestUsesAcceptedPostingVersion() public {
         _openLong();
         _post(3, true, 600, 250_000);
         uint64 versionBefore = engine.account(_trader(1)).positionVersion;
         uint32 remainder = _place(1, IBookRiskHooks.OrderKind.LIMIT, false, 600, 500_000, true, 0);
         assertGt(remainder, 0);
         assertEq(engine.getOrder(remainder).size, 250_000);
-        assertEq(engine.getOrder(remainder).reduceVersion, versionBefore);
+        assertEq(engine.getOrder(remainder).reduceVersion, versionBefore + 1);
         assertEq(engine.account(_trader(1)).positionVersion, versionBefore + 1);
         _ioc(4, true, 600, 250_000);
         assertEq(engine.getOrder(remainder).size, 0);
-        assertEq(_lots(1), 750_000);
+        assertEq(_lots(1), 500_000);
+        assertEq(_lots(4), 250_000);
+        _assertEmptyReservation(1);
+        _assertEmptyReservation(4);
+        _assertAccounting();
+    }
+
+    function testConvertedRemainderIsStillInvalidatedByAnUnrelatedTrade() public {
+        _openLong();
+        _post(3, true, 600, 250_000);
+        uint32 remainder = _place(1, IBookRiskHooks.OrderKind.LIMIT, false, 600, 500_000, true, 0);
+        uint64 admittedVersion = engine.getOrder(remainder).reduceVersion;
+        _post(1, true, 500, 10);
+        _ioc(5, false, 500, 10);
+        assertEq(engine.account(_trader(1)).positionVersion, admittedVersion + 1);
+        assertEq(engine.getOrder(remainder).reduceVersion, admittedVersion);
+        _ioc(4, true, 600, 250_000);
+        assertEq(engine.getOrder(remainder).size, 0);
+        assertEq(_lots(1), 750_010);
         assertEq(_lots(4), 0);
         _assertEmptyReservation(1);
+        _assertEmptyReservation(4);
+        _assertAccounting();
+    }
+
+    function testSecondReductionPostingFailureRollsBackRefreshedPermitAndBothFills() public {
+        _openLong();
+        uint32 firstBid = _post(3, true, 600, 250_000);
+        uint32 secondBid = _post(4, true, 600, 250_000);
+        uint64 versionBefore = engine.account(_trader(1)).positionVersion;
+        engine.failOnPosting(2);
+        vm.expectRevert(RealBookEngine.InjectedAccountingFailure.selector);
+        _place(1, IBookRiskHooks.OrderKind.IOC, false, 600, 500_000, true, 0);
+        assertEq(engine.postings(), 0);
+        assertEq(_lots(1), 1_000_000);
+        assertEq(_cash(1), -int256(480 * USDC_Q));
+        assertEq(engine.account(_trader(1)).positionVersion, versionBefore);
+        assertEq(engine.getOrder(firstBid).size, 250_000);
+        assertEq(engine.getOrder(secondBid).size, 250_000);
+        assertEq(_orders(3).bidLots, 250_000);
+        assertEq(_orders(4).bidLots, 250_000);
+        _assertEmptyReservation(1);
+        _assertAccounting();
+        engine.failOnPosting(0);
+        _place(1, IBookRiskHooks.OrderKind.IOC, false, 600, 500_000, true, 0);
+        assertEq(_lots(1), 500_000);
+        _assertEmptyReservation(1);
+        _assertEmptyReservation(3);
         _assertEmptyReservation(4);
         _assertAccounting();
     }
@@ -453,7 +545,7 @@ contract RealBookIntegrationTest is Test {
         _assertAccounting();
     }
 
-    function testForcedReductionAlsoStopsAfterItsFirstMakerChangesPositionVersion() public {
+    function testForcedReductionContinuesAcrossItsOwnPositionVersionChanges() public {
         _openLong();
         _advance(uint64(block.timestamp) + 20 minutes, 55e16);
         _advance(uint64(block.timestamp) + 20 minutes, 52e16);
@@ -463,14 +555,16 @@ contract RealBookIntegrationTest is Test {
         vm.prank(KEEPER);
         RiskLiquidation.LiquidationResult memory result = engine.liquidate(1, 10, 8, 0);
         assertEq(uint8(result.result), uint8(LiquidationMath.Result.NEEDS_MORE_WORK));
-        assertEq(result.bookLots, 5);
+        assertEq(result.bookLots, 10);
         assertEq(engine.getOrder(firstBid).size, 0);
-        assertEq(engine.getOrder(secondBid).size, 5);
-        assertEq(_lots(1), 999_995);
+        assertEq(engine.getOrder(secondBid).size, 0);
+        assertEq(_lots(1), 999_990);
         assertEq(_lots(3), 5);
-        assertEq(_lots(4), 0);
-        assertEq(engine.keeperQ(KEEPER), 5 * ATOM_Q / 2);
+        assertEq(_lots(4), 5);
+        assertEq(engine.keeperQ(KEEPER), 5 * ATOM_Q);
         _assertEmptyReservation(1);
+        _assertEmptyReservation(3);
+        _assertEmptyReservation(4);
         _assertAccounting();
     }
 
@@ -503,6 +597,28 @@ contract RealBookIntegrationTest is Test {
         assertEq(_lots(3), 0);
         assertEq(engine.getOrder(bidOrder).size, 400_000);
         assertEq(uint8(engine.previewAccount(1).status), uint8(MarginMath.Status.HEALTHY));
+        _assertAccounting();
+    }
+
+    function testForcedReductionStopsOnceFirstBookFillRestoresHealth() public {
+        _openLong();
+        _advance(uint64(block.timestamp) + 20 minutes, 55e16);
+        _advance(uint64(block.timestamp) + 20 minutes, 52e16);
+        _advance(uint64(block.timestamp) + 20 minutes, 52e16);
+        assertEq(uint8(engine.previewAccount(1).status), uint8(MarginMath.Status.BELOW_MM));
+        uint32 firstBid = _post(3, true, 650, 300_000);
+        uint32 secondBid = _post(4, true, 600, 1_000_000);
+        vm.prank(KEEPER);
+        RiskLiquidation.LiquidationResult memory result = engine.liquidate(1, 1_000_000, 8, 0);
+        assertEq(result.bookLots, 300_000);
+        assertEq(uint8(result.result), uint8(LiquidationMath.Result.DONE));
+        assertEq(engine.getOrder(firstBid).size, 0);
+        assertEq(engine.getOrder(secondBid).size, 1_000_000);
+        assertEq(_lots(1), 700_000);
+        assertEq(_lots(3), 300_000);
+        assertEq(_lots(4), 0);
+        assertEq(uint8(engine.previewAccount(1).status), uint8(MarginMath.Status.HEALTHY));
+        _assertEmptyReservation(1);
         _assertAccounting();
     }
 

@@ -1,0 +1,411 @@
+{
+  "schema": "eros-non-oracle-fixes/1",
+  "date": "2026-10-03",
+  "branch": "integration/risk",
+  "baseline_commit": "1958aef7bea34936a3788d06680d46b0e88aa6dc",
+  "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+  "worktree_dirty": true,
+  "source_note": "All runtime changes are committed through be3db1e; subsequent commits add gas/policy regressions, SDK pinning, ABI exports and measured snapshots. Dirty documentation/evidence and pre-existing untracked local files remain separate.",
+  "user_scope": "Own non-oracle Book plus Risk A/B repairs. Oracle implementation/integration excluded. Main unchanged. Policy approval is not teammate review or production approval.",
+  "toolchain": {
+    "forge": "1.8.3",
+    "solc": "0.8.30",
+    "evm_version": "prague",
+    "optimizer_runs": 200,
+    "python": "3.12.10",
+    "typescript": "5.9.3 exact package-lock",
+    "numpy_audit": "2.2.6"
+  },
+  "fixes": [
+    {
+      "id": "RB-I02",
+      "commit": "857b5c0",
+      "result": "Surviving reduce-only maker gets only its own accepted post-fill position version; stale unrelated orders remain stale.",
+      "regressions": 11,
+      "red": "8 failed /3 controls before repair"
+    },
+    {
+      "id": "RB-I03",
+      "commit": "bd9d5b9",
+      "consumer_commit": "3942100",
+      "result": "Append-only canonical participant ID lookup replaces concrete first-order registry scan.",
+      "regressions": "4 new identity tests plus existing A016; separate concrete ID control"
+    },
+    {
+      "id": "RB-I04",
+      "commit": "93e971e",
+      "result": "Recheck actual bootstrap maker tick against current independent-index band.",
+      "regressions": 5,
+      "red": "3 failed /1 control before repair; additional reduce-only regression afterward"
+    },
+    {
+      "id": "RB-I05",
+      "commit": "3942100",
+      "result": "Actual-book exact-N bid-floor/ask-ceil VWAP,64 total examinations, prior-block promotion, original capture time and source/account/book eligibility. Excludes RO depth and pending floor invalidation.",
+      "regressions": 16,
+      "red": "13 failed /1 canonical-ID control before sampler; two later boundary tests"
+    },
+    {
+      "id": "RB-I06",
+      "commit": "9c3a2e0",
+      "result": "Ordinary resting makers cannot open exposure in REDUCE_ONLY; candidate-only pruning.",
+      "regressions": 4,
+      "red": "2 failed /2 controls"
+    },
+    {
+      "id": "RB-I07",
+      "commit": "0c93b63",
+      "result": "Reject hazards above1e18 and listing band/spread above1e18 before accepted state changes.",
+      "regressions": 7,
+      "red": "3 unsupported-hazard failures and2 listing-domain failures independently reproduced"
+    },
+    {
+      "id": "RB-I08",
+      "commit": "4a050df",
+      "result": "User confirms existing guarded safe excess-collateral releases during REDUCE_ONLY; no production predicate change.",
+      "regressions": 7
+    },
+    {
+      "id": "RB-I09",
+      "commit": "be3db1e",
+      "gas_test_commit": "1654b9f",
+      "result": "Concrete matching cap8; batch actions<=min32,maxFills and aggregate declared non-POST_ONLY steps<=maxFills. Separate sampler cap64.",
+      "batch_regressions": 7,
+      "red": "5 failed /2 controls; original64-fill budget failure retained in evidence"
+    },
+    {
+      "id": "RB-I10",
+      "commit": "56787d2",
+      "result": "Exact local TypeScript5.9.3 and lock; no global fallback; compiler selection/version/hash regressions.",
+      "regressions": 3
+    }
+  ],
+  "validation": {
+    "risk": {
+      "command": "FOUNDRY_PROFILE=risk FORGE_SNAPSHOT_EMIT=false forge test -vv",
+      "source_commit": "1654b9f",
+      "exit_code": 0,
+      "passed": 818,
+      "suites": 128,
+      "failed": 0,
+      "skipped": 0,
+      "fuzz_runs": 1000,
+      "fuzz_seed": "0x45524f53",
+      "invariant_runs": 48,
+      "invariant_depth": 64,
+      "log": "tmp/non-oracle-full-risk.log",
+      "note": "Precedes the seven additional RB-I08 policy tests; not silently relabeled825."
+    },
+    "release_policy": {
+      "command": "FOUNDRY_PROFILE=risk forge test --match-contract '^ReduceOnlyReleasePolicyTest$' -vv",
+      "exit_code": 0,
+      "passed": 7,
+      "log": "tmp/rb-i08-policy.log"
+    },
+    "ci": {
+      "command": "FOUNDRY_PROFILE=ci FORGE_SNAPSHOT_EMIT=false FORGE_SNAPSHOT_CHECK=true forge test --fuzz-seed 0x45524f53 -vv",
+      "status": "passed",
+      "fuzz_runs": 10000,
+      "invariant_runs": 256,
+      "invariant_depth": 128,
+      "log": "tmp/non-oracle-full-ci.log",
+      "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+      "exit_code": 0,
+      "passed": 825,
+      "suites": 129,
+      "failed": 0,
+      "skipped": 0,
+      "fuzz_seed": "0x45524f53",
+      "elapsed_seconds": 1469.81,
+      "book_gas_snapshots": "strict check passed",
+      "summary": "Ran 129 test suites in 1469.81s (10145.85s CPU time): 825 tests passed, 0 failed, 0 skipped (825 total tests)"
+    },
+    "monad": {
+      "command": "FOUNDRY_PROFILE=risk MONAD_GAS_CHECK=true FORGE_SNAPSHOT_EMIT=false forge test --match-contract 'BookBatchBoundsTest|ConcreteBook.*GasTest|BookDepthSamplerTest|BookRiskEngineTest|Testnet.*Test' --network monad --hardfork monad:MonadTen -vv",
+      "exit_code": 0,
+      "passed": 92,
+      "suites": 10,
+      "failed": 0,
+      "skipped": 0,
+      "log": "tmp/non-oracle-monad-final.log",
+      "note": "Local target EVM, no public-chain transactions. Includes7 older mock-accounting book tests,9 concrete,16 sampler,7 batch,16 fixture/smoke and37 gas tests. Overlaps full risk."
+    },
+    "python": {
+      "commands": [
+        "python -m unittest discover -s reference/tests/a",
+        "python -m unittest discover -s reference/tests/b",
+        "python -m unittest discover -s reference/tests/audit -t .",
+        "python -m unittest discover -s reference/tests/integration -t ."
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": [
+        49,
+        156,
+        8,
+        7
+      ],
+      "total": 220,
+      "note": "An initial PowerShell npm wrapper invocation after Python failed with Unknown command pm; explicit npm.cmd retry below passed."
+    },
+    "sdk": {
+      "command": "npm.cmd test --prefix packages/risk-sdk",
+      "exit_code": 0,
+      "strict_source_check": true,
+      "accounting_assertions": "pass",
+      "node_read_model_tests": 6
+    },
+    "abi": {
+      "command": "python scripts/export-risk-abis.py --forge tmp/foundry-v1.8.3/forge.exe --check",
+      "exit_code": 0,
+      "concrete_entries": 294,
+      "abstract_entries": 256,
+      "vault_entries": 35,
+      "concrete_source_sha256": "a5499d80b5e96fd6e06f2c04e0a14281ceebd3715e738e4a5b7890a3d3de7e58",
+      "commit": "aaf700c",
+      "final_check_log": "tmp/non-oracle-abi-final.log"
+    },
+    "gates": {
+      "status": "G0-G6_TECHNICAL_PASS_G7_REVIEW_BLOCKED",
+      "summary": "At 4a050df, ordered G0-G6 exit 0 with counts 71/152/117/78/77/63/55. G0 gained three SDK compiler-runner regressions. G7 exits 2 after six checks at A043 because historical review fingerprints do not cover the current source. Separate A044/B040/B041/B042/B043/B044 exit 0 with 44/2/2/3/1/1 checks; direct G7 Solidity suite passes six tests. These are technical results, not fresh peer review or human acceptance. Historical accepted G0-G6 SHAs remain; G7 reviewed_by stays empty and merge_sha null.",
+      "ordered": [
+        {
+          "id": "G0",
+          "status": "checks_passed",
+          "exit_code": 0,
+          "test_count": 71,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "Technical checks passed; coordinator review and accepted merge are still required."
+        },
+        {
+          "id": "G1",
+          "status": "checks_passed",
+          "exit_code": 0,
+          "test_count": 152,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "Technical checks passed; coordinator review and accepted merge are still required."
+        },
+        {
+          "id": "G2",
+          "status": "checks_passed",
+          "exit_code": 0,
+          "test_count": 117,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "Technical checks passed; coordinator review and accepted merge are still required."
+        },
+        {
+          "id": "G3",
+          "status": "checks_passed",
+          "exit_code": 0,
+          "test_count": 78,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "Technical checks passed; coordinator review and accepted merge are still required."
+        },
+        {
+          "id": "G4",
+          "status": "checks_passed",
+          "exit_code": 0,
+          "test_count": 77,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "Technical checks passed; coordinator review and accepted merge are still required."
+        },
+        {
+          "id": "G5",
+          "status": "checks_passed",
+          "exit_code": 0,
+          "test_count": 63,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "Technical checks passed; coordinator review and accepted merge are still required."
+        },
+        {
+          "id": "G6",
+          "status": "checks_passed",
+          "exit_code": 0,
+          "test_count": 55,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "Technical checks passed; coordinator review and accepted merge are still required."
+        },
+        {
+          "id": "G7",
+          "status": "failed",
+          "exit_code": 2,
+          "test_count": 6,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": "A043 acceptance failed (exit 2)"
+        }
+      ],
+      "separately_verified": [
+        {
+          "id": "A044",
+          "status": "passed",
+          "exit_code": 0,
+          "test_count": 44,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": ""
+        },
+        {
+          "id": "B040",
+          "status": "passed",
+          "exit_code": 0,
+          "test_count": 2,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": ""
+        },
+        {
+          "id": "B041",
+          "status": "passed",
+          "exit_code": 0,
+          "test_count": 2,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": ""
+        },
+        {
+          "id": "B042",
+          "status": "passed",
+          "exit_code": 0,
+          "test_count": 3,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": ""
+        },
+        {
+          "id": "B043",
+          "status": "passed",
+          "exit_code": 0,
+          "test_count": 1,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": ""
+        },
+        {
+          "id": "B044",
+          "status": "passed",
+          "exit_code": 0,
+          "test_count": 1,
+          "source_commit": "4a050df626d82d10ea695044ecb26f19e454e97b",
+          "reason": ""
+        }
+      ],
+      "direct_g7": {
+        "command": "FOUNDRY_PROFILE=risk forge test --match-path test/gates/G7.t.sol -vv",
+        "exit_code": 0,
+        "passed": 6,
+        "suites": 2,
+        "log": "tmp/non-oracle-G7-direct.log"
+      }
+    },
+    "format": {
+      "command": "cd contracts && forge fmt --check",
+      "exit_code": 0,
+      "log": "tmp/non-oracle-format.log"
+    },
+    "log_sha256": {
+      "non-oracle-full-ci": "71599f9246ec6e30d5629acddaf781fc3943eedf3d2daa961f538432657da22e",
+      "non-oracle-full-risk": "c6a471018ffaec84156f181c83e9d0910f367a4e28495383d6a1546978f93f0f",
+      "non-oracle-monad-final": "24fe996cf4c07ca87b6f826cfd41aeb184b2107d7056eaac43a6f49e77f2dc4c",
+      "rb-i08-policy": "a2863bb6bb5af7fc64f0f0f2096131f6372d3f988694ab78dbf4b9c805655c36"
+    },
+    "log_scope": "Local ignored logs are not committed; hashes preserve their provenance. Gate/task runner JSON evidence is committed separately.",
+    "generated_lane_evidence_scope": "A044's accounting-release.json remains its lane-local handoff schema and mock labels; it does not supersede combined/current source evidence in this document."
+  },
+  "gas": {
+    "model": "Pinned local MonadTen; cold engine calls, full wrapped1024-entry INDEX/PERP/BASIS rings for bounded benchmarks. Excludes intrinsic/calldata gas. Not an exhaustive production worst-case proof.",
+    "original_64_maker_call": {
+      "prague": 58109534,
+      "monad_ten": 30994601,
+      "logs": [
+        "tmp/maker-policy-listing-domain-red.log",
+        "tmp/rb-i09-monad-red.log"
+      ],
+      "result": "Exceeded target30M before intrinsic; supported concrete per-call bound reduced, not asserted that64nowfits."
+    },
+    "supported_bounds": {
+      "examined_makers_per_order": 8,
+      "batch_actions": 8,
+      "declared_matching_steps_per_batch": 8,
+      "sampler_examined_nodes": 64
+    },
+    "monad_calls": {
+      "normal_eight_maker_fill": 8077028,
+      "normal_eight_matching_actions": 11722715,
+      "normal_mixed_seven_halving_posts_plus_eight_fill_ioc": 16619933,
+      "sampler64_view_worst": 3143792,
+      "sampler64_capture_worst": 3383491,
+      "sampler64_promotion_worst": 3290777,
+      "snapshot_page32": 2722523
+    },
+    "enforced_budget": 29500000,
+    "enforcement": "MONAD_GAS_CHECK=true enforces budget for supported8 cases and sampler64; test-only16/24 comparisons intentionally do not claim production support.",
+    "snapshot_refresh": {
+      "commit": "aaf700c",
+      "model": "Default Prague book-only scripted accounting harness, not Monad composed engine",
+      "initial_check_exit": 1,
+      "final_check_exit": 0,
+      "reason": "Expected accepted-maker result-field and batch-budget guard overhead; no safety assertion removed",
+      "changes": {
+        "cancelReplace_twoSidedBatch": [
+          134948,
+          136263
+        ],
+        "taker_64steps_allFailing": [
+          1271072,
+          1273137
+        ],
+        "taker_fourFills_sameMaker": [
+          126529,
+          126616
+        ],
+        "taker_fourFills_twoMakers_twoLevels": [
+          132774,
+          132861
+        ],
+        "taker_oneFill": [
+          70971,
+          70992
+        ]
+      }
+    },
+    "deployment_estimate": {
+      "evidence": "artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json",
+      "exit_code": 0,
+      "runtime_bytes": 120253,
+      "creation_bytes": 129495,
+      "constructor_argument_bytes": 928,
+      "initcode_bytes": 130423,
+      "rpc_estimated_gas": 27820847,
+      "block": 67865259,
+      "network": "chain10143 QuickNode read-only",
+      "broadcast": false,
+      "note": "Uses historical public test dependencies/listing to estimate new initcode; not a replacement market configuration, live receipt or guaranteed future success."
+    }
+  },
+  "source_review": {
+    "independent_agent_read_review": "Found pending backing-floor invalidation eligibility boundary; fixed and covered. This is not Person B's economic approval. Also found RB-I11 authenticated INDEX/BASIS correction coherence mismatch, documented open pending policy.",
+    "teammate_review": "pending",
+    "fingerprints_refreshed_by_author": false,
+    "G7_accepted": false
+  },
+  "remaining": [
+    "RB-I11 INDEX/BASIS coherence: proposed strict INDEX-prefix seal awaits user policy confirmation; no source repair claimed",
+    "Oracle excluded",
+    "Independent source-bound economic review and human G7 acceptance",
+    "Production INDEX collector, empirical calibration, governance/timelock and actual registry/factory join",
+    "Frontend/indexer integration",
+    "Fresh authorized deployment and runtime/receipt verification for this new source"
+  ],
+  "new_broadcasts": false,
+  "historical_live_evidence": "Existing closed immutable market belongs to1077dfa/5b82d9f; old receipts retained, never reused as current-bytecode proof.",
+  "open_findings": [
+    {
+      "id": "RB-I11",
+      "status": "POLICY_CONFIRMATION_PENDING",
+      "evidence": "docs/questions/RB-I11-index-prefix-seal.md",
+      "finding": "A later authenticated INDEX replacement or delayed observation at/before published PERP time can change its historical INDEX without updating stored BASIS. Exact fresh-mark counterexample independently checked against Python reference.",
+      "proposal": "Publish a valid book capture only when the pinned INDEX source.lastObservedAt exceeds capture time; preserve valid waiting captures. Continuous normal pricing then needs INDEX cadence comfortably below30 seconds; fully backed bootstrap remains unchanged.",
+      "implemented": false,
+      "forge_regression": false
+    }
+  ]
+}

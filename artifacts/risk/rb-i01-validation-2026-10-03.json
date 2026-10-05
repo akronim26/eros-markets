@@ -1,0 +1,35 @@
+{
+  "item": "RB-I01",
+  "date": "2026-10-03",
+  "base_commit": "16f0d908f7fc625506fa24d0a53bd619b65bf74c",
+  "status": "implemented_targeted_tests_pass_peer_review_pending",
+  "toolchain": "forge 1.8.3 / solc 0.8.30 / Prague / optimizer 200 / risk profile",
+  "red_tests": {
+    "original_regressions": 3,
+    "result": "all three failed before repair: voluntary IOC, forced IOC, LIMIT remainder",
+    "coupled_liquidation_regression": "First favorable fill restored health, but execution closed 648734 lots instead of stopping after 300000"
+  },
+  "repair": [
+    "Refresh only the active reduce-only taker permit after its own successful posting and coverage rechecks",
+    "Validate current version, side and reducible remaining size before converting a LIMIT permit to rest",
+    "Recheck liquidation continuation before every forced fill; do not continue after health is restored"
+  ],
+  "targeted_validation": {
+    "command": "forge test --match-contract 'RealBookIntegrationTest|B024Test|B025Test|B031Test|B032Test' -vv",
+    "passed": 60,
+    "failed": 0,
+    "real_book_tests": 23,
+    "exit_code": 0
+  },
+  "preserved_guards": [
+    "Genuine stale account and market epochs and unrelated position versions remain rejected",
+    "No position flip or increase from a reduction",
+    "Actual-price checks on each maker, exact reservation release and fees",
+    "Atomic rollback on a later accounting failure"
+  ],
+  "remaining": [
+    "Independent teammate review of new economic source changes",
+    "RB-I02: an older partially filled reduce-only maker node still becomes conservatively stale",
+    "Full-suite and target-chain evidence are recorded separately, not inferred from these targeted tests"
+  ]
+}

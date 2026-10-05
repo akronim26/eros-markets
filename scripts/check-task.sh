@@ -70,11 +70,24 @@ record["worktree_dirty"] = None if dirty is None else bool(dirty)
 def hash_path(path):
     record["fixture_hashes"][path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
 
+def sdk_compiler(*arguments):
+    directory = root / "packages/risk-sdk"
+    compiler = directory / "node_modules/typescript/bin/tsc"
+    install = "npm ci --prefix packages/risk-sdk --ignore-scripts --no-audit --no-fund"
+    if not compiler.is_file():
+        raise ValueError("Pinned SDK TypeScript compiler not installed; run " + install)
+    expected = json.loads((directory / "package.json").read_text(encoding="utf-8"))["devDependencies"]["typescript"]
+    installed = json.loads((compiler.parent.parent / "package.json").read_text(encoding="utf-8"))["version"]
+    if installed != expected:
+        raise ValueError(f"SDK TypeScript version {installed}; expected {expected}; run {install}")
+    record["toolchain"]["typescript"] = installed
+    return ["node", str(compiler), *arguments]
+
 for location in ("reference/common", "reference/fixtures", "reference/a", "contracts/src/math", "contracts/src/risk", "contracts/src/vaults", "contracts/src/settlement", "contracts/test/harness/A", "contracts/test/mocks/A", "contracts/test/risk/A", "contracts/test/invariant/A", "packages/risk-sdk"):
     directory = root / location
     if directory.exists():
         for path in sorted(directory.rglob("*")):
-            if path.is_file() and "__pycache__" not in path.parts:
+            if path.is_file() and "__pycache__" not in path.parts and "node_modules" not in path.parts:
                 hash_path(path)
 for location in ("contracts/foundry.toml", "scripts/check-task.sh", ".gitmodules"):
     if (root / location).is_file():
@@ -109,21 +122,37 @@ try:
         # Integration fix: A002's runner had no B W7 configuration. Each B W7 task runs its own
         # suites plus the combined (real A + real B) suites that carry its evidence.
         def step(argv, cwd=".", env_extra=None):
-            if os.name == "nt" and argv[0] == "tsc":
-                import shutil
-                shim = shutil.which("tsc")
-                if not shim:
-                    raise ValueError("TypeScript compiler not installed")
-                argv = ["node", str(Path(shim).parent / "node_modules/typescript/bin/tsc"), *argv[1:]]
+            if argv[0] == "tsc":
+                argv = sdk_compiler(*argv[1:])
             env = {**os.environ, **(env_extra or {})}
             run = subprocess.run(argv, cwd=root / cwd, env=env, capture_output=True, text=True)
             print(run.stdout[-2000:], end=""); print(run.stderr[-2000:], end="", file=sys.stderr)
             record["commands"].append({"argv": argv, "cwd": cwd, "exit_code": run.returncode,
                                        "execution": "subprocess", "output": (run.stdout + run.stderr)[-4000:]})
-            record["test_count"] += 1
+            if argv[:2] == ["node", "--test"]:
+                summary = {name: int(value) for name, value in
+                           re.findall(r"^# (tests|pass|fail|cancelled|skipped|todo) (\d+)\s*$", run.stdout, re.MULTILINE)}
+                record["test_count"] += summary.get("tests", 0)
+                record["skipped_count"] += summary.get("skipped", 0)
+                if (set(summary) != {"tests", "pass", "fail", "cancelled", "skipped", "todo"}
+                        or summary["tests"] <= 0 or summary["pass"] != summary["tests"]
+                        or any(summary[name] for name in ("fail", "cancelled", "skipped", "todo"))):
+                    record["reason"] = "Node test suite is failed, empty, skipped or incomplete"
+                    return 1
+            else:
+                record["test_count"] += 1
             return run.returncode
         def forge(path):
-            return step(["forge", "test", "--match-path", path], "contracts", {"FOUNDRY_PROFILE": "risk"})
+            from scripts.check_a_review import run_forge_suite
+            report = run_forge_suite(root, path)
+            record["commands"].append({"argv": report["command"], "cwd": "contracts",
+                                       "exit_code": report["forge_exit_code"] if report["forge_exit_code"] is not None else 1,
+                                       "execution": "subprocess", "output": json.dumps(report)})
+            record["test_count"] += report["checks_run"]
+            record["skipped_count"] += report["skipped_count"]
+            if report["status"] != "passed":
+                record["reason"] = report["reason"]
+            return report["exit_code"]
         def need_json(path, forbid_live_pass=False):
             data = json.loads((root / path).read_text())
             if forbid_live_pass and any(c.get("live_status") == "PASS" for c in data.get("counterparts", [])):
@@ -142,14 +171,20 @@ try:
                                "--moduleResolution", "node", "packages/risk-sdk/src/index.ts"]))
             codes.append(step(["tsc", "--noCheck", "--esModuleInterop", "--target", "es2020", "--module", "commonjs", "--outDir", out,
                                "packages/risk-sdk/src/index.ts", "packages/risk-sdk/test/read-model.test.ts"]))
-            codes.append(step(["node", "--test", out + "/test/read-model.test.js"]))
+            codes.append(step(["node", "--test", "--test-reporter=tap", out + "/test/read-model.test.js"]))
             need_json("docs/app-state-fixtures.json")
         elif task == "B043":
-            text = (root / "artifacts/reviews/B-on-A.md").read_text()
-            if "Review status: COMPLETE" not in text:
-                raise ValueError("B043: review is not complete")
-            hash_path(root / "artifacts/reviews/B-on-A.md")
-            codes.append(forge("test/reviews/B043Review.t.sol"))
+            from scripts.check_a_review import run_technical_validation
+            report = run_technical_validation(root, task)
+            record["commands"].append({"argv": report.get("command", []), "cwd": "contracts",
+                                       "exit_code": report["exit_code"], "execution": "subprocess",
+                                       "output": json.dumps(report)})
+            record["test_count"] = report["checks_run"]
+            record["skipped_count"] = report["skipped_count"]
+            record["reason"] = report["reason"]
+            record["artifacts"].append(report["evidence"])
+            hash_path(root / report["evidence"])
+            codes.append(report["exit_code"])
         elif task == "B044":
             need_json("artifacts/risk/integration-release.json"); need_json("artifacts/risk/release-manifest.json")
             if not (root / "docs/runbooks/lifecycle.md").is_file():
@@ -166,9 +201,13 @@ try:
         record["exit_code"] = run.returncode
         report = json.loads(run.stdout)
         record["test_count"] = report["checks_run"]
-        if report["status"] in ("pending_peer_merge", "pending_peer_review"):
-            record["status"] = "blocked"
-            record["reason"] = report["reason"]
+        record["skipped_count"] = report.get("skipped_count", 0)
+        record["reason"] = report["reason"]
+        if run.returncode == 0 and (report["status"] != "passed" or record["test_count"] <= 0 or record["skipped_count"]):
+            raise ValueError("Handoff validation returned failed, empty or skipped checks")
+        if task == "A043" and report.get("evidence"):
+            record["artifacts"].append(report["evidence"])
+            hash_path(root / report["evidence"])
     else:
         family = "math" if number <= 15 else "risk"
         campaigns = {"A040": "test/invariant/A/AccountingInvariants.t.sol",
@@ -188,7 +227,8 @@ try:
             if reference_run.returncode: raise ValueError("independent integrated reference failed")
         command = ["forge", "test", "--match-path", relative, "--json"]
         if task == "A041": command.append("-vv")
-        env = {**os.environ, "FOUNDRY_PROFILE": "risk"}
+        from scripts.check_a_review import forge_environment
+        env = forge_environment()
         run = subprocess.run(command, cwd=root / "contracts", env=env, capture_output=True, text=True)
         print(run.stderr, end="", file=sys.stderr)
         record["exit_code"] = run.returncode
@@ -218,15 +258,8 @@ try:
             raise ValueError("forge returned no successful complete suite; missing/skipped tests fail")
         if task == "A032" and run.returncode == 0:
             sdk_commands = [
-                ["tsc", "--target", "es2020", "--module", "commonjs", "--strict", "--outDir", "tmp/risk-sdk", "packages/risk-sdk/src/accounting.ts", "packages/risk-sdk/test/accounting.test.ts"],
+                sdk_compiler("--target", "es2020", "--module", "commonjs", "--strict", "--outDir", "tmp/risk-sdk", "packages/risk-sdk/src/accounting.ts", "packages/risk-sdk/test/accounting.test.ts"),
                 ["node", "tmp/risk-sdk/test/accounting.test.js"]]
-            # Windows npm installs the CLI as a .cmd shim; invoke its JS entry
-            # through Node instead of passing user/source strings to a shell.
-            if os.name == "nt":
-                import shutil
-                shim = shutil.which("tsc")
-                if not shim: raise ValueError("TypeScript compiler not installed")
-                sdk_commands[0] = ["node", str(Path(shim).parent / "node_modules/typescript/bin/tsc"), *sdk_commands[0][1:]]
             for sdk_command in sdk_commands:
                 sdk_run = subprocess.run(sdk_command, cwd=root, capture_output=True, text=True)
                 record["commands"].append({"argv":sdk_command,"cwd":".","exit_code":sdk_run.returncode,

@@ -263,11 +263,9 @@
     "id": "G7",
     "after_wave": "W7",
     "title": "Integrated handoff accepted",
-    "coordinator": "B",
-    "reviewers": [
-      "A",
-      "B"
-    ],
+    "coordinator": "Unified Risk and Order Book team",
+    "reviewers": [],
+    "validation_mode": "unified_team_technical_validation",
     "effort_points_each": 2,
     "depends_on": [
       "A040",
@@ -281,18 +279,20 @@
       "B043",
       "B044"
     ],
-    "inputs": "A accounting invariants/gas/custody evidence and review; B lifecycle/counterpart/gas/SDK evidence and review",
-    "integration_action": "Run both campaigns from one clean merged commit, resolve cross-review findings through the owning developer, and assemble release/counterpart status. Both pull and replay the final commit.",
+    "inputs": "Accounting invariants/gas/custody and lifecycle/counterpart/gas/SDK evidence; source-bound A043/B043 technical regression results, not peer signatures",
+    "integration_action": "Run both historical task campaigns from the current unified source candidate, preserve all adversarial regression suites, and assemble release/counterpart status. Record source hashes and any dirty worktree; do not rewrite historical reviews as new approvals.",
     "exit_criteria": "Local end-to-end tests use real A+B modules and complete evidence. Real external counterpart integration is explicitly PASS or BLOCKED_BY_COUNTERPART with mock status; only a real pass clears the live join. Calibration/audit/deployment remain distinct release gates.",
     "frozen_output": "G7 release manifest and real-vs-mock counterpart status",
-    "pull_instructions": "Merge reviewed A and B W7 task commits to integration/w7; run bash scripts/check-gate.sh G7; fix through file owners; merge passing commit to main; record its actual hash in gate_status.json. Both clean worktrees fetch and fast-forward to that same recorded hash before dependent tasks.",
+    "pull_instructions": "Run G0-G7 in order on integration/risk. Technical runners never accept a gate. Record the actual passing candidate SHA in gate_status.json only under explicit human authorization; the user granted conditional G7 recording authority on 2026-10-03. A main merge and production deployment require separate authorization.",
     "safe_while_waiting": "Fix findings in your owned modules and rerun affected suites; do not weaken invariants or report mock-only counterpart success as real integration.",
     "write_files": [
       "contracts/test/gates/G7.t.sol",
       "docs/contracts/G7.json",
       "artifacts/gates/G7.json"
     ],
-    "status": "not_started",
-    "merge_sha": null
+    "status": "passed",
+    "merge_sha": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
+    "acceptance_record": "docs/spec/gate_status.json",
+    "acceptance_scope": "User-authorized unified non-oracle integration candidate, not a main merge or production deployment"
   }
 ]

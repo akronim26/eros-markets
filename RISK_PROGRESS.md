@@ -1,4 +1,93 @@
-# Person A risk implementation progress
+# Risk and Order Book implementation progress
+
+## Current deployment — RB-DEPLOY, 2026-10-04
+
+Current-source Risk + Book foundation is deployed on **Monad testnet 10143**. Root
+**[addresses.md](addresses.md)** is the current address/configuration handoff. Six transactions
+succeeded; all five runtimes, vault/authority/reserve bindings and inactive state were verified.
+Engine: `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69`, from source `162ac92`, Solidity unchanged
+at `dcb6b0e`. Fresh targeted Monad tests pass **45/45**, ABI check exits **0**.
+The market is **not activated or settled**, and no collateral or actors were created beyond the
+empty test token contract. Frontend/oracle integration and demo setup are delegated to their team.
+The controller-only test resolution authority is immutable; real-oracle integration needs a new,
+correctly configured market. Main and historical gate/smoke evidence are unchanged.
+
+## Governing workflow — GOV-01, 2026-10-03
+
+Risk and Order Book are now one team; mandatory A/B peer review is retired by the user's
+instruction. See `docs/merge/UNIFIED_WORKFLOW.md`. Older review-pending statements below
+describe the previous workflow, not current approval dependencies. RB-I11's strict INDEX-prefix
+seal is implemented in `dcb6b0e`; 21 sampler regressions pass. G7 runner migration `bee683b`
+plus guard `e05bbbb` passes 17 mocked regressions; full CI passes 832/130 suites. Ordered G0-G7
+all exit 0 at metadata `c91acf7`. The user's authorized G7 acceptance is recorded for that source
+at **2026-10-03 17:39:11 UTC**, after required checks passed. That acceptance did not claim a main
+merge, independent audit or deployment; the later authorized deployment is recorded above.
+
+## Current non-oracle implementation update — 2026-10-03
+
+The shared living checklist is **[Risk + Book tracker](docs/integration/RISK_BOOK_TRACKER.md)**.
+It maps implementations, validation, exact testnet addresses/receipts, limitations, owners and
+the checklist to follow when behavior changes. Update it alongside `docs/merge/STATUS.md`.
+
+The user now authorizes book internals and all Risk & Clearing work, including Person B's modules,
+on `integration/risk`; oracle implementation/integration is excluded and main is unchanged.
+From `1958aef`, RB-I02 maker remainders, RB-I03 canonical IDs, RB-I04 execution bands, RB-I05 real
+PERP depth, RB-I06 reduce-only makers, RB-I07 domains and RB-I09 work/gas bounds are implemented
+through `be3db1e`; RB-I10 pins the SDK/compiler runner in `56787d2`. RB-I01 remains repaired
+in `f2ebc61`, without a new mandatory peer-signature requirement. The user confirmed
+RB-I08: retain safe excess release under the existing guards; seven focused tests pass.
+See `docs/integration/NON_ORACLE_FIXES.md`.
+
+RB-I11 is **implemented in `dcb6b0e`**: a strictly newer authenticated INDEX checkpoint seals
+capture-time history before PERP publication. Valid waiting captures retain original timestamps
+and expiry; stale/mutated capture guards remain active. Twenty-one sampler tests pass; see
+`docs/questions/RB-I11-index-prefix-seal.md` for the below-30-second feed-cadence tradeoff.
+RB-I12 in `29c5f87` repairs local smoke's obsolete matching limit and incomplete payout pass.
+Two local regressions and the standalone chain-31337 offline script pass, without RPC or broadcast.
+Its reported 45,478,303 aggregate gas spans multiple virtual transactions, not one Monad call.
+
+The concrete source now supports bounded, provenance-checked real-book PERP observations while
+retaining fresh-INDEX startup and uncalibrated, fully backed 1x defaults. Matching/batches have
+an eight-examination concrete budget. Funding, recovery and conversion remain disabled.
+The new source is now deployed as the **unactivated** foundation recorded above. The older Monad
+smoke market successfully matched and paid 150/50 test tokens after controlled YES settlement;
+that immutable market remains closed.
+
+The earlier 727-Forge/217-Python results apply to the historical source, not this delta.
+A full-risk run at `1654b9f` passes 818 tests/128 suites; seven later RB-I08 tests pass separately.
+Historical ABI check passes 294 concrete/256 abstract/35 vault entries. The earlier MonadTen bundle passes
+92 tests/10 suites, including 32 full-history gas benchmarks. Python passes 49/156/8/7 (220 total);
+SDK strict build, accounting reader and six Node tests pass with local TypeScript 5.9.3.
+Full CI at `4a050df` passes 825 tests/129 suites, zero failed/skipped, with 10000 fuzz cases
+(seed `0x45524f53`) and 256x128 invariant campaigns. G0–G6 pass; G7 exits 2 at stale source-bound
+A043 after six passing tests. Direct G7 and A044/B040–B044 pass separately; formatting and ABI
+checks pass there. These are historical source-specific records under the pre-GOV-01 workflow.
+Current unchanged Solidity `dcb6b0e` passes full CI **832 tests / 130 suites**, zero failed/skipped,
+in **1461.88 seconds**, 10000 fuzz / seed `0x45524f53` / 256x128 invariants and strict snapshots
+(`tmp/unified-full-ci.log`). Final candidate `e05bbbb` MonadTen passes **99 tests / 11 suites**
+in **3.04 seconds**, `tmp/unified-monad-final.log`; sampler 21/local smoke 2 overlap these totals.
+Python now passes **66/156/8/7 = 237**, including 17 mocked GOV tests in A; SDK strict build/
+accounting reader and six Node tests pass. Format and current ABI export/check exit 0, entries
+294/256/35, concrete source digest `40e05c0e8034dcdba2a14fc19a97f2323412e69f92dc2146cac913ef8695cbb3`.
+Migrated ordered G0-G7 at `c91acf75ae9770f0bf5ae2238b4018202d57acd8` all exit 0, zero skipped,
+counts **88/152/117/78/77/63/55/156**. G0 adds 17 mocked GOV regressions; G7 reports actual Forge
+test counts, not subprocess counts. A043/B043 source-bound technical checks pass **68/3**;
+these overlap CI and are not peer signatures. User-authorized G7 acceptance is recorded in
+`docs/spec/gate_status.json` with `reviewed_by: []`; runners retain false/null acceptance fields.
+Current runtime/creation/args/initcode: **120402/129644/928/130572 bytes**. Read-only fixture
+creation estimate passes at chain 10143 block 67886057: **27853253 gas**, headroom **2146747**
+(`artifacts/risk/unified-deployment-estimate-2026-10-03.json`), with historical public dependencies/
+listing, no new deployment configuration, receipt or broadcast. The earlier historical-artifact estimate is
+27,820,847 gas, with 120253 runtime and 130423 total initcode bytes; it is not a receipt or release
+approval. Evidence: `artifacts/risk/non-oracle-deployment-estimate-2026-10-03.json`.
+
+Current aggregate: `artifacts/risk/unified-integration-2026-10-03.json`. CI/Monad/reference/SDK/
+ABI/format and all gates pass; non-oracle integration acceptance is recorded. Final evidence
+and docs are ready for commit/push on `integration/risk`, without rewriting historical reviews.
+Current deployed addresses are in root `addresses.md`; safe env setup and historical addresses
+are in `docs/runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md`, with root `.env.example` kept blank.
+Production collector/factory/calibration joins remain open; oracle integration needs separate
+authorization. Earlier sections below preserve historical source ranges and instructions only.
 
 ## Shared integration update — 2026-10-03
 

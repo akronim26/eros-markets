@@ -63,7 +63,11 @@ all new spend was 0.122759754 MON. A cold restart preserved every signed packet
 and sent nothing. The bounded run verifies 134/300 seconds of TWAP coverage;
 the later sustained attempt reached only 268/300 and stopped. Its paid retry is
 deferred, with the receipt/Fraction evidence preserved. See earlier evidence in
-[`optimized-small-run.json`](artifacts/monad-testnet/optimized-small-run.json).
+[`optimized-small-run-review.json`](artifacts/monad-testnet/optimized-small-run-review.json).
+
+For tracked versus local evidence and reproducing historical reviews, see
+[`docs/evidence-storage.md`](docs/evidence-storage.md). Raw run reports and test
+logs are retained locally but excluded from new checkouts.
 
 Candidate rules manifests and durable packet/signing library mechanics now live
 in `src/rules.ts`, `src/packet-store.ts`, `src/publication.ts` and
@@ -168,7 +172,7 @@ checks immutable bytes, ordered sequences/nonces and receipt recovery. The drill
 uses scripted source and chain responses, alongside the actual journal and relay
 classes. It tests stale restores, writer leases and expired reserved nonces;
 quarantine blocks new nonce allocation across workers. Evidence is retained in
-`artifacts/verification/recovery.json` and `recovery.tap`. See
+`artifacts/verification/recovery.json` (raw `recovery.tap` stays local). See
 [`docs/recovery-runbook.md`](docs/recovery-runbook.md) for boundaries, operator steps
 and remaining production backup/supervisor work.
 
@@ -180,7 +184,7 @@ and restarts another process while the chain stays alive. All eight paths contin
 with immutable packets and exactly two accepted observations. A separate local
 transaction journal preserves nonce/request reservations and raw signed bytes,
 including a crash between reserving and signing. The source is a fixture.
-Evidence: `artifacts/verification/pipeline-crash.json` and `pipeline-crash.log`.
+Evidence: `artifacts/verification/pipeline-crash.json` (raw `pipeline-crash.log` stays local).
 This does not complete the production transaction-signer or backup work.
 
 `npm run test:transactions` checks exact retries, nonce conflicts, journal

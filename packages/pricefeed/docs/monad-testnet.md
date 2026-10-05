@@ -24,7 +24,7 @@ Actual total gas cost was **0.2448 test MON**. Each transaction charged the
 All accepted prices match independent Fraction recomputation of archived raw
 books. Exact signatures, digests, accepted logs, canonical finalized blocks and
 final source state were verified. See
-[`publication-pilot.json`](../artifacts/monad-testnet/publication-pilot.json) and
+local `publication-pilot.json` (see [evidence storage](evidence-storage.md)) and
 [`publication-fraction-review.json`](../artifacts/monad-testnet/publication-fraction-review.json).
 
 `serve-monad-testnet` is an explicit disabled-config diagnostic path, fixed to
@@ -112,7 +112,7 @@ publisher is stopped; preserve all five journals. The quote policy is **only
 for quoting** and cannot replace the pinned publication policy. A direct
 `serve-monad-testnet` restart with a changed policy rejects `RELAY_PROFILE_CHANGED`.
 
-Public evidence: [`gas-quote.json`](../artifacts/monad-testnet/gas-quote.json),
+Public evidence: local `gas-quote.json` (see [evidence storage](evidence-storage.md)),
 [`gas-quote-review.json`](../artifacts/monad-testnet/gas-quote-review.json), and
 [`cost-capacity.json`](../artifacts/monad-testnet/cost-capacity.json).
 `npm run report:monad-cost` reproduces capacity scenarios and independent offline
@@ -636,7 +636,7 @@ seconds**. These are measurements, not approval of cadence or margin.
 
 Evidence:
 [`nonce-recovery.json`](../artifacts/monad-testnet/nonce-recovery.json),
-[`optimized-small-run.json`](../artifacts/monad-testnet/optimized-small-run.json),
+local `optimized-small-run.json` (see [evidence storage](evidence-storage.md)),
 [`optimized-small-run-review.json`](../artifacts/monad-testnet/optimized-small-run-review.json),
 [`optimized-restart-review.json`](../artifacts/monad-testnet/optimized-restart-review.json).
 Full package suite **336/336** and focused suite **27/27** pass. The focused set

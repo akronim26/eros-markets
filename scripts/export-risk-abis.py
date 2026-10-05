@@ -16,6 +16,16 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = ROOT / "contracts"
 EXPORTS = (
     (
+        "BookRiskEngine.sol/BookRiskEngine.json",
+        "book-risk-engine-abi.json",
+        "Concrete initial-1x BookRiskEngine deployment and public book ABI. "
+        "Composes the real Book with RiskAccountingBridge; authenticated independent INDEX "
+        "and bounded book-derived PERP sampling with later-block confirmation and a sealed INDEX prefix. "
+        "Fully backed bootstrap remains available before normal pricing windows are ready. "
+        "Funding, recovery and conversion disabled; no test feed or failure injection.",
+        (),
+    ),
+    (
         "RiskAccountingBridge.sol/RiskAccountingBridge.json",
         "engine-abi.json",
         "External ABI of the abstract RiskAccountingBridge (Person B controllers + Person A accounting). "
@@ -68,7 +78,7 @@ def main():
     arguments = parser.parse_args()
     forge_path = Path(arguments.forge)
     forge = str(forge_path.resolve()) if forge_path.is_file() else arguments.forge
-    subprocess.run([forge, "build", "src/engine/RiskAccountingBridge.sol",
+    subprocess.run([forge, "build", "src/engine/BookRiskEngine.sol", "src/engine/RiskAccountingBridge.sol",
                     "src/vaults/CollateralVault.sol", "--skip-lint"], cwd=CONTRACTS, check=True)
     stale = False
     for artifact_path, filename, note, additional_errors in EXPORTS:

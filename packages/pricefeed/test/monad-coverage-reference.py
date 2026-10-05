@@ -6,6 +6,7 @@ from pathlib import Path
 
 PACKAGE = Path(__file__).resolve().parents[1]
 replay = runpy.run_path(str(PACKAGE / 'scripts/review-monad-coverage.py'))['replay']
+HISTORY = json.loads((PACKAGE / 'fixtures/monad-coverage-history.json').read_text())['runs']
 PRICE = 630000000000000000
 
 
@@ -37,14 +38,14 @@ class CoverageReference(unittest.TestCase):
                          {'available': False, 'coveredSecs': '50', 'integral': '31500000000000000000', 'twapWad': '0'})
 
     def test_original_short_run_remains_unavailable(self):
-        report = json.loads((PACKAGE / 'artifacts/monad-testnet/optimized-small-run.json').read_text())
+        report = HISTORY['optimized-small-run']
         result = replay(report['packets'], report['receipts'], report['twap']['evaluationBlock'])
         self.assertEqual(result, report['twap']['actual'])
         self.assertEqual(result['coveredSecs'], '134')
         self.assertFalse(result['available'])
 
     def test_failed_initial_campaign_keeps_its_real_missing_seconds(self):
-        report = json.loads((PACKAGE / 'artifacts/monad-testnet/coverage-initial-run.json').read_text())
+        report = HISTORY['coverage-initial-run']
         phase = report['checks'][0]
         result = replay(report['packets'], report['receipts'], phase['block'])
         self.assertEqual(result, phase['actual'])

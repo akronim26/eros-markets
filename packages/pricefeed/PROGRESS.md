@@ -2729,3 +2729,79 @@ are complete locally. Next is **9: release verification/handoff**. Milestone
 **2 remains deferred/unpassed (268/300)**; Render activation and named production/
 operator acceptance remain open. No extra milestone, commit/push, branch change,
 decisions.md edit, counterpart-file modification or new spending authority occurred.
+
+
+## 05 October 2026 — Generated evidence cleanup before publishing
+
+User requested removing unnecessary tracked output and ignoring excessive response/
+evidence files. This housekeeping changes no pricing, deployment or spending policy
+and does not close any pending milestone or human gate.
+
+- Prepared **840 generated public output files / 34,479,417 bytes** for removal
+  from the Git index only. Their local bytes remain at the original paths.
+  Exclusions cover historical provider responses, bulky Monad run/quote reports,
+  duplicate timestamped pipeline reports and raw TAP/log/stderr/exit output.
+- Package ignore rules also cover generated PDF output, local environment files
+  and SQLite/key files. Narrow `.gitignore` files in the two existing root
+  pricefeed evidence folders cover their generated responses; no counterpart
+  source, baseline, summary or replay script is removed.
+- Source, required runtime/calibration inputs, lockfiles, Render configuration,
+  public receiver ABI/build/source snapshot and compact reviews remain tracked.
+  Historical audit scripts still require ignored local evidence; a fresh clone
+  cannot claim those full audits without recovering their original inputs.
+- Added the exact public observation/accepted-log extract for the two historical
+  coverage cases, pinning the full original report hashes and commit. All retained
+  fields were compared to both hashed originals. The independent replay still
+  verifies **134/300** and **268/300** unavailable coverage, with unchanged assertions.
+  Five replay cases also pass in an isolated folder without raw artifacts/journals.
+- Verification: pinned TypeScript build exit 0; full Node suite **416/416**,
+  exit 0; Python backup drills **11/11**, exit 0; independent coverage **5/5**,
+  exit 0; **144** impact vectors and wire compatibility exit 0. The restricted
+  Node run timed out in deployment process fixtures and was interrupted (130);
+  the explicitly escalated local fixture rerun passed. Raw logs stay ignored.
+- `artifacts/verification/repository-cleanup.json` records totals, inventory digest
+  and checks; `docs/evidence-storage.md` explains local evidence requirements and
+  restoration. Existing Git history retains the older objects, so an initial
+  push still includes them. No history rewrite, commit, push, branch switch,
+  merge, cloud activation, key upload or live transaction was performed.
+
+Read-only remote branch hash comparison confirmed that the cached remote `main`
+matched its live tip. This branch is missing **33 main commits** and **115 oracle
+commits**, while the current CLOB and feat/risk tips are ancestors. The live
+integration/risk tip has moved beyond the cached object and was not fetched.
+A read-only three-way main merge preview found no text conflict markers; no
+merged-tree integration tests or assertion of up-to-date integration is made.
+
+
+## 05 October 2026 — Authorized main integration, staged for manual commit
+
+Fetched origin/main at `5f8e8a47da8017a3c53342d638f026d48514fd21`
+and staged a non-fast-forward merge of its **33 missing commits** into pricefeed.
+No text conflicts. The merge is intentionally uncommitted for the user's manual
+commit workflow; HEAD history is not updated until that merge commit is made.
+No push, branch switch, oracle-branch merge or release acceptance occurred.
+
+Pending evidence cleanup was backed up before integration. Applying that stash
+with --index into the uncommitted merge failed and disturbed the index/merge
+state. A second recovery backup was retained, the merge was rebuilt, and only
+original cleanup files were restored directly from their backed-up Git blobs.
+All **850 original pending file hashes** matched afterward, including every local
+raw evidence copy; all **840 staged exclusions** were preserved. Both temporary
+backup stashes remain available. The fetched risk source, SDK and engine ABI
+match main exactly; package source changes remain the requested cleanup only.
+
+Merged-source verification: pinned Node/TypeScript build and wire compatibility
+exit 0; affected Monad preflight/lifecycle/CLI cases **44/44**, exit 0. The sandbox
+trial had 30 in-process passes and 14 empty-output child-process failures; the
+explicitly escalated fixture rerun passed without changing assertions. The earlier
+416-test cleanup suite was not counted as a fresh full-suite run after this merge.
+Solidity ingress tests were not rerun: required Forge 1.8.3 is missing locally and
+installed Forge is 1.5.1; no substitute-version acceptance is claimed.
+
+`artifacts/verification/main-integration.json` pins parents, merged tree before
+cleanup, backup stash IDs, preserved state and verification results. Raw logs stay
+ignored in var/main-integration/. The original protected-file scope baseline is
+historical and already differed from the pre-merge tree; authorized main changes
+require a separately versioned release scope check. It was neither overwritten nor
+used to certify this imported tree. No actual keys, signatures, live transactions,
+MON spend, RPC workflow or hosted deployment were used.

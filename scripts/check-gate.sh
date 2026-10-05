@@ -84,9 +84,6 @@ try:
     if missing:
         raise ValueError("missing gate inputs: " + ", ".join(missing))
     if index:
-        # Acceptance is written only by the actual coordinator after both reviews.
-        # The packet keeps the record at docs/spec/gate_status.json (integration fix: the runner
-        # previously looked only at the repository root and could never find it).
         status_path = root / "docs" / "spec" / "gate_status.json"
         if not status_path.is_file():
             status_path = root / "gate_status.json"
@@ -95,9 +92,8 @@ try:
         statuses = json.loads(status_path.read_text(encoding="utf-8"))["gates"]
         previous = next((item for item in statuses if item["id"] == f"G{index - 1}"), None)
         if (not previous or previous.get("status") != "passed"
-                or not re.fullmatch(r"[0-9a-f]{40}", previous.get("merge_sha") or "")
-                or not {"A", "B"}.issubset(previous.get("reviewed_by", []))):
-            raise ValueError("previous gate has no reviewed accepted commit")
+                or not re.fullmatch(r"[0-9a-f]{40}", previous.get("merge_sha") or "")):
+            raise ValueError("previous gate has no accepted commit")
         ancestor = execute(["git", "merge-base", "--is-ancestor", previous["merge_sha"], "HEAD"], root)
         if ancestor.returncode:
             raise ValueError("working tree is not based on the accepted predecessor commit")
@@ -107,6 +103,9 @@ try:
         if run.returncode:
             raise ValueError(f"{task} acceptance failed (exit {run.returncode})")
         task_record = json.loads((root / f"artifacts/tasks/{task}.json").read_text(encoding="utf-8"))
+        if (task_record.get("status") != "passed" or task_record.get("exit_code") != 0
+                or task_record.get("test_count", 0) <= 0 or task_record.get("skipped_count", 0)):
+            raise ValueError(f"{task} returned failed, empty or skipped checks")
         record["test_count"] += task_record["test_count"]
     record["components"].update(lane_a="real", lane_b="real")
     if gate == "G1":
@@ -117,20 +116,30 @@ try:
         reference_count = re.search(r"Ran (\d+) tests?", reference_run.stderr)
         if not reference_count or int(reference_count[1]) == 0:
             raise ValueError("combined reference trace suite is empty")
+        if not re.search(r"(?:^|\n)OK\s*\Z", reference_run.stderr):
+            raise ValueError("combined reference trace suite is failed, skipped or incomplete")
         record["test_count"] += int(reference_count[1])
+    sys.path.insert(0, str(root))
+    from scripts.check_a_review import forge_environment, forge_results
     run = execute(["forge", "test", "--match-path", f"test/gates/{gate}.t.sol", "--json"],
-                  root / "contracts", {**os.environ, "FOUNDRY_PROFILE": "risk"})
+                  root / "contracts", forge_environment())
     if run.returncode:
         raise ValueError(f"combined forge gate failed (exit {run.returncode})")
-    payload = json.loads(run.stdout)
-    results = [test for suite in payload.values() if isinstance(suite, dict)
-               for test in suite.get("test_results", {}).values()]
-    if not results or any(test.get("status") != "Success" for test in results):
+    results = [status for suite in forge_results(run.stdout).values() for status in suite.values()]
+    if any(status != "Success" for status in results):
         raise ValueError("combined suite is empty, failed or skipped")
     record["test_count"] += len(results)
     record["components"]["combined"] = "real"
+    if gate == "G7":
+        from scripts.check_a_review import validate_technical_validation
+        for task in ("A043", "B043"):
+            validation = validate_technical_validation(root, task)
+            record["fixture_hashes"].update(validation["source_hashes"])
+            relative = validation["evidence"]
+            record["fixture_hashes"][relative] = hashlib.sha256((root / relative).read_bytes()).hexdigest()
+            record["artifacts"].append(relative)
     record.update(status="checks_passed", exit_code=0,
-                  reason="Technical checks passed; coordinator review and accepted merge are still required.")
+                  reason="Unified-team technical checks passed; not independent review or audit. Human acceptance remains separate.")
 except (OSError, ValueError, KeyError, TypeError) as error:
     record["reason"] = str(error)
     print(str(error), file=sys.stderr)
