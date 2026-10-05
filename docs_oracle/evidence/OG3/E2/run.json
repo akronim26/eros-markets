@@ -1,0 +1,79 @@
+{
+  "scenario": "E2",
+  "title": "provider down → panel → committee → public dispute → DVM true → Final",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:05:16.013Z",
+  "steps": [
+    {
+      "step": "listed e2 (truth YES, T 2026-10-04T17:17:00.000Z)",
+      "market": "0x4aa4538ed5e80aa449353a487a6de8d918184d94bd56a0c97d9f2fcb1a33779e",
+      "tx": "0x4d94ed418e702e64585bc76b2f3b42e5c340ff934d36c9ae1049a85b067727dd",
+      "detail": {
+        "slug": "eros-e2e-e2-e2-849830-home-gt-2-1791134220",
+        "engine": "0x8AaB788e4FfE3CaB79Fce7Ba967Ae29A97500293",
+        "spec": {
+          "scenario": "E2",
+          "tag": "e2",
+          "game": 849830,
+          "side": "home",
+          "target": 2,
+          "feed": "blocked",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 1800,
+          "voidSecs": 7200
+        }
+      },
+      "block": "68170477",
+      "time": "2026-10-04T17:06:06.000Z"
+    },
+    {
+      "step": "committee proposes YES",
+      "market": "0x4aa4538ed5e80aa449353a487a6de8d918184d94bd56a0c97d9f2fcb1a33779e",
+      "tx": "0x2eb22143e7744047e83d24001d5da7f1a8fab5577455b66691a3730575480e90",
+      "block": "68174157",
+      "time": "2026-10-04T17:24:37.000Z"
+    },
+    {
+      "step": "third party disputes YES on OOv3",
+      "market": "0x4aa4538ed5e80aa449353a487a6de8d918184d94bd56a0c97d9f2fcb1a33779e",
+      "tx": "0xa28a652be25ed3b3e6f3139c016f89ae5e448bd2dbf07b4ff6cfb18a1d08a109",
+      "block": "68174252",
+      "time": "2026-10-04T17:25:06.000Z"
+    },
+    {
+      "step": "sandbox DVM answers true to YES",
+      "market": "0x4aa4538ed5e80aa449353a487a6de8d918184d94bd56a0c97d9f2fcb1a33779e",
+      "tx": "0x7cc414229a3d99395e627d75727dde52e08ac8d3729d0d5e26ae1179d0c0e620",
+      "block": "68174331",
+      "time": "2026-10-04T17:25:30.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "e2 oracle Final YES",
+      "ok": true,
+      "detail": "state Final, outcome 1, finalReason 1"
+    },
+    {
+      "check": "e2 engine settled YES, claims open",
+      "ok": true,
+      "detail": "engine finalOutcome 2, price 1000000000000000000, claimsEnabled true"
+    },
+    {
+      "check": "path REVIEWED",
+      "ok": true,
+      "detail": "path 3"
+    },
+    {
+      "check": "dispute visible to Disputes Live (indexer)",
+      "ok": true,
+      "detail": "{\"Dispute\":[{\"id\":\"0xabde73787c5e8563f098c106c7c266103dcc4da988cfdf72fc6ff2de00fec8e5\"}]}"
+    }
+  ]
+}

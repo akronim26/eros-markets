@@ -1,5 +1,23 @@
 # Risk and Order Book implementation progress
 
+## Real factory integration — 2026-10-05
+
+Oracle is now in the combined checkout (`db11e46` baseline). The current work is
+tracked in [REAL_FACTORY_INTEGRATION.md](docs/integration/REAL_FACTORY_INTEGRATION.md):
+constructor-preserving code-store factory, registry-bound OI cap, dedicated vault,
+per-market keeper identity, operations helpers and real-contract local lifecycle tests.
+This supersedes older oracle-excluded/unmerged statements below for this work only.
+No deployment or current-address change is made: the user has no local account
+controlling the oracle deployment, and the independent pricefeed remains unfinished.
+Sponsors/frontend are deferred; O42/OG3b live acceptance is not claimed.
+
+Local validation: **37** new factory/lifecycle/gas tests, **87** keeper tests and
+**18** operations-helper tests pass. The existing risk/book full baseline passes
+**832/832** before the one-line virtual-hook change; the final source's focused
+book/sampler/smoke suites pass **55/55**. Both new-service typechecks and current ABI
+verification pass. See the integration record for broader-suite limitations and gas
+measurements; none of these results is a live deployment receipt.
+
 ## Current deployment — RB-DEPLOY, 2026-10-04
 
 Current-source Risk + Book foundation is deployed on **Monad testnet 10143**. Root

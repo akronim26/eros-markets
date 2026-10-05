@@ -1,0 +1,40 @@
+{
+  "model": "google:gemini-3.8-flash@2026-10-03",
+  "recordedAt": "2026-10-03T12:30:41.619Z",
+  "httpStatus": 200,
+  "headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "body": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\"label\":\"YES\",\"confidence\":1.0,\"cited\":[0,1],\"rationale\":\"The final score shows the home team scored 3 goals, which is strictly greater than 2 goals as required by the rules.\"}",
+              "thoughtSignature": "EuoDCucDAWkUfRPHvPYIrvhYEysStWlmdg7yBMQj0eoVCQoi7bEPPy8Co1rzmP6bH5yct+oRLSSUjdomeg2/oxuHpEfEsRQVZCI/dfUAT0gDOHNSd0EBuiY3qRvl95tiAmfNvit703o6zk1gqjcpkzg9vELLNqp85adXGKZGHCUI5QfcHxzkiVOkZb8Apa8Viguqz1oMjNHxaxu9ukB/891Tb5vgZVE+DezPjL9QkhuyiPTVcyg/S1y84R8L/cooa2NUsV7Vp1ZXRxr8bk+cWD6VGj9a+1qUsRL/PT62kBkwLne/boZb4mGUdvxW1/nBtw0D/bnwFnDUsm7BoZUClhpi/+jnYm0ZxapMP9C81ab60vMIvM+e6w2nlzlJUsISOMEhLsn8k8SdpLenxcoUusQIWFbs9JN2H9akTS3Kx2sen5/xqhEjU4oQHqgx9WLfWs/cbjvbQPSpytaah9sLLMMHX/1pAN/pX5aeLMbND/sOwoEISMXxjS7jir+9WLLa30mrohETR+aPe3iAwvx/jGLXFOM9tw3st55S2NkVkao7KLscaMmrYzwVJp1H8yWD8gcXnjzwM7OfKjzxEfsxDLPDlMw3/hwklvoIxMRh+bGEq0ZJ5S/oOBv0uUqsGKPqHgTr8fkObtceABGMOQ=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 218,
+      "candidatesTokenCount": 47,
+      "totalTokenCount": 386,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 218
+        }
+      ],
+      "thoughtsTokenCount": 121,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.8-flash",
+    "responseId": "b_XAaqCrOsPFg8UPwtCToQo"
+  }
+}

@@ -1,0 +1,12 @@
+local-sim:
+  rpcs:
+    - chain-name: monad-testnet
+      url: ${MONAD_TESTNET_RPC}
+staging:
+  rpcs:
+    - chain-name: monad-testnet
+      url: ${MONAD_TESTNET_RPC}
+production:
+  rpcs:
+    - chain-name: monad-mainnet
+      url: ${MONAD_MAINNET_RPC}

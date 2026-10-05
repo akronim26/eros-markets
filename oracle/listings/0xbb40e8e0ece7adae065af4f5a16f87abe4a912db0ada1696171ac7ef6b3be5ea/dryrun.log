@@ -1,0 +1,7 @@
+# dryrun.log: oracle-cli dryrun (O22.3), market 0xbb40e8e0ece7adae065af4f5a16f87abe4a912db0ada1696171ac7ef6b3be5ea, 2026-10-03T21:19:46.893Z
+# feed https://statsapi.mlb.com/api/v1/schedule?gamePk={id} finalPath=dates[0].games[0].status.codedGameState finalValue=F valuePath=dates[0].games[0].teams.home.score op=2 target=3
+PASS burst: 16 parallel GET https://statsapi.mlb.com/api/v1/schedule?gamePk=822678; expected 16x 200; got 16x 200
+PASS sim finished: urlParam 822678; expected NO|0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6|OK; got NO|0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6|OK
+PASS sim live: urlParam 849833; expected NOT_READY|0x0000000000000000000000000000000000000000000000000000000000000000|*; got NOT_READY|0x0000000000000000000000000000000000000000000000000000000000000000|NOT_FINAL
+PASS sim wrong-path: urlParam 822678, valuePath dates[0].games[0].teams.home.score.__oracle_cli_missing__; expected ERROR|0x0000000000000000000000000000000000000000000000000000000000000000|*; got ERROR|0x0000000000000000000000000000000000000000000000000000000000000000|VALUE_MISSING
+result: PASS

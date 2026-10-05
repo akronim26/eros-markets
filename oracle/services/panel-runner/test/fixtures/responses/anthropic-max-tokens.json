@@ -1,0 +1,22 @@
+{
+  "httpStatus": 200,
+  "headers": {},
+  "body": {
+    "id": "msg_02",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-x",
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"label\": \"YES\", \"confid"
+      }
+    ],
+    "stop_reason": "max_tokens",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 812,
+      "output_tokens": 8192
+    }
+  }
+}

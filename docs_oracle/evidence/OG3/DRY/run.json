@@ -1,0 +1,43 @@
+{
+  "scenario": "DRY",
+  "title": "dry scenario: list → halt through the deployed services",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:01:46.368Z",
+  "steps": [
+    {
+      "step": "listed dry (truth YES, T 2026-10-04T17:13:00.000Z)",
+      "market": "0x858d339df94e447f28cac9130cb11988a9219bf5e0bcae4ff2fd336d9428c7d9",
+      "tx": "0xeefc6ed3162b49e24203fc40a9097e1aecbd8ac5eb6cc547c7cbbdbb88fd830c",
+      "detail": {
+        "slug": "eros-e2e-dry-dry-849835-home-gt-0-1791133980",
+        "engine": "0x6964D9c9b381a0dc8C18A8dF5A16476f121F5Fbb",
+        "spec": {
+          "scenario": "DRY",
+          "tag": "dry",
+          "game": 849835,
+          "side": "home",
+          "target": 0,
+          "feed": "mlb",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 600,
+          "voidSecs": 6000
+        }
+      },
+      "block": "68169751",
+      "time": "2026-10-04T17:02:26.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "keeper halted the market at T",
+      "ok": true,
+      "detail": "haltedAt 1791133980, T 1791133980, state L1Pending"
+    }
+  ]
+}

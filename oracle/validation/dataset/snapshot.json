@@ -1,0 +1,8 @@
+{
+  "schema": "eros-validation-snapshot/1",
+  "asset": "raw.tar.gz",
+  "stored": "local only, not published (ADJ-39)",
+  "bytes": 12392619,
+  "sha256": "4c4b518cde03f5c62754e8f17aaf17bca699905aef863727f710bd367af3106d",
+  "manifestSha256": "7fb7710610e3e52cee71c97df95ef267494ad03af76187d9d8ddcad5a7d5c9f5"
+}

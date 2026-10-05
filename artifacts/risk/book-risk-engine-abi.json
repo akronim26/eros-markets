@@ -4,7 +4,7 @@
   "src/engine/BookRiskEngine.sol": "BookRiskEngine"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "40e05c0e8034dcdba2a14fc19a97f2323412e69f92dc2146cac913ef8695cbb3",
+ "source_sha256": "060f77dd31a15987c818b7059b9e3f52e6c3d5155b6e9b516f46a3bec83081f8",
  "abi": [
   {
    "type": "constructor",

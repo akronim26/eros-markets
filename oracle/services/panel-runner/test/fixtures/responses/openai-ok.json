@@ -1,0 +1,25 @@
+{
+  "httpStatus": 200,
+  "headers": {},
+  "body": {
+    "id": "chatcmpl-1",
+    "object": "chat.completion",
+    "model": "gpt-x",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"label\": \"YES\", \"confidence\": 0.93, \"cited\": [0, 1], \"rationale\": \"Item 0 (the league API) shows status FINAL with home 3; the rules say YES if the final home score is above 2.\"}",
+          "refusal": null
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 790,
+      "completion_tokens": 58,
+      "total_tokens": 848
+    }
+  }
+}

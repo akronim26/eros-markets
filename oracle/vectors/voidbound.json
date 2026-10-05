@@ -1,0 +1,28 @@
+{
+  "source": "plan section 14.2 and Appendix C.7",
+  "formula": "T_L1 + T_L2 + A_max*(T_live + (R_max + 2)*T_round) + (A_max - 1)*(T_r + T_retry) + T_slack",
+  "production": {
+    "tL1": 21600,
+    "tL2": 86400,
+    "aMax": 3,
+    "tLive": 86400,
+    "rMax": 4,
+    "tRound": 172800,
+    "tR": 7200,
+    "tRetry": 86400,
+    "tSlack": 172800,
+    "expectedSecs": 3837600
+  },
+  "testnet": {
+    "tL1": 300,
+    "tL2": 600,
+    "aMax": 3,
+    "tLive": 300,
+    "rMax": 0,
+    "tRound": 300,
+    "tR": 600,
+    "tRetry": 300,
+    "tSlack": 600,
+    "expectedSecs": 6000
+  }
+}

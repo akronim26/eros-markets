@@ -1,5 +1,13 @@
 # Risk & Clearing handoff (book, oracle and frontend teams)
 
+**2026-10-05 integration update:** oracle code is merged on `integration/risk` at
+baseline `db11e46`. Current authorized factory/oracle/risk/book work and its validation
+are in [REAL_FACTORY_INTEGRATION.md](../integration/REAL_FACTORY_INTEGRATION.md).
+Older exclusion, deployment and review statements below are historical. Root
+`addresses.md` remains the deployment inventory; no real-factory address exists yet.
+Live switching needs the oracle deployment's actual operator, and INDEX needs the
+unfinished external publisher. Local real-contract tests are not live O42 completion.
+
 **Current ownership:** Risk and Order Book are merged under GOV-01. The user retired mandatory
 A/B peer review and delegated implementation decisions; old review/owner dependencies below
 are historical. Follow `docs/merge/UNIFIED_WORKFLOW.md`. RB-I11 is implemented at `dcb6b0e`;
