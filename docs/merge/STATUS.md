@@ -762,3 +762,58 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Local logs: `/tmp/eros-ci03-*`; clean checkout path is in
   `/tmp/eros-ci03-path`. The running frontend preview and operator services are
   untouched. This is technical CI validation, not a deployment or gate acceptance.
+
+
+### 2026-10-06 — FE-404: branded missing-page view
+
+- User requested a custom website 404, with design discretion. Baseline `5c8f785`
+  on `feat/pricefeed`, initially clean. Changes remain local, uncommitted/unpushed.
+- Added the root Next.js not-found page and scoped CSS: pixel 404, orange chart
+  illustration, concise copy and links to markets/home. Uses existing theme
+  tokens and shared navigation; supports missing routes and invalid market URLs.
+- Production build (including TypeScript) exits 0; retains the existing upstream
+  viem/ox dynamic-import warning. Production unknown URL returns HTTP 404 with
+  a custom title and noindex metadata.
+- Chrome verification passes in development and production: light/dark at
+  320/768/1024/1440 px without horizontal overflow, both navigation links,
+  keyboard navigation, reduced motion and invalid-market fallback. Axe WCAG A/AA
+  checks show zero violations in both themes; no runtime exceptions recorded.
+- Rebuilt and restarted the production preview at localhost:3100. Other services
+  unchanged. Removed only the temporary Next dev-generated agent instruction
+  files; no dependencies or global styles changed. Evidence: `/tmp/eros-404-*`.
+
+### 2026-10-06 — FE-TERMINAL: interactive landing-page console
+
+- User requested more interaction in TERMINAL.SYS, with design discretion.
+  Baseline `5c8f785` on `feat/pricefeed`; preserved the uncommitted FE-404 work.
+  All changes remain local, uncommitted and unpushed.
+- Replaced the static typed terminal with a read-only command console: status,
+  book, risk, help and clear; clickable shortcuts, Enter submission, Tab
+  completion, arrow-key history/draft restoration, Escape and an open-market link.
+  Commands use the existing market query, with no additional RPC polling,
+  transactions, dependencies or arbitrary code execution. Output/history are bounded.
+- Results identify the snapshot block, distinguish missing data from zero, and
+  label cached data after connection failures. Risk output reports the deployment
+  ceiling without promising available leverage. Removed the continuous typing
+  timer; added brief entry/hover effects with reduced-motion support.
+- Final production build, including TypeScript, exits 0; the existing upstream
+  viem/ox dynamic-import warning remains. Production Chrome checks pass for all
+  commands, unknown input, history/draft restoration, Tab/Shift+Tab, Escape, clear,
+  bounded output and navigation. Light/dark at 320/768/1024/1440 px have no
+  horizontal overflow; console axe WCAG A/AA checks report zero violations and
+  no runtime exceptions were recorded. Reduced-motion checks pass.
+- Development RPC fault tests pass for cached-data warnings, fresh unavailable
+  state without invented values, and automatic recovery after restoring access.
+  Production preview rebuilt and running at localhost:3100. Evidence:
+  `/tmp/eros-terminal-sys-*`; no operator services or global styles changed.
+
+### 2026-10-06 — FE-PANELS: simplify testnet section
+
+- Removed MARKET.METRICS and LIFECYCLE.STATUS from the landing page at the user's
+  request, along with their unused deadline calculations and imports. The grid
+  now contains TERMINAL.SYS and MARK.DITHER only, side by side on desktop and
+  stacked on mobile. Preserved prior local changes; nothing committed or pushed.
+- Production build with TypeScript exits 0. Chrome checks confirm both removed
+  panels are absent, both remaining panels render, 320/1440 px layouts have no
+  horizontal overflow, and no runtime exceptions occur. Production preview
+  restarted at localhost:3100. Evidence: `/tmp/eros-panel-removal-*`.
