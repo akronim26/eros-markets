@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "chainId": 10143,
+  "oracle": "0xa87D6E10a7199666ec9F2e04866201E35AAf36A6",
+  "broadcast": true,
+  "target": "local-sim",
+  "nextBlock": "68494700",
+  "pending": [],
+  "anchor": {
+    "number": "68494699",
+    "hash": "0x87dde7037169d87ef6c232de106bec79a73a426dd7c6b92492ef07ddb066a1b0"
+  }
+}

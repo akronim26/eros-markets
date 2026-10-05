@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -13,8 +13,10 @@ test('SDK paths remain filesystem paths when the checkout contains spaces and a 
     const modulePath = join(moduleDirectory, 'sources.ts')
     copyFileSync(new URL('../../../packages/oracle-sdk/src/abi/sources.ts', import.meta.url), modulePath)
     const paths = await import(pathToFileURL(modulePath).href)
-    expect(paths.ORACLE_ROOT).toBe(`${oracleRoot}${sep}`)
-    expect(paths.ABI_DIR).toBe(join(oracleRoot, 'abi'))
+    // Bun resolves imported modules through symlinks (macOS /var -> /private/var).
+    const resolvedRoot = realpathSync(oracleRoot)
+    expect(paths.ORACLE_ROOT).toBe(`${resolvedRoot}${sep}`)
+    expect(paths.ABI_DIR).toBe(join(resolvedRoot, 'abi'))
   } finally {
     rmSync(temporary, { recursive: true, force: true })
   }

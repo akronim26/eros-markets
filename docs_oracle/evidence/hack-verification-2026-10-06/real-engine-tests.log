@@ -1,0 +1,54 @@
+Compiling 159 files with Solc 0.8.30
+Solc 0.8.30 finished in 18.20s
+Compiler run successful!
+
+Ran 4 tests for test/integration/FactoryGas.t.sol:FactoryGasTest
+[PASS] test_createMarketEightKiBClaimWithinTransactionLimit() (gas: 33186684)
+[PASS] test_createMarketOversizedListingRevertsAtomicallyAtExecutionBudget() (gas: 6737597)
+[PASS] test_createMarketSmallTextWithinTransactionLimit() (gas: 28546748)
+[PASS] test_factoryAndCodeStoreDeploymentBounds() (gas: 107327)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 83.10ms (52.59ms CPU time)
+
+Ran 12 tests for test/integration/RealMarketFactory.t.sol:RealMarketFactoryTest
+[PASS] testAtomicListingBindsRealEngineAndVault() (gas: 27317171)
+[PASS] testCodeStoreBounds() (gas: 1518679)
+[PASS] testCodeStoreIsPinnedAndNonExecutable() (gas: 555346)
+[PASS] testConstructorChecksStillRejectLeverageAndShortHorizon() (gas: 1779457)
+[PASS] testDownstreamFailureRollsBackEngineVaultAndBondCommitment() (gas: 54250849)
+[PASS] testMarketsHaveSeparateReservesAndAllocations() (gas: 54950482)
+[PASS] testOnlyRegistryCanDeployAndFactoryCannotRegisterArbitraryEngine() (gas: 106518)
+[PASS] testRejectsOpaqueEngineInit() (gas: 501441)
+[PASS] testRejectsReusedMarketId() (gas: 27196526)
+[PASS] testRejectsWrongRegistryAuthorityAndZeroId() (gas: 156932)
+[PASS] testRejectsWrongTokenOrGovernance() (gas: 939180)
+[PASS] testWrongCreationCodeHashRejected() (gas: 496250)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 84.89ms (25.41ms CPU time)
+
+Ran 19 tests for test/integration/RealBookOracle.t.sol:RealBookOracleTest
+[PASS] testBothRejectedProduceInvalidNotAnUnbackedPayout() (gas: 43852155)
+[PASS] testCancellationSafeReleaseAndWithdrawalUseRealOwner() (gas: 37616991)
+[PASS] testDisputedAssertionWaitsThenPaysOnlyAfterResolutionAndPreparation() (gas: 42579610)
+[PASS] testEarlyInvalidWaitsForScheduledWindowAndGrace() (gas: 42950747)
+[PASS] testExclusiveGroupCannotResolveTwoRealMarketsYes() (gas: 85037679)
+[PASS] testFactoryMarketsRejectCrossEngineSignedIndexReplay() (gas: 54558237)
+[PASS] testL1ProductionShapedMetadataAndReplayProtectionWithRealEngine() (gas: 42737293)
+[PASS] testMultiFillCapViolationRollsBackEarlierFillsAndOrders() (gas: 40989791)
+[PASS] testPermissionlessResolutionUsesCallerBondAndRealClaims() (gas: 41758526)
+[PASS] testPositionTransferAtCapDoesNotIncreaseOpenInterest() (gas: 40803175)
+[PASS] testRealFillEarlyYesFinalityAndOwnerClaimsBeforeT() (gas: 42909018)
+[PASS] testRealFillScheduledNoAndClaimCannotPayEarly() (gas: 42598558)
+[PASS] testRegistryBindingMustMatchBeforePosting() (gas: 27166629)
+[PASS] testRegistryOiCapRejectsGrowthAtomicallyButAllowsClose() (gas: 42010047)
+[PASS] testRejectedYesThenAcceptedNoDoesNotPrematurelySettleEngine() (gas: 43986774)
+[PASS] testSamplerDoesNotInventExecutionCapacityAtOiCap() (gas: 40061919)
+[PASS] testSamplerWorksWhenFullDepthFitsRemainingOiCapacity() (gas: 38291694)
+[PASS] testVoidWithUnansweredDisputeSettlesInvalidAndRemainsClaimable() (gas: 42684102)
+[PASS] testWrongAuthorityCannotHaltSettleOrRestrict() (gas: 27202173)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 94.29ms (474.22ms CPU time)
+
+Ran 2 tests for test/integration/FactoryGas.t.sol:FactoryEngineJobsGasTest
+[PASS] test_captureInvalidFallbackGas() (gas: 82128643)
+[PASS] test_keeperJobsWith32AccountsAnd256ReserveHolders() (gas: 220013489)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 310.82ms (432.51ms CPU time)
+
+Ran 4 test suites in 312.66ms (573.10ms CPU time): 37 tests passed, 0 failed, 0 skipped (37 total tests)

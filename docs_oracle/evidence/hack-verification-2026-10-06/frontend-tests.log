@@ -1,0 +1,61 @@
+
+> eros-markets-frontend@0.1.0 test /Users/phantomxsd/eros-markets/frontend
+> node --experimental-strip-types --test tests/*.test.mjs
+
+(node:56594) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/phantomxsd/eros-markets/frontend/src/lib/funds.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/phantomxsd/eros-markets/frontend/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ funding uses existing free funds before depositing or approving (4.061834ms)
+✔ retry after a completed deposit never deposits twice (0.165209ms)
+✔ zero, negative and excess amounts cannot be submitted (0.296917ms)
+✔ oracle finality alone never enables payout; zero, claimed, recovery are blocked (0.128375ms)
+(node:56595) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/phantomxsd/eros-markets/frontend/src/lib/history.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/phantomxsd/eros-markets/frontend/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ history totals use exact units and do not count Fill and PairedPosting twice (3.782625ms)
+(node:56596) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/phantomxsd/eros-markets/frontend/src/lib/orders.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/phantomxsd/eros-markets/frontend/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56596) Warning: `--localstorage-file` was provided without a valid path
+✔ resting order remains live through its expiry block (3.276833ms)
+✔ generations and ownership prevent cancelling another order (0.256375ms)
+✔ cancel-all, market invalidation and position changes invalidate orders (0.190666ms)
+✔ filled and removed orders never appear open (0.313417ms)
+✔ receipt discovery isolates chain, market and wallet without storage (2.622125ms)
+(node:56597) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/phantomxsd/eros-markets/frontend/src/lib/protection.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/phantomxsd/eros-markets/frontend/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ price protection respects direction, mark availability, flat positions, expiry and halt (1.387083ms)
+✔ guards activate only with the correct capability and threshold; claims need actual entitlement (1.497959ms)
+✔ rules reject invalid sizes, prices and unbounded lifetimes (1.891292ms)
+✔ delegated request refuses transfers, arbitrary calldata, unknown engines, excessive integers and non-reductions (0.641791ms)
+✔ close prefill uses the opposite side and exact lots; expiry never rounds (0.409542ms)
+✔ disputes close at exact expiry; evidence respects the contract byte limit (0.382417ms)
+(node:56598) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/phantomxsd/eros-markets/frontend/src/lib/wallet-safety.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/phantomxsd/eros-markets/frontend/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ approval, deposit and allocation use one session (external) (3.738875ms)
+✔ approval, deposit and allocation use one session (embedded) (1.452666ms)
+✔ unready, disconnected, stale account and wrong network never start a sequence (0.255334ms)
+✔ switching accounts during simulation prevents any wallet request (0.354417ms)
+✔ account after approval stops deposit and allocation (0.210666ms)
+✔ network after approval stops deposit and allocation (0.096542ms)
+✔ disconnect after approval stops deposit and allocation (0.093375ms)
+✔ connector after approval stops deposit and allocation (0.106584ms)
+✔ logout after approval stops deposit and allocation (0.110375ms)
+✔ switching away and back does not resume a previously authorized sequence (0.19025ms)
+✔ a transaction broadcast during a switch is still tracked, with no subsequent send (0.188417ms)
+✔ a rejected wallet prompt stops the flow and does not wait for a nonexistent transaction (2.092291ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 232.343042

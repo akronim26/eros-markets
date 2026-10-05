@@ -1,0 +1,9 @@
+Successful lifecycle cases extracted from the broad test run. The initial keeper failures were fixed and rerun separately.
+(pass) committee console on a local deploy > Review: a 2-of-3 proposal with an added source is accepted by the oracle [15633.24ms]
+(pass) committee console on a local deploy > EarlyReview: the proposal is accepted and halts the market at its block [15157.44ms]
+(pass) watchdog on a local deploy > a wrong Layer 1 proposal is disputed with the float inside liveness [15128.37ms]
+(pass) watchdog on a local deploy > a stopped heartbeat moves L1 liveness to the reviewed value [13610.63ms]
+(pass) panel runner on a local deploy > after T, clean: the signed payload is accepted and the market goes to Review [12565.25ms]
+(pass) panel runner on a local deploy > after T, flagged snapshot: accepted with flags = 1, the market goes to Review [15226.24ms]
+(pass) panel runner on a local deploy > before T, clean early check: the market returns to None [13074.42ms]
+(pass) panel runner on a local deploy > before T, flagged early check: the market goes to EarlyReview [15178.78ms]

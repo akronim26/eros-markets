@@ -9,6 +9,7 @@
   "workspaces": [
     "packages/*",
     "services/*",
-    "e2e"
+    "e2e",
+    "workflows/listen"
   ]
 }
