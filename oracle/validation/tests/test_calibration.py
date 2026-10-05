@@ -94,8 +94,8 @@ class Hash(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which("bun") and (PANEL_RUNNER / "node_modules").exists(), "bun and the panel runner's install")
     def test_committed_maps_hash_in_the_panel_runner(self):
-        script = f"import {{ calibratorHash, checkMap }} from './src/calibration'; const m = JSON.parse(require('fs').readFileSync('{MAPS_FILE}', 'utf8')); m.forEach(checkMap); console.log(calibratorHash(m))"
-        out = subprocess.run(["bun", "-e", script], cwd=PANEL_RUNNER, capture_output=True, text=True, check=True).stdout.strip()
+        script = f"import {{ calibratorHash, checkMap }} from './src/calibration'; const m = JSON.parse(require('fs').readFileSync({json.dumps(str(MAPS_FILE))}, 'utf8')); m.forEach(checkMap); console.log(calibratorHash(m))"
+        out = subprocess.run(["bun", "--no-env-file", "-e", script], cwd=PANEL_RUNNER, capture_output=True, text=True, check=True).stdout.strip()
         self.assertEqual(out, json.loads(GATE_FILE.read_text())["calibration"]["calibratorHash"])
 
 

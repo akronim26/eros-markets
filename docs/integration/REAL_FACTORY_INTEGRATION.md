@@ -8,6 +8,13 @@ new gate acceptance is inferred. Existing untracked files are preserved.
 
 ## Work ledger
 
+For the subsequent complete integration work, use
+[INTEGRATION_READINESS.md](INTEGRATION_READINESS.md), the versioned SDK handoff
+and the deployment runbook it links. The historical 1x run described below is
+stopped; its journals and receipts are preserved. Its Windows pricefeed and
+participant-gas failures are historical findings, with current fixes and reruns
+recorded separately. Do not assume that its former local API is still running.
+
 The current reserve-funded leverage extension is documented in
 [LEVERAGE_INTEGRATION.md](LEVERAGE_INTEGRATION.md). It supersedes the original
 single-store deployment sizes and 1x-only constructor restriction below; the dated

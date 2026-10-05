@@ -5,7 +5,10 @@
   "description": "Testnet end-to-end scenarios E1-E9 driven against the deployed oracle and running services (plan 11.3).",
   "type": "module",
   "scripts": {
-    "scenario": "bun src/main.ts"
+    "scenario": "bun src/main.ts",
+    "local": "bun src/local-coverage.ts",
+    "test": "bun test test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@eros-oracle/oracle-sdk": "workspace:*",

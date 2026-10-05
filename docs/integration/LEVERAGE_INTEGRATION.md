@@ -1,5 +1,11 @@
 # Reserve-funded leverage integration
 
+The current reproducible integration and frontend entrypoints are in
+[INTEGRATION_READINESS.md](INTEGRATION_READINESS.md). The deployment preparation
+and pinned-fork procedure are in [DEPLOYMENT_RUNBOOK.md](DEPLOYMENT_RUNBOOK.md).
+The dated results below describe the earlier RF-06 checkpoint; newer proof files
+retain their own source identities rather than replacing that history.
+
 2026-10-05, RF-06 local integration and reserve-funded leverage on `integration/risk`.
 Validation was recorded against changes based on `b7b8442`; the evidence retains
 the original base commit and dirty-tree metadata from those runs.

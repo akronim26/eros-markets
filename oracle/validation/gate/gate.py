@@ -15,7 +15,7 @@ it is computed (a test changes every holdout answer and checks gate.json does no
 
 Records come from the panel runner's validation run (`bun run validate`, gate/runs/panel.jsonl, local); `--import`
 strips them to gate/panel-runs.json (ids, labels, confidences, citations, costs; no page or rationale text), which is
-committed and pinned by its sha256.
+committed and pinned by its sha256 over UTF-8 JSON bytes with LF line endings.
 
   python3 -m gate.gate --import   # panel.jsonl → panel-runs.json
   python3 -m gate.gate            # writes calibration/maps.json and gate/gate.json
@@ -54,7 +54,18 @@ BINARY = ("YES", "NO")
 
 
 def sha256_file(p: Path) -> str:
-    return hashlib.sha256(p.read_bytes()).hexdigest()
+    """Hash committed JSON text using repository LF bytes, including on CRLF checkouts.
+
+    This is deliberately not JSON reserialization: spaces, key ordering, escaped
+    strings and all data still affect the digest. Raw provider responses, dataset
+    rows, manifests and compressed custody snapshots retain their separate exact
+    byte hashes in dataset/; they must never use this text-fixture helper.
+    """
+    if p.suffix != ".json":
+        raise ValueError("LF-normalized validation hashes are restricted to committed JSON reports")
+    body = p.read_bytes()
+    json.loads(body)  # Refuse binary/non-JSON evidence rather than normalizing it.
+    return hashlib.sha256(body.replace(b"\r\n", b"\n")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -188,7 +199,7 @@ def freeze(records: list[dict], run: Run = PILOT) -> tuple[dict, list[dict]]:
         "modelIdHashes": ids,
         "modelStats": {m: model_stats(both, m) for m in run.models},
         "errorCorrelation": [error_correlation(both, a, b) for a, b in combinations(run.models, 2)],
-        "calibration": {"file": str(run.maps_file.relative_to(ROOT)), "minParents": calibrate.MIN_PARENTS, "calibratorHash": chash, "placeholder": [m["model"] for m in maps if m["breakpoints"] == [[Fraction(0), calibrate.PLACEHOLDER], [Fraction(1), calibrate.PLACEHOLDER]]]},
+        "calibration": {"file": run.maps_file.relative_to(ROOT).as_posix(), "minParents": calibrate.MIN_PARENTS, "calibratorHash": chash, "placeholder": [m["model"] for m in maps if m["breakpoints"] == [[Fraction(0), calibrate.PLACEHOLDER], [Fraction(1), calibrate.PLACEHOLDER]]]},
         "highConfBps": theta,
         "highConfRule": rule,
         "categories": {

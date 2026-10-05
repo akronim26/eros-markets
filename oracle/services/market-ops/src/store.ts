@@ -6,11 +6,14 @@ import { bytes32, equalHex } from './schema'
 
 const counter = z.string().regex(/^(0|[1-9][0-9]*)$/)
 const pendingSchema = z.object({
-  action: z.enum(['sample', 'restrict', 'early-check', 'relay', 'liquidate']),
+  action: z.enum(['sample', 'restrict', 'early-check', 'relay', 'liquidate', 'rollover']),
   requestId: bytes32,
   hash: bytes32,
   rawTransaction: z.string().regex(/^0x([0-9a-fA-F]{2})+$/).transform(value => value as Hex),
   plannedBlock: counter,
+  rolloverBatch: z.object({ pages: z.number().int().min(1).max(32), estimatedGas: counter,
+    gasLimit: counter, estimateBlock: counter, estimationMs: z.number().int().nonnegative(),
+    searchStop: z.object({ pages: z.number().int().min(2).max(32), reason: z.literal('opaque-empty-revert') }).strict().optional() }).strict().optional(),
 }).strict()
 
 export type Pending = z.infer<typeof pendingSchema>

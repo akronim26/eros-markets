@@ -7,7 +7,8 @@ import {ClaimRenderer} from "../../src/libraries/ClaimRenderer.sol";
 import {Outcome} from "../../src/types/OracleTypes.sol";
 
 /// @notice Task O30.3 (plan §9, §12.9, ADJ-16). Renders a fixed set of claims through `ClaimRenderer` and checks
-///         the result against `vectors/claim.json` byte for byte; oracle-sdk's TypeScript mirror reproduces the
+///         the result against `vectors/claim.json` byte for byte after JSON checkout-newline normalization;
+///         oracle-sdk's TypeScript mirror reproduces the
 ///         same file. Each vector holds the template, the fields, the Layer 1 URL and value hash (when set, the
 ///         evidence is `l1Evidence(valueHash, l1Url)` and `fields.evidence` is ignored, as in a Layer 1
 ///         proposal), the rendered bytes, the registry's worst-case bound, and the error for an invalid case.
@@ -265,7 +266,11 @@ contract ClaimVectorsTest is Test {
     function test_claimVectors() public {
         string memory j = _json();
         if (vm.envOr("WRITE_CLAIM_VECTORS", false)) vm.writeFile(PATH, j);
-        assertEq(vm.readFile(PATH), j, "vectors/claim.json is stale: regenerate with WRITE_CLAIM_VECTORS=true");
+        // Git may check out the JSON envelope as CRLF. Payload hex and escaped
+        // CR/LF inside JSON strings are preserved; the rendered wire bytes must
+        // still match exactly, without regenerating any expected vector.
+        string memory checkedIn = LibString.replace(vm.readFile(PATH), "\r\n", "\n");
+        assertEq(checkedIn, j, "vectors/claim.json is stale: regenerate with WRITE_CLAIM_VECTORS=true");
     }
 
     /// The example vector is what a Layer 1 YES proposal on the sample market asserts.

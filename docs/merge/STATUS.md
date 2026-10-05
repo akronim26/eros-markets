@@ -1,10 +1,27 @@
 # Risk & Clearing — STATUS
 
-- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-05.
+- Shared branch: `integration/risk`; integration follow-up updated on 2026-10-06.
 - Unified Risk and Order Book ownership and automated validation: `CLAUDE.md` and `docs/merge/UNIFIED_WORKFLOW.md`.
 - Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
 ## Current summary
+
+**Integrated backend follow-up, 2026-10-06:** current entrypoints and boundaries
+are documented in [INTEGRATION_READINESS.md](../integration/INTEGRATION_READINESS.md),
+with a versioned frontend SDK/read handoff and the integrated deployment runbook.
+The current work includes generic bounded rollover, real-engine oracle service
+adapters, genuine-source local execution, owner transaction builders, canonical
+receipt/state audits and deployment preparation for two code stores plus the
+factory/vault/registry sequence. Final validation is recorded separately from the
+historical checkpoints below. Public deployment and frontend branch merging
+remain deferred; no prior human gate approval is renewed.
+
+The leveraged settlement proof exposed a reporting-only defect: the accounting
+ledger paid full claims, but the status/event omitted the reserve-funded deficit.
+The bridge now derives exact final deficit and net whole reserve contribution
+from frozen accounting aggregates. Original claims, custody and coverage rules
+remain enforced. Because this changes engine bytecode, final deployment/live
+proofs must identify the rebuilt runtime, rather than reuse an earlier address.
 
 **Reserve-funded leverage, 2026-10-05 (RF-06 checkpoint):** constructor-bound listings
 now support up to 5x under the existing template, margin and reserve rules. Reserve

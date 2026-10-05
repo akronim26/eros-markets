@@ -51,6 +51,7 @@ export function assertEnrollmentBindings(market: EnrollmentMarket, bindings: Enr
   collateralVault: unknown
   reserveVault: unknown
 }) {
+  if (!actual.listing || typeof actual.listing !== 'object') throw new Error('MINED_LISTING_MISMATCH')
   const listing = actual.listing as Record<string, unknown>
   const equal = (left: unknown, right: unknown) => typeof left === 'string' && typeof right === 'string'
     && left.toLowerCase() === right.toLowerCase()

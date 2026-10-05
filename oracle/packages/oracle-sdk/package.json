@@ -6,6 +6,10 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
+  },
   "scripts": {
     "test": "bun test",
     "sync-abis": "bun scripts/sync-abis.ts"

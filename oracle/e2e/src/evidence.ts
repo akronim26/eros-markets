@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Hex } from 'viem'
 import { pc } from './stack'
+import { engineConfig } from './engine'
 
 type Step = { step: string; market?: Hex; tx?: Hex; block?: string; time?: string; detail?: unknown }
 
@@ -17,7 +18,8 @@ export class Evidence {
   private started = new Date().toISOString()
 
   constructor(readonly scenario: string, readonly title: string) {
-    this.dir = join(ORACLE_ROOT, '..', 'docs_oracle/evidence/OG3', scenario)
+    if (engineConfig.kind === 'book-risk' && !process.env.E2E_OUTPUT_DIR) throw new Error('Real-engine runs require a distinct E2E_OUTPUT_DIR; historical stub evidence is preserved')
+    this.dir = join(process.env.E2E_OUTPUT_DIR ?? join(ORACLE_ROOT, '..', 'docs_oracle/evidence/OG3'), scenario)
     mkdirSync(this.dir, { recursive: true })
     // A resumed run (E2E_APPEND=1) keeps the steps of the run it continues; its checks are made again.
     const prev = join(this.dir, 'run.json')
@@ -52,7 +54,7 @@ export class Evidence {
   }
 
   flush(status: string) {
-    const doc = { scenario: this.scenario, title: this.title, network: 'monad-testnet', status, started: this.started, steps: this.steps, checks: this.checks }
+    const doc = { scenario: this.scenario, title: this.title, network: 'monad-testnet', engineKind: engineConfig.kind, status, started: this.started, steps: this.steps, checks: this.checks }
     writeFileSync(join(this.dir, 'run.json'), JSON.stringify(doc, bigints, 2) + '\n')
   }
 

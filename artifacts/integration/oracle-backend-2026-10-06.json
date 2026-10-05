@@ -1,0 +1,2077 @@
+{
+  "schema": "eros-oracle-backend-integration-evidence/1",
+  "assessment_date": "2026-10-06",
+  "recorded_at_utc": "2026-10-05T23:03:05.947892+00:00",
+  "status": "local_contracts_and_fork_deployment_passed_public_activation_not_verified",
+  "scope": "Automated evidence from the implementing agent; no independent security audit or human approval is established.",
+  "public_transactions": 0,
+  "public_activation_verified": false,
+  "source": {
+    "base_commit": "dbab6128904dcd990ce5ef38b5a5274d29fa8a99",
+    "branch": "integration/risk",
+    "working_tree": "dirty implementation under review; artifact records source hashes before the coordinating commit",
+    "hash_method": "SHA-256 of file bytes with CRLF replaced by LF; no other text/JSON normalization. Raw logs and reports use unmodified-byte SHA-256.",
+    "path_convention": "Commands use recorded working directories and argv. ${REPOSITORY_ROOT} replaces only the machine-specific checkout prefix.",
+    "owned_paths": [
+      "oracle/e2e/package.json",
+      "oracle/e2e/README.md",
+      "oracle/e2e/tsconfig.json",
+      "oracle/e2e/src/actors.ts",
+      "oracle/e2e/src/evidence.ts",
+      "oracle/e2e/src/market.ts",
+      "oracle/e2e/src/scenarios.ts",
+      "oracle/e2e/src/engine-adapter.ts",
+      "oracle/e2e/src/engine.ts",
+      "oracle/e2e/src/fork-rpc.ts",
+      "oracle/e2e/src/integrated-preflight.ts",
+      "oracle/e2e/src/local-coverage.ts",
+      "oracle/e2e/test/engine-adapter.test.ts",
+      "oracle/e2e/test/fork-rpc.test.ts",
+      "oracle/e2e/test/integrated-preflight.test.ts",
+      "oracle/e2e/test/local-coverage.test.ts",
+      "oracle/services/market-ops/README.md",
+      "oracle/services/market-ops/src/chain.ts",
+      "oracle/services/market-ops/src/main.ts",
+      "oracle/services/market-ops/src/operations.ts",
+      "oracle/services/market-ops/src/schema.ts",
+      "oracle/services/market-ops/src/store.ts",
+      "oracle/services/market-ops/src/rollover.ts",
+      "oracle/services/market-ops/test/operations.test.ts",
+      "oracle/services/local-integration/src/upkeep.ts",
+      "oracle/services/local-integration/test/upkeep.test.ts",
+      "oracle/script/integration/LocalIntegration.s.sol",
+      "oracle/script/integration/prepare-integrated.ts",
+      "oracle/test/integration/RealOracleServiceScenarios.t.sol",
+      "oracle/test/integration/LocalIntegrationSafety.t.sol",
+      "oracle/test/vectors/ClaimVectors.t.sol",
+      "oracle/validation/gate/gate.py",
+      "oracle/validation/tests/test_calibration.py",
+      "oracle/validation/tests/test_text_hashes.py",
+      "oracle/validation/README.md",
+      "scripts/integration/preflight-integrated.py",
+      "scripts/integration/test_preflight_integrated.py",
+      "docs/integration/DEPLOYMENT_RUNBOOK.md",
+      "oracle/src/integration/RolloverBatcher.sol",
+      "oracle/test/integration/RolloverBatcher.t.sol",
+      "oracle/script/integration/RolloverFixtureSeeder.sol",
+      "oracle/packages/oracle-sdk/src/abi/sources.ts",
+      "oracle/packages/oracle-sdk/src/abi/index.ts",
+      "oracle/packages/oracle-sdk/src/abi/RolloverBatcher.ts",
+      "oracle/abi/RolloverBatcher.json",
+      "oracle/abi/SHA256SUMS"
+    ],
+    "reporting_core_paths": [
+      "contracts/src/interfaces/IAccountingPort.sol",
+      "contracts/src/engine/RiskAccountingBridge.sol",
+      "contracts/src/settlement/SettlementController.sol"
+    ],
+    "context_paths": [
+      "oracle/foundry.toml",
+      "oracle/deployments/gas.json",
+      "oracle/deployments/monad-testnet.json",
+      "contracts/test/mocks/B/MockAccountingPort.sol",
+      "oracle/test/integration/LeveragedFactory.t.sol",
+      "contracts/src/engine/BookRiskEngine.sol",
+      "contracts/src/factory/MarketFactory.sol",
+      "oracle/test/integration/FactoryGas.t.sol",
+      "oracle/test/integration/RealMarketFactory.t.sol",
+      "oracle/test/integration/RealMarketFixture.sol",
+      "oracle/script/integration/DeployRealFactory.s.sol"
+    ],
+    "sha256_lf": {
+      "contracts/src/engine/BookRiskEngine.sol": "e4d4e40577ff42df53aed363cf411874a15d13bdff17fca1ce86dbbb3c829c68",
+      "contracts/src/engine/RiskAccountingBridge.sol": "d1824b37234341b76dbea3f8b06278da06ad5f7c5b13a1542e4591dd932a5196",
+      "contracts/src/factory/MarketFactory.sol": "a4fb27fc872cf29b82e9d15beb9efda3d4085964686aa8369f6558a2c25497d4",
+      "contracts/src/interfaces/IAccountingPort.sol": "06dcb03b65112a57eea8756ac94936dfef6b6007827b884d0d7c86b871968687",
+      "contracts/src/settlement/SettlementController.sol": "b5fd32155114b64e2b77db6fc6e17fc8ab03fc8bd4180bc748bd8f3ddf3508b9",
+      "contracts/test/mocks/B/MockAccountingPort.sol": "80692005da52067bcdff6925ed9e58b8809b5f99529163fbf69fa2c3fc8e582e",
+      "docs/integration/DEPLOYMENT_RUNBOOK.md": "7372ef33aa8fad97bbde1cccfa14fc0ab5e6928485fa5b0f6e69299d54937e3a",
+      "oracle/abi/RolloverBatcher.json": "03324638cd745df4af363dbfa3c94829b1267686206e36a2152bedb9ca20333d",
+      "oracle/abi/SHA256SUMS": "ddbdc02680d6d4fd5aead10d7d7fb9f92c5fc3757a6968de3fb522e22cdfd56a",
+      "oracle/deployments/gas.json": "f6ba85b50112f6e83ef57c9fb7eaaa0ffba7d2deb4f2da69462478aa1b757e42",
+      "oracle/deployments/monad-testnet.json": "4d79ca01545ee9d92697cf1a3fd11d9eb8e5e14f1484532524ab201abf77039c",
+      "oracle/e2e/README.md": "0daf544baa34cfdd8a0d61d39c2157400bdc7ae3047439d39fcc7eb9358ca31a",
+      "oracle/e2e/package.json": "3c8f57f9e6304aa7ff10d671152dc2e4f3547875b3e973a5f68853ec7849edc1",
+      "oracle/e2e/src/actors.ts": "6bd8d909b3cf8a1a5b885bbc2224323b28d4f75affb426534d2605847f1ea685",
+      "oracle/e2e/src/engine-adapter.ts": "f7d57ac865035d5c3ac1de54c6f17e199b75f7be1129d6a572ed4976d10c965a",
+      "oracle/e2e/src/engine.ts": "f0c2f006a83cef080804af224ddd2d1dfb113f239355f52e1af24aa489d9e749",
+      "oracle/e2e/src/evidence.ts": "122494b11b83a85ba89dc23c8b44515160ad28ce868646791fd8382dfd5a0cda",
+      "oracle/e2e/src/fork-rpc.ts": "aad0022e33c7b7adf3a5be73e6b2f137f2aebf428c7186534ae2fd1ec9e856db",
+      "oracle/e2e/src/integrated-preflight.ts": "1125829f30a9207719262ee24fc3e03808627c40a58e8bc9efc2e32dcd43210f",
+      "oracle/e2e/src/local-coverage.ts": "b0e49034dcf4f9e369c7ddbb928a4012d39da9fca54df7a9e674ac7bc71de2f6",
+      "oracle/e2e/src/market.ts": "2a812a35c6b951f1972ade6501eb58e3a9f4823ad1196a48ff99535c89160831",
+      "oracle/e2e/src/scenarios.ts": "0167fc6b409fc7d7285fcd3ead71f12517061f2b2cbc27943c39ca5e32a240bb",
+      "oracle/e2e/test/engine-adapter.test.ts": "9f748c5385cec60b4421218c79947097a62044e2b5b8fff06c42eafb04b36913",
+      "oracle/e2e/test/fork-rpc.test.ts": "71645b26ce43f804250133cc02633220da0f4080b13e2406ba6e35fd4a1d2021",
+      "oracle/e2e/test/integrated-preflight.test.ts": "6fd2a0aa9c2a983c4084519dd1a89f81718ed2941a798a09da9c913724d21a3d",
+      "oracle/e2e/test/local-coverage.test.ts": "17f140dfd8163c79d71a21f0aa32cbdd70a36196319279593a1f598ac76bc63c",
+      "oracle/e2e/tsconfig.json": "b2fe68d5a8765cf0aed91a2f18edf9412dfbfd600afbcdc9ee28207840a0c0ce",
+      "oracle/foundry.toml": "e3fc766ec753531f64639495f92b35daf056bbfb25962b9709c0e4db2752ca55",
+      "oracle/packages/oracle-sdk/src/abi/RolloverBatcher.ts": "b5326de2c095fdac59bda267f27c5d3f7eb00a52b9521e70221155aaa1efd487",
+      "oracle/packages/oracle-sdk/src/abi/index.ts": "7382025122b5971d4410efeb1ae8e7520ef096e11cd40c5a9252dfba3a67383c",
+      "oracle/packages/oracle-sdk/src/abi/sources.ts": "aa73fd0390207806675c6bb614c8ab10aa3cf57d062cb3156d7774356ee51f39",
+      "oracle/script/integration/DeployRealFactory.s.sol": "b5eb20c5935aa22aa0adac47e132b47fd33896845e6f86400fbc7b85b9e816ed",
+      "oracle/script/integration/LocalIntegration.s.sol": "543d34f193c0281329dafda877a82950af36aa07f2bd1bf22be4f4083525ea43",
+      "oracle/script/integration/RolloverFixtureSeeder.sol": "b1089384e05a1cf2e664783787b94186ec34d2f97d2c3d70195e5976ebc8375b",
+      "oracle/script/integration/prepare-integrated.ts": "7e1e66b39f1062d6c1275e1d785a9c0bfeb587d1e1f45c76cae98d5c64d1b1f0",
+      "oracle/services/local-integration/src/upkeep.ts": "c1031c320c5a43f6bd3e27ca98861e6459a66a73620839b038efe190ca2c841e",
+      "oracle/services/local-integration/test/upkeep.test.ts": "4ee57bc5904f821f5248fc0ecffb1eb2deca55ba00587d6ffb9760d30ed35762",
+      "oracle/services/market-ops/README.md": "dee145ac862be6505e68a724741f80f27f3725d64588e53f220f57b3ef6d22c4",
+      "oracle/services/market-ops/src/chain.ts": "9bafdb1a6c2ef94abe4a0aecc0300948b9808912453ba255470346125c1fd019",
+      "oracle/services/market-ops/src/main.ts": "343cdb685f27e1b426d12d3423e67ec947d83ce2f019a3d76ab3f7b75f9b10f7",
+      "oracle/services/market-ops/src/operations.ts": "b3dee73da3a974ac8f691e5d81cbe2c9ab96eb8c7a45dbd606a8eda4deddec36",
+      "oracle/services/market-ops/src/rollover.ts": "c65412b29ec4f1925d063b505f27e96ec6a21596c53a4f857ee417ec3d946484",
+      "oracle/services/market-ops/src/schema.ts": "e138f861b0d7f7798c0558bbf03d1802d36714ee580188159d1dba1648ce7261",
+      "oracle/services/market-ops/src/store.ts": "d873d79a52c29aa45614c0fe39bf21a4bc7378f6903d5106bc46dbfda88ff293",
+      "oracle/services/market-ops/test/operations.test.ts": "8bd934c691f4e3fd898791c1a3bff1479ae43819b34d9179fd7b0433de1fb517",
+      "oracle/src/integration/RolloverBatcher.sol": "91d47d9e7ab3ff70e98566cdcb2939ee38d8d1cd214d0cbd9d4ee7d8c1f53409",
+      "oracle/test/integration/FactoryGas.t.sol": "24e0923e9b69603b276a02cf2d1e74df2ddcae954cd94abb91883d7412cbd1d2",
+      "oracle/test/integration/LeveragedFactory.t.sol": "ec82d44bbe343ebfb50675bd6bb1e60cf077e7e359f05ae1deccd47a1e67551f",
+      "oracle/test/integration/LocalIntegrationSafety.t.sol": "c522755dd66ff08fc1a7e019131109f911ed35515abc396f0837c9c22bad3b26",
+      "oracle/test/integration/RealMarketFactory.t.sol": "02cec36e605f3caac1332f8c8ee5a4a45186c179157e483fe83aacb82103a5c4",
+      "oracle/test/integration/RealMarketFixture.sol": "1eef3d794e19dc4839484b43d5a2f5e0c80f7d26ba84f99187e17e2513fafc5a",
+      "oracle/test/integration/RealOracleServiceScenarios.t.sol": "36919242d4fc3b0a2930ea34bfa302d74601f769f3042d459086deb5eadbc635",
+      "oracle/test/integration/RolloverBatcher.t.sol": "a751db08aace2033148076b88ab8b739d27392c509213c12db7259d8e63c91bc",
+      "oracle/test/vectors/ClaimVectors.t.sol": "4faaf1ab19e5db137756cb09f612af7154109c988ca2a3ecbb62f6fb7f45a1e6",
+      "oracle/validation/README.md": "d8ae1d7fe8310470e1b9809eb6833a4ba159eb1878c2ce868bc2aea65d54d2a3",
+      "oracle/validation/gate/gate.py": "47ce6fd6a368cdd208ef0f583b53a274af67b556d094218b117756a34caa5ca1",
+      "oracle/validation/tests/test_calibration.py": "1d1d1736e9429eac273f19ce234a323af66b4cb8083cb567e087206c38a6211f",
+      "oracle/validation/tests/test_text_hashes.py": "8b83fcd66aa54a4e51a16225e95ee7c37997e8533fcd167b300e52f39ef843f7",
+      "scripts/integration/preflight-integrated.py": "aa8cd02561238dd2a6b4482ddf0aea3913f18f9e3e0867b7ff939cbcd0e2c435",
+      "scripts/integration/test_preflight_integrated.py": "e70ca9aa5c3b769595c08451c5c403e6c9f97d320e720a140a2e4e5aa7ad685f"
+    },
+    "reporting_core_matches_final_E1_E9_source_hashes": true
+  },
+  "toolchain": {
+    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",
+    "solc_eros": "0.8.30+commit.73712a01",
+    "solc_legacy_uma": "0.8.16",
+    "compiler_evm_version": "prague",
+    "optimizer_runs": 200,
+    "bytecode_hash": "none",
+    "monad_execution": "monad:MonadTen",
+    "bun": "1.3.13",
+    "python": "3.12.10",
+    "artifact_prerequisite": {
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "build",
+          "--threads",
+          "1"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "default"
+        }
+      },
+      "exit_code": 0,
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-full-build-20261006.log",
+          "sha256_raw": "b9f4ef98bb316ed30dec9421f0e33cb49dc58ef7a64f972b680cb18aaf0542fa",
+          "bytes": 862
+        },
+        {
+          "path": "tmp/integration-oracle-full-build-20261006.stderr.log",
+          "sha256_raw": "e1b4781d821b8b095b87777efcec0f18ce21dace9bc71a6355e1d1af215f816c",
+          "bytes": 175939
+        }
+      ]
+    }
+  },
+  "engine_build": {
+    "contract": "RegistryBookRiskEngine",
+    "sha256": "ea0001941719ca519ff789bccc3a7a068c0c13d1100d7b027dfce1e4f608deae",
+    "creationCodeHash": "0x9169fa825e51d55e608d113aa3733b59f2ca562cb578e6a2875c50a3983d8b2a",
+    "runtimeBytes": 122203,
+    "note": "Creation hash and uninstantiated runtime size identify the final reporting build. Constructor immutables make each deployed market runtime hash different."
+  },
+  "checks": {
+    "oracle_default_prague": {
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "test",
+          "--threads",
+          "1",
+          "--isolate",
+          "--json"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "default",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "WRITE_CLAIM_VECTORS": "false"
+        }
+      },
+      "exit_code": 0,
+      "suites": 39,
+      "tests": 342,
+      "passed": 342,
+      "failed": 0,
+      "failures": [],
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-default-prague-final-20261006.json",
+          "sha256_raw": "7737200b9b4c1b9ea466d0d5cd1e1215350207a703b1ad6d5f11effc49567182",
+          "bytes": 6256728
+        },
+        {
+          "path": "tmp/integration-oracle-default-prague-final-20261006.stderr.log",
+          "sha256_raw": "7b92f578b28037e076bf261bfc22a30cd6339075c91b4f082eaaad919f7dd034",
+          "bytes": 10365
+        }
+      ],
+      "fuzz_runs": 1000,
+      "invariant_runs": 64,
+      "invariant_depth": 64,
+      "scope": "Final reporting runtime; includes the Prague gas-budget suite. UMA artifact prerequisite was built with its required separate compiler."
+    },
+    "oracle_real_integration_monad": {
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "test",
+          "--network",
+          "monad",
+          "--hardfork",
+          "monad:MonadTen",
+          "--threads",
+          "1",
+          "--isolate",
+          "--json"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "integration",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "WRITE_CLAIM_VECTORS": "false"
+        }
+      },
+      "exit_code": 0,
+      "suites": 10,
+      "tests": 93,
+      "passed": 93,
+      "failed": 0,
+      "failures": [],
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-real-monad-final-20261006.json",
+          "sha256_raw": "823091874fd4db815065d32371f3e07fe837d2b0cc98d575c1996b4c063f05a0",
+          "bytes": 53384
+        },
+        {
+          "path": "tmp/integration-oracle-real-monad-final-20261006.stderr.log",
+          "sha256_raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ],
+      "scope": "Final engine reporting runtime. The later script-only claim sender change is covered by the separate safety rerun and root's deployed lifecycle proof.",
+      "liquidation_and_reserve_cases": [
+        {
+          "test": "testPositiveEquityReductionUsesRealBookAndBlockPacing()",
+          "status": "Success",
+          "assertions": "Real book closes 100000 lots, same-block pacing prevents a second fill, next-block work closes another 100000 lots, and keeper fees accrue."
+        },
+        {
+          "test": "testNoLiquidityNeverConfiscatesPositiveEquity()",
+          "status": "Success",
+          "assertions": "Missing bid liquidity leaves the positive-equity position intact and reports more work required."
+        },
+        {
+          "test": "testExpiredCalibrationFallsBackAndStaleMarkCannotLiquidate()",
+          "status": "Success",
+          "assertions": "Stale mark refuses liquidation; expired calibration falls back to full backing."
+        },
+        {
+          "test": "testNoJumpPaysWinnerFullyAndReserveAbsorbsDeficit()",
+          "status": "Success",
+          "assertions": "Winner receives 1000 tokens, reserve absorbs a 480-token deficit, custody reconciles, recovery remains disabled."
+        },
+        {
+          "test": "testYesJumpPaysLongFullyWithoutLiquidation()",
+          "status": "Success",
+          "assertions": "Long receives its full 520-token claim without a reserve deficit."
+        }
+      ],
+      "runtime_distinction": "These are executed controlled contract scenarios. A healthy-account runtime liquidator no-work scan is not evidence of a mined unhealthy-account liquidation. Deployed deterministic reserve-loss/owner-payout closure uses its separate coordinating-task receipt audit."
+    },
+    "local_script_safety": {
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "test",
+          "--match-contract",
+          "^LocalIntegrationSafetyTest$",
+          "--network",
+          "monad",
+          "--hardfork",
+          "monad:MonadTen",
+          "--threads",
+          "1",
+          "--isolate",
+          "--json"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "integration",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "WRITE_CLAIM_VECTORS": "false"
+        }
+      },
+      "exit_code": 0,
+      "suites": 1,
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "failures": [],
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-local-safety-final-20261006.json",
+          "sha256_raw": "eb6995a104d55362c30528915d4232632991898bf5d67c2cb35f5687f17a8d79",
+          "bytes": 1999
+        },
+        {
+          "path": "tmp/integration-oracle-local-safety-final-20261006.stderr.log",
+          "sha256_raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ],
+      "scope": "Final owner-signed claim script compiles; lifecycle entrypoints reject public chains before reads/broadcasts. Positive deployed lifecycle proof is recorded separately by the root task."
+    },
+    "oracle_monad_functional_before_reporting_fix": {
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "test",
+          "--no-match-contract",
+          "^OracleGasTest$",
+          "--network",
+          "monad",
+          "--hardfork",
+          "monad:MonadTen",
+          "--threads",
+          "1",
+          "--isolate",
+          "--json"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "default",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "WRITE_CLAIM_VECTORS": "false"
+        }
+      },
+      "exit_code": 0,
+      "suites": 38,
+      "tests": 313,
+      "passed": 313,
+      "failed": 0,
+      "failures": [],
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-monad-functional-20261006.json",
+          "sha256_raw": "c443830c8e7974a568256d5c83cf4f7a89be03358a64e60343c955abd4a31e39",
+          "bytes": 6558210
+        },
+        {
+          "path": "tmp/integration-oracle-monad-functional-20261006.stderr.log",
+          "sha256_raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ],
+      "scope": "Earlier same-session run, before the final accounting reporting change. Excludes only OracleGasTest's 29 Prague gas-budget tests; the four Monad budget failures are retained below."
+    },
+    "oracle_E1_E9": {
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "e2e/src/local-coverage.ts",
+          "../tmp/local-oracle-e2e-final-20261006.json"
+        ],
+        "env": {
+          "LOCAL_FORGE": "${REPOSITORY_ROOT}/tmp/foundry-v1.8.3/forge.exe"
+        }
+      },
+      "executed_forge_argv": [
+        "${REPOSITORY_ROOT}\\tmp\\foundry-v1.8.3\\forge.exe",
+        "test",
+        "--match-contract",
+        "^(RealBookOracleTest|RealOracleServiceScenariosTest)$",
+        "--network",
+        "monad",
+        "--hardfork",
+        "monad:MonadTen",
+        "--threads",
+        "1",
+        "--isolate",
+        "--json"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "tests": 20,
+      "scenarios": {
+        "E1": {
+          "passed": true,
+          "tests": [
+            "testL1ProductionShapedMetadataAndReplayProtectionWithRealEngine"
+          ]
+        },
+        "E2": {
+          "passed": true,
+          "tests": [
+            "testDisputedAssertionWaitsThenPaysOnlyAfterResolutionAndPreparation"
+          ]
+        },
+        "E3": {
+          "passed": true,
+          "tests": [
+            "testRejectedYesThenAcceptedNoDoesNotPrematurelySettleEngine"
+          ]
+        },
+        "E4": {
+          "passed": true,
+          "tests": [
+            "testBothRejectedProduceInvalidNotAnUnbackedPayout",
+            "testEarlyInvalidWaitsForScheduledWindowAndGrace"
+          ]
+        },
+        "E5": {
+          "passed": true,
+          "tests": [
+            "testPermissionlessResolutionUsesCallerBondAndRealClaims"
+          ]
+        },
+        "E6": {
+          "passed": true,
+          "tests": [
+            "testRealFillEarlyYesFinalityAndOwnerClaimsBeforeT"
+          ]
+        },
+        "E7": {
+          "passed": true,
+          "tests": [
+            "testVoidWithUnansweredDisputeSettlesInvalidAndRemainsClaimable"
+          ]
+        },
+        "E8": {
+          "passed": true,
+          "tests": [
+            "testFifteenRealMarketsShareTAndCompleteBoundedClaims"
+          ]
+        },
+        "E9": {
+          "passed": true,
+          "tests": [
+            "testExclusiveGroupCannotResolveTwoRealMarketsYes"
+          ]
+        }
+      },
+      "logs": [
+        {
+          "path": "tmp/local-oracle-e2e-final-20261006.json",
+          "sha256_raw": "e8e63fd79a6c37960361e491e9c0113cc7f684968344235cb13b0077b9918f81",
+          "bytes": 51142
+        },
+        {
+          "path": "tmp/local-oracle-e2e-final-20261006.json.stdout",
+          "sha256_raw": "a5cd207de2115569152e63c10ce3a1ab4a9f603b770a5a9299c428710251d21e",
+          "bytes": 15897
+        },
+        {
+          "path": "tmp/local-oracle-e2e-final-20261006.json.stderr",
+          "sha256_raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ],
+      "scope": "Local real-engine contract equivalents, not public service E2E receipts or independent adjudication."
+    },
+    "oracle_validation_python": {
+      "command": {
+        "cwd": "oracle/validation",
+        "argv": [
+          "python",
+          "-m",
+          "unittest",
+          "discover",
+          "-v"
+        ]
+      },
+      "exit_code": 0,
+      "discovered": 60,
+      "passed": 51,
+      "failed": 0,
+      "skipped": 9,
+      "skips": [
+        "test_committed_report_reproduces (tests.test_crypto_price.Dataset.test_committed_report_reproduces) ... skipped 'the crypto-price rows are local only (ADJ-39)'",
+        "setUpClass (tests.test_dataset.CommittedDataset) ... skipped 'dataset not present: python3 -m dataset.pull (or snapshot unpack) && python3 -m dataset.build'",
+        "test_report_and_snapshot_pin_the_committed_manifest (tests.test_dataset.PublicPins.test_report_and_snapshot_pin_the_committed_manifest) ... skipped 'no built dataset (run python3 -m dataset.build)'",
+        "test_the_manifest_lists_failures_and_the_pull_parameters (tests.test_dataset.PublicPins.test_the_manifest_lists_failures_and_the_pull_parameters) ... skipped 'no built dataset (run python3 -m dataset.build)'",
+        "test_the_snapshot_is_not_published (tests.test_dataset.PublicPins.test_the_snapshot_is_not_published) ... skipped 'no built dataset (run python3 -m dataset.build)'",
+        "test_committed_split_reproduces (tests.test_split.Dataset.test_committed_split_reproduces) ... skipped 'the dataset is local only (ADJ-39)'",
+        "test_every_category_in_every_split (tests.test_split.Dataset.test_every_category_in_every_split) ... skipped 'the dataset is local only (ADJ-39)'",
+        "test_frozen_on_the_pinned_rows (tests.test_split.Dataset.test_frozen_on_the_pinned_rows) ... skipped 'the dataset is local only (ADJ-39)'",
+        "test_no_parent_in_two_splits (tests.test_split.Dataset.test_no_parent_in_two_splits) ... skipped 'the dataset is local only (ADJ-39)'"
+      ],
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-python-final-20261006.log",
+          "sha256_raw": "409050f973d46c11b05d3452faf7a9d1f4d1bbd79699ae392ceabb1922d080c4",
+          "bytes": 7188
+        }
+      ],
+      "scope": "Committed JSON report pins canonicalize checkout CRLF only. Raw dataset/custody byte hashes remain exact. Private dataset-dependent checks are unavailable and were not reported as passed."
+    },
+    "oracle_ci_prague": {
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "test",
+          "--threads",
+          "1",
+          "--fuzz-seed",
+          "0x45524f53",
+          "--json"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "ci",
+          "RAYON_NUM_THREADS": "1",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "WRITE_CLAIM_VECTORS": "false"
+        }
+      },
+      "exit_code": 0,
+      "suites": 39,
+      "tests": 342,
+      "passed": 342,
+      "failed": 0,
+      "failures": [],
+      "fuzz_runs": 10000,
+      "invariant_runs": 256,
+      "invariant_depth": 128,
+      "actual_invariant_calls": 32768,
+      "test_duration_seconds": 748.078,
+      "build_command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "build",
+          "--sizes",
+          "--threads",
+          "1"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "ci",
+          "RAYON_NUM_THREADS": "1",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "WRITE_CLAIM_VECTORS": "false"
+        }
+      },
+      "build_exit_code": 0,
+      "build_duration_seconds": 256.171,
+      "artifact_compilers": {
+        "ResolutionOracle": "0.8.30+commit.73712a01",
+        "RegistryBookRiskEngine": "0.8.30+commit.73712a01",
+        "Finder": "0.8.16+commit.07a7930e",
+        "OptimisticOracleV3": "0.8.16+commit.07a7930e"
+      },
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-ci-final-20261006.json",
+          "sha256_raw": "12b50366e7b779d8f477c26744c5afcb0269a4e35cbc5806702cc17294c9b747",
+          "bytes": 10429121
+        },
+        {
+          "path": "tmp/integration-oracle-ci-final-20261006.json.stderr.log",
+          "sha256_raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "path": "tmp/integration-oracle-ci-final-20261006.execution.json",
+          "sha256_raw": "313e4e1500b22a26d031facb5d3187b010fe0e1bf72f1299160431192fda2095",
+          "bytes": 6201
+        },
+        {
+          "path": "tmp/integration-oracle-ci-final-20261006.build.log",
+          "sha256_raw": "41c697a25ff13ba34c3fe78dca03f02e5020e098ad87fe9ff2873e0a853026fa",
+          "bytes": 17307
+        },
+        {
+          "path": "tmp/integration-oracle-ci-final-20261006.build.log.stderr.log",
+          "sha256_raw": "51cdce4bd0cd2cccb8164d951fa83042a74abbd36a2497d7f6de7eccec11801c",
+          "bytes": 172693
+        },
+        {
+          "path": "tmp/integration-oracle-ci-final-20261006.config.json",
+          "sha256_raw": "d7edec8beff66f71edcf4f71c8727fc811a312c2748bef60cfaf787c4e8db40c",
+          "bytes": 9621
+        }
+      ],
+      "scope": "Complete existing oracle CI suite, using the actual oracle.yml Prague mode without isolate or test filters. The separate RolloverBatcher source was added after this compilation; it has additional targeted integration/gas evidence and is not claimed by these 342 tests."
+    },
+    "adapter_and_preflight_units": {
+      "command": {
+        "cwd": "oracle/e2e",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "test",
+          "test"
+        ]
+      },
+      "exit_code": 0,
+      "passed": 24,
+      "failed": 0,
+      "logs": [
+        {
+          "path": "tmp/integration-e2e-helper-e2e-20261006.log",
+          "sha256_raw": "f1e4618ec08be8527da9c79d00b161d0f8cc3fcd27ab79d063b8ce2bd3507d06",
+          "bytes": 3172
+        }
+      ],
+      "typecheck": {
+        "command": {
+          "cwd": "oracle/e2e",
+          "argv": [
+            "bun",
+            "--no-env-file",
+            "run",
+            "typecheck"
+          ]
+        },
+        "exit_code": 0,
+        "log": {
+          "path": "tmp/integration-e2e-helper-typecheck-20261006.log",
+          "sha256_raw": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+          "bytes": 15
+        }
+      },
+      "scope": "Includes all five reciprocal registry/oracle binding mismatch regressions plus optional-helper explicit-hash and unchanged-legacy-bundle checks; full E2E unit suite and typecheck rerun after helper support."
+    },
+    "market_ops_units": {
+      "command": {
+        "cwd": "oracle/services/market-ops",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "test"
+        ]
+      },
+      "exit_code": 0,
+      "passed": 48,
+      "failed": 0,
+      "logs": [
+        {
+          "path": "tmp/integration-service-validation-20261006/60-market-ops-test.log",
+          "sha256_raw": "9dbc77a57334d4040e52af4fae368dbf0814e8d75fa75cce7c50f02a80388b90",
+          "bytes": 5778
+        }
+      ],
+      "typecheck": {
+        "command": {
+          "cwd": "oracle/services/market-ops",
+          "argv": [
+            "bun",
+            "--no-env-file",
+            "run",
+            "typecheck"
+          ]
+        },
+        "exit_code": 0,
+        "log": {
+          "path": "tmp/integration-service-validation-20261006/61-market-ops-typecheck.log",
+          "sha256_raw": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+          "bytes": 15
+        }
+      }
+    },
+    "local_upkeep_units": {
+      "command": {
+        "cwd": "oracle/services/local-integration",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "test",
+          "test/upkeep.test.ts"
+        ]
+      },
+      "exit_code": 0,
+      "passed": 5,
+      "failed": 0,
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-upkeep-final-20261006.log",
+          "sha256_raw": "bcf1f361b7b989a219d0289b7ef76a2c8c39890ce87faa59113af18c7d224c90",
+          "bytes": 676
+        }
+      ],
+      "scope": "Earlier focused upkeep baseline before optional helper support; final complete local-integration 54-test service suite is separately recorded in the coordinated SDK/services evidence."
+    },
+    "oracle_format_lf": {
+      "exit_code": 0,
+      "report": {
+        "path": "tmp/integration-oracle-format-lf-helper-final-20261006.json",
+        "sha256_raw": "83a76c7b674b5c6230152a4998d03c7a2959c9655937da92327786397df5814d",
+        "bytes": 11277
+      },
+      "command": [
+        "forge",
+        "fmt",
+        "--check",
+        "--threads",
+        "1",
+        "--root",
+        "tmp/oracle-format-lf-helper-final-20261006"
+      ],
+      "files_copied": 97,
+      "scope": "Formatter-only LF input mirror, preserving project configuration and generated-vector exclusions; no compilation or contract state changes.",
+      "normalization": "Only CRLF replaced by LF to match committed files and Linux CI checkout. No source token normalization."
+    },
+    "contracts_format_lf": {
+      "exit_code": 0,
+      "report": {
+        "path": "tmp/integration-risk-format-lf-mirror-final-20261006.json",
+        "sha256_raw": "f63abb1f5806f58da80d0696f4c687115f0eae28b7ab2b926a610dfc6c534185",
+        "bytes": 24548
+      },
+      "command": [
+        "forge",
+        "fmt",
+        "--check",
+        "--threads",
+        "1",
+        "--root",
+        "tmp/contracts-format-lf-mirror-final-20261006"
+      ],
+      "files_copied": 222,
+      "scope": "Formatter-only LF input mirror, preserving project configuration and generated-vector exclusions; no compilation or contract state changes.",
+      "normalization": "Only CRLF replaced by LF to match committed files and Linux CI checkout. No source token normalization."
+    },
+    "formatting_runtime_equivalence": {
+      "passed": true,
+      "report": {
+        "path": "tmp/integration-oracle-format-runtime-equivalence-20261006.json",
+        "sha256_raw": "6c1c35bdf892e44f0751843846736084871d5eed3d3fe86c1255ed38a2e038ca",
+        "bytes": 1709
+      },
+      "engine_creation_keccak": "0x9169fa825e51d55e608d113aa3733b59f2ca562cb578e6a2875c50a3983d8b2a",
+      "engine_runtime_bytes": 122203,
+      "factory_creation_keccak": "0xb60bb3b00cf8d1f1f8f3ed045d99214c026f46012b64c61ab0884c00ccd8ed85",
+      "factory_runtime_bytes": 3628,
+      "factory_creation_bytes_match_all_preserved_bundles": true,
+      "scope": "Final formatted MarketFactory bytecode matches the creation-code prefix in both unsigned reports and all 11-transaction local fork rehearsal inputs. RegistryBookRiskEngine creation hash is unchanged. The preserved fork proof remains bytecode-equivalent; no fork replay was claimed."
+    },
+    "preflight_python_wrapper": {
+      "command": {
+        "cwd": ".",
+        "argv": [
+          "python",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "scripts/integration",
+          "-p",
+          "test_preflight_integrated.py",
+          "-v"
+        ]
+      },
+      "exit_code": 0,
+      "passed": 3,
+      "failed": 0,
+      "logs": [
+        {
+          "path": "tmp/integration-oracle-preflight-wrapper-final-20261006.log",
+          "sha256_raw": "4a8f500c1cea0fd041bc1686d14b6a72db896ecef569699a2896a9c3714fb469",
+          "bytes": 1816
+        }
+      ]
+    },
+    "rollover_helper_monad": {
+      "suites": 1,
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "failures": [],
+      "exit_code": 0,
+      "command": {
+        "cwd": "oracle",
+        "argv": [
+          "..\\tmp\\foundry-v1.8.3\\forge.exe",
+          "test",
+          "--match-contract",
+          "^RolloverBatcherTest$",
+          "--match-test",
+          "^testBatch",
+          "--network",
+          "monad",
+          "--hardfork",
+          "monad:MonadTen",
+          "--isolate",
+          "--threads",
+          "1",
+          "--gas-limit",
+          "10000000000",
+          "-vv",
+          "--json"
+        ],
+        "env": {
+          "FOUNDRY_PROFILE": "integration",
+          "RAYON_NUM_THREADS": "1",
+          "FORGE_SNAPSHOT_EMIT": "false",
+          "WRITE_CLAIM_VECTORS": "false"
+        }
+      },
+      "test_duration_seconds": 57.344,
+      "logs": [
+        {
+          "path": "tmp/integration-rollover-batcher-final-20261006.json",
+          "sha256_raw": "81bb99b12ef0c15f3c7681573de0c6ed65698124a57477af3115803c9c1d0a16",
+          "bytes": 8909007
+        },
+        {
+          "path": "tmp/integration-rollover-batcher-final-20261006.execution.json",
+          "sha256_raw": "6580df48e128dcd9e5ec8d7b0633b1e43410460d16f1ebe15b909fafebcd0719",
+          "bytes": 2077
+        },
+        {
+          "path": "tmp/integration-rollover-batcher-final-20261006.build.log",
+          "sha256_raw": "ef721b0b00a0df61bdc81213c1c389b1b8598a9d82f585b8ac27e8f4ec1a3cd0",
+          "bytes": 91
+        }
+      ],
+      "measurements": {
+        "testBatch1024ParticipantsBoundedRolloverAndFullOracleClaims()": [
+          "1024 participants largest first batch pages within padded cap: 17",
+          "1024 participants accepted first batch gas: 23713703",
+          "1024 participants next excluded batch gas: 25102827",
+          "1024 participants bounded helper calls: 2",
+          "1024 participants maximum batch gas: 23743754",
+          "1024 participants sum batch gas: 44649357"
+        ],
+        "testBatchFourOwnersOpensNormalPricingWithoutLosingFreshCarry()": [
+          "batch four owners gas: 912095"
+        ]
+      },
+      "scope": "Eight new tests execute the real factory engine under MonadTen. Controlled 1024-owner flat-collateral accounting completes in two bounded calls (17 then 15 pages), followed by full claims to all 1024 owners. Fresh four-owner windows admit NORMAL 5/5; deliberately stale windows complete accounting but retain safe BOOTSTRAP 1/1. These in-process measurements are not RPC latency or public receipt evidence.",
+      "gas_method": "Test-function aggregate allowance is 10 billion gas because setup plus 1024 claims exceeds the default 2^30 harness ceiling; every accepted batch independently satisfies a padded 30M transaction limit. Snapshot-reverted diagnostic candidate estimates are never broadcast.",
+      "initial_harness_failure": {
+        "report": {
+          "path": "tmp/integration-rollover-batcher-initial-20261006.json",
+          "sha256_raw": "3497fbcc54d0f07f69afe508cacf26c600e00385b8236cd188702bb99c638a0e",
+          "bytes": 6802
+        },
+        "suites": 1,
+        "tests": 7,
+        "passed": 6,
+        "failed": 1,
+        "failures": [
+          {
+            "suite": "test/integration/RolloverBatcher.t.sol:RolloverBatcherTest",
+            "test": "testBatch1024ParticipantsBoundedRolloverAndFullOracleClaims()",
+            "reason": "EvmError: OutOfGas"
+          }
+        ],
+        "resolution": "Only the aggregate test-function allowance increased; per-batch economic/transaction guards remain unchanged."
+      }
+    },
+    "rollover_helper_runtime_equivalence": {
+      "passed": true,
+      "report": {
+        "path": "tmp/integration-helper-runtime-equivalence-20261006.json",
+        "sha256_raw": "eef5ff6554051736bed1cce15e66abb0d3ffaa53b84c21b309041660e6a40c5d",
+        "bytes": 721
+      },
+      "schema": "eros-helper-build-equivalence/1",
+      "engineCreationHash": "0x9169fa825e51d55e608d113aa3733b59f2ca562cb578e6a2875c50a3983d8b2a",
+      "factoryCreationHash": "0xb60bb3b00cf8d1f1f8f3ed045d99214c026f46012b64c61ab0884c00ccd8ed85",
+      "helperCreationHash": "0xe12e9ba232cd31bc380d9c5d33fc213369718f1ba59f794446e237c6787630f5",
+      "helperRuntimeHash": "0x9d4c9e5216ee5b5883f983e011ffc6f6c25d0b4a8c362115eef6b478e9e0abfd",
+      "helperRuntimeBytes": 2644,
+      "helperSourceSha256Lf": "91d47d9e7ab3ff70e98566cdcb2939ee38d8d1cd214d0cbd9d4ee7d8c1f53409",
+      "helperCreationDataMatchesUnsigned": true,
+      "helperCreationDataMatchesFork": true,
+      "helperActualRuntimeMatches": true,
+      "engineAndFactoryCreationMatchesFork": true
+    }
+  },
+  "final_public_state_fork_rehearsal": {
+    "scope": "All receipts below were produced only on a disposable loopback Anvil fork; they are not public-chain transaction receipts.",
+    "command": {
+      "cwd": ".",
+      "argv": [
+        "python",
+        "scripts/integration/preflight-integrated.py",
+        "--rehearse-local",
+        "--rpc",
+        "http://127.0.0.1:18581",
+        "--config",
+        "tmp/integrated-monad-fork-final-input.json",
+        "--output",
+        "tmp/integrated-monad-fork-rehearsal-final-20261006.json"
+      ]
+    },
+    "anvil_command": {
+      "cwd": ".",
+      "argv": [
+        "tmp\\foundry-v1.8.3\\anvil.exe",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18581",
+        "--fork-url",
+        "http://127.0.0.1:18582",
+        "--fork-block-number",
+        "68483161",
+        "--network",
+        "monad",
+        "--hardfork",
+        "monad:MonadTen",
+        "--chain-id",
+        "10143",
+        "--gas-limit",
+        "30000000",
+        "--silent"
+      ]
+    },
+    "proxy_command": {
+      "cwd": ".",
+      "argv": [
+        "bun",
+        "--no-env-file",
+        "oracle/e2e/src/fork-rpc.ts",
+        "18582",
+        "tmp/integrated-monad-fork-final-rpc-audit.json"
+      ],
+      "env": {
+        "INTEGRATED_PREFLIGHT_RPC": "${READ_ONLY_PUBLIC_MONAD_TESTNET_RPC}"
+      }
+    },
+    "fork_source": {
+      "chainId": 10143,
+      "blockNumber": "68483161",
+      "blockHash": "0x3c3908f727a8e174604faa82eae16de81f1ae9f9cee87d066e5ebc30b47bb14e",
+      "readOnlyVerified": true,
+      "collateralBalanceVerified": true,
+      "deployerNonceVerified": true
+    },
+    "report": {
+      "path": "tmp/integrated-monad-fork-rehearsal-final-20261006.json",
+      "sha256_raw": "88a0a4b6fa77f9c266f3d9ced8cdf93d88ac6eeeb99ba45b2ded724ad3065f0f",
+      "bytes": 359233
+    },
+    "input": {
+      "path": "tmp/integrated-monad-fork-final-input.json",
+      "sha256_raw": "93997efa8dd6969ec2b62f50976222effe68e503bd37ea14ef5a77eca7974446",
+      "bytes": 1755
+    },
+    "listing_pack": {
+      "path": "tmp/integrated-monad-fork-pack.json",
+      "sha256_raw": "7a58a83bccac02f61acc28d8b2314f417ec96ad6dc77fa4f40f22ef90c753f36",
+      "bytes": 3386
+    },
+    "passed": true,
+    "local_transactions": 11,
+    "public_transactions": 0,
+    "local_state_restored": true,
+    "owned_processes_stopped": true,
+    "roles": {
+      "deployer": "0x676c3Dfd23c742bb6F0CFFd7a108d69ae674f49e",
+      "proposer": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+      "executor": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+      "reserveTreasury": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+      "reserveFunder": "0xCbf737ea4D798a74a2988fC3294910d5a581A85c"
+    },
+    "actual_native_balances_before_local_override": [
+      {
+        "address": "0x676c3Dfd23c742bb6F0CFFd7a108d69ae674f49e",
+        "nativeBalance": "2095454313960565518"
+      },
+      {
+        "address": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+        "nativeBalance": "3571353988992519977"
+      },
+      {
+        "address": "0xCbf737ea4D798a74a2988fC3294910d5a581A85c",
+        "nativeBalance": "2431217003999083271"
+      }
+    ],
+    "reserve": {
+      "funder": "0xCbf737ea4D798a74a2988fC3294910d5a581A85c",
+      "balanceAtoms": "62160000",
+      "requiredAtoms": "50000000"
+    },
+    "local_overrides": {
+      "impersonation": true,
+      "native_balance_per_impersonated_sender_wei": "10000000000000000000000",
+      "collateral_minted_or_overridden": false,
+      "timelock_time_advanced_locally": true,
+      "timelock_min_delay_seconds": 300,
+      "signer_custody_verified": false
+    },
+    "result": {
+      "passed": true,
+      "engineCodehash": "0x6d469f77726b5c377ab7041ba817a8b0f3edaf3a054143f69f9b711735559077",
+      "listingHash": "0x70a92b17530b9e54a6851f32e27f9fcdb9eccf39f3a8a3b0cf6e514145e9e876",
+      "activeProfile": {
+        "version": "2",
+        "profileHash": "0x00c47985b36d970c581c049d903a0e19a5b7b9cabf428bd444de6429fc088edf",
+        "effectiveAt": "1791228658"
+      },
+      "reserveCapBaseQ": "50000000000000000000000000",
+      "active": true,
+      "deploymentEvidenceScope": "ephemeral local fork; addresses are not a deployed public/frontend manifest",
+      "localOnly": true,
+      "roleCustodyVerified": false
+    },
+    "receipts": [
+      {
+        "operation": "deploy-code-store",
+        "transaction_hash": "0x2065c32ea1af464b6a66c9c73d8e35758fbde4e68f8759235e0238d1653896db",
+        "block_number": 68483162,
+        "block_hash": "0xf017e8257de707f43f95f7aec8ed162bf916bd51e4d2213346858ec9fa45db1d",
+        "from": "0x676c3dfd23c742bb6f0cffd7a108d69ae674f49e",
+        "to": null,
+        "contract_address": "0xe545d1d8ef68e1446b4866179e569aca08c85722",
+        "estimate_gas": 21630985,
+        "gas_used": 21630985,
+        "gas_limit": 22722535,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "deploy-code-store-tail",
+        "transaction_hash": "0xb1baea56ef99c782182b8526ca9566d877bf04a8755b51f4645ea06b1e701f00",
+        "block_number": 68483163,
+        "block_hash": "0x212b2772a02fdd104d938de1ce5b0782ff85b4abde2cec42f0103721ec283498",
+        "from": "0x676c3dfd23c742bb6f0cffd7a108d69ae674f49e",
+        "to": null,
+        "contract_address": "0x0052bf04b55ca97b88a60a7306cf2925a6347339",
+        "estimate_gas": 7024698,
+        "gas_used": 7024698,
+        "gas_limit": 7385933,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "deploy-real-factory",
+        "transaction_hash": "0x46bfcb4f2c2b2b4d7232104c285c29f4e64bc7c6aa72c4be38a2c1f6a391842e",
+        "block_number": 68483164,
+        "block_hash": "0x9df8d8a5f3edd65bf6ff6c6c3b9df82627015b73c1a45a6b3f5988a6168207cb",
+        "from": "0x676c3dfd23c742bb6f0cffd7a108d69ae674f49e",
+        "to": null,
+        "contract_address": "0xdd967528066a97389157a858cb06f4e47c8bbd78",
+        "estimate_gas": 2428775,
+        "gas_used": 2428775,
+        "gas_limit": 2560214,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "authorize-factory-propose",
+        "transaction_hash": "0x2ef397a3dfcc00f57e5f1223c1a0458f8c01d03d2605f399185f12dbe1a7781e",
+        "block_number": 68483165,
+        "block_hash": "0x217f69011b64312596c8a0c5461cafa1969ccd4850a11f46fbb82b912cb43542",
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "estimate_gas": 75895,
+        "gas_used": 75895,
+        "gas_limit": 89690,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "authorize-factory-execute",
+        "transaction_hash": "0x4790248cc2b6ace47be64b00126ab981dfa57e89015a111390d4dd966d2f92f2",
+        "block_number": 68483167,
+        "block_hash": "0x69a2b729764cdfed07d66405819cb595ad239da10ecb13561a2f26bec7094324",
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "estimate_gas": 81420,
+        "gas_used": 81420,
+        "gas_limit": 95491,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "list-market",
+        "transaction_hash": "0x316915f237361965520bb7701ab29cfbd0834879d79da0fbe98e7706f7582595",
+        "block_number": 68483168,
+        "block_hash": "0x696cc28da3a346dd0deec76d37a15872b0289b1e73058a2ac30ee562d2bba3d9",
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xec11cc8fafd47a1a92a7c9b43eedee86a94b3dfa",
+        "contract_address": null,
+        "estimate_gas": 27289157,
+        "gas_used": 27265742,
+        "gas_limit": 28663615,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "approve-reserve-collateral",
+        "transaction_hash": "0x6d8c9a553bd0950b0b10ec9f6867f2d0c2e0679b2225dedf19d7cb1e4c31b82a",
+        "block_number": 68483169,
+        "block_hash": "0x6981b8840203bcbbbeb0c396feac79dcd26dfe3d9f9b24b515eec43f3101dada",
+        "from": "0xcbf737ea4d798a74a2988fc3294910d5a581a85c",
+        "to": "0xfe854aeb0e1b5b568291f52696e5726c89a8d39e",
+        "contract_address": null,
+        "estimate_gas": 51857,
+        "gas_used": 51857,
+        "gas_limit": 64450,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "deposit-reserve-collateral",
+        "transaction_hash": "0x345561e8a6af26fb1230b5b6fa18a325572353f54fe2374351a4995b5f024f7d",
+        "block_number": 68483170,
+        "block_hash": "0x921e4e4dd381af278e9681f55623f61d783765b994d38ac519e87aa4b82d1500",
+        "from": "0xcbf737ea4d798a74a2988fc3294910d5a581a85c",
+        "to": "0x47c801b481c5f978e979dbb336521d90430b8f6e",
+        "contract_address": null,
+        "estimate_gas": 163816,
+        "gas_used": 161624,
+        "gas_limit": 182007,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "allocate-reserve-before-activation",
+        "transaction_hash": "0x107165b56f83020e420a474213e80eb620dd114bbb2ef650b92a9f5a24a294fe",
+        "block_number": 68483171,
+        "block_hash": "0x3b180aee15caa55ea7379557ff9dc2c2bff43a6baa10ae67214569468755b852",
+        "from": "0xcbf737ea4d798a74a2988fc3294910d5a581a85c",
+        "to": "0x47c801b481c5f978e979dbb336521d90430b8f6e",
+        "contract_address": null,
+        "estimate_gas": 308890,
+        "gas_used": 305834,
+        "gas_limit": 334335,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "calibrate-and-activate-propose",
+        "transaction_hash": "0x31eebcc9973e1ceee00dd79e37d83e67af392cb60133ae5d302bfd51cd5b0890",
+        "block_number": 68483172,
+        "block_hash": "0x9c809db43cb6901a0a8c0ca36cde789c73b1acfb2d7ae6a5494296de5c9361b2",
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "estimate_gas": 91203,
+        "gas_used": 91203,
+        "gas_limit": 105764,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      },
+      {
+        "operation": "calibrate-and-activate-execute",
+        "transaction_hash": "0x3514b077278cdc8b21217b436ce873b28a465a388f1ce39f5a67889b71128b76",
+        "block_number": 68483174,
+        "block_hash": "0x34fcf38e186e29838edaacb165ceb7284d08fa77f21aa20f71d8fb7e1870962b",
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "estimate_gas": 1114353,
+        "gas_used": 1114353,
+        "gas_limit": 1180071,
+        "status": "success",
+        "scope": "LOCAL_FORK"
+      }
+    ],
+    "canonicality": "The runner fetched each successful local receipt and verified its block hash against the local canonical block before snapshot restoration.",
+    "read_only_proxy": {
+      "report": {
+        "path": "tmp/integrated-monad-fork-final-rpc-audit.json",
+        "sha256_raw": "5d53e2e283cb56f9cb47711d05d9e3ee9a938bebdbb4159fbc0a6911d2df3cb4",
+        "bytes": 1091
+      },
+      "upstream_endpoint_sha256": "2d318c5ef3d9e4d6242d92a8f6b138653c9ef5bf31bbe5afbf27092a15b9ca0a",
+      "public_transactions": 0,
+      "methods": {
+        "eth_chainId": {
+          "accepted": 3,
+          "failed": 0
+        },
+        "anvil_nodeInfo": {
+          "accepted": 0,
+          "failed": 2
+        },
+        "eth_getBlockByNumber": {
+          "accepted": 2,
+          "failed": 0
+        },
+        "eth_gasPrice": {
+          "accepted": 1,
+          "failed": 0
+        },
+        "eth_getBlockByHash": {
+          "accepted": 2,
+          "failed": 0
+        },
+        "eth_getAccountInfo": {
+          "accepted": 0,
+          "failed": 10
+        },
+        "eth_getBalance": {
+          "accepted": 33,
+          "failed": 0
+        },
+        "eth_getTransactionCount": {
+          "accepted": 34,
+          "failed": 0
+        },
+        "eth_getCode": {
+          "accepted": 33,
+          "failed": 0
+        },
+        "eth_getStorageAt": {
+          "accepted": 74,
+          "failed": 0
+        },
+        "eth_call": {
+          "accepted": 1,
+          "failed": 0
+        },
+        "eth_getTransactionReceipt": {
+          "accepted": 10,
+          "failed": 0
+        }
+      },
+      "failed_methods_note": "Unsupported Anvil/account-info probes were rejected at the allowlist; they were not forwarded as public mutations."
+    }
+  },
+  "preserved_diagnostics": {
+    "prior_public_inspection_before_reciprocal_checks": {
+      "report": {
+        "path": "tmp/integrated-monad-unsigned-final-20261006.json",
+        "sha256_raw": "0060c1bb0daa8c91b1ef443e26f4e6a9368570a9e63fdf2f492736de6c717ce9",
+        "bytes": 318269
+      },
+      "public_transactions": 0,
+      "note": "Superseded by the newer read-only inspection with all reciprocal bindings verified. The original 11-transaction local fork rehearsal remains pinned to its own earlier source block and bundle; no new fork/public transactions were performed for this inspection refresh."
+    },
+    "initial_oracle_run": {
+      "report": {
+        "path": "tmp/integration-oracle-default-monad-20261006.json",
+        "sha256_raw": "a8bfb500a798490ca16de8ffcca9ea2b7e592077ee420b92ffd53fe60e7b443f",
+        "bytes": 6593096
+      },
+      "suites": 39,
+      "tests": 298,
+      "passed": 294,
+      "failed": 4,
+      "failures": [
+        {
+          "suite": "test/gas/OracleGas.t.sol:OracleGasTest",
+          "test": "setUp()",
+          "reason": "vm.getCode: no matching artifact found"
+        },
+        {
+          "suite": "test/integration-uma/UmaVenue.t.sol:UmaVenueTest",
+          "test": "setUp()",
+          "reason": "vm.getCode: no matching artifact found"
+        },
+        {
+          "suite": "test/integration-uma/UmaVenueExtended.t.sol:UmaVenueExtendedTest",
+          "test": "setUp()",
+          "reason": "vm.getCode: no matching artifact found"
+        },
+        {
+          "suite": "test/vectors/ClaimVectors.t.sol:ClaimVectorsTest",
+          "test": "test_claimVectors()",
+          "reason": "Checked-in claim vector JSON differed only by CRLF versus LF envelope formatting; exact wire values were preserved."
+        }
+      ],
+      "resolution": "Built UMA 0.8.16 artifacts through full forge build; normalized only claim-vector JSON checkout newlines. Final Prague suite passes all recovered tests."
+    },
+    "initial_python_validation": {
+      "log": {
+        "path": "tmp/integration-oracle-python-20261006.log",
+        "sha256_raw": "8b1dc405b6d034f0c9d7223f208931f5a648760ef940c05e725ef2c0b4b0baa4",
+        "bytes": 4400
+      },
+      "discovered": 58,
+      "failures": 4,
+      "errors": 1,
+      "skipped": 9,
+      "resolution": "Fixed committed JSON CRLF pin portability and Windows Bun path quoting; final 60 tests are 51 passed/9 skipped. Frozen reports and raw custody hashes were not regenerated or weakened."
+    },
+    "monad_vs_prague_gas_budget": {
+      "report": {
+        "path": "tmp/integration-oracle-fixtures-monad-20261006.json",
+        "sha256_raw": "5d5c3054316b6b0118aa7927592029c0971e491763427c7c3305f5e6d35a7a9c",
+        "bytes": 29776
+      },
+      "suites": 4,
+      "tests": 49,
+      "passed": 45,
+      "failed": 4,
+      "failures": [
+        {
+          "suite": "test/gas/OracleGas.t.sol:OracleGasTest",
+          "test": "test_gas_assertProposal()",
+          "reason": "assertProposal: above its section 6.9 budget: 772890 > 666224"
+        },
+        {
+          "suite": "test/gas/OracleGas.t.sol:OracleGasTest",
+          "test": "test_gas_assertProposal_maxClaim()",
+          "reason": "assertProposalMaxClaim: above its section 6.9 budget: 1003482 > 928624"
+        },
+        {
+          "suite": "test/gas/OracleGas.t.sol:OracleGasTest",
+          "test": "test_gas_finalizeMarket()",
+          "reason": "finalizeMarket: above its section 6.9 budget: 324892 > 300000"
+        },
+        {
+          "suite": "test/gas/OracleGas.t.sol:OracleGasTest",
+          "test": "test_gas_finalizeMarket_realEngine()",
+          "reason": "finalizeMarketRealEngine: above its section 6.9 budget: 335129 > 300000"
+        }
+      ],
+      "gas_manifest": {
+        "path": "oracle/deployments/gas.json",
+        "sha256_raw": "51ad42c0e6420eb8a12d7317e0abf3476c05b761e91c70a5e9ca284117c6061b",
+        "bytes": 13455
+      },
+      "interpretation": "Four execution-budget assertions from the explicitly Prague/Solidity-0.8.33 historical manifest fail under MonadTen repricing. The successful final Prague suite and local transaction gas caps are separate evidence. This is not reported as a fully passing Monad gas-budget suite.",
+      "revision": "Earlier same-session engine revision before the final reporting change; failure details are retained, not silently filtered from this record."
+    },
+    "interrupted_unpinned_ci_attempt": {
+      "log": {
+        "path": "tmp/integration-oracle-ci-20261006.log",
+        "sha256_raw": "0d360f3d03a8961ba1c47aea8183f7355a2baf15adc49165ff7df592d350e744",
+        "bytes": 130136
+      },
+      "accepted": false,
+      "reason": "Earlier incomplete CI attempt selected newer 0.8.34 compilation before pin correction; it is not final completed CI evidence."
+    },
+    "unfunded_public_fork_input": {
+      "report": {
+        "path": "tmp/integrated-monad-fork-unfunded-20261006.json",
+        "sha256_raw": "dc313f2aad6460af3b0a80d812eb870403119551dc6ab5e70001e92f230b01e2",
+        "bytes": 6086
+      },
+      "result": "Correctly refused a 100-TestUSDC reserve requested from an actual zero-balance team wallet; no token balance was fabricated."
+    }
+  },
+  "limitations": [
+    "No public deployment or public transaction was performed in this lane.",
+    "Real-source local runtime proof and uninterrupted deployed leveraged closure are recorded by the coordinating integration task, not claimed by these contract-equivalent tests.",
+    "Local scripted oracle evidence and assertion adjudication do not prove external-world factual truth or production CRE delivery.",
+    "Nine Python checks require a private dataset that is absent from this checkout.",
+    "Raw logs/reports remain in ignored tmp paths and are referenced by unmodified-byte SHA-256; this compact artifact does not embed their full contents."
+  ],
+  "public_read_only_inspection_before_helper": {
+    "command": {
+      "cwd": ".",
+      "argv": [
+        "python",
+        "scripts/integration/preflight-integrated.py",
+        "--config",
+        "tmp/integrated-monad-fork-final-input.json",
+        "--output",
+        "tmp/integrated-monad-unsigned-reciprocal-final-20261006.json"
+      ]
+    },
+    "report": {
+      "path": "tmp/integrated-monad-unsigned-reciprocal-final-20261006.json",
+      "sha256_raw": "dbc679a2c9238abddd163591e8281ff97d9e21e4f004a105186c7783d6c251fd",
+      "bytes": 318760
+    },
+    "chain_id": 10143,
+    "block": {
+      "number": "68501121",
+      "hash": "0xbdeb20af40a54ae68d82356c729478d02da99612846e5abaa018dda06ed5eab8",
+      "timestamp": "1791233443"
+    },
+    "status": "unsigned-bundle-prepared",
+    "checks": [
+      {
+        "name": "Timelock runtime",
+        "passed": true
+      },
+      {
+        "name": "BondTreasury runtime",
+        "passed": true
+      },
+      {
+        "name": "ResolutionOracle runtime",
+        "passed": true
+      },
+      {
+        "name": "UmaAdapter runtime",
+        "passed": true
+      },
+      {
+        "name": "MarketRegistry runtime",
+        "passed": true
+      },
+      {
+        "name": "KeeperRouter runtime",
+        "passed": true
+      },
+      {
+        "name": "StubMarketFactory runtime",
+        "passed": true
+      },
+      {
+        "name": "registry oracle/token/governance bindings",
+        "passed": true
+      },
+      {
+        "name": "active oracle trust set",
+        "passed": true,
+        "detail": 1
+      },
+      {
+        "name": "current assertion commitments funded",
+        "passed": true,
+        "detail": {
+          "assertionBalance": "944400000",
+          "commitment": "11120000"
+        }
+      },
+      {
+        "name": "treasury registry/oracle/token/governance bindings",
+        "passed": true
+      },
+      {
+        "name": "registry treasury and reciprocal oracle bindings",
+        "passed": true,
+        "detail": {
+          "registry.treasury": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a",
+          "oracle.registry": "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa",
+          "oracle.treasury": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a",
+          "oracle.usdc": "0xFE854aEB0e1B5B568291f52696E5726c89a8d39e",
+          "oracle.governance": "0xC2095b3DfD54328E59150bb70a3B541e21772F56"
+        }
+      },
+      {
+        "name": "collateral contract exists",
+        "passed": true
+      },
+      {
+        "name": "collateral uses six decimal atoms",
+        "passed": true
+      },
+      {
+        "name": "manifest lister binding",
+        "passed": true
+      }
+    ],
+    "existing_contracts": {
+      "Timelock": {
+        "address": "0xC2095b3DfD54328E59150bb70a3B541e21772F56",
+        "codehash": "0x61ca245342d8ca783090c86a1e1f170c59da15077f3aba7d2c49c8506a264956",
+        "deployBlock": 67901624
+      },
+      "BondTreasury": {
+        "address": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a",
+        "codehash": "0xb452b4bcafb7abbd76cce31d0caaed337da43096b9eeac67e3c76e050f72f3c7",
+        "deployBlock": 67901624
+      },
+      "ResolutionOracle": {
+        "address": "0xa87D6E10a7199666ec9F2e04866201E35AAf36A6",
+        "codehash": "0x4cc529eb42654a45083b055d2e0081308e5ae3eeb980da5eb4dc0297a6e57d44",
+        "deployBlock": 67901624
+      },
+      "UmaAdapter": {
+        "address": "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1",
+        "codehash": "0x5d553bb4ac3eeb76ddace056854e0b7c78c405109ce0f4a0d485b2a3fb503b29",
+        "deployBlock": 67901624
+      },
+      "MarketRegistry": {
+        "address": "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa",
+        "codehash": "0x217cacdde2c26367cfee07a7a168b7d8e56012e35402d108457350274d718fad",
+        "deployBlock": 67901624
+      },
+      "KeeperRouter": {
+        "address": "0xa04109FfD14C8E2c8303b3F1047Eeb14D78a67A9",
+        "codehash": "0xe300f39c5b9c6c2d77d172fc74f0b7c711a50ac2c7ddcba0c7e6e99f686e67c9",
+        "deployBlock": 67901624
+      },
+      "StubMarketFactory": {
+        "address": "0xF58833b3b45ca45b5C10F396e39e675678751943",
+        "codehash": "0xfc3c2632116eb4750e43b5a2eb72c545a48f5417ff068806d06953e95ec8edfb",
+        "deployBlock": 67901624,
+        "testnetOnly": true
+      }
+    },
+    "governance_roles": {
+      "timelock": "0xC2095b3DfD54328E59150bb70a3B541e21772F56",
+      "teamSafe": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+      "guardianSafe": "0xbdB0f2Cb412a7d150Aa73534531533C904Eb071d",
+      "lister": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1"
+    },
+    "registry_current_factory": "0xF58833b3b45ca45b5C10F396e39e675678751943",
+    "registry_factory_kind": "StubMarketFactory",
+    "collateral": {
+      "address": "0xFE854aEB0e1B5B568291f52696E5726c89a8d39e",
+      "decimals": 6,
+      "codehash": "0x2ebf66c138dde01a4c8c1ccefcfe8e479e965b20089ca18b3b1cafaa672d678f"
+    },
+    "assertion_funding": {
+      "balanceAtoms": "944400000",
+      "committedAtoms": "11120000",
+      "maxPerMarket": "100000000"
+    },
+    "active_trust_set": {
+      "cfg": {
+        "forwarder": "0xB9F79d863261869B234c481D1f9A7af84AeAd192",
+        "production": false,
+        "workflowIds": [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "workflowOwner": "0x0000000000000000000000000000000000000000",
+        "workflowName": "0x00000000000000000000",
+        "runnerAttestor": "0xAdB4aB1A632fad6D41d49bcD9DEf374084B286B0",
+        "committee": [
+          "0x068eD0017f2d18f5BcbDfF2157DA00Dd877Cd71b",
+          "0x179D2025d3afB902598dbB1F0e8234e99088139F",
+          "0xED10ce281361Baf48c617a0B19d8217f23a20593"
+        ],
+        "threshold": 2,
+        "watchdog": "0x89F4b643a05915918c2459d04Da494598985264C",
+        "venue": "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1"
+      },
+      "workflowIdRevoked": [
+        false,
+        false
+      ],
+      "attestorRevoked": false,
+      "watchdogRevoked": false,
+      "createdAt": "1791112181"
+    },
+    "limitations": "Public state was read only. Existing simulation forwarding and role membership do not prove production delivery or signer custody."
+  },
+  "public_read_only_inspection": {
+    "command": {
+      "cwd": ".",
+      "argv": [
+        "python",
+        "scripts/integration/preflight-integrated.py",
+        "--config",
+        "tmp/integrated-monad-helper-input.json",
+        "--output",
+        "tmp/integrated-monad-helper-20261006.unsigned.json"
+      ]
+    },
+    "report": {
+      "path": "tmp/integrated-monad-helper-20261006.unsigned.json",
+      "sha256_raw": "20dfd995205f6207eb5b682626d0da3c2fca6de2e843ad397dbdbd7becd2f90b",
+      "bytes": 324856
+    },
+    "chain_id": 10143,
+    "block": {
+      "number": "68522967",
+      "hash": "0x0243963bed0e4f48a35c6fba2097a51615acf212b66a58ebf06eb563d961853b",
+      "timestamp": "1791240107"
+    },
+    "checks": [
+      {
+        "name": "Timelock runtime",
+        "passed": true
+      },
+      {
+        "name": "BondTreasury runtime",
+        "passed": true
+      },
+      {
+        "name": "ResolutionOracle runtime",
+        "passed": true
+      },
+      {
+        "name": "UmaAdapter runtime",
+        "passed": true
+      },
+      {
+        "name": "MarketRegistry runtime",
+        "passed": true
+      },
+      {
+        "name": "KeeperRouter runtime",
+        "passed": true
+      },
+      {
+        "name": "StubMarketFactory runtime",
+        "passed": true
+      },
+      {
+        "name": "registry oracle/token/governance bindings",
+        "passed": true
+      },
+      {
+        "name": "active oracle trust set",
+        "passed": true,
+        "detail": 1
+      },
+      {
+        "name": "current assertion commitments funded",
+        "passed": true,
+        "detail": {
+          "assertionBalance": "944400000",
+          "commitment": "11120000"
+        }
+      },
+      {
+        "name": "treasury registry/oracle/token/governance bindings",
+        "passed": true
+      },
+      {
+        "name": "registry treasury and reciprocal oracle bindings",
+        "passed": true,
+        "detail": {
+          "registry.treasury": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a",
+          "oracle.registry": "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa",
+          "oracle.treasury": "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a",
+          "oracle.usdc": "0xFE854aEB0e1B5B568291f52696E5726c89a8d39e",
+          "oracle.governance": "0xC2095b3DfD54328E59150bb70a3B541e21772F56"
+        }
+      },
+      {
+        "name": "collateral contract exists",
+        "passed": true
+      },
+      {
+        "name": "collateral uses six decimal atoms",
+        "passed": true
+      },
+      {
+        "name": "manifest lister binding",
+        "passed": true
+      }
+    ],
+    "registry_current_factory": "0xF58833b3b45ca45b5C10F396e39e675678751943",
+    "registry_factory_kind": "StubMarketFactory",
+    "active_trust_set": {
+      "cfg": {
+        "forwarder": "0xB9F79d863261869B234c481D1f9A7af84AeAd192",
+        "production": false,
+        "workflowIds": [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "workflowOwner": "0x0000000000000000000000000000000000000000",
+        "workflowName": "0x00000000000000000000",
+        "runnerAttestor": "0xAdB4aB1A632fad6D41d49bcD9DEf374084B286B0",
+        "committee": [
+          "0x068eD0017f2d18f5BcbDfF2157DA00Dd877Cd71b",
+          "0x179D2025d3afB902598dbB1F0e8234e99088139F",
+          "0xED10ce281361Baf48c617a0B19d8217f23a20593"
+        ],
+        "threshold": 2,
+        "watchdog": "0x89F4b643a05915918c2459d04Da494598985264C",
+        "venue": "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1"
+      },
+      "workflowIdRevoked": [
+        false,
+        false
+      ],
+      "attestorRevoked": false,
+      "watchdogRevoked": false,
+      "createdAt": "1791112181"
+    },
+    "assertion_funding": {
+      "balanceAtoms": "944400000",
+      "committedAtoms": "11120000",
+      "maxPerMarket": "100000000"
+    },
+    "collateral": {
+      "address": "0xFE854aEB0e1B5B568291f52696E5726c89a8d39e",
+      "decimals": 6,
+      "codehash": "0x2ebf66c138dde01a4c8c1ccefcfe8e479e965b20089ca18b3b1cafaa672d678f"
+    },
+    "scope": "Latest read-only inspection prepares an optional-helper bundle. No persistent public integration or signer custody is claimed."
+  },
+  "helper_public_state_fork_rehearsal": {
+    "scope": "Separate 12-transaction local fork rehearsal including RolloverBatcher. Original 11-transaction evidence remains unchanged above.",
+    "command": {
+      "cwd": ".",
+      "argv": [
+        "python",
+        "scripts/integration/preflight-integrated.py",
+        "--rehearse-local",
+        "--rpc",
+        "http://127.0.0.1:18587",
+        "--config",
+        "tmp/integrated-monad-helper-input.json",
+        "--output",
+        "tmp/integrated-monad-helper-20261006.rehearsal.json"
+      ]
+    },
+    "reports": [
+      {
+        "path": "tmp/integrated-monad-helper-20261006.rehearsal.json",
+        "sha256_raw": "20c64f21c9cc6d39f31989513439efcf665254575ed4565f30fac4d82c5213db",
+        "bytes": 367488
+      },
+      {
+        "path": "tmp/integrated-monad-helper-20261006.execution.json",
+        "sha256_raw": "918d0238ddfd9bed588791fce4cc57e887405583f154bd924fd94b176a6817b6",
+        "bytes": 2608
+      },
+      {
+        "path": "tmp/integrated-monad-helper-20261006.rpc-audit.json",
+        "sha256_raw": "de2dce78ca3f893ec3727b8a267a9904761f2a334f4e8df5d593a48c44a61e92",
+        "bytes": 1090
+      }
+    ],
+    "input": {
+      "path": "tmp/integrated-monad-helper-input.json",
+      "sha256_raw": "648634909c6c4067b861e94a56bea24b14f07a59491718e1fa834ef1bb069088",
+      "bytes": 1833
+    },
+    "listing_pack": {
+      "path": "tmp/integrated-monad-fork-pack.json",
+      "sha256_raw": "7a58a83bccac02f61acc28d8b2314f417ec96ad6dc77fa4f40f22ef90c753f36",
+      "bytes": 3386
+    },
+    "fork_source": {
+      "chainId": 10143,
+      "blockNumber": "68522967",
+      "blockHash": "0x0243963bed0e4f48a35c6fba2097a51615acf212b66a58ebf06eb563d961853b",
+      "readOnlyVerified": true,
+      "collateralBalanceVerified": true,
+      "deployerNonceVerified": true
+    },
+    "passed": true,
+    "local_transactions": 12,
+    "public_transactions": 0,
+    "local_state_restored": true,
+    "owned_processes_stopped": true,
+    "reserve": {
+      "funder": "0xCbf737ea4D798a74a2988fC3294910d5a581A85c",
+      "balanceAtoms": "62160000",
+      "requiredAtoms": "50000000"
+    },
+    "roles": [
+      {
+        "address": "0x676c3Dfd23c742bb6F0CFFd7a108d69ae674f49e",
+        "nativeBalance": "2095454313960565518"
+      },
+      {
+        "address": "0xcE815d7CE2A1B45DcF6b5342AEfB20Fbdead95b1",
+        "nativeBalance": "3571353988992519977"
+      },
+      {
+        "address": "0xCbf737ea4D798a74a2988fC3294910d5a581A85c",
+        "nativeBalance": "2431217003999083271"
+      }
+    ],
+    "local_overrides": {
+      "impersonation": true,
+      "native_balance_per_impersonated_sender_wei": "10000000000000000000000",
+      "collateral_minted_or_overridden": false,
+      "timelock_time_advanced_locally": true,
+      "timelock_min_delay_seconds": 300,
+      "signer_custody_verified": false
+    },
+    "result": {
+      "passed": true,
+      "engineCodehash": "0x6d469f77726b5c377ab7041ba817a8b0f3edaf3a054143f69f9b711735559077",
+      "listingHash": "0x17360223dd0ad02ffdaa529d238d14ae85e525cf50e7167542f1b8be51aea486",
+      "activeProfile": {
+        "version": "2",
+        "profileHash": "0x00c47985b36d970c581c049d903a0e19a5b7b9cabf428bd444de6429fc088edf",
+        "effectiveAt": "1791240731"
+      },
+      "reserveCapBaseQ": "50000000000000000000000000",
+      "active": true,
+      "rolloverHelper": {
+        "address": "0xb25dAb719dE68f846Eb5e4be7c1A8e2dF523b334",
+        "codeHash": "0x9d4c9e5216ee5b5883f983e011ffc6f6c25d0b4a8c362115eef6b478e9e0abfd",
+        "creationCodeHash": "0xe12e9ba232cd31bc380d9c5d33fc213369718f1ba59f794446e237c6787630f5"
+      },
+      "deploymentEvidenceScope": "ephemeral local fork; addresses are not a deployed public/frontend manifest",
+      "localOnly": true,
+      "roleCustodyVerified": false
+    },
+    "receipts": [
+      {
+        "operation": "deploy-code-store",
+        "transaction_hash": "0xc403ade137e45dc039f02207af9b1818c7120d3d9a45aa60173de3fffe34abc8",
+        "block_hash": "0xb56349e164e6aa0de3eb49e456193ab7fd2532a95e9d378f38112903e1db4688",
+        "block_number": 68522968,
+        "from": "0x676c3dfd23c742bb6f0cffd7a108d69ae674f49e",
+        "to": null,
+        "contract_address": "0xe545d1d8ef68e1446b4866179e569aca08c85722",
+        "gas_used": 21630985,
+        "estimate_gas": 21630985,
+        "gas_limit": 22722535,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "deploy-code-store-tail",
+        "transaction_hash": "0x0498ca761231f43609f57d7d0db35a3b5f5c08b4bf2145b7a80da5cc6e839072",
+        "block_hash": "0xe5d0614953903894015384eeef09ae17196655a505cbbfc70ccb6c9efa596843",
+        "block_number": 68522969,
+        "from": "0x676c3dfd23c742bb6f0cffd7a108d69ae674f49e",
+        "to": null,
+        "contract_address": "0x0052bf04b55ca97b88a60a7306cf2925a6347339",
+        "gas_used": 7024698,
+        "estimate_gas": 7024698,
+        "gas_limit": 7385933,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "deploy-real-factory",
+        "transaction_hash": "0x3522d77119a16b1ac8be3116f67932fea318c52c964eb72c6c9293c34062748d",
+        "block_hash": "0x671aa9f6495e87a6960e0a6af7954a4d9b957fb20dc8f5b944cad794cc1057e5",
+        "block_number": 68522970,
+        "from": "0x676c3dfd23c742bb6f0cffd7a108d69ae674f49e",
+        "to": null,
+        "contract_address": "0xdd967528066a97389157a858cb06f4e47c8bbd78",
+        "gas_used": 2428775,
+        "estimate_gas": 2428775,
+        "gas_limit": 2560214,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "deploy-rollover-helper",
+        "transaction_hash": "0x36e8580743a4492878e8592e4346aa556317400411a3fcc7f4cbe3172ec3c78b",
+        "block_hash": "0x2779eb129251c5d87ecdbe8003dd3ef43946f751931fa084503d87d97ab8cf36",
+        "block_number": 68522971,
+        "from": "0x676c3dfd23c742bb6f0cffd7a108d69ae674f49e",
+        "to": null,
+        "contract_address": "0xb25dab719de68f846eb5e4be7c1a8e2df523b334",
+        "gas_used": 624879,
+        "estimate_gas": 624879,
+        "gas_limit": 666123,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "authorize-factory-propose",
+        "transaction_hash": "0x0550408fd95f3bdb310a5021910c1be0fd0f1b65175e5dd96f015601a2f9651a",
+        "block_hash": "0x2828e2af0a59a149f2b662003679e7078d4efa03600bfd353fcb8b1597300d57",
+        "block_number": 68522972,
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "gas_used": 75883,
+        "estimate_gas": 75883,
+        "gas_limit": 89678,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "authorize-factory-execute",
+        "transaction_hash": "0x16dfe8ab8352402ad320a4c390da2669f3b926b19f84bbb53d704f2e6137d2d7",
+        "block_hash": "0xa4421ce0e6fd78cc5a3a96fcb4e4e084ed14eabf7dbc43c6aeabebcf2ee6f837",
+        "block_number": 68522974,
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "gas_used": 81408,
+        "estimate_gas": 81408,
+        "gas_limit": 95479,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "list-market",
+        "transaction_hash": "0x592e25590bc5962ee4e1267dccf0a4610f0e789b2ee4c3e52f11aa27bda2607a",
+        "block_hash": "0x40ebc64f0eb12681afd46ef7869823c304f183bbc5ce7721cf990e2636ab3f02",
+        "block_number": 68522975,
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xec11cc8fafd47a1a92a7c9b43eedee86a94b3dfa",
+        "contract_address": null,
+        "gas_used": 27265742,
+        "estimate_gas": 27289157,
+        "gas_limit": 28663615,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "approve-reserve-collateral",
+        "transaction_hash": "0xce83ad4e685d8bbc3d6b40769ea0c6dee2128f2003dc6314ceab0cc6941b301d",
+        "block_hash": "0x30ebafd782d6b80a93cbe9c566043105b72928c47cb3b33ca0a6edb3854e511a",
+        "block_number": 68522976,
+        "from": "0xcbf737ea4d798a74a2988fc3294910d5a581a85c",
+        "to": "0xfe854aeb0e1b5b568291f52696e5726c89a8d39e",
+        "contract_address": null,
+        "gas_used": 51857,
+        "estimate_gas": 51857,
+        "gas_limit": 64450,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "deposit-reserve-collateral",
+        "transaction_hash": "0xe43a25b1726254dc6e6bbb1d1b464e87d6b893e776a2d534a971bfa1cf9832c3",
+        "block_hash": "0x2668deb0739bb1d6b1141661cd896c57fbd04d2a0911d9c73f60f3888c698d02",
+        "block_number": 68522977,
+        "from": "0xcbf737ea4d798a74a2988fc3294910d5a581a85c",
+        "to": "0x47c801b481c5f978e979dbb336521d90430b8f6e",
+        "contract_address": null,
+        "gas_used": 161624,
+        "estimate_gas": 163816,
+        "gas_limit": 182007,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "allocate-reserve-before-activation",
+        "transaction_hash": "0x6ab62ce5ecb14372888707dbc030faea7ab1cb331b2f93729f35e76e81b848f1",
+        "block_hash": "0x2f0e954478ad2d802c5c7be7b681f27bb1f345858306073902eaa2306ae818b2",
+        "block_number": 68522978,
+        "from": "0xcbf737ea4d798a74a2988fc3294910d5a581a85c",
+        "to": "0x47c801b481c5f978e979dbb336521d90430b8f6e",
+        "contract_address": null,
+        "gas_used": 305834,
+        "estimate_gas": 308890,
+        "gas_limit": 334335,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "calibrate-and-activate-propose",
+        "transaction_hash": "0x99601754fea223c4a8a437059d32ec50fc20b51a8f5b5029377ff4c25cb4c80d",
+        "block_hash": "0x0a66c7d6e62101cb3e59318d300a5fe22bfc857cebf619f43a1023445d44af19",
+        "block_number": 68522979,
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "gas_used": 91203,
+        "estimate_gas": 91203,
+        "gas_limit": 105764,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      },
+      {
+        "operation": "calibrate-and-activate-execute",
+        "transaction_hash": "0xdda954b3e79cac062480e1f5d17d88808e8af8143b4d6d15752e115db1068e4a",
+        "block_hash": "0x27ea268bbb86b9bda90c7190a33d823c1e2c51a2cc3cdf03a1ed62b8b521e822",
+        "block_number": 68522981,
+        "from": "0xce815d7ce2a1b45dcf6b5342aefb20fbdead95b1",
+        "to": "0xc2095b3dfd54328e59150bb70a3b541e21772f56",
+        "contract_address": null,
+        "gas_used": 1114353,
+        "estimate_gas": 1114353,
+        "gas_limit": 1180071,
+        "scope": "LOCAL_FORK",
+        "status": "success"
+      }
+    ],
+    "helper_artifact": {
+      "sha256": "e0bdcca6d7a68fbce6d372b1eda796dde7c1ecdd35f438364f49f17d64a3170c",
+      "creationCodeHash": "0xe12e9ba232cd31bc380d9c5d33fc213369718f1ba59f794446e237c6787630f5",
+      "runtimeBytes": 2644
+    },
+    "read_only_proxy_methods": {
+      "eth_chainId": {
+        "accepted": 4,
+        "failed": 0
+      },
+      "anvil_nodeInfo": {
+        "accepted": 0,
+        "failed": 2
+      },
+      "eth_getBlockByNumber": {
+        "accepted": 2,
+        "failed": 0
+      },
+      "eth_gasPrice": {
+        "accepted": 1,
+        "failed": 0
+      },
+      "eth_getBlockByHash": {
+        "accepted": 2,
+        "failed": 0
+      },
+      "eth_getAccountInfo": {
+        "accepted": 0,
+        "failed": 6
+      },
+      "eth_getBalance": {
+        "accepted": 34,
+        "failed": 0
+      },
+      "eth_getCode": {
+        "accepted": 34,
+        "failed": 0
+      },
+      "eth_getTransactionCount": {
+        "accepted": 35,
+        "failed": 0
+      },
+      "eth_getStorageAt": {
+        "accepted": 74,
+        "failed": 0
+      },
+      "eth_call": {
+        "accepted": 1,
+        "failed": 0
+      },
+      "eth_getTransactionReceipt": {
+        "accepted": 11,
+        "failed": 0
+      }
+    },
+    "canonicality": "Each successful receipt block hash was compared with the canonical local block before restoring the snapshot. These are not public receipts.",
+    "preserved_runner_diagnostic": {
+      "report": {
+        "path": "tmp/integrated-monad-helper-20261006-initial-runner.execution.json",
+        "sha256_raw": "2c7b0771816993605f963eeb0a883585e6610bfa9e63ecf86c69490032833708",
+        "bytes": 768
+      },
+      "reason": "The first orchestration wrapper expected the wrong success-status string after a successful read-only inspection; it stopped before creating any process or transaction. The wrapper guard was corrected and the complete run is recorded separately."
+    }
+  },
+  "unsent_bundle_before_helper": {
+    "source_report": {
+      "path": "tmp/integrated-monad-unsigned-reciprocal-final-20261006.json",
+      "sha256_raw": "dbc679a2c9238abddd163591e8281ff97d9e21e4f004a105186c7783d6c251fd",
+      "bytes": 318760
+    },
+    "json_pointer": "/bundle",
+    "sha256_canonical_json": "991c4604d0b0f6af3856dc3180bf9853425d91915aac72c1b63b1b06935654de",
+    "hash_encoding": "UTF-8 JSON of /bundle, sorted keys, separators comma/colon, ensure_ascii=false, no final newline",
+    "broadcast": false,
+    "public_transactions": 0,
+    "chain_id": 10143,
+    "state_block": "68501121",
+    "state_block_hash": "0xbdeb20af40a54ae68d82356c729478d02da99612846e5abaa018dda06ed5eab8",
+    "deployer_nonce": "46",
+    "step_count": 11,
+    "expected_creation_code_hash": "0x9169fa825e51d55e608d113aa3733b59f2ca562cb578e6a2875c50a3983d8b2a",
+    "calibration_kind": "fixture",
+    "calibration_evidence_hash": "0x5a73ac028ea92e3b64bdb3c44938b8c204f539d7caa68dc9fce2b52348aa9d3b",
+    "note": "This diagnostic uses fixture calibration and a recorded keeper wallet balance. It is unsent and requires reviewed market/source/calibration inputs and signer/funder decisions; predicted addresses are not a frontend deployment manifest."
+  },
+  "unsent_bundle": {
+    "source_report": {
+      "path": "tmp/integrated-monad-helper-20261006.unsigned.json",
+      "sha256_raw": "20dfd995205f6207eb5b682626d0da3c2fca6de2e843ad397dbdbd7becd2f90b",
+      "bytes": 324856
+    },
+    "json_pointer": "/bundle",
+    "sha256_canonical_json": "960d811320990cfe6c8d994c8bd4bf62a5de8568a5614c356072897b07b29264",
+    "hash_encoding": "UTF-8 JSON of /bundle, sorted keys, separators comma/colon, ensure_ascii=false, no final newline",
+    "broadcast": false,
+    "public_transactions": 0,
+    "chain_id": 10143,
+    "step_count": 12,
+    "state_block": "68522967",
+    "state_block_hash": "0x0243963bed0e4f48a35c6fba2097a51615acf212b66a58ebf06eb563d961853b",
+    "deployer_nonce": "46",
+    "expected_creation_code_hash": "0x9169fa825e51d55e608d113aa3733b59f2ca562cb578e6a2875c50a3983d8b2a",
+    "rollover_helper": {
+      "address": "0xb25dAb719dE68f846Eb5e4be7c1A8e2dF523b334",
+      "codeHash": "0x9d4c9e5216ee5b5883f983e011ffc6f6c25d0b4a8c362115eef6b478e9e0abfd",
+      "creationCodeHash": "0xe12e9ba232cd31bc380d9c5d33fc213369718f1ba59f794446e237c6787630f5"
+    },
+    "calibration_kind": "fixture",
+    "note": "Unsent diagnostic only: reviewed market/source/calibration inputs and actual signer/funder decisions remain prerequisites. Predicted addresses are not a frontend deployment manifest."
+  }
+}

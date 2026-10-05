@@ -1,5 +1,24 @@
 # Non-oracle risk and order-book fixes
 
+## Integrated backend follow-up — 2026-10-06
+
+The user extended scope to oracle/pricefeed integration and local deployment
+readiness. See [INTEGRATION_READINESS.md](INTEGRATION_READINESS.md). The historical
+scope and accepted revisions below remain dated evidence.
+
+| ID | Finding | Change |
+| --- | --- | --- |
+| INT-LOOKUP | Participant lookup gas included assertion overhead and assumed Prague cold-access costs on Monad | Measure isolated cold calls, retain a bounded first/last comparison and explicit per-VM budgets |
+| INT-SETTLEMENT-REPORT | Real reserve-funded payouts were correct, but settlement status and `ClaimsEnabled` reported zero deficit/contribution | Derive exact final trader deficit from existing bounded-job aggregates; expose it through the accounting port; report net whole reserve atoms after rounding dust from frozen reserve equity and residual |
+
+INT-SETTLEMENT-REPORT changes reporting without changing cash, claims, coverage or
+haircut policy. G6 independently recomputes deficits and rounding from individual
+frozen accounts across YES, NO, INVALID, premiums and fee dust, including partial
+preparation. Real factory regressions also check the funded 480-token terminal
+deficit and zero-deficit YES case. It changes engine bytecode, so earlier runtime
+proofs are preserved and final deployment/live evidence must use the rebuilt
+creation-code hash. No historical security review or gate acceptance is renewed.
+
 **GOV-01 update (2026-10-03):** the merged Risk and Order Book team no longer requires A/B
 peer review. RB-I11's selected strict INDEX-prefix seal is implemented in `dcb6b0e` with 21
 passing sampler regressions. Automated checks stay mandatory, and old review records remain

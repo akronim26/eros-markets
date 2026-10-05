@@ -17,6 +17,7 @@ import {MarketRegistry} from "../../src/MarketRegistry.sol";
 import {ResolutionOracle} from "../../src/ResolutionOracle.sol";
 import {BondTreasury} from "../../src/BondTreasury.sol";
 import {KeeperRouter} from "../../src/KeeperRouter.sol";
+import {RolloverBatcher} from "../../src/integration/RolloverBatcher.sol";
 import {RegistryFixture} from "../../test/unit/RegistryFixture.sol";
 import {MockAssertionVenue} from "../../test/mocks/MockAssertionVenue.sol";
 import {
@@ -47,6 +48,17 @@ contract LocalIntegration is RegistryFixture {
     address internal constant INDEX_SIGNER = 0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A;
     bool internal leveragedFixture;
 
+    struct LiveSource {
+        bytes32 marketId;
+        bytes32 sourceId;
+        bytes32 rulesHash;
+        uint256 depthNLots;
+        uint256 maxSpreadWad;
+        string question;
+        string description;
+    }
+    LiveSource internal liveSource;
+
     struct Call {
         address to;
         uint256 value;
@@ -61,6 +73,7 @@ contract LocalIntegration is RegistryFixture {
         ResolutionOracle resolutionOracle;
         MarketRegistry registry;
         KeeperRouter router;
+        RolloverBatcher rolloverBatcher;
         EngineCodeStore codeStore;
         EngineCodeStore codeStoreTail;
         MarketFactory factory;
@@ -83,6 +96,32 @@ contract LocalIntegration is RegistryFixture {
         _run(demoRulesHash, terminalRulesHash, scheduledT);
     }
 
+    /// @notice Real external prices with disposable local collateral, roles and risk calibration.
+    /// Source metadata is pinned before deploying the immutable engine. No public chain is allowed.
+    function runLive(string calldata sourcePath, bytes32 terminalRulesHash) external localOnly {
+        string memory source = vm.readFile(sourcePath);
+        liveSource.marketId = vm.parseJsonBytes32(source, ".marketId");
+        liveSource.sourceId = vm.parseJsonBytes32(source, ".sourceId");
+        liveSource.rulesHash = vm.parseJsonBytes32(source, ".sourceRulesHash");
+        liveSource.depthNLots = vm.parseJsonUint(source, ".depthNLots");
+        liveSource.maxSpreadWad = vm.parseJsonUint(source, ".maxSpreadWad");
+        liveSource.question = vm.parseJsonString(source, ".question");
+        liveSource.description = vm.parseJsonString(source, ".description");
+        uint256 end = vm.parseJsonUint(source, ".scheduledT");
+        if (
+            liveSource.marketId == bytes32(0) || liveSource.marketId == TERMINAL_ID || liveSource.sourceId == bytes32(0)
+                || liveSource.rulesHash == bytes32(0) || liveSource.depthNLots == 0 || liveSource.depthNLots > 1_000_000
+                || liveSource.maxSpreadWad == 0 || liveSource.maxSpreadWad > 5e16 || end > type(uint64).max
+                || bytes(liveSource.question).length == 0 || bytes(liveSource.description).length == 0
+        ) revert InvalidLocalConfiguration();
+        leveragedFixture = true;
+        _run(liveSource.rulesHash, terminalRulesHash, uint64(end));
+    }
+
+    function _demoId() internal view returns (bytes32) {
+        return liveSource.marketId == bytes32(0) ? DEMO_ID : liveSource.marketId;
+    }
+
     function _run(bytes32 demoRulesHash, bytes32 terminalRulesHash, uint64 scheduledT) internal {
         if (
             demoRulesHash == bytes32(0) || terminalRulesHash == bytes32(0) || scheduledT < block.timestamp + 25 hours
@@ -97,36 +136,44 @@ contract LocalIntegration is RegistryFixture {
         stack.assertionVenue = new MockAssertionVenue(usdc, 2e6);
         stack.timelock = new Timelock();
         {
-        address[] memory controllers = new address[](1);
-        controllers[0] = deployer;
-        address[] memory executors = new address[](1);
-        executors[0] = stack.timelock.OPEN_ROLE_HOLDER();
-        stack.timelock.initialize(0, address(0), controllers, executors, controllers);
+            address[] memory controllers = new address[](1);
+            controllers[0] = deployer;
+            address[] memory executors = new address[](1);
+            executors[0] = stack.timelock.OPEN_ROLE_HOLDER();
+            stack.timelock.initialize(0, address(0), controllers, executors, controllers);
         }
         gov = address(stack.timelock);
         {
-        uint256 nonce = vm.getNonce(deployer);
-        address treasuryAt = vm.computeCreateAddress(deployer, nonce);
-        address oracleAt = vm.computeCreateAddress(deployer, nonce + 1);
-        address registryAt = vm.computeCreateAddress(deployer, nonce + 2);
-        stack.treasury = new BondTreasury(usdc, oracleAt, registryAt, gov);
-        stack.resolutionOracle = new ResolutionOracle(registryAt, treasuryAt, usdc, 31337, gov, deployer);
-        stack.registry = new MarketRegistry(oracleAt, treasuryAt, address(0), usdc, gov, deployer);
-        stack.router = new KeeperRouter(oracleAt);
+            uint256 nonce = vm.getNonce(deployer);
+            address treasuryAt = vm.computeCreateAddress(deployer, nonce);
+            address oracleAt = vm.computeCreateAddress(deployer, nonce + 1);
+            address registryAt = vm.computeCreateAddress(deployer, nonce + 2);
+            stack.treasury = new BondTreasury(usdc, oracleAt, registryAt, gov);
+            stack.resolutionOracle = new ResolutionOracle(registryAt, treasuryAt, usdc, 31337, gov, deployer);
+            stack.registry = new MarketRegistry(oracleAt, treasuryAt, address(0), usdc, gov, deployer);
+            stack.router = new KeeperRouter(oracleAt);
         }
         {
-        bytes memory creationCode = vm.getCode("RegistryBookRiskEngine.sol:RegistryBookRiskEngine");
-        (bytes memory first, bytes memory second) = EngineCodeParts.split(creationCode);
-        stack.codeStore = new EngineCodeStore(first);
-        stack.codeStoreTail = new EngineCodeStore(second);
-        stack.factory = new MarketFactory(address(stack.registry), usdc, deployer, address(stack.codeStore), address(stack.codeStoreTail), keccak256(creationCode));
+            bytes memory creationCode = vm.getCode("RegistryBookRiskEngine.sol:RegistryBookRiskEngine");
+            (bytes memory first, bytes memory second) = EngineCodeParts.split(creationCode);
+            stack.codeStore = new EngineCodeStore(first);
+            stack.codeStoreTail = new EngineCodeStore(second);
+            stack.factory = new MarketFactory(
+                address(stack.registry),
+                usdc,
+                deployer,
+                address(stack.codeStore),
+                address(stack.codeStoreTail),
+                keccak256(creationCode)
+            );
         }
+        stack.rolloverBatcher = new RolloverBatcher();
         _configure(stack);
         stack.token.mint(deployer, 10_000e6);
         stack.token.approve(address(stack.treasury), type(uint256).max);
         stack.treasury.deposit(Ledger.ASSERTION, 1_000e6);
         stack.treasury.deposit(Ledger.WATCHDOG_FLOAT, 100e6);
-        stack.demo = _create(stack, DEMO_ID, demoRulesHash, scheduledT);
+        stack.demo = _create(stack, _demoId(), demoRulesHash, scheduledT);
         stack.terminal = _create(stack, TERMINAL_ID, terminalRulesHash, scheduledT);
         if (leveragedFixture) {
             CollateralVault vault = stack.factory.collateralVault();
@@ -154,7 +201,9 @@ contract LocalIntegration is RegistryFixture {
     /// @notice Fund before warming pricing so allocation mutations cannot interrupt the later trade.
     function fundLeveraged(address engineAddress) external localOnly {
         BookRiskEngine engine = _checkedEngine(engineAddress);
-        require(engine.listing().marketId == DEMO_ID && engine.reserveCapBaseQ() == 100_000e24, "wrong leverage fixture");
+        require(
+            engine.listing().marketId == DEMO_ID && engine.reserveCapBaseQ() == 100_000e24, "wrong leverage fixture"
+        );
         CollateralVault vault = engine.collateralVault();
         MockUSDC token = MockUSDC(engine.listing().token);
         for (uint32 actor = 13; actor <= 14; ++actor) {
@@ -175,9 +224,14 @@ contract LocalIntegration is RegistryFixture {
         BookRiskEngine engine = _checkedEngine(engineAddress);
         (uint256 longCap, uint256 shortCap) = engine.leverageCaps();
         require(longCap == 5 && shortCap == 5 && engine.riskContext().markWad == 5e17, "leverage not ready");
-        require(engine.listing().marketId == DEMO_ID && engine.reserveCapBaseQ() == 100_000e24, "wrong leverage fixture");
+        require(
+            engine.listing().marketId == DEMO_ID && engine.reserveCapBaseQ() == 100_000e24, "wrong leverage fixture"
+        );
         for (uint32 actor = 13; actor <= 14; ++actor) {
-            require(engine.account(_actor(actor)).value.lots == 0 && engine.account(_actor(actor)).value.cashQ == 10e24, "fund leverage fixture first");
+            require(
+                engine.account(_actor(actor)).value.lots == 0 && engine.account(_actor(actor)).value.cashQ == 10e24,
+                "fund leverage fixture first"
+            );
         }
         vm.startBroadcast(_actor(14));
         uint32 orderId = engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.LIMIT, false, false, 500, 100_000, 8, 0));
@@ -185,7 +239,10 @@ contract LocalIntegration is RegistryFixture {
         vm.startBroadcast(_actor(13));
         engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 500, 100_000, 8, 0));
         vm.stopBroadcast();
-        require(engine.getOrder(orderId).size == 0 && engine.account(_actor(13)).value.lots == 100_000, "leveraged fill failed");
+        require(
+            engine.getOrder(orderId).size == 0 && engine.account(_actor(13)).value.lots == 100_000,
+            "leveraged fill failed"
+        );
         require(engine.account(_actor(13)).value.cashQ == -40e24, "leveraged collateral mismatch");
         require(!engine.fundingFeatureEnabled() && !engine.recoveryEnabled(), "unsupported feature");
     }
@@ -223,29 +280,52 @@ contract LocalIntegration is RegistryFixture {
         BookRiskEngine engine = _checkedEngine(engineAddress);
         IMarketConfig.Listing memory configuration = engine.listing();
         if (configuration.marketId != TERMINAL_ID || engine.oiAllLots() != 10_000) revert UnexpectedLifecycle();
+        _beginSettlement(engine, Outcome.YES);
+    }
+
+    /// @notice Close the deterministic 5x pair at NO to demonstrate funded bad-debt absorption.
+    /// This fixture is deliberately unavailable for live-source markets or public chains.
+    function beginLeveragedSettlement(address engineAddress) external localOnly {
+        BookRiskEngine engine = _checkedLeveragedEngine(engineAddress);
+        if (engine.oiAllLots() != 110_000 || engine.participantCount() != 4) revert UnexpectedLifecycle();
+        require(
+            engine.account(_actor(13)).value.lots == 100_000 && engine.account(_actor(13)).value.cashQ <= -40e24
+                && engine.account(_actor(14)).value.lots == -100_000 && engine.account(_actor(14)).value.cashQ <= 60e24
+                && engine.account(_actor(14)).value.cashQ > 0,
+            "expected leveraged positions"
+        );
+        _beginSettlement(engine, Outcome.NO);
+    }
+
+    function _beginSettlement(BookRiskEngine engine, Outcome outcome) internal {
+        IMarketConfig.Listing memory configuration = engine.listing();
+        bytes32 marketId = configuration.marketId;
+        if (engine.getHaltSnapshot().halted || block.timestamp >= configuration.scheduledT) {
+            revert UnexpectedLifecycle();
+        }
         ResolutionOracle resolutionOracle = ResolutionOracle(configuration.resolutionAuthority);
         vm.startBroadcast(_actor(0));
         engine.requestReduceOnly(keccak256("LOCAL_CONTROLLED_TERMINAL_SCENARIO"));
-        resolutionOracle.requestEarlyCheck(TERMINAL_ID);
+        resolutionOracle.requestEarlyCheck(marketId);
         PanelResult memory panel;
-        panel.marketId = TERMINAL_ID;
+        panel.marketId = marketId;
         panel.phase = uint8(Phase.EARLY);
-        panel.attempt = resolutionOracle.getResolution(TERMINAL_ID).attempts;
-        panel.labels = [uint8(1), uint8(1), uint8(1)];
+        panel.attempt = resolutionOracle.getResolution(marketId).attempts;
+        panel.labels = [uint8(outcome), uint8(outcome), uint8(outcome)];
         panel.calibratedBps = [uint16(9500), uint16(9500), uint16(9500)];
         panel.evidenceHash = keccak256("LOCAL_SCRIPTED_EVIDENCE_NOT_MODEL_OUTPUT");
         panel.evidenceURIHash = keccak256(bytes(EVIDENCE_URI));
-        panel.gateHash = MarketRegistry(configuration.registry).getMarketCore(TERMINAL_ID).gateHash;
+        panel.gateHash = MarketRegistry(configuration.registry).getMarketCore(marketId).gateHash;
         panel.trustSetId = resolutionOracle.activeTrustSetId();
         panel.deadline = uint64(block.timestamp + 1 hours);
         resolutionOracle.submitPanelResult(
-            TERMINAL_ID, panel, EVIDENCE_URI, _sign(5, resolutionOracle.hashPanelResult(panel))
+            marketId, panel, EVIDENCE_URI, _sign(5, resolutionOracle.hashPanelResult(panel))
         );
-        Resolution memory resolution = resolutionOracle.getResolution(TERMINAL_ID);
+        Resolution memory resolution = resolutionOracle.getResolution(marketId);
         require(resolution.state == RState.EarlyReview, "controlled review required");
         ReviewedProposal memory proposal;
-        proposal.marketId = TERMINAL_ID;
-        proposal.outcome = uint8(Outcome.YES);
+        proposal.marketId = marketId;
+        proposal.outcome = uint8(outcome);
         proposal.evidenceHash = panel.evidenceHash;
         proposal.evidenceURIHash = panel.evidenceURIHash;
         proposal.noteHash = keccak256("LOCAL_SCRIPTED_COMMITTEE_NOT_INDEPENDENT_REVIEW");
@@ -261,8 +341,8 @@ contract LocalIntegration is RegistryFixture {
             signatures[member] =
                 Sig(_actor(actorIndex), _sign(actorIndex, resolutionOracle.hashReviewedProposal(proposal)));
         }
-        resolutionOracle.submitReviewedProposal(TERMINAL_ID, proposal, EVIDENCE_URI, signatures);
-        resolutionOracle.assertProposal(TERMINAL_ID);
+        resolutionOracle.submitReviewedProposal(marketId, proposal, EVIDENCE_URI, signatures);
+        resolutionOracle.assertProposal(marketId);
         vm.stopBroadcast();
     }
 
@@ -295,8 +375,21 @@ contract LocalIntegration is RegistryFixture {
         BookRiskEngine engine = _checkedEngine(engineAddress);
         IMarketConfig.Listing memory configuration = engine.listing();
         if (configuration.marketId != TERMINAL_ID) revert UnexpectedLifecycle();
+        _resolveAssertion(engine, Outcome.YES);
+    }
+
+    function resolveLeveragedAssertion(address engineAddress) external localOnly {
+        _resolveAssertion(_checkedLeveragedEngine(engineAddress), Outcome.NO);
+    }
+
+    function _resolveAssertion(BookRiskEngine engine, Outcome expectedOutcome) internal {
+        IMarketConfig.Listing memory configuration = engine.listing();
         ResolutionOracle resolutionOracle = ResolutionOracle(configuration.resolutionAuthority);
-        Resolution memory resolution = resolutionOracle.getResolution(TERMINAL_ID);
+        Resolution memory resolution = resolutionOracle.getResolution(configuration.marketId);
+        if (
+            resolution.state != RState.Proposed || resolution.proposed != expectedOutcome
+                || resolution.assertionId == bytes32(0)
+        ) revert UnexpectedLifecycle();
         MockAssertionVenue assertionVenue =
             MockAssertionVenue(resolutionOracle.trustSet(resolution.trustSetId).cfg.venue);
         if (block.timestamp < assertionVenue.statusOf(resolution.assertionId).expiresAt) revert UnexpectedLifecycle();
@@ -307,6 +400,82 @@ contract LocalIntegration is RegistryFixture {
 
     function claim(address engineAddress) external localOnly {
         _claim(_checkedEngine(engineAddress));
+    }
+
+    /// @notice Each funded owner signs its own claim transaction, including the 5x winner.
+    function claimLeveraged(address engineAddress) external localOnly {
+        BookRiskEngine engine = _checkedLeveragedEngine(engineAddress);
+        IMarketConfig.Listing memory configuration = engine.listing();
+        Resolution memory resolution =
+            ResolutionOracle(configuration.resolutionAuthority).getResolution(configuration.marketId);
+        if (
+            resolution.state != RState.Final || resolution.outcome != Outcome.NO || !engine.claimsEnabled()
+                || engine.settlementPriceWad() != 0 || engine.participantCount() != 4
+        ) revert UnexpectedLifecycle();
+        require(!engine.useRecovery() && !engine.recoveryRequired(), "full payouts required");
+        MockUSDC token = MockUSDC(configuration.token);
+        CollateralVault vault = engine.collateralVault();
+        uint256 vaultBefore = token.balanceOf(address(vault));
+        uint256 callerBefore = token.balanceOf(_actor(0));
+        uint32[4] memory owners = [uint32(1), uint32(2), uint32(13), uint32(14)];
+        uint256[4] memory expected = _checkLeveragedPayouts(engine, owners);
+        uint256 paid;
+        for (uint256 index = 0; index < owners.length; ++index) {
+            paid += _claimFullOwner(engine, token, _actor(owners[index]), expected[index]);
+        }
+        require(paid == engine.totalTraderAtoms() && engine.allTraderClaimsPaid(), "trader claims incomplete");
+        require(token.balanceOf(_actor(0)) == callerBefore, "claim caller received trader funds");
+        require(vaultBefore - token.balanceOf(address(vault)) == paid, "vault payout mismatch");
+        require(vault.recognizedAtoms() == token.balanceOf(address(vault)), "vault custody mismatch");
+        require(vault.marketAtoms(address(engine)) * 1e18 == engine.reserveResidualQ(), "only reserve may remain");
+        require(vault.marketDebitQ(address(engine)) == 0, "unexpected fixture fee debit");
+    }
+
+    function _checkLeveragedPayouts(BookRiskEngine engine, uint32[4] memory owners)
+        internal
+        view
+        returns (uint256[4] memory expected)
+    {
+        uint256 deficitQ;
+        uint256 roundingQ;
+        for (uint256 index = 0; index < owners.length; ++index) {
+            address owner = _actor(owners[index]);
+            (, int256 cashQ) = engine.frozen(owner);
+            // NO has zero position payoff. Premiums through the economic halt remain charged,
+            // so derive full entitlements from frozen cash rather than assuming zero elapsed time.
+            uint256 rawQ = cashQ > 0 ? uint256(cashQ) : 0;
+            if (cashQ < 0) deficitQ += uint256(-cashQ);
+            require(engine.rawClaimQ(owner) == rawQ, "frozen entitlement mismatch");
+            expected[index] = rawQ / 1e18;
+            roundingQ += rawQ % 1e18;
+        }
+        require(
+            expected[0] == 95e6 && expected[1] == 105e6 && expected[2] == 0 && expected[3] > 0 && expected[3] <= 60e6,
+            "unexpected fixture entitlements"
+        );
+        require(deficitQ >= 40e24 && engine.getSettlementStatus().totalDeficitQ == deficitQ, "deficit mismatch");
+        (int128 reserveLots, int256 reserveCashQ) = engine.frozenReserve();
+        require(reserveLots == 0 && reserveCashQ > 0 && engine.frozenFeeQ() == 0, "unexpected reserve or fees");
+        require(
+            engine.reserveResidualQ() + deficitQ == uint256(reserveCashQ) + roundingQ, "reserve absorption mismatch"
+        );
+        require(engine.reserveResidualQ() < engine.reserveCapBaseQ(), "reserve seed must absorb bad debt");
+    }
+
+    function _claimFullOwner(BookRiskEngine engine, MockUSDC token, address owner, uint256 expected)
+        internal
+        returns (uint256 atoms)
+    {
+        atoms = engine.claimableAtoms(owner);
+        require(atoms == expected && atoms == engine.rawClaimQ(owner) / 1e18, "full claim mismatch");
+        uint256 beforeBalance = token.balanceOf(owner);
+        if (atoms != 0) {
+            vm.startBroadcast(owner);
+            require(engine.claimTrader(owner) == atoms, "claim return mismatch");
+            vm.stopBroadcast();
+        }
+        require(token.balanceOf(owner) - beforeBalance == atoms, "owner payout mismatch");
+        require(engine.claimableAtoms(owner) == 0, "claim not consumed");
     }
 
     function _claim(BookRiskEngine engine) internal {
@@ -345,7 +514,11 @@ contract LocalIntegration is RegistryFixture {
         _govern(
             stack.timelock, address(stack.registry), abi.encodeCall(MarketRegistry.setFactory, (address(stack.factory)))
         );
-        _govern(stack.timelock, address(stack.treasury), abi.encodeCall(BondTreasury.setLimits, (leveragedFixture ? 1000e6 : 100e6, 20)));
+        _govern(
+            stack.timelock,
+            address(stack.treasury),
+            abi.encodeCall(BondTreasury.setLimits, (leveragedFixture ? 1000e6 : 100e6, 20))
+        );
     }
 
     function _create(Stack memory stack, bytes32 marketId, bytes32 sourceRulesHash, uint64 scheduledT)
@@ -356,22 +529,37 @@ contract LocalIntegration is RegistryFixture {
         market.marketId = marketId;
         market.question = "Local fixture: does the controlled terminal scenario resolve YES?";
         market.rules = "LOCAL FIXTURE ONLY: scripted committee YES; no external-world factual claim.";
+        if (leveragedFixture && marketId == DEMO_ID) {
+            market.question = "Local fixture: does the controlled leveraged scenario resolve YES?";
+            market.rules =
+                "LOCAL FIXTURE ONLY: scripted committee NO tests reserve-funded bad debt; no external-world factual claim.";
+        }
         market.tau = scheduledT;
         market.windowStart = uint64(block.timestamp);
         market.windowEnd = scheduledT;
         market.voidSecs = leveragedFixture ? 30 days : 7 days;
         market.monitor = _actor(0);
-        market.oiCapLots = leveragedFixture && marketId == DEMO_ID ? 1_000_000 : 100_000;
+        market.oiCapLots = leveragedFixture && marketId == _demoId() ? 1_000_000 : 100_000;
         IMarketConfig.Listing memory configuration =
             ListingFixture.make(uint64(block.timestamp), address(stack.resolutionOracle), _actor(0), gov, INDEX_SIGNER);
         configuration.token = usdc;
         configuration.registry = address(stack.registry);
-        configuration.deploymentCapX = leveragedFixture && marketId == DEMO_ID ? 5 : 1;
+        configuration.deploymentCapX = leveragedFixture && marketId == _demoId() ? 5 : 1;
         configuration.maxLiqLotsPerBlock = configuration.deploymentCapX > 1 ? 100_000 : 0;
         configuration.fundingEnabled = false;
         configuration.depthNLots = 1_000;
         configuration.indexSourceId = SOURCE_ID;
         configuration.indexRulesHash = sourceRulesHash;
+        if (liveSource.marketId != bytes32(0) && marketId == liveSource.marketId) {
+            market.question = liveSource.question;
+            market.rules = string.concat(
+                "LOCAL DIAGNOSTIC: external price mapping only; adjudication is a controlled fixture. ",
+                liveSource.description
+            );
+            configuration.depthNLots = liveSource.depthNLots;
+            configuration.maxSpreadWad = liveSource.maxSpreadWad;
+            configuration.indexSourceId = liveSource.sourceId;
+        }
         // Measured cold factory creation fits this budget. Pin it explicitly so Forge's
         // estimator padding cannot manufacture a transaction above the 30M chain cap.
         engine = BookRiskEngine(stack.registry.createMarket{gas: 29_000_000}(market, configuration, ""));
@@ -451,6 +639,14 @@ contract LocalIntegration is RegistryFixture {
         ) revert InvalidLocalConfiguration();
     }
 
+    function _checkedLeveragedEngine(address engineAddress) internal view returns (BookRiskEngine engine) {
+        engine = _checkedEngine(engineAddress);
+        if (
+            engine.listing().marketId != DEMO_ID || engine.reserveCapBaseQ() != 100_000e24
+                || engine.fundingFeatureEnabled() || engine.recoveryEnabled()
+        ) revert InvalidLocalConfiguration();
+    }
+
     function _entry(string memory name, address target, uint256 startBlock) internal returns (string memory) {
         vm.serializeAddress(name, "address", target);
         vm.serializeBytes32(name, "codehash", target.codehash);
@@ -491,8 +687,13 @@ contract LocalIntegration is RegistryFixture {
             contractsKey, "MarketRegistry", _entry("registry", address(stack.registry), stack.startBlock)
         );
         vm.serializeString(contractsKey, "KeeperRouter", _entry("router", address(stack.router), stack.startBlock));
+        vm.serializeString(
+            contractsKey, "RolloverBatcher", _entry("rolloverBatcher", address(stack.rolloverBatcher), stack.startBlock)
+        );
         vm.serializeString(contractsKey, "EngineCodeStore", _entry("store", address(stack.codeStore), stack.startBlock));
-        vm.serializeString(contractsKey, "EngineCodeStoreTail", _entry("storeTail", address(stack.codeStoreTail), stack.startBlock));
+        vm.serializeString(
+            contractsKey, "EngineCodeStoreTail", _entry("storeTail", address(stack.codeStoreTail), stack.startBlock)
+        );
         vm.serializeString(contractsKey, "MarketFactory", _entry("factory", address(stack.factory), stack.startBlock));
         string memory contractsJson = vm.serializeString(
             contractsKey, "CollateralVault", _entry("vault", address(stack.factory.collateralVault()), stack.startBlock)
@@ -506,18 +707,25 @@ contract LocalIntegration is RegistryFixture {
         if (leveragedFixture) {
             vm.serializeAddress("accounts", "leveragedLong", _actor(13));
             vm.serializeAddress("accounts", "leveragedShort", _actor(14));
+            if (liveSource.marketId != bytes32(0)) {
+                vm.serializeAddress("accounts", "bidMaker", _actor(16));
+                vm.serializeAddress("accounts", "askMaker", _actor(17));
+            }
         }
         string memory accountsJson = vm.serializeAddress("accounts", "watchdog", _actor(9));
         vm.serializeString("assertionVenue", "kind", "mock");
         string memory assertionJson = vm.serializeAddress("assertionVenue", "address", address(stack.assertionVenue));
         vm.serializeString("manifest", "scope", "local-only");
         vm.serializeString("manifest", "riskScenario", leveragedFixture ? "leveraged-fixture" : "fully-backed");
-        vm.serializeString("manifest", "calibrationEvidence", "controlled local fixture only; not empirical production calibration");
+        vm.serializeString(
+            "manifest", "calibrationEvidence", "controlled local fixture only; not empirical production calibration"
+        );
         vm.serializeString(
             "manifest", "manifestOrigin", "forge-simulation-candidate; verify mined listing fields before enrollment"
         );
         vm.serializeString("manifest", "network", "local-integration");
         vm.serializeUint("manifest", "chainId", 31337);
+        vm.serializeString("manifest", "sourceMode", liveSource.marketId == bytes32(0) ? "fixture" : "polymarket");
         vm.serializeUint("manifest", "startBlock", stack.startBlock);
         vm.serializeAddress("manifest", "usdc", address(stack.token));
         vm.serializeString("manifest", "contracts", contractsJson);

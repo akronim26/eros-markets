@@ -156,7 +156,9 @@ contract RealMarketFactoryTest is RealMarketFixture {
 
     function testWrongCreationCodeHashRejected() public {
         vm.expectRevert(MarketFactory.InvalidEngineCode.selector);
-        new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStore, engineCodeStoreTail, keccak256("wrong"));
+        new MarketFactory(
+            address(registry), usdc, reserveTreasury, engineCodeStore, engineCodeStoreTail, keccak256("wrong")
+        );
     }
 
     function testTailIsNonExecutableAndTamperingRollsBackListing() public {
