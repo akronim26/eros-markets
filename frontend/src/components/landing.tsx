@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BrandImage } from "./brand-image";
 import { ArrowRight } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
 import { markets } from "@/config/deployment";
@@ -301,25 +300,6 @@ function LiveTicker() {
   );
 }
 
-function Footer() {
-  return (
-    <footer className="shadow-[inset_0_1px_0_var(--color-line-strong)]">
-      <div className="mx-auto flex max-w-[1280px] flex-wrap items-end justify-between gap-6 px-4 py-8 md:px-8">
-        <div>
-          <BrandImage className="h-[14px]" />
-          <p className="mt-3 text-xs text-fg-2">Perpetual futures on event outcomes.</p>
-          <p className="label mt-3 text-fg-3">© 2026 Eros Markets · Monad testnet</p>
-        </div>
-        <nav className="label flex gap-6 text-fg-3" aria-label="Footer">
-          <Link href="/markets" className="hover:text-fg">Markets</Link>
-          <Link href="/resolution" className="hover:text-fg">Resolution</Link>
-          <Link href="/portfolio" className="hover:text-fg">Portfolio</Link>
-        </nav>
-      </div>
-    </footer>
-  );
-}
-
 export function Landing() {
   return (
     <main>
@@ -329,7 +309,6 @@ export function Landing() {
       <Resolution />
       <LiveMarket />
       <LiveTicker />
-      <Footer />
     </main>
   );
 }

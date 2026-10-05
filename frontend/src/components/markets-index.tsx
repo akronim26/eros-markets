@@ -6,6 +6,7 @@ import { useHead, useMarket } from "@/lib/reads";
 import { type MarketManifest } from "@/config/deployment";
 import { useMarketList } from "@/lib/market-list";
 import { fmtDuration, lotsToClaims, wadTo3 } from "@/lib/units";
+import { LoadingPanel } from "./feedback";
 import { chipFor } from "./market-parts";
 import { Chip, Num, SectionRule } from "./ui";
 
@@ -93,6 +94,7 @@ export function MarketsIndex() {
         <SectionRule name="LISTED" index={1} />
       </div>
       {head.isError && <p role="alert" className="mt-4 text-xs text-ask">Live market data is unavailable. <button className="underline" onClick={() => head.refetch()}>Retry connection</button></p>}
+      {!head.data && !head.isError ? <div className="mt-4"><LoadingPanel label="Reading markets from Monad testnet" /></div> : <>
       <ul className="mt-4 flex flex-col gap-3 md:hidden">
         {markets.map((mk) => (
           <MarketCard key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />
@@ -119,6 +121,7 @@ export function MarketsIndex() {
           </tbody>
         </table>
       </div>
+      </>}
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
         {discovery.isError ? "Registry discovery is unavailable. Showing the last known markets." : discovery.data?.indexed ? "Markets are discovered from the registry and verified against their trading contracts." : "Showing configured markets while registry discovery loads. Additional markets appear after their contracts are verified."}
         {discovery.isError && <> <button className="underline" onClick={() => discovery.refetch()}>Retry discovery</button></>}

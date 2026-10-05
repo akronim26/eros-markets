@@ -12,6 +12,7 @@ import { REJECT } from "@/lib/enums";
 import { useTx } from "@/lib/tx";
 import { useOwner } from "./wallet";
 import { Button, cx } from "./ui";
+import { FieldError, useFieldErrors, ReadError } from "./feedback";
 import { TxFeedback } from "./tx-feedback";
 
 const MODES = ["Fund", "Release", "Withdraw"] as const;
@@ -22,7 +23,8 @@ export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSn
   const [input, setInput] = useState("");
   let amount = 0n, error = "";
   const available = !t ? 0n : mode === "Fund" ? t.wallet + t.free : mode === "Withdraw" ? t.free : t.account?.preview.usableReleaseAtoms ?? 0n;
-  try { if (input) amount = amountWithinBalance(parseUsdcToAtoms(input), available); } catch (e) { error = (e as Error).message; }
+  try { if (input) { amount = parseUsdcToAtoms(input); if (!amount) throw new Error("Enter an amount greater than zero."); if (t) amount = amountWithinBalance(amount, available); } } catch (e) { error = (e as Error).message; }
+  const validation = useFieldErrors({ amount: error || (!input ? "Enter an amount greater than zero." : "") });
   const release = useQuery({
     queryKey: ["release-preview", engine, owner.address, t?.traderId, amount.toString(), m?.block.toString()],
     enabled: mode === "Release" && amount > 0n && !error && !!t?.traderId && !!m,
@@ -48,18 +50,20 @@ export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSn
   const claimable = canClaim(m?.settlement, t?.account?.claimable ?? 0n, t?.account?.claimed ?? false);
   return <div className="mt-auto flex flex-col gap-3 border-t border-line p-3">
     <div role="group" aria-label="Manage collateral" className="grid grid-cols-3 gap-px bg-line">
-      {MODES.map((x) => <button key={x} disabled={busy} aria-pressed={mode === x} className={cx("label h-9", x === mode ? "bg-press text-fg" : "bg-ground text-fg-3")} onClick={() => { setMode(x); setInput(""); tx.reset(); }}>{x}</button>)}
+      {MODES.map((x) => <button key={x} disabled={busy} aria-pressed={mode === x} className={cx("label h-9", x === mode ? "bg-press text-fg" : "bg-ground text-fg-3")} onClick={() => { setMode(x); setInput(""); validation.reset(); tx.reset(); }}>{x}</button>)}
     </div>
     <p className="text-xs leading-relaxed text-fg-3">{mode === "Fund" ? "Add collateral to this market. Free vault funds are used first." : mode === "Release" ? "Move excess market collateral into your free vault balance." : "Send free vault collateral back to your selected wallet."}</p>
     <label className="flex flex-col gap-1.5">
       <span className="label text-fg-3">Amount ({t?.assets.symbol ?? deployment.risk.collateralSymbol})</span>
-      <div className="flex"><input inputMode="decimal" value={input} onChange={(e) => setInput(e.target.value)} placeholder="0.00" className="h-10 min-w-0 flex-1 border border-line-strong bg-ground px-2 text-sm tnum" /><Button className="h-10" disabled={!t || busy} onClick={() => setInput(atomsToInput(available))}>Max</Button></div>
+      <div className="flex"><input inputMode="decimal" disabled={busy} {...validation.props("amount")} value={input} onChange={(e) => setInput(e.target.value)} placeholder="0.00" className="h-10 min-w-0 flex-1 border border-line-strong bg-ground px-2 text-sm tnum" /><Button className="h-10" disabled={!t || busy} onClick={() => setInput(atomsToInput(available))}>Max</Button></div>
+      <FieldError id={validation.errorId("amount")}>{validation.message("amount")}</FieldError>
     </label>
     <p className="text-xs text-fg-3">Available: {t ? atomsToUsdc(available, 6) : "—"}</p>
     <Button size="lg" variant="primary" disabled={busy || !!blocker} onClick={submit}>{busy ? "Transaction pending…" : blocker || `${mode} collateral`}</Button>
     {mode === "Fund" && t && t.wallet + t.free === 0n && <p className="text-xs text-fg-3">Ask the testnet operator for test collateral. MON is also needed for gas.</p>}
     {claimable && <Button size="lg" disabled={busy || owner.wrongChain} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "claimTrader", args: [owner.address], label: "claim settlement" }])}>Claim {atomsToUsdc(t!.account!.claimable)} {t?.assets.symbol ?? deployment.risk.collateralSymbol}</Button>}
     {t?.account?.claimed && <p className="text-xs text-fg-3">Settlement claimed.</p>}
+    {mode === "Release" && release.isError && <ReadError message="Could not check the available release amount." retry={() => { void release.refetch(); }} />}
     <TxFeedback state={tx.state} />
   </div>;
 }

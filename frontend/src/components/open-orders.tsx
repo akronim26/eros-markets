@@ -5,6 +5,7 @@ import { useOrders } from "@/lib/order-reads";
 import { useTx } from "@/lib/tx";
 import { lotsToClaims, tickToPrice } from "@/lib/units";
 import { useOwner } from "./wallet";
+import { LoadingPanel } from "./feedback";
 import { Button } from "./ui";
 import { TxFeedback } from "./tx-feedback";
 
@@ -24,7 +25,7 @@ export function OpenOrders({ engine, traderId, block }: { engine: Address; trade
       <Button disabled={busy || owner.wrongChain || !traderId} onClick={() => cancel()}>Cancel all</Button>
     </div>
     {q.isError ? <p role="alert" className="text-sm text-ask">Could not read orders. <button className="underline" onClick={() => q.refetch()}>Retry</button></p>
-      : !q.data ? <p role="status" className="text-sm text-fg-3">Loading orders…</p>
+      : !q.data ? <LoadingPanel label="Reading your open orders" />
       : q.data.orders.length === 0 ? <p className="text-sm text-fg-3">{q.data.complete ? "No open orders." : "No open orders found in your saved receipts or recent activity."}</p>
       : <div className="overflow-x-auto"><table className="w-full min-w-[540px] text-left text-xs">
         <thead className="hair-b text-fg-3"><tr>{["Order", "Side", "Price", "Remaining", "Status", ""].map((v) => <th key={v} className="py-2 pr-3 font-normal">{v}</th>)}</tr></thead>

@@ -9,6 +9,7 @@ import type { MarketManifest } from "@/config/deployment";
 import { wadToUnit } from "@/lib/units";
 import { PriceAxis } from "./price-axis";
 import { closeIntent, type CloseIntent } from "@/lib/trade-intent";
+import { PageLoading } from "./feedback";
 import { Ticket } from "./ticket";
 import { AccountPanel, DeadlineStrip, MarketHeader, MarketInfo, PositionPanel } from "./market-parts";
 import { useOwner } from "./wallet";
@@ -46,6 +47,8 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       : md.risk.indexAvailable
         ? "Index is live. Price observations will appear here as they arrive."
         : "Waiting for a fresh signed index window (300 seconds of valid observations).";
+
+  if (!md && !m.isError && !head.isError) return <PageLoading title="Opening the terminal" />;
 
   return (
     <main className={cx(styles.terminal, "frame mx-3 mb-3 grid grid-cols-1 bg-ground max-md:mx-2 lg:grid-cols-[minmax(0,1fr)_300px]")}>

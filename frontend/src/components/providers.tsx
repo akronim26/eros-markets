@@ -33,6 +33,7 @@ export function Providers({ children }: { children: ReactNode }) {
       appId={PRIVY_APP_ID}
       config={{
         loginMethods: ["email", "google", "wallet"],
+        legal: { termsAndConditionsUrl: "/terms", privacyPolicyUrl: "/privacy" },
         appearance: {
           theme: resolved === "dark" ? "#101112" : "#F2F1EC", accentColor: "#FF5A36", logo: `/brand/eros-markets-lockup-on-${resolved}.svg`,
           landingHeader: "Log in to trade",

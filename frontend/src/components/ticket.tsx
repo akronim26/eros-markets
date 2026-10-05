@@ -12,7 +12,8 @@ import { qToMoney } from "@/lib/units";
 import { REJECT, ORDER_KIND } from "@/lib/enums";
 import { useTx, summarizeOrder } from "@/lib/tx";
 import { atomsToUsdc, buyBackedAtoms, lotsToClaims, parseClaimsToLots, parsePriceToTick, sellBackedAtoms } from "@/lib/units";
-import { explorerTx } from "@/config/chain";
+import { FieldError, useFieldErrors, ReadError } from "./feedback";
+import { TxFeedback } from "./tx-feedback";
 import { Check } from "lucide-react";
 import { useLoginAction, useOwner } from "./wallet";
 import { useSwitchChain } from "wagmi";
@@ -62,6 +63,11 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
       return { ok: false, error: price && size ? (e as Error).message : "" };
     }
   }, [price, size]);
+
+  const fieldErrors = { price: "", size: "", expiry: expiryError };
+  try { parsePriceToTick(price); } catch { fieldErrors.price = "Enter a price from 0.001 to 0.999 (up to 3 decimals)."; }
+  try { if (parseClaimsToLots(size) === 0n) fieldErrors.size = "Enter at least 0.001 claims."; } catch { fieldErrors.size = "Enter a positive claim size with up to 3 decimals."; }
+  const validation = useFieldErrors(fieldErrors);
 
   const traderId = trader?.traderId ?? 0;
   const dParsed = useDebounced(parsed);
@@ -168,7 +174,8 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
               </button>
             )}
           </span>
-          <input className={field} inputMode="decimal" placeholder="0.000" value={price} onChange={(e) => setPrice(e.target.value)} />
+          <input className={field} inputMode="decimal" placeholder="0.000" value={price} {...validation.props("price")} onChange={(e) => setPrice(e.target.value)} />
+          <FieldError id={validation.errorId("price")}>{validation.message("price")}</FieldError>
         </label>
 
         <label className="flex flex-col gap-1.5">
@@ -180,7 +187,8 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
               </button>
             )}
           </span>
-          <input className={field} inputMode="decimal" placeholder="0.000" value={size} onChange={(e) => setSize(e.target.value)} />
+          <input className={field} inputMode="decimal" placeholder="0.000" value={size} {...validation.props("size")} onChange={(e) => setSize(e.target.value)} />
+          <FieldError id={validation.errorId("size")}>{validation.message("size")}</FieldError>
         </label>
 
         <label className="label flex items-center gap-2 text-fg-2">
@@ -198,7 +206,7 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
 
         <details className="text-xs text-fg-2">
           <summary className="label cursor-pointer">Advanced order</summary>
-          <label className="mt-3 flex flex-col gap-1.5">Expires at block (optional)<input className={field} inputMode="numeric" placeholder="Good until cancelled" value={expiry} onChange={(e) => setExpiry(e.target.value)} /></label>
+          <label className="mt-3 flex flex-col gap-1.5">Expires at block (optional)<input className={field} inputMode="numeric" placeholder="Good until cancelled" value={expiry} {...validation.props("expiry")} onChange={(e) => setExpiry(e.target.value)} /><FieldError id={validation.errorId("expiry")}>{validation.message("expiry")}</FieldError></label>
           {cap > 1n && trader?.account?.preview.positionLots === 0n && trader.account.preview.id.markAvailable && <label className="mt-3 flex flex-col gap-1.5">Target leverage at limit (estimate)
             <input type="range" min="1" max={Number(cap)} step="0.1" defaultValue="1" onChange={(e) => { if (!parsed.ok || !trader.account) return; const ticks = BigInt(side === "buy" ? parsed.tick : 1000 - parsed.tick); const lots = trader.account.preview.markEquityQ * BigInt(Math.round(Number(e.target.value) * 10)) / (10n * ticks * 10n ** 18n); if (lots > 0n) setSize(lotsToClaims(lots)); }} />
           </label>}
@@ -227,15 +235,9 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
           </Button>
         )}
 
-        {tx.state.status === "done" && (
-          <p className={cx("text-xs leading-relaxed", tx.state.tone === "ask" ? "text-ask" : tx.state.tone === "bid" ? "text-bid" : "text-fg-2")}>
-            {tx.state.summary}.{" "}
-            <a className="underline text-fg-3 hover:text-fg" href={explorerTx(tx.state.hash)} target="_blank" rel="noreferrer">
-              View transaction
-            </a>
-          </p>
-        )}
-        {tx.state.status === "error" && <p className="text-xs leading-relaxed text-ask">{tx.state.message}</p>}
+        {preview.isError && <ReadError message="Order preview unavailable. Check your connection and retry." retry={() => { void preview.refetch(); }} />}
+        {preview.data && preview.data.rejection !== 0 && parsed.ok && <p role="status" className="text-xs leading-relaxed text-ask">{REJECT[preview.data.rejection] || "This order cannot be admitted. Review your price, size, and collateral."}</p>}
+        <TxFeedback state={tx.state} />
         {!market?.active && market && (
           <p className="text-xs leading-relaxed text-fg-3">
             Orders open once governance activates this market and the signed index feed is running.

@@ -6,6 +6,7 @@ import { useTrader } from "@/lib/reads";
 import { atomsToUsdc, qToMoney, lotsToClaims, tickToPrice } from "@/lib/units";
 import { explorerTx } from "@/config/chain";
 import { useOwner } from "./wallet";
+import { LoadingPanel } from "./feedback";
 import { Row } from "./ui";
 
 function activityDetail(event: HistoryEvent) {
@@ -24,7 +25,7 @@ export function AccountHistory({ engine, traderId, block }: { engine: Address; t
   if (!owner.connected) return <p className="p-4 text-sm text-fg-3">Log in to see your trading history.</p>;
   if (!INDEXER_URL) return <p className="p-4 text-sm text-fg-3">Historical data is not connected yet. Your current balances are read directly from the contracts.</p>;
   if (q.isError) return <p role="alert" className="p-4 text-sm text-ask">History unavailable. <button className="underline" onClick={() => q.refetch()}>Retry</button></p>;
-  if (!q.data) return <p role="status" className="p-4 text-sm text-fg-3">Loading history…</p>;
+  if (!q.data) return <div className="p-4"><LoadingPanel label="Loading trading history" /></div>;
   const { events, progress, complete } = q.data;
   const totals = historyTotals(events, traderId ?? 0);
   const account = pinned.data?.account;

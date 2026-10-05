@@ -6,6 +6,7 @@ import { type MarketManifest } from "@/config/deployment";
 import { useMarketList } from "@/lib/market-list";
 import { atomsToUsdc, lotsToClaims, qToMoney } from "@/lib/units";
 import { HEALTH } from "@/lib/enums";
+import { LoadingPanel } from "./feedback";
 import { chipFor } from "./market-parts";
 import { useLoginAction, useOwner } from "./wallet";
 import { Button, Chip, SectionRule } from "./ui";
@@ -61,7 +62,7 @@ export function PortfolioPage() {
       {(head.isError || discovery.isError) && <p role="alert" className="mt-4 text-xs text-ask">Some market data is unavailable. This list may be incomplete. <button className="underline" onClick={() => { void head.refetch(); void discovery.refetch(); }}>Retry</button></p>}
       {!owner.address ? (
         <LoggedOut />
-      ) : (
+      ) : !head.data && !head.isError ? <div className="mt-4"><LoadingPanel label="Reading your portfolio" /></div> : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[820px] border-t border-line-strong frame text-left">
             <thead>
