@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandImage } from "./brand-image";
 import { ArrowRight } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
 import { markets } from "@/config/deployment";
 import { PRICING, STAGE } from "@/lib/enums";
-import { fmtDuration, fmtUtc, lotsToClaims, shortAddr } from "@/lib/units";
-import { Num, SectionRule, cx } from "./ui";
+import { fmtDuration, lotsToClaims } from "@/lib/units";
+import { SectionRule, cx } from "./ui";
 import { EventPerpDemo } from "./event-perp-demo";
 import { MarketLifecycle } from "./market-lifecycle";
 import { OracleLayers } from "./oracle-layers";
+import { TerminalSys } from "./terminal-sys";
 
 const ENGINE = markets[0].engine;
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -65,24 +66,6 @@ function Scramble({ text, className }: { text: string; className?: string }) {
       <span aria-hidden>{out}</span>
     </span>
   );
-}
-
-/** Types lines out once, character by character, then keeps a blinking caret on the last line. */
-function useTyped(lines: string[], ready: boolean) {
-  const [n, setN] = useState(0);
-  const total = useMemo(() => lines.reduce((s, l) => s + l.length + 1, 0), [lines]);
-  useEffect(() => {
-    if (!ready) return;
-    if (reduced()) return setN(total);
-    const id = setInterval(() => setN((x) => (x >= total ? x : x + 2)), 16);
-    return () => clearInterval(id);
-  }, [ready, total]);
-  let left = n;
-  return lines.map((l) => {
-    const take = Math.max(0, Math.min(l.length, left));
-    left -= l.length + 1;
-    return l.slice(0, take);
-  });
 }
 
 /** Wall clock in seconds, offset to chain time when known, ticking every second. */
@@ -200,36 +183,10 @@ function MarkDither() {
   );
 }
 
-const DEADLINES = [
-  { off: 45_000n, label: "Final-day grace" },
-  { off: 43_200n, label: "Backing floor" },
-  { off: 3_600n, label: "Reduce only" },
-  { off: 0n, label: "Scheduled halt" },
-];
-
 function LiveMarket() {
   const head = useHead();
-  const m = useMarket(ENGINE, head.data?.number).data;
-  const now = useClock(head.data ? head.data.timestamp + BigInt(Math.floor((Date.now() - head.data.at) / 1000)) : undefined);
-
-  const T = m?.listing.scheduledT;
-  const next = T !== undefined ? DEADLINES.find((d) => T - d.off > now) : undefined;
-  const lines = useMemo(() => {
-    if (!m || !head.data) return [] as string[];
-    return [
-      `> connect monad-testnet  chain=10143`,
-      `> read engine ${shortAddr(ENGINE)}  block=${head.data.number}`,
-      `> stage=${STAGE[m.risk.stage].toLowerCase().replace(/ /g, "_")}  pricing=${PRICING[m.risk.pricingMode].toLowerCase().replace(/ /g, "_")}`,
-      `> index ${m.risk.indexAvailable ? "live" : "unavailable: no signed window yet"}`,
-      `> mark ${m.risk.markAvailable ? "live" : "unavailable: bootstrap"}`,
-      `> book bid=${m.bestBid ? (m.bestBid / 1000).toFixed(3) : "none"} ask=${m.bestAsk ? (m.bestAsk / 1000).toFixed(3) : "none"}`,
-      `> traders ${m.participants}/${m.listing.maxTraders}  oi=${lotsToClaims(m.oiLots)} claims`,
-      m.active ? `> market active` : `> awaiting activation`,
-    ];
-  }, [m, head.data]);
-  const typed = useTyped(lines, lines.length > 0);
-  const life = T !== undefined && m ? Number(((now - m.listing.listedAt) * 1000n) / (T - m.listing.listedAt)) / 10 : 0;
-
+  const market = useMarket(ENGINE, head.data?.number);
+  const m = market.data;
   return (
     <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
       <SectionRule name="TESTNET_STATUS" index={4} />
@@ -239,21 +196,7 @@ function LiveMarket() {
         The current deployment is a fixture market for testing; its live status appears below.
       </p>
       <div className="frame mt-6 grid grid-cols-1 bg-ground md:grid-cols-2">
-        {/* terminal */}
-        <div className="flex min-h-[300px] flex-col bg-ink md:shadow-[inset_-1px_0_0_var(--color-line-strong)]">
-          <PanelHead dark left="TERMINAL.SYS" right={<span className="flex gap-1.5" aria-hidden><span className="h-2 w-2 bg-signal" /><span className="h-2 w-2 bg-ivory" /><span className="h-2 w-2 shadow-[inset_0_0_0_1px_var(--color-ivory)]" /></span>} />
-          <pre className="flex-1 overflow-x-auto p-4 text-xs leading-6 text-ivory-3" aria-live="polite">
-            {lines.length === 0 ? (
-              <span className="caret">{"> connecting to monad testnet"}</span>
-            ) : (
-              typed.map((l, i) => (
-                <div key={i} className={cx(i === typed.length - 1 && "caret text-ivory", l.length === 0 && "hidden")}>
-                  {l}
-                </div>
-              ))
-            )}
-          </pre>
-        </div>
+        <TerminalSys engine={ENGINE} market={m} readError={head.isError || market.isError} />
         {/* mark */}
         <div className="flex min-h-[300px] flex-col shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-none">
           <PanelHead left="MARK.DITHER" right={<span className="tnum">76×76</span>} />
@@ -263,66 +206,7 @@ function LiveMarket() {
             </div>
           </div>
         </div>
-        {/* metrics */}
-        <div className="flex flex-col shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-[inset_0_1px_0_var(--color-line-strong),inset_-1px_0_0_var(--color-line-strong)]">
-          <PanelHead left="MARKET.METRICS" right={<span className="h-2 w-2 bg-signal" aria-hidden />} />
-          <dl className="grid flex-1 grid-cols-1 gap-x-6 gap-y-6 p-6 sm:grid-cols-2">
-            {[
-              ["Block", head.data ? head.data.number.toLocaleString("en-US") : "—"],
-              ["Traders", m ? `${m.participants} / ${m.listing.maxTraders}` : "—"],
-              ["Open interest", m ? `${lotsToClaims(m.oiLots)}` : "—"],
-              ["To halt", T !== undefined ? (T > now ? fmtDuration(T - now) : "passed") : "—"],
-            ].map(([k, v]) => (
-              <div key={k}>
-                <dd className="text-2xl font-medium tracking-[-0.02em] text-fg sm:text-3xl">
-                  <Num value={v} />
-                </dd>
-                <dt className="label mt-1 text-fg-3">{k}</dt>
-              </div>
-            ))}
-          </dl>
-        </div>
-        {/* lifecycle */}
-        <div className="flex flex-col shadow-[inset_0_1px_0_var(--color-line-strong)]">
-          <PanelHead left="LIFECYCLE.STATUS" right={<span className="tnum">{m ? (m.active ? "ACTIVE" : "INACTIVE") : "…"}</span>} />
-          <table className="w-full text-left">
-            <thead>
-              <tr className="label text-fg-3">
-                <th className="px-4 pt-3 pb-2 font-normal">Stage</th>
-                <th className="px-4 pt-3 pb-2 font-normal">Status</th>
-                <th className="px-4 pt-3 pb-2 text-right font-normal">At (UTC)</th>
-              </tr>
-            </thead>
-            <tbody className="text-xs">
-              {DEADLINES.map((d) => {
-                const at = T !== undefined ? T - d.off : undefined;
-                const passed = at !== undefined && at <= now;
-                const isNext = next?.label === d.label;
-                return (
-                  <tr key={d.label} className="hair-b">
-                    <td className="px-4 py-2.5 text-fg">{d.label}</td>
-                    <td className="px-4 py-2.5">
-                      <span className="label inline-flex items-center gap-2 text-fg-2">
-                        <span className={cx("h-2 w-2", isNext ? "bg-signal" : passed ? "bg-fg-4" : "shadow-[inset_0_0_0_1px_var(--color-line-strong)]")} aria-hidden />
-                        {isNext ? "Next" : passed ? "Passed" : "Upcoming"}
-                      </span>
-                    </td>
-                    <td className="tnum px-4 py-2.5 text-right text-fg-2">{at !== undefined ? fmtUtc(at).replace(" UTC", "") : "—"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div className="mt-auto p-4">
-            <div className="label flex justify-between text-fg-3">
-              <span>Market lifetime elapsed</span>
-              <span className="tnum">{life.toFixed(1)}%</span>
-            </div>
-            <div className="frame mt-2 h-2.5 p-px">
-              <div className="h-full bg-fg" style={{ width: `${Math.min(100, Math.max(0, life))}%` }} />
-            </div>
-          </div>
-        </div>
+
       </div>
     </section>
   );
