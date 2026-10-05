@@ -21,3 +21,10 @@ for (const [name, path] of Object.entries(sources)) {
   writeFileSync(join(out, `${name}.ts`), body);
   console.log(`${name}: ${abi.length} entries`);
 }
+
+// A stateless deployless lens compiled with the repository's pinned Solidity settings.
+const lens = JSON.parse(readFileSync(join(root, "contracts/out/MarginLens.sol/MarginLens.json"), "utf8"));
+writeFileSync(join(out, "marginLens.ts"), `// Generated from contracts/src/lens/MarginLens.sol by scripts/gen-abis.mjs.
+export const marginLensAbi = ${JSON.stringify(lens.abi)} as const;
+export const marginLensCode = ${JSON.stringify(lens.bytecode.object)} as const;
+`);

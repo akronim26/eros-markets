@@ -2,6 +2,40 @@
 # Outcome, Path, PanelLabel, Phase, FinalReason, Ledger) with a name beside the ones a page shows. Hashes, ids and
 # addresses are lowercase-or-checksummed hex strings as Envio delivers them; times are unix seconds.
 
+# Immutable event journal. Envio rolls these records back on a chain reorganization.
+type TradingEvent {
+  id: ID!
+  chainId: Int! @index
+  engine: String! @index
+  source: String!
+  kind: String! @index
+  owner: String @index
+  trader: BigInt @index
+  maker: BigInt @index
+  taker: BigInt @index
+  orderId: BigInt @index
+  block: Int! @index
+  logIndex: Int!
+  timestamp: BigInt!
+  txHash: String!
+  payload: String!
+}
+
+type TradingRegistration {
+  id: ID!
+  engine: String! @index
+  owner: String! @index
+  trader: BigInt!
+  block: Int!
+}
+
+type TradingOrderIdentity {
+  id: ID!
+  engine: String!
+  orderId: BigInt!
+  trader: BigInt!
+}
+
 # One listed market and where its resolution stands now.
 type Market {
   id: ID! # marketId
@@ -206,4 +240,18 @@ type Watchdog {
   id: ID! # address
   lastHeartbeat: BigInt!
   beats: Int!
+}
+
+# Token transfers allow vault withdrawals to be reconciled without inventing a withdraw event.
+type CollateralTransfer {
+  id: ID!
+  chainId: Int! @index
+  token: String! @index
+  from: String! @index
+  to: String! @index
+  atoms: BigInt!
+  block: Int! @index
+  logIndex: Int!
+  timestamp: BigInt!
+  txHash: String!
 }

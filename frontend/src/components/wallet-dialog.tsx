@@ -1,5 +1,7 @@
 "use client";
 
+import { WalletTools } from "./wallet-tools";
+import type { Address } from "viem";
 import type { RefObject } from "react";
 import type { ConnectedWallet } from "@privy-io/react-auth";
 import { Check, LogOut, Wallet, X } from "lucide-react";
@@ -62,6 +64,7 @@ export function WalletDialog({ dialogRef, wallets, activeAddress, hasEmbedded, b
           </ul>
         )}
         {activeAddress && <a href={explorerAddress(activeAddress)} target="_blank" rel="noreferrer" className="mt-3 inline-block text-xs underline">View selected wallet on explorer ↗</a>}
+        {activeAddress && <WalletTools key={activeAddress} address={activeAddress as Address} embedded={wallets.some((w) => w.address.toLowerCase() === activeAddress.toLowerCase() && ["privy", "privy-v2"].includes(w.walletClientType))} close={close} reopen={() => dialogRef.current?.showModal()} />}
         {wrongChain && <div className="frame mt-4 p-3">
           <p className="mb-3 text-xs text-fg-2">Switch the selected wallet to Monad testnet to trade.</p>
           <Button size="sm" disabled={busy} onClick={onSwitchChain}>Switch to Monad testnet</Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ChevronRight, ExternalLink } from "lucide-react";
 import type { Hex } from "viem";
 import { useOracleMarket } from "@/lib/reads";
@@ -7,11 +8,14 @@ import { oracleMarkets } from "@/config/deployment";
 import { explorerAddress } from "@/config/chain";
 import { ORACLE_OUTCOME, ORACLE_PATH, ORACLE_STATE } from "@/lib/enums";
 import { fmtUtc, shortAddr } from "@/lib/units";
+import { OracleActions } from "./oracle-actions";
+import { useMarketList } from "@/lib/market-list";
+import Link from "next/link";
 import { Chip, Row, SectionRule } from "./ui";
 
 const LIVE_STATES = new Set([5, 6, 7, 8]);
 
-function OracleMarket({ id, note }: { id: Hex; note: string }) {
+export function OracleMarket({ id, note = "", engine }: { id: Hex; note?: string; engine?: string }) {
   const q = useOracleMarket(id);
   if (q.isLoading) return <div className="hair-b px-4 py-6 text-sm text-fg-3">Reading the resolution oracle…</div>;
   if (q.isError || !q.data) return <div className="hair-b px-4 py-6 text-sm text-ask">Could not read this market from the oracle. Retrying.</div>;
@@ -33,7 +37,8 @@ function OracleMarket({ id, note }: { id: Hex; note: string }) {
           </summary>
           <p className="mt-2 max-w-[70ch] whitespace-pre-line text-sm leading-relaxed text-fg-2">{rules}</p>
         </details>
-        <p className="mt-4 text-xs leading-relaxed text-fg-3">{note}</p>
+        {note && <p className="mt-4 text-xs leading-relaxed text-fg-3">{note}</p>}
+        {engine && <Link href={`/m/${engine}`} className="mt-3 inline-block text-sm text-signal-text underline">Open trading terminal ↗</Link>}
       </div>
       <dl className="self-start">
         <Row k="Scheduled time (T)" v={fmtUtc(core.tau)} />
@@ -46,11 +51,20 @@ function OracleMarket({ id, note }: { id: Hex; note: string }) {
         <Row k="Engine" v={<a className="inline-flex items-center gap-1 underline decoration-line-strong hover:text-fg" href={explorerAddress(core.engine)} target="_blank" rel="noreferrer">{shortAddr(core.engine)}<ExternalLink size={11} strokeWidth={1.75} aria-hidden /></a>} />
         <Row k="Read at block" v={block.toString()} />
       </dl>
+      <OracleActions data={q.data} />
     </article>
   );
 }
 
+
+function ResolutionEntry({ id, title, engine }: { id: Hex; title?: string; engine?: string }) {
+  const [open, setOpen] = useState(false);
+  return <details className="hair-b" onToggle={(e) => setOpen(e.currentTarget.open)}><summary className="cursor-pointer break-all p-4 text-sm text-fg-2">{title ?? `Oracle market ${id.slice(0, 10)}…${id.slice(-6)}`}</summary>{open && <OracleMarket id={id} engine={engine} note={engine ? "" : "Oracle record; no verified trading book is connected."} />}</details>;
+}
+
 export function ResolutionPage() {
+  const list = useMarketList();
+  const ids = list.data?.oracleIds ?? oracleMarkets.map((m) => m.id);
   return (
     <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
       <h1 className="pixel text-5xl leading-none text-fg uppercase">Resolution</h1>
@@ -66,9 +80,10 @@ export function ResolutionPage() {
         <SectionRule name="ORACLE_MARKETS" index={1} />
       </div>
       <div className="frame mt-4">
-        {oracleMarkets.map((m) => (
-          <OracleMarket key={m.id} id={m.id} note={m.note} />
-        ))}
+        {ids.map((id) => {
+          const market = list.markets.find((m) => m.oracleMarketId === id);
+          return <ResolutionEntry key={id} id={id} title={market?.title} engine={market?.engine} />;
+        })}
       </div>
     </main>
   );

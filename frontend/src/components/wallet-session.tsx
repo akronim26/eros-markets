@@ -6,6 +6,7 @@ import type { WalletSnapshot } from "@/lib/wallet-safety";
 export type { WalletSnapshot } from "@/lib/wallet-safety";
 
 type WalletSession = {
+  embedded: boolean;
   configured: boolean;
   ready: boolean;
   authenticated: boolean;
@@ -19,6 +20,7 @@ type WalletSession = {
 
 // Public market reads still work when Privy has not been configured.
 export const WalletSessionContext = createContext<WalletSession>({
+  embedded: false,
   configured: false,
   ready: false,
   authenticated: false,

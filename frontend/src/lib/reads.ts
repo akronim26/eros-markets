@@ -2,15 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createPublicClient, http, parseAbiItem, type Address, type Hex } from "viem";
+import { parseAbiItem, type Address, type Hex } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { vaultAbi } from "@/abi/vault";
 import { resolutionOracleAbi } from "@/abi/resolutionOracle";
 import { marketRegistryAbi } from "@/abi/marketRegistry";
-import { chain, LOG_BLOCK_CAP } from "@/config/chain";
+import { LOG_BLOCK_CAP } from "@/config/chain";
 import { deployment } from "@/config/deployment";
 
-export const client = createPublicClient({ chain, transport: http(undefined, { batch: { wait: 16 }, retryCount: 3, retryDelay: 400 }) });
+import { client } from "./public-client";
+import { readAssets } from "./market-discovery";
+export { client };
 
 const erc20Abi = [
   { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ name: "a", type: "address" }], outputs: [{ type: "uint256" }] },
@@ -27,8 +29,8 @@ export function useHead() {
       const b = await client.getBlock({ blockTag: "latest" });
       return { number: b.number, timestamp: b.timestamp, at: Date.now() };
     },
-    refetchInterval: 1500,
-    staleTime: 1000,
+    refetchInterval: 4000,
+    staleTime: 3500,
   }));
 }
 
@@ -104,17 +106,18 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
     queryKey: ["trader", engine, owner, block?.toString()],
     enabled: !!owner && block !== undefined,
     queryFn: async () => {
+      const assets = await readAssets(engine, block!);
       const [traderId, free, wallet, allowance] = await client.multicall({
         blockNumber: block,
         allowFailure: false,
         contracts: [
           { address: engine, abi: engineAbi, functionName: "participantId", args: [owner!] },
-          { address: deployment.risk.collateralVault, abi: vaultAbi, functionName: "freeAtoms", args: [owner!] },
-          { address: deployment.risk.collateralToken, abi: erc20Abi, functionName: "balanceOf", args: [owner!] },
-          { address: deployment.risk.collateralToken, abi: erc20Abi, functionName: "allowance", args: [owner!, deployment.risk.collateralVault] },
+          { address: assets.vault, abi: vaultAbi, functionName: "freeAtoms", args: [owner!] },
+          { address: assets.token, abi: erc20Abi, functionName: "balanceOf", args: [owner!] },
+          { address: assets.token, abi: erc20Abi, functionName: "allowance", args: [owner!, assets.vault] },
         ],
       });
-      if (traderId === 0) return { block: block!, traderId, free, wallet, allowance, account: null };
+      if (traderId === 0) return { block: block!, assets, traderId, free, wallet, allowance, account: null };
       const [preview, riskView, claimable, claimed] = await client.multicall({
         blockNumber: block,
         allowFailure: false,
@@ -125,7 +128,7 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
           { address: engine, abi: engineAbi, functionName: "traderClaimed", args: [owner!] },
         ],
       });
-      return { block: block!, traderId, free, wallet, allowance, account: { preview, riskView, claimable, claimed } };
+      return { block: block!, assets, traderId, free, wallet, allowance, account: { preview, riskView, claimable, claimed } };
     },
   }), `${engine.toLowerCase()}:${owner?.toLowerCase() ?? "disconnected"}`);
 }
@@ -180,27 +183,36 @@ export function useLiveSeries(engine: Address, head: bigint | undefined) {
     trades: [],
   });
   const cursor = useRef<bigint | undefined>(undefined);
+  const cursorHash = useRef<Hex | undefined>(undefined);
   const busy = useRef(false);
 
   useEffect(() => {
     if (head === undefined || busy.current) return;
-    const from = cursor.current === undefined ? (head > LOG_BLOCK_CAP ? head - LOG_BLOCK_CAP + 1n : 0n) : cursor.current + 1n;
-    if (from > head) return;
-    const to = from + LOG_BLOCK_CAP - 1n < head ? from + LOG_BLOCK_CAP - 1n : head;
     busy.current = true;
     (async () => {
       try {
+        let reset = cursor.current === undefined || head < cursor.current;
+        if (!reset && cursorHash.current) reset = (await client.getBlock({ blockNumber: cursor.current! })).hash !== cursorHash.current;
+        const from = reset ? (head >= LOG_BLOCK_CAP ? head - LOG_BLOCK_CAP + 1n : 0n) : cursor.current! > 20n ? cursor.current! - 20n : 0n;
+        const to = from + LOG_BLOCK_CAP - 1n < head ? from + LOG_BLOCK_CAP - 1n : head;
+        const anchor = await client.getBlock({ blockNumber: to });
         const [obs, perp, fills] = await Promise.all([
           client.getLogs({ address: engine, event: OBS, fromBlock: from, toBlock: to }),
           client.getLogs({ address: engine, event: PERP, fromBlock: from, toBlock: to }),
           client.getLogs({ address: engine, event: FILL, fromBlock: from, toBlock: to }),
         ]);
+        const timestamps = new Map(await Promise.all([...new Set(fills.map((l) => l.blockNumber!))].map(async (number) => {
+          const b = await client.getBlock({ blockNumber: number });
+          return [number, Number(b.timestamp)] as const;
+        })));
+        if ((await client.getBlock({ blockNumber: to })).hash !== anchor.hash) throw new Error("Chain reorganized during log read; refreshing");
         cursor.current = to;
+        cursorHash.current = anchor.hash;
         setState((s) => ({
-          since: s.since ?? from,
-          index: [...s.index, ...obs.map((l) => ({ t: Number(l.args.observedAt), v: Number(l.args.priceWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
-          perp: [...s.perp, ...perp.filter((l) => l.args.valid).map((l) => ({ t: Number(l.args.t), v: Number(l.args.midWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
-          trades: [...s.trades, ...fills.map((l) => ({ t: 0, tick: l.args.tick!, size: l.args.size!, block: l.blockNumber!, tx: l.transactionHash! }))].slice(-500),
+          since: reset ? from : s.since ?? from,
+          index: [...(reset ? [] : s.index.filter((p) => p.block < from)), ...obs.map((l) => ({ t: Number(l.args.observedAt), v: Number(l.args.priceWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
+          perp: [...(reset ? [] : s.perp.filter((p) => p.block < from)), ...perp.filter((l) => l.args.valid).map((l) => ({ t: Number(l.args.t), v: Number(l.args.midWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
+          trades: [...(reset ? [] : s.trades.filter((p) => p.block < from)), ...fills.map((l) => ({ t: timestamps.get(l.blockNumber!)!, tick: l.args.tick!, size: l.args.size!, block: l.blockNumber!, tx: l.transactionHash! }))].slice(-500),
         }));
       } catch (e) {
         setState((s) => ({ ...s, error: e instanceof Error ? e.message : String(e) }));
@@ -219,15 +231,19 @@ export function useOracleMarket(id: Hex) {
     refetchInterval: 15000,
     queryFn: async () => {
       const o = deployment.oracle;
-      const [question, rules, core, resolution, evidenceURI, block] = await Promise.all([
-        client.readContract({ address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getQuestion", args: [id] }),
-        client.readContract({ address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getRules", args: [id] }),
-        client.readContract({ address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getMarketCore", args: [id] }),
-        client.readContract({ address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "getResolution", args: [id] }),
-        client.readContract({ address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "evidenceURIOf", args: [id] }),
-        client.getBlockNumber(),
-      ]);
-      return { id, question, rules, core, resolution, evidenceURI, block };
+      const head = await client.getBlock();
+      const block = head.number;
+      const [question, rules, core, resolution, evidenceURI, bond, liveness, claim] = await client.multicall({ blockNumber: block, allowFailure: false, contracts: [
+        { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getQuestion", args: [id] },
+        { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getRules", args: [id] },
+        { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getMarketCore", args: [id] },
+        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "getResolution", args: [id] },
+        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "evidenceURIOf", args: [id] },
+        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "bondFor", args: [id] },
+        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "livenessFor", args: [id] },
+        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "renderClaim", args: [id] },
+      ] });
+      return { id, question, rules, core, resolution, evidenceURI, block, now: head.timestamp, bond, liveness, claim };
     },
   });
 }

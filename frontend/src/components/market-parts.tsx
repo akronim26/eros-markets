@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import type { Address } from "viem";
 import { ExternalLink } from "lucide-react";
 import { isClaimable, decodeSettlementStatus, STATUS_TEXT } from "@eros/risk-sdk";
-import { vaultAbi } from "@/abi/vault";
-import { erc20Abi, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
+import { type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { ACCOUNTING, HEALTH, PRICING, STAGE, TEMPLATE, marketChip } from "@/lib/enums";
-import { useTx } from "@/lib/tx";
-import { atomsToUsdc, fmtDuration, fmtUtc, lotsToClaims, parseUsdcToAtoms, qToMoney, shortAddr, wadTo3 } from "@/lib/units";
+import { atomsToUsdc, fmtDuration, fmtUtc, lotsToClaims, qToMoney, shortAddr, wadTo3 } from "@/lib/units";
 import { deployment, type MarketManifest } from "@/config/deployment";
-import { explorerAddress, explorerTx } from "@/config/chain";
+import { explorerAddress } from "@/config/chain";
 import { useOwner } from "./wallet";
 import { Button, Chip, Num, RegionHead, Row, Stat, Unavailable, cx } from "./ui";
 import terminalStyles from "./terminal.module.css";
+import { AccountActions } from "./account-actions";
 
 export function chipFor(m: MarketSnapshot) {
   return marketChip({
@@ -116,24 +114,7 @@ export function DeadlineStrip({ m, now }: { m?: MarketSnapshot; now?: bigint }) 
 /** Account: what the wallet holds, what the market holds, what can leave. Contract numbers only (R2). */
 export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnapshot; t?: TraderSnapshot }) {
   const owner = useOwner();
-  const [amount, setAmount] = useState("");
-  const tx = useTx();
   const p = t?.account?.preview;
-
-  async function fund() {
-    if (!owner.address || !t) return;
-    let atoms: bigint;
-    try {
-      atoms = parseUsdcToAtoms(amount);
-    } catch {
-      return;
-    }
-    const calls = [];
-    if (t.allowance < atoms) calls.push({ address: deployment.risk.collateralToken, abi: erc20Abi, functionName: "approve", args: [deployment.risk.collateralVault, atoms], label: "approve" });
-    calls.push({ address: deployment.risk.collateralVault, abi: vaultAbi, functionName: "deposit", args: [atoms], label: "deposit" });
-    calls.push({ address: deployment.risk.collateralVault, abi: vaultAbi, functionName: "allocate", args: [engine, atoms, false], label: "allocate" });
-    await tx.run(owner.address, calls as never);
-  }
 
   if (!owner.connected) {
     return (
@@ -154,7 +135,7 @@ export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnap
     <section aria-label="Account" className="flex h-full flex-col">
       <RegionHead title="Account">{t && <span className="tnum">block {t.block.toString()}</span>}</RegionHead>
       <dl className="px-3 py-1">
-        <Row k={`Wallet (${deployment.risk.collateralSymbol})`} v={t ? atomsToUsdc(t.wallet, 2) : "—"} />
+        <Row k={`Wallet (${t?.assets.symbol ?? deployment.risk.collateralSymbol})`} v={t ? atomsToUsdc(t.wallet, 2) : "—"} />
         <Row k="Vault, free" v={t ? atomsToUsdc(t.free, 2) : "—"} />
         <Row k="Cash in market" v={p ? qToMoney(p.cashQ).usdc.replace(/(\.\d{2})\d+$/, "$1") : "not funded"} hint="Includes projected funding and premium; may be negative when leveraged" />
         <Row k="Position" v={p ? `${lotsToClaims(p.positionLots)} ${p.positionLots > 0n ? "YES" : p.positionLots < 0n ? "NO" : ""}` : "—"} />
@@ -167,34 +148,7 @@ export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnap
       {settlement && settlement.halted && (
         <p className="px-3 pb-2 text-xs text-fg-2">{STATUS_TEXT[decodeSettlementStatus(settlement as never)]}</p>
       )}
-      <div className="mt-auto flex flex-col gap-2 border-t border-line p-3">
-        <label className="flex flex-col gap-1.5">
-          <span className="label text-fg-3">Fund this market ({deployment.risk.collateralSymbol})</span>
-          <div className="flex">
-            <input
-              className="h-8 min-w-0 flex-1 bg-ground px-2.5 text-sm tnum shadow-[inset_0_0_0_1px_var(--color-line-strong)] placeholder:text-fg-4 focus:shadow-[inset_0_0_0_2px_var(--color-signal)] focus:outline-none"
-              inputMode="decimal"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-            <Button size="md" disabled={owner.wrongChain || !amount || !t || t.wallet === 0n || tx.state.status === "pending" || tx.state.status === "sent"} onClick={fund}>
-              Fund
-            </Button>
-          </div>
-        </label>
-        {owner.wrongChain && <p className="text-2xs text-signal-text">Open your wallet menu and switch to Monad testnet to fund this market.</p>}
-        {t && t.wallet === 0n && (
-          <p className="text-2xs leading-relaxed text-fg-3">This wallet holds no test collateral. It is minted by the testnet operator; ask the team for an allocation.</p>
-        )}
-        {(tx.state.status === "pending" || tx.state.status === "sent") && <p className="text-2xs text-fg-2">{tx.state.step}</p>}
-        {tx.state.status === "done" && (
-          <a className="text-2xs text-bid underline" href={explorerTx(tx.state.hash)} target="_blank" rel="noreferrer">
-            Funded. View transaction
-          </a>
-        )}
-        {tx.state.status === "error" && <p className="text-2xs text-ask">{tx.state.message}</p>}
-      </div>
+      <AccountActions engine={engine} m={m} t={t} />
     </section>
   );
 }
@@ -234,11 +188,12 @@ export function MarketInfo({ manifest, m }: { manifest: MarketManifest; m?: Mark
 const usd2 = (q: bigint) => qToMoney(q).usdc.replace(/(\.\d{2})\d+$/, "$1");
 
 /** Position and margin below the chart (contract FIRST VIEWPORT): contract previews only, at one block. */
-export function PositionPanel({ m, t }: { m?: MarketSnapshot; t?: TraderSnapshot }) {
+export function PositionPanel({ m, t, onReduce }: { m?: MarketSnapshot; t?: TraderSnapshot; onReduce?: (bps: number) => void }) {
   const owner = useOwner();
   if (!owner.connected) return <p className="px-4 py-4 text-sm text-fg-3">Log in to see your position and margin.</p>;
-  const p = t?.account?.preview;
-  const r = t?.account?.riskView;
+  if (!t) return <p className="p-4 text-sm text-fg-3">Reading your account…</p>;
+  const p = t.account?.preview;
+  const r = t.account?.riskView;
   if (!p || !r) {
     return (
       <p className="max-w-xl px-4 py-4 text-sm leading-relaxed text-fg-3">
@@ -270,6 +225,7 @@ export function PositionPanel({ m, t }: { m?: MarketSnapshot; t?: TraderSnapshot
         <Row k="Funding accrued" v={usd2(p.projectedFundingQ)} hint="Estimate; positive means you pay" />
         <Row k="Premium accrued" v={usd2(BigInt(p.projectedPremiumQ))} hint="Estimate" />
       </dl>
+      {p.positionLots !== 0n && !m?.halted && <div className="col-span-full flex flex-wrap items-center gap-2 py-3"><Button onClick={() => onReduce?.(10000)}>Close position</Button>{(p.positionLots > 1n || p.positionLots < -1n) && <Button onClick={() => onReduce?.(5000)}>Reduce 50%</Button>}<span className="text-xs text-fg-3">Prepares a reduce-only IOC. Review its limit before signing.</span></div>}
       {m && <p className="col-span-full pb-1 text-2xs text-fg-3 tnum">Read at block {t!.block.toString()}</p>}
     </div>
   );

@@ -5,6 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { client, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
+import { usePermissions } from "@/lib/privy-api";
+import { expiryBlock, type CloseIntent } from "@/lib/trade-intent";
+import { directionalCap, liveCalibration, verifiedProfile } from "@/lib/capabilities";
+import { qToMoney } from "@/lib/units";
 import { REJECT, ORDER_KIND } from "@/lib/enums";
 import { useTx, summarizeOrder } from "@/lib/tx";
 import { atomsToUsdc, buyBackedAtoms, lotsToClaims, parseClaimsToLots, parsePriceToTick, sellBackedAtoms } from "@/lib/units";
@@ -27,7 +31,7 @@ function useDebounced<T>(v: T, ms = 250) {
   return d;
 }
 
-export function Ticket({ engine, market, trader }: { engine: Address; market?: MarketSnapshot; trader?: TraderSnapshot }) {
+export function Ticket({ engine, market, trader, intent }: { engine: Address; market?: MarketSnapshot; trader?: TraderSnapshot; intent?: CloseIntent }) {
   const owner = useOwner();
   const loginAction = useLoginAction();
   const { switchChain } = useSwitchChain();
@@ -37,6 +41,16 @@ export function Ticket({ engine, market, trader }: { engine: Address; market?: M
   const [size, setSize] = useState("");
   const [reduceOnly, setReduceOnly] = useState(false);
   const tx = useTx();
+  const permissions = usePermissions(owner.address);
+  const delegated = permissions.data?.modes.find((p) => p.mode === "trade" && p.granted && p.engines.includes(engine.toLowerCase()));
+  const [oneClick, setOneClick] = useState(false);
+  const [expiry, setExpiry] = useState("");
+  useEffect(() => { if (intent) { setSide(intent.side); setSize(intent.size); setPrice(intent.price); setReduceOnly(true); setKind(1); } }, [intent]);
+  let expires = 0, expiryError = "";
+  try { expires = expiryBlock(expiry, market?.block ?? 0n); } catch (e) { expiryError = (e as Error).message; }
+  const profile = market && verifiedProfile(market.profile.profileHash, market.listing.template, market.listing.deploymentCapX);
+  const cap = market ? directionalCap(market.listing.template, side === "buy", liveCalibration(profile, market.risk.asOfTime), market.listing.deploymentCapX) : 1n;
+
 
   const parsed = useMemo((): Parsed => {
     try {
@@ -53,7 +67,7 @@ export function Ticket({ engine, market, trader }: { engine: Address; market?: M
   const dParsed = useDebounced(parsed);
   const preview = useQuery({
     queryKey: ["previewOrder", engine, traderId, side, dParsed.ok ? dParsed.tick : 0, dParsed.ok ? dParsed.lots.toString() : "", reduceOnly, market?.block.toString()],
-    enabled: traderId > 0 && dParsed.ok,
+    enabled: traderId > 0 && dParsed.ok && !!market,
     queryFn: () =>
       client.readContract({
         address: engine,
@@ -79,12 +93,15 @@ export function Ticket({ engine, market, trader }: { engine: Address; market?: M
           ? "Not funded yet"
               : !parsed.ok
                 ? parsed.error || "Enter price and size"
-                : preview.data && preview.data.rejection !== 0
+                : expiryError ? expiryError
+                : preview.isError ? "Order preview unavailable"
+                : !preview.data || !dParsed.ok || parsed.tick !== dParsed.tick || parsed.lots !== dParsed.lots ? "Checking order…"
+                : preview.data.rejection !== 0
                   ? REJECT[preview.data.rejection]
                   : null;
 
   async function submit() {
-    if (!owner.address || !market || !parsed.ok) return;
+    if (!owner.address || !market || !parsed.ok || blocker || owner.wrongChain) return;
     await tx.run(
       owner.address,
       [
@@ -92,11 +109,12 @@ export function Ticket({ engine, market, trader }: { engine: Address; market?: M
           address: engine,
           abi: engineAbi,
           functionName: "placeOrder",
-          args: [{ kind, isBuy: side === "buy", reduceOnly, tick: parsed.tick, size: parsed.lots, maxFills: market.maxFills, expiryBlock: 0 }],
+          args: [{ kind, isBuy: side === "buy", reduceOnly, tick: parsed.tick, size: parsed.lots, maxFills: market.maxFills, expiryBlock: expires }],
           label: "order",
         },
       ],
       summarizeOrder,
+      oneClick && delegated ? { previewBlock: market.block } : undefined,
     );
   }
 
@@ -178,13 +196,23 @@ export function Ticket({ engine, market, trader }: { engine: Address; market?: M
           Reduce only
         </label>
 
+        <details className="text-xs text-fg-2">
+          <summary className="label cursor-pointer">Advanced order</summary>
+          <label className="mt-3 flex flex-col gap-1.5">Expires at block (optional)<input className={field} inputMode="numeric" placeholder="Good until cancelled" value={expiry} onChange={(e) => setExpiry(e.target.value)} /></label>
+          {cap > 1n && trader?.account?.preview.positionLots === 0n && trader.account.preview.id.markAvailable && <label className="mt-3 flex flex-col gap-1.5">Target leverage at limit (estimate)
+            <input type="range" min="1" max={Number(cap)} step="0.1" defaultValue="1" onChange={(e) => { if (!parsed.ok || !trader.account) return; const ticks = BigInt(side === "buy" ? parsed.tick : 1000 - parsed.tick); const lots = trader.account.preview.markEquityQ * BigInt(Math.round(Number(e.target.value) * 10)) / (10n * ticks * 10n ** 18n); if (lots > 0n) setSize(lotsToClaims(lots)); }} />
+          </label>}
+          {preview.data && <dl className="mt-2"><Row k="Required initial margin" v={preview.data.fullBackingRequired ? "Fully backed" : qToMoney(preview.data.requiredImQ).usdc} /><Row k="Equity after reservations" v={preview.data.id.markAvailable ? qToMoney(preview.data.eMinQ).usdc : "No mark"} /><Row k="Deficit if NO / YES" v={`${qToMoney(preview.data.d0AfterQ).usdc} / ${qToMoney(preview.data.d1AfterQ).usdc}`} /><Row k="Reserve coverage" v={preview.data.marketCoverageAfter ? "Covered" : "Unavailable"} /></dl>}
+        </details>
+
         <dl className="hair-b -mx-3 border-t border-line px-3 py-1">
-          <Row k="Fully backed cost" v={cost !== undefined ? `${atomsToUsdc(cost, 2)}` : "—"} hint="At the current 1x profile: buy = size × price, sell = size × (1 − price); fees shown separately" />
-          <Row k={side === "buy" ? "Pays if YES" : "Pays if NO"} v={payout !== undefined ? atomsToUsdc(payout, 2) : "—"} />
+          <Row k="Full-backing amount" v={cost !== undefined ? `${atomsToUsdc(cost, 2)}` : "—"} hint="At the current 1x profile: buy = size × price, sell = size × (1 − price); fees shown separately" />
+          <Row k={side === "buy" ? "Gross payoff if YES" : "Gross payoff if NO"} v={payout !== undefined ? atomsToUsdc(payout, 2) : "—"} />
           <Row k="Fee reserved" v={preview.data ? atomsToUsdc(preview.data.feeCapQ / 10n ** 18n, 6) : "—"} />
           <Row k="Max admissible" v={preview.data ? `${lotsToClaims(preview.data.acceptedCapLots)} claims` : traderId === 0 ? "fund to preview" : "—"} />
         </dl>
 
+        {delegated && <label className="flex items-start gap-2 text-xs text-fg-2"><input type="checkbox" checked={oneClick} onChange={(e) => setOneClick(e.target.checked)} />Use Privy one-click trading for this order</label>}
         {!owner.connected ? (
           <Button variant="primary" size="lg" arrow disabled={!loginAction.ready} onClick={() => loginAction.login()}>
             Log in to trade

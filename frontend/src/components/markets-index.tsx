@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
-import { markets, type MarketManifest } from "@/config/deployment";
+import { type MarketManifest } from "@/config/deployment";
+import { useMarketList } from "@/lib/market-list";
 import { fmtDuration, lotsToClaims, wadTo3 } from "@/lib/units";
 import { chipFor } from "./market-parts";
 import { Chip, Num, SectionRule } from "./ui";
@@ -71,6 +72,8 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
 
 export function MarketsIndex() {
   const head = useHead();
+  const discovery = useMarketList();
+  const { markets } = discovery;
   return (
     <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
@@ -114,8 +117,7 @@ export function MarketsIndex() {
         </table>
       </div>
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
-        One market is deployed on Monad testnet today. Markets created through the oracle&apos;s market registry will list here once the
-        registry-bound market factory is live.
+        {discovery.isError ? "Registry discovery is unavailable. Showing the last known markets." : discovery.data?.indexed ? "Markets are discovered from the registry and verified against their trading contracts." : "Showing configured markets while registry discovery loads. Additional markets appear after their contracts are verified."}
       </p>
     </main>
   );
