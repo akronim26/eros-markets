@@ -187,12 +187,37 @@ def warp_to(rpc, timestamp):
 
 def process_identity(pid):
     if os.name == "nt":
-        command = (f"try {{$p=Get-Process -Id {int(pid)} -ErrorAction Stop; $p.StartTime.ToUniversalTime().Ticks}} "
-                   "catch {if($_.FullyQualifiedErrorId -notlike 'NoProcessFoundForGivenId*'){Write-Error $_; exit 1}}; exit 0")
-        result = subprocess.run(["powershell", "-NoProfile", "-Command", command], text=True, capture_output=True, creationflags=HIDDEN, timeout=5)
-        if result.returncode:
-            raise RuntimeError("Unable to verify recorded process identity: " + result.stderr.strip())
-        return result.stdout.strip() or None
+        # Query the kernel directly: spawning PowerShell can take longer than the
+        # entire cleanup budget during dependency installation. Preserve the old
+        # .NET UTC tick format so recorded runtimes remain usable.
+        import ctypes
+        from ctypes import wintypes
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        kernel.OpenProcess.restype = wintypes.HANDLE
+        kernel.GetProcessTimes.argtypes = [wintypes.HANDLE] + [ctypes.POINTER(wintypes.FILETIME)] * 4
+        kernel.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        handle = kernel.OpenProcess(0x1000, False, int(pid))  # QUERY_LIMITED_INFORMATION
+        if not handle:
+            error = ctypes.get_last_error()
+            if error == 87:  # PID no longer exists.
+                return None
+            raise ctypes.WinError(error)
+        try:
+            exit_code = wintypes.DWORD()
+            if not kernel.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            if exit_code.value != 259:  # STILL_ACTIVE
+                return None
+            times = [wintypes.FILETIME() for _ in range(4)]
+            if not kernel.GetProcessTimes(handle, *(ctypes.byref(value) for value in times)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            created = (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
+            return str(created + 504911232000000000)  # 0001-to-1601 epoch offset.
+        finally:
+            if not kernel.CloseHandle(handle):
+                raise ctypes.WinError(ctypes.get_last_error())
     path = Path(f"/proc/{pid}/stat")
     if path.exists():
         try:
