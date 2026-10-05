@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-05T23:25:50.906874+00:00",
+  "scope": "Backend-only affected checks after merging frontend branch. No frontend tests or public deployment performed by this lane.",
+  "testedMergeCommit": "5aa120205c252d2f1c06994c8ed5cad99bf93b20",
+  "zeroPublicTransactions": true,
+  "checks": [
+    {
+      "name": "margin",
+      "cwd": "contracts",
+      "argv": [
+        "${REPOSITORY_ROOT}\\tmp\\foundry-v1.8.3\\forge.exe",
+        "test",
+        "--match-contract",
+        "^MarginLensTest$",
+        "--threads",
+        "1",
+        "--json"
+      ],
+      "startedAtUtc": "2026-10-05T23:11:24.635899+00:00",
+      "publicTransactions": 0,
+      "exitCode": 0,
+      "seconds": 50.782,
+      "finishedAtUtc": "2026-10-05T23:12:15.421125+00:00",
+      "logs": [
+        {
+          "path": "tmp\\merged-backend-margin-20261006.log",
+          "sha256Raw": "fb31354d158c8ca5b59d2b01826a1e4b1bdcedee3a83613a4748ce3330a1a282"
+        },
+        {
+          "path": "tmp\\merged-backend-margin-20261006.stderr.log",
+          "sha256Raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "profile": "default; solc0.8.30; Prague; threads1"
+    },
+    {
+      "name": "listener-test",
+      "cwd": "oracle/workflows/listen",
+      "argv": [
+        "C:\\Users\\gujja\\AppData\\Local\\Kiro-Cli\\bun.exe",
+        "--no-env-file",
+        "test",
+        "poller.test.ts"
+      ],
+      "startedAtUtc": "2026-10-05T23:12:24.271787+00:00",
+      "publicTransactions": 0,
+      "exitCode": 0,
+      "seconds": 2.328,
+      "finishedAtUtc": "2026-10-05T23:12:26.614820+00:00",
+      "logs": [
+        {
+          "path": "tmp\\merged-backend-listener-test-20261006.log",
+          "sha256Raw": "ca35b94f2c5b623fccbd1cc9e77eef3e30a6fcf4b045842fc1353f7ae6d8ea32"
+        },
+        {
+          "path": "tmp\\merged-backend-listener-test-20261006.stderr.log",
+          "sha256Raw": "18677d230f6f073cce1afeb3e494fbfaa789c551e37d147b3d7c01d4b8bab9b1"
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "assertions": 31,
+      "scope": "Pure poller unit tests. Listener service was not started."
+    },
+    {
+      "name": "keeper-paths",
+      "cwd": "oracle/services/keeper",
+      "argv": [
+        "C:\\Users\\gujja\\AppData\\Local\\Kiro-Cli\\bun.exe",
+        "--no-env-file",
+        "test",
+        "test/sdkPaths.test.ts"
+      ],
+      "startedAtUtc": "2026-10-05T23:12:26.678657+00:00",
+      "publicTransactions": 0,
+      "exitCode": 0,
+      "seconds": 2.078,
+      "finishedAtUtc": "2026-10-05T23:12:28.767349+00:00",
+      "logs": [
+        {
+          "path": "tmp\\merged-backend-keeper-paths-20261006.log",
+          "sha256Raw": "ca35b94f2c5b623fccbd1cc9e77eef3e30a6fcf4b045842fc1353f7ae6d8ea32"
+        },
+        {
+          "path": "tmp\\merged-backend-keeper-paths-20261006.stderr.log",
+          "sha256Raw": "d4b8f2b1a563258437fc0f331f833889532bfa771f90c809f99dba1834c5496a"
+        }
+      ],
+      "passed": 1,
+      "failed": 0,
+      "assertions": 2
+    },
+    {
+      "name": "indexer-native-linux",
+      "environment": "WSL Ubuntu; Node24.21.0; pnpm10.33.1; Envio3.12.1; TypeScript6.0.3; Vitest4.1.0",
+      "cwd": "/home/yash/eros-indexer-merge-20261006/oracle/indexer",
+      "commands": [
+        "pnpm install --frozen-lockfile",
+        "pnpm codegen",
+        "pnpm typecheck",
+        "pnpm exec vitest run test/trading.test.ts test/config.test.ts --test-timeout=20000"
+      ],
+      "codegen": "passed",
+      "typecheck": "passed",
+      "passed": 6,
+      "failed": 0,
+      "scope": "The focused handler/config tests exercise the merged trading events and verify deployed-address configuration plus committed event ABIs. No live indexer/RPC service was started.",
+      "evidence": [
+        {
+          "path": "tmp/merged-backend-indexer-linux-20261006.log",
+          "sha256Raw": "47e99c99283012a4e98ca18e1a2ca8d4c029f84368644aae4830acc7cd2683cf",
+          "bytes": 3425
+        },
+        {
+          "path": "tmp/merged-backend-indexer-linux-final-20261006.log",
+          "sha256Raw": "a5d3566f8aa9de0a87e5f264fc691b5a75917bdb78341046b6295db3077ef503",
+          "bytes": 827
+        },
+        {
+          "path": "tmp/merged-indexer-linux.sh",
+          "sha256Raw": "22b015db9bf4ab29261259e89c2d2bbdfe039dbfd2c83a54c29445cb0eef1c70",
+          "bytes": 979
+        },
+        {
+          "path": "tmp/merged-indexer-linux-final.sh",
+          "sha256Raw": "6938311fb64248604df14c0ae8a322fb452b88e4741fcd37bb52dc4b95c2c542",
+          "bytes": 632
+        }
+      ]
+    }
+  ],
+  "ciChange": {
+    "path": ".github/workflows/oracle.yml",
+    "description": "Raise only the aggregate Monad integration test harness gas limit to10000000000 for1024-owner setup/claims. Existing measured batch assertions still enforce padded gas<=30000000; production transaction limits/economics unchanged."
+  },
+  "reusedEvidence": [
+    {
+      "scope": "The six existing keeper fork scenarios were not repeated: merged file is byte-identical to the previously tested branch version. Incoming sdkPaths regression was run separately; parent runs a fresh backend local flow.",
+      "unchangedFromFirstMergeParent": true
+    }
+  ],
+  "preservedFailures": [
+    {
+      "name": "indexer-codegen",
+      "cwd": "oracle/indexer",
+      "argv": [
+        "C:\\Program Files\\nodejs\\npx.cmd",
+        "--yes",
+        "pnpm@10.33.1",
+        "codegen"
+      ],
+      "startedAtUtc": "2026-10-05T23:16:34.054738+00:00",
+      "publicTransactions": 0,
+      "exitCode": 1,
+      "seconds": 121.172,
+      "finishedAtUtc": "2026-10-05T23:18:35.229075+00:00",
+      "logs": [
+        {
+          "path": "tmp\\merged-backend-indexer-codegen-20261006.log",
+          "sha256Raw": "885b3008cbdf4332557d69f212ee7b8409c2344a0e3f0debf6bb8324747380a6"
+        },
+        {
+          "path": "tmp\\merged-backend-indexer-codegen-20261006.stderr.log",
+          "sha256Raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "classification": "Windows platform unsupported by installed Envio native addon. Source lists only Linux/macOS candidate binaries; native Linux codegen passed."
+    },
+    {
+      "classification": "Isolated Linux copy initially omitted SDK src/indexer.ts imported by query typechecks; copied unchanged repo file and reran typecheck. No product code was changed to resolve this harness setup omission.",
+      "evidence": {
+        "path": "tmp/merged-backend-indexer-linux-20261006.log",
+        "sha256Raw": "47e99c99283012a4e98ca18e1a2ca8d4c029f84368644aae4830acc7cd2683cf",
+        "bytes": 3425
+      }
+    }
+  ],
+  "sourceFingerprints": [
+    {
+      "path": ".github/workflows/oracle.yml",
+      "sha256CanonicalLF": "fa5856f4edbd63e0934ab641304e3e6f3d20ab6adb2b41fbe6cd1fefc61e6c94"
+    },
+    {
+      "path": "artifacts/risk/book-risk-engine-abi.json",
+      "sha256CanonicalLF": "d5b8592340c1c7b25505922daea00eab0bcd0150141b7b5a820f20a6f2b5d27f"
+    },
+    {
+      "path": "artifacts/risk/vault-abi.json",
+      "sha256CanonicalLF": "227eddb0baaddcc9cbf4132b28f59e11b70eda8b5e70ac649a255732048e3657"
+    },
+    {
+      "path": "contracts/src/lens/MarginLens.sol",
+      "sha256CanonicalLF": "13cf811154b27696e10a95ceb580a3e884292837405493354071c35c386bbfc3"
+    },
+    {
+      "path": "contracts/test/lens/MarginLens.t.sol",
+      "sha256CanonicalLF": "8832227e92841302f860d84dce9c69d315d31a1edd20a488e26b859bd4a3caef"
+    },
+    {
+      "path": "oracle/indexer/abis/TradingEngine.json",
+      "sha256CanonicalLF": "eef1a7d2a53b583080688c526d8735849efafac025cacee2643ae6d9cef513f0"
+    },
+    {
+      "path": "oracle/indexer/abis/TradingVault.json",
+      "sha256CanonicalLF": "887f2771b3aacc1bb1ed5124eec82168a14d983532a87b50955effc5688f577a"
+    },
+    {
+      "path": "oracle/indexer/config.mainnet.yaml",
+      "sha256CanonicalLF": "868dd35416d888c3a789da39952824d5326d53545ab7321ea00fc8767752e6b1"
+    },
+    {
+      "path": "oracle/indexer/config.yaml",
+      "sha256CanonicalLF": "f719fed8c1eba5f0399f01ddb6aefd0ff2f81fa81c049067810d48afbfa06311"
+    },
+    {
+      "path": "oracle/indexer/envio-env.d.ts",
+      "sha256CanonicalLF": "dc4c03666533099b201362fdafdbf7b4df37e47bf1ea36d92027ab272efdc49b"
+    },
+    {
+      "path": "oracle/indexer/package.json",
+      "sha256CanonicalLF": "67d09cfd4a88c209ff2fc97cb604c230495281fe087deb640f6976baa202640d"
+    },
+    {
+      "path": "oracle/indexer/pnpm-lock.yaml",
+      "sha256CanonicalLF": "847ca04a7438ee714c31fd1428960c01fbfe1839bef4ab2ae93d86ef3c0f3a54"
+    },
+    {
+      "path": "oracle/indexer/schema.graphql",
+      "sha256CanonicalLF": "e542d1af783886835e6c61741a2c4401dddc1fcbccf2dc42b211a7ef7bad5f4d"
+    },
+    {
+      "path": "oracle/indexer/scripts/record.test.ts",
+      "sha256CanonicalLF": "d045bba8b31a4d55b4f6f111a03a93b08fdbbaa24b9ec748a5cac2f1eb4153f3"
+    },
+    {
+      "path": "oracle/indexer/src/addresses.ts",
+      "sha256CanonicalLF": "f4c8cc89d915c91d7481cd12935fe8ccc9e560394d97588198aeb032cab64f69"
+    },
+    {
+      "path": "oracle/indexer/src/handlers/BondTreasury.ts",
+      "sha256CanonicalLF": "bae09f4f2294f94a777626026a30edf1810639f8b6e465b79a06fa0dc41134ec"
+    },
+    {
+      "path": "oracle/indexer/src/handlers/MarketRegistry.ts",
+      "sha256CanonicalLF": "07df16aff266ebd6fa20256e5f8528ffc3fe29e90b2b4de709ced68bb5264441"
+    },
+    {
+      "path": "oracle/indexer/src/handlers/Reports.ts",
+      "sha256CanonicalLF": "03e49960cbb2dd50980264f1c4183db2fb4616b2f857ef2f93b1ecc71ed30c41"
+    },
+    {
+      "path": "oracle/indexer/src/handlers/ResolutionOracle.ts",
+      "sha256CanonicalLF": "e9dd6ab439225e9eb01c336dc146bf3beea8dbafbbacfd5ae86047d88209b156"
+    },
+    {
+      "path": "oracle/indexer/src/handlers/Trading.ts",
+      "sha256CanonicalLF": "dec9c92fd877cf758a67e9ec78676ce3a41301e52c6bf3def6981122431bf9db"
+    },
+    {
+      "path": "oracle/indexer/src/handlers/Venue.ts",
+      "sha256CanonicalLF": "99bcbe77e2c11901dce2bad81ab3d6ec1c40bd8c5581199cb083c29d5eec7798"
+    },
+    {
+      "path": "oracle/indexer/src/lib.ts",
+      "sha256CanonicalLF": "c6990ec03028e7288e1c899580219dba2d22cd47b6bf22f08f989ed10e6f6c4d"
+    },
+    {
+      "path": "oracle/indexer/test/config.test.ts",
+      "sha256CanonicalLF": "36df3e1e3cd6e85972662c60b0496d04655b9ac37c0167f629ea8e8d55c49797"
+    },
+    {
+      "path": "oracle/indexer/test/fixtures/recorded/events.json",
+      "sha256CanonicalLF": "f4e588062c2161999ae6bc43c242a43882a2b37a2dc5d4bd042603e38536718b"
+    },
+    {
+      "path": "oracle/indexer/test/handlers.test.ts",
+      "sha256CanonicalLF": "256df4a3db8591bf1e3a52920a840dea966048c2d2601b5241efd45cb3f724e1"
+    },
+    {
+      "path": "oracle/indexer/test/lib.test.ts",
+      "sha256CanonicalLF": "e1beada35d8d3bbcdfe01cbbeed7bcad7004ee8c831333e2edaf4941d6ab3bbf"
+    },
+    {
+      "path": "oracle/indexer/test/queries.test.ts",
+      "sha256CanonicalLF": "5bdd426b9378f1335dc76fffe10d0479738def4163ce96f15864115590f29200"
+    },
+    {
+      "path": "oracle/indexer/test/replay.ts",
+      "sha256CanonicalLF": "6e1349a6a76b553d461408c4135f65d0462d797598d0d4c6560c82aaadaa509c"
+    },
+    {
+      "path": "oracle/indexer/test/trading.test.ts",
+      "sha256CanonicalLF": "079ddeed01fdaff03198d3d7306e20f00055e50e8312bf3beacf65cd86a4c927"
+    },
+    {
+      "path": "oracle/indexer/tsconfig.json",
+      "sha256CanonicalLF": "2fa4d5d20332d70e6c183b731ee305745688559eface09d3192594faa4e99d34"
+    },
+    {
+      "path": "oracle/indexer/vitest.config.ts",
+      "sha256CanonicalLF": "fc95e7cf19a99ded5ec33e9cb352c777fbf1d1fc35065ac84d4873da1903c937"
+    },
+    {
+      "path": "oracle/packages/oracle-sdk/src/indexer.ts",
+      "sha256CanonicalLF": "b0d59a6e9d14446c8ca34e615a29448d396d635037287f66526232eb7bdf1ac0"
+    },
+    {
+      "path": "oracle/services/keeper/test/fork/scenarios.test.ts",
+      "sha256CanonicalLF": "815a6779acf3718fa9a28efbd16fe32c4383105e990f6a84319dc2d0fd9d181f"
+    },
+    {
+      "path": "oracle/services/keeper/test/sdkPaths.test.ts",
+      "sha256CanonicalLF": "f1828a768a0984fd7ea9c9fd8dc218a342ac7d9c8d5b995b820b299745a9bcb4"
+    },
+    {
+      "path": "oracle/workflows/listen/poller.test.ts",
+      "sha256CanonicalLF": "1aa67ade38f2df4a7b43e2a21afa8064b501e2dd6eb04e74a02e0161cd62a8d5"
+    },
+    {
+      "path": "oracle/workflows/listen/poller.ts",
+      "sha256CanonicalLF": "45b65e55230006789936a8d41348b126a7a11375ce99a107444a254be37278b2"
+    }
+  ],
+  "limitations": [
+    "No frontend tests, browser workflow, public broadcasts or additional deployment rehearsals in this lane.",
+    "Focused checks add to earlier backend suites; they do not claim a complete new rerun of every baseline after the merge.",
+    "Linux initial and final logs are sequential command-group logs; per-step durations were not captured."
+  ]
+}

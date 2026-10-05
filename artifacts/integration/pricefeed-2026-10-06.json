@@ -2,7 +2,7 @@
   "schema": "eros-pricefeed-integration-evidence/1",
   "assessment_date": "2026-10-06",
   "recorded_at_utc": "2026-10-05T22:29:52.871600+00:00",
-  "status": "All listed current pricefeed component checks passed. User clock repair and fresh1s source qualification passed. Full real-source leverage proof and final cross-component scope gate remain separate coordinating release evidence.",
+  "status": "Listed pricefeed component checks and final1146-input backend scope gate passed. Fresh1s source qualification passed after user clock repair. Complete uninterrupted real-source leverage acceptance remains unproven; current backend flow evidence belongs to the coordinating root. Frontend validation is excluded by the latest user instruction.",
   "scope": "Implementing-agent automated checks. Components were run separately; no aggregate verify:integration invocation is claimed.",
   "public_transactions": 0,
   "production_approval": false,
@@ -765,5 +765,114 @@
         "bytes": 4440064
       }
     }
-  ]
+  ],
+  "additional_owned_process_validation": {
+    "scope": "Root-authorized foreground command containment and bounded recorded background-root cleanup. No public transaction or system setting change.",
+    "windows": {
+      "command": "python -m unittest discover -s scripts/integration -p test_owned_process.py -v",
+      "passed": 11,
+      "failed": 0,
+      "evidence": {
+        "path": "tmp/owned-process-windows-tests.log",
+        "sha256_raw": "5fc044a577d8f994f7cd197f400edfc2da7274b34b474681428d235c04987c0b",
+        "bytes": 2259
+      }
+    },
+    "linux": {
+      "command": "python3 -m unittest discover -s scripts/integration -p test_owned_process.py -v",
+      "passed": 6,
+      "failed": 0,
+      "windows_only_skipped": 5,
+      "evidence": {
+        "path": "tmp/owned-process-linux-tests.log",
+        "sha256_raw": "8f08d298ae887c1c98c908e05b9705271b74af4c45eb2335e30349a035a1b2f1",
+        "bytes": 2443
+      }
+    },
+    "background_root_regression": {
+      "command": "python -m unittest discover -s scripts/integration -p test_local_stack.py -q",
+      "passed": 23,
+      "failed": 0,
+      "evidence": {
+        "path": "tmp/local-stack-background-cleanup-tests.log",
+        "sha256_raw": "857789eda101a675ba2fa415150c5805d51acf82bdccaf33b9f01c3400bf2df4",
+        "bytes": 134
+      }
+    },
+    "source_sha256_lf": {
+      "scripts/integration/owned_process.py": "5f8f04efe6fcd725adfe47081fceb12500b816884a3ced68e40b7edf607cd930",
+      "scripts/integration/test_owned_process.py": "a46993bc51a150404cf753c5e7ed32d5ca5e98750878510b3ba25ba1f30d4e7e",
+      "scripts/integration/local-stack.py": "94b7909bd867efcd7587be1b750b4d6a57097113558a390b042da939ad23420a",
+      "scripts/integration/test_local_stack.py": "f70620f83b54dfd00dd75243e79b671e427bf4ff9e79d75cef69adbe7ab8bae5"
+    },
+    "independent_review": {
+      "path": "tmp/owned-process-independent-review-20261006.json",
+      "sha256_raw": "b01d8af5df0aefdbee804170e5703520c1f6468b359faad6899408e27df7aa82",
+      "bytes": 2055
+    },
+    "corrected_findings": [
+      "Job active process count alone could precede exact process handle signaling; cleanup now retains and waits exact owned handles.",
+      "A child created between member enumeration and termination could miss the exact wait set; cleanup-only active-process limit seals new execution before enumeration.",
+      "A temporary CloseHandle failure could skip remaining handles; every exact owned handle is now attempted, failures retried once, unresolved identities retained and the primary exception preserved.",
+      "Recorded background termination previously ignored its outcome; bounded root identity rechecks now gate stopped status and preserve unverified cleanup explicitly."
+    ],
+    "limitations": [
+      "Foreground Windows native jobs contain inherited descendants; POSIX support covers the dedicated session/process group, not deliberate daemon escape.",
+      "Legacy background launches verify recorded roots only. Windows taskkill requests tree termination, but untracked descendants are not independently verified; runtime metadata states that limit."
+    ],
+    "coordinating_root_final_runner_suite": {
+      "command": "python -m unittest discover -s scripts/integration -p test_*.py",
+      "passed": 90,
+      "failed": 0,
+      "evidence": {
+        "path": "tmp/integration-python-native-identity-20261006.log",
+        "sha256_raw": "80d50ff411e14771cc8b8d090b972f8f93e3d0990bd00e006bd2881ab8910354",
+        "bytes": 1424
+      },
+      "change_since_focused23": "Windows recorded-root identity now uses native GetProcessTimes instead of spawning PowerShell; historical .NET tick identity format is preserved."
+    }
+  },
+  "cross_component_peer_review": {
+    "reviewer": "inspect_pricefeed; independent of helper/market-ops/root harness implementers",
+    "reviewed_at_utc": "2026-10-05T23:24:51.728221+00:00",
+    "source_sha256_lf": {
+      "oracle/src/integration/RolloverBatcher.sol": "91d47d9e7ab3ff70e98566cdcb2939ee38d8d1cd214d0cbd9d4ee7d8c1f53409",
+      "oracle/services/market-ops/src/rollover-batch.ts": "926d1fac678d2781110510fcd94e8acb644672fe7544c81e96edd766e0c8e403",
+      "oracle/services/market-ops/src/operations.ts": "b3dee73da3a974ac8f691e5d81cbe2c9ab96eb8c7a45dbd606a8eda4deddec36",
+      "oracle/services/market-ops/src/chain.ts": "9bafdb1a6c2ef94abe4a0aecc0300948b9808912453ba255470346125c1fd019",
+      "scripts/integration/local-stack.py": "94b7909bd867efcd7587be1b750b4d6a57097113558a390b042da939ad23420a",
+      "scripts/integration/probe-local-api.py": "a6f8e8e1d01664b8e220c93d8fa5678515e12b4e6813f18a730d56130e036b1e",
+      "scripts/integration/test_local_stack.py": "f70620f83b54dfd00dd75243e79b671e427bf4ff9e79d75cef69adbe7ab8bae5",
+      "scripts/integration/test_local_api_probe.py": "a80bdff0e95b1b636398806a32be2918ebc285036d00879a8d398967fc5228fc"
+    },
+    "result": "No outstanding blocking finding in these reviewed revisions; actual integrated frontend/live timing acceptance remains a separate proof.",
+    "reviewed_guards": [
+      "Rollover helper bounds pages and owners; exact epoch/work/cursor and monotonic progress assertions preserve engine accounting and current coverage checks.",
+      "Gas selection is bounded and uses an actual pinned estimate; only classified gas-cap failures shrink the batch. Reverts remain atomic.",
+      "Stale/raced snapshots fail before journal signing or atomically in the helper. Exact signed journal reconciliation and finalized canonical receipts remain required.",
+      "Root launch fingerprints bind executable code; five runtime ABI artifacts are archived after deployment compilation and before services, then checked at acceptance.",
+      "API public projection is compared with verified enrollment and snapshot identity/provenance/source mode; credential spellings are normalized for rejection.",
+      "Independent replay JSON is archived only after explicit success; command argv/timing/failure/cleanup evidence is retained in finally.",
+      "Windows recorded-root identity reads use native kernel handles with the original .NET tick format; bounded cleanup remains explicit about legacy descendant limits."
+    ]
+  },
+  "final_backend_scope_gate": {
+    "command": "python packages/pricefeed/scripts/check-integration-scope.py",
+    "passed": true,
+    "source_text_inputs": 1146,
+    "exact_raw_inputs_in_inventory": 0,
+    "historical_baseline_unchanged": true,
+    "frontend_validation": "excluded by latest user instruction",
+    "scope_manifest": {
+      "path": "packages/pricefeed/config/integration-scope-2026-10-06.json",
+      "sha256_raw": "2ebd21ce973235c7c1e8487450e163b8feb019fb2dc807db4c3e0e955e4e2c80",
+      "bytes": 151491
+    },
+    "evidence": {
+      "path": "tmp/pricefeed-final-integration-scope-check.log",
+      "sha256_raw": "89957b381bd8fa643ff8010e344103679b66bb549ca0966dad975357f9b202b4",
+      "bytes": 136
+    },
+    "coverage_note": "This unchanged versioned inventory covers backend source inputs. Root runner separately binds artifacts/risk JSON at launch and five compiled runtime ABI artifacts before services. Runtime source bodies, signed bytes and SQLite journals have independent exact-byte archive audits."
+  }
 }

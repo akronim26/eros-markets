@@ -2,9 +2,12 @@
 
 This work connects the pricefeed, oracle, order book, risk engine and collateral
 vault on `integration/risk`. The completed frontend from `origin/feat/pricefeed`
-is now in scope for merging and connection to this backend. Validation uses
-owned local chains and read-only public RPC access;
-it does not deploy or change the existing public contracts.
+is merged at `5aa1202`. The user's final scope is backend flow validation;
+frontend wiring/testing and public deployment belong to the frontend team.
+Validation uses owned local chains and previously completed read-only public RPC
+inspection. It does not deploy or change the existing public contracts. Start with
+the [frontend-team handoff](FRONTEND_TEAM_HANDOFF.md) for the remaining connection
+work, deployment inputs, operator policies and UI requirements.
 
 The implementation starts from `dbab6128904dcd990ce5ef38b5a5274d29fa8a99`.
 Final evidence must identify the exact source fingerprints and run directories;
@@ -28,6 +31,13 @@ user reduced the scope to hackathon-critical checks; it is recorded as cancelled
 not passed. Its empty output contains no completed test result. The prior default
 suites remain the evidence for those contracts, with affected checks required
 for any subsequent changes.
+
+The merged display-only MarginLens adds two passing contract tests. A separate
+canonical RPC campaign exercised 1,024 funded owners through two 16-page helper
+transactions: 22,370,406 and 22,221,239 gas used, finalized completion in 17.275
+seconds. Its broad wrapper detected concurrently changed, unused Python files;
+the committed report preserves that failed wrapper result separately from the
+successful canonical operator campaign and its unchanged execution inputs.
 
 The authentic-source leveraged proof is still incomplete. The latest retired
 run reached genuine pricing windows but did not demonstrate normal pricing,

@@ -2,8 +2,10 @@
 
 This interface uses `manifestVersion: 1` and the concrete factory engine ABI.
 Import `@eros-oracle/oracle-sdk/browser`. Keep wallet ownership explicit and use
-the source-bound manifest as the deployment allowlist. No frontend branch or
-wallet-provider integration is included here.
+the source-bound manifest as the deployment allowlist. The completed frontend branch
+is merged; its deployment wiring and validation remain with the frontend team.
+See the [application handoff](../../../../docs/integration/FRONTEND_TEAM_HANDOFF.md)
+for deployment responsibilities and UI policies.
 
 ## Data and units
 
