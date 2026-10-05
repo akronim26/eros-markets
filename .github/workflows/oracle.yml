@@ -37,7 +37,9 @@ jobs:
       - name: Real factory, oracle, risk and book on Monad
         env:
           FOUNDRY_PROFILE: integration
-        run: forge test --match-path 'test/integration/*.t.sol' --network monad --hardfork monad:MonadTen --isolate -vv
+        # The 1,024-owner fixture aggregates thousands of independent setup/claim
+        # calls in one test. Accepted rollover batches still assert the padded 30M cap.
+        run: forge test --match-path 'test/integration/*.t.sol' --network monad --hardfork monad:MonadTen --isolate --gas-limit 10000000000 -vv
 
   packages:
     runs-on: ubuntu-latest
