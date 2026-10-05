@@ -1,4 +1,5 @@
-# Review/create manually. No auto-deploys or preview replicas; start is read-only
+# Review/create manually. Disable Blueprint Auto Sync in the dashboard separately.
+# No code auto-deploys or preview replicas; start is read-only
 # until an operator explicitly prepares a pinned profile on the persistent disk.
 services:
   - type: worker
@@ -8,7 +9,6 @@ services:
     plan: 0.5c-512mb
     numInstances: 1
     autoDeployTrigger: "off"
-    maxShutdownDelaySeconds: 120
     buildCommand: npm ci --include=dev && ./node_modules/.bin/node node_modules/typescript/bin/tsc -p tsconfig.json
     startCommand: ./node_modules/.bin/node dist/scripts/render-start.js
     envVars:

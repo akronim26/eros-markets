@@ -177,6 +177,26 @@ test('Render operator stop stays parked instead of recreating missing journals o
   }finally{await f.close();}
 });
 
+test('fresh Render preparation uses a stop budget below the host default and the wrapper drains an in-flight collection',async()=>{
+  const f=fixture(100);try{
+    const initializer=fileURLToPath(new URL('../scripts/render-profile.js',import.meta.url));
+    const preparation=f.launch(['prepare-readonly',f.state,f.configsFile],initializer);
+    assert.equal((await preparation.completion).code,0);
+    const path=join(f.state,'profile.json'),profile=parseDeploymentProfile(JSON.parse(readFileSync(path,'utf8')));
+    assert.equal(profile.mode,'READ_ONLY_COLLECTION');assert.equal(profile.testnet,null);
+    assert.equal(profile.restart.stopTimeoutMs,20000);assert.ok(profile.restart.stopTimeoutMs<30000);
+    const wrapper=fileURLToPath(new URL('../scripts/render-start.js',import.meta.url));
+    const run=f.launch([],wrapper,{...f.env,PRICEFEED_SERVICE_PROFILE:path});
+    await run.until(()=>run.records.some(e=>e.event==='FIXTURE_REQUEST'));
+    const started=Date.now();await f.stop(run);
+    assert.equal((await run.completion).code,0);assert.ok(Date.now()-started<25000);
+    assert.equal(readSupervision(profile).phase,'STOPPED');assert.ok(f.rows()>0);
+    const db=f.source();try{assert.equal(db.prepare('SELECT until_ms FROM writers').get()!.until_ms,'0');}finally{db.close();}
+    console.log('DEPLOYMENT_CASE '+JSON.stringify({scenario:'render-disk-default-stop-window',stopTimeoutMs:20000,
+      workerDrained:true,leaseReleased:true,source:'scripted',transactionsSent:0}));
+  }finally{await f.close();}
+});
+
 test('finite Monad campaign deadline is pinned at preparation and cannot renew on restart',async()=>{
   const f=fixture();try{
     const journals=join(f.dir,'journals');mkdirSync(journals,{mode:0o700});new Journal(join(journals,'source.sqlite')).close();

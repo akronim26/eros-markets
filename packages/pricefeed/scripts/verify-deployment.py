@@ -19,6 +19,10 @@ schema = json.loads(schema_path.read_text())
 assert schema['$id'] == 'https://render.com/schema/render.yaml.json'
 blueprint_path = root/'deploy/render.yaml'
 blueprint = yaml.safe_load(blueprint_path.read_text())
+# The generic JSON schema does not enforce this account-side disk restriction.
+for service in blueprint.get('services', []):
+    if 'disk' in service and 'maxShutdownDelaySeconds' in service:
+        raise SystemExit('RENDER_DISK_CUSTOM_SHUTDOWN_UNSUPPORTED')
 Draft202012Validator.check_schema(schema)
 Draft202012Validator(schema).validate(blueprint)
 assert len(blueprint['services']) == 1
@@ -27,7 +31,7 @@ assert worker['type'] == 'worker' and worker['runtime'] == 'node'
 assert worker['rootDir'] == 'packages/pricefeed' and worker['numInstances'] == 1
 assert worker['autoDeployTrigger'] == 'off' and 'initialDeployHook' not in worker and 'preDeployCommand' not in worker
 assert worker['disk']['mountPath'] == '/var/data' and worker['disk']['sizeGB'] == 1
-assert worker['maxShutdownDelaySeconds'] == 120
+assert 'maxShutdownDelaySeconds' not in worker
 env = {v['key']: v['value'] for v in worker['envVars']}
 assert env['NODE_VERSION'] == '24.21.0' and env['PRICEFEED_SERVICE_PROFILE'] == '/var/data/pricefeed/profile.json'
 assert worker['startCommand'] == './node_modules/.bin/node dist/scripts/render-start.js'

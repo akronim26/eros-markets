@@ -2805,3 +2805,32 @@ historical and already differed from the pre-merge tree; authorized main changes
 require a separately versioned release scope check. It was neither overwritten nor
 used to certify this imported tree. No actual keys, signatures, live transactions,
 MON spend, RPC workflow or hosted deployment were used.
+
+
+## 05 October 2026 — Fix Render disk-backed Blueprint rejection
+
+The user reported actual Render dashboard rejection of `maxShutdownDelaySeconds`
+when combined with a persistent disk. The earlier local generic JSON-schema pass
+missed this platform restriction and did not establish account-side acceptance.
+
+Removed the custom 120-second host delay, keeping the existing worker and disk.
+Fresh read-only Render preparation now sets a 20-second internal supervisor stop
+limit within Render's documented default 30-second host window. Existing prepared
+profiles are untouched; bounded forced termination still requires ordinary crash/
+lease recovery and does not guarantee every request drains. No pricing, publication,
+spend or custody policy changes. The verifier rejects the observed unsupported
+combination independently of the generic schema. Deployment docs distinguish code
+auto-deploy from Blueprint Auto Sync; manual configuration sync requires the
+separate dashboard Auto Sync = No setting.
+
+Verification: pinned TypeScript build exit 0; retained official schema plus the
+added restriction exit 0; isolated regression accepts the corrected disk worker
+and rejects the original 120-second custom-delay combination. Deployment tests
+**13/13**, exit 0, with real local processes and scripted sources. The added case
+runs the actual Render initializer/wrapper, checks its 20-second profile limit,
+stops an in-flight collection, and verifies STOPPED supervision, preserved capture,
+and released writer lease. This is local shutdown proof; no actual hosted shutdown,
+Render account acceptance or full-suite rerun is claimed. Compact source/log hashes
+are in `artifacts/verification/render-blueprint-fix.json`; raw logs remain ignored.
+No commit, push, hosted resource, actual key access, signature or live transaction
+was performed. The user must publish this fix before retrying Blueprint setup.

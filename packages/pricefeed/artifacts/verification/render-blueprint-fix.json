@@ -1,0 +1,38 @@
+{
+  "sourceCommit": "41d57b2464149a3914ca1fdde5bbb1449dc7c305",
+  "issue": "Render dashboard rejects maxShutdownDelaySeconds for services with a disk; generic JSON schema accepted the original combination.",
+  "changes": [
+    "Omit custom host shutdown delay while retaining the persistent disk.",
+    "Fresh read-only Render profiles use 20000 ms internal stop timeout.",
+    "Validator rejects the observed unsupported disk/custom-shutdown combination.",
+    "Document separate Blueprint Auto Sync control."
+  ],
+  "checks": {
+    "buildExitCode": 0,
+    "retainedOfficialSchemaExitCode": 0,
+    "isolatedOriginalInvalidCombinationRejected": true,
+    "deploymentTests": {
+      "exitCode": 0,
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "rawLog": "var/verification/render-disk-fix/deployment.tap",
+      "rawLogSha256": "90d421e323e67f46a2ca728300a2c86981c1a875c63524b1e0705ba0e794acb4"
+    }
+  },
+  "sourceSha256": {
+    "deploy/render.yaml": "df6d6ae07a0356d2f7f94cc619e093fc19f2d3a8589ab308b1bc5823167b54aa",
+    "scripts/render-profile.ts": "06069c01587413461fc733883a0efdca3096967a65de6675724d1ac55995712e",
+    "scripts/verify-deployment.py": "63f7e8099eb7f27387deb450aa04facb21e27a9b2dd9991b48c509364385aeef",
+    "test/deployment.test.ts": "abbdda417edb434f4c6071857fe423f07b9664c330fdc5b28eeddf72179ba8d9",
+    "docs/deployment.md": "d001bf199a372a487705c2659bc90597bd5cdaf342432b37ea27cdace5681e98"
+  },
+  "accountDeploymentVerified": false,
+  "hostedShutdownVerified": false,
+  "existingProfilesModified": false,
+  "liveTransactions": 0,
+  "resourcesCreated": 0
+}
