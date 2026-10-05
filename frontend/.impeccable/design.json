@@ -1,0 +1,538 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-05T10:01:35+00:00",
+  "title": "Design System: Eros Markets",
+  "extensions": {
+    "colorMeta": {
+      "signal": {
+        "role": "primary",
+        "displayName": "Signal Orange",
+        "canonical": "oklch(68.4% 0.207 33.9)",
+        "tonalRamp": [
+          "#360000",
+          "#5b0000",
+          "#7f0000",
+          "#a42d11",
+          "#ca5137",
+          "#f17458",
+          "#ff9a7d",
+          "#ffc5a6"
+        ]
+      },
+      "signal-text": {
+        "role": "primary",
+        "displayName": "Burnt Signal",
+        "tonalRamp": [
+          "#360000",
+          "#5b0000",
+          "#7f0000",
+          "#a42d11",
+          "#ca5137",
+          "#f17458",
+          "#ff9a7d",
+          "#ffc5a6"
+        ]
+      },
+      "on-signal": {
+        "role": "primary",
+        "displayName": "Ink on Signal",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "bid": {
+        "role": "secondary",
+        "displayName": "Bid Green",
+        "canonical": "oklch(50.8% 0.109 158.9)",
+        "tonalRamp": [
+          "#001600",
+          "#00320d",
+          "#005029",
+          "#057046",
+          "#379165",
+          "#5cb385",
+          "#83daaa",
+          "#adffd4"
+        ]
+      },
+      "ask": {
+        "role": "secondary",
+        "displayName": "Ask Crimson",
+        "canonical": "oklch(50.5% 0.169 14.7)",
+        "tonalRamp": [
+          "#350000",
+          "#5a0008",
+          "#7f0023",
+          "#a42740",
+          "#ca4c5f",
+          "#f16f7f",
+          "#ff95a3",
+          "#ffc0cc"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ivory Sheet",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Raised Ivory",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Worn Ivory",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "press": {
+        "role": "neutral",
+        "displayName": "Pressed Ivory",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "ivory": {
+        "role": "neutral",
+        "displayName": "Ivory on Ink",
+        "canonical": "oklch(95.8% 0.007 97.4)",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "ivory-3": {
+        "role": "neutral",
+        "displayName": "Ivory Secondary on Ink",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(14.5% 0.002 286.1)",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink Lift",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "fg": {
+        "role": "neutral",
+        "displayName": "Ink Text",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Ink Frame",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "fg-2": {
+        "role": "neutral",
+        "displayName": "Body Text",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "fg-3": {
+        "role": "neutral",
+        "displayName": "Secondary Text",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "fg-4": {
+        "role": "neutral",
+        "displayName": "Faint Text",
+        "tonalRamp": [
+          "#0a0a0b",
+          "#18181a",
+          "#3d3b37",
+          "#57544e",
+          "#6b6862",
+          "#a8a59d",
+          "#d2cec5",
+          "#f2f1ec"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Inner Rule",
+        "canonical": "oklch(85.2% 0.013 86.8)",
+        "tonalRamp": [
+          "#0e0b06",
+          "#27241d",
+          "#433f38",
+          "#615d55",
+          "#817d75",
+          "#a29e95",
+          "#c8c4bb",
+          "#f2eee5"
+        ]
+      },
+      "dot": {
+        "role": "neutral",
+        "displayName": "Grid Dot",
+        "tonalRamp": [
+          "#0e0b06",
+          "#27241d",
+          "#433f38",
+          "#615d55",
+          "#817d75",
+          "#a29e95",
+          "#c8c4bb",
+          "#f2eee5"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing hero only, uppercase, scramble-resolved."
+      },
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": "One per index page."
+      },
+      "countdown": {
+        "displayName": "Countdown",
+        "purpose": "Terminal next-deadline readout."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings and bento titles, uppercase."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Market question and card titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Explanatory paragraphs, 52 to 70ch."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Key-value rows and notes, tabular."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Nav, buttons, chips, panel heads, section rules; uppercase."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rule-under",
+        "value": "inset 0 -1px 0 #0a0a0b",
+        "purpose": "Ink rule under a panel or region head; a line, not elevation."
+      },
+      {
+        "name": "outline-1",
+        "value": "inset 0 0 0 1px <tone>",
+        "purpose": "1px outline on chips, secondary buttons, inputs and unavailable marks."
+      },
+      {
+        "name": "hair-b",
+        "value": "inset 0 -1px 0 #d2cec5",
+        "purpose": "Inner Rule under a row or strip inside a frame."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Digit flip easing."
+      },
+      {
+        "name": "digit-flip",
+        "value": "150ms ease-out-expo, translateY(-40%) and fade in",
+        "purpose": "Changed characters of a number flip in place; columns never move."
+      },
+      {
+        "name": "state-colour",
+        "value": "150ms colors",
+        "purpose": "Hover and active colour changes on controls and links."
+      },
+      {
+        "name": "caret-blink",
+        "value": "1s steps(1) infinite",
+        "purpose": "Block caret on the live terminal's last line."
+      },
+      {
+        "name": "marquee",
+        "value": "40s linear infinite, translateX(-50%)",
+        "purpose": "Live ticker crawl."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation: none",
+        "purpose": "Digit flip, caret and marquee all stop under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action (Arrow Square)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Signal arrow square joined to an Ink label block; every primary action.",
+      "html": "<button class=\"ds-arrow\"><span class=\"ds-arrow-sq\" aria-hidden=\"true\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></span><span class=\"ds-arrow-label\">Open the terminal</span></button>",
+      "css": ".ds-arrow{display:inline-flex;align-items:stretch;height:40px;padding:0;border:0;border-radius:0;background:none;cursor:pointer;font-family:var(--font-geist-mono),ui-monospace,monospace}.ds-arrow-sq{display:flex;width:40px;align-items:center;justify-content:center;background:#ff5a36;color:#0a0a0b}.ds-arrow-label{display:flex;align-items:center;padding:0 20px;background:#0a0a0b;color:#f2f1ec;font-size:11px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;transition:background-color .15s}.ds-arrow:hover .ds-arrow-label{background:#18181a}.ds-arrow:focus-visible{outline:2px solid #ff5a36;outline-offset:2px}.ds-arrow:disabled .ds-arrow-sq,.ds-arrow:disabled .ds-arrow-label{background:#dfdcd3;color:#6b6862;cursor:not-allowed}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ink-outlined Ivory block for secondary actions.",
+      "html": "<button class=\"ds-btn-secondary\">How it resolves</button>",
+      "css": ".ds-btn-secondary{height:40px;padding:0 20px;border:0;border-radius:0;background:#f2f1ec;color:#0a0a0b;box-shadow:inset 0 0 0 1px #0a0a0b;font-family:var(--font-geist-mono),ui-monospace,monospace;font-size:11px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:background-color .15s}.ds-btn-secondary:hover{background:#e9e7e0}.ds-btn-secondary:active{background:#dfdcd3}.ds-btn-secondary:focus-visible{outline:2px solid #ff5a36;outline-offset:2px}"
+    },
+    {
+      "name": "Side Submit (Buy)",
+      "kind": "button",
+      "refersTo": "button-bid",
+      "description": "Ticket submit: Signal arrow square plus side-coloured label block.",
+      "html": "<button class=\"ds-side\"><span class=\"ds-side-sq\" aria-hidden=\"true\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></span><span class=\"ds-side-label\">Buy YES</span></button>",
+      "css": ".ds-side{display:inline-flex;align-items:stretch;height:40px;width:268px;padding:0;border:0;border-radius:0;background:none;cursor:pointer;font-family:var(--font-geist-mono),ui-monospace,monospace}.ds-side-sq{display:flex;width:40px;align-items:center;justify-content:center;background:#ff5a36;color:#0a0a0b}.ds-side-label{flex:1;display:flex;align-items:center;justify-content:center;background:#17784e;color:#f2f1ec;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}.ds-side:hover .ds-side-label{filter:brightness(1.1)}.ds-side:focus-visible{outline:2px solid #ff5a36;outline-offset:2px}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Status chip: uppercase label in a 1px outline of its tone.",
+      "html": "<span class=\"ds-chip\">Not yet activated</span> <span class=\"ds-chip ds-chip-signal\">Live</span> <span class=\"ds-chip ds-chip-bid\">Bid</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:0;color:#0a0a0b;box-shadow:inset 0 0 0 1px #0a0a0b;font-family:var(--font-geist-mono),ui-monospace,monospace;font-size:11px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}.ds-chip-signal{color:#c2401c;box-shadow:inset 0 0 0 1px #ff5a36}.ds-chip-bid{color:#17784e;box-shadow:inset 0 0 0 1px #17784e}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Ink-outlined Ivory field with tabular text and a Signal caret.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Price (probability)</span><input class=\"ds-input\" inputmode=\"decimal\" placeholder=\"0.000\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;width:268px;font-family:var(--font-geist-mono),ui-monospace,monospace}.ds-field-label{font-size:11px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;color:#57544e}.ds-input{height:36px;padding:0 12px;border:0;border-radius:0;background:#f2f1ec;color:#0a0a0b;box-shadow:inset 0 0 0 1px #0a0a0b;font:inherit;font-size:14px;font-variant-numeric:tabular-nums;caret-color:#ff5a36}.ds-input::placeholder{color:#6b6862}.ds-input:focus-visible{outline:2px solid #ff5a36;outline-offset:2px}"
+    },
+    {
+      "name": "Top Bar",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Framed 48px bar; active link Ink with a 2px Signal underline.",
+      "html": "<nav class=\"ds-nav\"><strong class=\"ds-nav-brand\">Eros Markets</strong><a class=\"ds-nav-link\" href=\"#\">Markets</a><a class=\"ds-nav-link is-active\" href=\"#\" aria-current=\"page\">Trade</a><a class=\"ds-nav-link\" href=\"#\">Portfolio</a><span class=\"ds-nav-block\"><i></i>Monad testnet #68,371,062</span></nav>",
+      "css": ".ds-nav{display:flex;align-items:stretch;gap:0;height:48px;padding:0 16px;border:1px solid #0a0a0b;background:#f2f1ec;font-family:var(--font-geist-mono),ui-monospace,monospace}.ds-nav-brand{display:flex;align-items:center;margin-right:24px;font-size:14px;color:#0a0a0b}.ds-nav-link{position:relative;display:flex;align-items:center;padding:0 12px;color:#57544e;text-decoration:none;font-size:11px;letter-spacing:.08em;text-transform:uppercase;transition:color .15s}.ds-nav-link:hover{color:#0a0a0b}.ds-nav-link.is-active{color:#0a0a0b}.ds-nav-link.is-active::after{content:'';position:absolute;left:12px;right:12px;bottom:0;height:2px;background:#ff5a36}.ds-nav-link:focus-visible{outline:2px solid #ff5a36;outline-offset:-2px}.ds-nav-block{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#57544e}.ds-nav-block i{width:8px;height:8px;background:#ff5a36}"
+    },
+    {
+      "name": "Framed Panel with Head",
+      "kind": "card",
+      "refersTo": "panel-head",
+      "description": "Ink-framed bento panel: NAME.EXT head left, meta right, Ink rule under.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-panel-head\"><span>MANIFEST.MD</span><span>v1.1</span></div><div class=\"ds-panel-body\"><p class=\"ds-panel-title\">Trade the outcome</p><p class=\"ds-panel-copy\">Prices are probabilities on a 0.001 tick grid.</p></div></section>",
+      "css": ".ds-panel{width:320px;border:1px solid #0a0a0b;background:#f2f1ec;font-family:var(--font-geist-mono),ui-monospace,monospace}.ds-panel-head{display:flex;align-items:center;justify-content:space-between;height:32px;padding:0 12px;box-shadow:inset 0 -1px 0 #0a0a0b;color:#57544e;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.ds-panel-body{padding:20px}.ds-panel-title{margin:0;font-size:24px;line-height:1.25;font-weight:600;letter-spacing:-.02em;text-transform:uppercase;color:#0a0a0b}.ds-panel-copy{margin:8px 0 0;font-size:12px;line-height:1.625;color:#57544e}"
+    },
+    {
+      "name": "Inverted Terminal Panel",
+      "kind": "custom",
+      "refersTo": "panel-head-inverted",
+      "description": "Ink panel that types live chain state behind a blinking block caret.",
+      "html": "<section class=\"ds-term\"><div class=\"ds-term-head\"><span>TERMINAL.SYS</span></div><div class=\"ds-term-body\"><div>&gt; connecting to monad testnet</div><div class=\"ds-caret\">&gt; market not yet activated</div></div></section>",
+      "css": ".ds-term{width:360px;background:#0a0a0b;color:#a8a59d;font-family:var(--font-geist-mono),ui-monospace,monospace;font-size:12px;line-height:1.7}.ds-term-head{display:flex;align-items:center;height:32px;padding:0 12px;box-shadow:inset 0 -1px 0 #2a2a2c;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.ds-term-body{padding:16px}.ds-caret{color:#f2f1ec}.ds-caret::after{content:'';display:inline-block;width:.55em;height:1em;margin-left:2px;vertical-align:-.12em;background:currentColor;animation:ds-blink 1s steps(1) infinite}@keyframes ds-blink{0%,49%{opacity:1}50%,100%{opacity:0}}@media (prefers-reduced-motion:reduce){.ds-caret::after{animation:none}}"
+    },
+    {
+      "name": "Section Rule",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "// SECTION: NAME, a rule to the edge, the real ordinal.",
+      "html": "<div class=\"ds-rule\"><span>// SECTION: LIVE_MARKET</span><i></i><span>001</span></div>",
+      "css": ".ds-rule{display:flex;align-items:center;gap:12px;width:480px;color:#57544e;font-family:var(--font-geist-mono),ui-monospace,monospace;font-size:11px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;font-variant-numeric:tabular-nums}.ds-rule i{flex:1;height:1px;background:#d2cec5}"
+    },
+    {
+      "name": "Unavailable Mark",
+      "kind": "custom",
+      "refersTo": "data",
+      "description": "Outlined square plus short reason, in place of a number the contract cannot supply.",
+      "html": "<span class=\"ds-unavail\"><i class=\"ds-unavail-sig\"></i>no mark</span> <span class=\"ds-unavail\"><i></i>book empty</span>",
+      "css": ".ds-unavail{display:inline-flex;align-items:center;gap:6px;color:#57544e;font-family:var(--font-geist-mono),ui-monospace,monospace;font-size:14px}.ds-unavail i{width:10px;height:10px;box-shadow:inset 0 0 0 1px #57544e}.ds-unavail i.ds-unavail-sig{box-shadow:inset 0 0 0 1px #ff5a36}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Engineering Sheet",
+    "overview": "Every surface is a drawing on squared paper: an Ivory ground pricked with a dot grid, regions boxed in hard one-pixel Ink frames, labels set in uppercase mono as if stencilled onto the sheet, and one Signal orange reserved for the thing that matters right now (the mark price, the primary action, live risk). The world is the user-pinned v0 \"Brutalist AI SaaS\" template translated into Eros colours and sharpened: its rounded pills become square frames, its invented demo metrics are replaced by live chain values.\n\nDensity is trader-grade. The terminal packs a market rail, a chart and book on one shared probability axis, a ticket, and account tables inside a single frame, separated by rules rather than gaps. Marketing and index pages loosen to a 1280px column of framed bento panels, each introduced by a numbered `// SECTION` rule. Inverted Ink panels (the landing's live terminal, the middle resolution layer) are the only change of material; there is no drop shadow, glow, blur or shading gradient anywhere.\n\nMotion is mechanical and small: changed digits flip into place without moving their column, a block caret blinks at the end of typed terminal lines, a ticker marquee crawls, and pixel headlines resolve through scrambled characters. All of it stops under reduced motion.",
+    "keyCharacteristics": [
+      "Ivory dot-grid ground (22px pitch), hard 1px Ink frames, zero radius on every element including native controls.",
+      "Geist Mono for all text; Geist Pixel Grid only for display headlines, page titles and the deadline countdown.",
+      "Signal orange is a single voice: mark, primary action square, live status, active nav underline.",
+      "Green and red mean side and P&L, nothing else.",
+      "Unknown values are drawn as outlined marks with a reason, never as zero."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "Signal marks what is live or actionable now: the mark, the primary action, live risk. It never fills a panel and never colours body copy.",
+        "section": "colors"
+      },
+      {
+        "name": "The Small Signal Rule",
+        "body": "Signal text below large-type size uses Burnt Signal on Ivory; full Signal is for fills, bars, squares and display-size type.",
+        "section": "colors"
+      },
+      {
+        "name": "The Side-Only Rule",
+        "body": "Green and red are reserved for trade side and P&L. Health, warnings and status use Ink, outlines and Signal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pixel-at-Scale Rule",
+        "body": "Geist Pixel Grid is used only at 2.25rem and above, and only for the hero, page titles and the countdown. Everything else is Geist Mono.",
+        "section": "typography"
+      },
+      {
+        "name": "The Fixed Column Rule",
+        "body": "Every number is tabular, and a changing value flips only its changed characters in place (150ms); columns never shift.",
+        "section": "typography"
+      },
+      {
+        "name": "The Frame-Not-Float Rule",
+        "body": "Regions are separated by drawn lines and material inversion; nothing lifts off the sheet.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Real Frame Rule",
+        "body": "Outer frames are true 1px borders, so child backgrounds can never paint over them; inset hairlines are for inner rules and outlined chips only.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep every corner at 0, native controls and third-party widgets included.",
+      "**Do** box regions in 1px Ink frames on the Ivory dot grid, and divide inside them with 1px Inner Rules (#d2cec5).",
+      "**Do** lead every primary action with the Signal arrow square joined to an Ink (or side-coloured) label block.",
+      "**Do** set labels in uppercase Geist Mono at 0.6875rem with 0.08em tracking, and every number in tabular figures.",
+      "**Do** use Burnt Signal (#c2401c) for Signal-coloured text below display size.",
+      "**Do** state unknown values with an Unavailable mark and its reason.",
+      "**Do** number `// SECTION` rules with the section's real ordinal."
+    ],
+    "donts": [
+      "**Don't** use drop shadows, glows, blur, colour-wash gradients or rounded pills; depth is line and inversion only (the dot grid's radial dots and dash masks are pattern, not shading).",
+      "**Don't** use green or red for anything but trade side and P&L.",
+      "**Don't** set Geist Pixel Grid below 2.25rem or for body, labels or table data.",
+      "**Don't** show invented metrics, volumes or testimonials; only live chain values or real protocol constants appear.",
+      "**Don't** fill a panel or colour body copy with Signal."
+    ]
+  }
+}

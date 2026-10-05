@@ -1,0 +1,252 @@
+{
+  "version": "1.0",
+  "name": "eros-protect",
+  "chain_type": "ethereum",
+  "rules": [
+    {
+      "name": "protect: placeOrder",
+      "method": "eth_sendTransaction",
+      "action": "ALLOW",
+      "conditions": [
+        {
+          "field_source": "ethereum_transaction",
+          "field": "chain_id",
+          "operator": "eq",
+          "value": "10143"
+        },
+        {
+          "field_source": "ethereum_transaction",
+          "field": "value",
+          "operator": "eq",
+          "value": "0"
+        },
+        {
+          "field_source": "ethereum_transaction",
+          "field": "to",
+          "operator": "in",
+          "value": [
+            "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69"
+          ]
+        },
+        {
+          "field_source": "ethereum_calldata",
+          "field": "function_name",
+          "operator": "eq",
+          "value": "placeOrder",
+          "abi": [
+            {
+              "type": "function",
+              "name": "placeOrder",
+              "inputs": [
+                {
+                  "name": "p",
+                  "type": "tuple",
+                  "internalType": "struct Book.Place",
+                  "components": [
+                    {
+                      "name": "kind",
+                      "type": "uint8",
+                      "internalType": "enum IBookRiskHooks.OrderKind"
+                    },
+                    {
+                      "name": "isBuy",
+                      "type": "bool",
+                      "internalType": "bool"
+                    },
+                    {
+                      "name": "reduceOnly",
+                      "type": "bool",
+                      "internalType": "bool"
+                    },
+                    {
+                      "name": "tick",
+                      "type": "uint16",
+                      "internalType": "uint16"
+                    },
+                    {
+                      "name": "size",
+                      "type": "uint64",
+                      "internalType": "uint64"
+                    },
+                    {
+                      "name": "maxFills",
+                      "type": "uint8",
+                      "internalType": "uint8"
+                    },
+                    {
+                      "name": "expiryBlock",
+                      "type": "uint32",
+                      "internalType": "uint32"
+                    }
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "id",
+                  "type": "uint32",
+                  "internalType": "uint32"
+                }
+              ],
+              "stateMutability": "nonpayable"
+            }
+          ]
+        },
+        {
+          "field_source": "ethereum_calldata",
+          "field": "placeOrder.p.reduceOnly",
+          "operator": "eq",
+          "value": "true",
+          "abi": [
+            {
+              "type": "function",
+              "name": "placeOrder",
+              "inputs": [
+                {
+                  "name": "p",
+                  "type": "tuple",
+                  "internalType": "struct Book.Place",
+                  "components": [
+                    {
+                      "name": "kind",
+                      "type": "uint8",
+                      "internalType": "enum IBookRiskHooks.OrderKind"
+                    },
+                    {
+                      "name": "isBuy",
+                      "type": "bool",
+                      "internalType": "bool"
+                    },
+                    {
+                      "name": "reduceOnly",
+                      "type": "bool",
+                      "internalType": "bool"
+                    },
+                    {
+                      "name": "tick",
+                      "type": "uint16",
+                      "internalType": "uint16"
+                    },
+                    {
+                      "name": "size",
+                      "type": "uint64",
+                      "internalType": "uint64"
+                    },
+                    {
+                      "name": "maxFills",
+                      "type": "uint8",
+                      "internalType": "uint8"
+                    },
+                    {
+                      "name": "expiryBlock",
+                      "type": "uint32",
+                      "internalType": "uint32"
+                    }
+                  ]
+                }
+              ],
+              "outputs": [
+                {
+                  "name": "id",
+                  "type": "uint32",
+                  "internalType": "uint32"
+                }
+              ],
+              "stateMutability": "nonpayable"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "protect: cancel",
+      "method": "eth_sendTransaction",
+      "action": "ALLOW",
+      "conditions": [
+        {
+          "field_source": "ethereum_transaction",
+          "field": "chain_id",
+          "operator": "eq",
+          "value": "10143"
+        },
+        {
+          "field_source": "ethereum_transaction",
+          "field": "value",
+          "operator": "eq",
+          "value": "0"
+        },
+        {
+          "field_source": "ethereum_transaction",
+          "field": "to",
+          "operator": "in",
+          "value": [
+            "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69"
+          ]
+        },
+        {
+          "field_source": "ethereum_calldata",
+          "field": "function_name",
+          "operator": "eq",
+          "value": "cancel",
+          "abi": [
+            {
+              "type": "function",
+              "name": "cancel",
+              "inputs": [
+                {
+                  "name": "id",
+                  "type": "uint32",
+                  "internalType": "uint32"
+                }
+              ],
+              "outputs": [],
+              "stateMutability": "nonpayable"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "protect: cancelAll",
+      "method": "eth_sendTransaction",
+      "action": "ALLOW",
+      "conditions": [
+        {
+          "field_source": "ethereum_transaction",
+          "field": "chain_id",
+          "operator": "eq",
+          "value": "10143"
+        },
+        {
+          "field_source": "ethereum_transaction",
+          "field": "value",
+          "operator": "eq",
+          "value": "0"
+        },
+        {
+          "field_source": "ethereum_transaction",
+          "field": "to",
+          "operator": "in",
+          "value": [
+            "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69"
+          ]
+        },
+        {
+          "field_source": "ethereum_calldata",
+          "field": "function_name",
+          "operator": "eq",
+          "value": "cancelAll",
+          "abi": [
+            {
+              "type": "function",
+              "name": "cancelAll",
+              "inputs": [],
+              "outputs": [],
+              "stateMutability": "nonpayable"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

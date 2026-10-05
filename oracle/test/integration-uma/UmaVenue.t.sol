@@ -42,10 +42,12 @@ contract UmaVenueTest is Test {
 
     function setUp() public {
         usdc = new MockUSDC();
-        address finder = deployCode("Finder.sol:Finder");
-        address store = deployCode("Store.sol:Store", abi.encode(uint256(0), uint256(0), address(0)));
-        address awl = deployCode("AddressWhitelist.sol:AddressWhitelist");
-        address iwl = deployCode("IdentifierWhitelist.sol:IdentifierWhitelist");
+        // UMA is built separately with solc 0.8.16; use its artifact path because
+        // selective test compilation may omit it from Foundry's artifact-name map.
+        address finder = deployCode("out/Finder.sol/Finder.json");
+        address store = deployCode("out/Store.sol/Store.json", abi.encode(uint256(0), uint256(0), address(0)));
+        address awl = deployCode("out/AddressWhitelist.sol/AddressWhitelist.json");
+        address iwl = deployCode("out/IdentifierWhitelist.sol/IdentifierWhitelist.json");
         dvm = new ErosSandboxOracle(team);
         IFinder(finder).changeImplementationAddress("Store", store);
         IFinder(finder).changeImplementationAddress("CollateralWhitelist", awl);
@@ -55,7 +57,9 @@ contract UmaVenueTest is Test {
         IIdWl(iwl).addSupportedIdentifier("ASSERT_TRUTH");
         IStoreLike(store).setFinalFee(address(usdc), Unsigned(1e6)); // 1 USDC final fee -> 2 USDC minimum bond
         oov3 = IOptimisticOracleV3(
-            deployCode("OptimisticOracleV3.sol:OptimisticOracleV3", abi.encode(finder, address(usdc), uint64(7200)))
+            deployCode(
+                "out/OptimisticOracleV3.sol/OptimisticOracleV3.json", abi.encode(finder, address(usdc), uint64(7200))
+            )
         );
         vm.prank(team);
         dvm.setRequester(address(oov3));

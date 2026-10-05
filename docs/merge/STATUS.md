@@ -686,3 +686,205 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   real-source INDEX, authorized operator roles and network-specific gas evidence.
   Owner-correct transaction client/frontend and selected sponsor work remain the
   subsequent product scope; unrelated earlier 1x evidence can be reused.
+### 2026-10-06 — CI-01: push failures on feat/pricefeed
+
+- User requested investigation and repair of failing GitHub CI. Baseline
+  `b2c9100931e63aa285a2e5eb5c4d1465e235b758`; fetched origin and verified the current
+  feature branch matches its remote. Earlier CRE/service edits remain separate.
+- Latest runs `37366215962` (oracle) and `37366215860` (contracts) could not acquire
+  hosted runners for most jobs. No test step ran in those jobs. The oracle Forge
+  and real-integration jobs both passed. GitHub confirmed the runner-assignment
+  incident at https://www.githubstatus.com/incidents/3q1yb5m7ltvb. Retried only the
+  jobs that had failed to start; hosting availability is outside this patch.
+- Earlier contracts run `37246660727` failed `forge fmt --check`. Reproduced on
+  the current tree with CI-pinned Foundry 1.8.3: `BookRiskEngine.sol`, `MarginLens.sol`
+  and its test needed formatting. Applied the pinned formatter; no economic rule
+  or assertion was changed.
+- Set `FORGE_SNAPSHOT_EMIT=false` for the contracts job so its test step cannot
+  overwrite the committed gas baseline before the later comparison. An isolated
+  verification accepted the committed snapshot, rejected a one-unit mismatch,
+  and left both files byte-for-byte unchanged. No gas baseline was refreshed.
+- Local validation: contracts and oracle formatting checks exit 0; contracts
+  `FOUNDRY_PROFILE=ci forge build --sizes` exits 0; snapshot check exits 0 (12 tests);
+  deliberate snapshot mismatch exits 1 as expected. Full CI contract tests exit 0:
+  834 passed, 0 failed, 0 skipped across 131 suites, including 10,000-run fuzz
+  campaigns and 256-run invariants. Restored the test-generated newline-only
+  snapshot change; the committed baseline remains byte-for-byte unchanged.
+- This is CI maintenance on the user's active feature branch. No main merge,
+  deployment, contract permission change or gate-acceptance update is included.
+
+### 2026-10-06 — FE-AUDIT: frontend audit and repair
+
+- User requested a frontend audit, extending the historical deferred frontend
+  scope for this turn. Baseline `8c73266e39d188e1cd052edaad7189b5f3fe481e` on
+  `feat/pricefeed`; initial working tree clean and fetched origin matched HEAD.
+- Fixed depth-bar scaling, wide-spread sampling and cached depth after all orders
+  disappear. Three reproductions failed with the prior geometry/sample logic and
+  pass with the repairs. Added query-observer coverage for populated-to-empty books.
+- Preserve network failures during market resolution and action simulation;
+  provide retry UI instead of false 404/no-action states. Balance/list screens
+  distinguish missing reads from unfunded accounts. Cancel-all no longer depends
+  on successful order discovery; signing and simulation guards remain unchanged.
+- Correct animated-heading/number accessibility and terminal tab relationships,
+  keyboard focus and selection. Preserve the compact terminal and existing themes.
+- Added frontend-only CI checks: locked dependency install, high/critical audit
+  gate, unit/server tests, production build and typecheck. A scoped ws 8.x override
+  fixes the high advisory; 23 moderate package entries in inherited wallet
+  dependencies remain documented for a tested upstream upgrade.
+- Validation exit 0: clean temporary checkout install/tests/build/typecheck;
+  final working-tree `npm ci`, 31 unit tests, 10 integration tests, webpack build,
+  typecheck and high/critical dependency audit. Build retains upstream dependency
+  warnings. `git diff --check` exits 0. No contract source/economic changes.
+- Chrome: 50 route/theme/width checks pass, no overflow/runtime exceptions/failed
+  responses on normal paths; all nine terminal panels, keyboard navigation,
+  All markets return link, system themes, reduced motion and interactive demo
+  pass. Axe reports zero WCAG A/AA violations on tested public pages in both
+  themes. Blocked RPC/history requests show errors and recover through retry.
+- Rebuilt and restarted the production preview on port 3100 after stopping its
+  prior process, preserving other local services. Privy dialogs checked in dark
+  desktop and light mobile; no real login, signature, public-chain write or new
+  deployment. Live activation, funded-wallet demo and optional signer/worker/
+  calibration configuration remain external dependencies.
+- Full findings and remaining work: `frontend/AUDIT.md`; integration progress
+  updated. This is technical validation, not independent security review or new
+  gate acceptance. Commit/push scoped to the active feature branch; main untouched.
+
+
+### 2026-10-06 — CI-02: verify repeated GitHub failures
+
+- User reported CI still failing. Baseline `0112a099dd467952481c2e8b361c0de9c84b5c71`
+  on `feat/pricefeed`; fetched origin and verified a clean, synchronized tree.
+- Inspected current runs and individual check annotations, rather than assuming
+  the earlier formatting defect persisted. Latest oracle run `37370979597` at
+  `8c73266` passed Forge (format/build/full suite), real integration and the CRE
+  resolution workflow (install/test/typecheck/build/outcome-path check).
+- Its four remaining jobs (packages, indexer, validation, dryrun) never started:
+  every check records `The job was not acquired by Runner of type hosted even
+  after multiple attempts`. Failed-log download exits 0 with no test log because
+  no runner executed these jobs. Preceding oracle run `37370813833` has the same
+  runner-assignment error on its unstarted jobs; its five executed jobs passed.
+- GitHub's official status API still reports Actions degraded and incident
+  `3q1yb5m7ltvb` investigating hosted-runner assignment delays, as checked at
+  2026-10-05 21:02 UTC (2026-10-06 02:32 IST):
+  https://www.githubstatus.com/api/v2/summary.json.
+- `gh run rerun 37370979597 --failed` exits 0; attempt 2 retries only the four
+  jobs that lacked runners and preserves the three successful jobs. The retry
+  is queued at this checkpoint. No obsolete run was retried.
+- Contracts run `37370813810` passed formatting and build; its full test step is
+  still running. Frontend run `37372711259` is queued awaiting its first runner.
+  These are pending, not successful remote validations. The earlier local
+  CI-01/FE-AUDIT test results remain the local evidence; no redundant local test
+  run or application/workflow change was made for a hosting failure.
+- Commands to inspect runs/check annotations, download logs and request retry
+  exit 0. Documentation-only checkpoint; no checks weakened, gas baselines
+  refreshed, deployments performed or new gate acceptance recorded.
+- Remaining dependency: GitHub must assign runners and finish the pending jobs.
+  Historical red runs remain historical failures; retry progress is available
+  at https://github.com/akronim26/eros-markets/actions/runs/37370979597.
+
+
+### 2026-10-06 — CI-03: simplify checks and repair Node 22 installation
+
+- User authorized completing CI repairs and removing unnecessary checks, and
+  explicitly reserved pushing for themselves. Baseline `2b135b2` on
+  `feat/pricefeed`, initially clean. All changes in this turn remain uncommitted
+  and unpushed; this overrides the historical end-of-turn commit/push instruction.
+- Reproduced a real frontend failure in a clean temporary checkout using CI's
+  Node 22: `npm ci` rejects `ws@8.22.0` against the partial-range 8.21.3 override.
+  Local Node 25/npm 11 previously accepted this lockfile. Pin all ws 8.x consumers
+  to the patched 8.21.3, preserve ws 7.x consumers, and regenerate the affected
+  lock entries with Node 22.23.3/npm 10.9.9. Preserve existing platform metadata;
+  no unrelated package versions or application source are changed.
+- Removed formatting-only push gates and the separate frontend npm audit gate.
+  Dependency audit remains available locally; the vulnerability repair remains.
+  Removed the duplicate frontend typecheck because the Next.js production build
+  already checks application/generated-route TypeScript. Test files still execute
+  in CI; preserve the standalone local script for their static checking as well.
+- Folded gas comparison into the full contracts test step with snapshot emission
+  disabled. Removed only the redundant second run of BookGasTest; snapshot values
+  and full fuzz/invariant settings are unchanged.
+- Consolidated oracle real integration with its Forge job, and the two CRE builds
+  with the packages job: seven runner allocations become four. Retain separate
+  frozen installs for the CRE lockfiles, all tests/typechecks/builds, and one
+  outcome-default scan covering both workflows and packages. The scan also rejects
+  missing source paths and grep errors. No failing test is skipped or suppressed.
+- Added workflow/ref concurrency cancellation to all three workflows so a newer
+  relevant push cancels an obsolete run of the same workflow on that ref.
+- Verification so far: actionlint 1.7.12 and `git diff --check` exit 0; clean Node
+  22 install and all 41 frontend tests exit 0; final lockfile dry-run validation
+  with the committed `.npmrc` exits 0 on Node 22/npm 10 and local Node 25/npm 11.
+  Oracle packages/services: 534 tests pass; both integration-service typechecks
+  pass; CRE resolution/dryrun: 12/9 tests, typechecks and WASM builds pass.
+  Outcome guard positive/negative cases pass, including each protected path and
+  missing-directory rejection. Frontend production build, including application
+  and generated-route typechecking, exits 0 on Node 22. The combined oracle Forge
+  job sequence exits 0: build, 342 CI-profile tests across 39 suites, then 37
+  Monad integration tests across four suites; zero failures/skips in both. The
+  full contracts CI-profile run with gas checking exits 0: 834 tests across 131
+  suites, zero failures/skips, 800.73 seconds. The committed gas baseline is
+  unchanged. Full 10,000-run fuzz and 256-by-128 invariant settings are retained.
+- Existing frontend run `37372711259` ultimately failed before executing any step;
+  its check annotation reports the hosted runner was never acquired. Oracle retry
+  `37370979597` was still awaiting remaining runners at the last inspection.
+  Contracts run `37370813810` subsequently completed successfully on GitHub; it
+  validates the earlier committed workflow, not these unpushed simplifications.
+  Local changes cannot repair GitHub's runner allocation or update a remote check
+  before the user pushes them. No remote retry of the known stale lockfile was made.
+- Local logs: `/tmp/eros-ci03-*`; clean checkout path is in
+  `/tmp/eros-ci03-path`. The running frontend preview and operator services are
+  untouched. This is technical CI validation, not a deployment or gate acceptance.
+
+
+### 2026-10-06 — FE-404: branded missing-page view
+
+- User requested a custom website 404, with design discretion. Baseline `5c8f785`
+  on `feat/pricefeed`, initially clean. Changes remain local, uncommitted/unpushed.
+- Added the root Next.js not-found page and scoped CSS: pixel 404, orange chart
+  illustration, concise copy and links to markets/home. Uses existing theme
+  tokens and shared navigation; supports missing routes and invalid market URLs.
+- Production build (including TypeScript) exits 0; retains the existing upstream
+  viem/ox dynamic-import warning. Production unknown URL returns HTTP 404 with
+  a custom title and noindex metadata.
+- Chrome verification passes in development and production: light/dark at
+  320/768/1024/1440 px without horizontal overflow, both navigation links,
+  keyboard navigation, reduced motion and invalid-market fallback. Axe WCAG A/AA
+  checks show zero violations in both themes; no runtime exceptions recorded.
+- Rebuilt and restarted the production preview at localhost:3100. Other services
+  unchanged. Removed only the temporary Next dev-generated agent instruction
+  files; no dependencies or global styles changed. Evidence: `/tmp/eros-404-*`.
+
+### 2026-10-06 — FE-TERMINAL: interactive landing-page console
+
+- User requested more interaction in TERMINAL.SYS, with design discretion.
+  Baseline `5c8f785` on `feat/pricefeed`; preserved the uncommitted FE-404 work.
+  All changes remain local, uncommitted and unpushed.
+- Replaced the static typed terminal with a read-only command console: status,
+  book, risk, help and clear; clickable shortcuts, Enter submission, Tab
+  completion, arrow-key history/draft restoration, Escape and an open-market link.
+  Commands use the existing market query, with no additional RPC polling,
+  transactions, dependencies or arbitrary code execution. Output/history are bounded.
+- Results identify the snapshot block, distinguish missing data from zero, and
+  label cached data after connection failures. Risk output reports the deployment
+  ceiling without promising available leverage. Removed the continuous typing
+  timer; added brief entry/hover effects with reduced-motion support.
+- Final production build, including TypeScript, exits 0; the existing upstream
+  viem/ox dynamic-import warning remains. Production Chrome checks pass for all
+  commands, unknown input, history/draft restoration, Tab/Shift+Tab, Escape, clear,
+  bounded output and navigation. Light/dark at 320/768/1024/1440 px have no
+  horizontal overflow; console axe WCAG A/AA checks report zero violations and
+  no runtime exceptions were recorded. Reduced-motion checks pass.
+- Development RPC fault tests pass for cached-data warnings, fresh unavailable
+  state without invented values, and automatic recovery after restoring access.
+  Production preview rebuilt and running at localhost:3100. Evidence:
+  `/tmp/eros-terminal-sys-*`; no operator services or global styles changed.
+
+### 2026-10-06 — FE-PANELS: simplify testnet section
+
+- Removed MARKET.METRICS and LIFECYCLE.STATUS from the landing page at the user's
+  request, along with their unused deadline calculations and imports. The grid
+  now contains TERMINAL.SYS and MARK.DITHER only, side by side on desktop and
+  stacked on mobile. Preserved prior local changes; nothing committed or pushed.
+- Production build with TypeScript exits 0. Chrome checks confirm both removed
+  panels are absent, both remaining panels render, 320/1440 px layouts have no
+  horizontal overflow, and no runtime exceptions occur. Production preview
+  restarted at localhost:3100. Evidence: `/tmp/eros-panel-removal-*`.

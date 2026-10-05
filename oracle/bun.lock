@@ -128,11 +128,23 @@
         "zod": "4.6.5",
       },
     },
+    "workflows/listen": {
+      "name": "@eros-oracle/cre-listener",
+      "dependencies": {
+        "viem": "2.57.2",
+      },
+      "devDependencies": {
+        "@types/bun": "1.3.13",
+        "typescript": "5.9.3",
+      },
+    },
   },
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
 
     "@eros-oracle/committee-console": ["@eros-oracle/committee-console@workspace:services/committee-console"],
+
+    "@eros-oracle/cre-listener": ["@eros-oracle/cre-listener@workspace:workflows/listen"],
 
     "@eros-oracle/e2e": ["@eros-oracle/e2e@workspace:e2e"],
 

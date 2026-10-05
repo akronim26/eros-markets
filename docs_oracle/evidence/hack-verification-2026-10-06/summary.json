@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-06 Asia/Kolkata",
+  "tests": {
+    "firstPartyTypeScript": 555,
+    "localKeeperLifecycle": 6,
+    "localCommitteeLifecycle": 2,
+    "localWatchdogLifecycle": 2,
+    "localPanelLifecycle": 4,
+    "oracleContractSuites": 39,
+    "oracleContractRunnerTestCount": 342,
+    "realEngineMonadIntegration": 37,
+    "frontendUnit": 28,
+    "frontendServerIntegration": 7,
+    "indexer": 38
+  },
+  "typechecks": [
+    "resolution workflow",
+    "CRE listener",
+    "keeper",
+    "frontend"
+  ],
+  "creSimulation": "passed with real MLB API and deployed testnet contracts on isolated local fork",
+  "liveService": "replaced stalled listener; checkpoint advances before and after graceful restart",
+  "liveWritesDuringVerification": false,
+  "productionDeployment": false,
+  "remaining": [
+    "Record/submit required CRE CLI video (up to 2 minutes)",
+    "Activate/list a real oracle-backed trading market for a public frontend-to-settlement demo",
+    "Use a continuously running host for unattended public service availability"
+  ]
+}

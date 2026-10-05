@@ -1,0 +1,13 @@
+
+> eros-oracle-indexer@0.1.0 test /Users/phantomxsd/eros-markets/oracle/indexer
+> vitest run --test-timeout=20000
+
+
+ RUN  v4.1.0 /Users/phantomxsd/eros-markets/oracle/indexer
+
+
+ Test Files  5 passed (5)
+      Tests  38 passed (38)
+   Start at  01:39:28
+   Duration  2.36s (transform 251ms, setup 0ms, import 3.75s, tests 844ms, environment 1ms)
+
