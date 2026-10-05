@@ -1,12 +1,16 @@
 import { describe, expect, test } from 'bun:test'
 import { measuredJobGas } from '../src/gas'
-import { localGasEntry } from '../src/local-integration'
+import { localGasEntry, runLocalKeeper } from '../src/local-integration'
 import type { EngineIdentity } from '../src/engineIdentity'
 import type { Job } from '../src/types'
 
 const identity: EngineIdentity = { chainId: 31337, kind: 'book-risk', runtimeCodehash: `0x${'12'.repeat(32)}` }
 
 describe('local keeper gas measurements', () => {
+  test('rejects an unknown settlement target before reading inputs or contacting RPC', async () => {
+    await expect(runLocalKeeper('does-not-exist.json', 'unused-gas.json', 'unused-report.json',
+      'https://example.invalid', 'unknown' as 'demo')).rejects.toThrow()
+  })
   test('binds the estimate to a real local engine and gives it bounded headroom', () => {
     const entry = localGasEntry(100000n, identity, 'local report#estimate:0')
     expect(entry.limit).toBe(135000)

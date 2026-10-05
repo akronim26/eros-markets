@@ -1,6 +1,8 @@
 import { keccak256, recoverAddress, type Address, type Hex } from 'viem'
 import { binding, equalHex, incidentId, observationDigest, type Envelope, type Incident, type Manifest, type Observation } from './schema'
 import type { Pending, Store } from './store'
+import { nextRollover, ROLLOVER_PAGE_SIZE, sameRolloverStep, type RolloverAction, type RolloverState } from './rollover'
+import { measuredRolloverBatch } from './rollover-batch'
 
 export type Snapshot = {
   block: bigint
@@ -12,13 +14,14 @@ export type Snapshot = {
   oracleState: number
   source: { id: Hex; signer: Address; rulesHash: Hex; configured: boolean; lastSequence: bigint; lastObservedAt: bigint }
   liquidation?: { participants: number; accountingState: number; capLots: bigint; remainingLots: bigint }
+  rollover?: RolloverState
 }
 
 export type Call = {
   action: Pending['action']
   requestId: Hex
   target: Address
-  functionName: 'samplePerp' | 'requestReduceOnly' | 'requestEarlyCheck' | 'submitObservation' | 'liquidate'
+  functionName: 'samplePerp' | 'requestReduceOnly' | 'requestEarlyCheck' | 'submitObservation' | 'liquidate' | 'rollover' | RolloverAction
   args: readonly unknown[]
   gas: bigint
 }
@@ -27,17 +30,19 @@ export interface Transport {
   snapshot(): Promise<Snapshot>
   digest(observation: Observation, block: bigint): Promise<Hex>
   simulate(call: Call): Promise<unknown>
+  estimateGas?(call: Omit<Call, 'gas'>, block: bigint): Promise<bigint>
   prepare(call: Call): Promise<{ hash: Hex; rawTransaction: Hex }>
   broadcast(rawTransaction: Hex): Promise<Hex>
   receipt(hash: Hex): Promise<{ status: 'success' | 'reverted'; block: bigint; finalized: boolean } | null>
 }
 
-export type Command = { action: 'sample' } | { action: 'early-check'; incident: Incident } | { action: 'relay'; envelope: Envelope } | { action: 'liquidate' }
+export type Command = { action: 'sample' } | { action: 'early-check'; incident: Incident } | { action: 'relay'; envelope: Envelope } | { action: 'liquidate' } | { action: 'rollover' }
 
 export type Result = {
   outcome: 'sent' | 'pending' | 'finalized' | 'halted' | 'cadence' | 'complete' | 'obsolete' | 'planned' | 'no-work'
   action?: Pending['action']
   hash?: Hex
+  rolloverBatch?: Pending['rolloverBatch']
 }
 
 function productiveLiquidation(raw: unknown): boolean {
@@ -72,7 +77,7 @@ export class Operations {
           const hash = await this.transport.broadcast(pending.rawTransaction)
           if (!equalHex(hash, pending.hash)) throw new Error('RPC returned a different transaction hash')
         }
-        return { outcome: 'pending', action: pending.action, hash: pending.hash }
+        return { outcome: 'pending', action: pending.action, hash: pending.hash, ...(pending.rolloverBatch ? { rolloverBatch: pending.rolloverBatch } : {}) }
       }
       if (pending.action === 'sample') journal.lastSampleBlock = receipt.block.toString()
       if (receipt.status === 'success' && (pending.action === 'early-check' || pending.action === 'relay')) {
@@ -81,11 +86,38 @@ export class Operations {
       delete journal.pending
       this.store.write(journal)
       if (receipt.status === 'reverted') throw new Error(`Transaction reverted: ${pending.hash}; no next operation sent`)
-      return { outcome: 'finalized', action: pending.action, hash: pending.hash }
+      return { outcome: 'finalized', action: pending.action, hash: pending.hash, ...(pending.rolloverBatch ? { rolloverBatch: pending.rolloverBatch } : {}) }
     }
 
     let call: Omit<Call, 'gas'>
-    if (command.action === 'liquidate') {
+    let measuredGas: bigint | undefined
+    let rolloverBatch: Pending['rolloverBatch']
+    if (command.action === 'rollover') {
+      if (!snapshot.rollover) throw new Error('Missing rollover snapshot')
+      const functionName = nextRollover(snapshot.rollover)
+      if (!functionName) return { outcome: snapshot.halted || snapshot.timestamp >= snapshot.scheduledT ? 'halted' : 'no-work' }
+      call = { action: 'rollover', requestId: binding(this.manifest), target: this.manifest.engine,
+        functionName, args: functionName === 'rollPage' ? [ROLLOVER_PAGE_SIZE] : [] }
+      if (this.manifest.rolloverHelper) {
+        const helper = this.manifest.rolloverHelper
+        if (!this.transport.estimateGas) throw new Error('Batch rollover requires current gas estimation')
+        const participants = snapshot.liquidation?.participants
+        if (!Number.isInteger(participants) || participants! < 0 || participants! > 1024) throw new Error('Missing rollover participant count')
+        const remaining = snapshot.rollover.work === 0 ? BigInt(participants!) : snapshot.rollover.count - snapshot.rollover.cursor
+        const maximum = Math.min(helper.maxPages, Math.max(1, Number((remaining + 31n) / 32n)))
+        const candidate = (pages: number): Omit<Call, 'gas'> => ({ action: 'rollover', requestId: binding(this.manifest),
+          target: helper.address, functionName: 'rollover',
+          args: [this.manifest.engine, snapshot.rollover!.epochId, snapshot.rollover!.work, snapshot.rollover!.cursor, pages] })
+        const estimationStarted = performance.now()
+        const chosen = await measuredRolloverBatch(maximum, BigInt(helper.gasCeiling),
+          pages => this.transport.estimateGas!(candidate(pages), snapshot.block))
+        call = candidate(chosen.pages)
+        measuredGas = chosen.gas
+        rolloverBatch = { pages: chosen.pages, estimatedGas: chosen.estimate.toString(), gasLimit: chosen.gas.toString(),
+          estimateBlock: snapshot.block.toString(), estimationMs: Math.ceil(performance.now() - estimationStarted),
+          ...(chosen.searchStop ? { searchStop: chosen.searchStop } : {}) }
+      }
+    } else if (command.action === 'liquidate') {
       if (snapshot.halted || snapshot.timestamp >= snapshot.scheduledT) return { outcome: 'halted' }
       const state = snapshot.liquidation
       if (!state || !Number.isInteger(state.participants) || state.participants < 0 || state.participants > 1024) throw new Error('Missing or invalid liquidation snapshot')
@@ -139,18 +171,24 @@ export class Operations {
       call = { action: 'relay', requestId: digest, target: this.manifest.engine, functionName: 'submitObservation', args: [observation, envelope.signature] }
     }
 
-    const limit = this.manifest.gas[call.functionName]
-    if (limit === undefined) throw new Error(`No measured gas limit for ${call.functionName}`)
-    const ready = { ...call, gas: BigInt(limit) }
+    const limit = call.functionName === 'rollover' ? undefined : this.manifest.gas[call.functionName]
+    if (measuredGas === undefined && limit === undefined) throw new Error(`No measured gas limit for ${call.functionName}`)
+    const ready = { ...call, gas: measuredGas ?? BigInt(limit!) }
     const simulated = await this.transport.simulate(ready)
     if (call.action === 'liquidate' && !productiveLiquidation(simulated)) return { outcome: 'no-work' }
-    if (!broadcast) return { outcome: 'planned', action: call.action }
+    if (call.action === 'rollover') {
+      // A second worker may have advanced the page or finished the epoch while eth_call ran.
+      // Recheck the pinned identity and exact step before signing; the next tick can re-plan.
+      const fresh = await this.transport.snapshot()
+      if (!fresh.rollover || !sameRolloverStep(snapshot.rollover!, fresh.rollover)) return { outcome: 'no-work' }
+    }
+    if (!broadcast) return { outcome: 'planned', action: call.action, ...(rolloverBatch ? { rolloverBatch } : {}) }
     const signed = await this.transport.prepare(ready)
     if (!equalHex(keccak256(signed.rawTransaction), signed.hash)) throw new Error('Prepared transaction hash mismatch')
-    journal.pending = { ...signed, action: call.action, requestId: call.requestId, plannedBlock: snapshot.block.toString() }
+    journal.pending = { ...signed, action: call.action, requestId: call.requestId, plannedBlock: snapshot.block.toString(), ...(rolloverBatch ? { rolloverBatch } : {}) }
     this.store.write(journal)
     const hash = await this.transport.broadcast(signed.rawTransaction)
     if (!equalHex(hash, signed.hash)) throw new Error('RPC returned a different transaction hash')
-    return { outcome: 'sent', action: call.action, hash }
+    return { outcome: 'sent', action: call.action, hash, ...(rolloverBatch ? { rolloverBatch } : {}) }
   }
 }

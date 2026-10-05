@@ -30,13 +30,31 @@ contract LocalIntegrationSafetyTest is Test {
         vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
         local.runLeveraged(keccak256("demo"), keccak256("terminal"), uint64(block.timestamp + 29 days));
         vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
+        local.runLive("must-not-read-this-file.json", keccak256("terminal"));
+        vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
         local.beginSettlement(address(1));
+        vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
+        local.beginLeveragedSettlement(address(1));
         vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
         local.finishSettlement(address(1));
         vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
         local.resolveAssertion(address(1));
         vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
+        local.resolveLeveragedAssertion(address(1));
+        vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
         local.claim(address(1));
+        vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
+        local.claimLeveraged(address(1));
+    }
+
+    function testLeveragedClosureRejectsMainnetBeforeReads() public {
+        vm.chainId(143);
+        vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
+        local.beginLeveragedSettlement(address(1));
+        vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
+        local.resolveLeveragedAssertion(address(1));
+        vm.expectRevert(LocalIntegration.LocalChainOnly.selector);
+        local.claimLeveraged(address(1));
     }
 
     function testDeploymentRefusesUnboundSourceRules() public {

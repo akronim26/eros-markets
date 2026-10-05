@@ -4,12 +4,13 @@ import { describe, expect, test } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { evaluateResponse, type FeedSpec } from '@eros-oracle/feedspec'
 import { keccak256, toBytes } from 'viem'
 import { dryRun, type Simulate, simulationResult } from '../src/dryrun'
 import { list, ListError } from '../src/list'
 
-const FIX = new URL('./fixtures/', import.meta.url).pathname
+const FIX = fileURLToPath(new URL('./fixtures/', import.meta.url))
 const sample = JSON.parse(readFileSync(join(FIX, 'sample-listing.json'), 'utf8'))
 const BODIES: Record<string, string> = {
   evt_finished_1: readFileSync(join(FIX, 'reference-final.json'), 'utf8'),

@@ -23,7 +23,9 @@ contract DeployRealFactory is Script {
         (bytes memory first, bytes memory second) = EngineCodeParts.split(creationCode);
         store = new EngineCodeStore(first);
         tail = new EngineCodeStore(second);
-        factory = new MarketFactory(registry, collateralToken, reserveTreasury, address(store), address(tail), approvedCreationHash);
+        factory = new MarketFactory(
+            registry, collateralToken, reserveTreasury, address(store), address(tail), approvedCreationHash
+        );
         vm.stopBroadcast();
         console2.log("EngineCodeStore", address(store));
         console2.log("EngineCodeStoreTail", address(tail));

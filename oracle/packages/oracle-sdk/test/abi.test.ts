@@ -45,7 +45,7 @@ describe('SDK copy', () => {
   })
 
   test('the oracle ABI carries the calls the services make', () => {
-    const fns = new Set(abis.ResolutionOracleAbi.filter((x) => x.type === 'function').map((x) => x.name))
+    const fns = new Set<string>(abis.ResolutionOracleAbi.filter((x) => x.type === 'function').map((x) => x.name))
     for (const f of ['submitPanelResult', 'submitReviewedProposal', 'haltScheduled', 'requestResolution', 'assertProposal',
       'finalizeMarket', 'voidMarket', 'hashPanelResult', 'hashReviewedProposal', 'getResolution', 'getL1Job']) {
       expect(fns.has(f), f).toBe(true)

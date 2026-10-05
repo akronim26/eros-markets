@@ -9,6 +9,7 @@ import { committeePropose, committeeRefused, dvmAnswer, dvmRequestForLiveAsserti
 import { Evidence } from './evidence'
 import { buildInput, type GamePk, listMarket, type Listed, type MarketSpec, RState, resolution, stateName, truthOf, waitFor } from './market'
 import { addr, at, d, env, now, pc, send } from './stack'
+import { engineAdapter, engineConfig } from './engine'
 
 const OUTCOME = { YES: 1, NO: 2, INVALID: 3 } as const
 const LIVE = { l1: 120, auto: 120, reviewed: 300 }
@@ -24,6 +25,15 @@ function addSources(id: Hex, pages: string[]) {
 }
 
 async function list(ev: Evidence, s: MarketSpec, pages?: string[]): Promise<Listed> {
+  if (engineConfig.kind === 'book-risk') {
+    const pin = engineAdapter.pinForTag(s.tag)
+    await engineAdapter.verify(pin.engine)
+    const core = await pc.readContract({ address: at('MarketRegistry'), abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [pin.marketId] })
+    if (core.engine.toLowerCase() !== pin.engine.toLowerCase()) throw new Error('Prelisted E2E market does not match registry')
+    if (pages) addSources(pin.marketId, pages)
+    await ev.step(`using prelisted real ${s.tag}`, { market: pin.marketId, detail: { engine: pin.engine, deployBlock: pin.deployBlock, tau: core.tau } })
+    return { spec: s, id: pin.marketId, slug: '(prelisted-real)', engine: pin.engine, tau: core.tau, tx: '0x', block: pin.deployBlock, truth: truthOf(s) }
+  }
   const resume = process.env[`RESUME_${s.tag.replace(/-/g, '_').toUpperCase()}`] as Hex | undefined
   if (resume) {
     const c = (await pc.readContract({ address: at('MarketRegistry'), abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [resume] })) as { engine: Address; tau: bigint }
@@ -38,7 +48,7 @@ async function list(ev: Evidence, s: MarketSpec, pages?: string[]): Promise<List
 }
 
 async function settlement(engine: Address) {
-  return (await pc.readContract({ address: engine, abi: ResolutionEngineStubAbi, functionName: 'getSettlementStatus' })) as {
+  return (await engineAdapter.settlement(engine)) as {
     finalOutcome: number
     settlementPriceE18: bigint
     claimsEnabled: boolean
@@ -50,7 +60,7 @@ async function settlement(engine: Address) {
  *  a repeat returns false and a conflicting outcome reverts, so an accepted outcome means one effective settle. */
 async function finalChecks(ev: Evidence, m: Listed, want: 'YES' | 'NO' | 'INVALID') {
   const r = await resolution(m.id)
-  const s = await settlement(m.engine)
+  const s = await engineAdapter.waitForClaims(m.engine)
   const engineWant = { YES: 2, NO: 1, INVALID: 3 }[want]
   ev.check(`${m.spec.tag} oracle Final ${want}`, r.state === RState.Final && r.outcome === OUTCOME[want], `state ${stateName(r.state)}, outcome ${r.outcome}, finalReason ${r.finalReason}`)
   ev.check(`${m.spec.tag} engine settled ${want}, claims open`, s.oracleFinalityAccepted && s.finalOutcome === engineWant && s.claimsEnabled, `engine finalOutcome ${s.finalOutcome}, price ${s.settlementPriceE18}, claimsEnabled ${s.claimsEnabled}`)
@@ -88,14 +98,16 @@ export async function e8(ev: Evidence) {
   }))
   const markets: Listed[] = []
   const resumed = process.env.RESUME_E8_IDS?.split(',') as Hex[] | undefined
-  if (resumed) {
+  if (engineConfig.kind === 'book-risk') {
+    for (const spec of specs) markets.push(await list(ev, spec))
+  } else if (resumed) {
     for (const [i, id] of resumed.entries()) {
       const c = (await pc.readContract({ address: at('MarketRegistry'), abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [id] })) as { engine: Address; tau: bigint }
       markets.push({ spec: specs[i], id, slug: '(resumed)', engine: c.engine, tau: BigInt(c.tau), tx: '0x' as Hex, block: 0n, truth: truthOf(specs[i]) })
     }
     ev.log(`resuming on ${markets.length} listed markets`)
   }
-  for (const s of resumed ? [] : specs) {
+  for (const s of resumed || engineConfig.kind === 'book-risk' ? [] : specs) {
     const built = buildInput(s, base)
     const m = await listMarket(s, built)
     await ev.step(`listed ${s.tag} (truth ${m.truth})`, { market: m.id, tx: m.tx, detail: { slug: m.slug } })
@@ -255,7 +267,9 @@ export async function e9(ev: Evidence) {
   const m3spec: MarketSpec = { ...common, tag: 'e9-away-gt-9', side: 'away', target: 9, feed: 'mlb' }
   const ms: Listed[] = []
   const resumed = process.env.RESUME_E9_IDS?.split(',') as Hex[] | undefined
-  if (resumed) {
+  if (engineConfig.kind === 'book-risk') {
+    for (const spec of [m1spec, m2spec, m3spec]) ms.push(await list(ev, spec))
+  } else if (resumed) {
     for (const [i, id] of resumed.entries()) {
       const spec = [m1spec, m2spec, m3spec][i]
       const c = (await pc.readContract({ address: at('MarketRegistry'), abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [id] })) as { engine: Address; tau: bigint }
@@ -263,7 +277,7 @@ export async function e9(ev: Evidence) {
     }
     ev.log('resuming on the listed group')
   }
-  for (const s of resumed ? [] : [m1spec, m2spec, m3spec]) {
+  for (const s of resumed || engineConfig.kind === 'book-risk' ? [] : [m1spec, m2spec, m3spec]) {
     const m = await listMarket(s, buildInput(s, base))
     await ev.step(`listed ${s.tag} (truth ${m.truth}, group ${groupId.slice(0, 10)})`, { market: m.id, tx: m.tx })
     ms.push(m)

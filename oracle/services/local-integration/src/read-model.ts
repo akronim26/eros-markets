@@ -1,25 +1,12 @@
 import { decodeEventLog, keccak256, type Abi, type Address, type Hex } from 'viem'
 import { z } from 'zod'
+import { publicManifestObject, validatePublicManifest, toPublicManifest, traderAddressSchema } from '../../../packages/oracle-sdk/src/trading-manifest'
+import { claimAvailability } from '../../../packages/oracle-sdk/src/trading'
 
-const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/).transform(value => value as Address)
-const hash = z.string().regex(/^0x[0-9a-fA-F]{64}$/).transform(value => value as Hex)
-export const manifestSchema = z.object({
-  scope: z.literal('local-only'),
-  chainId: z.literal(31337),
-  rpcUrl: z.string(),
-  sourceCommit: z.string(),
-  riskScenario: z.enum(['fully-backed', 'leveraged-fixture']).default('fully-backed'),
-  calibrationEvidence: z.string().optional(),
-  contracts: z.record(z.string(), z.object({ address, codehash: hash, deployBlock: z.number().int().nonnegative() })),
-  markets: z.array(z.object({ name: z.enum(['demo', 'terminal']), engine: address, marketId: hash, sourceId: hash,
-    listingHash: hash, codehash: hash, deployBlock: z.number().int().nonnegative(),
-    deploymentCapX: z.number().int().min(1).max(5).optional(), template: z.number().int().min(0).max(3).optional(),
-    maxLiqLotsPerBlock: z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]).optional(), fundingEnabled: z.boolean().optional() })).length(2),
-  accounts: z.record(z.string(), address),
-}).refine(value => new Set(value.markets.map(market => market.name)).size === 2
-  && new Set(value.markets.map(market => market.engine.toLowerCase())).size === 2
-  && new Set(value.markets.map(market => market.marketId.toLowerCase())).size === 2, 'Markets must be unique demo and terminal identities')
-export type Manifest = z.infer<typeof manifestSchema>
+// The signing wrappers retain this stricter local schema. Generic serving is read-only.
+export const readManifestSchema = publicManifestObject.extend({ rpcUrl: z.string().url() }).superRefine(validatePublicManifest)
+export const manifestSchema = readManifestSchema.refine(value => value.scope === 'local-only' && value.chainId === 31337, 'LOCAL_MANIFEST_ONLY')
+export type Manifest = z.infer<typeof readManifestSchema>
 export type Block = { number: bigint; hash: Hex; timestamp: bigint }
 export type ReadClient = {
   getChainId(): Promise<number>
@@ -31,7 +18,7 @@ export type ReadClient = {
     transactionHash: Hex | null; logIndex: number | null; removed: boolean
   }>>
 }
-export type Abis = { engine: Abi; vault: Abi; token: Abi; oracle: Abi; registry: Abi }
+export type Abis = { engine: Abi; vault: Abi; token: Abi; oracle: Abi; registry: Abi; factory?: Abi }
 
 export function assertLocalRpc(rpc: string) {
   const url = new URL(rpc)
@@ -53,14 +40,15 @@ export function visibleRisk(raw: unknown): Record<string, unknown> {
 
 export class LocalReadModel {
   constructor(readonly manifest: Manifest, readonly abis: Abis, private client: ReadClient) {
-    assertLocalRpc(manifest.rpcUrl)
+    if (manifest.scope === 'local-only') assertLocalRpc(manifest.rpcUrl)
+    else if (!['http:', 'https:'].includes(new URL(manifest.rpcUrl).protocol)) throw new Error('INVALID_READ_TRANSPORT')
     for (const name of ['MarketRegistry', 'ResolutionOracle', 'CollateralVault', 'CollateralToken']) {
       if (!manifest.contracts[name]) throw new Error(`Missing contract: ${name}`)
     }
   }
 
   private async head() {
-    if (await this.client.getChainId() !== 31337) throw new Error('LOCAL_CHAIN_ONLY')
+    if (await this.client.getChainId() !== this.manifest.chainId) throw new Error(this.manifest.scope === 'local-only' ? 'LOCAL_CHAIN_ONLY' : 'MANIFEST_CHAIN_MISMATCH')
     const block = await this.client.getBlock({ blockTag: 'latest' })
     const identities = [...Object.values(this.manifest.contracts), ...this.manifest.markets.map(market => ({ address: market.engine, codehash: market.codehash }))]
     await Promise.all(identities.map(async identity => {
@@ -74,28 +62,43 @@ export class LocalReadModel {
     if ((await this.client.getBlock({ blockNumber: block.number })).hash !== block.hash) throw new Error('READ_BLOCK_REORGED')
   }
 
-  async snapshot() {
+  publicManifest() { return toPublicManifest(this.manifest) }
+
+  async snapshot(owners?: readonly Address[]) {
+    if (owners && (owners.length === 0 || owners.length > 16)) throw new Error('OWNER_LIMIT_16')
+    const selected = owners
+      ? Object.fromEntries([...new Set(owners.map(owner => traderAddressSchema.parse(owner)))].map(owner => [owner, owner]))
+      : this.manifest.accounts
     const block = await this.head()
     const read = (target: Address, abi: Abi, functionName: string, args: readonly unknown[] = []) => this.client.readContract({ address: target, abi, functionName, args, blockNumber: block.number })
     const vault = this.manifest.contracts.CollateralVault.address
     const token = this.manifest.contracts.CollateralToken.address
     const markets = await Promise.all(this.manifest.markets.map(async market => {
-      const [listingHash, risk, settlement, halt, source, oiAllLots, resolution, core] = await Promise.all([
+      const [listingHash, risk, settlement, halt, source, oiAllLots, resolution, core, boundVault, listing] = await Promise.all([
         read(market.engine, this.abis.engine, 'listingHash'), read(market.engine, this.abis.engine, 'marketRiskView'),
         read(market.engine, this.abis.engine, 'getSettlementStatus'), read(market.engine, this.abis.engine, 'getHaltSnapshot'),
         read(market.engine, this.abis.engine, 'sourceState', [market.sourceId]), read(market.engine, this.abis.engine, 'oiAllLots'),
         read(this.manifest.contracts.ResolutionOracle.address, this.abis.oracle, 'getResolution', [market.marketId]),
         read(this.manifest.contracts.MarketRegistry.address, this.abis.registry, 'getMarketCore', [market.marketId]),
+        read(market.engine, this.abis.engine, 'collateralVault'),
+        read(market.engine, this.abis.engine, 'listing'),
       ])
       if ((listingHash as string).toLowerCase() !== market.listingHash.toLowerCase()
-          || (core as { engine: string }).engine.toLowerCase() !== market.engine.toLowerCase()) throw new Error('MARKET_BINDING_CHANGED')
-      const accounts = await Promise.all(Object.entries(this.manifest.accounts).map(async ([name, owner]) => {
+          || (core as { engine: string }).engine.toLowerCase() !== market.engine.toLowerCase()
+          || String(boundVault).toLowerCase() !== vault.toLowerCase()) throw new Error('MARKET_BINDING_CHANGED')
+      const expected = { marketId: market.marketId, indexSourceId: market.sourceId, token,
+        registry: this.manifest.contracts.MarketRegistry.address, resolutionAuthority: this.manifest.contracts.ResolutionOracle.address }
+      if (!listing || !Object.entries(expected).every(([key, value]) => String((listing as Record<string, unknown>)[key]).toLowerCase() === value.toLowerCase())) {
+        throw new Error('MARKET_BINDING_CHANGED')
+      }
+      const accounts = await Promise.all(Object.entries(selected).map(async ([name, owner]) => {
         const [trader, freeAtoms, walletAtoms, claimAtoms] = await Promise.all([
           read(market.engine, this.abis.engine, 'participantId', [owner]), read(vault, this.abis.vault, 'freeAtoms', [owner]),
           read(token, this.abis.token, 'balanceOf', [owner]), read(vault, this.abis.vault, 'claimAtoms', [market.engine, owner]),
         ])
         const accountRisk = BigInt(trader as number) === 0n ? null : visibleRisk(await read(market.engine, this.abis.engine, 'accountRiskView', [trader]))
-        return { name, owner, trader, freeAtoms, walletAtoms, claimAtoms, risk: accountRisk }
+        return { name, owner, trader, freeAtoms, walletAtoms, claimAtoms, risk: accountRisk,
+          claimability: claimAvailability(settlement as { claimsEnabled: boolean }, BigInt(claimAtoms as bigint)) }
       }))
       const book = (halt as { halted: boolean }).halted ? { available: false, reason: 'HALTED' }
         : { available: true, bestBidAsk: await read(market.engine, this.abis.engine, 'bestBidAsk') }
@@ -114,9 +117,10 @@ export class LocalReadModel {
       read(vault, this.abis.vault, 'recognizedAtoms'), read(token, this.abis.token, 'balanceOf', [vault]),
     ])
     await this.canonical(block)
-    return { scope: 'local-only', chainId: 31337, block, units: { atomsDecimals: 6, qPerAtom: '1000000000000000000', lotsPerClaim: 1000 },
+    return { manifestVersion: 1, scope: this.manifest.scope, chainId: this.manifest.chainId, block, units: { atomsDecimals: 6, qPerAtom: '1000000000000000000', lotsPerClaim: 1000 },
       sourceCommit: this.manifest.sourceCommit, riskScenario: this.manifest.riskScenario,
-      calibrationEvidence: this.manifest.calibrationEvidence, prices: 'controlled fixture, not an external market feed', recognizedAtoms, custodyAtoms, markets }
+      sourceMode: this.manifest.sourceMode, provenance: this.publicManifest().provenance, verifiedAt: this.manifest.verifiedAt,
+      calibrationEvidence: this.manifest.calibrationEvidence, prices: this.publicManifest().provenance.index === 'external' ? 'independent external source; inspect freshness and availability' : 'controlled fixture, not an external market feed', recognizedAtoms, custodyAtoms, markets }
   }
 
   async events(fromBlock: bigint) {
@@ -137,7 +141,7 @@ export class LocalReadModel {
         if (log.blockNumber < cursor || log.blockNumber > end || !permittedAddresses.has(log.address.toLowerCase())) throw new Error('EVENT_OUTSIDE_QUERY')
         if (!canonicalHashes.has(log.blockNumber)) canonicalHashes.set(log.blockNumber, (await this.client.getBlock({ blockNumber: log.blockNumber })).hash)
         if (canonicalHashes.get(log.blockNumber) !== log.blockHash) throw new Error('EVENT_BLOCK_REORGED')
-        const id = `31337:${log.blockHash}:${log.transactionHash}:${log.logIndex}`
+        const id = `${this.manifest.chainId}:${log.blockHash}:${log.transactionHash}:${log.logIndex}`
         if (seen.has(id)) continue
         seen.add(id)
         let decoded: unknown = null

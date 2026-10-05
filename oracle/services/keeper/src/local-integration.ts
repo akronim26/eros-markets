@@ -36,7 +36,8 @@ export function localGasEntry(estimate: bigint, identity: EngineIdentity, source
   }
 }
 
-export async function runLocalKeeper(manifestPath: string, gasPath: string, reportPath: string, rpcUrl: string) {
+export async function runLocalKeeper(manifestPath: string, gasPath: string, reportPath: string, rpcUrl: string, targetName: 'terminal' | 'demo' = 'terminal') {
+  z.enum(['terminal', 'demo']).parse(targetName)
   assertLocalKeeperRpc(rpcUrl)
   const input = resolve(manifestPath)
   const gasOutput = resolve(gasPath)
@@ -93,19 +94,21 @@ export async function runLocalKeeper(manifestPath: string, gasPath: string, repo
     }
     return eligible
   })
-  const keeper = new Keeper({ chain, source: { marketIds: async () => Object.values(markets).map(market => market.marketId) }, planners: measuredPlanners, gas, concurrency: 1,
+  const keeper = new Keeper({ chain, source: { marketIds: async () => [markets[targetName].marketId] }, planners: measuredPlanners, gas, concurrency: 1,
     log: { info: (message, data) => logs.push({ level: 'info', message, ...data }), warn: (message, data) => logs.push({ level: 'warn', message, ...data }), error: (message, data) => logs.push({ level: 'error', message, ...data }) },
   })
   const write = () => {
     for (const output of [gasOutput, reportOutput]) mkdirSync(dirname(output), { recursive: true })
     writeFileSync(gasOutput, `${stringify({ scope: 'local-only', evidence: 'current fixture states only; not production worst-case gas', ...gas })}\n`)
-    writeFileSync(reportOutput, `${stringify({ scope: 'local-only', chainId: 31337, mockAssertionVenue: true, keeper: account.address, engineIdentities, measurements, receipts, tickReports, logs })}\n`)
+    writeFileSync(reportOutput, `${stringify({ scope: 'local-only', chainId: 31337, target: targetName, mockAssertionVenue: true, keeper: account.address, engineIdentities, measurements, receipts, tickReports, logs })}\n`)
   }
   try {
     for (let tick = 0; tick < 32; tick++) {
-      const demo = await chain.settlementStatus(markets.demo.engine)
-      if (demo.halted) throw new Error('ongoing demo market must remain unhalted')
-      const status = await chain.settlementStatus(markets.terminal.engine)
+      if (targetName === 'terminal') {
+        const demo = await chain.settlementStatus(markets.demo.engine)
+        if (demo.halted) throw new Error('ongoing demo market must remain unhalted')
+      }
+      const status = await chain.settlementStatus(markets[targetName].engine)
       if (status.claimsEnabled) {
         write()
         return { claimsEnabled: true, ticks: tickReports.length, transactions: receipts.length, keeper: account.address }
@@ -130,8 +133,8 @@ export async function runLocalKeeper(manifestPath: string, gasPath: string, repo
 }
 
 if (import.meta.main) {
-  const [manifestPath, gasPath, reportPath, extra] = process.argv.slice(2)
-  if (!manifestPath || !gasPath || !reportPath || extra) throw new Error('Usage: bun src/local-integration.ts <manifest.json> <local-gas.json> <keeper-report.json>')
-  const result = await runLocalKeeper(manifestPath, gasPath, reportPath, process.env.RPC_URL ?? 'http://127.0.0.1:18545')
+  const [manifestPath, gasPath, reportPath, target = 'terminal', extra] = process.argv.slice(2)
+  if (!manifestPath || !gasPath || !reportPath || extra) throw new Error('Usage: bun src/local-integration.ts <manifest.json> <local-gas.json> <keeper-report.json> [terminal|demo]')
+  const result = await runLocalKeeper(manifestPath, gasPath, reportPath, process.env.RPC_URL ?? 'http://127.0.0.1:18545', z.enum(['terminal', 'demo']).parse(target))
   console.log(stringify(result))
 }

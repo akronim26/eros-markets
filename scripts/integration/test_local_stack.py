@@ -3,6 +3,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -152,8 +153,8 @@ class RunDirectoryTests(unittest.TestCase):
 
     def test_stop_only_targets_an_owned_matching_process(self):
         record = {"processes": [{"pid": 12345, "identity": "owned"}, {"pid": 23456, "identity": None}]}
-        with patch.object(local_stack, "process_identity", return_value="owned"), patch.object(local_stack.subprocess, "run") as stop, patch.object(local_stack.os, "kill") as kill:
-            local_stack.stop_recorded(record)
+        with patch.object(local_stack, "process_identity", side_effect=["owned", None]), patch.object(local_stack.subprocess, "run") as stop, patch.object(local_stack.os, "kill") as kill:
+            result = local_stack.stop_recorded(record)
             if os.name == "nt":
                 self.assertEqual(stop.call_count, 1)
                 self.assertEqual(stop.call_args.args[0], ["taskkill", "/PID", "12345", "/T", "/F"])
@@ -162,6 +163,136 @@ class RunDirectoryTests(unittest.TestCase):
                 self.assertEqual(kill.call_count, 1)
                 self.assertEqual(kill.call_args.args[0], 12345)
                 stop.assert_not_called()
+        self.assertFalse(result["stopped"])
+        self.assertIn("identity is missing", result["processes"][0]["errors"][0])
+
+    def test_stubborn_recorded_root_is_reported_unverified_after_budget(self):
+        record = {"processes": [{"pid": 12345, "identity": "owned"}]}
+        with patch.object(local_stack, "process_identity", return_value="owned"), \
+                patch.object(local_stack.subprocess, "run"), patch.object(local_stack.os, "kill"):
+            result = local_stack.stop_recorded(record, timeout=.02)
+        self.assertFalse(result["stopped"])
+        self.assertIn("still exists", result["processes"][0]["errors"][0])
+        self.assertFalse(result["descendantsVerified"])
+
+    def test_identity_query_failure_does_not_target_process_or_claim_stop(self):
+        record = {"processes": [{"pid": 12345, "identity": "owned"}]}
+        with patch.object(local_stack, "process_identity", side_effect=RuntimeError("identity denied")), \
+                patch.object(local_stack.subprocess, "run") as stop, patch.object(local_stack.os, "kill") as kill:
+            result = local_stack.stop_recorded(record)
+        self.assertFalse(result["stopped"])
+        self.assertIn("identity denied", result["processes"][0]["errors"][0])
+        stop.assert_not_called()
+        kill.assert_not_called()
+
+    def test_actual_owned_background_leaf_is_stopped_and_waited(self):
+        process = local_stack.subprocess.Popen([sys.executable, "-c", "import signal,time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(120)"],
+                                              stdin=local_stack.subprocess.DEVNULL, stdout=local_stack.subprocess.DEVNULL,
+                                              stderr=local_stack.subprocess.DEVNULL, creationflags=local_stack.HIDDEN)
+        try:
+            identity = local_stack.process_identity(process.pid)
+            self.assertTrue(identity)
+            result = local_stack.stop_recorded({"processes": [{"pid": process.pid, "identity": identity}]}, timeout=5)
+            self.assertTrue(result["stopped"], result)
+            process.wait(timeout=1)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
+
+    def failed_source_command(self, error):
+        arguments = self.arguments(self.directory)
+        arguments.scenario, arguments.source = "leveraged", "polymarket"
+
+        def output(argv, **_kwargs):
+            if argv[0] == "git":
+                return "base-commit\n" if argv[1] == "rev-parse" else ""
+            return {"forge": "forge Version: 1.8.3\n", "anvil": "anvil Version: 1.8.3\n",
+                    "node": "v24.21.0\n", "bun": "1.3.13\n"}[str(argv[0])]
+
+        with patch.object(local_stack, "require_free_port"), \
+                patch.object(local_stack, "LIVE_LATEST", self.directory / "test-latest.json"), \
+                patch.object(local_stack, "executable", side_effect=lambda _variable, _pinned, fallback: fallback), \
+                patch.object(local_stack, "source_fingerprints", return_value={"fixture": "hash"}), \
+                patch.object(local_stack.subprocess, "check_output", side_effect=output), \
+                patch.object(local_stack, "OwnedProcess", side_effect=error), \
+                self.assertRaises(FileNotFoundError):
+            local_stack.run(arguments)
+        steps = json.loads((self.directory / "steps.json").read_text())
+        return steps, json.loads((self.directory / "runtime.json").read_text())
+
+    def test_failed_source_command_is_retained_even_when_process_cannot_start(self):
+        steps, runtime = self.failed_source_command(FileNotFoundError("test missing executable"))
+        self.assertEqual(len(steps), 1)
+        self.assertEqual(steps[0]["step"], "source-probe")
+        self.assertEqual(steps[0]["exitCode"], 1)
+        self.assertIsNone(steps[0]["processExitCode"])
+        self.assertEqual(steps[0]["failure"]["type"], "FileNotFoundError")
+        self.assertEqual(runtime["status"], "failed-and-stopped")
+
+    def test_unconfirmed_startup_cleanup_preserves_failure_without_claiming_stopped(self):
+        error = FileNotFoundError("original startup failure")
+        error.owned_process_cleanup = {"stopped": False, "errors": ["injected cleanup failure"]}
+        steps, runtime = self.failed_source_command(error)
+        self.assertEqual(steps[0]["failure"]["message"], "original startup failure")
+        self.assertFalse(steps[0]["cleanup"]["stopped"])
+        self.assertEqual(runtime["status"], "failed-cleanup-unverified")
+        self.assertEqual(runtime["cleanupFailures"][0]["step"], "source-probe")
+
+
+class SourceEvidenceTests(unittest.TestCase):
+    def test_runtime_abi_is_bound_after_compilation_and_tampering_cannot_pass(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in local_stack.RUNTIME_ARTIFACT_NAMES:
+                path = root / f"oracle/out/{name}.sol/{name}.json"
+                path.parent.mkdir(parents=True)
+                path.write_text(json.dumps({"abi": [{"type": "function", "name": "original"}]}), encoding="utf-8")
+            run = root / "run"
+            run.mkdir()
+            bound = local_stack.archive_runtime_artifacts(run, root)
+            source = local_stack.source_fingerprints(root)
+            local_stack.verify_source_fingerprints(run, source, root, bound)
+            changed = root / "oracle/out/RegistryBookRiskEngine.sol/RegistryBookRiskEngine.json"
+            changed.write_text('{"abi": []}', encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "source changed"):
+                local_stack.verify_source_fingerprints(run, source, root, bound)
+            archived = json.loads((run / "runtime-artifacts/RegistryBookRiskEngine.json").read_text())
+            self.assertEqual(archived["abi"][0]["name"], "original")
+
+    def test_runtime_inputs_are_bound_without_environment_contents(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "oracle/src/integration/RolloverBatcher.sol"
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"contract Example {}\r\n")
+            abi = root / "artifacts/risk/book-risk-engine-abi.json"
+            abi.parent.mkdir(parents=True)
+            abi.write_text('{"abi": []}', encoding="utf-8")
+            (root / ".env").write_text("PRIVATE_KEY=never-read", encoding="utf-8")
+            initial = local_stack.source_fingerprints(root)
+            self.assertEqual(list(initial), ["artifacts/risk/book-risk-engine-abi.json", "oracle/src/integration/RolloverBatcher.sol"])
+            source.write_bytes(b"contract Example {}\n")
+            local_stack.verify_source_fingerprints(root, initial, root)
+            source.write_bytes(b"contract Changed {}\n")
+            with self.assertRaisesRegex(RuntimeError, "source changed"):
+                local_stack.verify_source_fingerprints(root, initial, root)
+            report = json.loads((root / "source-integrity.json").read_text())
+            self.assertFalse(report["passed"])
+            self.assertEqual(report["changedFiles"], ["oracle/src/integration/RolloverBatcher.sol"])
+
+    def test_added_and_deleted_runtime_code_invalidates_the_launch_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            script = root / "scripts/integration/runtime.py"
+            script.parent.mkdir(parents=True)
+            script.write_text("pass\n", encoding="utf-8")
+            initial = local_stack.source_fingerprints(root)
+            script.rename(script.with_name("replacement.py"))
+            with self.assertRaisesRegex(RuntimeError, "source changed"):
+                local_stack.verify_source_fingerprints(root, initial, root)
+            self.assertEqual(json.loads((root / "source-integrity.json").read_text())["changedFiles"],
+                             ["scripts/integration/replacement.py", "scripts/integration/runtime.py"])
 
 
 class LocalClockTests(unittest.TestCase):

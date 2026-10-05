@@ -4,11 +4,12 @@ import { describe, expect, test } from 'bun:test'
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { getAddress, keccak256, toBytes } from 'viem'
 import { list, ListError } from '../src/list'
 import { ForgeError, ORACLE_ROOT } from '../src/forge'
 
-const FIX = new URL('./fixtures/', import.meta.url).pathname
+const FIX = fileURLToPath(new URL('./fixtures/', import.meta.url))
 const SAMPLE = join(FIX, 'sample-listing.json')
 const FINAL = join(FIX, 'reference-final.json')
 const NOW = 1_800_000_000n

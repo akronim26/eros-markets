@@ -70,8 +70,9 @@ abstract contract RealMarketFixture is RegistryFixture {
         (bytes memory firstCode, bytes memory secondCode) = EngineCodeParts.split(creationCode);
         engineCodeStore = address(new EngineCodeStore(firstCode));
         engineCodeStoreTail = address(new EngineCodeStore(secondCode));
-        realFactory =
-            new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStore, engineCodeStoreTail, keccak256(creationCode));
+        realFactory = new MarketFactory(
+            address(registry), usdc, reserveTreasury, engineCodeStore, engineCodeStoreTail, keccak256(creationCode)
+        );
         vault = realFactory.collateralVault();
         for (uint256 member = 0; member < 3; ++member) {
             committeeKeys.push(0x1000 + member);

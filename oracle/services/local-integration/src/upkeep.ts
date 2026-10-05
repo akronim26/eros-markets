@@ -5,11 +5,13 @@ import { mnemonicToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import { assertLocalRpc, json, manifestSchema } from './read-model'
 import { broadcastTracked } from '../../market-ops/src/broadcast'
+import { nextRollover, ROLLOVER_PAGE_SIZE, sameRolloverStep } from '../../market-ops/src/rollover'
+import { BatchEstimateOpaqueRevert, BatchGasLimitExceeded, isBatchGasLimitError, isOpaqueBatchEstimateRevert, measuredRolloverBatch, RolloverBatcherAbi, verifyRolloverHelper } from '../../market-ops/src/rollover-batch'
 
 const counter = z.string().regex(/^(0|[1-9][0-9]*)$/)
 const hash = z.string().regex(/^0x[0-9a-fA-F]{64}$/).transform(value => value as Hex)
 const actor = z.enum(['operator', 'buyer', 'seller'])
-const action = z.enum(['beginRollover', 'rollPage', 'finishRollover', 'quote'])
+const action = z.enum(['beginRollover', 'rollPage', 'finishRollover', 'rollover', 'quote'])
 const memorySchema = z.object({
   marketOrderEpoch: counter, initialized: z.boolean(), orders: z.object({ buyer: z.number().int().nonnegative(), seller: z.number().int().nonnegative() }),
   quoteEpoch: counter.optional(), quoted: z.array(z.enum(['buyer', 'seller'])),
@@ -19,7 +21,11 @@ const pendingSchema = z.object({
   rawTransaction: z.string().regex(/^0x([0-9a-fA-F]{2})+$/).transform(value => value as Hex),
   data: z.string().regex(/^0x([0-9a-fA-F]{2})+$/).transform(value => value as Hex),
   gasLimit: z.number().int().positive().max(30_000_000), estimate: counter, plannedBlock: counter,
-}).strict()
+  batch: z.object({ epoch: counter, work: z.union([z.literal(0), z.literal(1)]), cursor: counter,
+    pages: z.number().int().min(1).max(32), estimationMs: z.number().int().nonnegative(),
+    searchStop: z.object({ pages: z.number().int().min(2).max(32), reason: z.literal('opaque-empty-revert') }).strict().optional() }).strict().optional(),
+}).strict().refine(value => (value.action === 'rollover') === (value.batch !== undefined)
+  && (value.action !== 'rollover' || value.actor === 'operator'), 'LOCAL_UPKEEP_BATCH_BINDING_REQUIRED')
 const journalSchema = z.object({
   version: z.literal(1), binding: hash, markets: z.record(z.enum(['demo', 'terminal']), memorySchema),
   pending: pendingSchema.optional(), receipts: z.array(z.record(z.string(), z.unknown())),
@@ -28,8 +34,9 @@ type Journal = z.infer<typeof journalSchema>
 type Memory = z.infer<typeof memorySchema>
 type Pending = z.infer<typeof pendingSchema>
 export type UpkeepState = {
-  timestamp: bigint; scheduledT: bigint; halted: boolean; work: number; epochEnd: bigint;
+  timestamp: bigint; scheduledT: bigint; halted: boolean; work: number; epochId: bigint; epochEnd: bigint;
   cursor: bigint; count: bigint; marketOrderEpoch: bigint; indexAvailable: boolean; monitorRestricted: boolean;
+  participants?: bigint;
 }
 
 export function upkeepGas(estimate: bigint): number {
@@ -38,10 +45,10 @@ export function upkeepGas(estimate: bigint): number {
   return Number(padded > 30_000_000n ? 30_000_000n : padded)
 }
 
-export function planUpkeep(state: UpkeepState, memory: Memory, quotes: boolean): { action: Pending['action']; actor: Pending['actor'] } | null {
+export function planUpkeep(state: UpkeepState, memory: Memory, quotes: boolean, batch = false): { action: Pending['action']; actor: Pending['actor'] } | null {
   if (state.halted || state.timestamp >= state.scheduledT) return null
-  if (state.work === 0 && state.timestamp >= state.epochEnd) return { action: 'beginRollover', actor: 'operator' }
-  if (state.work === 1) return { action: state.cursor < state.count ? 'rollPage' : 'finishRollover', actor: 'operator' }
+  const rollover = nextRollover(state)
+  if (rollover) return { action: batch ? 'rollover' : rollover, actor: 'operator' }
   if (state.work !== 0 || !quotes || !memory.initialized || !memory.quoteEpoch || !state.indexAvailable || state.monitorRestricted) return null
   for (const owner of ['buyer', 'seller'] as const) if (!memory.quoted.includes(owner)) return { action: 'quote', actor: owner }
   return null
@@ -88,6 +95,7 @@ export async function runLocalUpkeep(manifestPath: string, journalPath: string, 
   const abi = JSON.parse(readFileSync(new URL('../../../out/RegistryBookRiskEngine.sol/RegistryBookRiskEngine.json', import.meta.url), 'utf8')).abi as Abi
   const registryAbi = JSON.parse(readFileSync(new URL('../../../out/MarketRegistry.sol/MarketRegistry.json', import.meta.url), 'utf8')).abi as Abi
   const markets = Object.fromEntries(manifest.markets.map(market => [market.name, market])) as Record<'demo' | 'terminal', typeof manifest.markets[number]>
+  const helper = manifest.contracts.RolloverBatcher
   const binding = keccak256(stringToHex(json({ chainId: 31337, markets: manifest.markets, contracts: manifest.contracts, accounts: Object.fromEntries(Object.entries(accounts).map(([name, account]) => [name, account.address])) })))
   const store = new UpkeepStore(paths[1], binding)
   let stopped = false
@@ -100,22 +108,25 @@ export async function runLocalUpkeep(manifestPath: string, journalPath: string, 
     if (await client.getChainId() !== 31337) throw new Error('LOCAL_CHAIN_CHANGED')
     const block = await client.getBlock()
     const market = markets[name]
-    const [code, listingHash, listing, halt, work, epoch, cursor, count, orderEpoch, risk, core, registryCode] = await Promise.all([
+    const [code, listingHash, listing, halt, work, epoch, cursor, count, orderEpoch, risk, core, registryCode, participants] = await Promise.all([
       client.getCode({ address: market.engine, blockNumber: block.number }), read(name, 'listingHash', [], block.number), read(name, 'listing', [], block.number),
       read(name, 'getHaltSnapshot', [], block.number), read(name, 'work', [], block.number), read(name, 'epoch', [], block.number),
       read(name, 'cursor', [], block.number), read(name, 'sweepCount', [], block.number), read(name, 'marketOrderEpoch', [], block.number), read(name, 'marketRiskView', [], block.number),
       client.readContract({ address: manifest.contracts.MarketRegistry.address, abi: registryAbi, functionName: 'getMarketCore', args: [market.marketId], blockNumber: block.number }),
       client.getCode({ address: manifest.contracts.MarketRegistry.address, blockNumber: block.number }),
+      read(name, 'participantCount', [], block.number),
     ])
     const configuration = listing as { marketId: Hex; registry: Address; scheduledT: bigint }
     if (!code || keccak256(code) !== market.codehash || listingHash !== market.listingHash || configuration.marketId !== market.marketId
         || configuration.registry.toLowerCase() !== manifest.contracts.MarketRegistry.address.toLowerCase()
         || (core as { engine: Address }).engine.toLowerCase() !== market.engine.toLowerCase()
         || !registryCode || keccak256(registryCode) !== manifest.contracts.MarketRegistry.codehash) throw new Error('LOCAL_UPKEEP_IDENTITY_CHANGED')
+    await verifyRolloverHelper(helper ? { address: helper.address, codeHash: helper.codehash } : undefined,
+      block.number, (address, blockNumber) => client.getCode({ address, blockNumber }))
     if ((await client.getBlock({ blockNumber: block.number })).hash !== block.hash) throw new Error('LOCAL_UPKEEP_REORGED')
     const state: UpkeepState = { timestamp: block.timestamp, scheduledT: configuration.scheduledT, halted: (halt as { halted: boolean }).halted,
-      work: Number(work), epochEnd: (epoch as readonly unknown[])[2] as bigint, cursor: cursor as bigint, count: count as bigint,
-      marketOrderEpoch: orderEpoch as bigint, indexAvailable: (risk as { indexAvailable: boolean }).indexAvailable,
+      work: Number(work), epochId: (epoch as readonly unknown[])[0] as bigint, epochEnd: (epoch as readonly unknown[])[2] as bigint, cursor: cursor as bigint, count: count as bigint,
+      participants: BigInt(participants as bigint), marketOrderEpoch: orderEpoch as bigint, indexAvailable: (risk as { indexAvailable: boolean }).indexAvailable,
       monitorRestricted: (risk as { monitorRestricted: boolean }).monitorRestricted }
     return { block, state }
   }
@@ -147,12 +158,23 @@ export async function runLocalUpkeep(manifestPath: string, journalPath: string, 
     }
     return found
   }
-  const argumentsFor = (pending: Pick<Pending, 'action' | 'actor' | 'market'>, journal: Journal) => {
-    if (pending.action === 'rollPage') return [32]
+  const argumentsFor = (pending: Pick<Pending, 'action' | 'actor' | 'market' | 'batch'>, journal: Journal) => {
+    if (pending.action === 'rollover') {
+      if (!pending.batch || pending.actor !== 'operator' || !helper) throw new Error('LOCAL_UPKEEP_BATCH_BINDING_REQUIRED')
+      return [markets[pending.market].engine, BigInt(pending.batch.epoch), pending.batch.work, BigInt(pending.batch.cursor), pending.batch.pages]
+    }
+    if (pending.action === 'rollPage') return [ROLLOVER_PAGE_SIZE]
     if (pending.action !== 'quote') return []
     if (pending.actor === 'operator') throw new Error('INVALID_QUOTE_OWNER')
     const old = journal.markets[pending.market].orders[pending.actor]
     return [old ? [old] : [], [{ kind: 2, isBuy: pending.actor === 'buyer', reduceOnly: false, tick: pending.actor === 'buyer' ? 490 : 510, size: 1000n, maxFills: 8, expiryBlock: 0 }]]
+  }
+  const targetFor = (action: Pending['action'], market: 'demo' | 'terminal') => {
+    if (action === 'rollover') {
+      if (!helper) throw new Error('LOCAL_UPKEEP_HELPER_NOT_ENROLLED')
+      return { address: helper.address, abi: RolloverBatcherAbi as Abi, functionName: 'rollover' }
+    }
+    return { address: markets[market].engine, abi, functionName: action === 'quote' ? 'batch' : action }
   }
   const writeReport = (journal: Journal, states: unknown) => {
     mkdirSync(dirname(paths[2]), { recursive: true })
@@ -173,10 +195,10 @@ export async function runLocalUpkeep(manifestPath: string, journalPath: string, 
       const pending = journal.pending
       if (pending) {
         await snapshot(pending.market)
-        const functionName = pending.action === 'quote' ? 'batch' : pending.action
-        const data = encodeFunctionData({ abi, functionName, args: argumentsFor(pending, journal) })
+        const target = targetFor(pending.action, pending.market)
+        const data = encodeFunctionData({ abi: target.abi, functionName: target.functionName, args: argumentsFor(pending, journal) })
         const transaction = parseTransaction(pending.rawTransaction)
-        if (pending.data !== data || transaction.data !== data || transaction.to?.toLowerCase() !== markets[pending.market].engine.toLowerCase()
+        if (pending.data !== data || transaction.data !== data || transaction.to?.toLowerCase() !== target.address.toLowerCase()
             || transaction.chainId !== 31337 || transaction.gas !== BigInt(pending.gasLimit) || (transaction.value ?? 0n) !== 0n
             || (await recoverTransactionAddress({ serializedTransaction: pending.rawTransaction as TransactionSerialized })).toLowerCase() !== accounts[pending.actor].address.toLowerCase()) throw new Error('LOCAL_UPKEEP_PENDING_BINDING_CHANGED')
         let receipt
@@ -201,7 +223,8 @@ export async function runLocalUpkeep(manifestPath: string, journalPath: string, 
             }
             journal.receipts.push({ hash: pending.hash, market: pending.market, action: pending.action, actor: pending.actor,
               blockNumber: receipt.blockNumber.toString(), blockHash: receipt.blockHash, gasUsed: receipt.gasUsed.toString(),
-              gasLimit: pending.gasLimit, estimate: pending.estimate, status: receipt.status })
+              gasLimit: pending.gasLimit, estimate: pending.estimate, plannedBlock: pending.plannedBlock, status: receipt.status,
+              ...(pending.batch ? { rolloverBatch: pending.batch } : {}) })
             if (journal.receipts.length > 1000) throw new Error('LOCAL_UPKEEP_RECEIPT_LIMIT')
             delete journal.pending
             store.write(journal)
@@ -222,23 +245,45 @@ export async function runLocalUpkeep(manifestPath: string, journalPath: string, 
             memory.marketOrderEpoch = state.marketOrderEpoch.toString()
           }
           store.write(journal)
-          const next = planUpkeep(state, memory, !once)
+          const next = planUpkeep(state, memory, !once, !!helper)
           if (!next) continue
           if (once && ++onceActions > 72) throw new Error('LOCAL_UPKEEP_BOUNDED_ACTION_LIMIT')
-          const functionName = next.action === 'quote' ? 'batch' : next.action
-          const args = argumentsFor({ ...next, market: name }, journal)
           const account = accounts[next.actor]
-          const call = { address: markets[name].engine, abi, functionName, args, account: account.address }
-          await client.simulateContract({ ...call, blockNumber: block.number })
-          const estimate = await client.estimateContractGas({ ...call, blockNumber: block.number })
-          const gasLimit = upkeepGas(estimate)
+          let batch: Pending['batch'], estimate: bigint, gasLimit: number
+          const target = targetFor(next.action, name)
+          if (next.action === 'rollover') {
+            if (state.participants === undefined || state.participants < 0n || state.participants > 1024n) throw new Error('LOCAL_UPKEEP_PARTICIPANT_BOUND')
+            const remaining = state.work === 0 ? state.participants : state.count - state.cursor
+            const maximum = Math.max(1, Number((remaining + 31n) / 32n))
+            const began = performance.now()
+            const selected = await measuredRolloverBatch(maximum, 30_000_000n, async pages => {
+              try {
+                return await client.estimateContractGas({ ...target, account: account.address, blockNumber: block.number,
+                  args: [markets[name].engine, state.epochId, state.work, state.cursor, pages], gas: 30_000_000n })
+              } catch (error) {
+                if (isBatchGasLimitError(error)) throw new BatchGasLimitExceeded('Local rollover batch gas ceiling', { cause: error })
+                if (isOpaqueBatchEstimateRevert(error)) throw new BatchEstimateOpaqueRevert('Larger batch has an opaque empty RPC revert; no gas conclusion', { cause: error })
+                throw error
+              }
+            })
+            batch = { epoch: state.epochId.toString(), work: state.work as 0 | 1, cursor: state.cursor.toString(), pages: selected.pages,
+              estimationMs: Math.ceil(performance.now() - began), ...(selected.searchStop ? { searchStop: selected.searchStop } : {}) }
+            estimate = selected.estimate; gasLimit = Number(selected.gas)
+          } else {
+            const args = argumentsFor({ ...next, market: name }, journal)
+            estimate = await client.estimateContractGas({ ...target, args, account: account.address, blockNumber: block.number })
+            gasLimit = upkeepGas(estimate)
+          }
+          const args = argumentsFor({ ...next, market: name, batch }, journal)
+          await client.simulateContract({ ...target, args, account: account.address, gas: BigInt(gasLimit), blockNumber: block.number })
+          if (next.action !== 'quote' && !sameRolloverStep(state, (await snapshot(name)).state)) { planned = true; break }
           const [latestNonce, pendingNonce] = await Promise.all([client.getTransactionCount({ address: account.address, blockTag: 'latest' }), client.getTransactionCount({ address: account.address, blockTag: 'pending' })])
           if (latestNonce !== pendingNonce) throw new Error('LOCAL_UPKEEP_UNTRACKED_NONCE')
           const wallet = createWalletClient({ account, chain, transport })
-          const data = encodeFunctionData({ abi, functionName, args })
-          const request = await wallet.prepareTransactionRequest({ account, chain, to: markets[name].engine, data, gas: BigInt(gasLimit), nonce: latestNonce })
+          const data = encodeFunctionData({ abi: target.abi, functionName: target.functionName, args })
+          const request = await wallet.prepareTransactionRequest({ account, chain, to: target.address, data, gas: BigInt(gasLimit), nonce: latestNonce })
           const rawTransaction = await wallet.signTransaction(request)
-          journal.pending = { market: name, ...next, hash: keccak256(rawTransaction), rawTransaction, data, gasLimit, estimate: estimate.toString(), plannedBlock: block.number.toString() }
+          journal.pending = { market: name, ...next, hash: keccak256(rawTransaction), rawTransaction, data, gasLimit, estimate: estimate.toString(), plannedBlock: block.number.toString(), ...(batch ? { batch } : {}) }
           store.write(journal)
           if (await client.sendRawTransaction({ serializedTransaction: rawTransaction }) !== journal.pending.hash) throw new Error('LOCAL_UPKEEP_BROADCAST_HASH_CHANGED')
           planned = true

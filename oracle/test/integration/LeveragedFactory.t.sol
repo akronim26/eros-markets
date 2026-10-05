@@ -162,15 +162,22 @@ contract LeveragedFactoryTest is RealMarketFixture {
     }
 
     function _place(address owner, bool buys, uint16 tick, uint64 lots, IBookRiskHooks.OrderKind kind)
-        internal returns (uint32 id)
+        internal
+        returns (uint32 id)
     {
         vm.prank(owner);
         id = engine.placeOrder(Book.Place(kind, buys, false, tick, lots, 8, 0));
     }
 
     function _quotes(uint256 price) internal {
-        if (bid != 0) { vm.prank(bidMaker); engine.cancel(bid); }
-        if (ask != 0) { vm.prank(askMaker); engine.cancel(ask); }
+        if (bid != 0) {
+            vm.prank(bidMaker);
+            engine.cancel(bid);
+        }
+        if (ask != 0) {
+            vm.prank(askMaker);
+            engine.cancel(ask);
+        }
         bid = _place(bidMaker, true, uint16(price / 1e15 - 10), 2_000_000, IBookRiskHooks.OrderKind.POST_ONLY);
         ask = _place(askMaker, false, uint16(price / 1e15 + 10), 2_000_000, IBookRiskHooks.OrderKind.POST_ONLY);
         assertGt(bid, 0);
@@ -342,6 +349,7 @@ contract LeveragedFactoryTest is RealMarketFixture {
         assertEq(engine.traderAtoms(buyer), 0);
         assertEq(engine.traderAtoms(seller), 1000e6);
         assertEq(engine.reserveResidualQ(), 99_520e24, "reserve pays the 480 collateral deficit");
+        assertEq(engine.getSettlementStatus().totalDeficitQ, 480e24, "frontend reports real bad debt");
         assertFalse(engine.recoveryEnabled());
         assertFalse(engine.useRecovery());
         assertFalse(engine.recoveryRequired());
@@ -363,6 +371,7 @@ contract LeveragedFactoryTest is RealMarketFixture {
         assertEq(engine.traderAtoms(buyer), 520e6);
         assertEq(engine.traderAtoms(seller), 0);
         assertEq(engine.reserveResidualQ(), 100_000e24);
+        assertEq(engine.getSettlementStatus().totalDeficitQ, 0);
         assertEq(vault.claim(address(engine), buyer), 520e6);
     }
 }

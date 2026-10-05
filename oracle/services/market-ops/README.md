@@ -1,6 +1,6 @@
 # Real-market operations helpers
 
-Operations tooling for a real, registry-listed `BookRiskEngine`. The independent INDEX publisher lives in `packages/pricefeed`; this package handles sampling, observation relay, liquidation and authenticated early-check requests. The local fixture orchestration is documented in [LEVERAGE_INTEGRATION.md](../../../docs/integration/LEVERAGE_INTEGRATION.md). Public operation still requires a real deployment, source owner and rules, funded accounts and measured gas limits.
+Operations tooling for a real, registry-listed `BookRiskEngine`. The independent INDEX publisher lives in `packages/pricefeed`; this package handles sampling, observation relay, liquidation, epoch rollover and authenticated early-check requests. The local fixture orchestration is documented in [LEVERAGE_INTEGRATION.md](../../../docs/integration/LEVERAGE_INTEGRATION.md). Public operation still requires a real deployment, source owner and rules, funded accounts and measured gas limits.
 
 The CLI defaults to simulation. `--broadcast` explicitly enables signing transactions with `MARKET_OPS_PRIVATE_KEY`; its address must equal the manifest sender. Sampler/relay senders are permissionless. Early-check requests require the actual `listing.monitor` key. A relay sender does not need the INDEX source signing key. No keys belong in manifest, incident, envelope or journal files.
 
@@ -19,15 +19,22 @@ oracleCodeHash: keccak256 of its deployed runtime
 sender: dedicated transaction account address
 sampleEveryBlocks: positive decimal string (default "1")
 gas: object containing only measured integer limits, as needed:
-  samplePerp, requestReduceOnly, requestEarlyCheck, submitObservation, liquidate
+  samplePerp, requestReduceOnly, requestEarlyCheck, submitObservation, liquidate,
+  beginRollover, rollPage, finishRollover
+rolloverHelper: optional object for bounded batching:
+  address: reviewed RolloverBatcher deployment
+  codeHash: keccak256 of its deployed runtime
+  maxPages: integer 1..32 (default 32)
+  gasCeiling: integer gas ceiling no higher than 30,000,000 (default 30,000,000)
 ```
 
-Missing gas limits refuse execution, including simulation. Read-only startup checks chain ID, runtime hashes, immutable listing identity, registry engine/monitor and pinned INDEX signer/rules at one block. The ABI is loaded from the repository's existing `artifacts/risk/book-risk-engine-abi.json` using a file URL, which works on Windows and Unix.
+Missing gas limits refuse execution, including simulation, except helper rollover which measures its own current batch. Read-only startup checks chain ID, runtime hashes, immutable listing identity, registry engine/monitor and pinned INDEX signer/rules at one block. The ABI is loaded from the repository's existing `artifacts/risk/book-risk-engine-abi.json` using a file URL, which works on Windows and Unix.
 
 ```sh
 bun src/main.ts sample manifest.json journal.json
 bun src/main.ts sample manifest.json journal.json --broadcast --watch
 bun src/main.ts liquidate manifest.json journal.json --broadcast --watch
+bun src/main.ts rollover manifest.json journal.json --broadcast --watch
 bun src/main.ts early-check manifest.json journal.json incident.json --broadcast --watch
 bun src/main.ts relay manifest.json journal.json envelope.json --broadcast --watch
 ```
@@ -44,9 +51,42 @@ Liquidation checks at most 32 participants per tick with a persistent circular
 cursor. The actual contract simulation includes accrued premium, eligibility, book
 liquidity, reserve cover and pacing. Only productive reductions or authorized
 takeovers are sent. Missing price, healthy accounts and positive equity without
-liquidity produce no work. There is no automatic pair-partner selection. Epoch
-rollover remains a separate operator responsibility. Supply measured `gas.liquidate`
+liquidity produce no work. There is no automatic pair-partner selection. Supply measured `gas.liquidate`
 and a dedicated sender; no public gas calibration is inferred from local fixtures.
+
+Without `rolloverHelper`, `rollover` starts an ended epoch, advances at most 32 accounts per transaction,
+then finishes only when the sweep cursor reaches its frozen count. It re-reads
+identity, epoch and cursor after simulation; another worker's advancement causes
+a fresh plan on the next tick. Inactive markets, other sweeps and halted/expired
+markets send nothing. Each action requires its own measured gas field. It uses
+the same journal and finalized-receipt handling as other commands. The local
+fixture shares this planner but keeps owner-authorized re-quoting separate;
+public rollover never cancels or places a trader's orders.
+
+With the optional helper, the same planner composes begin, bounded 32-account
+pages and eligible finish inside one atomic transaction. It pins expected epoch,
+work and cursor in calldata and verifies the helper runtime at the snapshot block.
+At most six current-state gas estimates select the largest fitting batch up to
+`maxPages`; the signed limit is the measured estimate plus 20% rounded up and
+10,000 gas, within `gasCeiling`. Recognized gas-cap failures narrow the search.
+An exact nested RPC code3/data0x revert after a smaller measured fit ends the
+search and retains only that fit. Its larger unestimated page count and opaque
+reason are recorded in `searchStop`; it is not classified as out-of-gas or a
+proved upper gas bound. Without a prior fitting estimate, or for nonempty custom
+reverts and transport failures, the plan stops. The retained fit must still pass
+exact simulation. A fresh snapshot
+after simulation discards a raced plan before signing. Pending/finalized results
+retain selected pages, raw estimate, gas limit, estimate block and estimation
+elapsed milliseconds. A helper batch has no custody or privileged caller and
+changes no engine pricing or accounting checks.
+
+The helper address and runtime hash extend journal identity; manifests without it
+retain their original binding and legacy behavior. Switching a live journal to a
+different helper requires explicit reconciliation. A passing gas estimate does
+not guarantee warm pricing at completion: source capture, finality, estimation
+and all batch receipts must still fit the contract's actual freshness bounds.
+The four-owner warm opening and 1,024-owner accounting lifecycle are separate
+proof scopes; neither implies the other or production gas calibration.
 
 Use one durable journal and one dedicated sender across all commands for a market. Only one transaction may be outstanding. Signed transaction bytes and their hash are fsynced to the journal before broadcast. Restart or RPC failure rebroadcasts the same signed bytes; it never prepares a replacement transaction for an unresolved journal entry. Canonical receipts must reach `finalized` before the next action. A reverted transaction stops the tick. A sender with unknown pending transactions is refused.
 

@@ -5,7 +5,10 @@ no_match_path = "test/integration/**"
 script = "script"
 out = "out"
 libs = ["lib"]
-auto_detect_solc = true          # our sources pin 0.8.30; UMA OOv3 pins 0.8.16
+auto_detect_solc = true          # legacy UMA requires its own exact 0.8.16 compiler
+# A caret pragma otherwise selects newer installed compilers and changes deployed
+# bytecode. Restrict every EROS source and its importers to the tested compiler.
+compilation_restrictions = [{ paths = "src/**", version = "=0.8.30" }]
 evm_version = "prague"
 optimizer = true
 optimizer_runs = 200

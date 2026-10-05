@@ -45,6 +45,7 @@ const markets = await Promise.all(Object.entries(raw.markets).map(async ([name, 
   return { name, ...market, listingHash: actualHash as Hex, codehash, deployBlock: Number(raw.startBlock) }
 }))
 if ((await client.getBlock({ blockNumber: block.number })).hash !== block.hash) throw new Error('ENROLLMENT_REORGED')
-const manifest = manifestSchema.parse({ ...raw, rpcUrl, sourceCommit, contracts, markets })
+const manifest = manifestSchema.parse({ ...raw, rpcUrl, sourceCommit, contracts, markets, manifestVersion: 1,
+  verifiedAt: { blockNumber: block.number.toString(), blockHash: block.hash } })
 writeFileSync(resolve(output), json(manifest) + '\n')
 console.log(json({ enrolled: manifest.markets.map(market => market.name), block: block.number, scope: 'local-only' }))

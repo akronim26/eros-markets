@@ -186,8 +186,7 @@ contract FactoryGasTest is RegistryFixture {
         bytes memory engineCreation = vm.getCode("RegistryBookRiskEngine.sol:RegistryBookRiskEngine");
         engineCreationBytes = engineCreation.length;
         (bytes memory first, bytes memory second) = EngineCodeParts.split(engineCreation);
-        codeStoreInitcodeBytes =
-            vm.getCode("EngineCodeStore.sol:EngineCodeStore").length + abi.encode(first).length;
+        codeStoreInitcodeBytes = vm.getCode("EngineCodeStore.sol:EngineCodeStore").length + abi.encode(first).length;
         codeStoreTailInitcodeBytes =
             vm.getCode("EngineCodeStore.sol:EngineCodeStore").length + abi.encode(second).length;
         uint256 beforeGas = gasleft();
@@ -200,7 +199,8 @@ contract FactoryGasTest is RegistryFixture {
         factoryInitcodeBytes = vm.getCode("MarketFactory.sol:MarketFactory").length
             + abi.encode(address(registry), usdc, gov, address(codeStore), address(codeStoreTail), creationHash).length;
         beforeGas = gasleft();
-        factory = new MarketFactory(address(registry), usdc, gov, address(codeStore), address(codeStoreTail), creationHash);
+        factory =
+            new MarketFactory(address(registry), usdc, gov, address(codeStore), address(codeStoreTail), creationHash);
         factoryDeploymentGas = beforeGas - gasleft();
         noop = new FactoryGasNoop();
         _configureOracle();
