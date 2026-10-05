@@ -59,7 +59,7 @@ export function PortfolioPage() {
         <LoggedOut />
       ) : (
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[820px] border-t border-ink frame text-left">
+          <table className="w-full min-w-[820px] border-t border-line-strong frame text-left">
             <thead>
               <tr className="hair-b text-2xs text-fg-3">
                 <th className="py-2.5 pr-6 pl-4 font-medium">Market</th>

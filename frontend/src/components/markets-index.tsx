@@ -46,7 +46,7 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
   ];
   return (
     <li className="frame bg-ground">
-      <div className="label flex items-center justify-between px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-ink)]">
+      <div className="label flex items-center justify-between px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">
         <span>{mk.short}</span>
         {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
       </div>
@@ -63,7 +63,7 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
         <span className="flex w-10 items-center justify-center bg-signal text-on-signal" aria-hidden>
           <ArrowRight size={15} strokeWidth={2} />
         </span>
-        <span className="label flex flex-1 items-center bg-ink px-4 text-ivory group-hover:bg-ink-2">Open market</span>
+        <span className="label flex flex-1 items-center bg-action px-4 text-on-action group-hover:bg-action-hover">Open market</span>
       </Link>
     </li>
   );

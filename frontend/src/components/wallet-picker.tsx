@@ -1,121 +1,149 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useConnect, useConnection, useConnectors, type Connector } from "wagmi";
-import { Wallet, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { getEmbeddedConnectedWallet, useCreateWallet, useLinkAccount, useLogin, usePrivy, useWallets, type ConnectedWallet } from "@privy-io/react-auth";
+import { useSetActiveWallet } from "@privy-io/wagmi";
+import { useConfig, useConnection } from "wagmi";
+import { disconnect, getConnection, getConnections, switchChain } from "wagmi/actions";
+import { useQueryClient } from "@tanstack/react-query";
 import { chain } from "@/config/chain";
-import { cx } from "./ui";
+import { WalletSessionContext, type WalletSnapshot } from "./wallet-session";
+import { WalletDialog } from "./wallet-dialog";
 
-const PickerContext = createContext<{ open: () => void }>({ open: () => {} });
-
-/** Opens the wallet chooser from any call to action (top bar, ticket, portfolio). */
-export const useWalletPicker = () => useContext(PickerContext);
-
-/**
- * Wallets the browser announces (EIP-6963: MetaMask, Rabby, Coinbase Wallet, …), each with its own
- * name and icon. The generic "Injected" entry only appears when nothing announced itself.
- */
-function useWallets() {
-  const connectors = useConnectors();
-  return useMemo(() => {
-    const announced = connectors.filter((c) => c.id !== "injected");
-    const list = announced.length > 0 ? announced : connectors;
-    const seen = new Set<string>();
-    return list.filter((c) => (seen.has(c.name) ? false : (seen.add(c.name), true)));
-  }, [connectors]);
+function message(e: unknown) {
+  return e instanceof Error ? e.message : String(e);
 }
 
-function friendlyError(e: Error | null) {
-  if (!e) return null;
-  const m = e.message.toLowerCase();
-  if (m.includes("rejected") || m.includes("denied")) return "Request rejected in the wallet. Try again when ready.";
-  if (m.includes("already pending")) return "A request is already open in your wallet. Finish or close it there.";
-  return "The wallet could not connect. Unlock it and try again.";
-}
-
+/** Privy owns login, wallet creation, external wallet connections and account selection. */
 export function WalletPickerProvider({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const wallets = useWallets();
-  const { isConnected } = useConnection();
-  const { connect, isPending, variables, error, reset } = useConnect();
-  const [chosen, setChosen] = useState<string | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const { ready: authReady, authenticated, user, logout: privyLogout } = usePrivy();
+  const { wallets, ready: walletsReady } = useWallets();
+  const { createWallet } = useCreateWallet();
+  const { setActiveWallet } = useSetActiveWallet();
+  const config = useConfig();
+  const connection = useConnection();
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const { login } = useLogin({ onError: (e) => {
+    if (message(e) !== "exited_auth_flow") setError("Could not log in. Please try again.");
+  } });
+  const { linkWallet } = useLinkAccount({
+    onSuccess: () => dialog.current?.showModal(),
+    onError: (e) => {
+      if (message(e) !== "exited_link_flow" && message(e) !== "exited_auth_flow") setError("Could not connect the wallet. Unlock it and try again.");
+      dialog.current?.showModal();
+    },
+  });
+  const ready = authReady && walletsReady && !busy;
+  const identity = `${ready}:${authenticated}:${user?.id ?? ""}`;
+  const live = useRef({ identity, version: 0, ready: false, wallets });
+  if (live.current.identity !== identity) live.current.version++;
+  live.current = { ...live.current, identity, ready: ready && authenticated, wallets };
 
-  const open = useCallback(() => {
-    reset();
-    setChosen(null);
-    ref.current?.showModal();
-  }, [reset]);
-  const close = () => ref.current?.close();
+  // Read wagmi's live store, including account changes that occur before React re-renders.
+  const getSnapshot = useCallback((): WalletSnapshot => {
+    const c = getConnection(config);
+    const known = live.current.wallets.some((w) => w.address.toLowerCase() === c.address?.toLowerCase());
+    return {
+      address: c.address, chainId: c.chainId, connectorUid: c.connector?.uid,
+      ready: live.current.ready && c.isConnected && known, version: live.current.version,
+    };
+  }, [config]);
+  const snapshot = getSnapshot();
 
-  // Close once a wallet is connected.
   useEffect(() => {
-    if (isConnected && ref.current?.open) ref.current.close();
-  }, [isConnected]);
+    if (!authenticated) dialog.current?.close();
+  }, [authenticated]);
 
-  const pick = (c: Connector) => {
-    setChosen(c.uid);
-    connect({ connector: c, chainId: chain.id });
-  };
-  const pendingUid = isPending ? (variables?.connector as Connector | undefined)?.uid ?? chosen : null;
+  function begin() {
+    // Immediately invalidate any pending multi-transaction flow, even before a render.
+    live.current.ready = false;
+    live.current.version++;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+  }
+
+  function open() {
+    setError(null);
+    setNotice(null);
+    if (!ready) return;
+    if (!authenticated) login();
+    else dialog.current?.showModal();
+  }
+
+  async function select(wallet: ConnectedWallet) {
+    if (busy) return;
+    begin();
+    try {
+      await setActiveWallet(wallet);
+      // The SDK initiates wagmi's mutation; its promise may resolve before connection completes.
+      await new Promise<void>((resolve, reject) => {
+        const matches = () => {
+          const c = getConnection(config);
+          return c.isConnected && c.address?.toLowerCase() === wallet.address.toLowerCase();
+        };
+        if (matches()) { resolve(); return; }
+        const timer = setTimeout(() => { stop(); reject(new Error("Wallet selection timed out. Unlock the wallet and try again.")); }, 12000);
+        const stop = config.subscribe((s) => s, () => {
+          if (matches()) { clearTimeout(timer); stop(); resolve(); }
+        });
+      });
+      dialog.current?.close();
+    } catch (e) { setError(message(e)); }
+    finally { setBusy(false); }
+  }
+
+  async function create() {
+    if (busy) return;
+    begin();
+    dialog.current?.close(); // Allow Privy's recovery/setup dialog to receive focus.
+    try {
+      await createWallet();
+      setNotice("Your new wallet is ready. Select it below to use it for trading.");
+    } catch (e) { setError(message(e)); }
+    finally { setBusy(false); dialog.current?.showModal(); }
+  }
+
+  function connect() {
+    setError(null);
+    dialog.current?.close();
+    linkWallet({ walletChainType: "ethereum-only" });
+  }
+
+  async function changeChain() {
+    if (busy) return;
+    begin();
+    try { await switchChain(config, { chainId: chain.id }); }
+    catch (e) { setError(message(e)); }
+    finally { setBusy(false); }
+  }
+
+  async function logout() {
+    if (busy) return;
+    begin();
+    try {
+      // Disconnect every wagmi connector so no previously selected account survives logout.
+      for (const c of getConnections(config)) await disconnect(config, { connector: c.connector });
+      await privyLogout();
+      await qc.cancelQueries({ predicate: (q) => q.queryKey[0] === "trader" || q.queryKey[0] === "previewOrder" });
+      qc.removeQueries({ predicate: (q) => q.queryKey[0] === "trader" || q.queryKey[0] === "previewOrder" });
+      dialog.current?.close();
+    } catch (e) { setError(message(e)); }
+    finally { setBusy(false); }
+  }
 
   return (
-    <PickerContext.Provider value={{ open }}>
+    <WalletSessionContext.Provider value={{ configured: true, ready, authenticated, busy,
+      address: snapshot.ready ? snapshot.address : undefined, error, open, logout, getSnapshot }}>
       {children}
-      <dialog
-        ref={ref}
-        aria-labelledby="wallet-picker-title"
-        className="m-auto w-[min(420px,calc(100vw-2rem))] border border-ink bg-ground p-0 text-fg backdrop:bg-ink/40"
-        onClick={(e) => e.target === ref.current && close()}
-      >
-        <div className="label flex h-10 items-center justify-between pl-4 text-fg-3 shadow-[inset_0_-1px_0_var(--color-ink)]">
-          <span id="wallet-picker-title">CONNECT.WALLET</span>
-          <button onClick={close} className="flex h-10 w-10 items-center justify-center text-fg-3 hover:bg-hover hover:text-fg" aria-label="Close">
-            <X size={15} strokeWidth={2} />
-          </button>
-        </div>
-        <div className="p-4">
-          <p className="text-sm leading-relaxed text-fg-2">
-            Choose the wallet to use. Its address becomes your trading account on Eros Markets.
-          </p>
-          {wallets.length === 0 ? (
-            <p className="frame mt-4 p-4 text-sm leading-relaxed text-fg-2">
-              No browser wallet found. Install or enable one (MetaMask, Rabby, Coinbase Wallet and others), then reload this page.
-            </p>
-          ) : (
-            <ul className="mt-4 flex flex-col">
-              {wallets.map((c, i) => {
-                const busy = pendingUid === c.uid;
-                return (
-                  <li key={c.uid}>
-                    <button
-                      onClick={() => pick(c)}
-                      disabled={isPending}
-                      className={cx(
-                        "flex h-14 w-full items-center gap-3 border border-ink px-3 text-left transition-colors duration-150 hover:bg-hover disabled:cursor-not-allowed",
-                        i > 0 && "-mt-px",
-                        busy && "bg-hover",
-                      )}
-                    >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-line bg-panel">
-                        {c.icon ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={c.icon} alt="" className="h-6 w-6" />
-                        ) : (
-                          <Wallet size={16} strokeWidth={1.75} aria-hidden />
-                        )}
-                      </span>
-                      <span className="flex-1 text-sm font-medium">{c.name}</span>
-                      <span className={cx("label", busy ? "text-signal-text" : "text-fg-3")}>{busy ? "Confirm in wallet…" : "Connect"}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          {error && <p className="mt-3 text-xs leading-relaxed text-signal-text" role="alert">{friendlyError(error)}</p>}
-          <p className="label mt-4 text-fg-4">Network: Monad testnet (10143). You will be asked to switch if needed.</p>
-        </div>
-      </dialog>
-    </PickerContext.Provider>
+      <WalletDialog dialogRef={dialog} wallets={wallets} activeAddress={connection.address}
+        hasEmbedded={!!getEmbeddedConnectedWallet(wallets) || !!user?.linkedAccounts.some((a) => a.type === "wallet" && a.chainType === "ethereum" && (a.walletClientType === "privy" || a.walletClientType === "privy-v2"))}
+        busy={busy} error={error} notice={notice} wrongChain={connection.isConnected && connection.chainId !== chain.id}
+        onSelect={select} onCreate={create} onConnect={connect} onSwitchChain={changeChain} onLogout={logout} />
+    </WalletSessionContext.Provider>
   );
 }

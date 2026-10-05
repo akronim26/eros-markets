@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useConfig } from "wagmi";
-import { writeContract } from "wagmi/actions";
+import { getConnection, writeContract } from "wagmi/actions";
 import { BaseError, ContractFunctionRevertedError, parseEventLogs, type Abi, type Address, type Hash } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 import { client } from "./reads";
 import { engineAbi } from "@/abi/engine";
 import { REJECT, CANCEL_REASON } from "./enums";
 import { lotsToClaims } from "./units";
+import { chain } from "@/config/chain";
+import { useWalletSession } from "@/components/wallet-session";
+import { createWalletGuard, runWalletCalls } from "./wallet-safety";
 
 export type TxState =
   | { status: "idle" }
@@ -33,33 +36,62 @@ type Call = { address: Address; abi: Abi; functionName: string; args?: readonly 
 export function useTx() {
   const config = useConfig();
   const qc = useQueryClient();
-  const [state, setState] = useState<TxState>({ status: "idle" });
+  const { getSnapshot } = useWalletSession();
+  const running = useRef(false);
+  const [result, setResult] = useState<{ scope: string; state: TxState }>({ scope: "", state: { status: "idle" } });
+  const current = getSnapshot();
+  const scope = `${current.address?.toLowerCase()}:${current.connectorUid}:${current.version}`;
+  const state: TxState = result.scope === scope ? result.state : { status: "idle" };
 
   async function run(account: Address, calls: Call[], summarize?: (logs: readonly unknown[]) => { summary: string; tone: "bid" | "ask" | "neutral" }) {
+    if (running.current) return;
+    running.current = true;
+    const setState = (state: TxState) => setResult({ scope, state });
     let last: Hash | undefined;
+    let stop: (() => void) | undefined;
     try {
-      for (const c of calls) {
-        setState({ status: "pending", step: `Simulating ${c.label}` });
-        const sim = await client.simulateContract({ ...c, account } as never);
-        const gas = await client.estimateContractGas({ ...c, account } as never);
-        setState({ status: "pending", step: `Confirm ${c.label} in your wallet` });
-        const hash = await writeContract(config, { ...(sim as { request: object }).request, gas: (gas * 110n) / 100n } as never);
-        last = hash;
-        setState({ status: "sent", hash, step: `${c.label}: waiting for inclusion` });
-        const receipt = await client.waitForTransactionReceipt({ hash });
-        if (receipt.status !== "success") throw new Error(`${c.label} reverted in block ${receipt.blockNumber}`);
-        if (c === calls[calls.length - 1]) {
-          const out = summarize ? summarize(receipt.logs) : { summary: `${c.label} confirmed`, tone: "neutral" as const };
-          setState({ status: "done", hash, ...out });
-        }
-      }
-      await qc.invalidateQueries();
+      const guard = createWalletGuard(getSnapshot, account, chain.id);
+      const connector = getConnection(config).connector!;
+      // Latch account/network changes, including switching away and back while a wallet prompt is open.
+      stop = config.subscribe((s) => s, guard.observe);
+      await runWalletCalls(calls, {
+        assertCurrent: guard.assertCurrent,
+        prepare: async (c) => {
+          setState({ status: "pending", step: `Simulating ${c.label}` });
+          const sim = await client.simulateContract({ ...c, account } as never);
+          guard.assertCurrent();
+          const gas = await client.estimateContractGas({ ...c, account } as never);
+          return { request: (sim as { request: object }).request, gas };
+        },
+        send: async ({ request, gas }, c) => {
+          setState({ status: "pending", step: `Confirm ${c.label} in your wallet` });
+          // Explicitly bind the signer and chain instead of using whichever connector is now active.
+          const hash = await writeContract(config, { ...request, account, connector, chainId: chain.id, gas: (gas * 110n) / 100n } as never);
+          last = hash;
+          return hash;
+        },
+        confirm: async (hash, c, final) => {
+          setState({ status: "sent", hash, step: `${c.label}: waiting for inclusion` });
+          const receipt = await client.waitForTransactionReceipt({ hash });
+          if (receipt.status !== "success") throw new Error(`${c.label} reverted in block ${receipt.blockNumber}`);
+          guard.assertCurrent();
+          if (final) {
+            const out = summarize ? summarize(receipt.logs) : { summary: `${c.label} confirmed`, tone: "neutral" as const };
+            setState({ status: "done", hash, ...out });
+          }
+        },
+      });
     } catch (e) {
       setState({ status: "error", message: revertMessage(e) + (last ? ` (last tx ${last.slice(0, 10)}…)` : "") });
+    } finally {
+      stop?.();
+      running.current = false;
+      // Refresh even after a partial sequence: an approval or deposit may already have succeeded.
+      if (last) await qc.invalidateQueries();
     }
   }
 
-  return { state, run, reset: () => setState({ status: "idle" }) };
+  return { state, run, reset: () => setResult({ scope, state: { status: "idle" } }) };
 }
 
 /** placeOrder can succeed with id 0: fills, rejections and cancels come only from logs (R8). */

@@ -2,17 +2,33 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { BrandImage } from "./brand-image";
 import { ArrowRight, Check, Minus } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
 import { markets } from "@/config/deployment";
 import { PRICING, STAGE } from "@/lib/enums";
 import { fmtDuration, fmtUtc, lotsToClaims, shortAddr } from "@/lib/units";
 import { Num, SectionRule, cx } from "./ui";
+import { EventPerpDemo } from "./event-perp-demo";
+import { MarketLifecycle } from "./market-lifecycle";
 
 const ENGINE = markets[0].engine;
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ------------------------------------------------------------------ interactions */
+
+/** Keep server and initial client markup identical; read motion preferences after mount. */
+function useReducedMotion() {
+  const [reduceMotion, setReduceMotion] = useState(true);
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduceMotion(preference.matches);
+    update();
+    preference.addEventListener("change", update);
+    return () => preference.removeEventListener("change", update);
+  }, []);
+  return reduceMotion;
+}
 
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=<>/";
 
@@ -79,68 +95,63 @@ function useClock(chainNow?: bigint) {
 
 /* ------------------------------------------------------------------ hero */
 
-const LEFT = ["Question", "Probability", "Position"];
-const RIGHT = ["Halt", "Resolve", "Claim"];
-
-/** The market lifecycle converging on the mark: question → price → position, then halt → resolve → claim. */
-function NodeDiagram() {
+function Hero() {
   return (
-    <div className="relative mx-auto my-8 h-[150px] w-full max-w-[640px]" aria-label="Market lifecycle: question, probability and position flow into the market; it halts, resolves and pays claims">
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 640 150" preserveAspectRatio="none" aria-hidden>
-        {[25, 75, 125].map((y, i) => (
-          <g key={y}>
-            <line x1={150} y1={y} x2={278} y2={75} stroke="var(--color-line)" />
-            <line x1={362} y1={75} x2={490} y2={y} stroke="var(--color-line)" />
-            <rect x={146} y={y - 3} width={6} height={6} fill="var(--color-signal)">
-              {!reduced() && <animate attributeName="opacity" values="1;0.25;1" dur="2.4s" begin={`${i * 0.4}s`} repeatCount="indefinite" />}
-            </rect>
-            <rect x={488} y={y - 3} width={6} height={6} fill="var(--color-ink)" />
-          </g>
-        ))}
-      </svg>
-      {LEFT.map((t, i) => (
-        <span key={t} className="label frame absolute left-0 flex h-6 w-[136px] items-center justify-center bg-ground text-fg" style={{ top: 13 + i * 50 }}>
-          {t}
-        </span>
-      ))}
-      {RIGHT.map((t, i) => (
-        <span key={t} className="label frame absolute right-0 flex h-6 w-[136px] items-center justify-center bg-ground text-fg" style={{ top: 13 + i * 50 }}>
-          {t}
-        </span>
-      ))}
-      <div className="frame absolute top-1/2 left-1/2 flex h-[84px] w-[84px] -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-panel max-sm:h-16 max-sm:w-16">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/eros-markets-mark-on-light.svg" alt="" className="h-12 w-12 max-sm:h-9 max-sm:w-9" />
+    <section className="mx-auto max-w-[1280px] px-4 pt-12 pb-16 text-center md:px-8 md:pt-20 md:pb-24">
+      <p className="label mb-6 inline-flex items-center gap-2 text-fg-3">
+        <span className="h-2 w-2 bg-signal" aria-hidden />
+        Built on Monad · Public testnet
+      </p>
+      <h1 className="pixel leading-[1.05] text-fg">
+        <span className="block text-[clamp(1.5rem,6.3vw,5.5rem)]"><Scramble text="PERPETUAL FUTURES" /></span>
+        <span className="mt-2 block text-[clamp(2.75rem,10vw,8rem)] text-signal-text"><Scramble text="ON EVENTS." /></span>
+      </h1>
+      <MarketLifecycle />
+      <p className="mx-auto mt-7 max-w-[58ch] text-base leading-relaxed text-fg-2 md:text-lg">
+        Trade your view on what happens next. Go long or short on event probabilities with Eros Markets,
+        powered by a fully on-chain order book.
+      </p>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <Link href={`/m/${ENGINE}`} className="group inline-flex min-h-11 items-stretch">
+          <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
+            <ArrowRight size={15} strokeWidth={2} />
+          </span>
+          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Explore the testnet</span>
+        </Link>
+        <Link href="#how-it-works" className="label frame inline-flex min-h-11 items-center px-5 text-fg hover:bg-hover">
+          How event perps work
+        </Link>
       </div>
-    </div>
+      <p className="label mt-5 text-fg-3">Long / short positions · Limit orders · Outcome settlement</p>
+    </section>
   );
 }
 
-function Hero() {
+const EVENT_EXAMPLES = [
+  { category: "Politics", question: "Will the candidate win the election?" },
+  { category: "Economics", question: "Will the next rate decision be a cut?" },
+  { category: "Crypto", question: "Will BTC end the month above $100,000?" },
+];
+
+function EventMarkets() {
   return (
-    <section className="px-4 pt-10 pb-20 text-center md:pt-14">
-      <h1 className="sr-only">Price. Trade. Resolve.</h1>
-      <p className="pixel text-[clamp(2.75rem,8vw,6rem)] leading-[0.95] text-fg" aria-hidden>
-        <Scramble text="PRICE. TRADE." />
-      </p>
-      <NodeDiagram />
-      <p className="pixel text-[clamp(2.75rem,8vw,6rem)] leading-[0.95] text-fg" aria-hidden>
-        <Scramble text="RESOLVE." />
-      </p>
-      <p className="mx-auto mt-8 max-w-[56ch] text-sm leading-relaxed text-fg-2">
-        Eros Markets turns a YES/NO question into a perpetual you can trade. A fully on-chain order book on Monad, an
-        isolated reserve for every market, and a three-layer oracle that decides the outcome.
-      </p>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Link href={`/m/${ENGINE}`} className="group inline-flex h-10 items-stretch">
-          <span className="flex w-10 items-center justify-center bg-signal text-on-signal" aria-hidden>
-            <ArrowRight size={15} strokeWidth={2} />
-          </span>
-          <span className="label flex items-center bg-ink px-5 text-ivory group-hover:bg-ink-2">Open the terminal</span>
-        </Link>
-        <Link href="#resolution" className="label frame inline-flex h-10 items-center px-5 text-fg hover:bg-hover">
-          How it resolves
-        </Link>
+    <section className="mx-auto max-w-[1280px] px-4 pb-20 md:px-8">
+      <SectionRule name="EVENT_MARKETS" index={1} />
+      <div className="mt-6 max-w-[70ch]">
+        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-fg uppercase md:text-3xl">The world moves. Trade your view.</h2>
+        <p className="mt-3 text-sm leading-relaxed text-fg-2">
+          Elections, rate decisions, crypto milestones. Event perpetuals turn a YES/NO question into a market:
+          take a position on how the odds will move as new information comes in.
+        </p>
+      </div>
+      <p className="label mt-6 text-fg-3">Illustrative questions · These are not live listings</p>
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
+        {EVENT_EXAMPLES.map((event) => (
+          <div key={event.category} className="frame flex flex-col gap-6 bg-panel p-5">
+            <span className="label flex items-center gap-2 text-signal-text"><span className="h-1.5 w-1.5 bg-signal" aria-hidden />{event.category}</span>
+            <h3 className="max-w-[28ch] text-lg leading-snug font-medium text-fg">{event.question}</h3>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -150,7 +161,7 @@ function Hero() {
 
 function PanelHead({ left, right, dark }: { left: string; right?: React.ReactNode; dark?: boolean }) {
   return (
-    <div className={cx("label flex h-8 items-center justify-between px-3", dark ? "text-ivory-3 shadow-[inset_0_-1px_0_#2a2a2c]" : "text-fg-3 shadow-[inset_0_-1px_0_var(--color-ink)]")}>
+    <div className={cx("label flex h-8 items-center justify-between px-3", dark ? "text-ivory-3 shadow-[inset_0_-1px_0_#2a2a2c]" : "text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]")}>
       <span>{left}</span>
       {right}
     </div>
@@ -159,6 +170,7 @@ function PanelHead({ left, right, dark }: { left: string; right?: React.ReactNod
 
 /** The Eros mark rendered as a dot matrix: the depth ladder, with the Signal bar as the mark price. */
 function MarkDither() {
+  const reduceMotion = useReducedMotion();
   const bars = [
     { y: 0, w: 76 },
     { y: 11, w: 64 },
@@ -178,8 +190,8 @@ function MarkDither() {
   return (
     <svg viewBox="-3 -3 82 82" className="h-full w-full" role="img" aria-label="The Eros Markets mark drawn as a dot matrix depth ladder">
       {dots.map((d, i) => (
-        <rect key={i} x={d.x} y={d.y} width={cell * 0.62} height={cell * 0.62} fill={d.s ? "var(--color-signal)" : "var(--color-ink)"} opacity={d.s ? 1 : 0.35 + (d.d % 50) / 80}>
-          {!reduced() && d.s && <animate attributeName="opacity" values="1;0.4;1" dur="3s" begin={`${(d.d % 30) / 10}s`} repeatCount="indefinite" />}
+        <rect key={i} x={d.x} y={d.y} width={cell * 0.62} height={cell * 0.62} fill={d.s ? "var(--color-signal)" : "var(--color-fg)"} opacity={d.s ? 1 : 0.35 + (d.d % 50) / 80}>
+          {!reduceMotion && d.s && <animate attributeName="opacity" values="1;0.4;1" dur="3s" begin={`${(d.d % 30) / 10}s`} repeatCount="indefinite" />}
         </rect>
       ))}
     </svg>
@@ -218,10 +230,15 @@ function LiveMarket() {
 
   return (
     <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
-      <SectionRule name="LIVE_MARKET" index={1} />
+      <SectionRule name="TESTNET_STATUS" index={4} />
+      <h2 className="mt-6 text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Explore the testnet build</h2>
+      <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-fg-2">
+        Inspect the order book, connect a wallet, and follow the market lifecycle on Monad.
+        The current deployment is a fixture market for testing; its live status appears below.
+      </p>
       <div className="frame mt-6 grid grid-cols-1 bg-ground md:grid-cols-2">
         {/* terminal */}
-        <div className="flex min-h-[300px] flex-col bg-ink md:shadow-[inset_-1px_0_0_var(--color-ink)]">
+        <div className="flex min-h-[300px] flex-col bg-ink md:shadow-[inset_-1px_0_0_var(--color-line-strong)]">
           <PanelHead dark left="TERMINAL.SYS" right={<span className="flex gap-1.5" aria-hidden><span className="h-2 w-2 bg-signal" /><span className="h-2 w-2 bg-ivory" /><span className="h-2 w-2 shadow-[inset_0_0_0_1px_var(--color-ivory)]" /></span>} />
           <pre className="flex-1 overflow-x-auto p-4 text-xs leading-6 text-ivory-3" aria-live="polite">
             {lines.length === 0 ? (
@@ -236,7 +253,7 @@ function LiveMarket() {
           </pre>
         </div>
         {/* mark */}
-        <div className="flex min-h-[300px] flex-col shadow-[inset_0_1px_0_var(--color-ink)] md:shadow-none">
+        <div className="flex min-h-[300px] flex-col shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-none">
           <PanelHead left="MARK.DITHER" right={<span className="tnum">76×76</span>} />
           <div className="flex flex-1 items-center justify-center p-4">
             <div className="aspect-square w-full max-w-[420px]">
@@ -245,7 +262,7 @@ function LiveMarket() {
           </div>
         </div>
         {/* metrics */}
-        <div className="flex flex-col shadow-[inset_0_1px_0_var(--color-ink)] md:shadow-[inset_0_1px_0_var(--color-ink),inset_-1px_0_0_var(--color-ink)]">
+        <div className="flex flex-col shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-[inset_0_1px_0_var(--color-line-strong),inset_-1px_0_0_var(--color-line-strong)]">
           <PanelHead left="MARKET.METRICS" right={<span className="h-2 w-2 bg-signal" aria-hidden />} />
           <dl className="grid flex-1 grid-cols-1 gap-x-6 gap-y-6 p-6 sm:grid-cols-2">
             {[
@@ -264,7 +281,7 @@ function LiveMarket() {
           </dl>
         </div>
         {/* lifecycle */}
-        <div className="flex flex-col shadow-[inset_0_1px_0_var(--color-ink)]">
+        <div className="flex flex-col shadow-[inset_0_1px_0_var(--color-line-strong)]">
           <PanelHead left="LIFECYCLE.STATUS" right={<span className="tnum">{m ? (m.active ? "ACTIVE" : "INACTIVE") : "…"}</span>} />
           <table className="w-full text-left">
             <thead>
@@ -284,7 +301,7 @@ function LiveMarket() {
                     <td className="px-4 py-2.5 text-fg">{d.label}</td>
                     <td className="px-4 py-2.5">
                       <span className="label inline-flex items-center gap-2 text-fg-2">
-                        <span className={cx("h-2 w-2", isNext ? "bg-signal" : passed ? "bg-fg-4" : "shadow-[inset_0_0_0_1px_var(--color-ink)]")} aria-hidden />
+                        <span className={cx("h-2 w-2", isNext ? "bg-signal" : passed ? "bg-fg-4" : "shadow-[inset_0_0_0_1px_var(--color-line-strong)]")} aria-hidden />
                         {isNext ? "Next" : passed ? "Passed" : "Upcoming"}
                       </span>
                     </td>
@@ -300,7 +317,7 @@ function LiveMarket() {
               <span className="tnum">{life.toFixed(1)}%</span>
             </div>
             <div className="frame mt-2 h-2.5 p-px">
-              <div className="h-full bg-ink" style={{ width: `${Math.min(100, Math.max(0, life))}%` }} />
+              <div className="h-full bg-fg" style={{ width: `${Math.min(100, Math.max(0, life))}%` }} />
             </div>
           </div>
         </div>
@@ -311,120 +328,17 @@ function LiveMarket() {
 
 /* ------------------------------------------------------------------ mechanism */
 
-/** Spec worked example: Alice long 1,000 claims at 0.60 with 120 USDC; Bob short with 100. Value vs outcome price. */
-function PayoffFigure() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [W, setW] = useState(520);
-  useEffect(() => {
-    if (!ref.current) return;
-    const ro = new ResizeObserver(([e]) => setW(Math.max(280, Math.round(e.contentRect.width))));
-    ro.observe(ref.current);
-    return () => ro.disconnect();
-  }, []);
-  const H = Math.round(W * 0.7);
-  const fs = 11;
-  const L = 44;
-  const px = (q: number) => L + q * (W - L - 12);
-  const py = (v: number) => 30 + ((720 - v) / 1240) * (H - 76); // value range −520 .. 720
-  const tag = (x: number, y: number, text: string, fill: string, anchor: "start" | "end" = "start") => {
-    const w = text.length * fs * 0.62 + 8;
-    const x0 = anchor === "end" ? x - w : x;
-    return (
-      <g>
-        <rect x={x0} y={y - fs} width={w} height={fs + 5} fill="var(--color-panel)" />
-        <text x={x0 + 4} y={y} fontSize={fs} fill={fill}>{text}</text>
-      </g>
-    );
-  };
-  return (
-    <div ref={ref} className="h-full w-full">
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Equity of a 5x long and a 4x short across outcome prices; deficits below zero are covered by the reserve">
-        <defs>
-          <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="6" stroke="var(--color-signal)" strokeWidth="1.5" />
-          </pattern>
-        </defs>
-        <text x={4} y={14} fontSize={fs} fill="var(--color-fg-3)">EQUITY (USDC)</text>
-        {[-400, -200, 0, 200, 400, 600].map((v) => (
-          <g key={v}>
-            <line x1={px(0)} x2={px(1)} y1={py(v)} y2={py(v)} stroke={v === 0 ? "var(--color-ink)" : "var(--color-line)"} />
-            <text x={px(0) - 6} y={py(v) + 4} textAnchor="end" fontSize={fs} fill="var(--color-fg-4)" className="tnum">{v}</text>
-          </g>
-        ))}
-        {[0, 0.2, 0.4, 0.6, 0.8, 1].map((q) => (
-          <text key={q} x={px(q)} y={H - 28} textAnchor="middle" fontSize={fs} fill="var(--color-fg-4)" className="tnum">{q.toFixed(1)}</text>
-        ))}
-        <polygon points={`${px(0)},${py(0)} ${px(0)},${py(-480)} ${px(0.48)},${py(0)}`} fill="url(#hatch)" />
-        <polygon points={`${px(0.7)},${py(0)} ${px(1)},${py(-300)} ${px(1)},${py(0)}`} fill="url(#hatch)" />
-        <line x1={px(0)} y1={py(-480)} x2={px(1)} y2={py(520)} stroke="var(--color-ink)" strokeWidth={2} />
-        <line x1={px(0)} y1={py(700)} x2={px(1)} y2={py(-300)} stroke="var(--color-fg-3)" strokeWidth={2} strokeDasharray="5 4" />
-        <line x1={px(0.6)} x2={px(0.6)} y1={py(720)} y2={py(-520)} stroke="var(--color-signal)" strokeWidth={2} />
-        {tag(px(0.6) + 6, py(-470), "MARK 0.60", "var(--color-signal-text)")}
-        {tag(px(1) - 2, py(520) - 10, W < 480 ? "LONG 5x" : "LONG 5x: 520 IF YES", "var(--color-ink)", "end")}
-        {tag(px(0.08), py(620), W < 480 ? "SHORT 4x" : "SHORT 4x: 700 IF NO", "var(--color-fg-3)")}
-        {tag(px(0.02), py(-60), "RESERVE COVERS", "var(--color-signal-text)")}
-        <text x={px(0)} y={H - 8} fontSize={fs} fill="var(--color-fg-3)">OUTCOME PRICE</text>
-      </svg>
-    </div>
-  );
-}
-
 function Mechanism() {
-  const head = useHead();
-  const m = useMarket(ENGINE, head.data?.number).data;
-  const now = useClock(head.data ? head.data.timestamp + BigInt(Math.floor((Date.now() - head.data.at) / 1000)) : undefined);
-  const T = m?.listing.scheduledT;
   return (
-    <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
-      <SectionRule name="MECHANISM" index={2} />
-      <div className="frame mt-6 grid grid-cols-1 bg-ground lg:grid-cols-[1.1fr_1fr]">
-        <div className="flex flex-col bg-panel lg:shadow-[inset_-1px_0_0_var(--color-ink)]">
-          <PanelHead left="RENDER: PAYOFF.SVG" right={<span className="text-signal-text">SPEC EXAMPLE</span>} />
-          <div className="flex-1 p-4">
-            <PayoffFigure />
-          </div>
-          <div className="label flex justify-between px-3 py-2 text-fg-3 shadow-[inset_0_1px_0_var(--color-ink)]">
-            <span>Fixture: 5x leverage, not enabled on testnet</span>
-            <span>Source: risk spec §5</span>
-          </div>
-        </div>
-        <div className="flex flex-col shadow-[inset_0_1px_0_var(--color-ink)] lg:shadow-none">
-          <PanelHead left="MANIFEST.MD" right={<span className="tnum">v1.1</span>} />
-          <div className="flex flex-1 flex-col gap-5 p-6">
-            <h2 className="text-2xl leading-tight font-semibold tracking-[-0.02em] text-fg uppercase">
-              Markets built for
-              <br />
-              <span className="text-signal-text">event probability</span>
-            </h2>
-            <p className="text-sm leading-relaxed text-fg-2">
-              Every price is a probability on a 0.001 grid. Buy a claim and it pays 1 if the outcome is YES. The order book,
-              margin and settlement all run on chain, inside one isolated contract per market.
-            </p>
-            <p className="text-sm leading-relaxed text-fg-2">
-              Leverage is backed by the market&apos;s own reserve: losses beyond your collateral are covered, never owed, and
-              you pay an insurance premium for that cover. Payouts open only after the contract has prepared every claim.
-            </p>
-            <div className="label flex items-center gap-2 py-3 text-fg-2 shadow-[inset_0_1px_0_var(--color-ink),inset_0_-1px_0_var(--color-ink)]">
-              <span className="h-2 w-2 bg-signal" aria-hidden />
-              Market clock:
-              <span className="tnum text-signal-text">{T !== undefined ? (T > now ? `T − ${fmtDuration(T - now)}` : "halted") : "…"}</span>
-            </div>
-            <dl className="grid grid-cols-2">
-              {[
-                ["Tick", "0.001"],
-                ["Lot", "0.001 claim"],
-                ["Max traders", "1,024"],
-                ["Payout / claim", "1 USDC"],
-              ].map(([k, v], i) => (
-                <div key={k} className={cx("frame p-3", i % 2 === 1 && "-ml-px", i > 1 && "-mt-px")}>
-                  <dt className="label text-fg-3">{k}</dt>
-                  <dd className="mt-1 text-lg font-medium text-fg">{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      </div>
+    <section id="how-it-works" className="mx-auto max-w-[1280px] scroll-mt-36 px-4 pb-24 md:px-8">
+      <SectionRule name="HOW_EVENT_PERPS_WORK" index={2} />
+      <h2 className="pixel mt-6 text-[clamp(2rem,4vw,3.5rem)] leading-tight text-fg uppercase">
+        Move the odds.
+      </h2>
+      <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-fg-2">
+        Pick a side. Change the probability. Watch your position react.
+      </p>
+      <EventPerpDemo />
     </section>
   );
 }
@@ -462,10 +376,10 @@ function Resolution() {
       <SectionRule name="RESOLUTION" index={3} />
       <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Three layers decide the outcome</h2>
+          <h2 className="text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Know how your market settles</h2>
           <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-fg-2">
-            A market halts at its scheduled time. The outcome is then proposed, open to challenge, and only final when no
-            dispute stands.
+            Every event needs a clear answer. After trading halts, evidence supports a proposed outcome,
+            with time to challenge it before settlement. Here is how the resolution system works.
           </p>
         </div>
         <span className="label flex items-center gap-2 text-fg-3">
@@ -480,11 +394,11 @@ function Resolution() {
             className={cx(
               "flex flex-col",
               l.dark ? "bg-ink text-ivory" : "bg-ground",
-              i > 0 && "max-md:shadow-[inset_0_1px_0_var(--color-ink)] md:shadow-[inset_1px_0_0_var(--color-ink)]",
+              i > 0 && "max-md:shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-[inset_1px_0_0_var(--color-line-strong)]",
             )}
           >
             <PanelHead dark={l.dark} left={l.id} right={<span className="tnum">{`0${i + 1}`}</span>} />
-            <div className={cx("p-5", l.dark ? "shadow-[inset_0_-1px_0_#2a2a2c]" : "shadow-[inset_0_-1px_0_var(--color-ink)]")}>
+            <div className={cx("p-5", l.dark ? "shadow-[inset_0_-1px_0_#2a2a2c]" : "shadow-[inset_0_-1px_0_var(--color-line-strong)]")}>
               <p className="text-2xl font-semibold tracking-[-0.02em] uppercase">{l.title}</p>
               <p className={cx("mt-2 text-xs leading-relaxed", l.dark ? "text-ivory-3" : "text-fg-3")}>{l.sub}</p>
             </div>
@@ -507,7 +421,7 @@ function Resolution() {
                 <span className="flex w-9 items-center justify-center bg-signal text-on-signal" aria-hidden>
                   <ArrowRight size={14} strokeWidth={2} />
                 </span>
-                <span className={cx("label flex flex-1 items-center justify-center", l.dark ? "bg-ivory text-ink group-hover:bg-hover" : "bg-ink text-ivory group-hover:bg-ink-2")}>
+                <span className={cx("label flex flex-1 items-center justify-center", l.dark ? "bg-ivory text-ink group-hover:bg-[#dcdad2]" : "bg-action text-on-action group-hover:bg-action-hover")}>
                   View resolution
                 </span>
               </Link>
@@ -537,17 +451,30 @@ function LiveTicker() {
     `To halt ${T !== undefined ? (T > now ? fmtDuration(T - now) : "passed") : "…"}`,
     "Tick 0.001",
     "Lot 0.001 claim",
-    "1 claim pays 1 USDC on YES",
+    "Settlement: YES 1 / NO 0",
+    "Test collateral / fully backed 1x",
     "Chain 10143",
   ];
   const row = [...items, ...items];
   return (
     <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
-      <SectionRule name="LIVE_TICKER" index={4} />
+      <SectionRule name="EXPLORE_EROS" index={5} />
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-6">
+        <div className="max-w-[65ch]">
+          <h2 className="text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Your next market is an event.</h2>
+          <p className="mt-3 text-sm leading-relaxed text-fg-2">
+            Explore event perpetual futures on Monad testnet. Connect your wallet, or sign in with email to create one.
+          </p>
+        </div>
+        <Link href={`/m/${ENGINE}`} className="group inline-flex min-h-11 items-stretch">
+          <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={15} strokeWidth={2} /></span>
+          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Open testnet terminal</span>
+        </Link>
+      </div>
       <div className="frame mt-6 overflow-hidden">
         <div className="marquee flex w-max" aria-hidden>
           {row.map((s, i) => (
-            <span key={i} className="label tnum flex h-12 items-center gap-3 px-8 font-semibold whitespace-nowrap text-fg shadow-[inset_-1px_0_0_var(--color-ink)]">
+            <span key={i} className="label tnum flex h-12 items-center gap-3 px-8 font-semibold whitespace-nowrap text-fg shadow-[inset_-1px_0_0_var(--color-line-strong)]">
               <span className="h-2 w-2 bg-signal" />
               {s}
             </span>
@@ -561,11 +488,11 @@ function LiveTicker() {
 
 function Footer() {
   return (
-    <footer className="shadow-[inset_0_1px_0_var(--color-ink)]">
+    <footer className="shadow-[inset_0_1px_0_var(--color-line-strong)]">
       <div className="mx-auto flex max-w-[1280px] flex-wrap items-end justify-between gap-6 px-4 py-8 md:px-8">
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/eros-markets-lockup-on-light.svg" alt="Eros Markets" className="h-[14px] w-auto" />
+          <BrandImage className="h-[14px]" />
+          <p className="mt-3 text-xs text-fg-2">Perpetual futures on event outcomes.</p>
           <p className="label mt-3 text-fg-3">© 2026 Eros Markets · Monad testnet</p>
         </div>
         <nav className="label flex gap-6 text-fg-3" aria-label="Footer">
@@ -583,9 +510,10 @@ export function Landing() {
   return (
     <main>
       <Hero />
-      <LiveMarket />
+      <EventMarkets />
       <Mechanism />
       <Resolution />
+      <LiveMarket />
       <LiveTicker />
       <Footer />
     </main>

@@ -6,6 +6,8 @@ import { useHead } from "@/lib/reads";
 import { markets } from "@/config/deployment";
 import { WalletButton } from "./wallet";
 import { cx } from "./ui";
+import { BrandImage } from "./brand-image";
+import { ThemeSwitcher } from "./theme-switcher";
 
 const NAV = [
   { href: "/markets", label: "Markets" },
@@ -23,8 +25,8 @@ function HeadIndicator() {
       <span
         className={cx(
           "relative h-2 w-2",
-          down || stale ? "shadow-[inset_0_0_0_1px_var(--color-ink)]" : "bg-signal",
-          down && "after:absolute after:inset-x-[-1px] after:top-1/2 after:h-px after:-rotate-45 after:bg-ink",
+          down || stale ? "shadow-[inset_0_0_0_1px_var(--color-line-strong)]" : "bg-signal",
+          down && "after:absolute after:inset-x-[-1px] after:top-1/2 after:h-px after:-rotate-45 after:bg-fg",
         )}
         aria-hidden
       />
@@ -37,13 +39,12 @@ export function TopBar() {
   const path = usePathname();
   return (
     <header className="sticky top-0 z-30 bg-ground px-3 pt-3 max-md:px-2 max-md:pt-2">
-      <div className="frame flex h-12 items-center gap-6 bg-ground px-4 max-md:h-auto max-md:flex-wrap max-md:gap-0 max-md:pt-2.5 md:grid md:grid-cols-[1fr_auto_1fr]">
-        <Link href="/" className="flex shrink-0 items-center justify-self-start" aria-label="Eros Markets home">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/eros-markets-lockup-on-light.svg" alt="Eros Markets" className="h-[14px] w-auto" />
+      <div className="frame grid h-12 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-4 bg-ground px-4 max-md:h-auto max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-2 max-md:px-3 max-md:pt-1">
+        <Link href="/" className="flex w-full min-w-0 max-w-[120px] items-center justify-self-start" aria-label="Eros Markets home">
+          <BrandImage className="w-full" />
         </Link>
         <nav
-          className="flex h-full items-stretch max-md:order-3 max-md:justify-center max-md:-mx-4 max-md:mt-2 max-md:h-10 max-md:w-[calc(100%+2rem)] max-md:overflow-x-auto max-md:shadow-[inset_0_1px_0_var(--color-ink)] md:justify-self-center"
+          className="flex h-full items-stretch max-md:col-span-2 max-md:row-start-2 max-md:-mx-3 max-md:mt-1 max-md:grid max-md:h-10 max-md:w-[calc(100%+1.5rem)] max-md:grid-cols-4 max-md:shadow-[inset_0_1px_0_var(--color-line-strong)] md:justify-self-center"
           aria-label="Primary"
         >
           {NAV.map((n) => {
@@ -53,7 +54,7 @@ export function TopBar() {
                 key={n.label}
                 href={n.href}
                 aria-current={active ? "page" : undefined}
-                className={cx("label relative flex items-center px-3 transition-colors duration-150", active ? "text-fg" : "text-fg-3 hover:text-fg")}
+                className={cx("label relative flex items-center justify-center px-3 transition-colors duration-150 max-md:px-1", active ? "text-fg" : "text-fg-3 hover:text-fg")}
               >
                 {n.label}
                 {active && <span className="absolute inset-x-3 bottom-0 h-[2px] bg-signal" aria-hidden />}
@@ -61,8 +62,9 @@ export function TopBar() {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-5 max-md:order-2 md:ml-0 md:justify-self-end">
+        <div className="relative flex items-center justify-self-end gap-2 max-md:col-start-2 max-md:row-start-1 lg:gap-3">
           <HeadIndicator />
+          <ThemeSwitcher />
           <WalletButton />
         </div>
       </div>

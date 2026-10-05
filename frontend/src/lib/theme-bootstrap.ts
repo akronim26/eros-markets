@@ -1,0 +1,2 @@
+// Runs before body paint. Keep the storage key and palette in sync with ThemeProvider.
+export const themeBootstrap = `(function(){var p='system';try{p=localStorage.getItem('eros-theme')||p}catch(e){}var t=p==='dark'||(p!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';var r=document.documentElement;r.dataset.theme=t;r.style.colorScheme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==='dark'?'#101112':'#F2F1EC'})()`;

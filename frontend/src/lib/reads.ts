@@ -36,17 +36,17 @@ export function useHead() {
  * Keep the last successful block-pinned snapshot on screen when a refresh fails (public RPC hiccups),
  * so a transient error never regresses the UI to its loading state. The snapshot keeps its own block.
  */
-function useSticky<T extends { data: unknown }>(q: T): T {
-  const last = useRef<T["data"]>(undefined);
-  if (q.data !== undefined) last.current = q.data;
-  return { ...q, data: q.data ?? last.current };
+function useSticky<T extends { data: unknown }>(q: T, scope = "public"): T {
+  const last = useRef<{ scope: string; data: T["data"] }>({ scope, data: undefined });
+  if (last.current.scope !== scope) last.current = { scope, data: undefined };
+  if (q.data !== undefined) last.current.data = q.data;
+  return { ...q, data: q.data ?? last.current.data };
 }
 
 export function useMarket(engine: Address, block: bigint | undefined) {
   return useSticky(useQuery({
     queryKey: ["market", engine, block?.toString()],
     enabled: block !== undefined,
-    placeholderData: (prev) => prev,
     queryFn: async () => {
       const c = { address: engine, abi: engineAbi } as const;
       const [
@@ -95,7 +95,7 @@ export function useMarket(engine: Address, block: bigint | undefined) {
         maxFills, freshness: { freshThrough: freshness[0], movementRestricted: freshness[2] },
       };
     },
-  }));
+  }), engine.toLowerCase());
 }
 export type MarketSnapshot = NonNullable<ReturnType<typeof useMarket>["data"]>;
 
@@ -103,7 +103,6 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
   return useSticky(useQuery({
     queryKey: ["trader", engine, owner, block?.toString()],
     enabled: !!owner && block !== undefined,
-    placeholderData: (prev) => prev,
     queryFn: async () => {
       const [traderId, free, wallet, allowance] = await client.multicall({
         blockNumber: block,
@@ -128,7 +127,7 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
       });
       return { block: block!, traderId, free, wallet, allowance, account: { preview, riskView, claimable, claimed } };
     },
-  }));
+  }), `${engine.toLowerCase()}:${owner?.toLowerCase() ?? "disconnected"}`);
 }
 export type TraderSnapshot = NonNullable<ReturnType<typeof useTrader>["data"]>;
 
