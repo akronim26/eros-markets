@@ -553,7 +553,7 @@ abstract contract RiskAccountingBridge is ConversionGate, ReserveClaims {
     }
 
     /// @notice Governance activation after the reserve seed (DEC-06: shares issue only before this).
-    function activateMarket() external nonReentrant {
+    function activateMarket() public virtual nonReentrant {
         _onlyGovernance();
         _riskEpochOpenedWithGuards();
         _activate(0, _currentTariff());

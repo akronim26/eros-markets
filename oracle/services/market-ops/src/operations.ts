@@ -11,13 +11,14 @@ export type Snapshot = {
   monitorRestricted: boolean
   oracleState: number
   source: { id: Hex; signer: Address; rulesHash: Hex; configured: boolean; lastSequence: bigint; lastObservedAt: bigint }
+  liquidation?: { participants: number; accountingState: number; capLots: bigint; remainingLots: bigint }
 }
 
 export type Call = {
   action: Pending['action']
   requestId: Hex
   target: Address
-  functionName: 'samplePerp' | 'requestReduceOnly' | 'requestEarlyCheck' | 'submitObservation'
+  functionName: 'samplePerp' | 'requestReduceOnly' | 'requestEarlyCheck' | 'submitObservation' | 'liquidate'
   args: readonly unknown[]
   gas: bigint
 }
@@ -31,12 +32,17 @@ export interface Transport {
   receipt(hash: Hex): Promise<{ status: 'success' | 'reverted'; block: bigint; finalized: boolean } | null>
 }
 
-export type Command = { action: 'sample' } | { action: 'early-check'; incident: Incident } | { action: 'relay'; envelope: Envelope }
+export type Command = { action: 'sample' } | { action: 'early-check'; incident: Incident } | { action: 'relay'; envelope: Envelope } | { action: 'liquidate' }
 
 export type Result = {
-  outcome: 'sent' | 'pending' | 'finalized' | 'halted' | 'cadence' | 'complete' | 'obsolete' | 'planned'
+  outcome: 'sent' | 'pending' | 'finalized' | 'halted' | 'cadence' | 'complete' | 'obsolete' | 'planned' | 'no-work'
   action?: Pending['action']
   hash?: Hex
+}
+
+function productiveLiquidation(raw: unknown): boolean {
+  const result = raw as { mode: number; result: number; pairedLots: bigint; bookLots: bigint; reason: number }
+  return result.reason === 0 && ((result.mode === 2 && result.result === 3) || result.bookLots > 0n || result.pairedLots > 0n)
 }
 
 export class Operations {
@@ -79,7 +85,30 @@ export class Operations {
     }
 
     let call: Omit<Call, 'gas'>
-    if (command.action === 'sample') {
+    if (command.action === 'liquidate') {
+      if (snapshot.halted || snapshot.timestamp >= snapshot.scheduledT) return { outcome: 'halted' }
+      const state = snapshot.liquidation
+      if (!state || !Number.isInteger(state.participants) || state.participants < 0 || state.participants > 1024) throw new Error('Missing or invalid liquidation snapshot')
+      if (state.accountingState !== 0 || state.capLots === 0n || state.remainingLots === 0n || state.participants === 0) return { outcome: 'no-work' }
+      const limit = this.manifest.gas.liquidate
+      if (limit === undefined) throw new Error('No measured gas limit for liquidate')
+      let candidate: Call | undefined
+      for (let examined = 0; examined < Math.min(32, state.participants); ++examined) {
+        const trader = Math.min(journal.liquidationCursor ?? 1, state.participants)
+        journal.liquidationCursor = trader === state.participants ? 1 : trader + 1
+        const proposed: Call = { action: 'liquidate', requestId: binding(this.manifest), target: this.manifest.engine,
+          functionName: 'liquidate', args: [trader, state.capLots, 8, 0], gas: BigInt(limit) }
+        // eth_call executes the real touch/eligibility/coverage path. A stale account view
+        // cannot hide accrued premium, and a no-liquidity result never burns a transaction.
+        if (productiveLiquidation(await this.transport.simulate(proposed))) {
+          candidate = proposed
+          break
+        }
+      }
+      if (broadcast) this.store.write(journal)
+      if (!candidate) return { outcome: 'no-work' }
+      call = candidate
+    } else if (command.action === 'sample') {
       if (snapshot.halted || snapshot.timestamp >= snapshot.scheduledT) return { outcome: 'halted' }
       if (journal.lastSampleBlock !== undefined && snapshot.block < BigInt(journal.lastSampleBlock) + this.manifest.sampleEveryBlocks) {
         return { outcome: 'cadence' }
@@ -113,7 +142,8 @@ export class Operations {
     const limit = this.manifest.gas[call.functionName]
     if (limit === undefined) throw new Error(`No measured gas limit for ${call.functionName}`)
     const ready = { ...call, gas: BigInt(limit) }
-    await this.transport.simulate(ready)
+    const simulated = await this.transport.simulate(ready)
+    if (call.action === 'liquidate' && !productiveLiquidation(simulated)) return { outcome: 'no-work' }
     if (!broadcast) return { outcome: 'planned', action: call.action }
     const signed = await this.transport.prepare(ready)
     if (!equalHex(keccak256(signed.rawTransaction), signed.hash)) throw new Error('Prepared transaction hash mismatch')

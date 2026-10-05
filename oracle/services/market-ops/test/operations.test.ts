@@ -38,11 +38,14 @@ class FakeTransport implements Transport {
   envelope?: Envelope
   failBroadcast = false
   failSimulation = false
+  liquidationResults = new Map<number, unknown>()
   async snapshot() { return structuredClone(this.state) }
   async digest() { return observationDigest(this.envelope!) }
   async simulate(call: Call) {
     if (this.failSimulation) throw new Error('Simulation reverted')
     this.simulated.push(call)
+    if (call.action === 'liquidate') return this.liquidationResults.get(Number(call.args[0]))
+      ?? { mode: 0, result: 0, pairedLots: 0n, bookLots: 0n, reason: 0 }
     return false
   }
   async prepare(call: Call) {
@@ -162,6 +165,95 @@ describe('sampler and durable transactions', () => {
     const outcomes = await Promise.allSettled([operations.tick(sample, true), operations.tick(sample, true)])
     expect(outcomes.filter(result => result.status === 'fulfilled')).toHaveLength(1)
     expect(transport.prepared).toHaveLength(1)
+  })
+})
+
+describe('bounded liquidation operator', () => {
+  const liquidate = { action: 'liquidate' } as const
+  const configuration = { ...manifest, gas: { ...manifest.gas, liquidate: 2_000_000 } }
+  const productive = { mode: 1, result: 2, pairedLots: 0n, bookLots: 100n, reason: 0 }
+  function setupLiquidator(participants = 40) {
+    const state = setup(configuration)
+    state.transport.state.liquidation = { participants, accountingState: 0, capLots: 100n, remainingLots: 100n }
+    return state
+  }
+
+  test('healthy accounts send nothing and a restart continues after the bounded scan', async () => {
+    const { operations, transport, store } = setupLiquidator()
+    expect((await operations.tick(liquidate, true)).outcome).toBe('no-work')
+    expect(transport.simulated).toHaveLength(32)
+    expect(transport.prepared).toHaveLength(0)
+    expect(store.journal.liquidationCursor).toBe(33)
+    transport.liquidationResults.set(35, productive)
+    const restarted = new Operations(configuration, transport, store)
+    expect((await restarted.tick(liquidate, true)).outcome).toBe('sent')
+    expect(transport.prepared[0].args).toEqual([35, 100n, 8, 0])
+    expect(store.journal.liquidationCursor).toBe(36)
+  })
+
+  test('unpriced, positive equity without liquidity and disabled takeover are no work', async () => {
+    const { operations, transport } = setupLiquidator(3)
+    transport.liquidationResults.set(1, { ...productive, bookLots: 0n, reason: 0 })
+    transport.liquidationResults.set(2, { ...productive, bookLots: 0n, mode: 2, result: 4 })
+    transport.liquidationResults.set(3, { ...productive, bookLots: 0n, reason: 7 })
+    expect((await operations.tick(liquidate, true)).outcome).toBe('no-work')
+    expect(transport.broadcasts).toHaveLength(0)
+  })
+
+  test('authorized nonpositive-equity takeover may send without book liquidity', async () => {
+    const { operations, transport } = setupLiquidator(1)
+    transport.liquidationResults.set(1, { ...productive, mode: 2, result: 3, bookLots: 0n })
+    expect((await operations.tick(liquidate)).outcome).toBe('planned')
+    expect(transport.broadcasts).toHaveLength(0)
+  })
+
+  test('simulation leaves the cursor and journal untouched', async () => {
+    const { operations, store } = setupLiquidator()
+    await operations.tick(liquidate)
+    expect(store.journal.liquidationCursor).toBeUndefined()
+  })
+
+  test('accounting work, pacing exhaustion, 1x and halt stop scanning', async () => {
+    for (const fields of [{ accountingState: 1 }, { remainingLots: 0n }, { capLots: 0n }, { participants: 0 }]) {
+      const { operations, transport } = setupLiquidator()
+      Object.assign(transport.state.liquidation!, fields)
+      expect((await operations.tick(liquidate, true)).outcome).toBe('no-work')
+      expect(transport.simulated).toHaveLength(0)
+    }
+    const { operations, transport } = setupLiquidator()
+    transport.state.halted = true
+    expect((await operations.tick(liquidate, true)).outcome).toBe('halted')
+  })
+
+  test('requires measured gas and a bounded participant set', async () => {
+    const { operations, transport, store } = setupLiquidator()
+    await expect(new Operations(manifest, transport, store).tick(liquidate, true)).rejects.toThrow('No measured gas')
+    transport.state.liquidation!.participants = 1025
+    await expect(operations.tick(liquidate, true)).rejects.toThrow('invalid liquidation snapshot')
+    expect(transport.broadcasts).toHaveLength(0)
+  })
+
+  test('a candidate that becomes healthy before final simulation is not sent', async () => {
+    const { operations, transport } = setupLiquidator(1)
+    let simulations = 0
+    transport.simulate = async () => ++simulations === 1 ? productive : { ...productive, bookLots: 0n, mode: 0, result: 0 }
+    expect((await operations.tick(liquidate, true)).outcome).toBe('no-work')
+    expect(transport.prepared).toHaveLength(0)
+  })
+
+  test('failed durable write never sends and a disconnected send replays identical bytes', async () => {
+    const { operations, transport, store } = setupLiquidator(1)
+    transport.liquidationResults.set(1, productive)
+    store.failWrite = true
+    await expect(operations.tick(liquidate, true)).rejects.toThrow('Disk full')
+    expect(transport.broadcasts).toHaveLength(0)
+    store.failWrite = false
+    transport.failBroadcast = true
+    await expect(operations.tick(liquidate, true)).rejects.toThrow('RPC disconnected')
+    transport.failBroadcast = false
+    expect((await new Operations(configuration, transport, store).tick(liquidate, true)).outcome).toBe('pending')
+    expect(transport.prepared).toHaveLength(1)
+    expect(transport.broadcasts[1]).toBe(transport.broadcasts[0])
   })
 })
 

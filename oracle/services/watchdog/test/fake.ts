@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { type Address, type Hex, keccak256, stringToBytes } from 'viem'
 import type { AssertionStatus, MarketText, Proposal, ResolutionView, WatchdogChain } from '../src/types'
 
-const pack = JSON.parse(readFileSync(new URL('../../../listings/example/pack.json', import.meta.url).pathname, 'utf8'))
+const pack = JSON.parse(readFileSync(new URL('../../../listings/example/pack.json', import.meta.url), 'utf8'))
 export const ID = pack.marketInput.marketId as Hex
 export const SPEC: FeedSpec = { ...pack.marketInput.feed }
 export const MARKET: MarketText = { question: pack.marketInput.question, rules: pack.marketInput.rules, tau: 1_791_046_043n, hasFeed: true }

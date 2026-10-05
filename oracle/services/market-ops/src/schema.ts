@@ -24,6 +24,7 @@ export const manifestSchema = z.object({
     requestReduceOnly: gas.optional(),
     requestEarlyCheck: gas.optional(),
     submitObservation: gas.optional(),
+    liquidate: gas.optional(),
   }).strict(),
 }).strict()
 

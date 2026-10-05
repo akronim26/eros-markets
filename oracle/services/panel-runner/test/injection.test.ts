@@ -5,13 +5,13 @@ import { describe, expect, test } from 'bun:test'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { chunks, CHUNK_CHARS, CHUNK_OVERLAP, CLASSIFIER_THRESHOLD, ClassifierUnavailable, classify, type ClassifierDeps } from '../src/injection/classifier'
-import { detect, hiddenTexts } from '../src/injection/detector'
+import { detect, hiddenTexts, type Rule } from '../src/injection/detector'
 import { FLAG_INJECTION_SUSPECTED, scanSnapshot } from '../src/injection'
 import { loadPrompts } from '../src/prompts'
 import { fixtureItem, fixtureSnapshot, manifest } from './fixtures/injection/load'
 
 const sports = loadPrompts().find((p) => p.category === 'sports')!
-const RECORDED = JSON.parse(readFileSync(new URL('./fixtures/injection/classifier-recorded.json', import.meta.url).pathname, 'utf8'))
+const RECORDED = JSON.parse(readFileSync(new URL('./fixtures/injection/classifier-recorded.json', import.meta.url), 'utf8'))
 const C = String.fromCodePoint
 
 /** An unrecorded chunk fails the test. */
@@ -29,7 +29,7 @@ const text = (s: string, contentType = 'text/plain'): Item => ({
 })
 const rules = (item: Item) => detect(item, 0).map((f) => f.rule).sort()
 
-const EXPECTED: Record<string, string[]> = {
+const EXPECTED: Record<string, Rule[]> = {
   'clean/l1-feed.json': [],
   'clean/match-report.html': [], // hidden menu, "skip to content", hidden "Loading…", emoji with ZWJ, "ignored ... instructions"
   'clean/market-page.html': [], // "resolve to Yes if"

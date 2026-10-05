@@ -5,6 +5,7 @@ import {BookRiskEngine} from "@eros/engine/BookRiskEngine.sol";
 import {RegistryBookRiskEngine} from "../../src/integration/RegistryBookRiskEngine.sol";
 import {MarketFactory} from "@eros/factory/MarketFactory.sol";
 import {EngineCodeStore} from "@eros/factory/EngineCodeStore.sol";
+import {EngineCodeParts} from "@eros/factory/EngineCodeParts.sol";
 import {IMarketConfig} from "@eros/interfaces/IMarketConfig.sol";
 import {IBookRiskHooks} from "@eros/interfaces/IBookRiskHooks.sol";
 import {IPriceSource} from "@eros/interfaces/IPriceSource.sol";
@@ -48,6 +49,7 @@ abstract contract RealMarketFixture is RegistryFixture {
     MarketFactory internal realFactory;
     CollateralVault internal vault;
     address internal engineCodeStore;
+    address internal engineCodeStoreTail;
     address[] internal committee;
     uint256[] internal committeeKeys;
 
@@ -65,9 +67,11 @@ abstract contract RealMarketFixture is RegistryFixture {
         resolutionOracle = new ResolutionOracle(registryAddress, treasuryAddress, usdc, SELECTOR, gov, gov);
         registry = new MarketRegistry(oracleAddress, treasuryAddress, address(0), usdc, gov, lister);
         bytes memory creationCode = vm.getCode("RegistryBookRiskEngine.sol:RegistryBookRiskEngine");
-        engineCodeStore = address(new EngineCodeStore(creationCode));
+        (bytes memory firstCode, bytes memory secondCode) = EngineCodeParts.split(creationCode);
+        engineCodeStore = address(new EngineCodeStore(firstCode));
+        engineCodeStoreTail = address(new EngineCodeStore(secondCode));
         realFactory =
-            new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStore, keccak256(creationCode));
+            new MarketFactory(address(registry), usdc, reserveTreasury, engineCodeStore, engineCodeStoreTail, keccak256(creationCode));
         vault = realFactory.collateralVault();
         for (uint256 member = 0; member < 3; ++member) {
             committeeKeys.push(0x1000 + member);
