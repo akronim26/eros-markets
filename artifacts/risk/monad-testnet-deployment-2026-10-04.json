@@ -1,0 +1,515 @@
+{
+  "schema": "eros-monad-deployment-verification/1",
+  "status": "verified_testnet_fixture",
+  "observed_at_utc": "2026-10-03T19:41:22.387225+00:00",
+  "rpc_env": "ETH_RPC_URL",
+  "broadcast_by_verifier": false,
+  "limits": {
+    "transaction_gas": 30000000,
+    "initcode_bytes": 262144,
+    "runtime_bytes": 131072
+  },
+  "limitations": [
+    "Read-only RPC observation; does not grant deployment, release, gate acceptance, or peer review",
+    "Chain ID and RPC responses do not independently authenticate public testnet or finality",
+    "Local artifact comparison does not prove fresh compilation or independently reproduce source",
+    "Runtime SHA-256 is a content digest, not Ethereum Keccak EXTCODEHASH",
+    "Immutable AST IDs and values are reported without assuming source-variable identities",
+    "The four top-level creations are checked; nested ReserveVault runtime is not independently compared",
+    "Mock collateral and controller oracle are test fixtures, not live feeds or production collateral",
+    "Successful deployment and binding do not prove activation, trading, settlement, or economic safety"
+  ],
+  "chain_id": 10143,
+  "broadcast_sha256": "c21453172f5171f9c0be7233ca4071130b7e5fa5617d4e36249b241f2d026ef6",
+  "block": {
+    "number": 67915247,
+    "hash": "0x0ff42c1e5f2b731502a5112e7b2e5af456861a75b3bc5069a40104809ef53419",
+    "timestamp": 1791056481
+  },
+  "transactions": [
+    {
+      "hash": "0x87c68c16e9ebfff9132a5d2312fc429f19ef2b7d28f22fec46c0fab95c2415a9",
+      "block_number": 67914969,
+      "block_hash": "0x800e174b0f782c5b32d090eee09a6f6ef41e0ec3ad50bc8ba0f7586b6844c23b",
+      "status": 1,
+      "gas_limit": 619075,
+      "gas_used": 619075,
+      "effective_gas_price_wei": 102000000000
+    },
+    {
+      "hash": "0xa928c8691399568aa7afe3c9ac716a17a6c74a1628f184d191b56ef514462798",
+      "block_number": 67914987,
+      "block_hash": "0x6fd5d088d11d83926766983e8778b197017ebb796c7bcd8c47f39c25595d6512",
+      "status": 1,
+      "gas_limit": 1582100,
+      "gas_used": 1582100,
+      "effective_gas_price_wei": 102000000000
+    },
+    {
+      "hash": "0xc64477507dae8e5de2a010a43a736cc0738cec20e6ff3024e264c0c5f478e115",
+      "block_number": 67915003,
+      "block_hash": "0x997d39fc98dad9c770df65a162cdd42abbf88a972df023b253ac5681bbfe89ed",
+      "status": 1,
+      "gas_limit": 496886,
+      "gas_used": 496886,
+      "effective_gas_price_wei": 102000000000
+    },
+    {
+      "hash": "0x1e00bf376b8261d07735d0692dce30e6f3805a1fd78288242ae351a06fdfbada",
+      "block_number": 67915021,
+      "block_hash": "0x2ba14aac40ab3500cf867009a3de6708af88b942b7970fac7c0958dd4f296665",
+      "status": 1,
+      "gas_limit": 29245915,
+      "gas_used": 29245915,
+      "effective_gas_price_wei": 102000000000
+    },
+    {
+      "hash": "0x79591f3821f95c8a081d3ba81f62d338badaeafb20582386a4bcbdf36b1e302d",
+      "block_number": 67915037,
+      "block_hash": "0xacbd7899de1d573803cd69f502ffb5ea6f868a7e5e2347b81b1ad61e415cac8a",
+      "status": 1,
+      "gas_limit": 64230,
+      "gas_used": 64230,
+      "effective_gas_price_wei": 102000000000
+    },
+    {
+      "hash": "0x9b5d1418f07404036ab1ebfca3a38f0de0ae5ad4490ce11a7c0267073171bcc2",
+      "block_number": 67915052,
+      "block_hash": "0x3f2d5bfc9b8aeebb97a046f3e1c84fc98820ed23e05cb83159f26c2af594645e",
+      "status": 1,
+      "gas_limit": 65160,
+      "gas_used": 65160,
+      "effective_gas_price_wei": 102000000000
+    }
+  ],
+  "contracts": {
+    "TestnetRiskCollateral": {
+      "address": "0x99f93e9bfe3b2dd75fe27327789bd0a9236ff7b0",
+      "artifact_sha256": "1b978b6bb5b347c0264fd7e87f8faa7f115e2ce61d45e9cfb388d4662321c449",
+      "source": "test/mocks/integration/TestnetRiskFixtures.sol",
+      "initcode_bytes": 2702,
+      "initcode_sha256": "4cfc6d4e9acde6d0a003b34768075067643909c6f2debc0c9116891b1ca81a87",
+      "runtime_bytes": 2440,
+      "runtime_sha256": "2941ab0baa3b21c94f6e0966a343d85dca051dacc8fcdb0df35bc78ac53925f4",
+      "artifact_runtime_sha256": "a2625eca784fc1e5f071ce48daf5fd8812833fff6a9a24497cf8eab5bea0e364",
+      "unmasked_runtime_match": true,
+      "immutable_values_by_ast_id": {
+        "90480": {
+          "value": "0x00000000000000000000000076765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+          "references": [
+            {
+              "start": 560,
+              "length": 32
+            },
+            {
+              "start": 1120,
+              "length": 32
+            }
+          ]
+        }
+      }
+    },
+    "CollateralVault": {
+      "address": "0xa8341d0343bc71b0f28e82dba2302c528608898d",
+      "artifact_sha256": "13918a74993e9103615db315d9840d458083b377fbd4af1442eb0cac82a8b23e",
+      "source": "src/vaults/CollateralVault.sol",
+      "initcode_bytes": 7129,
+      "initcode_sha256": "2c6c0e74f8340f954eb6e15dfd345fc4f1216475b0f08312cb80e52f63f13058",
+      "runtime_bytes": 6603,
+      "runtime_sha256": "af12b636c41d981f333e050272c7510049ab27e1a532cd1dcff20d9194fd3db4",
+      "artifact_runtime_sha256": "c34c8155fd0858a7f8851e727dff037a333007b835a1797c608c118d3a23985d",
+      "unmasked_runtime_match": true,
+      "immutable_values_by_ast_id": {
+        "73957": {
+          "value": "0x00000000000000000000000099f93e9bfe3b2dd75fe27327789bd0a9236ff7b0",
+          "references": [
+            {
+              "start": 873,
+              "length": 32
+            },
+            {
+              "start": 2120,
+              "length": 32
+            },
+            {
+              "start": 2270,
+              "length": 32
+            },
+            {
+              "start": 2424,
+              "length": 32
+            },
+            {
+              "start": 3952,
+              "length": 32
+            },
+            {
+              "start": 4109,
+              "length": 32
+            },
+            {
+              "start": 4264,
+              "length": 32
+            },
+            {
+              "start": 4775,
+              "length": 32
+            },
+            {
+              "start": 4924,
+              "length": 32
+            },
+            {
+              "start": 5070,
+              "length": 32
+            },
+            {
+              "start": 5208,
+              "length": 32
+            },
+            {
+              "start": 5375,
+              "length": 32
+            },
+            {
+              "start": 5559,
+              "length": 32
+            }
+          ]
+        },
+        "73959": {
+          "value": "0x00000000000000000000000076765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+          "references": [
+            {
+              "start": 347,
+              "length": 32
+            },
+            {
+              "start": 4543,
+              "length": 32
+            }
+          ]
+        }
+      }
+    },
+    "TestnetResolutionAuthority": {
+      "address": "0x096545047a7a3a2453a417e21072c8b459d40c7c",
+      "artifact_sha256": "c82b3a032188492d55af11de39b4a8e7e792b9365c0d8c799eece2a054429658",
+      "source": "test/mocks/integration/TestnetRiskFixtures.sol",
+      "initcode_bytes": 2192,
+      "initcode_sha256": "d4c603d5047160e53beb276402bb15d03f8611c7ee6c9de3bb53c5c599c05a79",
+      "runtime_bytes": 1910,
+      "runtime_sha256": "f463f31dd9105894e4fd290df1dc23ea450578e8eab7c917820aed78a91cc1dc",
+      "artifact_runtime_sha256": "d829ee00e0696488cba67f3ce725e1a5c75b151b8fb8fe2a5dc55167092c798f",
+      "unmasked_runtime_match": true,
+      "immutable_values_by_ast_id": {
+        "90480": {
+          "value": "0x00000000000000000000000076765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+          "references": [
+            {
+              "start": 237,
+              "length": 32
+            },
+            {
+              "start": 283,
+              "length": 32
+            },
+            {
+              "start": 605,
+              "length": 32
+            },
+            {
+              "start": 788,
+              "length": 32
+            },
+            {
+              "start": 1016,
+              "length": 32
+            }
+          ]
+        }
+      }
+    },
+    "BookRiskEngine": {
+      "address": "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69",
+      "artifact_sha256": "70a3030968561ac9997448b48eab1506cfaeafe8f3f9c45bd2a2f696d0149c44",
+      "source": "src/engine/BookRiskEngine.sol",
+      "initcode_bytes": 130572,
+      "initcode_sha256": "f115705a8e83d63039a73a4e448e24310b570ccff3b4de5518f7e86331d54e7c",
+      "runtime_bytes": 120402,
+      "runtime_sha256": "f13609c059a2f50afe6ef7e777e25cc20b17da4c036fa136f04f6dfc018ba38a",
+      "artifact_runtime_sha256": "ca2103587a82bcccd6df12abec607e81fc76330c55445cb712f71ef6d8adb5ec",
+      "unmasked_runtime_match": true,
+      "immutable_values_by_ast_id": {
+        "48612": {
+          "value": "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000",
+          "references": [
+            {
+              "start": 39621,
+              "length": 32
+            }
+          ]
+        },
+        "74502": {
+          "value": "0x000000000000000000000000a8341d0343bc71b0f28e82dba2302c528608898d",
+          "references": [
+            {
+              "start": 2785,
+              "length": 32
+            },
+            {
+              "start": 7835,
+              "length": 32
+            },
+            {
+              "start": 8976,
+              "length": 32
+            },
+            {
+              "start": 10166,
+              "length": 32
+            },
+            {
+              "start": 10576,
+              "length": 32
+            },
+            {
+              "start": 12909,
+              "length": 32
+            },
+            {
+              "start": 13399,
+              "length": 32
+            },
+            {
+              "start": 15027,
+              "length": 32
+            },
+            {
+              "start": 18555,
+              "length": 32
+            },
+            {
+              "start": 19964,
+              "length": 32
+            },
+            {
+              "start": 22415,
+              "length": 32
+            },
+            {
+              "start": 65743,
+              "length": 32
+            },
+            {
+              "start": 82815,
+              "length": 32
+            }
+          ]
+        },
+        "74505": {
+          "value": "0x000000000000000000000000b4a8ff669f119aa5cad85c767dcbb2bf55813f04",
+          "references": [
+            {
+              "start": 6677,
+              "length": 32
+            },
+            {
+              "start": 15420,
+              "length": 32
+            },
+            {
+              "start": 18331,
+              "length": 32
+            },
+            {
+              "start": 46563,
+              "length": 32
+            },
+            {
+              "start": 63497,
+              "length": 32
+            },
+            {
+              "start": 63689,
+              "length": 32
+            },
+            {
+              "start": 63903,
+              "length": 32
+            },
+            {
+              "start": 64013,
+              "length": 32
+            },
+            {
+              "start": 64212,
+              "length": 32
+            },
+            {
+              "start": 64378,
+              "length": 32
+            }
+          ]
+        },
+        "74507": {
+          "value": "0x00000000000000000000000076765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+          "references": [
+            {
+              "start": 4709,
+              "length": 32
+            },
+            {
+              "start": 8929,
+              "length": 32
+            },
+            {
+              "start": 82761,
+              "length": 32
+            }
+          ]
+        },
+        "74509": {
+          "value": "0x000000000000000000000000000000000000000000000000000000006ace88f8",
+          "references": [
+            {
+              "start": 3543,
+              "length": 32
+            },
+            {
+              "start": 7936,
+              "length": 32
+            },
+            {
+              "start": 15128,
+              "length": 32
+            },
+            {
+              "start": 27219,
+              "length": 32
+            },
+            {
+              "start": 27321,
+              "length": 32
+            },
+            {
+              "start": 48736,
+              "length": 32
+            },
+            {
+              "start": 49491,
+              "length": 32
+            },
+            {
+              "start": 59269,
+              "length": 32
+            },
+            {
+              "start": 59405,
+              "length": 32
+            },
+            {
+              "start": 59465,
+              "length": 32
+            },
+            {
+              "start": 59579,
+              "length": 32
+            },
+            {
+              "start": 60212,
+              "length": 32
+            },
+            {
+              "start": 60327,
+              "length": 32
+            },
+            {
+              "start": 60701,
+              "length": 32
+            },
+            {
+              "start": 73723,
+              "length": 32
+            },
+            {
+              "start": 78017,
+              "length": 32
+            }
+          ]
+        },
+        "74511": {
+          "value": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "references": [
+            {
+              "start": 5180,
+              "length": 32
+            }
+          ]
+        },
+        "74513": {
+          "value": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "references": [
+            {
+              "start": 4759,
+              "length": 32
+            },
+            {
+              "start": 39384,
+              "length": 32
+            },
+            {
+              "start": 59072,
+              "length": 32
+            }
+          ]
+        }
+      }
+    }
+  },
+  "views": {
+    "TestnetRiskCollateral.controller()": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+    "TestnetRiskCollateral.decimals()": 6,
+    "CollateralVault.governor()": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+    "CollateralVault.token()": "0x99f93e9bfe3b2dd75fe27327789bd0a9236ff7b0",
+    "TestnetResolutionAuthority.controller()": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+    "TestnetResolutionAuthority.engine()": "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69",
+    "BookRiskEngine.collateralVault()": "0xa8341d0343bc71b0f28e82dba2302c528608898d",
+    "BookRiskEngine.treasury()": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+    "BookRiskEngine.fundingFeatureEnabled()": false,
+    "BookRiskEngine.recoveryEnabled()": false,
+    "CollateralVault.engines(address)": true,
+    "BookRiskEngine.listing()": {
+      "marketId": "0x75be8f1f39e85b942a81e019e98ae380c65da9a1fc2e90b531fddbe9ad96870a",
+      "token": "0x99f93e9bfe3b2dd75fe27327789bd0a9236ff7b0",
+      "registry": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+      "resolutionAuthority": "0x096545047a7a3a2453a417e21072c8b459d40c7c",
+      "monitor": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+      "governance": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+      "scheduledT": 1791920376,
+      "listedAt": 1791056376,
+      "sourceHash": "0x7461e9e4054e4a37ce034af2927c370d44c95a2cb0c49a62faaedcb216c27047",
+      "rulesHash": "0xba7d13fa771d3a5012b8a967f7d5045396f8aaf28a7f3b8eb35218e010f2a87c",
+      "invalidRule": {
+        "fallbackListed": true,
+        "captureGraceSecs": 3600,
+        "fallbackPriceWad": 500000000000000000,
+        "voidSecs": 2592000
+      },
+      "template": 0,
+      "deploymentCapX": 1,
+      "maxTraders": 1024,
+      "indexSourceId": "0xea09db42b6a3544bc07d88277ffc96a2996a24dd665572fd380822ffde0b74a1",
+      "indexSigner": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46",
+      "indexRulesHash": "0x81f5651dbea04673391264d511dd19a6c7920ab5301d8d1cb79ac72dff1ac10e",
+      "depthNLots": 500,
+      "maxSpreadWad": 50000000000000000,
+      "bootstrapBandWad": 50000000000000000,
+      "minOrderLots": 1,
+      "maxOrderLots": 4294967296,
+      "maxLiqLotsPerBlock": 0,
+      "fundingEnabled": false
+    }
+  },
+  "deployer": "0x76765dc99c2c9aed0b2c23b39960f0de0ac5da46"
+}

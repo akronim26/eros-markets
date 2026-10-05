@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "a3c17b38bd19dfb52c46996d986a60faac46a6cb",
+  "action": "Remove generated public evidence from the Git index while preserving local bytes at their existing paths.",
+  "filesToUntrack": 840,
+  "bytesToUntrack": 34479417,
+  "inventorySha256": "ad3c0529b0b1b76079eff4663c9b2ed58cd80c2cd83abd82922b9d82f6a1a87a",
+  "localInventory": "var/repository-cleanup/inventory.json",
+  "groups": {
+    "artifacts/pricefeed-reverification": {
+      "files": 742,
+      "bytes": 2245692
+    },
+    "artifacts/pricefeed-smoke": {
+      "files": 21,
+      "bytes": 4320148
+    },
+    "packages/pricefeed/artifacts/discovery": {
+      "files": 3,
+      "bytes": 1815263
+    },
+    "packages/pricefeed/artifacts/monad-testnet": {
+      "files": 4,
+      "bytes": 24196336
+    },
+    "packages/pricefeed/artifacts/pipeline": {
+      "files": 4,
+      "bytes": 531892
+    },
+    "packages/pricefeed/artifacts/verification": {
+      "files": 66,
+      "bytes": 1370086
+    }
+  },
+  "privateKeysOrRuntimeJournalsIncluded": false,
+  "historyRewritten": false,
+  "coverageFixture": "fixtures/monad-coverage-history.json",
+  "checks": {
+    "typescriptBuild": {
+      "exitCode": 0
+    },
+    "coverageFixtureMatchesHashedOriginalReports": {
+      "passed": true
+    },
+    "independentCoverageReplay": {
+      "tests": 5,
+      "exitCode": 0
+    },
+    "isolatedCheckoutCoverageReplayWithoutRawArtifacts": {
+      "tests": 5,
+      "exitCode": 0,
+      "sameCasesRepeated": true
+    },
+    "impactReference": {
+      "vectors": 144,
+      "exitCode": 0
+    },
+    "pythonBackupDrills": {
+      "tests": 11,
+      "exitCode": 0
+    },
+    "wireCompatibility": {
+      "exitCode": 0
+    },
+    "requiredDeploymentInputsRemainTracked": {
+      "passed": true
+    },
+    "allExcludedFilesLocallyPreserved": {
+      "files": 840,
+      "passed": true
+    },
+    "sandboxNodeSuite": {
+      "interrupted": true,
+      "exitCode": 130,
+      "reason": "Deployment process fixtures timed out in restricted sandbox; rerun with escalation."
+    },
+    "nodeSuite": {
+      "exitCode": 0,
+      "tests": 416,
+      "pass": 416,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "rawLog": "var/repository-cleanup/full-suite-unrestricted.tap",
+      "rawLogSha256": "d420d9d467aac687f3d748c2096904a646d75bc64f0b12102122d2a86d0bbf8a",
+      "execution": "Escalated local fixture tests after the restricted run was interrupted."
+    }
+  },
+  "gitIndexUntrackCompleted": true
+}

@@ -7,3 +7,27 @@ test/integration/out/
 test/integration/cache/
 test/demo/out/
 test/demo/cache/
+
+# Regenerable reports, runtime databases and local credentials.
+output/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.key
+*.pem
+
+# Keep compact reviews/configuration in Git; retain bulky public evidence locally.
+artifacts/verification/*.tap
+artifacts/verification/*.log
+artifacts/verification/*.stderr
+artifacts/verification/*.exit
+artifacts/pipeline/pipeline-*.json
+artifacts/discovery/*-live.json
+artifacts/monad-testnet/publication-pilot.json
+artifacts/monad-testnet/optimized-small-run.json
+artifacts/monad-testnet/gas-quote.json
+artifacts/monad-testnet/coverage-run.json
+artifacts/monad-testnet/coverage-*-run.json

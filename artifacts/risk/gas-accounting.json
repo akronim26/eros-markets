@@ -1,20 +1,20 @@
 {
   "status": "measured_locally",
   "measurements": {
-    "roll_begin_gas": 192708,
-    "roll_32_account_max_gas": 4669926,
+    "roll_begin_gas": 192742,
+    "roll_32_account_max_gas": 4669963,
     "halt_1024_gas": 124277,
-    "snapshot_32_account_max_gas": 3599473,
-    "trader_claim_gas": 183369,
+    "snapshot_32_account_max_gas": 3599422,
+    "trader_claim_gas": 183413,
     "participant_count": 1024,
     "premium_math_gas": 15057,
-    "funding_premium_touch_gas": 311225
+    "funding_premium_touch_gas": 311274
   },
   "gas_model": "Foundry local Prague EVM; test-call gas, excludes transaction base; not a Monad/testnet gas certificate",
-  "harness_runtime_bytes": 35479,
+  "harness_runtime_bytes": 35586,
   "harness_code_size_limit": 1000000,
   "production_composition_size": "real counterpart composition and chain deployment measurement pending",
-  "source_commit": "ad85941ba2b625a90e5654a5bad600bac31f11b1",
+  "source_commit": "c91acf75ae9770f0bf5ae2238b4018202d57acd8",
   "toolchain": {
     "python": "3.12.10",
     "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:30:41.249604900Z (1789468241)\nBuild Profile: dist",

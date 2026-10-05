@@ -84,6 +84,7 @@ abstract contract RiskStorage is AccountingEvents {
     mapping(address => Account) internal accounts;
     mapping(address => bool) public registered;
     address[] public participants;
+    mapping(address => uint32) public participantId;
     L.Value public reserve;
     uint256 public allocationQ;
     uint256 public protocolFeeQ;

@@ -5,6 +5,7 @@ import {AccountingState, AdmissionMode, StepStatus, RejectCode} from "../math/Ri
 import {MathTypes} from "../math/MathTypes.sol";
 import {IBookRiskHooks} from "../interfaces/IBookRiskHooks.sol";
 import {OrderAdmissionMath as OA} from "../math/OrderAdmissionMath.sol";
+import {LifecycleMath} from "../math/LifecycleMath.sol";
 import {RiskContext} from "../pricing/RiskPricing.sol";
 import {OrderAdmission} from "./OrderAdmission.sol";
 
@@ -176,6 +177,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
             revert BadProposal();
         }
         _touch(maker.owner);
+        if (
+            !_actionCtx.markOk && _actionCtx.admission == LifecycleMath.Admission.BACKED_ONLY
+                && !_inBand(_actionCtx, maker.tick)
+        ) return _prune(maker, false, RejectCode.OUTSIDE_BAND);
         MakerDecision memory md = _makerDecision(
             _actionCtx,
             MakerInput(
@@ -226,6 +231,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         r.makerFeeQ = f.makerFeeQ;
         r.takerFeeQ = f.takerFeeQ;
         r.makerRemainingLots = maker.remainingLots - lots;
+        if (maker.reduceOnly) r.makerPostFillVersion = _acctAccount(maker.owner).positionVersion;
         r.removeMakerRemainder = md.removeRemainder && r.makerRemainingLots != 0;
     }
 
@@ -264,6 +270,7 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         permit.remainingFeeCapQ -= f.takerPermitFeeUsedQ;
         _recheck(f.taker, _combined(f.taker));
         _recheck(f.maker, _resSums(f.maker));
+        if (permit.reduceOnly) permit.reduceVersion = _acctAccount(f.taker).positionVersion;
     }
 
     /// @dev Post-fill recheck with updated mutable aggregates; failure after a proven preflight is
@@ -322,8 +329,15 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         if (lotsToRest == 0 || lotsToRest > permit.remainingLots) {
             revert RestRejected(RejectCode.INVALID_PRICE_OR_SIZE);
         }
-        feeCapQ = permit.remainingFeeCapQ * lotsToRest / permit.remainingLots;
         bool isBid = permit.side == MathTypes.Side.BUY;
+        if (permit.reduceOnly) {
+            AccountView memory currentAccount = _acctAccount(permit.trader);
+            if (
+                currentAccount.positionVersion != permit.reduceVersion
+                    || OA.reduceOnlyCap(currentAccount.lots, isBid, lotsToRest) != lotsToRest
+            ) revert RestRejected(RejectCode.NO_REDUCIBLE_POSITION);
+        }
+        feeCapQ = permit.remainingFeeCapQ * lotsToRest / permit.remainingLots;
         _permitConsume(permit.trader, isBid, permit.limitTick, lotsToRest, feeCapQ);
         (tag.marketOrderEpoch, tag.accountOrderEpoch) =
             _resAdd(permit.trader, isBid, permit.limitTick, lotsToRest, feeCapQ);

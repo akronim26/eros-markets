@@ -1,5 +1,0 @@
-
-> @eros/pricefeed@0.1.0 check:wire
-> node dist/scripts/check-wire.js
-
-PASS: exact eleven-field ABI, raw digest and accepted-event ABI match existing risk code (read-only)

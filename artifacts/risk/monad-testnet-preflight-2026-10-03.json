@@ -1,0 +1,47 @@
+{
+  "schema": "eros-monad-testnet-rehearsal/1",
+  "date": "2026-10-03",
+  "scope": "in-process Monad testnet fork simulation; not a broadcast or production approval",
+  "source_commit": "1077dfa",
+  "chain_id": 10143,
+  "provider": "user-supplied QuickNode endpoint, credential omitted",
+  "rpc_client": "Monad/0.16.3",
+  "forge": "1.8.3",
+  "compiler": "solc 0.8.30 / Prague / optimizer 200",
+  "execution_network": "monad",
+  "execution_hardfork": "monad:MonadTen",
+  "rpc_compute_units_per_second": 30,
+  "gas_estimate_multiplier_percent": 105,
+  "simulation_exit_code": 0,
+  "broadcast": false,
+  "engine": {
+    "contract": "contracts/src/engine/BookRiskEngine.sol:BookRiskEngine",
+    "runtime_bytes": 114546,
+    "creation_bytes": 123665,
+    "constructor_argument_bytes": 928,
+    "initcode_bytes": 124593,
+    "planned_gas_limit": 27683989
+  },
+  "limits": {
+    "runtime_bytes": 131072,
+    "initcode_bytes": 262144,
+    "transaction_gas": 30000000
+  },
+  "transactions": 6,
+  "planned_total_gas_limit": 30414787,
+  "estimated_max_fee_per_gas_gwei": "203.000000001",
+  "estimated_maximum_native_cost_mon": "6.174201761030414787",
+  "limitations": [
+    "Test harness code-size override is not chain certification; actual engine sizes are checked separately",
+    "Receipt and deployed-bytecode verification are required after any broadcast",
+    "Token and resolution authority are controller-only test fixtures; signed INDEX is synthetic test data",
+    "Concrete engine is fully backed 1x bootstrap-only; production PERP depth adapter is absent",
+    "RB-I01 economic repair needs independent teammate review; G7 human acceptance remains blocked",
+    "RB-I02 partially filled reduce-only maker remainder remains a book-team follow-up"
+  ],
+  "sources": [
+    "https://docs.monad.xyz/developer-essentials/differences",
+    "https://docs.monad.xyz/developer-essentials/summary",
+    "https://docs.monad.xyz/tooling-and-infra/toolkits/foundry"
+  ]
+}

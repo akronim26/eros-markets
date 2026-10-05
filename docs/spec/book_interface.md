@@ -130,9 +130,16 @@ struct StepResult {
     uint256 makerFeeQ;
     uint256 takerFeeQ;
     uint64 makerRemainingLots;
+    uint64 makerPostFillVersion;
     bool removeMakerRemainder;
 }
 ```
+
+**Accepted maker version (RB-I02).** For a successful reduce-only maker fill, Risk returns
+`makerPostFillVersion` only after paired accounting and both post-fill coverage checks succeed.
+Book may copy it only into that exact slot/generation's surviving, non-clipped remainder.
+Never refresh another resting order or a pruned/deleted node; current position-version and
+market/account-epoch checks remain mandatory before every later fill.
 
 **Selected sidecar and width contract.** The Risk/Book ABI uses `uint64` account epochs and `uint64` order lot quantities. B's original 256-bit packed slot has only `uint32 accountEpoch`, `uint48 size`, and no market epoch; it does not implement this ABI by itself. Use a dense slot-indexed sidecar carrying the full `uint64 accountOrderEpoch`, `uint64 marketOrderEpoch`, `uint64 reduceVersion`, and future-fee attribution. The original packed epoch field may be a non-authoritative cache only: validity always compares the complete sidecar values. At the book boundary, selected adapter behavior is to enforce `configuredMaxOrderLots <= type(uint48).max` and reject any incoming uint64 size exceeding that configured/packed maximum **before** a checked cast. Widen uint48→uint64 on reads. Never truncate a size or epoch. If the book team later revises packing, the external/internal Risk ABI remains uint64 and the revised range needs explicit tests.
 
@@ -355,6 +362,17 @@ placeOrder(request):
 `POST_ONLY` needs no traversal. Its crossing check is performed against book state after any requested batch cancellations. A batch places a bounded number of actions and caps total examined nodes; per-order caps alone are insufficient if an unbounded batch is accepted. A post-only skip may still materialize elapsed funding/premium just like any lawful account touch; do not describe it as zero storage changes.
 
 The source's `maxFills` can be retained as an external field name for compatibility, but its documented meaning must be **maximum examined maker steps**. Expired nodes, stale epochs, self orders and failed readmissions all consume one. The policy supplies the actual numerical cap; this interface does not substitute D's eight-step recommendation for B's measured setting. Cap requested lots and batch action count before multiplication or traversal, and use checked conversions for narrower book fields.
+
+**Measured concrete bounds (RB-I09, 2026-10-03).** The current initial-1x `BookRiskEngine`
+sets `maxFills()` to 8 after a real-accounting 64-maker sweep exceeded the Monad transaction
+budget. This is a measured deployment setting, not a change to the abstract risk hook's upper
+bound of 64. `maxBatchActions()` returns `min(32, maxFills())`; cancellation and placement counts
+are added together. Before registration or any batch mutation, the book rejects oversized action
+counts and a sum of non-POST_ONLY requested `maxFills` above the market cap. POST_ONLY requests
+consume an action but no traversal budget. The declared-step budget is conservative even if a
+request eventually examines fewer nodes. Clients must read the deployed bounds, divide larger
+work into separate transactions, and not combine those transactions into an unbounded multicall.
+The sampler has a separate 64-node read budget; it does not raise the matching or batch caps.
 
 ## Failure and rollback matrix
 

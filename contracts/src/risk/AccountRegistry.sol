@@ -11,6 +11,7 @@ abstract contract AccountRegistry is RiskStorage {
         }
         registered[owner] = true;
         participants.push(owner);
+        participantId[owner] = uint32(participants.length);
         Account storage a = accounts[owner];
         a.fundingCheckpoint = fundingFQ;
         a.orderEpoch = 1;

@@ -53,6 +53,7 @@ abstract contract LiquidationBookAdapter is LiquidationEligibility {
         returns (bool ok, uint256 feeQ)
     {
         if (!_liqActive || permit.trader != _liqTarget) return (false, 0);
+        if (_continuation(permit.trader, _actionCtx) != LM.Result.NEEDS_MORE_WORK) return (false, 0);
         AccountView memory a = _acctAccount(permit.trader);
         Leg memory g = _reduced(a.cashQ, a.lots, lots, maker.tick, _actionCtx);
         return (LM.allowedReduction(g.before, g.afterFee), g.fee);
