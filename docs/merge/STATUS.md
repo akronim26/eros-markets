@@ -1,10 +1,30 @@
 # Risk & Clearing — STATUS
 
-- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-04.
+- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-05.
 - Unified Risk and Order Book ownership and automated validation: `CLAUDE.md` and `docs/merge/UNIFIED_WORKFLOW.md`.
 - Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
 ## Current summary
+
+**RF-01 through RF-05, local implementation:** after pulling the oracle work, the user
+authorized real factory/oracle/risk/book integration, deferring sponsors and frontend.
+`0255c7b` adds the constructor-preserving code-store factory, dedicated collateral vault,
+registry-bound OI cap, depth-capacity guard and real-contract integration tests.
+`0ff2b69` adds per-market keeper identity/gas checks and simulation-first market-operation
+helpers. See [REAL_FACTORY_INTEGRATION.md](../integration/REAL_FACTORY_INTEGRATION.md)
+for measurements, evidence limits and the operator checklist. This explicitly supersedes
+historical oracle-excluded statements below for this integration work.
+
+The local atomic listing path fits representative bounded packs; it is no longer blocked
+on a presumed need for proxies or clones. Each actual pack still needs a full estimate,
+and creation-code-store headroom is narrow. Registry OI cap enforcement is required to
+keep halted exposure within the listing's resolution-bond sizing assumptions.
+
+**RF-LIVE remains blocked:** the user confirms no local account controls the existing
+oracle testnet stack and the independent INDEX publisher is unfinished. No live factory
+switch, deployment, oracle administration, address update, O42 completion or new gate
+acceptance is performed. Existing deployment addresses and historical G7 acceptance
+remain unchanged. The new relay is not a fabricated or substitute pricefeed.
 
 **GOV-01 supersedes the earlier review workflow:** the user merged Risk and Order Book and
 retired mandatory A/B peer review. We make and document implementation decisions without
@@ -35,9 +55,9 @@ Main was not changed by that earlier merge. The old three-conflict rehearsal is 
 conflicts and silent canonical-type/helper hazards while retaining the reviewed accounting and
 stronger risk predicates. See `docs/merge/main-merge-prep.md`.
 
-The current non-oracle repair turn starts from `1958aef`. The user explicitly extended ownership
+The historical non-oracle repair turn started from `1958aef`. The user explicitly extended ownership
 to book internals and all Risk & Clearing work, including Person B's modules. Oracle implementation
-and oracle-branch integration remain excluded. Main stayed unchanged during that repair series. The source commits through
+and oracle-branch integration were excluded in that turn. Main stayed unchanged during that repair series. The source commits through
 `be3db1e` implement RB-I02–RB-I07 and RB-I09. RB-I10's SDK pin is `56787d2`. The user confirmed
 RB-I08: retain guarded safe excess-collateral release during REDUCE_ONLY; `4a050df` records
 seven focused regressions. Latest source `dcb6b0e` also includes RB-I11 and RB-I12.
@@ -559,3 +579,38 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   Actual oracle/factory/INDEX services, active product demo and selected sponsor integrations remain
   future work. Branch equality and remote publication are verified after pushing; Git refs identify
   the published checkpoint without changing historical gate acceptance SHAs.
+
+### 2026-10-05 — RF-01–RF-05 local real-factory integration
+
+- User scope: real factory, oracle, risk and book only; sponsor/frontend work deferred.
+  Oracle changes are already present at baseline `db11e46`. User confirms no local
+  account controls the existing oracle stack and independent pricefeed is unfinished.
+- `0255c7b`: STOP-prefixed creation-code store and registry-only factory, dedicated
+  vault, original constructors, listing handshake and rollback tests; registry-bound
+  OI cap and conservative capacity-aware sampler. No clone/proxy initialization.
+- `0ff2b69`: runtime/chain-bound keeper classification and gas checks, Windows SDK
+  root-path repair, sampler/explicit monitor/external-signature relay helpers with
+  durable signed-transaction journals; CI integration job and service typechecks.
+- Commands: pinned MonadTen/isolate integration suite exits 0 (37/37); keeper test
+  exits 0 (87/87); operations test exits 0 (18/18); both typechecks and frozen install
+  exit 0; final focused base book/sampler suites exit 0 (55/55); ABI check exits 0.
+  Full risk baseline before the virtual-hook edit exits 0 (832/832, 130 suites).
+- Ordered affected G3/G4/G6/G7 reruns exit 0 with 78/77/55/156 checks. New technical
+  artifacts remain unaccepted; historical acceptance SHAs are unchanged. The artifact
+  refresh also records the now-present pinned oracle submodules and checkout hashes.
+- Local atomic registry listing succeeds for small and 8 KiB claim fixtures under
+  a 29M forwarded execution budget; oversized claim failure rolls back completely.
+  Code-store runtime headroom is 669 bytes. No universal listing-size or live-gas
+  guarantee is inferred. Details are in `docs/integration/REAL_FACTORY_INTEGRATION.md`
+  and `artifacts/integration/real-factory-local.json`.
+- Broader SDK Windows check exits 1 (48 pass, six existing CRLF/test-fixture-path
+  failures). Do not describe the whole repository as green. Separate oracle suite
+  run: 294 pass/four setup/vector failures; isolated environment-corrected retries
+  pass 49/49 with unchanged tests. All oracle invariant checks pass. Details are
+  recorded in the integration document; the original failure evidence is retained.
+- Open: actual authorized factory switch/listing, exact pack/network estimates,
+  source/publisher, roles/trust/treasury setup, per-market runtime/gas enrollment,
+  hosted operations and live O42/OG3b. No broadcast, credentials, `.env` edits,
+  deployed-address edits, main merge or new gate acceptance in this turn.
+- Next: hand the pinned implementation and operator checklist to the existing
+  oracle governance/lister operator; complete the independent source before a live demo.

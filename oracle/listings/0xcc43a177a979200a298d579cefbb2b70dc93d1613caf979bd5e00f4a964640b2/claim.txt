@@ -1,0 +1,13 @@
+Eros Markets market 0xcc43a177a979200a298d579cefbb2b70dc93d1613caf979bd5e00f4a964640b2 (chain 10143, oracle 0xa87D6E10a7199666ec9F2e04866201E35AAf36A6).
+Question: Did the Tampa Bay Rays score more than 0 runs against the New York Yankees in the 2026 ALDS 'A' Game 1 on 3 October 2026 (MLB gamePk 849835)? [testnet E5 test market]
+Rules: TESTNET TEST MARKET for end-to-end scenario E5; the game has already been played.
+
+This market resolves YES if the Tampa Bay Rays (home) scored more than 0 runs in MLB game 849835 (gamePk), the 2026 ALDS 'A' Game 1 between the New York Yankees (away) and the Tampa Bay Rays (home), played on 2026-10-03. It resolves NO if they scored 0 runs or fewer.
+
+Source and finality: the official MLB Stats API schedule entry for gamePk 849835 (https://statsapi.mlb.com/api/v1/schedule?gamePk=849835). The game counts as completed once that entry's status code (dates[0].games[0].status.codedGameState) is "F". The runs counted are the home score (dates[0].games[0].teams.home.score) shown with that status.
+
+Deadline: the scheduled resolution time T is 2026-10-04T17:21:00Z. If no official source shows the game as Final with a numeric Tampa Bay Rays score before the void deadline, the market resolves INVALID.
+Scheduled time T: 2026-10-04T17:21:00Z (1791134460)
+Asserted outcome: YES
+Evidence: Layer 1 CRE report, value 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6, source https://statsapi.mlb.com/api/v1/blocked?gamePk=849835, keccak256 0x0000000000000000000000000000000000000000000000000000000000000000
+This assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.

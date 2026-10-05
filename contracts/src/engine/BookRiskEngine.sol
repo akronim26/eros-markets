@@ -78,7 +78,7 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         return _bookDepth(_pricingContext());
     }
 
-    function _bookDepth(RiskContext memory context) internal view returns (BookDepthQuote memory quote) {
+    function _bookDepth(RiskContext memory context) internal view virtual returns (BookDepthQuote memory quote) {
         if (
             !active || context.halted || !context.indexOk || context.stage == Stage.REDUCE_ONLY
                 || (context.fundingFrozen && !_floorOrdersInvalidated)

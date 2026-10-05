@@ -1,0 +1,28 @@
+# CRE listener (oracle/workflows/listen/supervise.sh): every workflow run on Monad testnet, 4 Oct 2026 (UTC)
+# Supervisor: 2026-10-04T16:50:25Z start target=local-sim log=/private/tmp/claude-501/-Users-phantomxsd-eros-markets/afc09040-1914-4fcd-b1ad-f306e76c8c90/scratchpad/listen/listen-20261004T165025Z.log
+✓ Matching EVM log event found at block 68172083 (tx 0xea54eb1bc4789da7cdf4a3790178d59a83290ed4989c8c520cdb4d9485287651, index 36)
+"proposed:0x858d339df94e447f28cac9130cb11988a9219bf5e0bcae4ff2fd336d9428c7d9:YES:0xeb0b9e751e27c7c627fb03585035129d7078a5cb2259c97eb87f129fe18dadb1"
+✓ Matching EVM log event found at block 68172906 (tx 0xd882d273d9b662220ec0113ed73b8702241bcd9e68244381fee4d08bc8faf3b3, index 1)
+"nowrite:0x4aa4538ed5e80aa449353a487a6de8d918184d94bd56a0c97d9f2fcb1a33779e:ERROR:HTTP_404"
+✓ Matching EVM log event found at block 68173114 (tx 0x5687389a96cd1b6418e8be4816f5f794db1aabb85a0714b7d8ca27ce401917f7, index 65)
+"proposed:0x6e969e02ebeec4d81807ca642295c2c0784294fc103e0bf406d9dca4f32ad87f:YES:0xfb8648eecbce8895120a6008f70e187aa978fb454d9b23106ce32e2e58eec170"
+✓ Matching EVM log event found at block 68173194 (tx 0x66ead3352f3708f3c889480782ddcdebd62f98e415b389ecec6a986725955572, index 38)
+"nowrite:0xdd289d0906f431865d6ff64583489ea779721375434e9c85a22b843a2949790f:ERROR:HTTP_404"
+✓ Matching EVM log event found at block 68173398 (tx 0xba01ef665e3518f80c2706b5077fc18b744312461cff3d93d1181d94c7beb67c, index 15)
+"nowrite:0x8834a12f2d6ec1dfa15a346bcfd213c6cf85088e4e7e82426c2d137de2e18dc2:ERROR:HTTP_404"
+✓ Matching EVM log event found at block 68174909 (tx 0x3c16845de9247023b0b6b5ffa3fb9f0a2b38369abb15d0dccf49bfc209e6d870, index 1)
+"proposed:0x2708d77554e8965a416483b1bdb0f7a094a19f4831705ff9102292fabb6f11af:YES:0x226d999d0e9eacbd3cf4530c89f47f6319e8020b2d0ab95708d28cfd47de64a0"
+✓ Matching EVM log event found at block 68175284 (tx 0xe48e282331a4989a066f6827f88273bcc3fc5081022fd9b56882736dae2d37b5, index 66)
+"proposed:0x12726c7fd3a7a9533ad46da75fedef8546f18f0b7a06ed8337fe552af4501aa7:YES:0x02f8f11803122aea9e1aaaff0445d89aa15eda817c2a167d6122be22e797eddb"
+✓ Matching EVM log event found at block 68175284 (tx 0x1ad3d918d178360a5d52e90eb43775215ee71385cc60b959b4bae275d99c1eba, index 67)
+"nowrite:0x2776dddcd59034efa4f0cb2ebab61602e79cb018f6251a2ca8c5f715b08d1060:ERROR:HTTP_404"
+✓ Matching EVM log event found at block 68175284 (tx 0x893bb545b54b25a4457c7ae45cd58a7d3313f6543df6c49f19dbafd4eeb062ec, index 68)
+"nowrite:0x3ccf32a45cc9c384289900be797d24d1883b8e2cb2a67eb94bce75b36ee99f24:ERROR:HTTP_429"
+✓ Matching EVM log event found at block 68178461 (tx 0xc5c8c814e34965c412eaaaed26265c2cba1f9f51597dd785eb99ee822bfec439, index 34)
+"proposed:0x422ab2a184681d01b8da0de118f397afb81f52596229139a56358f8f79c507fc:NO:0x4cfdeaa87101d90128bfb18fa531a5d1ae8850c390964ba54efe2e8355cb1cb3"
+✓ Matching EVM log event found at block 68190749 (tx 0xf185f58fbc294663ed8dcb8df922994086f86bcd5b9009b49a2ce2eb9223545a, index 71)
+"proposed:0x81db889d67b0de87eb15158ef577c4a7825facd7503db92fa356b9af3779a868:YES:0x458ec6d384a9c29d1a995f8adc11bf083d05ec5376d3cdc11d4ecc4c51bc449c"
+✓ Matching EVM log event found at block 68190980 (tx 0x1e63b3b901d58f2e08a345e65bf36bae732b0f894fe019409acfc542bf9179ea, index 9)
+"nowrite:0xa94de3aac8c801930f3789457b72ac254228cc91e5b29f31292825ff69fcb439:NOT_READY:NOT_FINAL"
+✓ Matching EVM log event found at block 68191132 (tx 0xbbec511ea99b2f59aaed34da6f73a328896ed93bb4a3f0d9f0727d99842924c3, index 131)
+"nowrite:0x955bbe2a7a7222d4020c068d2062306676eccf5db21b0021cbbd9f3c7586f701:ERROR:HTTP_429"

@@ -6,6 +6,13 @@ Put this file at the repository root. Claude Code reads it at the start of every
 You are the coding agent for the unified Risk & Clearing and Order Book team for Eros Markets / EventPerp (Paper 1 only). The user merged these teams on 2026-10-03 and retired mandatory A/B peer review. A/B names and task IDs are historical identifiers, not separate owners or approval dependencies. Oracle remains a separate, excluded scope.
 
 ## CURRENT MODE: shared, turn-by-turn
+- Scope update, 2026-10-05 (RF-01 through RF-04): the user authorized real factory,
+  oracle, risk and book integration, keeper/market-operation readiness and local
+  end-to-end validation. This supersedes oracle exclusions below only for that
+  integration work. Sponsors and frontend remain deferred. The user confirmed there
+  is no local account controlling the existing oracle deployment and the pricefeed
+  is unfinished. Do not broadcast, invent a feed or mark live O42 complete. Follow
+  `docs/integration/REAL_FACTORY_INTEGRATION.md`; historical scope notes remain below.
 - Governing workflow: `docs/merge/UNIFIED_WORKFLOW.md`. Make and document implementation decisions within the authorized non-oracle scope without waiting for A/B approval. Preserve automated validation, economic invariants and truthful evidence; no independent review is claimed.
 - Current user-authorized scope extension (2026-10-03): implement non-oracle order-book fixes and
   all Risk & Clearing work on `integration/risk`, including the book internals formerly excluded

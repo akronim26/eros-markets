@@ -1,0 +1,15 @@
+{
+  "model": "google:gemini-3.8-flash@2026-10-03",
+  "recordedAt": "2026-10-03T12:30:15.092Z",
+  "httpStatus": 503,
+  "headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "body": {
+    "error": {
+      "code": 503,
+      "message": "This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+      "status": "UNAVAILABLE"
+    }
+  }
+}

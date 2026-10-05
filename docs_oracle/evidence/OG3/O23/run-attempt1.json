@@ -1,0 +1,76 @@
+{
+  "scenario": "O23",
+  "title": "Layer 1 no-write runs: NOT_READY and 429",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:14:01.084Z",
+  "steps": [
+    {
+      "step": "listed not-ready (truth YES, T 2026-10-04T17:26:00.000Z)",
+      "market": "0x8b1e9e79f8fa4b03783bf454d3a63a74aa565cff8a6f47d6673239e7360f55a3",
+      "tx": "0xa51372a297237a3d96f3528bc06ca0e0fa05e34395624d14c9ebfd878faab4d8",
+      "detail": {
+        "slug": "eros-e2e-o23-not-ready-849828-home-gt-3-1791134760",
+        "engine": "0xaE43C66Ba9D66c60E98894af094a33E42abCC736",
+        "spec": {
+          "scenario": "O23",
+          "tag": "not-ready",
+          "game": 849828,
+          "feedGame": 849823,
+          "side": "home",
+          "target": 3,
+          "feed": "mlb",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 600,
+          "voidSecs": 6000
+        }
+      },
+      "block": "68172219",
+      "time": "2026-10-04T17:14:52.000Z"
+    },
+    {
+      "step": "listed http-429 (truth YES, T 2026-10-04T17:29:00.000Z)",
+      "market": "0x3ccf32a45cc9c384289900be797d24d1883b8e2cb2a67eb94bce75b36ee99f24",
+      "tx": "0x5b2c97dea7864a83500f7cc0342cc18a09979a2204dd0fdd7ab8e6a9c6b12bba",
+      "detail": {
+        "slug": "eros-e2e-o23-http-429-849828-home-gt-3-1791134940",
+        "engine": "0xA4C36D36A85BBce4879133AaA28A7ff5245c3855",
+        "spec": {
+          "scenario": "O23",
+          "tag": "http-429",
+          "game": 849828,
+          "side": "home",
+          "target": 3,
+          "feed": "http429",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 600,
+          "voidSecs": 6000
+        }
+      },
+      "block": "68172995",
+      "time": "2026-10-04T17:18:46.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "not-ready: no Layer 1 report written",
+      "ok": true,
+      "detail": "state L2Pending, path 0"
+    },
+    {
+      "check": "http-429: no Layer 1 report written",
+      "ok": true,
+      "detail": "state L2Pending, path 0"
+    }
+  ]
+}

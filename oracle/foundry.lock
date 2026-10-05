@@ -1,0 +1,20 @@
+{
+  "../contracts/lib/forge-std": {
+    "rev": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219"
+  },
+  "../contracts/lib/solady": {
+    "rev": "2afba69bf67b78dd4abeadcc696052b3a6f71499"
+  },
+  "lib/forge-std": {
+    "rev": "f3dae6e6ee381f25eb6a246f7da9b85c91a68219"
+  },
+  "lib/openzeppelin-contracts-v4": {
+    "rev": "dc44c9f1a4c3b10af99492eed84f83ed244203f6"
+  },
+  "lib/solady": {
+    "rev": "2afba69bf67b78dd4abeadcc696052b3a6f71499"
+  },
+  "lib/uma-protocol": {
+    "rev": "d1a2373e2e0a3cbb28bce48ca72379a2abb97c69"
+  }
+}

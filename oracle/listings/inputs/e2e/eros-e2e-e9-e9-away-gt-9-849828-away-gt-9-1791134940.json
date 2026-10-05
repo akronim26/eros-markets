@@ -1,0 +1,83 @@
+{
+  "slug": "eros-e2e-e9-e9-away-gt-9-849828-away-gt-9-1791134940",
+  "reference": {
+    "urlParam": "849828"
+  },
+  "dryRun": {
+    "liveUrlParam": "849828"
+  },
+  "ambiguity": {
+    "models": [
+      "groq:openai/gpt-oss-120b@2026-10-03",
+      "nvidia:moonshotai/kimi-k3@2026-10-03",
+      "aicredits:anthropic/claude-sonnet-5.5@2026-10-04"
+    ]
+  },
+  "marketInput": {
+    "question": "Did the Atlanta Braves score more than 9 runs against the Los Angeles Dodgers in the 2026 NLDS 'B' Game 1 on 3 October 2026 (MLB gamePk 849828)? [testnet E9 test market]",
+    "rules": "TESTNET TEST MARKET for end-to-end scenario E9; the game has already been played.\n\nThis market resolves YES if the Atlanta Braves (away) scored more than 9 runs in MLB game 849828 (gamePk), the 2026 NLDS 'B' Game 1 between the Atlanta Braves (away) and the Los Angeles Dodgers (home), played on 2026-10-03. It resolves NO if they scored 9 runs or fewer.\n\nSource and finality: the official MLB Stats API schedule entry for gamePk 849828 (https://statsapi.mlb.com/api/v1/schedule?gamePk=849828). The game counts as completed once that entry's status code (dates[0].games[0].status.codedGameState) is \"F\". The runs counted are the away score (dates[0].games[0].teams.away.score) shown with that status.\n\nDeadline: the scheduled resolution time T is 2026-10-04T17:29:00Z. If no official source shows the game as Final with a numeric Atlanta Braves score before the void deadline, the market resolves INVALID.",
+    "claimTemplate": "Eros Markets market {{MARKET_ID}} (chain {{CHAIN_ID}}, oracle {{ORACLE}}).\nQuestion: {{QUESTION}}\nRules: {{RULES}}\nScheduled time T: {{TAU_UTC}} ({{TAU_UNIX}})\nAsserted outcome: {{OUTCOME}}\nEvidence: {{EVIDENCE}}, keccak256 {{EVIDENCE_HASH}}\nThis assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.",
+    "windowStart": "2026-10-04T17:13:41Z",
+    "windowEnd": "2026-10-04T17:29:00Z",
+    "tau": "2026-10-04T17:29:00Z",
+    "groupId": "0x128b1532b5a09919146683fd852b6426c963269498a5eb8b4f4b55b629aa59a7",
+    "groupExclusive": true,
+    "hasFeed": true,
+    "feed": {
+      "urlTemplate": "https://statsapi.mlb.com/api/v1/schedule?gamePk={id}",
+      "urlParam": "849828",
+      "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "finalPath": "dates[0].games[0].status.codedGameState",
+      "finalValue": "F",
+      "valuePath": "dates[0].games[0].teams.away.score",
+      "valueType": 1,
+      "decimals": 0,
+      "op": 2,
+      "target": "9",
+      "bufferSecs": 60,
+      "l1TimeoutSecs": 120
+    },
+    "allowList": [
+      "statsapi.mlb.com"
+    ],
+    "ai": {
+      "modelIdHashes": [
+        "0x0f88999d7b3d12fabb30fc17ed3deaae4dea955b3c47c97a3b2937fe3f4ff0e6",
+        "0xde231ad8fec520538ddf8df926723c8f873e7880e1021e668b2544f8c6d5b994",
+        "0xc70ab38cdd9517585154b7265dc597fa733bbdbde60ca27bc0e6cd8084a4b277"
+      ],
+      "promptHash": "0xd4e1459eb8c085de75bcd5bb4c97008561bdc896745e62eba6c28bb3fac70d82",
+      "calibratorHash": "0xe510f4a69d907f2070276c5fae1b651f30feb80c19f45f786e3469c0e5feed56",
+      "categoryId": "0xecf68b55a3148ada593e183bf15435fbd3f76364946ed2169f5e36e27bc9eafd",
+      "highConfBps": 9900
+    },
+    "uma": {
+      "minBond": 2000000,
+      "bondBps": 1112,
+      "livenessL1": 300,
+      "livenessAuto": 300,
+      "livenessReviewed": 300
+    },
+    "l2DeadlineSecs": 1800,
+    "voidSecs": 7200,
+    "monitor": "0x0000000000000000000000000000000000000030",
+    "oiCapLots": 100000
+  },
+  "engineListing": {
+    "engineGovernance": "0x0000000000000000000000000000000000000060",
+    "template": 0,
+    "deploymentCapX": 1,
+    "maxTraders": 1024,
+    "indexSourceId": "0x44decf363c7aa37ac172d04bf40784d83b18aca8614b3119739e26bb3343a39d",
+    "indexSigner": "0x0000000000000000000000000000000000000051",
+    "indexRulesHash": "0xd6ce921d69d5ea3e1295c845a4cdc24af344c1a3b5a0c71b6113d4a535f63c5e",
+    "depthNLots": 500,
+    "maxSpreadWad": "50000000000000000",
+    "bootstrapBandWad": "50000000000000000",
+    "minOrderLots": 1,
+    "maxOrderLots": 1000000000,
+    "maxLiqLotsPerBlock": 0,
+    "fundingEnabled": false
+  },
+  "engineInit": "0x00000000000000000000000000000000000000000000000000000000000186a0"
+}

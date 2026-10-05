@@ -1,0 +1,71 @@
+{
+  "_note": "Example listing pack for ListMarket (task O19.4): the testnet demo market of the test fixtures (stub engine, T 30 minutes after windowStart, voidSecs 2 h, OI cap 100,000 lots). Hashes of placeholder strings stand in for real references; dryRunHash and ambiguityLogHash are keccak256 of the strings 'reference.json' and 'ambiguity.log'. monitor and engineGovernance are example addresses. oracle-cli list (O22) writes real packs in this schema. Dry runs pass SHIFT_TO_NOW=true.",
+  "marketInput": {
+    "marketId": "0xe085067fb3e1eba632de103ba472329d833cddefdb9296cc70569d9b080d5fcf",
+    "question": "Will the home team score more than 2 goals?",
+    "rules": "YES if the final home score is above 2; NO otherwise. INVALID if the match is not played.",
+    "claimTemplate": "Eros Markets market {{MARKET_ID}} (chain {{CHAIN_ID}}, oracle {{ORACLE}}).\nQuestion: {{QUESTION}}\nRules: {{RULES}}\nScheduled time T: {{TAU_UTC}} ({{TAU_UNIX}})\nAsserted outcome: {{OUTCOME}}\nEvidence: {{EVIDENCE}}, keccak256 {{EVIDENCE_HASH}}\nThis assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.",
+    "windowStart": 1800000000,
+    "windowEnd": 1800001800,
+    "tau": 1800001800,
+    "groupId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "groupExclusive": false,
+    "hasFeed": true,
+    "feed": {
+      "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+      "urlParam": "evt_1",
+      "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "finalPath": "event.status",
+      "finalValue": "FINAL",
+      "valuePath": "event.home",
+      "valueType": 1,
+      "decimals": 0,
+      "op": 2,
+      "target": "2",
+      "bufferSecs": 60,
+      "l1TimeoutSecs": 300
+    },
+    "allowList": ["api.example-sports.com", "stats.example-data.org"],
+    "ai": {
+      "modelIdHashes": [
+        "0xce001d13151851d9c327caee4557ee199bf62096526a6d4dd324bb05e42ebe46",
+        "0xf895ea819e16e9257cfe1ef9bbbb0b5cb05e87fe5d60630a4c869ad273bfc1e3",
+        "0xd2f9ebee8a28be0599296c42ffb3747aaf0c374728071f9c1a7e01ccc633574d"
+      ],
+      "promptHash": "0x57fa6589480c85be8bbc98526b1113f0b44823894c29f47f6800a84eb5354e50",
+      "calibratorHash": "0xb37bd532f371e3432cef1740005279bcda56869e47476743400d18054524ee26",
+      "categoryId": "0xecf68b55a3148ada593e183bf15435fbd3f76364946ed2169f5e36e27bc9eafd",
+      "highConfBps": 9100
+    },
+    "uma": {
+      "minBond": 2000000,
+      "bondBps": 1112,
+      "livenessL1": 120,
+      "livenessAuto": 120,
+      "livenessReviewed": 300
+    },
+    "l2DeadlineSecs": 600,
+    "voidSecs": 7200,
+    "monitor": "0x0000000000000000000000000000000000000030",
+    "oiCapLots": 100000,
+    "dryRunHash": "0x2b8dfa9b42adb1f2b5e24b166477724bb533862b2d20382715cfb248ca3717ba",
+    "ambiguityLogHash": "0x75606d1773519cf6e8d928db7303e9a409e06ecd21e548c53db106e56435e26e"
+  },
+  "engineListing": {
+    "engineGovernance": "0x0000000000000000000000000000000000000060",
+    "template": 0,
+    "deploymentCapX": 1,
+    "maxTraders": 1024,
+    "indexSourceId": "0x44decf363c7aa37ac172d04bf40784d83b18aca8614b3119739e26bb3343a39d",
+    "indexSigner": "0x0000000000000000000000000000000000000051",
+    "indexRulesHash": "0xd6ce921d69d5ea3e1295c845a4cdc24af344c1a3b5a0c71b6113d4a535f63c5e",
+    "depthNLots": 500,
+    "maxSpreadWad": 50000000000000000,
+    "bootstrapBandWad": 50000000000000000,
+    "minOrderLots": 1,
+    "maxOrderLots": 1000000000,
+    "maxLiqLotsPerBlock": 0,
+    "fundingEnabled": false
+  },
+  "engineInit": "0x00000000000000000000000000000000000000000000000000000000000186a0"
+}
