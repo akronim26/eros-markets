@@ -1,3 +1,8 @@
+> **Current frontend deployment — 2026-10-06:** see
+> [verified integrated manifest](artifacts/deployments/monad-testnet-20261006/public-manifest.json)
+> and [progress report](docs/integration/DEPLOYMENT_PROGRESS.md).
+> The inventory below is historical; do not mix its addresses with the new factory/vault/engine.
+
 # Deployed contract addresses
 
 Updated **2026-10-04 (Asia/Calcutta)**. Network: **Monad testnet**, chain ID **10143**.

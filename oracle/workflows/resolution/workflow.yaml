@@ -21,3 +21,11 @@ production:
     workflow-path: "./main.ts"
     config-path: "./config.production.json"
     secrets-path: "../secrets.yaml"
+
+fresh-testnet:
+  user-workflow:
+    workflow-name: "eros-resolution-sim"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.fresh-testnet.json"
+    secrets-path: "../secrets.local-sim.yaml"

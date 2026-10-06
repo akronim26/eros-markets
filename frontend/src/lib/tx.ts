@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useConfig } from "wagmi";
 import { getConnection, writeContract } from "wagmi/actions";
-import { BaseError, ContractFunctionRevertedError, parseEventLogs, type Abi, type Address, type Hash } from "viem";
+import { BaseError, ContractFunctionRevertedError, encodeFunctionData, parseEventLogs, type Abi, type Address, type Hash } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 import { client } from "./reads";
 import { engineAbi } from "@/abi/engine";
@@ -14,6 +14,8 @@ import { useWalletSession } from "@/components/wallet-session";
 import { createWalletGuard, runWalletCalls } from "./wallet-safety";
 import { privyRequest } from "./privy-api";
 import { rememberOrders } from "./orders";
+import { ensureDeployment } from "./deployment-check";
+import { finalizedOwnerReceipt } from "./finality";
 
 export type TxState =
   | { status: "idle" }
@@ -32,7 +34,7 @@ export function revertMessage(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string; validate?: () => Promise<void> };
+type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string; account?: Address; chainId?: number; validate?: () => Promise<void> };
 
 /** preview → simulate → explicit gas (estimate × 1.10, Monad charges the limit) → send → receipt. */
 export function useTx() {
@@ -53,6 +55,8 @@ export function useTx() {
     let stop: (() => void) | undefined;
     try {
       const guard = createWalletGuard(getSnapshot, account, chain.id);
+      await ensureDeployment();
+      guard.assertCurrent();
       const connector = getConnection(config).connector!;
       // Latch account/network changes, including switching away and back while a wallet prompt is open.
       stop = config.subscribe((s) => s, guard.observe);
@@ -60,10 +64,14 @@ export function useTx() {
         assertCurrent: guard.assertCurrent,
         prepare: async (c) => {
           setState({ status: "pending", step: `Simulating ${c.label}` });
+          if ((c.account && c.account.toLowerCase() !== account.toLowerCase()) || (c.chainId && c.chainId !== chain.id)) throw new Error("Transaction belongs to a different wallet or network.");
+          if (await client.getChainId() !== chain.id) throw new Error("RPC network changed. Remaining steps were stopped.");
           await c.validate?.();
-          const sim = await client.simulateContract({ ...c, account } as never);
+          const block = await client.getBlock();
+          const sim = await client.simulateContract({ ...c, account, blockNumber: block.number } as never);
           guard.assertCurrent();
-          const gas = await client.estimateContractGas({ ...c, account } as never);
+          const gas = await client.estimateContractGas({ ...c, account, blockNumber: block.number } as never);
+          if ((await client.getBlock({ blockNumber: block.number })).hash !== block.hash) throw new Error("The preview block changed. Refresh and try again.");
           const [balance, gasPrice] = await Promise.all([client.getBalance({ address: account }), client.getGasPrice()]);
           if (balance < gas * 110n / 100n * gasPrice) throw new Error("Insufficient testnet MON for estimated gas. Open your wallet menu and choose Get test MON.");
           return { request: (sim as { request: object }).request, gas };
@@ -83,9 +91,9 @@ export function useTx() {
           return hash;
         },
         confirm: async (hash, c, final) => {
-          setState({ status: "sent", hash, step: `${c.label}: waiting for inclusion` });
-          const receipt = await client.waitForTransactionReceipt({ hash });
-          if (receipt.status !== "success") throw new Error(`${c.label} reverted in block ${receipt.blockNumber}`);
+          setState({ status: "sent", hash, step: `${c.label}: waiting for finality` });
+          const receipt = await finalizedOwnerReceipt(client, hash, { owner: account, to: c.address,
+            data: encodeFunctionData({ abi: c.abi, functionName: c.functionName, args: c.args ?? [] }) });
           const orders = parseEventLogs({ abi: engineAbi, eventName: "OrderPlaced", logs: receipt.logs.filter((l) => l.address.toLowerCase() === c.address.toLowerCase()) });
           rememberOrders(chain.id, c.address, account, orders.map((l) => l.args.id));
           guard.assertCurrent();

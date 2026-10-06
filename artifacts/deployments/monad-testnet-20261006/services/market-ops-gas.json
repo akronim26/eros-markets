@@ -1,0 +1,9 @@
+{
+  "block": "68549571",
+  "blockHash": "0x88a1c704cd6550a385892d7d2084490587de71a9e036f727d455b2d8ffd71247",
+  "samplePerp": {
+    "estimate": "256070",
+    "limit": "317284"
+  },
+  "scope": "current testnet state; liquidation and future settlement require separate measurements"
+}

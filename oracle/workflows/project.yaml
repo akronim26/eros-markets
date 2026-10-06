@@ -10,3 +10,8 @@ production:
   rpcs:
     - chain-name: monad-mainnet
       url: ${MONAD_MAINNET_RPC}
+
+fresh-testnet:
+  rpcs:
+    - chain-name: monad-testnet
+      url: ${MONAD_TESTNET_RPC}

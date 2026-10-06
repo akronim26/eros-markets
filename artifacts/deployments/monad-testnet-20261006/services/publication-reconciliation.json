@@ -1,0 +1,18 @@
+{
+  "scope": "restart reconciled existing publication journal; no fresh observation required",
+  "finalizedPackets": 10,
+  "evidenceValid": true,
+  "unresolved": 0,
+  "txHashes": [
+    "0x22e9b19c9998e3d2ed8d0961c734eacaa68c3afe6dcaf3936454b6a90cc280f1",
+    "0x2ac8ad80d79cd762d459251cbc84bca194c27f5a52ddec7184161386efa75789",
+    "0x64bd3d19e0ddf8895a78272613abe05092bd3f9904312debcdc1dd2bed82ef1e",
+    "0x02677e6e29da17990c5cd8e35bafcfaf3a0033709e480289ee1727984e3cdf19",
+    "0x679e4beab50ff8523f30d549eeac602bc3ddf6fbb905fa4dc59047ea6c4795f1",
+    "0x2479573f326379fd86c05e29a74b65f5b1600c36240e01251b50820b1abc8c1c",
+    "0x30a849c310b044fbfa5acdfd5aa13043bf79e7ddd7372ee33e9dafa3edc12b8e",
+    "0xd99147ce161b50da28ffc8c9601f5e105736b5ef8b356a67fdc47aad326323a2",
+    "0x9896a629c8056863a2ff3c6a3329850672bd38ea3b6417b3929928a18498b83d",
+    "0xc435e1c8f64e8cefd83976c37ebac09f58744195ccfc658d48ff0bb964df95f4"
+  ]
+}

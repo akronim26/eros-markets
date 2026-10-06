@@ -1,0 +1,124 @@
+{
+  "checkedAt": "2026-10-06",
+  "productionBuild": true,
+  "checks": [
+    {
+      "width": 320,
+      "path": "/markets",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 320,
+      "path": "/markets",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 320,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 320,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 768,
+      "path": "/markets",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 768,
+      "path": "/markets",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 768,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 768,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1024,
+      "path": "/markets",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1024,
+      "path": "/markets",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1024,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1024,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1440,
+      "path": "/markets",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1440,
+      "path": "/markets",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1440,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "light",
+      "overflow": false,
+      "cssSheets": 3
+    },
+    {
+      "width": 1440,
+      "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "theme": "dark",
+      "overflow": false,
+      "cssSheets": 3
+    }
+  ],
+  "runtimeErrors": [],
+  "failedResources": [],
+  "axeViolations": [],
+  "axeScope": "loaded 1440px dark terminal, WCAG A/AA/2.1AA",
+  "privyLoginDialogOpened": true,
+  "realWalletSigningValidated": false
+}

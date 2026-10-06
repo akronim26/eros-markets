@@ -6,11 +6,11 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const out = join(root, "frontend", "src", "abi");
 const sources = {
-  engine: "artifacts/risk/book-risk-engine-abi.json",
-  vault: "artifacts/risk/vault-abi.json",
-  resolutionOracle: "oracle/abi/ResolutionOracle.json",
-  marketRegistry: "oracle/abi/MarketRegistry.json",
-  umaAdapter: "oracle/abi/UmaAdapter.json",
+  engine: "oracle/out/RegistryBookRiskEngine.sol/RegistryBookRiskEngine.json",
+  vault: "oracle/out/CollateralVault.sol/CollateralVault.json",
+  resolutionOracle: "oracle/out/ResolutionOracle.sol/ResolutionOracle.json",
+  marketRegistry: "oracle/out/MarketRegistry.sol/MarketRegistry.json",
+  umaAdapter: "oracle/out/UmaAdapter.sol/UmaAdapter.json",
 };
 
 mkdirSync(out, { recursive: true });

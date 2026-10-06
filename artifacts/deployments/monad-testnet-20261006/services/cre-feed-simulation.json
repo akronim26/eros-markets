@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "scope": "CRE CLI dry-run FeedSpec validation, external API only; no chain writes",
+  "cliVersion": "1.36.0",
+  "target": "fresh-testnet",
+  "result": "NOT_READY/NOT_FINAL",
+  "marketId": "0xb75d77f847ad7eb057bc9249d711cdf235fabb941fe4586776f79653cc50cea4",
+  "limitation": "Ongoing event; no final outcome, no report broadcast, no CRE network deployment"
+}

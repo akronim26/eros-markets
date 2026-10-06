@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { engineAbi } from "@/abi/engine";
-import { vaultAbi } from "@/abi/vault";
+import { ownerTrader } from "@/lib/trader";
 import { deployment } from "@/config/deployment";
-import { client, erc20Abi, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
+import { client, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { amountWithinBalance, atomsToInput, canClaim, fundingPlan } from "@/lib/funds";
 import { atomsToUsdc, parseUsdcToAtoms } from "@/lib/units";
 import { REJECT } from "@/lib/enums";
@@ -15,6 +15,7 @@ import { Button, cx } from "./ui";
 import { FieldError, useFieldErrors, ReadError } from "./feedback";
 import { TxFeedback } from "./tx-feedback";
 
+const faucetAbi = [{ type: "function", name: "mint", stateMutability: "nonpayable", inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }], outputs: [] }] as const;
 const MODES = ["Fund", "Release", "Withdraw"] as const;
 export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSnapshot; t?: TraderSnapshot }) {
   const owner = useOwner();
@@ -37,15 +38,15 @@ export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSn
 
   async function submit() {
     if (!owner.address || !t || blocker || busy) return;
+    const sdk = ownerTrader(engine, owner.address);
     if (mode === "Fund") {
       const p = fundingPlan(amount, t.free, t.wallet, t.allowance);
       const calls = [];
-      if (p.approve) calls.push({ address: t.assets.token, abi: erc20Abi, functionName: "approve", args: [t.assets.vault, p.approve], label: "approve collateral" });
-      if (p.deposit) calls.push({ address: t.assets.vault, abi: vaultAbi, functionName: "deposit", args: [p.deposit], label: "deposit collateral" });
-      calls.push({ address: t.assets.vault, abi: vaultAbi, functionName: "allocate", args: [engine, p.allocate, false], label: "fund market" });
+      if (p.approve) calls.push({ ...sdk.approve(p.approve), label: "approve collateral" });
+      if (p.deposit) calls.push({ ...sdk.deposit(p.deposit), label: "deposit collateral" });
+      calls.push({ ...sdk.allocate(p.allocate), label: "fund market" });
       await tx.run(owner.address, calls);
-    } else await tx.run(owner.address, [{ address: mode === "Release" ? engine : t.assets.vault,
-      abi: mode === "Release" ? engineAbi : vaultAbi, functionName: mode === "Release" ? "release" : "withdraw", args: [amount], label: mode.toLowerCase() }]);
+    } else await tx.run(owner.address, [{ ...(mode === "Release" ? sdk.release(amount) : sdk.withdraw(amount)), label: mode.toLowerCase() }]);
   }
   const claimable = canClaim(m?.settlement, t?.account?.claimable ?? 0n, t?.account?.claimed ?? false);
   return <div className="mt-auto flex flex-col gap-3 border-t border-line p-3">
@@ -60,8 +61,8 @@ export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSn
     </label>
     <p className="text-xs text-fg-3">Available: {t ? atomsToUsdc(available, 6) : "—"}</p>
     <Button size="lg" variant="primary" disabled={busy || !!blocker} onClick={submit}>{busy ? "Transaction pending…" : blocker || `${mode} collateral`}</Button>
-    {mode === "Fund" && t && t.wallet + t.free === 0n && <p className="text-xs text-fg-3">Ask the testnet operator for test collateral. MON is also needed for gas.</p>}
-    {claimable && <Button size="lg" disabled={busy || owner.wrongChain} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "claimTrader", args: [owner.address], label: "claim settlement" }])}>Claim {atomsToUsdc(t!.account!.claimable)} {t?.assets.symbol ?? deployment.risk.collateralSymbol}</Button>}
+    {mode === "Fund" && t && t.wallet + t.free === 0n && <div className="grid gap-2"><Button disabled={busy || owner.wrongChain} onClick={() => owner.address && tx.run(owner.address, [{ address: deployment.risk.collateralToken, abi: faucetAbi, functionName: "mint", args: [owner.address, 1000_000000n], label: "get 1,000 test tokens" }])}>Get 1,000 test tokens</Button><p className="text-xs text-fg-3">Free test collateral with no monetary value. Test MON is needed for gas.</p></div>}
+    {claimable && <Button size="lg" disabled={busy || owner.wrongChain} onClick={() => owner.address && tx.run(owner.address, [{ ...ownerTrader(engine, owner.address).claim(), label: "claim settlement" }])}>Claim {atomsToUsdc(t!.account!.claimable)} {t?.assets.symbol ?? deployment.risk.collateralSymbol}</Button>}
     {t?.account?.claimed && <p className="text-xs text-fg-3">Settlement claimed.</p>}
     {mode === "Release" && release.isError && <ReadError message="Could not check the available release amount." retry={() => { void release.refetch(); }} />}
     <TxFeedback state={tx.state} />

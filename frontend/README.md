@@ -2,6 +2,16 @@
 
 ## Run locally
 
+The frontend selects the verified **2026-10-06 integrated Monad testnet deployment**
+in `src/config/public-manifest.json`. It includes the real factory, shared collateral
+vault and Polymarket event engine. The complete address/receipt inventory and service
+activation instructions are in [DEPLOYMENT_PROGRESS.md](../docs/integration/DEPLOYMENT_PROGRESS.md).
+The old manual fixture is historical. Never copy local chain addresses into this manifest.
+
+Run `npm ci` first. The browser SDK is installed from `../oracle/packages/oracle-sdk`;
+keep that directory in frontend build checkouts. `.npmrc` packs this local dependency
+so a separate Bun workspace install is not needed to build the frontend.
+
 Copy `.env.example` to `.env.local`, set the public `NEXT_PUBLIC_PRIVY_APP_ID`, then run `npm run dev` from this directory. Configure email, Google and wallet login in the Privy dashboard, and allow the localhost/deployed origins used by this app. Restart the dev server (or rebuild production) after changing public environment variables. Never put a Privy app secret in the frontend.
 
 Without an App ID, public market data remains available and wallet actions are disabled.
@@ -14,9 +24,27 @@ For a production preview on port 3100, stop any running `next start` process, ru
 - **Existing wallet users:** Choose wallet login in Privy's modal and authenticate the external wallet.
 - **Both on one account:** Open the address button in the header. Connect another existing wallet or create a Privy wallet, then select the wallet to trade from. Creating a wallet does not transfer funds or positions from another address.
 - **Trading:** Privy's wagmi integration supplies the selected wallet to the existing viem/wagmi contract flow: collateral approval, deposit, allocation and order placement. Simulation and explicit gas estimation happen before each wallet signature.
-- **Network:** Monad testnet (10143). The wallet menu offers network switching. Each trading wallet needs testnet MON for gas and the deployment's test collateral, supplied by the testnet operator.
+- **Network:** Monad testnet (10143). The wallet menu offers network switching. Each trading wallet needs testnet MON for gas. The account panel offers 1,000 free test collateral tokens when the wallet and free vault balance are empty; minting still requires wallet confirmation and gas.
 
 The frontend scopes balances to the selected address and pins writes to its account, connector and chain. Changing the wallet, network or login session stops the remaining steps of a transaction sequence. An already submitted transaction can still execute; check the explorer and balances before retrying a partially completed funding sequence.
+
+Owner calls use the browser SDK transaction builders. Simulation and estimation use
+one block; dependent calls wait for the exact canonical finalized receipt. Public
+reads check chain, runtime hashes, listing identities and factory/vault/oracle bindings.
+Deployless multicalls avoid requiring a Multicall3 deployment. Long/short leverage
+limits come from `leverageCaps()`; the 5× ceiling does not promise current availability.
+The optional margin lens only uses the included synthetic parameters after matching
+their canonical on-chain profile hash.
+
+History remains unavailable until a matching indexer is running. Set both
+`NEXT_PUBLIC_INDEXER_URL` and
+`NEXT_PUBLIC_INDEXER_DEPLOYMENT=10143:0x9be1d595ac9b6c1109a4dcaa056ce5efdaf06f45`.
+An old endpoint without this binding is ignored. Current state still comes from RPC.
+
+To regenerate ABIs, compile the oracle with its pinned integration profile and
+compile `contracts/src/lens/MarginLens.sol`, then run `npm run gen:abis` here.
+Generated ABIs are committed so CI does not require Solidity compilation for a
+frontend-only build.
 
 ## Appearance
 

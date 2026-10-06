@@ -1,9 +1,12 @@
+import { deployment } from "@/config/deployment";
 export type HistoryEvent = {
   id: string; engine: string; kind: string; block: number; logIndex: number; timestamp: string;
   txHash: `0x${string}`; owner?: string; trader?: string; maker?: string; taker?: string; orderId?: string; payload: string;
 };
 export type HistorySnapshot = { events: HistoryEvent[]; prices: HistoryEvent[]; progress: number; complete: boolean };
-export const INDEXER_URL = process.env.NEXT_PUBLIC_INDEXER_URL || "";
+// An old testnet endpoint must not silently supply history for a fresh deployment.
+export const INDEXER_URL = process.env.NEXT_PUBLIC_INDEXER_DEPLOYMENT?.toLowerCase() === `${deployment.chainId}:${deployment.oracle.marketRegistry.toLowerCase()}`
+  ? process.env.NEXT_PUBLIC_INDEXER_URL || "" : "";
 
 export async function indexerQuery<T>(query: string, variables: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
   if (!INDEXER_URL) throw new Error("Historical data is not connected yet.");

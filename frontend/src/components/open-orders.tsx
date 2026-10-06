@@ -1,6 +1,6 @@
 "use client";
 import type { Address } from "viem";
-import { engineAbi } from "@/abi/engine";
+import { ownerTrader } from "@/lib/trader";
 import { useOrders } from "@/lib/order-reads";
 import { useTx } from "@/lib/tx";
 import { lotsToClaims, tickToPrice } from "@/lib/units";
@@ -15,8 +15,7 @@ export function OpenOrders({ engine, traderId, block }: { engine: Address; trade
   const tx = useTx();
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
   const disabled = busy || owner.wrongChain || !q.data || q.isError;
-  const cancel = (id?: number) => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi,
-    functionName: id === undefined ? "cancelAll" : "cancel", args: id === undefined ? [] : [id], label: id === undefined ? "cancel all orders" : `cancel order ${id}` }]);
+  const cancel = (id?: number) => owner.address && tx.run(owner.address, [{ ...(id === undefined ? ownerTrader(engine, owner.address).cancelAll() : ownerTrader(engine, owner.address).cancel(id)), label: id === undefined ? "cancel all orders" : `cancel order ${id}` }]);
 
   if (!owner.connected) return <p className="p-4 text-sm text-fg-3">Log in to see your open orders.</p>;
   return <section aria-label="Open orders" className="min-w-0 p-3">

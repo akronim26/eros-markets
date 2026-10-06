@@ -12,6 +12,7 @@ import { deployment } from "@/config/deployment";
 
 import { client } from "./public-client";
 import { readAssets } from "./market-discovery";
+import { ensureDeployment, canonicalRead } from "./deployment-check";
 import { bookTicks } from "./book-depth";
 export { client };
 
@@ -27,7 +28,8 @@ export function useHead() {
   return useSticky(useQuery({
     queryKey: ["head"],
     queryFn: async () => {
-      const b = await client.getBlock({ blockTag: "latest" });
+      await ensureDeployment();
+      const b = await client.getBlock({ blockTag: "finalized" });
       return { number: b.number, timestamp: b.timestamp, at: Date.now() };
     },
     refetchInterval: 4000,
@@ -50,11 +52,11 @@ export function useMarket(engine: Address, block: bigint | undefined) {
   return useSticky(useQuery({
     queryKey: ["market", engine, block?.toString()],
     enabled: block !== undefined,
-    queryFn: async () => {
+    queryFn: async () => canonicalRead(block!, async () => {
       const c = { address: engine, abi: engineAbi } as const;
       const [
         active, halted, priceReady, risk, settlement, listing, bba, touch, depth, oi, participants,
-        epoch, tariff, funding, profile, reserve, capBase, slacks, liqBudget, maxFills, freshness,
+        epoch, tariff, funding, profile, reserve, capBase, slacks, liqBudget, maxFills, freshness, leverageCaps,
       ] = await client.multicall({
         blockNumber: block,
         allowFailure: false,
@@ -80,6 +82,7 @@ export function useMarket(engine: Address, block: bigint | undefined) {
           { ...c, functionName: "liquidationBlockBudget" },
           { ...c, functionName: "maxFills" },
           { ...c, functionName: "freshness" },
+          { ...c, functionName: "leverageCaps" },
         ],
       });
       return {
@@ -91,13 +94,14 @@ export function useMarket(engine: Address, block: bigint | undefined) {
         epoch: { id: epoch[0], start: epoch[1], end: epoch[2], rate: epoch[5], stopped: epoch[6] },
         tariff: { h0: tariff[0], h1: tariff[1], load: tariff[2] },
         fundingEnabled: funding, profile,
+        leverageCaps: { long: leverageCaps[0], short: leverageCaps[1] },
         reserve: { lots: reserve[0], cashQ: reserve[1] },
         reserveCapBaseQ: capBase,
         slacks: { s0: slacks[0], s1: slacks[1] },
         liqBudget: { cap: liqBudget[0], remaining: liqBudget[1] },
         maxFills, freshness: { freshThrough: freshness[0], movementRestricted: freshness[2] },
       };
-    },
+    }),
   }), engine.toLowerCase());
 }
 export type MarketSnapshot = NonNullable<ReturnType<typeof useMarket>["data"]>;
@@ -106,7 +110,7 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
   return useSticky(useQuery({
     queryKey: ["trader", engine, owner, block?.toString()],
     enabled: !!owner && block !== undefined,
-    queryFn: async () => {
+    queryFn: async () => canonicalRead(block!, async () => {
       const assets = await readAssets(engine, block!);
       const [traderId, free, wallet, allowance] = await client.multicall({
         blockNumber: block,
@@ -130,7 +134,7 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
         ],
       });
       return { block: block!, assets, traderId, free, wallet, allowance, account: { preview, riskView, claimable, claimed } };
-    },
+    }),
   }), `${engine.toLowerCase()}:${owner?.toLowerCase() ?? "disconnected"}`);
 }
 export type TraderSnapshot = NonNullable<ReturnType<typeof useTrader>["data"]>;

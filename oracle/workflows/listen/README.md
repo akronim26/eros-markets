@@ -36,8 +36,10 @@ The wrapper does not bypass the market's escalation or finality rules.
 
 `BROADCAST=0` executes without submitting reports. Use a **separate state directory**
 for this mode. `RUN_ONCE=1` performs one bounded intake/processing pass. `CRE_BIN`
-and `CRE_ENV_FILE` override the binary and env-file locations. Only `local-sim` on
-chain 10143 is supported. The public MLB demo uses `secrets.local-sim.yaml` and
+and `CRE_ENV_FILE` override the binary and env-file locations. `local-sim` selects
+the historical deployment; `TARGET=fresh-testnet` selects the verified 2026-10-06
+deployment. Both are restricted to chain 10143. Use a separate state directory
+when changing deployment/target. The public MLB demo uses `secrets.local-sim.yaml` and
 requires no SportsData API key. For private SportsData feeds, configure that key
 and select `../secrets.yaml` in the workflow target before running.
 

@@ -168,7 +168,7 @@ export function MarketInfo({ manifest, m }: { manifest: MarketManifest; m?: Mark
       </dl>
       <dl>
         <Row k="Template" v={TEMPLATE[l.template]} />
-        <Row k="Max leverage" v={l.deploymentCapX === 1n ? "1x, fully backed" : `up to ${l.deploymentCapX}x`} />
+        <Row k="Deployment ceiling" v={l.deploymentCapX === 1n ? "1x, fully backed" : `up to ${l.deploymentCapX}x`} />
         <Row k="Funding" v={m.fundingEnabled ? "on" : "off"} />
         <Row k="Order size" v={`${lotsToClaims(l.minOrderLots)} to ${lotsToClaims(l.maxOrderLots)} claims`} />
         <Row k="INVALID fallback" v={l.invalidRule.fallbackListed ? `${wadTo3(l.invalidRule.fallbackPriceWad)} after ${l.invalidRule.captureGraceSecs / 60n}m` : "none"} />

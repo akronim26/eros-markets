@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test": "tsx --test tests/*.test.mjs",
     "gen:abis": "node scripts/gen-abis.mjs",
     "automation": "node --env-file=.env.local --import tsx ../services/automation/worker.ts",
     "test:integration": "tsx --test tests/integration/*.test.ts",
@@ -18,6 +18,7 @@
     "automation:reconcile": "node --env-file=.env.local --import tsx scripts/reconcile-request.ts"
   },
   "dependencies": {
+    "@eros-oracle/oracle-sdk": "file:../oracle/packages/oracle-sdk",
     "@privy-io/node": "0.35.0",
     "@privy-io/react-auth": "3.47.0",
     "@privy-io/wagmi": "4.0.18",

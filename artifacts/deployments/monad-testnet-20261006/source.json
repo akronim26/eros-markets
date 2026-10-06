@@ -1,0 +1,95 @@
+{
+  "mode": "MONAD_TESTNET_EXTERNAL_SOURCE",
+  "schemaVersion": 1,
+  "chainId": 10143,
+  "marketId": "0xb75d77f847ad7eb057bc9249d711cdf235fabb941fe4586776f79653cc50cea4",
+  "sourceId": "0x6b0c459967996983036fc713f11fa5223ab71371bda6dbe77f64af62de9be9f5",
+  "sourceRulesHash": "0xa991e42a238f26552817977b1c6b694a604d9c404577ce54ec61b1a70c5f904e",
+  "indexSigner": "0xF18E60aAc27bfd927B51aE7Cb09BD7b9c2A52915",
+  "scheduledT": "1793505540",
+  "depthNLots": "1000000",
+  "maxSpreadWad": "50000000000000000",
+  "question": "US announces end of Iranian blockade by October 31, 2026?",
+  "description": "On July 13, 2026, Trump announced the United States would reinstate its naval blockade of Iran, targeting Iranian ships and customers.\n\nThis market will resolve to “Yes” if the United States government, or an authorized representative of the United States government, publicly and officially announces the end, termination, lifting, or suspension of the United States’ naval blockade on Iranian ships and ships of Iranian customers, between market creation and the specified date, 11:59 PM ET. Otherwise, this market will resolve to “No”.\n\nAn announcement qualifies if it communicates that the United States will generally cease blocking vessel traffic for Iranian ships and customers, including an announcement that the blockade will not take effect at all, even if some restrictions remain (for example, an imposition of fees). An announcement does not qualify if it reflects only a limited or partial change that stops short of a general end or suspension of the blockade, for example, an exemption for a specific vessel, cargo, or port.\n\nA qualifying announcement must be a declarative statement of the United States government’s present termination or suspension of the blockade, previously-unannounced prior termination or suspension of the blockade, or definitive decision to terminate or suspend the blockade.\n\nA qualifying announcement must clearly and unambiguously identify the end or suspension of the blockade. Statements that merely allude to, reference, or describe an end to the blockade, without clearly communicating it, do not qualify. The announcement need not use specific terminology or reference the end of a blockade by name; an announcement of a resumption of prior obligations, the maintenance of a status quo, or a return to a previously agreed baseline qualifies, provided the substantive policy of ending or suspending the blockade is clearly and unambiguously communicated.\n\nA qualifying announcement must be made through official channels, by an individual acting in an official capacity. Statements made incidentally or informally in a context not intended for official communication do not qualify.\n\nThe following do not qualify:\n\nAnonymous, unattributed, or leaked statements not confirmed as official;\nStatements by persons not authorized to speak for the United States government;\nThird-party speculation, analysis, or predictions that the United States government will announce or implement an end to the blockade;\nSatirical, fabricated, hacked, or impersonated communications; and\nStatements that describe a prospective, contingent, probable, or conditional end to the blockade rather than announcing a present and decided position.\n\nOnce a qualifying announcement is made, this market will resolve to “Yes” regardless of whether it is later reversed, or whether the blockade actually ends in practice.\n\nResolution will be based on official information from the United States government, including the President, the Department of Defense, the Department of State, and United States Central Command (CENTCOM), or the official representatives of the United States government.\n",
+  "resolutionSource": null,
+  "sourceHash": "0x66469ce51bbd11ddd08882070abd2aef3d68b4552178aa0cefa9b41a1bd12cc2",
+  "erosRulesHash": "0x4ee7f3278eca9ad9253a18ce15d3cf1cb3536aa8902022dee05fd65be3839600",
+  "config": {
+    "schemaVersion": "1",
+    "configVersion": "monad-integrated-demo-1",
+    "key": "live-3128888",
+    "category": "politics",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "699735",
+      "externalMarketId": "3128888",
+      "conditionId": "0xcee04ba47d02f6c64642369b34193c355f64de1b9ae425c71ea4efef1989d271",
+      "outcomeTokenId": "87712920673252297509200151045391015262449055764880659907762503287643101055970",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "authentic-vendor-ms-floor-diagnostic",
+      "quantityPolicyId": "claims-floor-total-diagnostic",
+      "quotePolicyId": "before-fee-vwap-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": "1793505540",
+    "poll": {
+      "intervalMs": 1000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 1000000
+    }
+  },
+  "rules": {
+    "schemaVersion": "1",
+    "venue": "polymarket",
+    "eventId": "699735",
+    "externalMarketId": "3128888",
+    "conditionId": "0xcee04ba47d02f6c64642369b34193c355f64de1b9ae425c71ea4efef1989d271",
+    "outcomeTokenId": "87712920673252297509200151045391015262449055764880659907762503287643101055970",
+    "outcomeLabel": "Yes",
+    "marketId": "0xb75d77f847ad7eb057bc9249d711cdf235fabb941fe4586776f79653cc50cea4",
+    "sourceId": "0x6b0c459967996983036fc713f11fa5223ab71371bda6dbe77f64af62de9be9f5",
+    "erosRulesHash": "0x4ee7f3278eca9ad9253a18ce15d3cf1cb3536aa8902022dee05fd65be3839600",
+    "externalRulesDigest": "0xc84e4ae1aa4a92e0e0ac90ea316ace0324a33e6302c7e6b4efa19b2a44007b88",
+    "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+    "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+    "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+    "failurePolicyHash": "0x0fa1db1edbc336046ff5259520ba63997b7a0493671fbb3b9047d6dbe755ac0d",
+    "scheduledT": "1793505540",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+  },
+  "preparedAtMs": "1791246145462",
+  "probe": {
+    "durationMs": 120870,
+    "captures": 120,
+    "advances": 21,
+    "maximumAdvanceGapMs": "11633"
+  },
+  "productionApproved": false,
+  "calibration": "SYNTHETIC_TEST_RISK_PARAMETERS_NOT_EMPIRICAL",
+  "resolution": {
+    "provider": "Polymarket Gamma",
+    "yesIndex": 0,
+    "statusRequired": "resolved",
+    "fractionalPayout": "review/invalid; no L1 binary report"
+  }
+}
