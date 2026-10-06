@@ -946,3 +946,28 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - A local merge commit completes the requested branch merge. No push or public
   transaction is performed. Deployment/frontend integration policies remain in
   `docs/integration/FRONTEND_TEAM_HANDOFF.md` and `DEPLOYMENT_RUNBOOK.md`.
+
+### 2026-10-06 — CI-04: build deployment artifacts before package tests
+
+- Investigated the failed oracle packages job on merged head `8f76670` (run
+  `37391302446`). The same failure appears in incoming run `37390379727`:
+  integrated-preflight tests load `RegistryBookRiskEngine.json`, but the packages
+  job never compiles it. The separate forge job cannot share its filesystem.
+- Added an integration-profile `forge build --skip test --skip script` before
+  package tests. Retained all test assertions and existing CI checks.
+- Reproduced the missing-artifact failure in a clean archive of `8f76670`, with
+  no environment files, dependencies or build outputs copied in. With pinned
+  Foundry 1.8.3 and Bun 1.3.13, the new build exits 0 and all 668 workspace tests
+  pass. Keeper and market-ops typechecks exit 0. Both independent CRE projects
+  install from frozen lockfiles, pass 21 tests combined, typecheck and compile
+  to WASM with exit 0. The outcome-path guard and actionlint also exit 0.
+- Evidence: `/tmp/eros-ci04-{repro,artifacts,packages,service-types}.log` and the
+  clean archive identified by `/tmp/eros-ci04-clean-path`. Validation was local
+  on macOS; the updated workflow has not yet run on GitHub. At the last check,
+  GitHub validation/indexer jobs passed and both long-running Forge jobs were
+  still in progress. No full-suite green result is claimed.
+- Changes remain local and uncommitted; nothing pushed or deployed. Reviewed
+  the deployment handoff: deterministic backend leverage/settlement evidence
+  exists, but frontend manifest/caps/SDK wiring, actual public signer roles and
+  funding, integrated deployment, persistent operators, and public wallet-flow
+  validation remain. Authentic-source leveraged endurance is still incomplete.
