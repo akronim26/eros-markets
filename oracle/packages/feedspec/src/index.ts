@@ -169,6 +169,10 @@ export function resolvePath(root: JNode, path: string): JNode | undefined {
     cur = cur.v.get(key)
     if (b >= 0) {
       for (const m of seg.slice(b).matchAll(/\[([0-9]+)\]/g)) {
+        // Some APIs (including Gamma's outcomePrices) return a JSON array inside
+        // a string. An explicit [index] may traverse that array; scalar strings
+        // retain their existing meaning. Reuse the bounded, exact-lexeme parser.
+        if (cur?.k === 'str' && cur.v.trimStart().startsWith('[')) cur = parseJson(cur.v)
         if (!cur || cur.k !== 'arr') return undefined
         cur = cur.v[Number(m[1])] // an index (<= 999,999), not a value
       }

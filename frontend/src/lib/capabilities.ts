@@ -1,9 +1,19 @@
 import { encodeAbiParameters, keccak256, type ContractFunctionArgs, type Hex } from "viem";
+import calibration from "@/config/risk-calibration.json";
 import { engineAbi } from "@/abi/engine";
 
 export type RiskParams = ContractFunctionArgs<typeof engineAbi, "pure", "profileHashOf">[0];
-// Add released calibration data here, keyed by its canonical hash. No guessed calibration.
-export const riskProfiles: Record<string, RiskParams> = {};
+// Exact published synthetic parameters. The canonical hash is checked before using the lens.
+const raw = calibration.riskParams;
+const envelope = (e: typeof raw.realized) => ({ hSecs: e.hSecs.map(BigInt), sigmaWad: e.sigmaWad.map(BigInt), validFrom: BigInt(e.validFrom), validUntil: BigInt(e.validUntil) });
+const profile: RiskParams = {
+  h0Secs: BigInt(raw.h0Secs), absorptionClaimsPerMin: BigInt(raw.absorptionClaimsPerMin), queueSecs: BigInt(raw.queueSecs),
+  hazard0WadPerDay: BigInt(raw.hazard0WadPerDay), hazard1WadPerDay: BigInt(raw.hazard1WadPerDay), epsilonWad: BigInt(raw.epsilonWad),
+  gammaWad: BigInt(raw.gammaWad), sWad: BigInt(raw.sWad), lambdaWadPerClaim: BigInt(raw.lambdaWadPerClaim),
+  template: raw.template, calibrated: raw.calibrated, deploymentCapX: BigInt(raw.deploymentCapX),
+  realized: envelope(raw.realized), templateEnv: envelope(raw.templateEnv),
+};
+export const riskProfiles: Record<string, RiskParams> = { [calibration.profileHash.toLowerCase()]: profile };
 const profileInputs = engineAbi.find((f) => f.type === "function" && f.name === "profileHashOf")!.inputs;
 export function verifiedProfile(hash: Hex, template: number, cap: bigint) {
   const p = riskProfiles[hash.toLowerCase()];

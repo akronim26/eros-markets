@@ -971,3 +971,35 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   exists, but frontend manifest/caps/SDK wiring, actual public signer roles and
   funding, integrated deployment, persistent operators, and public wallet-flow
   validation remain. Authentic-source leveraged endurance is still incomplete.
+
+
+### 2026-10-06 — fresh public deployment and frontend integration
+
+- User authorized a fresh Monad testnet deployment with the root `.env` key,
+  selected a real Polymarket event, and deferred hosting until after wiring.
+  No Git push or commit was made.
+- Deployed and verified the integrated factory/shared vault, oracle/UMA testnet
+  stack and first engine through 39 finalized deployment/activation transactions.
+  Deployment gas cost: 10.10233296 MON. Published credential-free manifests,
+  canonical receipts, external-source identity and exact synthetic calibration.
+- Frontend selects the fresh manifest, validates chain/code/bindings, reads live
+  directional caps, offers integer leverage sizing, uses SDK owner builders,
+  waits for exact canonical finalized receipts, and isolates unmatched history.
+  Test collateral faucet and accurate testnet disclosures are connected.
+- Two independently funded owners passed faucet/approve/deposit/allocate on the
+  public contracts. One bounded public epoch rollover finalized. A five-minute
+  source run recorded nine finalized observations; journal recovery finalized
+  its existing tenth transaction with no unresolved signed transaction left.
+  Contiguous pricing and real-source leveraged fills remain unproven; stale
+  pricing correctly blocked a rehearsal order and release. No cutoff was relaxed.
+- Fresh CRE CLI FeedSpec simulation succeeded with NOT_FINAL for the ongoing
+  Polymarket event. No new-market terminal resolution or CRE network deployment
+  is claimed. Fresh listener and Envio configuration is prepared, hosting absent.
+- Validation: clean Node 22 npm ci, frontend production build, 35 frontend unit
+  + 12 integration tests, 248 affected oracle/SDK/CRE/market-ops tests, 38 indexer
+  tests/codegen/typecheck, five deployment-runner tests and focused typecheck.
+  Browser checks: 320/768/1024/1440px light/dark, no overflow/runtime errors/failed
+  resources, no axe violations on the loaded dark terminal; Privy modal opens.
+  Real authenticated Privy contract signing is not yet validated.
+- Full progress, artifacts and remaining operational gates:
+  `docs/integration/DEPLOYMENT_PROGRESS.md` and `FRESH_TESTNET_SERVICES.md`.

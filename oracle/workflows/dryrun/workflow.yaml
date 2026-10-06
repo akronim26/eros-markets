@@ -7,3 +7,11 @@ local-sim:
     workflow-path: "./main.ts"
     config-path: "./config.sample.json"
     secrets-path: "../secrets.yaml"
+
+fresh-testnet:
+  user-workflow:
+    workflow-name: "eros-dryrun-sim"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.fresh-testnet.json"
+    secrets-path: "../secrets.local-sim.yaml"

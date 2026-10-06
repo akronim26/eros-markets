@@ -27,7 +27,7 @@ function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now
       <td className="tnum pr-6 text-right text-sm">{d?.risk.markAvailable ? <span className="text-signal-text"><Num value={wadTo3(d.risk.markWad)} /></span> : <span className="text-fg-3">unavailable</span>}</td>
       <td className="tnum pr-6 text-right text-sm">{d?.risk.indexAvailable ? <Num value={wadTo3(d.risk.indexWad)} /> : <span className="text-fg-3">unavailable</span>}</td>
       <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? lotsToClaims(d.oiLots) : "—"}</td>
-      <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? (d.listing.deploymentCapX === 1n ? "1x" : `${d.listing.deploymentCapX}x`) : "—"}</td>
+      <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? `${d.leverageCaps.long}× / ${d.leverageCaps.short}×` : "—"}</td>
       <td className="tnum pr-6 text-right text-sm text-fg">{toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"}</td>
       <td className="pr-4 text-right"><span className="inline-flex h-7 w-7 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={14} strokeWidth={2} /></span></td>
     </tr>
@@ -44,7 +44,7 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
     ["Mark", d?.risk.markAvailable ? <Num value={wadTo3(d.risk.markWad)} /> : "unavailable"],
     ["Index", d?.risk.indexAvailable ? <Num value={wadTo3(d.risk.indexWad)} /> : "unavailable"],
     ["Open interest", d ? lotsToClaims(d.oiLots) : "—"],
-    ["Leverage", d ? (d.listing.deploymentCapX === 1n ? "1x" : `${d.listing.deploymentCapX}x`) : "—"],
+    ["Long / short limit", d ? `${d.leverageCaps.long}× / ${d.leverageCaps.short}×` : "—"],
     ["To halt", toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"],
   ];
   return (
@@ -109,7 +109,7 @@ export function MarketsIndex() {
               <th className="pr-6 text-right font-medium">Mark</th>
               <th className="pr-6 text-right font-medium">Index</th>
               <th className="pr-6 text-right font-medium">Open interest</th>
-              <th className="pr-6 text-right font-medium">Leverage</th>
+              <th className="pr-6 text-right font-medium">Long / short limit</th>
               <th className="pr-6 text-right font-medium">To halt</th>
               <th className="pr-4" aria-label="Open" />
             </tr>

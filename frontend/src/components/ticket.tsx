@@ -7,7 +7,8 @@ import { engineAbi } from "@/abi/engine";
 import { client, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { usePermissions } from "@/lib/privy-api";
 import { expiryBlock, type CloseIntent } from "@/lib/trade-intent";
-import { directionalCap, liveCalibration, verifiedProfile } from "@/lib/capabilities";
+import { ownerTrader } from "@/lib/trader";
+import { leverageLots } from "@/lib/leverage";
 import { qToMoney } from "@/lib/units";
 import { REJECT, ORDER_KIND } from "@/lib/enums";
 import { useTx, summarizeOrder } from "@/lib/tx";
@@ -49,8 +50,10 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
   useEffect(() => { if (intent) { setSide(intent.side); setSize(intent.size); setPrice(intent.price); setReduceOnly(true); setKind(1); } }, [intent]);
   let expires = 0, expiryError = "";
   try { expires = expiryBlock(expiry, market?.block ?? 0n); } catch (e) { expiryError = (e as Error).message; }
-  const profile = market && verifiedProfile(market.profile.profileHash, market.listing.template, market.listing.deploymentCapX);
-  const cap = market ? directionalCap(market.listing.template, side === "buy", liveCalibration(profile, market.risk.asOfTime), market.listing.deploymentCapX) : 1n;
+  const cap = market?.leverageCaps[side === "buy" ? "long" : "short"];
+  const [targetLeverage, setTargetLeverage] = useState<number>();
+  useEffect(() => { setTargetLeverage(undefined); }, [cap]);
+  const canSizeLeverage = !!trader?.account && trader.account.preview.positionLots === 0n && !reduceOnly && trader.account.preview.markEquityQ > 0n;
 
 
   const parsed = useMemo((): Parsed => {
@@ -112,10 +115,7 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
       owner.address,
       [
         {
-          address: engine,
-          abi: engineAbi,
-          functionName: "placeOrder",
-          args: [{ kind, isBuy: side === "buy", reduceOnly, tick: parsed.tick, size: parsed.lots, maxFills: market.maxFills, expiryBlock: expires }],
+          ...ownerTrader(engine, owner.address).placeOrder({ kind, isBuy: side === "buy", reduceOnly, tick: parsed.tick, size: parsed.lots, maxFills: market.maxFills, expiryBlock: expires }),
           label: "order",
         },
       ],
@@ -135,7 +135,7 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
             <button
               key={s}
               aria-pressed={side === s}
-              onClick={() => setSide(s)}
+              onClick={() => { setSide(s); setTargetLeverage(undefined); }}
               className={cx(
                 "h-9 text-sm font-semibold transition-colors duration-150",
                 side === s
@@ -174,7 +174,7 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
               </button>
             )}
           </span>
-          <input className={field} inputMode="decimal" placeholder="0.000" value={price} {...validation.props("price")} onChange={(e) => setPrice(e.target.value)} />
+          <input className={field} inputMode="decimal" placeholder="0.000" value={price} {...validation.props("price")} onChange={(e) => { setPrice(e.target.value); setTargetLeverage(undefined); }} />
           <FieldError id={validation.errorId("price")}>{validation.message("price")}</FieldError>
         </label>
 
@@ -182,14 +182,25 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
           <span className="label flex justify-between text-fg-3">
             <span>Size (claims)</span>
             {preview.data && preview.data.acceptedCapLots > 0n && (
-              <button className="text-fg-2 hover:text-fg" onClick={() => setSize(lotsToClaims(preview.data!.acceptedCapLots))}>
+              <button className="text-fg-2 hover:text-fg" onClick={() => { setSize(lotsToClaims(preview.data!.acceptedCapLots)); setTargetLeverage(undefined); }}>
                 Max {lotsToClaims(preview.data.acceptedCapLots)}
               </button>
             )}
           </span>
-          <input className={field} inputMode="decimal" placeholder="0.000" value={size} {...validation.props("size")} onChange={(e) => setSize(e.target.value)} />
+          <input className={field} inputMode="decimal" placeholder="0.000" value={size} {...validation.props("size")} onChange={(e) => { setSize(e.target.value); setTargetLeverage(undefined); }} />
           <FieldError id={validation.errorId("size")}>{validation.message("size")}</FieldError>
         </label>
+
+        <div className="grid gap-2">
+          <p className="label flex justify-between text-fg-3"><span>Target leverage</span><span>{cap === undefined ? "Reading limit…" : `Current limit ${cap}×`}</span></p>
+          <div className="grid grid-cols-5 gap-1" role="group" aria-label="Target leverage">
+            {[1, 2, 3, 4, 5].map((x) => <button key={x} type="button" aria-pressed={targetLeverage === x}
+              disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || !price}
+              className={cx("h-9 border text-sm tnum transition-colors disabled:cursor-not-allowed disabled:opacity-35", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong text-fg-2 hover:bg-press")}
+              onClick={() => { try { const lots = leverageLots(trader!.account!.preview.markEquityQ, parsePriceToTick(price), side === "buy", x); setSize(lotsToClaims(lots)); setTargetLeverage(x); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
+          </div>
+          <p className="text-xs leading-relaxed text-fg-3">{!canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : "Sizes a new position using market equity. Fees, fills and risk checks determine actual leverage."} Limits adjust with price readiness and risk.</p>
+        </div>
 
         <label className="label flex items-center gap-2 text-fg-2">
           <span className="relative flex h-3.5 w-3.5 shrink-0 items-center justify-center">
@@ -207,14 +218,11 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
         <details className="text-xs text-fg-2">
           <summary className="label cursor-pointer">Advanced order</summary>
           <label className="mt-3 flex flex-col gap-1.5">Expires at block (optional)<input className={field} inputMode="numeric" placeholder="Good until cancelled" value={expiry} {...validation.props("expiry")} onChange={(e) => setExpiry(e.target.value)} /><FieldError id={validation.errorId("expiry")}>{validation.message("expiry")}</FieldError></label>
-          {cap > 1n && trader?.account?.preview.positionLots === 0n && trader.account.preview.id.markAvailable && <label className="mt-3 flex flex-col gap-1.5">Target leverage at limit (estimate)
-            <input type="range" min="1" max={Number(cap)} step="0.1" defaultValue="1" onChange={(e) => { if (!parsed.ok || !trader.account) return; const ticks = BigInt(side === "buy" ? parsed.tick : 1000 - parsed.tick); const lots = trader.account.preview.markEquityQ * BigInt(Math.round(Number(e.target.value) * 10)) / (10n * ticks * 10n ** 18n); if (lots > 0n) setSize(lotsToClaims(lots)); }} />
-          </label>}
           {preview.data && <dl className="mt-2"><Row k="Required initial margin" v={preview.data.fullBackingRequired ? "Fully backed" : qToMoney(preview.data.requiredImQ).usdc} /><Row k="Equity after reservations" v={preview.data.id.markAvailable ? qToMoney(preview.data.eMinQ).usdc : "No mark"} /><Row k="Deficit if NO / YES" v={`${qToMoney(preview.data.d0AfterQ).usdc} / ${qToMoney(preview.data.d1AfterQ).usdc}`} /><Row k="Reserve coverage" v={preview.data.marketCoverageAfter ? "Covered" : "Unavailable"} /></dl>}
         </details>
 
         <dl className="hair-b -mx-3 border-t border-line px-3 py-1">
-          <Row k="Full-backing amount" v={cost !== undefined ? `${atomsToUsdc(cost, 2)}` : "—"} hint="At the current 1x profile: buy = size × price, sell = size × (1 − price); fees shown separately" />
+          <Row k="Full-backing amount" v={cost !== undefined ? `${atomsToUsdc(cost, 2)}` : "—"} hint="Buy = size × price; sell = size × (1 − price). Initial margin can be lower when leverage is available; fees are separate." />
           <Row k={side === "buy" ? "Gross payoff if YES" : "Gross payoff if NO"} v={payout !== undefined ? atomsToUsdc(payout, 2) : "—"} />
           <Row k="Fee reserved" v={preview.data ? atomsToUsdc(preview.data.feeCapQ / 10n ** 18n, 6) : "—"} />
           <Row k="Max admissible" v={preview.data ? `${lotsToClaims(preview.data.acceptedCapLots)} claims` : traderId === 0 ? "fund to preview" : "—"} />

@@ -1,0 +1,72 @@
+{
+  "mode": "MONAD_TESTNET_READ_ONLY",
+  "status": "ENGINE_PINS_VERIFIED",
+  "chainId": "10143",
+  "blockTag": "finalized",
+  "block": {
+    "number": "68548193",
+    "hash": "0xa3d50ce600a82300116524f9e79daad94ce795a5ca2ca8cf10e314a0122b0842",
+    "timestamp": "1791247799"
+  },
+  "checkedAtMs": "1791247802378",
+  "engine": {
+    "address": "0xcDf0EA81497895155E2911443f46157c00F965Db",
+    "engineCodeHash": "0xf5c31a3877143372dcaef97d6bd2f30c2cc5a46a2f3ff5cfd7f5756807466596",
+    "abiHash": "0x3e3af1c4b7db5ef077b170f7a63d5b89cb8558f54dc5d0c58061ae04c2aaa60a",
+    "listing": {
+      "marketId": "0xb75d77f847ad7eb057bc9249d711cdf235fabb941fe4586776f79653cc50cea4",
+      "token": "0x0e0279B152845972479c66f933835c92582E1dC4",
+      "registry": "0x9bE1d595Ac9B6c1109a4dcaa056CE5eFDAF06F45",
+      "resolutionAuthority": "0x2085DaD31c8Ee03025DD07a4EdC103401d493D87",
+      "monitor": "0x498DF93DeE8B34B27e849131B05ee77830A5c5b9",
+      "governance": "0xF21d785F229d40115F20958A08F94E921D9F2834",
+      "scheduledT": "1793505540",
+      "listedAt": "1791247334",
+      "sourceHash": "0xdc3fcc3b665e5447d77ff85aa7554530588b782c4f550641914f8809c74793f0",
+      "rulesHash": "0x4ee7f3278eca9ad9253a18ce15d3cf1cb3536aa8902022dee05fd65be3839600",
+      "invalidRule": {
+        "fallbackListed": true,
+        "captureGraceSecs": "3600",
+        "fallbackPriceWad": "500000000000000000",
+        "voidSecs": "2592000"
+      },
+      "template": 0,
+      "deploymentCapX": "5",
+      "maxTraders": 1024,
+      "indexSourceId": "0x6b0c459967996983036fc713f11fa5223ab71371bda6dbe77f64af62de9be9f5",
+      "indexSigner": "0xF18E60aAc27bfd927B51aE7Cb09BD7b9c2A52915",
+      "indexRulesHash": "0xa991e42a238f26552817977b1c6b694a604d9c404577ce54ec61b1a70c5f904e",
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "bootstrapBandWad": "50000000000000000",
+      "minOrderLots": "1",
+      "maxOrderLots": "4294967295",
+      "maxLiqLotsPerBlock": "100000",
+      "fundingEnabled": false
+    },
+    "sourceState": {
+      "signer": "0xF18E60aAc27bfd927B51aE7Cb09BD7b9c2A52915",
+      "rulesHash": "0xa991e42a238f26552817977b1c6b694a604d9c404577ce54ec61b1a70c5f904e",
+      "lastSequence": "0",
+      "lastObservedAt": "0",
+      "configured": true
+    },
+    "lifecycle": {
+      "chainId": "10143",
+      "engine": "0xcDf0EA81497895155E2911443f46157c00F965Db",
+      "marketId": "0xb75d77f847ad7eb057bc9249d711cdf235fabb941fe4586776f79653cc50cea4",
+      "sourceId": "0x6b0c459967996983036fc713f11fa5223ab71371bda6dbe77f64af62de9be9f5",
+      "engineCodeHash": "0xf5c31a3877143372dcaef97d6bd2f30c2cc5a46a2f3ff5cfd7f5756807466596",
+      "rulesHash": "0xa991e42a238f26552817977b1c6b694a604d9c404577ce54ec61b1a70c5f904e",
+      "scheduledT": "1793505540",
+      "halted": false,
+      "blockNumber": "68548193",
+      "blockHash": "0xa3d50ce600a82300116524f9e79daad94ce795a5ca2ca8cf10e314a0122b0842",
+      "blockTimestamp": "1791247799",
+      "canonical": true
+    }
+  },
+  "operationalOutput": false,
+  "signaturesProduced": 0,
+  "transactionsSent": 0
+}

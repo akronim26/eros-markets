@@ -192,7 +192,7 @@ function LiveMarket() {
       <h2 className="mt-6 text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Explore the testnet build</h2>
       <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-fg-2">
         Inspect the order book, connect a wallet, and follow the market lifecycle on Monad.
-        The current deployment is a fixture market for testing; its live status appears below.
+        Explore a real Polymarket event with test collateral. Leverage depends on live prices and risk limits.
       </p>
       <div className="frame mt-6 grid grid-cols-1 bg-ground md:grid-cols-2">
         <TerminalSys engine={ENGINE} market={m} readError={head.isError || market.isError} />
@@ -266,7 +266,7 @@ function LiveTicker() {
     "Tick 0.001",
     "Lot 0.001 claim",
     "Settlement: YES 1 / NO 0",
-    "Test collateral / fully backed 1x",
+    "Test collateral / dynamic leverage up to 5×",
     "Chain 10143",
   ];
   const row = [...items, ...items];

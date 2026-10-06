@@ -1,0 +1,30 @@
+Initializing...
+Loading settings...
+! Using default private key for chain write simulation. To use your own key, set CRE_ETH_PRIVATE_KEY in your .env file or system environment.
+Checking RPC connectivity...
+Compiling workflow...
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 5f309364e9f6cf57e28c4827d94fe895220fe4a233897a9b5c14219dfee33a72
+  Config hash: 9208c611fe696483d995cd7d849239d2fa4b51287eb365d663fc1a7d9bc1e685
+2026-10-06T06:31:09Z [SIMULATION] Simulator Initialized
+
+2026-10-06T06:31:09Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-10-06T06:31:09Z [USER LOG] dryrun https://gamma-api.polymarket.com/markets/3128888: NOT_READY|0x0000000000000000000000000000000000000000000000000000000000000000|NOT_FINAL
+
+✓ Workflow Simulation Result:
+"NOT_READY|0x0000000000000000000000000000000000000000000000000000000000000000|NOT_FINAL"
+
+2026-10-06T06:31:09Z [SIMULATION] Execution finished signal received
+2026-10-06T06:31:09Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯
+
+⚠️  Update available! You’re running 1.36.0, but 1.37.0 is the latest.
+Run `cre update` or visit https://github.com/smartcontractkit/cre-cli/releases to upgrade.
+

@@ -7,11 +7,11 @@ import { enqueue, nextRange, receiptIndex, validateCheckpoint, type Checkpoint, 
 
 const workflows = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const target = process.env.TARGET ?? 'local-sim'
-if (target !== 'local-sim') throw new Error('This listener is for testnet local-sim only')
+if (!['local-sim', 'fresh-testnet'].includes(target)) throw new Error('This listener only supports configured testnet simulation targets')
 const broadcast = process.env.BROADCAST !== '0'
 const rpc = process.env.MONAD_TESTNET_RPC
 if (!rpc) throw new Error('MONAD_TESTNET_RPC is required (load workflows/.env)')
-const cfg = JSON.parse(readFileSync(join(workflows, 'resolution/config.local-sim.json'), 'utf8'))
+const cfg = JSON.parse(readFileSync(join(workflows, `resolution/config.${target}.json`), 'utf8'))
 const oracle = cfg.oracle as Hex
 const stateDir = resolve(process.env.STATE_DIR ?? join(workflows, 'listen/logs'))
 const envFile = resolve(process.env.CRE_ENV_FILE ?? join(workflows, '.env'))
