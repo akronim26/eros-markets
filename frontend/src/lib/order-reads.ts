@@ -7,6 +7,7 @@ import { chain, LOG_BLOCK_CAP } from "@/config/chain";
 import { client } from "./reads";
 import { orderStatus, rememberedOrders, rememberOrders } from "./orders";
 import { useHistory } from "./history-reads";
+import { canonicalRead } from "./deployment-check";
 
 const placed = parseAbiItem("event OrderPlaced(uint32 indexed id, uint32 indexed trader, uint16 tick, uint64 size, uint8 flags, uint32 expiryBlock)");
 
@@ -15,7 +16,7 @@ export function useOrders(engine: Address, owner: Address | undefined, traderId:
   return useQuery({
     queryKey: ["orders", engine, owner, traderId, block?.toString(), history.dataUpdatedAt],
     enabled: !!owner && traderId !== undefined && block !== undefined,
-    queryFn: async () => {
+    queryFn: async () => canonicalRead(block!, async () => {
       if (!traderId) return { block: block!, complete: true, orders: [] };
       const recent = await client.getLogs({ address: engine, event: placed, args: { trader: traderId },
         fromBlock: block! >= LOG_BLOCK_CAP ? block! - LOG_BLOCK_CAP + 1n : 0n, toBlock: block! });
@@ -31,6 +32,6 @@ export function useOrders(engine: Address, owner: Address | undefined, traderId:
       const context = { traderId, block: block!, marketEpoch, accountEpoch: account.orderEpoch, positionVersion: account.positionVersion };
       return { block: block!, complete: !!history.data?.complete && !history.isError && BigInt(history.data.progress) + LOG_BLOCK_CAP >= block!, orders: values.map((order, i) => ({ id: ids[i], ...order, status: orderStatus(ids[i], order, context) }))
         .filter((order) => order.status === "live" || order.status === "stale") };
-    },
+    }),
   });
 }

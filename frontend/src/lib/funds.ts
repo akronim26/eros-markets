@@ -15,6 +15,7 @@ export function atomsToInput(atoms: bigint) {
   return `${atoms / 1_000_000n}.${(atoms % 1_000_000n).toString().padStart(6, "0")}`;
 }
 
-export function canClaim(status: { halted: boolean; claimsEnabled: boolean; recoveryRequired: boolean } | undefined, amount: bigint, claimed: boolean) {
-  return !!status?.halted && status.claimsEnabled && !status.recoveryRequired && amount > 0n && !claimed;
+export function canClaim(status: { halted: boolean; claimsEnabled: boolean; recoveryRequired: boolean } | undefined, amount: bigint, _traderClaimed: boolean) {
+  // Reserve redemption can credit a second owner claim after the trader payout.
+  return !!status?.halted && status.claimsEnabled && !status.recoveryRequired && amount > 0n;
 }

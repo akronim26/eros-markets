@@ -5,12 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Check, ArrowUpRight } from "lucide-react";
 import type { Hash } from "viem";
 import { client } from "@/lib/reads";
+import { canonicalFinalizedReceipt } from "@/lib/finality";
+import { ensureDeployment } from "@/lib/deployment-check";
 import { explorerTx } from "@/config/chain";
 import { PendingState, ReadError } from "./feedback";
 
 export function ThankYou({ hash }: { hash?: string }) {
   const valid = !!hash && /^0x[\da-fA-F]{64}$/.test(hash);
-  const receipt = useQuery({ queryKey: ["confirmation-receipt", hash], enabled: valid, queryFn: () => client.getTransactionReceipt({ hash: hash as Hash }), retry: 1, staleTime: 30000 });
+  const receipt = useQuery({ queryKey: ["confirmation-receipt", hash], enabled: valid, queryFn: async () => { await ensureDeployment(); return canonicalFinalizedReceipt(client, hash as Hash); }, retry: 1, staleTime: 30000 });
   const confirmed = receipt.data?.status === "success";
   return <main className="mx-auto flex min-h-[70vh] max-w-[1280px] items-center px-4 py-12 md:px-8 md:py-20">
     <div className="grid w-full gap-10 border-y border-line-strong py-10 md:grid-cols-[minmax(0,1fr)_minmax(240px,0.65fr)] md:items-center md:gap-16">

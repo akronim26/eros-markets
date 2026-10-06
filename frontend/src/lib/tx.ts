@@ -16,13 +16,14 @@ import { privyRequest } from "./privy-api";
 import { rememberOrders } from "./orders";
 import { ensureDeployment } from "./deployment-check";
 import { finalizedOwnerReceipt } from "./finality";
+import { lockWalletTransaction } from "./transaction-lock";
 
 export type TxState =
   | { status: "idle" }
   | { status: "pending"; step: string }
   | { status: "sent"; hash: Hash; step: string }
   | { status: "done"; hash: Hash; summary: string; tone: "bid" | "ask" | "neutral" }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string; hash?: Hash };
 
 /** Decode a revert into the contract's own error name (frontend.md §7.2). */
 export function revertMessage(e: unknown): string {
@@ -34,7 +35,7 @@ export function revertMessage(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string; account?: Address; chainId?: number; validate?: () => Promise<void> };
+type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string; account?: Address; chainId?: number; validate?: (block: bigint) => Promise<void> };
 
 /** preview → simulate → explicit gas (estimate × 1.10, Monad charges the limit) → send → receipt. */
 export function useTx() {
@@ -53,28 +54,34 @@ export function useTx() {
     const setState = (state: TxState) => setResult({ scope, state });
     let last: Hash | undefined;
     let stop: (() => void) | undefined;
+    let unlock: (() => void) | undefined;
     try {
       const guard = createWalletGuard(getSnapshot, account, chain.id);
+      unlock = lockWalletTransaction(chain.id, account);
+      // Subscribe before any await so switching away and back during deployment
+      // verification also permanently invalidates this sequence.
+      stop = config.subscribe((s) => s, guard.observe);
       await ensureDeployment();
       guard.assertCurrent();
       const connector = getConnection(config).connector!;
-      // Latch account/network changes, including switching away and back while a wallet prompt is open.
-      stop = config.subscribe((s) => s, guard.observe);
       await runWalletCalls(calls, {
         assertCurrent: guard.assertCurrent,
         prepare: async (c) => {
           setState({ status: "pending", step: `Simulating ${c.label}` });
           if ((c.account && c.account.toLowerCase() !== account.toLowerCase()) || (c.chainId && c.chainId !== chain.id)) throw new Error("Transaction belongs to a different wallet or network.");
           if (await client.getChainId() !== chain.id) throw new Error("RPC network changed. Remaining steps were stopped.");
-          await c.validate?.();
           const block = await client.getBlock();
+          if (Math.abs(Date.now() - Number(block.timestamp) * 1000) > 30000) throw new Error("RPC head is stale. Refresh before signing.");
+          await c.validate?.(block.number);
           const sim = await client.simulateContract({ ...c, account, blockNumber: block.number } as never);
           guard.assertCurrent();
           const gas = await client.estimateContractGas({ ...c, account, blockNumber: block.number } as never);
+          const gasLimit = (gas * 110n + 99n) / 100n;
+          if (gasLimit > 30000000n) throw new Error("This action exceeds the transaction gas limit. Use a smaller batch.");
           if ((await client.getBlock({ blockNumber: block.number })).hash !== block.hash) throw new Error("The preview block changed. Refresh and try again.");
           const [balance, gasPrice] = await Promise.all([client.getBalance({ address: account }), client.getGasPrice()]);
-          if (balance < gas * 110n / 100n * gasPrice) throw new Error("Insufficient testnet MON for estimated gas. Open your wallet menu and choose Get test MON.");
-          return { request: (sim as { request: object }).request, gas };
+          if (balance < gasLimit * gasPrice) throw new Error("Insufficient testnet MON for estimated gas. Open your wallet menu and choose Get test MON.");
+          return { request: (sim as { request: object }).request, gas: gasLimit };
         },
         send: async ({ request, gas }, c) => {
           setState({ status: "pending", step: `Confirm ${c.label} in your wallet` });
@@ -86,7 +93,7 @@ export function useTx() {
             const response = await privyRequest<{ hash: Hash }>("/api/trade", { wallet: account, engine: c.address, previewBlock: delegated.previewBlock.toString(), clientNonce: crypto.randomUUID(), action: c.functionName,
               ...(c.functionName === "placeOrder" ? { place: c.args?.[0] } : c.functionName === "cancel" ? { orderId: c.args?.[0] } : {}) }, guard.assertCurrent);
             hash = response.hash;
-          } else hash = await writeContract(config, { ...request, account, connector, chainId: chain.id, gas: (gas * 110n) / 100n } as never);
+          } else hash = await writeContract(config, { ...request, account, connector, chainId: chain.id, gas } as never);
           last = hash;
           return hash;
         },
@@ -104,12 +111,12 @@ export function useTx() {
         },
       });
     } catch (e) {
-      setState({ status: "error", message: revertMessage(e) + (last ? ` (last tx ${last.slice(0, 10)}…)` : "") });
+      setState({ status: "error", message: revertMessage(e), ...(last ? { hash: last } : {}) });
     } finally {
       stop?.();
-      running.current = false;
       // Refresh even after a partial sequence: an approval or deposit may already have succeeded.
-      if (last) await qc.invalidateQueries();
+      try { if (last) await qc.invalidateQueries(); }
+      finally { unlock?.(); running.current = false; }
     }
   }
 

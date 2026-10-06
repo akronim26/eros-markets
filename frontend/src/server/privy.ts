@@ -25,7 +25,7 @@ export async function authenticate(request: Request) {
 export async function ownedWallet(userId: string, address: string) {
   if (!isAddress(address)) throw new Error("Invalid wallet address.");
   const user = await privy().users()._get(userId);
-  const account = user.linked_accounts.find((a) => a.type === "wallet" && a.chain_type === "ethereum" && a.address.toLowerCase() === address.toLowerCase() && a.wallet_client_type === "privy" && "id" in a && a.id);
+  const account = user.linked_accounts.find((a) => a.type === "wallet" && a.chain_type === "ethereum" && a.address.toLowerCase() === address.toLowerCase() && ["privy", "privy-v2"].includes(a.wallet_client_type ?? "") && "id" in a && a.id);
   if (!account || !("id" in account) || !account.id) throw new Error("The selected embedded wallet does not belong to this user.");
   const wallet = await privy().wallets().get(account.id);
   if (wallet.address.toLowerCase() !== address.toLowerCase() || wallet.chain_type !== "ethereum" || wallet.archived_at) throw new Error("Wallet unavailable.");

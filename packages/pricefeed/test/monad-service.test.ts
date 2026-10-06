@@ -3,12 +3,20 @@ import { test } from 'node:test';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { parseTestnetRunPolicy, runMonadTestnetService } from '../src/monad-service.js';
+import { parseTestnetRunPolicy, runMonadTestnetService, testnetPublicationInterval } from '../src/monad-service.js';
 import { config, reviewed } from './publication-fixture.js';
 
 const raw={schemaVersion:'1',sender:'0x'+'12'.repeat(20),relay:{gasCap:'800000',maxFeePerGas:'150000000000',
   maxPriorityFeePerGas:'2000000000',maxCostWei:'120000000000000000',headroomMs:'5000',confirmations:'1',
   leaseMs:'120000',timeoutMs:10000,maxAttempts:3},budget:{maxTransactions:3,totalMaxCostWei:'360000000000000000'}};
+test('testnet publication cadence is explicit and bounded without changing the default',()=>{
+  assert.equal(testnetPublicationInterval(1000),20000);
+  assert.equal(testnetPublicationInterval(1000,5000),5000);
+  assert.equal(testnetPublicationInterval(25000),25000);
+  for(const interval of [0,999,30001,NaN,Infinity,1500.5])
+    assert.throws(()=>testnetPublicationInterval(1000,interval),/BAD_TESTNET_PUBLICATION_INTERVAL/);
+  assert.throws(()=>testnetPublicationInterval(5000,1000),/BAD_TESTNET_PUBLICATION_INTERVAL/);
+});
 test('testnet pilot policy rejects unsafe ceilings, latest-style confirmation counts and missing limits',()=>{
   const parsed=parseTestnetRunPolicy(raw);assert.equal(parsed.budget.totalMaxCostWei,360000000000000000n);
   assert.equal(parseTestnetRunPolicy({...raw,relay:{...raw.relay,gasSafetyMarginBps:'1000'}}).relay.gasSafetyMarginBps,1000n);

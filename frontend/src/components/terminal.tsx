@@ -90,9 +90,9 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
         <DeadlineStrip m={md} now={head.data?.timestamp} />
         <div className="flex flex-col lg:hidden">
           <div className="hair-b">
-            <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} />
+            <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} readUnavailable={head.isError || m.isError || t.isError} />
           </div>
-          <AccountPanel engine={manifest.engine} m={md} t={t.data} />
+          <AccountPanel engine={manifest.engine} m={md} t={t.data} readUnavailable={head.isError || m.isError || t.isError} />
         </div>
         <div className="flex flex-col">
           <div className="hair-b flex min-h-9 flex-wrap items-stretch px-2" role="tablist" aria-label="Details" onKeyDown={selectionKeys}>
@@ -120,9 +120,9 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
           ) : tab === "Open orders" ? (
             <OpenOrders engine={manifest.engine} traderId={t.data?.traderId} block={block} />
           ) : tab === "Protection" ? (
-            md ? <ProtectionPanel key={owner.address ?? "disconnected"} engine={manifest.engine} m={md} t={t.data} /> : <p className="p-4">Reading market…</p>
+            md ? <ProtectionPanel key={owner.address ?? "disconnected"} engine={manifest.engine} m={md} t={t.data} readUnavailable={head.isError || m.isError || t.isError} /> : <p className="p-4">Reading market…</p>
           ) : tab === "Risk" ? (
-            md ? <RiskPanel m={md} t={t.data} /> : <p className="p-4">Reading market risk…</p>
+            md ? <RiskPanel key={owner.address ?? "disconnected"} m={md} t={t.data} /> : <p className="p-4">Reading market risk…</p>
           ) : tab === "Liquidity" ? (
             md ? <ReservePanel engine={manifest.engine} m={md} t={t.data} /> : <p className="p-4">Reading reserve…</p>
           ) : tab === "Operations" ? (
@@ -138,10 +138,10 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
 
       <aside className="hidden flex-col border-l border-line-strong lg:flex" aria-label="Trade">
         <div className="hair-b">
-          <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} />
+          <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} readUnavailable={head.isError || m.isError || t.isError} />
         </div>
         <div className="flex min-h-0 flex-1 flex-col">
-          <AccountPanel engine={manifest.engine} m={md} t={t.data} />
+          <AccountPanel engine={manifest.engine} m={md} t={t.data} readUnavailable={head.isError || m.isError || t.isError} />
         </div>
       </aside>
     </main>

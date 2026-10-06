@@ -9,6 +9,7 @@ import { client, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { amountWithinBalance, atomsToInput, canClaim, fundingPlan } from "@/lib/funds";
 import { atomsToUsdc, parseUsdcToAtoms } from "@/lib/units";
 import { REJECT } from "@/lib/enums";
+import { canonicalRead } from "@/lib/deployment-check";
 import { useTx } from "@/lib/tx";
 import { useOwner } from "./wallet";
 import { Button, cx } from "./ui";
@@ -17,7 +18,7 @@ import { TxFeedback } from "./tx-feedback";
 
 const faucetAbi = [{ type: "function", name: "mint", stateMutability: "nonpayable", inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }], outputs: [] }] as const;
 const MODES = ["Fund", "Release", "Withdraw"] as const;
-export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSnapshot; t?: TraderSnapshot }) {
+export function AccountActions({ engine, m, t, readUnavailable = false }: { engine: Address; m?: MarketSnapshot; t?: TraderSnapshot; readUnavailable?: boolean }) {
   const owner = useOwner();
   const tx = useTx();
   const [mode, setMode] = useState<(typeof MODES)[number]>("Fund");
@@ -29,11 +30,12 @@ export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSn
   const release = useQuery({
     queryKey: ["release-preview", engine, owner.address, t?.traderId, amount.toString(), m?.block.toString()],
     enabled: mode === "Release" && amount > 0n && !error && !!t?.traderId && !!m,
-    queryFn: () => client.readContract({ address: engine, abi: engineAbi, functionName: "previewRelease", args: [t!.traderId, amount], blockNumber: m!.block }),
+    queryFn: () => canonicalRead(m!.block, () => client.readContract({ address: engine, abi: engineAbi, functionName: "previewRelease", args: [t!.traderId, amount], blockNumber: m!.block })),
   });
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
-  const blocker = owner.wrongChain ? "Switch to Monad testnet" : !t || !m ? "Reading balances…"
-    : mode !== "Withdraw" && m.halted ? "Market halted"
+  const readsReady = !!t && !!m && t.block === m.block && !readUnavailable;
+  const blocker = owner.wrongChain ? "Switch to Monad testnet" : readUnavailable ? "Live reads unavailable" : !readsReady ? "Reading balances…"
+    : mode !== "Withdraw" && m?.halted ? "Market halted"
     : error || (!amount ? "Enter an amount" : mode === "Release" ? release.isError ? "Release preview unavailable" : !release.data ? "Checking release…" : !release.data[0] ? REJECT[release.data[1]] || "Release unavailable" : "" : "");
 
   async function submit() {
@@ -61,9 +63,9 @@ export function AccountActions({ engine, m, t }: { engine: Address; m?: MarketSn
     </label>
     <p className="text-xs text-fg-3">Available: {t ? atomsToUsdc(available, 6) : "—"}</p>
     <Button size="lg" variant="primary" disabled={busy || !!blocker} onClick={submit}>{busy ? "Transaction pending…" : blocker || `${mode} collateral`}</Button>
-    {mode === "Fund" && t && t.wallet + t.free === 0n && <div className="grid gap-2"><Button disabled={busy || owner.wrongChain} onClick={() => owner.address && tx.run(owner.address, [{ address: deployment.risk.collateralToken, abi: faucetAbi, functionName: "mint", args: [owner.address, 1000_000000n], label: "get 1,000 test tokens" }])}>Get 1,000 test tokens</Button><p className="text-xs text-fg-3">Free test collateral with no monetary value. Test MON is needed for gas.</p></div>}
-    {claimable && <Button size="lg" disabled={busy || owner.wrongChain} onClick={() => owner.address && tx.run(owner.address, [{ ...ownerTrader(engine, owner.address).claim(), label: "claim settlement" }])}>Claim {atomsToUsdc(t!.account!.claimable)} {t?.assets.symbol ?? deployment.risk.collateralSymbol}</Button>}
-    {t?.account?.claimed && <p className="text-xs text-fg-3">Settlement claimed.</p>}
+    {mode === "Fund" && t && t.wallet + t.free === 0n && <div className="grid gap-2"><Button disabled={busy || owner.wrongChain || !readsReady} onClick={() => owner.address && tx.run(owner.address, [{ address: t.assets.token, abi: faucetAbi, functionName: "mint", args: [owner.address, 1000_000000n], label: "get 1,000 test tokens" }])}>Get 1,000 test tokens</Button><p className="text-xs text-fg-3">Free test collateral with no monetary value. Test MON is needed for gas.</p></div>}
+    {claimable && <Button size="lg" disabled={busy || owner.wrongChain || !readsReady} onClick={() => owner.address && tx.run(owner.address, [{ ...ownerTrader(engine, owner.address).claim(), label: "claim settlement" }])}>Claim {atomsToUsdc(t!.account!.claimable)} {t?.assets.symbol ?? deployment.risk.collateralSymbol}</Button>}
+    {t?.account?.claimed && !t.account.claimable && <p className="text-xs text-fg-3">Settlement claimed.</p>}
     {mode === "Release" && release.isError && <ReadError message="Could not check the available release amount." retry={() => { void release.refetch(); }} />}
     <TxFeedback state={tx.state} />
   </div>;

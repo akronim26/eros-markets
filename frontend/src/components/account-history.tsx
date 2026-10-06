@@ -8,6 +8,7 @@ import { explorerTx } from "@/config/chain";
 import { useOwner } from "./wallet";
 import { LoadingPanel } from "./feedback";
 import { Row } from "./ui";
+import { marketByEngine } from "@/config/deployment";
 
 function activityDetail(event: HistoryEvent) {
   const p = JSON.parse(event.payload);
@@ -21,7 +22,8 @@ function activityDetail(event: HistoryEvent) {
 export function AccountHistory({ engine, traderId, block }: { engine: Address; traderId?: number; block?: bigint }) {
   const owner = useOwner();
   const q = useHistory(engine, owner.address, traderId, block);
-  const pinned = useTrader(engine, owner.address, q.data ? BigInt(q.data.progress) : undefined);
+  const historyBlock = q.data && BigInt(q.data.progress) >= (marketByEngine(engine)?.deployBlock ?? 0n) ? BigInt(q.data.progress) : undefined;
+  const pinned = useTrader(engine, owner.address, historyBlock);
   if (!owner.connected) return <p className="p-4 text-sm text-fg-3">Log in to see your trading history.</p>;
   if (!INDEXER_URL) return <p className="p-4 text-sm text-fg-3">Historical data is not connected yet. Your current balances are read directly from the contracts.</p>;
   if (q.isError) return <p role="alert" className="p-4 text-sm text-ask">History unavailable. <button className="underline" onClick={() => q.refetch()}>Retry</button></p>;

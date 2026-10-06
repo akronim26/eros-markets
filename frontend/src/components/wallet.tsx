@@ -24,7 +24,7 @@ export function useLoginAction() {
 export function WalletButton() {
   const session = useWalletSession();
   const owner = useOwner();
-  const label = !session.configured ? "Wallet unavailable"
+  const label = !session.configured || (!session.ready && session.error) ? "Wallet unavailable"
     : session.busy ? "Updating wallet…"
     : !session.ready ? "Loading wallet…"
     : owner.address ? shortAddr(owner.address)

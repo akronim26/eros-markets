@@ -1,0 +1,627 @@
+{
+  "recordedAt": "2026-10-06T01:54:48.818532+00:00",
+  "baseCommit": "984cc8e43b45883581c76b50b1eae1b27c7423d3",
+  "workingTree": true,
+  "frontendSourceTestsScriptsSha256": "6b260880849976f2a3cd99501e4a9cd0d58474fe123669cff4cd1b322a9fcc6a",
+  "network": {
+    "chainId": 10143,
+    "engine": "0xcDf0EA81497895155E2911443f46157c00F965Db",
+    "mode": "public RPC reads only; no new public transactions"
+  },
+  "unit": {
+    "passed": 39,
+    "failed": 0
+  },
+  "integration": {
+    "passed": 18,
+    "failed": 0
+  },
+  "typescript": "pass",
+  "productionWebpackBuild": "pass",
+  "browser": {
+    "checks": [
+      {
+        "path": "/",
+        "choice": "Light",
+        "width": 320,
+        "overflow": false,
+        "theme": "light",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Light",
+        "width": 390,
+        "overflow": false,
+        "theme": "light",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Light",
+        "width": 768,
+        "overflow": false,
+        "theme": "light",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Light",
+        "width": 1024,
+        "overflow": false,
+        "theme": "light",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Light",
+        "width": 1440,
+        "overflow": false,
+        "theme": "light",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Dark",
+        "width": 320,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Dark",
+        "width": 390,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Dark",
+        "width": 768,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Dark",
+        "width": 1024,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/",
+        "choice": "Dark",
+        "width": 1440,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "PERPETUAL FUTURESPERPETUAL FUTURESON EVENTS.ON EVENTS.",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Light",
+        "width": 320,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Light",
+        "width": 390,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Light",
+        "width": 768,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Light",
+        "width": 1024,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Light",
+        "width": 1440,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Dark",
+        "width": 320,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Dark",
+        "width": 390,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Dark",
+        "width": 768,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Dark",
+        "width": 1024,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/markets",
+        "choice": "Dark",
+        "width": 1440,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Markets",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Light",
+        "width": 320,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Light",
+        "width": 390,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Light",
+        "width": 768,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Light",
+        "width": 1024,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Light",
+        "width": 1440,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Dark",
+        "width": 320,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Dark",
+        "width": 390,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Dark",
+        "width": 768,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Dark",
+        "width": 1024,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Dark",
+        "width": 1440,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Portfolio",
+        "css": 3
+      },
+      {
+        "path": "/resolution",
+        "choice": "Light",
+        "width": 320,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Light",
+        "width": 390,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Light",
+        "width": 768,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Light",
+        "width": 1024,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Light",
+        "width": 1440,
+        "overflow": false,
+        "theme": "light",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Dark",
+        "width": 320,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Dark",
+        "width": 390,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Dark",
+        "width": 768,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Dark",
+        "width": 1024,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/resolution",
+        "choice": "Dark",
+        "width": 1440,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "Resolution",
+        "css": 2
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Light",
+        "width": 320,
+        "overflow": false,
+        "theme": "light",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Light",
+        "width": 390,
+        "overflow": false,
+        "theme": "light",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Light",
+        "width": 768,
+        "overflow": false,
+        "theme": "light",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Light",
+        "width": 1024,
+        "overflow": false,
+        "theme": "light",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Light",
+        "width": 1440,
+        "overflow": false,
+        "theme": "light",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Dark",
+        "width": 320,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Dark",
+        "width": 390,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Dark",
+        "width": 768,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Dark",
+        "width": 1024,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Dark",
+        "width": 1440,
+        "overflow": false,
+        "theme": "dark",
+        "heading": "US announces end of Iranian blockade by October 31, 2026?",
+        "css": 3
+      },
+      {
+        "keyboardTabs": "pass"
+      },
+      {
+        "returnToMarkets": "pass"
+      },
+      {
+        "systemTheme": "pass"
+      },
+      {
+        "reducedMotion": "pass"
+      },
+      {
+        "privyLogin": {
+          "dialog": true,
+          "text": "Log in to tradeConnect a wallet or sign in with email or Google.SubmitContinue with EmailGoogleContinue with a walletBy logging in I agree to the Terms & Privacy Policy"
+        }
+      },
+      {
+        "privyWalletOptions": "Select your wallet.s1{stroke-linecap:round;stroke-linejoin:round}.s2{fill:#e4761b;stroke:#e4761b}.s3{fill:#f6851b;stroke:#f6851b}MetaMaskCoinbase WalletRainbow1inch Wallet37x3S Wallet88walletA4 WalletAB PayABC WalletAbra WalletAbsolute WalletBy logging in I agree to the Terms & Privacy Policy"
+      }
+    ],
+    "axeResults": [
+      {
+        "path": "/",
+        "choice": "Light",
+        "violations": []
+      },
+      {
+        "path": "/",
+        "choice": "Dark",
+        "violations": []
+      },
+      {
+        "path": "/markets",
+        "choice": "Light",
+        "violations": []
+      },
+      {
+        "path": "/markets",
+        "choice": "Dark",
+        "violations": []
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Light",
+        "violations": []
+      },
+      {
+        "path": "/portfolio",
+        "choice": "Dark",
+        "violations": []
+      },
+      {
+        "path": "/resolution",
+        "choice": "Light",
+        "violations": []
+      },
+      {
+        "path": "/resolution",
+        "choice": "Dark",
+        "violations": []
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Light",
+        "violations": []
+      },
+      {
+        "path": "/m/0xcDf0EA81497895155E2911443f46157c00F965Db",
+        "choice": "Dark",
+        "violations": []
+      }
+    ],
+    "errors": [],
+    "badResponses": []
+  },
+  "recovery": {
+    "checks": [
+      {
+        "rpcOutage": "stale snapshot kept visible with error and retry"
+      },
+      {
+        "rpcRecovery": "normal terminal restored"
+      },
+      {
+        "path": "/route-does-not-exist",
+        "status": "pass"
+      },
+      {
+        "path": "/m/0x1111111111111111111111111111111111111111",
+        "status": "pass"
+      },
+      {
+        "path": "/thank-you",
+        "status": "pass"
+      },
+      {
+        "path": "/thank-you?tx=invalid",
+        "status": "pass"
+      },
+      {
+        "path": "/thank-you?tx=0x92bc68a06a869f63305ec3294ac3ddacb9d48bc7a7910154c4459557c2e90afd",
+        "status": "pass"
+      },
+      {
+        "path": "/privacy",
+        "status": "pass"
+      },
+      {
+        "path": "/terms",
+        "status": "pass"
+      },
+      {
+        "cookies": "reopen, dismiss and reload persistence pass"
+      },
+      {
+        "blockedStorage": "page and cookie notice remain usable"
+      },
+      {
+        "storageRecovery": "wallet login available again after storage restored"
+      }
+    ],
+    "errors": [],
+    "badResponses": [
+      {
+        "url": "http://localhost:3100/route-does-not-exist",
+        "status": 404
+      },
+      {
+        "url": "http://localhost:3100/route-does-not-exist",
+        "status": 404
+      }
+    ]
+  },
+  "storageRegression": "PASS: public page, notice dismissal and theme selection with storage blocked; wallet login recovers after storage restored",
+  "credentialsScan": {
+    "checkedFiles": 259,
+    "credentialValuesChecked": 12,
+    "matchingFiles": []
+  },
+  "buildWarnings": [
+    "optional Farcaster Solana, Base Account, Coinbase, MetaMask and Tempo modules",
+    "upstream Tempo dynamic dependency expression",
+    "Node experimental SQLite"
+  ],
+  "unverified": [
+    "actual Privy/external-wallet authentication and signing",
+    "new owner transactions and fills",
+    "hosted deployment-matching indexer",
+    "continuous price readiness and leveraged admission",
+    "live delegated policies and protection worker",
+    "future final settlement"
+  ]
+}

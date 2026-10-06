@@ -25,7 +25,7 @@ function Line({ mk, owner, block }: { mk: MarketManifest; owner: `0x${string}`; 
       <td className="tnum pr-6 text-right text-sm">{p ? `${lotsToClaims(p.positionLots)}` : <span className="text-fg-3">{t.isError ? "unavailable" : t.data ? "not funded" : "Reading…"}</span>}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? two(qToMoney(p.cashQ).usdc) : "—"}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? `${two(qToMoney(p.e1Q).usdc)} / ${two(qToMoney(p.e0Q).usdc)}` : "—"}</td>
-      <td className="pr-6 text-sm text-fg-2">{p ? HEALTH[p.status] : "—"}</td>
+      <td className="pr-6 text-sm text-fg-2">{p ? p.id.markAvailable || p.positionLots === 0n ? HEALTH[p.status] : "unavailable" : "—"}</td>
       <td className="tnum pr-4 text-right text-sm">{p ? atomsToUsdc(p.usableReleaseAtoms, 2) : "—"}</td>
     </tr>
   );

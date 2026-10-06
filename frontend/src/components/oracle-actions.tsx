@@ -8,6 +8,7 @@ import { deployment } from "@/config/deployment";
 import { client, erc20Abi, useOracleMarket } from "@/lib/reads";
 import { canDispute, ORACLE_ACTIONS, validEvidence } from "@/lib/oracle-actions";
 import { fmtDuration } from "@/lib/units";
+import { canonicalRead } from "@/lib/deployment-check";
 import { useTx } from "@/lib/tx";
 import { useOwner } from "./wallet";
 import { Button, Row } from "./ui";
@@ -28,7 +29,7 @@ export function OracleActions({ data: d }: { data: Data }) {
   const validation = useFieldErrors({ uri: uriValid ? "" : "Use an HTTPS or IPFS evidence URL, up to 256 bytes.", hash: hashValid ? "" : "Enter a nonzero 32-byte content hash (0x followed by 64 hex characters)." });
   const r = d.resolution;
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
-  const info = useQuery({ queryKey: ["oracle-actions", d.id, d.block.toString(), owner.address], queryFn: async () => {
+  const info = useQuery({ queryKey: ["oracle-actions", d.id, d.block.toString(), owner.address], queryFn: async () => canonicalRead(d.block, async () => {
     const oracle = { address: deployment.oracle.resolutionOracle, abi: resolutionOracleAbi, blockNumber: d.block } as const;
     const trust = r.trustSetId ? await client.readContract({ ...oracle, functionName: "trustSet", args: [r.trustSetId] }) : undefined;
     const venue = r.assertionVenue !== zeroAddress ? r.assertionVenue : trust?.cfg.venue;
@@ -51,7 +52,7 @@ export function OracleActions({ data: d }: { data: Data }) {
       { address: token, abi: erc20Abi, functionName: "balanceOf", args: [owner.address ?? zeroAddress] },
     ] });
     return { allowed, bond: { venue, token, oo, assertion, decimals, symbol, balance, amount: actual?.bond ?? d.bond } };
-  }});
+  })});
   const bond = info.data?.bond;
   const dispute = bond?.assertion && canDispute(bond.assertion, d.now);
   const propose = r.state === 6 && r.attempts < 3;

@@ -11,6 +11,8 @@ import { processProtectionBlock } from "../../src/server/automation";
 import { client } from "../../src/lib/public-client";
 import { reconcileRequest } from "../../src/server/reconcile";
 import { db } from "../../src/server/store";
+import { publicManifest as manifest } from "../../src/config/deployment";
+import { keccak256 } from "viem";
 
 // SDK/chain doubles exercise the actual server paths. This is not a live Privy policy test.
 const directory = mkdtempSync(join(tmpdir(), "eros-signing-tests-"));
@@ -20,17 +22,28 @@ Object.assign(process.env, { AUTOMATION_DB: join(directory, "test.sqlite"), NEXT
 after(() => { db().close(); rmSync(directory, { recursive: true, force: true }); });
 const address = "0x1111111111111111111111111111111111111111", engine = delegatedEngines[0];
 const now = BigInt(Math.floor(Date.now() / 1000));
+// Deterministic code pins are confined to this test process, as in deployment.test.ts.
+for (const contract of [...Object.values(manifest.contracts), ...manifest.markets]) contract.codehash = keccak256("0x1234");
+const deploymentContracts = manifest.contracts, market = manifest.markets[0];
+let rpcChain = 10143;
+let walletType = "privy";
 let revoked = false, badPolicy = false, failSend = false, sends = 0;
 const calls: any[] = [];
 const sdk = privy();
-(sdk.users() as any)._get = async (id: string) => ({ linked_accounts: id === "alice" ? [{ type: "wallet", chain_type: "ethereum", wallet_client_type: "privy", address, id: "alice-wallet" }] : [] });
+(sdk.users() as any)._get = async (id: string) => ({ linked_accounts: id === "alice" ? [{ type: "wallet", chain_type: "ethereum", wallet_client_type: walletType, address, id: "alice-wallet" }] : [] });
 (sdk.wallets() as any).get = async () => ({ id: "alice-wallet", address, chain_type: "ethereum", additional_signers: revoked ? [] : [{ signer_id: "trade-signer", override_policy_ids: ["trade-policy"] }, { signer_id: "protect-signer", override_policy_ids: ["protect-policy"] }] });
 (sdk.policies() as any).get = async (id: string) => { const p = expectedPolicy(id === "trade-policy" ? "trade" : "protect"); if (badPolicy) p.rules[0].conditions = []; return p; };
 (sdk.wallets().ethereum() as any).sendTransaction = async (id: string, request: any) => { sends++; calls.push({ id, request }); if (failSend) throw new Error("network ambiguity"); return { hash: `0x${String(sends).padStart(64, "0")}` }; };
-Object.assign(client, { getChainId: async () => 10143, getBlock: async () => ({ number: 1000n, timestamp: now }), getBalance: async () => 10n ** 18n, getGasPrice: async () => 1n, call: async () => ({ data: "0x" }), estimateGas: async () => 100000n,
-  readContract: async (c: any) => c.functionName === "participantId" ? 1 : c.functionName === "maxFills" ? 8 : c.functionName === "previewAccount" ? { positionLots: 1000n } : c.functionName === "getOrder" ? { owner: 2 } : { rejection: 0, acceptedCapLots: 1000n },
+Object.assign(client, { getChainId: async () => rpcChain, getCode: async () => "0x1234", getBlock: async (args?: any) => ({ number: 1001n, timestamp: now, hash: args?.blockNumber === BigInt(manifest.verifiedAt.blockNumber) ? manifest.verifiedAt.blockHash : `0x${"12".repeat(32)}` }), getBalance: async () => 10n ** 18n, getGasPrice: async () => 1n, call: async () => ({ data: "0x" }), estimateGas: async () => 100000n,
+  readContract: async (c: any) => {
+    if (c.functionName === "listing") return { marketId: market.marketId, indexSourceId: market.sourceId, token: deploymentContracts.CollateralToken.address, registry: deploymentContracts.MarketRegistry.address, resolutionAuthority: deploymentContracts.ResolutionOracle.address };
+    if (c.functionName === "listingHash") return market.listingHash;
+    const binding = ({ factory: deploymentContracts.MarketFactory.address, oracle: deploymentContracts.ResolutionOracle.address, registry: deploymentContracts.MarketRegistry.address, collateralVault: deploymentContracts.CollateralVault.address, token: deploymentContracts.CollateralToken.address, engineOf: market.engine } as Record<string, string>)[c.functionName];
+    return binding ?? (c.functionName === "participantId" ? 1 : c.functionName === "maxFills" ? 8 : c.functionName === "previewAccount" ? { positionLots: 1000n } : c.functionName === "getOrder" ? { owner: 2 } : { rejection: 0, acceptedCapLots: 1000n });
+  },
   multicall: async () => [{ markAvailable: true, markWad: 390000000000000000n, secsToT: 80000n, monitorRestricted: false, stage: 0 }, { positionLots: 1000n, status: 1, e0Q: 1n, e1Q: 1n }, 8, 0n, { halted: false, claimsEnabled: false }, { deploymentCapX: 1n }],
-  waitForTransactionReceipt: async () => ({ status: "success", blockNumber: 1001n, logs: [] }),
+  waitForTransactionReceipt: async ({hash}: any) => ({ transactionHash:hash, status: "success", blockNumber: 1001n, blockHash:`0x${"12".repeat(32)}`, logs: [] }),
+  getTransactionReceipt: async ({hash}: any) => ({ transactionHash:hash, status: "success", blockNumber: 1001n, blockHash:`0x${"12".repeat(32)}`, logs: [] }),
 });
 const intent = () => ({ wallet: address, engine, previewBlock: "1000", clientNonce: randomUUID(), action: "placeOrder", place: { kind: 1, isBuy: false, reduceOnly: true, tick: 380, size: "1000", maxFills: 8, expiryBlock: 0 } });
 test("server sends only from the authenticated owner's wallet, with exact order, chain, gas and persisted idempotency", async () => {
@@ -46,6 +59,9 @@ test("server sends only from the authenticated owner's wallet, with exact order,
 });
 test("revoked grants, widened policies, stale previews and reversed protection never sign", async () => {
   const before = sends;
+  rpcChain = 31337;
+  try { await assert.rejects(delegatedTrade("alice", intent()), /network/); }
+  finally { rpcChain = 10143; }
   revoked = true; await assert.rejects(delegatedTrade("alice", intent()), /revoked/); revoked = false;
   badPolicy = true; await assert.rejects(delegatedTrade("alice", intent()), /restrictions/); badPolicy = false;
   await assert.rejects(delegatedTrade("alice", { ...intent(), previewBlock: "10" }), /stale/);
@@ -78,9 +94,15 @@ test("reconciliation only releases the wallet after the exact Privy reference ha
   await assert.rejects(reconcileRequest(row.id, "tx-id"), /does not match/);
   assert.equal((db().prepare("SELECT status FROM requests WHERE id=?").get(row.id) as any).status, "uncertain");
   reference = row.id;
-  Object.assign(client, { getTransactionReceipt: async () => ({ status: "success" }) });
+
   const before = sends;
   assert.deepEqual(await reconcileRequest(row.id, "tx-id"), { hash, status: "success" });
   assert.equal(sends, before);
   assert.equal((db().prepare("SELECT status FROM requests WHERE id=?").get(row.id) as any).status, "sent");
+});
+
+test("Privy v2 embedded wallets use the same ownership verification", async () => {
+ walletType = "privy-v2";
+ try { const { ownedWallet } = await import("../../src/server/privy"); assert.equal((await ownedWallet("alice",address)).id,"alice-wallet"); }
+ finally { walletType = "privy"; }
 });

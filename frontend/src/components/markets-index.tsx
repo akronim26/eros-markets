@@ -123,7 +123,7 @@ export function MarketsIndex() {
       </div>
       </>}
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
-        {discovery.isError ? "Registry discovery is unavailable. Showing the last known markets." : discovery.data?.indexed ? "Markets are discovered from the registry and verified against their trading contracts." : "Showing configured markets while registry discovery loads. Additional markets appear after their contracts are verified."}
+        {discovery.isError ? "Registry discovery is unavailable. Showing the last verified markets." : discovery.isPending ? "Checking the verified markets against the registry…" : "Showing markets in the verified deployment. New listings become tradable after their deployment manifest is verified and updated."}
         {discovery.isError && <> <button className="underline" onClick={() => discovery.refetch()}>Retry discovery</button></>}
       </p>
     </main>
