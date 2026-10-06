@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { BaseError, ContractFunctionRevertedError, ContractFunctionZeroDataError } from "viem";
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { client, ladderOptions } from "../../src/lib/reads";
+import { markets } from "../../src/config/deployment";
 import { resolveMarket } from "../../src/lib/market-discovery";
 import { isContractRevert, isMissingContract } from "../../src/lib/read-errors";
 
@@ -16,16 +17,16 @@ test("contract rejection and missing code remain distinct from transport failure
   assert.equal(isMissingContract(new Error("Network offline")), false);
 });
 
-test("market resolution propagates network failures instead of declaring a missing market", async (t) => {
-  const unavailable = new Error("RPC unavailable");
-  const read = t.mock.method(client, "readContract", async () => { throw unavailable; });
-  await assert.rejects(resolveMarket(engine, 10n), (error) => error === unavailable);
-  read.mock.mockImplementation(async () => { throw new ContractFunctionZeroDataError({ functionName: "listing" }); });
-  assert.equal(await resolveMarket(engine, 10n), undefined);
-  assert.equal(await resolveMarket("not-an-address", 10n), undefined);
+test("only manifest-backed terminals are exposed; unknown addresses never become unusable trading pages", async (t) => {
+  const read = t.mock.method(client, "readContract", async () => { throw new Error("RPC unavailable"); });
+  assert.equal(await resolveMarket(engine), undefined);
+  assert.equal(await resolveMarket("not-an-address"), undefined);
+  assert.equal(await resolveMarket(markets[0].engine), markets[0]);
+  assert.equal(read.mock.callCount(), 0);
 });
 
 test("removing the final order clears cached depth without another contract call", async (t) => {
+  t.mock.method(client, "getBlock", async () => ({ hash: "0x12" }));
   const read = t.mock.method(client, "multicall", async ({ contracts }: { contracts: unknown[] }) => contracts.map(() => ({ size: 100n })));
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const populated = ladderOptions(engine, 100n, 100, 900);

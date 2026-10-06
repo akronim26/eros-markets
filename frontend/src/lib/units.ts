@@ -15,13 +15,17 @@ const WAD_ = 10n ** 18n;
 export function parseUsdcToAtoms(s: string): bigint {
   const m = /^(\d+)(?:\.(\d{0,6}))?$/.exec(s.trim());
   if (!m) throw new Error("Amount: up to 6 decimals");
-  return BigInt(m[1]) * 1_000_000n + BigInt((m[2] ?? "").padEnd(6, "0") || "0");
+  const amount = BigInt(m[1]) * 1_000_000n + BigInt((m[2] ?? "").padEnd(6, "0") || "0");
+  if (amount > (1n << 256n) - 1n) throw new Error("Amount exceeds the contract limit");
+  return amount;
 }
 
 export function parseClaimsToLots(s: string): bigint {
   const m = /^(\d+)(?:\.(\d{0,3}))?$/.exec(s.trim());
   if (!m) throw new Error("Size: up to 3 decimals (1 lot = 0.001 claim)");
-  return BigInt(m[1]) * 1000n + BigInt((m[2] ?? "").padEnd(3, "0") || "0");
+  const lots = BigInt(m[1]) * 1000n + BigInt((m[2] ?? "").padEnd(3, "0") || "0");
+  if (lots > (1n << 64n) - 1n) throw new Error("Size exceeds the contract limit");
+  return lots;
 }
 
 export function parsePriceToTick(s: string): number {

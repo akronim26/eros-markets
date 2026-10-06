@@ -7,6 +7,7 @@ import { vaultAbi } from "@/abi/vault";
 import { client, erc20Abi, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { fundingPlan } from "@/lib/funds";
 import { atomsToUsdc, fmtUtc, parseUsdcToAtoms, qToMoney } from "@/lib/units";
+import { canonicalRead } from "@/lib/deployment-check";
 import { useTx } from "@/lib/tx";
 import { useOwner } from "./wallet";
 import { Button, Row } from "./ui";
@@ -17,14 +18,14 @@ const reserveAbi = parseAbi(["function shares(address) view returns (uint256)", 
 export function ReservePanel({ engine, m, t }: { engine: Address; m: MarketSnapshot; t?: TraderSnapshot }) {
   const owner = useOwner(), tx = useTx();
   const [amount, setAmount] = useState(""), [accept, setAccept] = useState(false);
-  const q = useQuery({ queryKey: ["reserve", engine, owner.address, m.block.toString()], queryFn: async () => {
+  const q = useQuery({ queryKey: ["reserve", engine, owner.address, m.block.toString()], queryFn: async () => canonicalRead(m.block, async () => {
     const address = await client.readContract({ address: engine, abi: engineAbi, functionName: "reserveVault", blockNumber: m.block });
     const [holders, total] = await client.multicall({ blockNumber: m.block, allowFailure: false, contracts: [{ address, abi: reserveAbi, functionName: "holderCount" }, { address, abi: reserveAbi, functionName: "totalShares" }] });
     if (!owner.address) return { address, holders, total, user: undefined };
     const claimable = await client.readContract({ address: engine, abi: engineAbi, functionName: "claimableAtoms", args: [owner.address], blockNumber: m.block });
     const [shares, noticed, noticeAt, prepared, redeem] = await client.multicall({ blockNumber: m.block, allowFailure: false, contracts: ["shares", "noticedShares", "noticeAt", "preparedAtoms", "maxRedeem"].map((functionName) => ({ address, abi: reserveAbi, functionName: functionName as "shares", args: [owner.address!] })) });
     return { address, holders, total, user: { shares, noticed, noticeAt, prepared, redeem, claimable } };
-  }});
+  })});
   let atoms = 0n, error = "";
   try { if (amount) { atoms = parseUsdcToAtoms(amount); if (!atoms) throw new Error("Enter an amount greater than zero."); if (t) fundingPlan(atoms, t.free, t.wallet, t.allowance); } } catch (e) { error = (e as Error).message; }
   const validation = useFieldErrors({ amount: error || (!amount ? "Enter an amount greater than zero." : "") });
@@ -35,8 +36,8 @@ export function ReservePanel({ engine, m, t }: { engine: Address; m: MarketSnaps
     const p = fundingPlan(atoms, t.free, t.wallet, t.allowance), calls = [];
     if (p.approve) calls.push({ address: t.assets.token, abi: erc20Abi, functionName: "approve", args: [t.assets.vault, p.approve], label: "approve reserve collateral" });
     if (p.deposit) calls.push({ address: t.assets.vault, abi: vaultAbi, functionName: "deposit", args: [p.deposit], label: "deposit reserve collateral" });
-    calls.push({ address: t.assets.vault, abi: vaultAbi, functionName: "allocate", args: [engine, atoms, true], label: "seed reserve", validate: async () => {
-      if (await client.readContract({ address: engine, abi: engineAbi, functionName: "active" })) throw new Error("Market activated during funding. Your deposit remains free in the vault; share issuance is closed.");
+    calls.push({ address: t.assets.vault, abi: vaultAbi, functionName: "allocate", args: [engine, atoms, true], label: "seed reserve", validate: async (blockNumber: bigint) => {
+      if (await client.readContract({ address: engine, abi: engineAbi, functionName: "active", blockNumber })) throw new Error("Market activated during funding. Your deposit remains free in the vault; share issuance is closed.");
     } });
     await tx.run(owner.address, calls); setAccept(false);
   }
@@ -50,7 +51,7 @@ export function ReservePanel({ engine, m, t }: { engine: Address; m: MarketSnaps
       <TxFeedback state={tx.state} />
     </div>
     <div>{q.isPending ? <LoadingPanel label="Reading reserve liquidity" /> : q.isError ? <p className="text-sm text-ask">Reserve read failed. <button className="underline" onClick={() => q.refetch()}>Retry</button></p> : <dl><Row k="Reserve cash" v={qToMoney(m.reserve.cashQ).usdc} /><Row k="Shareholders" v={q.data ? `${q.data.holders} / 256` : "…"} /><Row k="Your seed shares" v={q.data?.user ? atomsToUsdc(q.data.user.shares, 6) : "—"} /><Row k="Notice matures" v={q.data?.user?.noticeAt ? fmtUtc(q.data.user.noticeAt + 604800n) : "Not started"} /><Row k="Prepared payout" v={m.settlement.claimsEnabled && q.data?.user ? atomsToUsdc(q.data.user.prepared, 6) : "Pending settlement"} /></dl>}
-      {q.data?.user && <div className="mt-4 flex flex-wrap gap-2"><Button disabled={!ready || !q.data.user.shares || q.data.user.noticed === q.data.user.shares} onClick={() => owner.address && tx.run(owner.address, [{ address: q.data!.address, abi: reserveAbi, functionName: "notice", args: [], label: "start seven-day notice" }])}>Start withdrawal notice</Button><Button disabled={!ready || !q.data.user.redeem || !m.settlement.claimsEnabled} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "redeemReserve", args: [owner.address], label: "prepare reserve redemption" }])}>Prepare reserve payout</Button><Button disabled={!ready || !q.data.user.claimable} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "claimTrader", args: [owner.address], label: "claim reserve payout to wallet" }])}>Claim prepared payout</Button></div>}
+      {q.data?.user && <div className="mt-4 flex flex-wrap gap-2"><Button disabled={!ready || !q.data.user.shares || q.data.user.noticed === q.data.user.shares} onClick={() => owner.address && tx.run(owner.address, [{ address: q.data!.address, abi: reserveAbi, functionName: "notice", args: [], label: "start seven-day notice" }])}>Start withdrawal notice</Button><Button disabled={!ready || !q.data.user.redeem || !m.settlement.claimsEnabled} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "redeemReserve", args: [owner.address], label: "prepare reserve redemption" }])}>Prepare reserve payout</Button><Button disabled={!ready || !q.data.user.claimable || !m.settlement.claimsEnabled || m.settlement.recoveryRequired} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "claimTrader", args: [owner.address], label: "claim reserve payout to wallet" }])}>Claim prepared payout</Button></div>}
       <p className="mt-3 text-xs text-fg-3">Notice applies to your current shares. Adding shares requires a new notice. Reserve cash and coverage slack are not a share redemption quote.</p>
     </div>
   </section>;

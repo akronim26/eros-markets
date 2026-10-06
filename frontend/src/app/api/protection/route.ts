@@ -6,6 +6,8 @@ import { validateRule } from "@/lib/protection";
 import { apiError, authenticate, configured, jsonBody, ownedWallet, signingWallet } from "@/server/privy";
 import { delegatedEngines } from "@/server/policy";
 import { db } from "@/server/store";
+import { canonicalRead, ensureDeployment } from "@/lib/deployment-check";
+import { marketByEngine } from "@/config/deployment";
 export const runtime = "nodejs";
 export async function GET(request: Request) {
   if (!configured("protect")) return Response.json({ configured: false, rules: [], journal: [], workerOnline: false });
@@ -27,6 +29,7 @@ export async function POST(request: Request) {
       return Response.json({ ok: true });
     }
     if (body.action !== "create" || typeof body.wallet !== "string" || typeof body.engine !== "string" || !delegatedEngines.includes(body.engine.toLowerCase())) throw new Error("Invalid protection request.");
+    if (!marketByEngine(body.engine)) throw new Error("This market is not in the verified deployment.");
     const rule = validateRule(body.rule, Math.floor(Date.now() / 1000));
     if (rule.kind === "claim_delivery") {
       if (!process.env.CLAIM_DELIVERY_PRIVATE_KEY) throw new Error("Claim delivery service is not configured.");
@@ -34,10 +37,14 @@ export async function POST(request: Request) {
     } else await signingWallet(user, body.wallet, "protect");
     const count = db().prepare("SELECT count(*) AS n FROM rules WHERE user=? AND status IN ('active','sending')").get(user) as { n: number };
     if (count.n >= 20) throw new Error("At most 20 active protection rules are allowed per user.");
-    const head = await client.getBlock();
-    const id = await client.readContract({ address: body.engine as Address, abi: engineAbi, functionName: "participantId", args: [body.wallet as Address], blockNumber: head.number });
-    if (!id) throw new Error("Fund this wallet's market account first.");
-    const position = await client.readContract({ address: body.engine as Address, abi: engineAbi, functionName: "previewAccount", args: [id], blockNumber: head.number });
+    await ensureDeployment();
+    const head = await client.getBlock({ blockTag: "finalized" });
+    if (Math.abs(Date.now() - Number(head.timestamp) * 1000) > 30000) throw new Error("Market state is stale. Refresh and try again.");
+    const position = await canonicalRead(head.number, async () => {
+      const id = await client.readContract({ address: body.engine as Address, abi: engineAbi, functionName: "participantId", args: [body.wallet as Address], blockNumber: head.number });
+      if (!id) throw new Error("Fund this wallet's market account first.");
+      return client.readContract({ address: body.engine as Address, abi: engineAbi, functionName: "previewAccount", args: [id], blockNumber: head.number });
+    });
     if (!["auto_cancel", "claim_delivery"].includes(rule.kind) && (!position.positionLots || (position.positionLots > 0n) !== rule.long || BigInt(rule.maxLots) > (position.positionLots < 0n ? -position.positionLots : position.positionLots))) throw new Error("Rule direction or size does not match the current position.");
     const ruleId = randomUUID();
     db().prepare("INSERT INTO rules(id,user,wallet,engine,body,status,created) VALUES (?,?,?,?,?,'active',?)").run(ruleId, user, body.wallet.toLowerCase(), body.engine.toLowerCase(), JSON.stringify(rule), Date.now());

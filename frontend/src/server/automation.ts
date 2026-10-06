@@ -7,17 +7,22 @@ import { protectionDecision, type ProtectionRule } from "@/lib/protection";
 import { db } from "./store";
 import { delegatedTrade } from "./trade";
 import { configured, ownedWallet } from "./privy";
+import { canonicalFinalizedReceipt } from "@/lib/finality";
+import { ensureDeployment } from "@/lib/deployment-check";
+import { marketByEngine } from "@/config/deployment";
 
 type StoredRule = { id: string; user: string; wallet: Address; engine: Address; body: string; status: string };
 export async function processProtectionBlock() {
   if (!configured("protect")) throw new Error("Protection credentials are missing or share the trade signing key.");
+  await ensureDeployment();
   const head = await client.getBlock();
   if (await client.getChainId() !== 10143 || Date.now() / 1000 - Number(head.timestamp) > 30) throw new Error("Chain head is stale or on the wrong network.");
   db().prepare("INSERT INTO service VALUES ('heartbeat',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value").run(Date.now());
   const rows = db().prepare("SELECT * FROM rules WHERE status='active' ORDER BY checked,id LIMIT 100").all() as StoredRule[];
   for (const row of rows) {
-    const rule = JSON.parse(row.body) as ProtectionRule;
     try {
+      const rule = JSON.parse(row.body) as ProtectionRule;
+      if (!marketByEngine(row.engine)) throw new Error("Rule market is not in the verified deployment");
       db().prepare("UPDATE rules SET checked=? WHERE id=?").run(Date.now(), row.id);
       const head = await client.getBlock();
       if (Date.now() / 1000 - Number(head.timestamp) > 30) throw new Error("Stale chain head");
@@ -47,12 +52,13 @@ export async function processProtectionBlock() {
         await ownedWallet(row.user, row.wallet);
         const payer = privateKeyToAccount(process.env.CLAIM_DELIVERY_PRIVATE_KEY as Hex);
         const call = { address: row.engine, abi: engineAbi, functionName: "claimTrader", args: [row.wallet], account: payer } as const;
-        const sim = await client.simulateContract(call), gas = await client.estimateContractGas(call);
-        hash = await createWalletClient({ account: payer, chain, transport: http(RPC_URL) }).writeContract({ ...sim.request, gas: gas * 110n / 100n });
+        const sim = await client.simulateContract({ ...call, blockNumber: head.number }), gas = (await client.estimateContractGas({ ...call, blockNumber: head.number }) * 110n + 99n) / 100n;
+        if (gas > 30000000n || (await client.getBlock({ blockNumber: head.number })).hash !== head.hash) throw new Error("Claim simulation is no longer valid");
+        hash = await createWalletClient({ account: payer, chain, transport: http(RPC_URL) }).writeContract({ ...sim.request, gas });
       } else hash = await delegatedTrade(row.user, { wallet: row.wallet, engine: row.engine, clientNonce: row.id, previewBlock: head.number.toString(), action: decision === "cancel" ? "cancelAll" : "placeOrder",
         ...(decision === "reduce" ? { place: { kind: 1, isBuy: account.positionLots < 0n, reduceOnly: true, tick: rule.limitTick, size: size.toString(), maxFills, expiryBlock: Number(head.number + 150n) } } : {}) }, "protect");
       db().prepare("UPDATE rules SET hash=?,message='Broadcast; awaiting confirmation' WHERE id=?").run(hash, row.id);
-      const receipt = await client.waitForTransactionReceipt({ hash, timeout: 60000 });
+      const receipt = await canonicalFinalizedReceipt(client, hash, { timeoutMs: 60000 });
       const fills = parseEventLogs({ abi: engineAbi, eventName: "Fill", logs: receipt.logs.filter((l) => l.address.toLowerCase() === row.engine) });
       const filled = fills.filter((l) => l.args.taker === trader).reduce((n, l) => n + l.args.size, 0n);
       const message = receipt.status === "reverted" ? "Transaction reverted; rule stopped" : decision === "reduce" ? `Confirmed IOC: ${filled} lots filled; any remainder was cancelled. Rule completed.` : `${decision} confirmed`;

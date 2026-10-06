@@ -163,3 +163,22 @@ private key was preserved. A scan of changed files and 202 browser JS bundles
 found none of the deployment/operator private keys.
 
 Nothing has been committed or pushed. Hosting remains deferred by the user.
+
+## Frontend audit follow-up — 2026-10-06
+
+The user requested a frontend wiring audit before continuing live E2E. Findings,
+fixes and the validation boundary are in [FRONTEND_WIRING_AUDIT.md](FRONTEND_WIRING_AUDIT.md),
+with machine-readable evidence in `artifacts/integration/frontend-audit-20261006/report.json`.
+
+Current results: 39 unit tests, 18 integration tests, TypeScript and the production
+build pass. Chrome checks pass across 50 page/theme/width combinations and all nine
+terminal tabs; ten accessibility scans find no A/AA/2.1AA violations. RPC outage
+recovery, blocked browser storage, cookie controls, route errors and finalized
+receipt display are checked. No browser runtime exceptions remain in the final runs.
+
+The audit repairs deployment/owner binding, transaction sequencing/finality,
+history pagination, invalid price observations, stale-state gating, margin display
+and wallet startup under storage restrictions. Optional server signing retains
+separate policy/credential requirements. Real wallet authentication/signing, fills,
+continuous price readiness and a matching hosted indexer still need E2E validation.
+No public transactions, commits or pushes were made during this audit.

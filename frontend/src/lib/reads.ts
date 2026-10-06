@@ -2,18 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { parseAbiItem, type Address, type Hex } from "viem";
+import { type Address, type Hex } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { vaultAbi } from "@/abi/vault";
 import { resolutionOracleAbi } from "@/abi/resolutionOracle";
 import { marketRegistryAbi } from "@/abi/marketRegistry";
-import { LOG_BLOCK_CAP } from "@/config/chain";
 import { deployment } from "@/config/deployment";
 
 import { client } from "./public-client";
 import { readAssets } from "./market-discovery";
 import { ensureDeployment, canonicalRead } from "./deployment-check";
 import { bookTicks } from "./book-depth";
+import { emptySeries, readLiveSeries } from "./live-series";
 export { client };
 
 const erc20Abi = [
@@ -30,6 +30,8 @@ export function useHead() {
     queryFn: async () => {
       await ensureDeployment();
       const b = await client.getBlock({ blockTag: "finalized" });
+      const age = Date.now() - Number(b.timestamp) * 1000;
+      if (age < -5000 || age > 30000) throw new Error("RPC finalized head is stale or has an invalid timestamp.");
       return { number: b.number, timestamp: b.timestamp, at: Date.now() };
     },
     refetchInterval: 4000,
@@ -153,6 +155,7 @@ export function ladderOptions(engine: Address, block: bigint | undefined, bestBi
     enabled: block !== undefined,
     queryFn: async (): Promise<Level[]> => {
       if (empty) return [];
+      return canonicalRead(block!, async () => {
       const ticks = bookTicks(bestBid, bestAsk, span);
       const res = await client.multicall({
         blockNumber: block,
@@ -163,72 +166,34 @@ export function ladderOptions(engine: Address, block: bigint | undefined, bestBi
         ]),
       });
       return ticks.map((tick, i) => ({ tick, bidLots: res[i * 2].size, askLots: res[i * 2 + 1].size }));
+      });
     },
   };
 }
 
-export type Point = { t: number; v: number; block: bigint };
-export type Trade = { t: number; tick: number; size: bigint; block: bigint; tx: Hex };
+export type { Point, Trade } from "./live-series";
 
-const OBS = parseAbiItem(
-  "event ObservationAccepted(bytes32 indexed sourceId, uint64 indexed sequence, uint64 observedAt, uint64 publishedAt, uint64 acceptedAt, uint256 priceWad, bool depthValid, bytes32 payloadDigest)",
-);
-const PERP = parseAbiItem("event PerpObservationRecorded(uint64 t, uint256 midWad, bool valid, int256 basisWad, bool basisValid)");
-const FILL = parseAbiItem(
-  "event Fill(uint32 indexed makerOrder, uint32 maker, uint32 taker, uint16 tick, uint64 size, uint256 makerFeeQ, uint256 takerFeeQ)",
-);
-
-/**
- * Live series accumulated while the page is open, in ≤100-block windows (public RPC cap).
- * Full history needs the indexer (frontend.md §14); `since` says how far back this goes.
- */
+/** Keep pending reads and accumulated history scoped to one engine, even during navigation. */
 export function useLiveSeries(engine: Address, head: bigint | undefined) {
-  const [state, setState] = useState<{ index: Point[]; perp: Point[]; trades: Trade[]; since?: bigint; error?: string }>({
-    index: [],
-    perp: [],
-    trades: [],
-  });
-  const cursor = useRef<bigint | undefined>(undefined);
-  const cursorHash = useRef<Hex | undefined>(undefined);
-  const busy = useRef(false);
-
+  const scope = engine.toLowerCase();
+  const context = useRef({ scope, busy: false, series: emptySeries() });
+  if (context.current.scope !== scope) context.current = { scope, busy: false, series: emptySeries() };
+  const [result, setResult] = useState({ scope, series: emptySeries() });
   useEffect(() => {
-    if (head === undefined || busy.current) return;
-    busy.current = true;
-    (async () => {
-      try {
-        let reset = cursor.current === undefined || head < cursor.current;
-        if (!reset && cursorHash.current) reset = (await client.getBlock({ blockNumber: cursor.current! })).hash !== cursorHash.current;
-        const from = reset ? (head >= LOG_BLOCK_CAP ? head - LOG_BLOCK_CAP + 1n : 0n) : cursor.current! > 20n ? cursor.current! - 20n : 0n;
-        const to = from + LOG_BLOCK_CAP - 1n < head ? from + LOG_BLOCK_CAP - 1n : head;
-        const anchor = await client.getBlock({ blockNumber: to });
-        const [obs, perp, fills] = await Promise.all([
-          client.getLogs({ address: engine, event: OBS, fromBlock: from, toBlock: to }),
-          client.getLogs({ address: engine, event: PERP, fromBlock: from, toBlock: to }),
-          client.getLogs({ address: engine, event: FILL, fromBlock: from, toBlock: to }),
-        ]);
-        const timestamps = new Map(await Promise.all([...new Set(fills.map((l) => l.blockNumber!))].map(async (number) => {
-          const b = await client.getBlock({ blockNumber: number });
-          return [number, Number(b.timestamp)] as const;
-        })));
-        if ((await client.getBlock({ blockNumber: to })).hash !== anchor.hash) throw new Error("Chain reorganized during log read; refreshing");
-        cursor.current = to;
-        cursorHash.current = anchor.hash;
-        setState((s) => ({
-          since: reset ? from : s.since ?? from,
-          index: [...(reset ? [] : s.index.filter((p) => p.block < from)), ...obs.map((l) => ({ t: Number(l.args.observedAt), v: Number(l.args.priceWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
-          perp: [...(reset ? [] : s.perp.filter((p) => p.block < from)), ...perp.filter((l) => l.args.valid).map((l) => ({ t: Number(l.args.t), v: Number(l.args.midWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
-          trades: [...(reset ? [] : s.trades.filter((p) => p.block < from)), ...fills.map((l) => ({ t: timestamps.get(l.blockNumber!)!, tick: l.args.tick!, size: l.args.size!, block: l.blockNumber!, tx: l.transactionHash! }))].slice(-500),
-        }));
-      } catch (e) {
-        setState((s) => ({ ...s, error: e instanceof Error ? e.message : String(e) }));
-      } finally {
-        busy.current = false;
-      }
-    })();
-  }, [engine, head]);
-
-  return state;
+    const current = context.current;
+    if (head === undefined || current.busy) return;
+    current.busy = true;
+    void readLiveSeries(engine, head, current.series).then((series) => {
+      if (context.current !== current) return;
+      current.series = series;
+      setResult({ scope, series });
+    }).catch((e: unknown) => {
+      if (context.current !== current) return;
+      current.series = { ...current.series, error: e instanceof Error ? e.message : String(e) };
+      setResult({ scope, series: current.series });
+    }).finally(() => { current.busy = false; });
+  }, [engine, head, scope]);
+  return result.scope === scope ? result.series : emptySeries();
 }
 
 export function useOracleMarket(id: Hex) {
@@ -237,8 +202,10 @@ export function useOracleMarket(id: Hex) {
     refetchInterval: 15000,
     queryFn: async () => {
       const o = deployment.oracle;
-      const head = await client.getBlock();
+      await ensureDeployment();
+      const head = await client.getBlock({ blockTag: "finalized" });
       const block = head.number;
+      return canonicalRead(block, async () => {
       const [question, rules, core, resolution, evidenceURI, bond, liveness, claim] = await client.multicall({ blockNumber: block, allowFailure: false, contracts: [
         { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getQuestion", args: [id] },
         { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getRules", args: [id] },
@@ -250,6 +217,7 @@ export function useOracleMarket(id: Hex) {
         { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "renderClaim", args: [id] },
       ] });
       return { id, question, rules, core, resolution, evidenceURI, block, now: head.timestamp, bond, liveness, claim };
+      });
     },
   });
 }

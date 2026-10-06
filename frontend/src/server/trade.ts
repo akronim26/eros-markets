@@ -6,6 +6,8 @@ import { validateIntent } from "@/lib/delegated-intent";
 import { delegatedEngines, type SignerMode } from "./policy";
 import { privy, signingWallet } from "./privy";
 import { db } from "./store";
+import { ensureDeployment } from "@/lib/deployment-check";
+import { marketByEngine } from "@/config/deployment";
 
 export async function delegatedTrade(user: string, input: unknown, mode: SignerMode = "trade") {
   const intent = validateIntent(input, delegatedEngines, mode === "protect");
@@ -19,6 +21,8 @@ export async function delegatedTrade(user: string, input: unknown, mode: SignerM
     throw new Error("This request was already submitted. Its status is uncertain; do not submit it again. Check wallet activity.");
   }
   if (db().prepare("SELECT id FROM requests WHERE wallet=? AND status IN ('sending','uncertain')").get(wallet.id)) throw new Error("A prior wallet request needs reconciliation before another can be sent.");
+  if (!marketByEngine(intent.engine)) throw new Error("This market is not in the verified deployment.");
+  await ensureDeployment();
   const head = await client.getBlock();
   if (await client.getChainId() !== 10143 || Date.now() / 1000 - Number(head.timestamp) > 30 || BigInt(intent.previewBlock) > head.number || head.number - BigInt(intent.previewBlock) > 150n) throw new Error("Market preview is stale. Refresh and try again.");
   const account = wallet.address as Address, engine = intent.engine as Address;
@@ -42,11 +46,13 @@ export async function delegatedTrade(user: string, input: unknown, mode: SignerM
     data = encodeFunctionData({ abi: engineAbi, functionName: "cancel", args: [intent.orderId] });
   } else data = encodeFunctionData({ abi: engineAbi, functionName: "cancelAll" });
   await client.call({ account, to: engine, data, blockNumber: head.number });
-  const gas = await client.estimateGas({ account, to: engine, data }) * 110n / 100n;
+  const gas = (await client.estimateGas({ account, to: engine, data, blockNumber: head.number }) * 110n + 99n) / 100n;
+  if (gas > 30000000n) throw new Error("The transaction exceeds the supported gas limit.");
   const [balance, gasPrice] = await Promise.all([client.getBalance({ address: account }), client.getGasPrice()]);
   if (balance < gas * gasPrice) throw new Error("Not enough testnet MON for gas.");
   // Check revocation again immediately before requesting a signature.
   await signingWallet(user, intent.wallet, mode);
+  if ((await client.getBlock({ blockNumber: head.number })).hash !== head.hash) throw new Error("The preview block changed. Refresh before trading.");
   db().exec("BEGIN IMMEDIATE");
   try {
     if (db().prepare("SELECT id FROM requests WHERE wallet=? AND status IN ('sending','uncertain')").get(wallet.id)) throw new Error("Another wallet request is in progress.");

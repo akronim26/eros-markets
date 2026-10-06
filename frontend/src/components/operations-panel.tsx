@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { client, type MarketSnapshot } from "@/lib/reads";
+import { canonicalRead } from "@/lib/deployment-check";
 import { useTx } from "@/lib/tx";
 import { lotsToClaims, qToMoney } from "@/lib/units";
 import { useOwner } from "./wallet";
@@ -26,16 +27,16 @@ export function OperationsPanel({ engine, m }: { engine: Address; m: MarketSnaps
     { name: "preparePayoutChunk", label: "Prepare payouts (32)", args: [32n], due: s.oracleFinalityAccepted && !s.claimsEnabled && !s.recoveryRequired },
     { name: "finishPreparation", label: "Open claims", args: [], due: s.oracleFinalityAccepted && s.accountingComplete && !s.claimsEnabled && !s.recoveryRequired },
   ];
-  const q = useQuery({ queryKey: ["operations", engine, m.block.toString(), owner.address], queryFn: async () => {
-    const available = await Promise.all(actions.map(async (a) => { if (!a.due) return false; try { const simulation = await client.simulateContract({ address: engine, abi: engineAbi, functionName: a.name, args: a.args, account: owner.address, blockNumber: m.block } as never); return (simulation.result as unknown) !== false; } catch (error) { if (isContractRevert(error)) return false; throw error; } }));
+  const q = useQuery({ queryKey: ["operations", engine, m.block.toString(), owner.address], queryFn: async () => canonicalRead(m.block, async () => {
+    const available = await Promise.all(actions.map(async (a) => { if (!a.due) return false; try { const simulation = await client.simulateContract({ address: engine, abi: engineAbi, functionName: a.name, args: a.args, account: owner.address, blockNumber: m.block } as never); return a.name === "samplePerp" || (simulation.result as unknown) !== false; } catch (error) { if (isContractRevert(error)) return false; throw error; } }));
     const earnings = owner.address ? await client.readContract({ address: engine, abi: engineAbi, functionName: "keeperQ", args: [owner.address], blockNumber: m.block }) : 0n;
     return { available, earnings };
-  }});
-  const candidates = useQuery({ queryKey: ["liquidation-candidates", engine, m.block.toString()], enabled: m.listing.deploymentCapX > 1n && !m.halted && m.participants <= 1024n, queryFn: async () => {
+  })});
+  const candidates = useQuery({ queryKey: ["liquidation-candidates", engine, m.block.toString()], enabled: m.listing.deploymentCapX > 1n && !m.halted && m.participants <= 1024n, queryFn: async () => canonicalRead(m.block, async () => {
     const people = await client.multicall({ blockNumber: m.block, allowFailure: false, contracts: Array.from({ length: Number(m.participants) }, (_, i) => ({ address: engine, abi: engineAbi, functionName: "traderIdAt", args: [BigInt(i)] } as const)) });
     const values = await client.multicall({ blockNumber: m.block, allowFailure: false, contracts: people.map(([id]) => ({ address: engine, abi: engineAbi, functionName: "accountRiskView", args: [id] } as const)) });
     return values.filter((v) => v.liquidationMode !== 0);
-  }});
+  })});
   const ready = !!owner.address && !owner.wrongChain && !busy;
   return <section className="p-4" aria-label="Permissionless operations">
     <h3 className="text-base font-semibold">Market upkeep</h3><p className="mt-2 max-w-2xl text-sm text-fg-3">Anyone can advance due accounting and settlement work. Each action processes a bounded page, is simulated first, and requires your wallet&apos;s gas.</p>

@@ -9,6 +9,7 @@ import { usePermissions } from "@/lib/privy-api";
 import { expiryBlock, type CloseIntent } from "@/lib/trade-intent";
 import { ownerTrader } from "@/lib/trader";
 import { leverageLots } from "@/lib/leverage";
+import { canonicalRead } from "@/lib/deployment-check";
 import { qToMoney } from "@/lib/units";
 import { REJECT, ORDER_KIND } from "@/lib/enums";
 import { useTx, summarizeOrder } from "@/lib/tx";
@@ -33,10 +34,10 @@ function useDebounced<T>(v: T, ms = 250) {
   return d;
 }
 
-export function Ticket({ engine, market, trader, intent }: { engine: Address; market?: MarketSnapshot; trader?: TraderSnapshot; intent?: CloseIntent }) {
+export function Ticket({ engine, market, trader, intent, readUnavailable = false }: { engine: Address; market?: MarketSnapshot; trader?: TraderSnapshot; intent?: CloseIntent; readUnavailable?: boolean }) {
   const owner = useOwner();
   const loginAction = useLoginAction();
-  const { switchChain } = useSwitchChain();
+  const { switchChain, error: chainError } = useSwitchChain();
   const [side, setSide] = useState<Side>("buy");
   const [kind, setKind] = useState(0);
   const [price, setPrice] = useState("");
@@ -47,13 +48,15 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
   const delegated = permissions.data?.modes.find((p) => p.mode === "trade" && p.granted && p.engines.includes(engine.toLowerCase()));
   const [oneClick, setOneClick] = useState(false);
   const [expiry, setExpiry] = useState("");
-  useEffect(() => { if (intent) { setSide(intent.side); setSize(intent.size); setPrice(intent.price); setReduceOnly(true); setKind(1); } }, [intent]);
+  useEffect(() => { if (intent) { setSide(intent.side); setSize(intent.size); setPrice(intent.price); setReduceOnly(true); setKind(1); setExpiry(""); setTargetLeverage(undefined); } }, [intent]);
   let expires = 0, expiryError = "";
   try { expires = expiryBlock(expiry, market?.block ?? 0n); } catch (e) { expiryError = (e as Error).message; }
   const cap = market?.leverageCaps[side === "buy" ? "long" : "short"];
   const [targetLeverage, setTargetLeverage] = useState<number>();
   useEffect(() => { setTargetLeverage(undefined); }, [cap]);
-  const canSizeLeverage = !!trader?.account && trader.account.preview.positionLots === 0n && !reduceOnly && trader.account.preview.markEquityQ > 0n;
+  // For a flat account equity equals cash even before a normal mark exists.
+  const sizingEquity = trader?.account?.preview.cashQ ?? 0n;
+  const canSizeLeverage = !!trader?.account && trader.account.preview.positionLots === 0n && !reduceOnly && sizingEquity > 0n;
 
 
   const parsed = useMemo((): Parsed => {
@@ -75,16 +78,16 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
   const traderId = trader?.traderId ?? 0;
   const dParsed = useDebounced(parsed);
   const preview = useQuery({
-    queryKey: ["previewOrder", engine, traderId, side, dParsed.ok ? dParsed.tick : 0, dParsed.ok ? dParsed.lots.toString() : "", reduceOnly, market?.block.toString()],
-    enabled: traderId > 0 && dParsed.ok && !!market,
-    queryFn: () =>
+    queryKey: ["previewOrder", engine, owner.address, traderId, side, dParsed.ok ? dParsed.tick : 0, dParsed.ok ? dParsed.lots.toString() : "", reduceOnly, market?.block.toString()],
+    enabled: traderId > 0 && dParsed.ok && !!market && trader?.block === market.block && !readUnavailable,
+    queryFn: () => canonicalRead(market!.block, () =>
       client.readContract({
         address: engine,
         abi: engineAbi,
         functionName: "previewOrder",
         args: dParsed.ok ? [traderId, side === "buy" ? 0 : 1, dParsed.tick, dParsed.lots, reduceOnly] : [0, 0, 1, 1n, false],
         blockNumber: market?.block,
-      }),
+      })),
   });
 
   const cost = parsed.ok ? (side === "buy" ? buyBackedAtoms(parsed.lots, parsed.tick) : sellBackedAtoms(parsed.lots, parsed.tick)) : undefined;
@@ -92,7 +95,8 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
 
   // The state that keeps the order from being sent, in the order the user meets it. Disabled
   // labels name a state; actions the user can take (log in, switch network) stay enabled.
-  const blocker = !market
+  const blocker = readUnavailable ? "Live reads unavailable"
+    : !market
     ? "Loading market"
     : market.halted
       ? "Market halted"
@@ -100,13 +104,15 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
         ? "Opens on activation"
         : traderId === 0
           ? "Not funded yet"
+          : trader?.block !== market.block ? "Refreshing account…"
               : !parsed.ok
                 ? parsed.error || "Enter price and size"
                 : expiryError ? expiryError
                 : preview.isError ? "Order preview unavailable"
                 : !preview.data || !dParsed.ok || parsed.tick !== dParsed.tick || parsed.lots !== dParsed.lots ? "Checking order…"
                 : preview.data.rejection !== 0
-                  ? REJECT[preview.data.rejection]
+                  ? REJECT[preview.data.rejection] || "Order cannot be admitted"
+                  : preview.data.acceptedCapLots < parsed.lots ? "Reduce size to the admissible limit"
                   : null;
 
   async function submit() {
@@ -117,6 +123,12 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
         {
           ...ownerTrader(engine, owner.address).placeOrder({ kind, isBuy: side === "buy", reduceOnly, tick: parsed.tick, size: parsed.lots, maxFills: market.maxFills, expiryBlock: expires }),
           label: "order",
+          validate: async (blockNumber) => {
+            const id = await client.readContract({ address: engine, abi: engineAbi, functionName: "participantId", args: [owner.address!], blockNumber });
+            const fresh = await client.readContract({ address: engine, abi: engineAbi, functionName: "previewOrder", args: [id, side === "buy" ? 0 : 1, parsed.tick, parsed.lots, reduceOnly], blockNumber });
+            if (expires && BigInt(expires) <= blockNumber) throw new Error("The order expiry has passed. Choose a later block.");
+            if (fresh.rejection || fresh.acceptedCapLots < parsed.lots) throw new Error(REJECT[fresh.rejection] || "The latest preview does not admit this exact size. Refresh and review the order.");
+          },
         },
       ],
       summarizeOrder,
@@ -169,7 +181,7 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
           <span className="label flex justify-between text-fg-3">
             <span>Price (probability)</span>
             {market && market.bestBid + market.bestAsk > 0 && (
-              <button className="text-fg-2 hover:text-fg" onClick={() => setPrice(`0.${String(side === "buy" ? market.bestAsk || market.bestBid : market.bestBid || market.bestAsk).padStart(3, "0")}`)}>
+              <button className="text-fg-2 hover:text-fg" onClick={() => { setPrice(`0.${String(side === "buy" ? market.bestAsk || market.bestBid : market.bestBid || market.bestAsk).padStart(3, "0")}`); setTargetLeverage(undefined); }}>
                 Use best {side === "buy" ? "ask" : "bid"}
               </button>
             )}
@@ -195,9 +207,9 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
           <p className="label flex justify-between text-fg-3"><span>Target leverage</span><span>{cap === undefined ? "Reading limit…" : `Current limit ${cap}×`}</span></p>
           <div className="grid grid-cols-5 gap-1" role="group" aria-label="Target leverage">
             {[1, 2, 3, 4, 5].map((x) => <button key={x} type="button" aria-pressed={targetLeverage === x}
-              disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || !price}
+              disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || !!fieldErrors.price || readUnavailable || trader?.block !== market?.block}
               className={cx("h-9 border text-sm tnum transition-colors disabled:cursor-not-allowed disabled:opacity-35", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong text-fg-2 hover:bg-press")}
-              onClick={() => { try { const lots = leverageLots(trader!.account!.preview.markEquityQ, parsePriceToTick(price), side === "buy", x); setSize(lotsToClaims(lots)); setTargetLeverage(x); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
+              onClick={() => { try { const lots = leverageLots(sizingEquity, parsePriceToTick(price), side === "buy", x); setSize(lotsToClaims(lots)); setTargetLeverage(x); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
           </div>
           <p className="text-xs leading-relaxed text-fg-3">{!canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : "Sizes a new position using market equity. Fees, fills and risk checks determine actual leverage."} Limits adjust with price readiness and risk.</p>
         </div>
@@ -207,7 +219,7 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
             <input
               type="checkbox"
               checked={reduceOnly}
-              onChange={(e) => setReduceOnly(e.target.checked)}
+              onChange={(e) => { setReduceOnly(e.target.checked); setTargetLeverage(undefined); }}
               className="peer absolute inset-0 m-0 h-full w-full cursor-pointer appearance-none border border-line-strong bg-ground checked:bg-action"
             />
             <Check size={11} strokeWidth={3} className="pointer-events-none relative hidden text-on-action peer-checked:block" aria-hidden />
@@ -244,6 +256,7 @@ export function Ticket({ engine, market, trader, intent }: { engine: Address; ma
         )}
 
         {preview.isError && <ReadError message="Order preview unavailable. Check your connection and retry." retry={() => { void preview.refetch(); }} />}
+        {owner.wrongChain && chainError && <p role="alert" className="text-xs text-ask">Network switch was not completed. Unlock your wallet and try again.</p>}
         {preview.data && preview.data.rejection !== 0 && parsed.ok && <p role="status" className="text-xs leading-relaxed text-ask">{REJECT[preview.data.rejection] || "This order cannot be admitted. Review your price, size, and collateral."}</p>}
         <TxFeedback state={tx.state} />
         {!market?.active && market && (

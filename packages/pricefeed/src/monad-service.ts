@@ -44,11 +44,19 @@ export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
   return {sender:p.sender,relay,budget};
 }
 export type TestnetServiceOptions={config:MarketConfig;rules:RulesManifest;abi:unknown;rpcUrl:string;
-  keysDirectory:string;journalDirectory:string;policy:TestnetRunPolicy;durationSeconds:number;stopAfterFinalized:number;initialize:boolean;streamHints?:boolean};
+  keysDirectory:string;journalDirectory:string;policy:TestnetRunPolicy;durationSeconds:number;stopAfterFinalized:number;initialize:boolean;streamHints?:boolean;publicationIntervalMs?:number};
+/** Explicit cadence affects scheduling only; source clocks, finality and budget remain authoritative. */
+export function testnetPublicationInterval(collectionIntervalMs:number,requested?:number):number {
+  const interval=requested??Math.max(20000,collectionIntervalMs);
+  if(!Number.isSafeInteger(interval)||interval<1000||interval<collectionIntervalMs||interval>30000)
+    throw new Error('BAD_TESTNET_PUBLICATION_INTERVAL');
+  return interval;
+}
 /** Finite explicitly budgeted testnet service, with five durable journals and no production admission. */
 export async function runMonadTestnetService(options:TestnetServiceOptions,signal:AbortSignal,
   onResult:(result:PipelineResult)=>void|Promise<void>):Promise<Record<string,unknown>> {
   const cfg=validateMonadLifecycleConfig(parseConfig(structuredClone(options.config))),d=cfg.destination!;
+  const publicationIntervalMs=testnetPublicationInterval(cfg.poll.intervalMs,options.publicationIntervalMs);
   if(options.streamHints!==undefined&&typeof options.streamHints!=='boolean')throw new Error('BAD_STREAM_HINTS_OPTION');
   const rules=parseRules(structuredClone(options.rules)),parsed=parseEngineReadAbi(options.abi),policy=structuredClone(options.policy);
   if(parsed.abiHash.toLowerCase()!==d.abiHash.toLowerCase()||rulesHash(rules)!==d.sourceRulesHash.toLowerCase())throw new Error('MONAD_CONFIG_OR_ABI_MISMATCH');
@@ -92,7 +100,6 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
     const lifecycle=new MonadTestnetPublicationLifecycle(cfg,source,randomUUID(),monadLifecycleReader(read,cfg,parsed.abi),30000n);
     // The collector owns/relinquishes its lease after both loops have drained.
     // Pipeline shutdown must not release it during an independent in-flight poll.
-    const publicationIntervalMs=Math.max(20000,cfg.poll.intervalMs);
     pipeline=new MonadTestnetPipeline([{worker:{config:cfg,poll:()=>snapshots.poll()},rules,signer,lifecycle,
       latestSnapshot:()=>snapshots.snapshot(),...(stream?{sourceReady:()=>snapshots.publicationReady()}:{}),publicationIntervalMs}],packets,relay,transport,policy.relay);
     await pipeline.start();

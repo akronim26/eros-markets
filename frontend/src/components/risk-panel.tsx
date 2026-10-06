@@ -12,12 +12,12 @@ export function RiskPanel({ m, t }: { m: MarketSnapshot; t?: TraderSnapshot }) {
   const p = t?.account?.preview, r = t?.account?.riskView;
   const profile = verifiedProfile(m.profile.profileHash, m.listing.template, m.listing.deploymentCapX);
   const [tick, setTick] = useState(500);
-  const [estimateBlock, setEstimateBlock] = useState<bigint>();
+  const [estimate, setEstimate] = useState<Parameters<typeof marginBoundaries>>();
   const backed = p ? p.e0Q >= 0n && p.e1Q >= 0n : false;
   const lens = useQuery({ queryKey: ["lens", m.block.toString(), p?.cashQ.toString(), p?.positionLots.toString(), m.profile.profileHash, tick], enabled: !!p && !!profile && !backed && p.id.markAvailable,
     queryFn: () => healthAt(p!.cashQ, p!.positionLots, tick, m.risk.secsToT, m.risk.asOfTime, profile!, m.block) });
-  const bounds = useQuery({ queryKey: ["margin-boundaries", estimateBlock?.toString(), p?.cashQ.toString(), p?.positionLots.toString(), m.profile.profileHash], enabled: estimateBlock === m.block && !!profile && !!p && !backed,
-    queryFn: () => marginBoundaries(p!.cashQ, p!.positionLots, Number(p!.id.markWad / 10n ** 15n), m.risk.secsToT, m.risk.asOfTime, profile!, m.block), retry: false });
+  const bounds = useQuery({ queryKey: ["margin-boundaries", JSON.stringify(estimate, (_, v) => typeof v === "bigint" ? v.toString() : v)], enabled: !!estimate,
+    queryFn: () => marginBoundaries(...estimate!), retry: false });
   const max = p ? [p.imQ, p.mmQ, p.markEquityQ, 1n].reduce((a, b) => a > b ? a : b) * 12n / 10n : 1n;
   const pct = (v: bigint) => Math.max(0, Math.min(100, Number(v * 10000n / max) / 100));
   return <section className="grid gap-5 p-4 sm:grid-cols-2" aria-label="Market risk">
@@ -34,7 +34,7 @@ export function RiskPanel({ m, t }: { m: MarketSnapshot; t?: TraderSnapshot }) {
         {!backed && profile && p.id.markAvailable && <div className="mt-4 grid gap-2">
           <label className="text-xs">What if the mark moves to {tickToPrice(tick)}?<input aria-label="Hypothetical mark" className="mt-2 w-full accent-signal" type="range" min="1" max="999" value={tick} onChange={(e) => setTick(Number(e.target.value))} /></label>
           <p className="text-xs text-fg-2">{lens.data ? `${HEALTH[lens.data.status]} · Equity ${qToMoney(lens.data.markEquityQ).usdc} · MM ${qToMoney(lens.data.mmQ).usdc}` : lens.isError ? "This RPC could not run the margin lens." : "Calculating…"}</p>
-          <Button disabled={bounds.isFetching} onClick={() => setEstimateBlock(m.block)}>Estimate margin boundaries</Button>
+          <Button disabled={bounds.isFetching} onClick={() => setEstimate([p.cashQ, p.positionLots, Number(p.id.markWad / 10n ** 15n), m.risk.secsToT, m.risk.asOfTime, profile, m.block])}>Estimate margin boundaries</Button>
           {bounds.data && <p className="text-xs text-fg-3">Nearest MM boundary: {bounds.data.mm ? tickToPrice(bounds.data.mm) : "none"}; IM: {bounds.data.im ? tickToPrice(bounds.data.im) : "none"}. At block {bounds.data.block.toString()}. Changes with time, funding and premium; mark is not the last trade.</p>}
           {bounds.isError && <p className="text-xs text-ask">Boundary calculation unavailable on this RPC.</p>}
         </div>}

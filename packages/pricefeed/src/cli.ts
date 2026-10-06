@@ -38,7 +38,7 @@ async function main():Promise<void> {
     'build-observation':['--config','--rules','--db','--capture-id','--sequence','--published-at-ms'],
     'preflight-monad':['--rpc-env','--config','--abi'],
     'watch-monad-lifecycle':['--rpc-env','--config','--abi','--db','--interval-ms','--max-checkpoint-age-ms','--duration-seconds'],
-    'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize','--stream-hints'],
+    'serve-monad-testnet':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy','--duration-seconds','--stop-after-finalized','--initialize','--stream-hints','--publication-interval-ms'],
     'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy'],
     'plan-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--old-policy','--new-policy','--transition-id','--reason'],
     'apply-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--plan','--plan-sha256'],
@@ -87,6 +87,9 @@ async function main():Promise<void> {
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
     const duration=need('--duration-seconds'),target=need('--stop-after-finalized'),initialize=need('--initialize');
+    const publicationInterval=options.get('--publication-interval-ms');
+    if(publicationInterval!==undefined&&(!/^[1-9]\d*$/.test(publicationInterval)||BigInt(publicationInterval)<1000n||BigInt(publicationInterval)>30000n))
+      throw new Error('BAD_TESTNET_PUBLICATION_INTERVAL');
     if(!/^[1-9]\d*$/.test(duration)||BigInt(duration)>86400n||!/^([1-9]\d*)$/.test(target)||BigInt(target)>100000n
       ||!['true','false'].includes(initialize))throw new Error('BAD_TESTNET_RUN_LIMIT');
     const controller=new AbortController(),stop=()=>controller.abort();process.once('SIGINT',stop);process.once('SIGTERM',stop);
@@ -94,7 +97,7 @@ async function main():Promise<void> {
       const result=await runMonadTestnetService({config:parseConfig(read(need('--config'))),rules:parseRules(read(need('--rules'))),
         abi:read(need('--abi')),rpcUrl,keysDirectory:need('--keys-dir'),journalDirectory:need('--journal-dir'),
         policy:parseTestnetRunPolicy(read(need('--policy'))),durationSeconds:Number(duration),stopAfterFinalized:Number(target),
-        initialize:initialize==='true',streamHints},controller.signal,r=>console.log(json({mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',...r})));
+        initialize:initialize==='true',streamHints,...(publicationInterval===undefined?{}:{publicationIntervalMs:Number(publicationInterval)})},controller.signal,r=>console.log(json({mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',...r})));
       console.log(json(result));
       if(!result.evidenceValid||Number(result.finalizedPackets)<Number(target))process.exitCode=2;
     }finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}

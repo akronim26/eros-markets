@@ -1,58 +1,47 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider as PrivyWagmiProvider, createConfig as privyCreateConfig } from "@privy-io/wagmi";
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { WagmiProvider, createConfig, createStorage, http } from "wagmi";
 import { chain, PRIVY_APP_ID, RPC_URL } from "@/config/chain";
-import { WalletPickerProvider } from "./wallet-picker";
-import { useTheme } from "./theme-provider";
+import { WalletSessionContext, unavailableWalletSession } from "./wallet-session";
 
 export const PRIVY_ENABLED = PRIVY_APP_ID.length > 0;
-
-const privyWagmi = privyCreateConfig({ chains: [chain], transports: { [chain.id]: http(RPC_URL) } });
-const readOnlyWagmi = createConfig({ chains: [chain], connectors: [], multiInjectedProviderDiscovery: false, transports: { [chain.id]: http(RPC_URL) }, ssr: true });
+const readOnlyWagmi = createConfig({ chains: [chain], connectors: [], multiInjectedProviderDiscovery: false,
+  storage: createStorage({ key: "eros-public" }), transports: { [chain.id]: http(RPC_URL) }, ssr: true });
 
 export function Providers({ children }: { children: ReactNode }) {
-  const { resolved } = useTheme();
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 3500, refetchOnWindowFocus: false } } }));
+  const [WalletProvider, setWalletProvider] = useState<ComponentType<{ children: ReactNode; queryClient: QueryClient }>>();
+  const [error, setError] = useState<string | null>(null);
 
-  if (!PRIVY_ENABLED) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={readOnlyWagmi}>
-          {children}
-        </WagmiProvider>
-      </QueryClientProvider>
-    );
-  }
+  useEffect(() => {
+    if (!PRIVY_ENABLED) return;
+    let cancelled = false;
+    try {
+      const key = `eros:storage-check:${Date.now()}`;
+      for (const storage of [window.localStorage, window.sessionStorage]) {
+        storage.setItem(key, "1");
+        storage.removeItem(key);
+      }
+    } catch {
+      setError("Wallet login needs browser storage. Allow storage for this site and reload. Public markets remain available.");
+      return;
+    }
+    // A static import can crash the entire page before an error boundary mounts.
+    void import("./privy-wallet-provider").then(({ PrivyWalletProvider }) => {
+      if (!cancelled) setWalletProvider(() => PrivyWalletProvider);
+    }).catch(() => {
+      if (!cancelled) setError("Wallet services could not load. Reload to retry; public markets remain available.");
+    });
+    return () => { cancelled = true; };
+  }, []);
 
-  return (
-    <PrivyProvider
-      appId={PRIVY_APP_ID}
-      config={{
-        loginMethods: ["email", "google", "wallet"],
-        legal: { termsAndConditionsUrl: "/terms", privacyPolicyUrl: "/privacy" },
-        appearance: {
-          theme: resolved === "dark" ? "#101112" : "#F2F1EC", accentColor: "#FF5A36", logo: `/brand/eros-markets-lockup-on-${resolved}.svg`,
-          landingHeader: "Log in to trade",
-          loginMessage: "Connect a wallet or sign in with email or Google.",
-          walletChainType: "ethereum-only",
-          walletList: ["detected_ethereum_wallets", "metamask", "coinbase_wallet", "rainbow", "wallet_connect"],
-        },
-        // Coinbase's smart-wallet path does not support this deployment's chain.
-        externalWallets: { coinbaseWallet: { config: { preference: { options: "eoaOnly" } } } },
-        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
-        defaultChain: chain,
-        supportedChains: [chain],
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <PrivyWagmiProvider config={privyWagmi}>
-          <WalletPickerProvider>{children}</WalletPickerProvider>
-        </PrivyWagmiProvider>
-      </QueryClientProvider>
-    </PrivyProvider>
-  );
+  return <QueryClientProvider client={queryClient}>
+    {WalletProvider ? <WalletProvider queryClient={queryClient}>{children}</WalletProvider> : <WagmiProvider config={readOnlyWagmi}>
+      <WalletSessionContext.Provider value={{ ...unavailableWalletSession, configured: PRIVY_ENABLED, error }}>
+        {children}
+      </WalletSessionContext.Provider>
+    </WagmiProvider>}
+  </QueryClientProvider>;
 }

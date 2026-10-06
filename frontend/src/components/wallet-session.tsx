@@ -19,7 +19,7 @@ type WalletSession = {
 };
 
 // Public market reads still work when Privy has not been configured.
-export const WalletSessionContext = createContext<WalletSession>({
+export const unavailableWalletSession: WalletSession = {
   embedded: false,
   configured: false,
   ready: false,
@@ -29,6 +29,7 @@ export const WalletSessionContext = createContext<WalletSession>({
   open: () => {},
   logout: async () => {},
   getSnapshot: () => ({ ready: false, version: 0 }),
-});
+};
+export const WalletSessionContext = createContext<WalletSession>(unavailableWalletSession);
 
 export const useWalletSession = () => useContext(WalletSessionContext);

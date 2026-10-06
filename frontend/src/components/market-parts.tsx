@@ -21,6 +21,7 @@ export function chipFor(m: MarketSnapshot) {
     pricingMode: m.risk.pricingMode,
     accountingState: m.risk.accountingState,
     indexAvailable: m.risk.indexAvailable,
+    markAvailable: m.risk.markAvailable,
     monitorRestricted: m.risk.monitorRestricted,
     claimsEnabled: m.settlement.claimsEnabled,
     phase: m.settlement.phase,
@@ -112,7 +113,7 @@ export function DeadlineStrip({ m, now }: { m?: MarketSnapshot; now?: bigint }) 
 }
 
 /** Account: what the wallet holds, what the market holds, what can leave. Contract numbers only (R2). */
-export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnapshot; t?: TraderSnapshot }) {
+export function AccountPanel({ engine, m, t, readUnavailable = false }: { engine: Address; m?: MarketSnapshot; t?: TraderSnapshot; readUnavailable?: boolean }) {
   const owner = useOwner();
   const p = t?.account?.preview;
 
@@ -148,7 +149,7 @@ export function AccountPanel({ engine, m, t }: { engine: Address; m?: MarketSnap
       {settlement && settlement.halted && (
         <p className="px-3 pb-2 text-xs text-fg-2">{STATUS_TEXT[decodeSettlementStatus(settlement as never)]}</p>
       )}
-      <AccountActions engine={engine} m={m} t={t} />
+      <AccountActions key={owner.address} engine={engine} m={m} t={t} readUnavailable={readUnavailable} />
     </section>
   );
 }

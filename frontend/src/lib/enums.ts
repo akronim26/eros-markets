@@ -52,6 +52,7 @@ export type MarketChipInput = {
   pricingMode: number;
   accountingState: number;
   indexAvailable: boolean;
+  markAvailable: boolean;
   monitorRestricted: boolean;
   claimsEnabled: boolean;
   phase: number;
@@ -73,5 +74,6 @@ export function marketChip(m: MarketChipInput): { label: string; tone: Tone } {
   if (m.stage === 1) return { label: "Final day: top up to full backing", tone: "signal" };
   if (m.pricingMode === 0 && !m.indexAvailable) return { label: "Waiting for index price", tone: "muted" };
   if (m.pricingMode === 0) return { label: "Bootstrap: fully backed", tone: "neutral" };
+  if (!m.indexAvailable || !m.markAvailable) return { label: "Waiting for fresh prices", tone: "warn" };
   return { label: "Trading", tone: "neutral" };
 }
