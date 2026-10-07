@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "scope": "testnet-read-only",
   "chainId": 10143,
-  "sourceCommit": "53987ea195c413ad7edbd60e54d2c8e36ffb8d30",
+  "sourceCommit": "52c3be1e5066303e7726d96ec7f41464fb055f99",
   "riskScenario": "leveraged-fixture",
   "sourceMode": "polymarket",
-  "calibrationEvidence": "0xf698c4840ec57808935751ad2524d9c1ecc81145f894e3b299b52fa74926aa23",
+  "calibrationEvidence": "0xcaddfd312c5b65284680150d7ac6b64240dfe5f643397495b5a499f783972dea",
   "provenance": {
     "collateral": "testnet",
     "index": "external",
@@ -13,8 +13,8 @@
     "resolution": "oracle"
   },
   "verifiedAt": {
-    "blockNumber": "68547714",
-    "blockHash": "0x09343b1b11a8828e206af4b88537b71035f9e9d0c93c787563188b99b3aa895a"
+    "blockNumber": "68879871",
+    "blockHash": "0x6ab7d67dd3324bfc51b93a93f03d663ab77f94ea8b4fec64ad8b9a0bb27ecaee"
   },
   "contracts": {
     "TestUSDC": {
@@ -83,19 +83,19 @@
       "deployBlock": 68543839
     },
     "EngineCodeStore": {
-      "address": "0x5ac8c620a528e00F5d227e12EF30876A1C920610",
-      "codehash": "0xc2f41d64a94cc328773e67155d142acd4c96ab792b66c42d0d502666d8cbae2c",
-      "deployBlock": 68543854
+      "address": "0x1140aBBF623D24F4a5F1db4A33b681C2e0cfC26f",
+      "codehash": "0x310ffa68d40954c3cee9b15042ea17d878ef02528b39d1e2ad55382b51a3f032",
+      "deployBlock": 68873614
     },
     "EngineCodeStoreTail": {
-      "address": "0xf3B8f127Cd6925f8e35EBd1ff6889eCF28a2d58d",
-      "codehash": "0x384084b71d677dabbe3c131ff0bb844c062f2ea208ead4348ba5cb0f7a84d512",
-      "deployBlock": 68543871
+      "address": "0x5bd9b69280EdB01C37A4baE95B745652dF01efc9",
+      "codehash": "0x6524e318a5727180ef6c97857b339061804bd2f17692a18b85879b2e77ece51d",
+      "deployBlock": 68873630
     },
     "MarketFactory": {
-      "address": "0xE348249c130ed49E33b024495477F81d40244F4D",
-      "codehash": "0xf6a23642ed5bd387d2cda0e3a34db89b23470797bba1e4b5bd764af39c937858",
-      "deployBlock": 68543887
+      "address": "0xBd2f5E6211dD35210d334124a239D78dAEf5878e",
+      "codehash": "0x20a20ebb96709fb2b5b599a0c0d3943bb889d08ba64fa6d0d61393da54938642",
+      "deployBlock": 68873641
     },
     "RolloverBatcher": {
       "address": "0x65430A9B4863545AFE736941c8B89a467f96e87e",
@@ -103,9 +103,9 @@
       "deployBlock": 68543902
     },
     "CollateralVault": {
-      "address": "0xB544Cc0f81E587924f819258b3061a28F4954D4B",
-      "codehash": "0x7ef3f7f2abc6e17520749ca574c524e18072fd22bb5ac351d9b9c097ad9de0c3",
-      "deployBlock": 68543887
+      "address": "0x9A0967fF6bd72A6EC24f7772bB381797E74C7F1f",
+      "codehash": "0xb19689b1e16c4461e3d9a2d452776590ffc8782f7133a26c0db9665c2701410f",
+      "deployBlock": 68873641
     },
     "CollateralToken": {
       "address": "0x0e0279B152845972479c66f933835c92582E1dC4",
@@ -115,13 +115,26 @@
   },
   "markets": [
     {
-      "name": "polymarket-demo",
-      "engine": "0xcDf0EA81497895155E2911443f46157c00F965Db",
-      "marketId": "0xb75d77f847ad7eb057bc9249d711cdf235fabb941fe4586776f79653cc50cea4",
-      "sourceId": "0x6b0c459967996983036fc713f11fa5223ab71371bda6dbe77f64af62de9be9f5",
-      "listingHash": "0x0b880efd6e7a9fe7ecebb6b77916ed4c58bacf2d480e583580a691a29b66727a",
-      "codehash": "0xf5c31a3877143372dcaef97d6bd2f30c2cc5a46a2f3ff5cfd7f5756807466596",
-      "deployBlock": 68546673,
+      "name": "polymarket-634893-21f038e4",
+      "engine": "0x21f038E4Ab2c67d1420567401408aD093aFd5F5d",
+      "marketId": "0x8b8bc4869d071dc4c802f511ccffed9175ca512a51a0c4fdbd8b74cdfba299b5",
+      "sourceId": "0x848114790490867a67b65a6275a802b72f7356b63bdb123b159d5aaf00c635a1",
+      "listingHash": "0xf9b272c4d59203868361db0404a36c372daf372aa7554f3c97b6800ac6ac8805",
+      "codehash": "0x8e5be844bf42c56943c6f2355461f0c8cf80a11491d098cf8316a5f0251a5c96",
+      "deployBlock": 68874911,
+      "deploymentCapX": 5,
+      "template": 0,
+      "maxLiqLotsPerBlock": "100000",
+      "fundingEnabled": false
+    },
+    {
+      "name": "polymarket-562803-fda2baf1",
+      "engine": "0xfDA2baf1A251b1b68a28C1db6881605c33030B62",
+      "marketId": "0x88390240c1acfb11224c67bc653cdb5641fc1d0d3b219ac638c7b201cc1f71a3",
+      "sourceId": "0x83d7a5d5a6318af187b20c88a6ad17078bdaad26307067243bf0d132c3805f9b",
+      "listingHash": "0xb93555a5020a13e8011e8d79f49485ab4f3a3d16adde8c66b0ae8a3b2080bf49",
+      "codehash": "0x2dd68d7545a5b55abf49b302a8b94c90d5720b9ae224be4588d86fa30ad61ec7",
+      "deployBlock": 68878811,
       "deploymentCapX": 5,
       "template": 0,
       "maxLiqLotsPerBlock": "100000",

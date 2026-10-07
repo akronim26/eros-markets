@@ -6,6 +6,10 @@ import { EVM_PB } from '@chainlink/cre-sdk/pb'
 const { LogSchema } = EVM_PB
 import { decodeAbiParameters, encodeAbiParameters, type Hex, hexToBytes, keccak256, parseAbi, parseAbiParameters, toBytes } from 'viem'
 import { onResolutionRequested } from './main'
+import { feed as footballSpec, footballAuth, footballResponse } from '../../packages/feedspec/test/fixtures/football'
+import sportsFixtures from '../../packages/feedspec/test/fixtures/sports.json'
+import { sportsFeed, type SportsBinding } from '../../packages/feedspec/src/sports'
+import { evaluateResponse } from '../../packages/feedspec/src'
 
 const ORACLE = '0x00000000000000000000000000000000000000AA' as const
 const MARKET = keccak256(toBytes('market-1'))
@@ -183,4 +187,61 @@ test('HTTP 5xx and invalid JSON write nothing', () => {
     expect(onResolutionRequested(runtime as any, log)).toBe(`nowrite:${MARKET}:ERROR:${code}`)
     expect(writes.length).toBe(0)
   }
+})
+
+test('football CRE fetches the authenticated fixture and binds YES/NO to the exact on-chain specification', () => {
+  const s = { ...footballSpec, authRef: footballAuth }
+  for (const [home, away, outcome] of [[2, 1, 1], [1, 2, 2], [1, 1, 2]]) {
+    const { writes, requests, log, runtime } = setupWith({ spec: s, allowList: ['v3.football.api-sports.io'],
+      body: JSON.stringify(footballResponse(home, away)),
+      authSecrets: [{ authRef: footballAuth, secretId: 'SPORTSDATA_API_KEY', header: 'x-apisports-key', prefix: '' }],
+      secrets: new Map([['main', new Map([['SPORTSDATA_API_KEY', 'synthetic-test-key']])]]),
+    })
+    expect(onResolutionRequested(runtime as any, log).startsWith('proposed:')).toBe(true)
+    expect(requests[0].url).toBe('https://v3.football.api-sports.io/fixtures?id=999000001')
+    expect(requests[0].headers['x-apisports-key']).toEqual(['synthetic-test-key'])
+    expect(writes.length).toBe(1)
+    const [, chain, oracle, market, actualOutcome, , valueHash, actualSpecHash] = decodeReport(writes[0])
+    expect(chain).toBe(2183018362218727504n)
+    expect(oracle.toLowerCase()).toBe(ORACLE.toLowerCase())
+    expect(market).toBe(MARKET)
+    expect(actualOutcome).toBe(outcome)
+    expect(actualSpecHash).toBe(hashOf(s))
+    const winner = home > away ? 'HOME' : home < away ? 'AWAY' : 'DRAW'
+    expect(valueHash).toBe(keccak256(toBytes([...s.target.split(':').slice(0, 7), winner, home, away].join(':'))))
+  }
+})
+
+test('football live, postponed, mismatched and contradictory results never send an oracle report', () => {
+  const mismatch = footballResponse(); mismatch.response[0].teams.home.id++
+  const conflict = footballResponse(); conflict.response[0].goals.home++
+  for (const body of [footballResponse(2, 1, '2H'), footballResponse(2, 1, 'PST'),
+    footballResponse(2, 1, 'PEN'), mismatch, conflict]) {
+    const { writes, log, runtime } = setupWith({ spec: { ...footballSpec, authRef: footballAuth }, body: JSON.stringify(body),
+      allowList: ['v3.football.api-sports.io'],
+      authSecrets: [{ authRef: footballAuth, secretId: 'SPORTSDATA_API_KEY', header: 'x-apisports-key', prefix: '' }],
+      secrets: new Map([['main', new Map([['SPORTSDATA_API_KEY', 'synthetic-test-key']])]]),
+    })
+    expect(onResolutionRequested(runtime as any, log).startsWith('nowrite:')).toBe(true)
+    expect(writes).toHaveLength(0)
+  }
+})
+
+test('common sports rules bind a real NBA result to the on-chain market and specification', () => {
+  const fixture = sportsFixtures.find(f => f.binding.sport === 'nba')!
+  const s = { ...sportsFeed(fixture.binding as SportsBinding, footballAuth), authRef: footballAuth }
+  const body = JSON.stringify(fixture.response)
+  const { writes, requests, log, runtime } = setupWith({ spec: s, body, allowList: ['v2.nba.api-sports.io'],
+    authSecrets: [{ authRef: footballAuth, secretId: 'SPORTSDATA_API_KEY', header: 'x-apisports-key', prefix: '' }],
+    secrets: new Map([['main', new Map([['SPORTSDATA_API_KEY', 'synthetic-test-key']])]]),
+  })
+  expect(onResolutionRequested(runtime as any, log).startsWith('proposed:')).toBe(true)
+  expect(requests[0].url).toBe('https://v2.nba.api-sports.io/games?id=16878')
+  const [, chain, oracle, market, outcome, , valueHash, actualSpecHash] = decodeReport(writes[0])
+  expect(chain).toBe(2183018362218727504n)
+  expect(oracle.toLowerCase()).toBe(ORACLE.toLowerCase())
+  expect(market).toBe(MARKET)
+  expect(outcome).toBe(2)
+  expect(valueHash).toBe(keccak256(toBytes(evaluateResponse(s, 200, body, body.length).valueLexeme)))
+  expect(actualSpecHash).toBe(hashOf(s))
 })

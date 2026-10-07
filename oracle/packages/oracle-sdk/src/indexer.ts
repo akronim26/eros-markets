@@ -62,16 +62,16 @@ export const OPEN_ASSERTIONS = `query OpenAssertions($limit: Int = 200) {
   }
 }`
 
-/** Widest block range per WATCHDOG_EVENTS query, so a response stays well under any server row cap. */
+/** Widest block range per paginated watchdog intake; every page must be exhausted. */
 export const WATCHDOG_RANGE_BLOCKS = 10_000n
 
 /** Proposals and assertions in blocks (from, to], in chain order. */
 
-export const WATCHDOG_EVENTS = `query WatchdogEvents($from: Int!, $to: Int!) {
-  Proposal(where: { block: { _gt: $from, _lte: $to } }, order_by: [{ block: asc }, { logIndex: asc }]) {
+export const WATCHDOG_EVENTS = `query WatchdogEvents($from: Int!, $to: Int!, $limit: Int!, $proposalOffset: Int!, $assertionOffset: Int!) {
+  Proposal(where: { block: { _gt: $from, _lte: $to } }, order_by: [{ block: asc }, { logIndex: asc }, { id: asc }], limit: $limit, offset: $proposalOffset) {
     market_id outcome path evidenceHash evidenceURI valueHash observedAt attempt block logIndex
   }
-  Assertion(where: { assertedBlock: { _gt: $from, _lte: $to } }, order_by: [{ assertedBlock: asc }, { assertedLogIndex: asc }]) {
+  Assertion(where: { assertedBlock: { _gt: $from, _lte: $to } }, order_by: [{ assertedBlock: asc }, { assertedLogIndex: asc }, { id: asc }], limit: $limit, offset: $assertionOffset) {
     id market_id assertedBlock assertedLogIndex
   }
 }`
@@ -124,7 +124,8 @@ export class IndexerClient {
   async progress(): Promise<IndexerProgress> {
     const { _meta } = await this.query<{ _meta: IndexerProgress[] }>(INDEXER_PROGRESS, { chainId: this.chainId })
     const m = _meta?.[0]
-    if (!m || typeof m.progressBlock !== 'number') throw new IndexerError(`indexer ${this.url}: no progress for chain ${this.chainId}`)
+    if (!m || m.chainId !== this.chainId || !Number.isSafeInteger(m.progressBlock) || m.progressBlock < 0
+      || !Number.isSafeInteger(m.sourceBlock) || m.sourceBlock < m.progressBlock) throw new IndexerError(`indexer ${this.url}: no progress for chain ${this.chainId}`)
     return m
   }
 
@@ -146,6 +147,7 @@ export class IndexerClient {
 export async function freshProgress(c: IndexerClient, head: bigint, maxLagBlocks: bigint): Promise<{ ok: true; progress: IndexerProgress } | { ok: false; reason: string }> {
   try {
     const p = await c.progress()
+    if (p.isReady !== true) return { ok: false, reason: 'indexer is not ready' }
     const lag = head - BigInt(p.progressBlock)
     return lag > maxLagBlocks ? { ok: false, reason: `indexer is ${lag} blocks behind the chain head ${head}` } : { ok: true, progress: p }
   } catch (e) {

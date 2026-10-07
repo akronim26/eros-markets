@@ -237,6 +237,9 @@ class OwnedProcess:
         return self.returncode
 
     def _posix_live_members(self):
+        # Reap our root promptly; on Darwin an unreaped zombie group leader can
+        # make killpg(..., 0) report EPERM even though no member remains alive.
+        self.poll()
         proc = Path("/proc")
         if proc.is_dir():
             members = []
@@ -250,12 +253,27 @@ class OwnedProcess:
                 except (FileNotFoundError, ProcessLookupError):
                     continue
             return members
-        # Other POSIX platforms lack /proc; group existence is conservative.
-        try:
-            os.killpg(self.pid, 0)
-            return [self.pid]
-        except ProcessLookupError:
-            return []
+        # Darwin and other non-/proc POSIX systems expose numeric group and
+        # state columns through ps. Never select by command name or signal a
+        # PID from this table: cleanup signals only our dedicated process group.
+        result = subprocess.run(["ps", "-axo", "pid=,pgid=,stat="],
+                                capture_output=True, text=True, check=True, timeout=1)
+        if not result.stdout.strip():
+            raise OSError("Cannot verify owned process group: empty ps response")
+        members = []
+        for line in result.stdout.splitlines():
+            fields = line.split()
+            if not fields:
+                continue
+            if len(fields) != 3 or not fields[0].isdigit() or not fields[1].isdigit():
+                raise OSError("Cannot verify owned process group: malformed ps response")
+            pid, group = int(fields[0]), int(fields[1])
+            # Transitional/unknown states (such as '?') remain conservatively
+            # live when owned. Unrelated rows, including kernel PID 0, do not
+            # change the ownership decision.
+            if group == self.pid and not fields[2].startswith("Z"):
+                members.append(pid)
+        return members
 
     def stop(self, timeout=10):
         if not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:

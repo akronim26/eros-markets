@@ -45,3 +45,10 @@
     grid-template-columns: minmax(16rem, 1fr) 2fr;
   }
 }
+
+.priceWorkspace { grid-template-columns: minmax(0, 1fr); }
+.priceWorkspace > :last-child { border-top: 1px solid var(--color-line-strong); }
+@container terminal-content (min-width: 43rem) {
+  .priceWorkspace { grid-template-columns: minmax(0, 1fr) 248px; }
+  .priceWorkspace > :last-child { border-top: 0; border-left: 1px solid var(--color-line-strong); }
+}

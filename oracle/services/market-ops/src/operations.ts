@@ -68,10 +68,19 @@ export class Operations {
   private async run(command: Command, broadcast: boolean): Promise<Result> {
     const journal = this.store.read()
     if (!equalHex(journal.binding, binding(this.manifest))) throw new Error('Journal binding mismatch')
-    const snapshot = await this.transport.snapshot()
+    // Receipt reconciliation and the identity snapshot are independent reads.
+    // Await both before journal changes or any rebroadcast, retaining identity
+    // failure priority without adding another round trip to every sample.
+    const [snapshotRead, receiptRead] = await Promise.allSettled([
+      this.transport.snapshot(),
+      journal.pending ? this.transport.receipt(journal.pending.hash) : Promise.resolve(null),
+    ])
+    if (snapshotRead.status === 'rejected') throw snapshotRead.reason
+    if (receiptRead.status === 'rejected') throw receiptRead.reason
+    const snapshot = snapshotRead.value
     if (journal.pending) {
       const pending = journal.pending
-      const receipt = await this.transport.receipt(pending.hash)
+      const receipt = receiptRead.value
       if (!receipt?.finalized) {
         if (!receipt && broadcast) {
           const hash = await this.transport.broadcast(pending.rawTransaction)

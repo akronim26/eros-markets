@@ -11,3 +11,6 @@ __pycache__/
 # Local signing/protection persistence
 frontend/var/
 services/automation/var/
+
+# macOS metadata
+.DS_Store

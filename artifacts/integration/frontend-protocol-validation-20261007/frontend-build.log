@@ -1,0 +1,110 @@
+
+> eros-markets-frontend@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.3.8 (webpack)
+- Environments: .env.local
+✓ Running next.config.ts took 968ms
+
+  Creating an optimized production build ...
+⚠ Compiled with warnings in 16.9s
+
+./node_modules/@privy-io/react-auth/dist/esm/index-YiCw0Y_x.mjs
+Module not found: Can't resolve '@farcaster/mini-app-solana' in '/Users/phantomxsd/eros-markets/frontend/node_modules/@privy-io/react-auth/dist/esm'
+
+Import trace for requested module:
+./node_modules/@privy-io/react-auth/dist/esm/index-YiCw0Y_x.mjs
+./node_modules/@privy-io/react-auth/dist/esm/index.mjs
+./src/components/privy-wallet-provider.tsx
+./src/components/providers.tsx
+
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+Module not found: Can't resolve '@base-org/account' in '/Users/phantomxsd/eros-markets/frontend/node_modules/@wagmi/connectors/dist/esm'
+
+Import trace for requested module:
+./node_modules/@wagmi/connectors/dist/esm/baseAccount.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./node_modules/@privy-io/wagmi/dist/esm/index.mjs
+./src/components/privy-wallet-provider.tsx
+./src/components/providers.tsx
+
+./node_modules/@wagmi/connectors/dist/esm/coinbaseWallet.js
+Module not found: Can't resolve '@coinbase/wallet-sdk' in '/Users/phantomxsd/eros-markets/frontend/node_modules/@wagmi/connectors/dist/esm'
+
+Import trace for requested module:
+./node_modules/@wagmi/connectors/dist/esm/coinbaseWallet.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./node_modules/@privy-io/wagmi/dist/esm/index.mjs
+./src/components/privy-wallet-provider.tsx
+./src/components/providers.tsx
+
+./node_modules/@wagmi/connectors/dist/esm/metaMask.js
+Module not found: Can't resolve '@metamask/connect-evm' in '/Users/phantomxsd/eros-markets/frontend/node_modules/@wagmi/connectors/dist/esm'
+
+Import trace for requested module:
+./node_modules/@wagmi/connectors/dist/esm/metaMask.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./node_modules/@privy-io/wagmi/dist/esm/index.mjs
+./src/components/privy-wallet-provider.tsx
+./src/components/providers.tsx
+
+./node_modules/@wagmi/core/dist/esm/tempo/Connectors.js
+Module not found: Can't resolve 'accounts' in '/Users/phantomxsd/eros-markets/frontend/node_modules/@wagmi/core/dist/esm/tempo'
+
+Import trace for requested module:
+./node_modules/@wagmi/core/dist/esm/tempo/Connectors.js
+./node_modules/@wagmi/core/dist/esm/exports/tempo.js
+./node_modules/@wagmi/connectors/dist/esm/exports/index.js
+./node_modules/wagmi/dist/esm/exports/connectors.js
+./node_modules/@privy-io/wagmi/dist/esm/index.mjs
+./src/components/privy-wallet-provider.tsx
+./src/components/providers.tsx
+
+./node_modules/viem/node_modules/ox/_esm/tempo/internal/virtualMasterPool.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/viem/node_modules/ox/_esm/tempo/internal/virtualMasterPool.js
+./node_modules/viem/node_modules/ox/_esm/tempo/VirtualMaster.js
+./node_modules/viem/node_modules/ox/_esm/tempo/index.js
+./node_modules/viem/_esm/tempo/chainConfig.js
+./node_modules/viem/_esm/chains/definitions/tempo.js
+./node_modules/viem/_esm/chains/index.js
+./src/config/chain.ts
+./src/components/providers.tsx
+
+  Running TypeScript ...
+  Finished TypeScript in 7.2s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/15) ...
+  Generating static pages using 9 workers (3/15) 
+  Generating static pages using 9 workers (7/15) 
+  Generating static pages using 9 workers (11/15) 
+✓ Generating static pages using 9 workers (15/15) in 1709ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/permissions
+├ ƒ /api/protection
+├ ƒ /api/rpc
+├ ƒ /api/trade
+├ ○ /apple-icon.png
+├ ○ /icon.svg
+├ ƒ /m/[engine]
+├ ○ /markets
+├ ○ /portfolio
+├ ○ /privacy
+├ ○ /resolution
+├ ○ /terms
+└ ƒ /thank-you
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

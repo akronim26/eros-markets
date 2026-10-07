@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1",
+  "sender": "0xbab4C0FF8c6169813C7128cA31724B7a701B7918",
+  "relay": {
+    "gasCap": "800000",
+    "maxFeePerGas": "150000000000",
+    "maxPriorityFeePerGas": "2000000000",
+    "maxCostWei": "120000000000000000",
+    "headroomMs": "5000",
+    "confirmations": "1",
+    "leaseMs": "120000",
+    "timeoutMs": 10000,
+    "maxAttempts": 3,
+    "gasSafetyMarginBps": "1000"
+  },
+  "budget": {
+    "maxTransactions": 500,
+    "totalMaxCostWei": "16000000000000000000"
+  }
+}

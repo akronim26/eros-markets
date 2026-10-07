@@ -38,6 +38,21 @@ test('Monad preflight verifies network alone without requiring an engine or touc
   assert.deepEqual(f.calls.map(c=>c.name),['chain','finalized','canonical','chain']);
 });
 
+test('compact runtime hash verification stays block-pinned and rejects missing or mismatched code',async()=>{
+  const f=setup();
+  f.rpc.codeHash=async(address,block)=>{assert.equal(address,f.cfg.destination!.engineAddress);assert.equal(block,10n);return keccak256(code);};
+  f.rpc.code=async()=>{throw new Error('Full code download must not be needed');};
+  assert.equal((await f.run()).status,'ENGINE_PINS_VERIFIED');
+  for(const value of [h('00'),keccak256('0x'),'0x12']){
+    f.rpc.codeHash=async()=>value as Hex;
+    await assert.rejects(f.run(),/MONAD_ENGINE_CODE_MISSING/);
+  }
+  f.rpc.codeHash=async()=>h('ee') as Hex;
+  await assert.rejects(f.run(),/MONAD_CODE_PIN_MISMATCH/);
+  f.rpc.codeHash=async()=>{throw new Error('private endpoint');};
+  await assert.rejects(f.run(),{message:'MONAD_CODE_READ_FAILED'});
+});
+
 test('Monad engine reads use one named finalized block and real ABI pins, including authoritative halt',async()=>{
   const f=setup();f.setHalted(true);const r=await f.run();
   assert.equal(r.status,'ENGINE_PINS_VERIFIED');assert.equal(r.chainId,10143n);
@@ -51,7 +66,7 @@ test('Monad engine reads use one named finalized block and real ABI pins, includ
 
 test('Monad rejects wrong network initially and after a provider changes network',async()=>{
   const f=setup();f.setChain(143);await assert.rejects(f.run(),/MONAD_WRONG_CHAIN/);
-  assert.deepEqual(f.calls.map(c=>c.name),['chain']);
+  assert.deepEqual(f.calls.map(c=>c.name),['chain','finalized']);
   const g=setup();let calls=0;g.rpc.chainId=async()=>++calls===1?10143:31337;
   await assert.rejects(g.run(),/MONAD_WRONG_CHAIN/);
 });
@@ -97,7 +112,8 @@ test('Monad rejects stale, future, malformed and slow-to-complete block checkpoi
 test('Monad requires matching runtime code and ABI before accepting listing reads',async()=>{
   for(const value of [undefined,'0x' as Hex,'0x1' as Hex]){const f=setup();f.rpc.code=async()=>value;await assert.rejects(f.run(),/MONAD_ENGINE_CODE_MISSING/);}
   const f=setup();f.cfg.destination!.engineCodeHash=h('ee');await assert.rejects(f.run(),/MONAD_CODE_PIN_MISMATCH/);
-  assert.equal(f.calls.some(c=>c.name==='listing'),false);
+  // Concurrent reads are discarded; no canonical checkpoint is accepted.
+  assert.equal(f.calls.some(c=>c.name==='canonical'),false);
   const g=setup();g.cfg.destination!.abiHash=h('ee');await assert.rejects(g.run(),/MONAD_ABI_PIN_MISMATCH/);
   assert.equal(g.calls.length,0);
   for(const chain of ['31337','143']){const k=setup();k.cfg.destination!.chainId=chain;await assert.rejects(k.run(),/MONAD_DISABLED_TESTNET_CONFIG_REQUIRED/);}
@@ -149,7 +165,30 @@ test('Monad read adapter requires HTTPS, hides URL parse errors and exposes no w
   for(const url of ['https://u:secret@rpc.invalid','http://localhost:8545','https://rpc.invalid/#secret'])
     assert.throws(()=>monadTestnetReadRpc(url),/MONAD_HTTPS_RPC_REQUIRED/);
   assert.throws(()=>monadTestnetReadRpc('secret bad url'),/^Error: MONAD_BAD_RPC_URL$/);
-  assert.deepEqual(Object.keys(monadTestnetReadRpc('https://rpc.invalid/private-api-key')).sort(),['block','chainId','code','read']);
+  assert.deepEqual(Object.keys(monadTestnetReadRpc('https://rpc.invalid/private-api-key')).sort(),['block','chainId','code','codeHash','read']);
+});
+
+test('explicit read fallback preserves the requested method and does not silently replace a successful wrong-chain response',async()=>{
+  const previous=process.env.MONAD_READ_FALLBACK_URLS,fetch=globalThis.fetch;
+  const hosts:string[]=[];let fail=true;
+  process.env.MONAD_READ_FALLBACK_URLS='https://secondary.invalid';
+  globalThis.fetch=async(input,init)=>{
+    const host=new URL(String(input)).hostname;hosts.push(host);
+    if(host==='primary.invalid'&&fail)return new Response('unavailable',{status:503});
+    const body=JSON.parse(String(init!.body));
+    const respond=(r:any)=>{
+      assert.ok(['eth_chainId','eth_getBlockByNumber'].includes(r.method));
+      return {jsonrpc:'2.0',id:r.id,result:r.method==='eth_chainId'?(host==='primary.invalid'?'0x1':'0x279f')
+        :{number:'0xa',hash:h('aa'),timestamp:'0x3e8',transactions:[]}};
+    };
+    return new Response(JSON.stringify(Array.isArray(body)?body.map(respond):respond(body)),{headers:{'Content-Type':'application/json'}});
+  };
+  try{
+    assert.equal(await monadTestnetReadRpc('https://primary.invalid').chainId(),10143);
+    assert.deepEqual(hosts,['primary.invalid','primary.invalid','secondary.invalid']);hosts.length=0;fail=false;
+    await assert.rejects(preflightMonadTestnet(monadTestnetReadRpc('https://primary.invalid')),/MONAD_WRONG_CHAIN/);
+    assert.deepEqual(hosts,['primary.invalid']);
+  }finally{globalThis.fetch=fetch;if(previous===undefined)delete process.env.MONAD_READ_FALLBACK_URLS;else process.env.MONAD_READ_FALLBACK_URLS=previous;}
 });
 
 test('Concrete Monad HTTP adapter encodes and decodes the real listing/source/halt ABI at the pinned block',async()=>{
@@ -159,25 +198,32 @@ test('Concrete Monad HTTP adapter encodes and decodes the real listing/source/ha
     sourceHash:h('01'),rulesHash:h('03'),template:0,deploymentCapX:0n,maxTraders:0,bootstrapBandWad:0n,
     minOrderLots:1n,maxOrderLots:10n,maxLiqLotsPerBlock:100n,fundingEnabled:false};
   globalThis.fetch=async(_input,init)=>{
-    const req=JSON.parse(String(init!.body));requests.push(req);let result:unknown;
+    const body=JSON.parse(String(init!.body));
+    const respond=(req:any)=>{requests.push(req);let result:unknown;
     if(req.method==='eth_chainId')result='0x279f';
     else if(req.method==='eth_getBlockByNumber')result={number:'0xa',hash:h('aa'),timestamp:'0x3e8',transactions:[]};
     else if(req.method==='eth_getCode'){assert.equal(req.params[1],'0xa');result=code;}
     else if(req.method==='eth_call'){
-      assert.equal(req.params[1],'0xa');assert.equal(req.params[0].to.toLowerCase(),f.cfg.destination!.engineAddress.toLowerCase());
+      assert.equal(req.params[1],'0xa');
+      if(!req.params[0].to){
+        assert.equal(req.params[0].data,`0x73${f.cfg.destination!.engineAddress.slice(2)}3f60005260206000f3`);
+        return {jsonrpc:'2.0',id:req.id,result:keccak256(code)};
+      }
+      assert.equal(req.params[0].to.toLowerCase(),f.cfg.destination!.engineAddress.toLowerCase());
       const fn=decodeFunctionData({abi:parsed.abi,data:req.params[0].data});
       if(fn.functionName==='sourceState')assert.deepEqual(fn.args,[f.cfg.destination!.sourceId]);
       result=encodeFunctionResult({abi:parsed.abi,functionName:fn.functionName,
         result:fn.functionName==='listing'?listing:fn.functionName==='sourceState'?f.state:true});
     }else assert.fail(`Unexpected method ${req.method}`);
-    return new Response(JSON.stringify({jsonrpc:'2.0',id:req.id,result}),{headers:{'Content-Type':'application/json'}});
+    return {jsonrpc:'2.0',id:req.id,result};};
+    return new Response(JSON.stringify(Array.isArray(body)?body.map(respond):respond(body)),{headers:{'Content-Type':'application/json'}});
   };
   try{
     const r=await preflightMonadTestnet(monadTestnetReadRpc('https://rpc.invalid/private-api-key'),{config:f.cfg,abi:artifact},f.clock);
     assert.equal(r.status,'ENGINE_PINS_VERIFIED');assert.equal(r.engine!.lifecycle.halted,true);
     assert.equal(r.engine!.sourceState.lastSequence,7n);
     assert.deepEqual(requests.filter(q=>q.method==='eth_getBlockByNumber').map(q=>q.params[0]),['finalized','0xa']);
-    assert.equal(requests.filter(q=>q.method==='eth_call').length,3);
+    assert.equal(requests.filter(q=>q.method==='eth_call').length,4);
     assert.equal(requests.some(q=>q.method.startsWith('eth_send')),false);
   }finally{globalThis.fetch=oldFetch;}
 });

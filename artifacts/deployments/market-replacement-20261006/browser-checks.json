@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "results": [
+    "Markets omits archived market and offers portfolio access",
+    "Landing handles zero active markets",
+    "Archived terminal remains reachable and enforces reduce only"
+  ],
+  "errors": []
+}

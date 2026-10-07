@@ -1,0 +1,36 @@
+{
+  "scope": "oracle-services",
+  "date": "2026-10-07",
+  "findings": [
+    "OS-01",
+    "OS-02",
+    "OS-03",
+    "OS-04"
+  ],
+  "verified": {
+    "oracleUnit": {
+      "passed": 434,
+      "failed": 0,
+      "files": 36,
+      "note": "Before final two watchdog body-cap regressions; ABI forge inspection and local fork suites excluded"
+    },
+    "watchdogFinal": {
+      "passed": 46,
+      "failed": 0,
+      "files": 5
+    },
+    "pricefeedSource": {
+      "passed": 25,
+      "failed": 0
+    },
+    "indexerQueries": {
+      "passed": 12,
+      "failed": 0
+    },
+    "pricefeedBuild": "passed",
+    "watchdogTypecheck": "passed",
+    "oracleSdkTypecheck": "passed"
+  },
+  "publicTransactions": false,
+  "contractChanges": false
+}

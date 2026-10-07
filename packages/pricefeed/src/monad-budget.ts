@@ -1,6 +1,7 @@
 import { existsSync, lstatSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { createHash } from 'node:crypto';
 import { keccak256, parseTransaction, recoverAddress, recoverTransactionAddress, type Hex, type TransactionSerialized } from 'viem';
 import { parseConfig, type MarketConfig } from './config.js';
 import { validateMonadLifecycleConfig } from './lifecycle.js';
@@ -52,19 +53,28 @@ const tables=[['main','relay_control','id'],['main','relay_nonce','sender'],['ma
   ['signer','signer_fences','ns'],['signer','signer_reservations','identity'],
   ['transactions','transaction_signer','id'],['transactions','transaction_reservations','nonce']] as const;
 export function budgetJournalSnapshot(db:DatabaseSync){
-  const parts=tables.map(([schema,table,order])=>{
-    const query=db.prepare(`SELECT * FROM ${schema}.${table} ORDER BY ${order}`);query.setReadBigInts(true);
-    return {table:schema+'.'+table,rows:query.all()};
-  });
+  const queries:{table:string;sql:string}[]=tables.map(([schema,table,order])=>({table:schema+'.'+table,sql:`SELECT * FROM ${schema}.${table} ORDER BY ${order}`}));
   if(db.prepare("SELECT name FROM sqlite_master WHERE name='relay_budget_audit'").get()){
-    const query=db.prepare('SELECT * FROM relay_budget_audit ORDER BY revision');query.setReadBigInts(true);
-    parts.push({table:'main.relay_budget_audit',rows:query.all()});
+    queries.push({table:'main.relay_budget_audit',sql:'SELECT * FROM relay_budget_audit ORDER BY revision'});
   }
   if(db.prepare("SELECT name FROM sqlite_master WHERE name='nonce_recoveries'").get()){
-    const query=db.prepare('SELECT * FROM nonce_recoveries ORDER BY key');query.setReadBigInts(true);
-    parts.push({table:'main.nonce_recoveries',rows:query.all()});
+    queries.push({table:'main.nonce_recoveries',sql:'SELECT * FROM nonce_recoveries ORDER BY key'});
   }
-  return policyHash(json(parts));
+  // Preserve the exact existing pretty-JSON hash without constructing one huge
+  // string. Real source archives exceed V8's maximum string length in hours.
+  const hash=createHash('sha256');hash.update('[\n');
+  queries.forEach(({table,sql},i)=>{
+    if(i)hash.update(',\n');
+    hash.update(`  {\n    "table": ${JSON.stringify(table)},\n    "rows": [`);
+    const query=db.prepare(sql);query.setReadBigInts(true);let count=0;
+    for(const row of query.iterate()){
+      hash.update(count++?',\n':'\n');
+      hash.update(json(row).split('\n').map(line=>'      '+line).join('\n'));
+    }
+    if(count)hash.update('\n    ');
+    hash.update(']\n  }');
+  });
+  return hash.update('\n]').digest('hex');
 }
 async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,rpc:MonadSubmissionRpc,now:()=>bigint){
   const cfg=validateMonadLifecycleConfig(parseConfig(structuredClone(options.config))),d=cfg.destination!;

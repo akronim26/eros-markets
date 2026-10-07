@@ -23,6 +23,8 @@ contract LeveragedFactoryTest is RealMarketFixture {
     uint64 internal sequence;
     uint32 internal bid;
     uint32 internal ask;
+    uint256 internal listingDepthLots = 500;
+    uint256 internal listingOiCapLots = 10_000_000;
 
     function _deploy(uint256 cap, uint64 pacing) internal {
         Globals memory globals = _globals();
@@ -37,8 +39,9 @@ contract LeveragedFactoryTest is RealMarketFixture {
         market.tau = NOW + 29 days + 12 hours;
         market.windowEnd = market.tau;
         market.voidSecs = 30 days;
-        market.oiCapLots = 10_000_000;
+        market.oiCapLots = listingOiCapLots;
         IMarketConfig.Listing memory configuration = _listing();
+        configuration.depthNLots = listingDepthLots;
         configuration.deploymentCapX = cap;
         configuration.maxLiqLotsPerBlock = pacing;
         vm.prank(lister);
@@ -230,6 +233,36 @@ contract LeveragedFactoryTest is RealMarketFixture {
         _walk(NOW + 4_700, 6e17);
         assertTrue(engine.riskContext().markOk, "real INDEX, book, basis and epoch maturity");
         assertEq(engine.riskContext().markWad, 6e17);
+    }
+
+    function testDepthRemainsAvailableAfterBootstrapFill() public {
+        listingDepthLots = 1_000_000;
+        _start(true);
+        uint256 required = engine.listing().depthNLots;
+        assertEq(registry.getMarketCore(engine.listing().marketId).oiCapLots, 10 * required);
+        _place(buyer, true, 610, 10_000, IBookRiskHooks.OrderKind.IOC);
+        assertEq(engine.account(buyer).value.lots, 10_000);
+        assertGe(engine.bookDepth().bidDepthLots, required);
+        assertGe(engine.bookDepth().askDepthLots, required);
+        vm.warp(block.timestamp + 10);
+        vm.roll(block.number + 1);
+        _observe(6e17);
+        engine.samplePerp();
+        vm.warp(block.timestamp + 10);
+        vm.roll(block.number + 1);
+        _observe(6e17);
+        assertTrue(engine.samplePerp(), "a filled market can still confirm its next depth sample");
+    }
+
+    function testCapEqualToDepthStopsSamplingAfterFirstFill() public {
+        listingDepthLots = 1_000_000;
+        listingOiCapLots = listingDepthLots;
+        _start(true);
+        assertEq(engine.bookDepth().bidDepthLots, listingDepthLots);
+        _place(buyer, true, 610, 10_000, IBookRiskHooks.OrderKind.IOC);
+        assertEq(engine.account(buyer).value.lots, 10_000);
+        assertEq(engine.bookDepth().bidDepthLots, 0);
+        assertEq(engine.bookDepth().askDepthLots, 0);
     }
 
     function _position() internal {

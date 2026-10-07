@@ -1,0 +1,20 @@
+{
+  "finding": "Server-capped GraphQL pages truncate frontend history and market discovery",
+  "severity": "medium",
+  "status": "fixed",
+  "files": [
+    "frontend/src/lib/history.ts",
+    "frontend/src/lib/market-discovery.ts",
+    "frontend/tests/integration/history-pagination.test.ts"
+  ],
+  "preFixReproduction": { "expectedEvents": 20, "actualEvents": 8, "testFailed": true },
+  "focusedTests": { "passed": 7, "failed": 0 },
+  "typecheck": "passed",
+  "diffCheck": "passed",
+  "logs": [
+    "tmp/protocol-audit-20261007/frontend-pagination-tests.log",
+    "tmp/protocol-audit-20261007/frontend-pagination-typecheck.log"
+  ],
+  "productionContractsChanged": false,
+  "liveProcessesChanged": false
+}

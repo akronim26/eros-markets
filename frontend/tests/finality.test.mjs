@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { finalizedOwnerReceipt, canonicalFinalizedReceipt } from '../src/lib/finality.ts';
+import { finalizedOwnerReceipt, canonicalFinalizedReceipt, FinalizedOwnerRevert } from '../src/lib/finality.ts';
 import { leverageLots } from '../src/lib/leverage.ts';
 const hash = `0x${'1'.repeat(64)}`, blockHash = `0x${'2'.repeat(64)}`;
 const owner = `0x${'3'.repeat(40)}`, to = `0x${'4'.repeat(40)}`, data = '0xabcd';
@@ -38,7 +38,34 @@ test('integer leverage sizes exact long and short claim lots without float round
  assert.throws(()=>leverageLots(0n,500,true,1));
 });
 
+test('5x sizing reserves adverse spread and fees for either direction',()=>{
+ const equity=88n*10n**23n, mark=645n*10n**15n;
+ for (const [buy,tick] of [[true,655],[false,635]]) {
+  const entry=BigInt(tick)*10n**18n, m=mark*1000n, fee=10n**16n;
+  const loss=(buy?entry-m:m-entry)+fee, notional=buy?m:10n**21n-m;
+  const lots=leverageLots(equity,tick,buy,5,mark,fee);
+  assert.ok(lots*notional <= 5n*(equity-lots*loss));
+  assert.ok((lots+1n)*notional > 5n*(equity-(lots+1n)*loss));
+  assert.ok(lots<leverageLots(equity,tick,buy,5));
+ }
+ assert.equal(leverageLots(equity,655,true,5,mark),63309n);
+ for(const mark of [0n,10n**18n])assert.throws(()=>leverageLots(equity,655,true,5,mark));
+});
+
+test('favourable unfilled limits do not create imaginary sizing equity',()=>{
+ const equity=10n**24n,mark=500n*10n**15n;
+ assert.equal(leverageLots(equity,400,true,5,mark),10000n);
+ assert.equal(leverageLots(equity,600,false,5,mark),10000n);
+});
+
 test('finalized receipt readers preserve a finalized revert as a failed result',async()=>{
  const receipt=await canonicalFinalizedReceipt(fixture({receipt:{status:'reverted'}}).client,hash,{pollMs:1});
  assert.equal(receipt.status,'reverted');
+});
+
+test('only an exact canonical owner revert is a terminal result that may clear a saved request', async () => {
+ await assert.rejects(finalizedOwnerReceipt(fixture({receipt:{status:'reverted'}}).client,hash,{owner,to,data},{pollMs:1}), FinalizedOwnerRevert);
+ for (const transaction of [{from:to},{to:owner},{input:'0xdead'},{value:1n},{blockHash:hash}]) {
+  await assert.rejects(finalizedOwnerReceipt(fixture({receipt:{status:'reverted'},transaction}).client,hash,{owner,to,data},{pollMs:1}), error => !(error instanceof FinalizedOwnerRevert) && /identity/.test(error.message));
+ }
 });

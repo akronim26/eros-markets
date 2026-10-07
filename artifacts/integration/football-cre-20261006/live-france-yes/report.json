@@ -1,0 +1,22 @@
+{
+  "scope": "real API and CRE CLI dry-run; no chain transactions",
+  "checkedAt": "2026-10-06T17:49:36.883Z",
+  "binding": {
+    "fixtureId": 1528944,
+    "leagueId": 5,
+    "season": 2026,
+    "homeTeamId": 2,
+    "awayTeamId": 1,
+    "kickoff": 1791225900,
+    "selection": "HOME"
+  },
+  "passed": true,
+  "httpStatus": 200,
+  "localEvaluation": {
+    "status": "YES",
+    "code": "OK",
+    "valueLexeme": "football-regulation-v1:1528944:5:2026:2:1:1791225900:HOME:4:1"
+  },
+  "creExitCode": 0,
+  "expectedResult": "YES|0xc6252915a5849e0a54be27253d4fe03e70861c190d6488eec75ac3b06feb6617|OK"
+}

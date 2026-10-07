@@ -13,7 +13,10 @@ export type PipelineLifecycle={assertConfig(config:MarketConfig):void;check():Pr
 
 export type RecoverableSigner=RawSigner&{reconcile(owner:string,fence:bigint,chain:{lastSequence:bigint;lastObservedAt:bigint}):void;verifyJournal?():Promise<void>};
 export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig;releaseLease?():boolean};rules:RulesManifest;signer:RecoverableSigner;lifecycle?:PipelineLifecycle;
-  latestSnapshot?:()=>PollResult|null;sourceReady?:()=>boolean;publicationIntervalMs?:number};
+  latestSnapshot?:()=>PollResult|null;sourceReady?:()=>boolean;publicationIntervalMs?:number;
+  /** Independent collection; consumption normally reads snapshots, while
+   * bootstrap/resync may coalesce a collection. */
+  bufferedCollection?:true};
 type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null;lifecycleView:LifecycleView|null};
 export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'QUARANTINED'|'STOPPED'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
   reason:string|null;sequence:bigint|null;transactionHash:string|null;depthValid:boolean|null;lifecycle:LifecycleView|null};
@@ -40,6 +43,8 @@ export class DurablePipeline {
     const domains=new Set<string>();
     for(const input of workers){
       const config=parseConfig(JSON.parse(json(input.worker.config))),d=config.destination,rules=parseRules(input.rules);
+      if(input.bufferedCollection!==undefined&&(input.bufferedCollection!==true||!input.latestSnapshot))
+        throw new Error('BAD_BUFFERED_COLLECTION');
       if(input.publicationIntervalMs!==undefined&&(!Number.isSafeInteger(input.publicationIntervalMs)
         ||input.publicationIntervalMs<config.poll.intervalMs||input.publicationIntervalMs>30000))
         throw new Error('BAD_PIPELINE_PUBLICATION_INTERVAL');
@@ -116,7 +121,16 @@ export class DurablePipeline {
   }
   private async lifecycleGate(e:Entry):Promise<PipelineResult|null>{
     if(!e.lifecycle)return null;
-    const view=await this.bounded(e.lifecycle.check());e.lifecycleView=view;
+    const check=e.lifecycle.check();
+    let view:LifecycleView;
+    try{view=await this.bounded(check);}
+    catch(error){
+      // A timeout rejects our wait, but does not cancel the reader or its
+      // journal append. Drain it before shutdown can release the lease or
+      // close the journal, and preserve the original timeout for retry policy.
+      await check.catch(()=>{});throw error;
+    }
+    e.lifecycleView=view;
     if(this.network.chainId===10143n&&(view.mode==='COLLECTING'||view.mode==='RECORD_ONLY')){
       if(!view.checkpoint?.sourceState){this.relay.quarantine('SOURCE_CHECKPOINT_MISSING');throw new Error('SOURCE_CHECKPOINT_MISSING');}
       await this.signedHistory(e,view.checkpoint.sourceState);
@@ -202,8 +216,11 @@ export class DurablePipeline {
         }
       });
       if(result.inspection.status==='QUARANTINED')e.quarantined=result.inspection.reason??'SOURCE_QUARANTINED';
-      if(e.quarantined)return this.result(e,'QUARANTINED',e.quarantined);
+      if(e.quarantined&&!e.bufferedCollection)return this.result(e,'QUARANTINED',e.quarantined);
       const blocked=await this.lifecycleGate(e);if(blocked)return blocked;
+      // Buffered scheduling delegates its recurring lifecycle check here, even
+      // when source quarantine blocks publication. Terminal deadlines still run.
+      if(e.quarantined)return this.result(e,'QUARANTINED',e.quarantined);
       const checkedAt=this.now();
       // Receipt and chain reads may outlive the snapshot handed to process().
       // The testnet collector can keep archiving while those reads are pending.
@@ -274,6 +291,11 @@ export class DurablePipeline {
         config:{key:e.config.key,poll:{intervalMs:e.publicationIntervalMs??e.config.poll.intervalMs}},
         poll:()=>e.worker.poll(),
         ...(e.lifecycle?{shouldPoll:async()=>{
+          // Retain the initial gate before bootstrap can fetch source evidence.
+          // Later buffered consumption needs no extra preflight: process reconciles
+          // receipts, then freshly checks lifecycle before any signing. This
+          // cached terminal state controls scheduling only, never authorization.
+          if(e.bufferedCollection&&e.lifecycleView!==null)return e.lifecycleView.mode!=='STOPPED';
           await this.lifecycleGate(e);return e.lifecycleView?.mode!=='STOPPED';
         }}:e.worker.shouldPoll?{shouldPoll:()=>e.worker.shouldPoll!()}:{}),
       }));

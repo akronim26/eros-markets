@@ -1,0 +1,23 @@
+✔ sample acknowledgement uses the capture event rather than receipt time (1.138167ms)
+✔ a no-op sample preserves a verified earlier capture and ignores legacy receipt-time acknowledgements (0.524209ms)
+✔ unfinalized, reorganized or mismatched capture events cannot acknowledge a capture (0.766417ms)
+✔ only the matching engine and sequence can advance the source timestamp (1.743125ms)
+✔ stopped or crashed sampler allows independent INDEX publication without inventing a sample (0.140875ms)
+✔ temporary delay still accepts the final acknowledgement; mismatched heartbeat fails closed (0.3615ms)
+✔ stalled keeper never blocks notify, never overwrites an outstanding request, and coalesces latest finality (0.884417ms)
+✔ wrong identity cannot release a request; a late exact acknowledgement can (0.437208ms)
+✔ only a finalized source strictly after the actual capture requests its seal (0.317916ms)
+✔ restart resumes the exact unacknowledged request; shutdown cannot launch its coalesced successor (0.240125ms)
+✔ malformed capture metadata disables sampling without throwing from future INDEX notifications (0.798459ms)
+✔ 5s source updates, 7s publication and 5s sampling can seal successive captures (0.374209ms)
+✔ Senate delayed-source trace yields to INDEX before old observation expires (0.198042ms)
+✔ unknown or permanently hung capture also releases soft preference at its delivery deadline (0.11975ms)
+✔ legacy receipt timestamps never become capture evidence, and invalid INDEX does not defer recovery (0.147125ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.042792

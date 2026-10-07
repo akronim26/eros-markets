@@ -1,0 +1,33 @@
+✔ collection validates explicit outcome identity and archives raw source time (1.709584ms)
+✔ stale, thin, closed, changed rules and missing source time remain explicit unavailability (0.339875ms)
+✔ adapter bounds responses and rejects redirects and unexpected hosts (14.619917ms)
+✔ 429 and transport failures retry boundedly; failure is never a fabricated book (1.915709ms)
+✔ deadline bounds both a stuck fetch and a stalled response body (44.371917ms)
+✔ declared oversized response is cancelled without consuming its body (0.417625ms)
+✔ book sampling boundary requires a strictly newer authentic source time without changing the archived snapshot (0.581917ms)
+✔ source collection advances while a publication is held, with only one frozen latest result (52.211666ms)
+✔ a degraded capture replaces healthy data instead of replaying cached health (10.420875ms)
+✔ foreign worker/config and fatal collection failures invalidate the buffered healthy result (0.561417ms)
+✔ shutdown drains an in-flight capture and rejects a second producer loop (5.02525ms)
+✔ reconnect invalidates cached books and an in-flight old generation cannot restore them (0.284708ms)
+✔ bootstrap and background polling share one underlying request (0.161834ms)
+✔ worker recovery preserves source ordering; rule quarantine stays latched (4.683416ms)
+✔ one source outage becomes evidence while another worker can continue (0.725ms)
+✔ health query never labels an old captured sample as currently collecting (0.148292ms)
+✔ event metadata age is checked even when the market response is newer (0.339917ms)
+✔ wrong-event metadata is quarantined and its raw response remains archived (0.752125ms)
+✔ source status changes are archived, latched across restart and never silently reopen (1.847083ms)
+✔ status monitoring derives an old-format baseline from retained bytes without rewriting history (0.712958ms)
+✔ failed metadata refresh cannot reuse old healthy metadata on a later poll (0.510334ms)
+✔ changed rules quarantine before fetching another book and cannot change configured deadlines (0.413541ms)
+✔ stream lifecycle hints force metadata revalidation despite an otherwise fresh cache (0.352084ms)
+✔ disconnect during REST fetch archives the original bytes but blocks their eligibility until a new resync (0.466458ms)
+✔ rejected future timestamps cannot poison source ordering across restart (0.559542ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 372.423625

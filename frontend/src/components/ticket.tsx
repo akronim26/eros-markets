@@ -20,7 +20,10 @@ import { Check } from "lucide-react";
 import { useLoginAction, useOwner } from "./wallet";
 import { useSwitchChain } from "wagmi";
 import { chain } from "@/config/chain";
+import { marketByEngine } from "@/config/deployment";
 import { Button, RegionHead, Row, cx, selectionKeys } from "./ui";
+
+import type { BookPriceIntent } from "./order-book";
 
 type Side = "buy" | "sell";
 type Parsed = { ok: true; tick: number; lots: bigint } | { ok: false; error: string };
@@ -34,7 +37,8 @@ function useDebounced<T>(v: T, ms = 250) {
   return d;
 }
 
-export function Ticket({ engine, market, trader, intent, readUnavailable = false }: { engine: Address; market?: MarketSnapshot; trader?: TraderSnapshot; intent?: CloseIntent; readUnavailable?: boolean }) {
+export function Ticket({ engine, market, trader, intent, bookPrice, readUnavailable = false }: { engine: Address; market?: MarketSnapshot; trader?: TraderSnapshot; intent?: CloseIntent; bookPrice?: BookPriceIntent; readUnavailable?: boolean }) {
+  const archived = marketByEngine(engine)?.archived ?? false;
   const owner = useOwner();
   const loginAction = useLoginAction();
   const { switchChain, error: chainError } = useSwitchChain();
@@ -42,13 +46,15 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
   const [kind, setKind] = useState(0);
   const [price, setPrice] = useState("");
   const [size, setSize] = useState("");
-  const [reduceOnly, setReduceOnly] = useState(false);
+  const [reduceOnlyChoice, setReduceOnly] = useState(false);
+  const reduceOnly = archived || reduceOnlyChoice;
   const tx = useTx();
   const permissions = usePermissions(owner.address);
   const delegated = permissions.data?.modes.find((p) => p.mode === "trade" && p.granted && p.engines.includes(engine.toLowerCase()));
   const [oneClick, setOneClick] = useState(false);
   const [expiry, setExpiry] = useState("");
   useEffect(() => { if (intent) { setSide(intent.side); setSize(intent.size); setPrice(intent.price); setReduceOnly(true); setKind(1); setExpiry(""); setTargetLeverage(undefined); } }, [intent]);
+  useEffect(() => { if (bookPrice) { setPrice((bookPrice.tick / 1000).toFixed(3)); setTargetLeverage(undefined); } }, [bookPrice]);
   let expires = 0, expiryError = "";
   try { expires = expiryBlock(expiry, market?.block ?? 0n); } catch (e) { expiryError = (e as Error).message; }
   const cap = market?.leverageCaps[side === "buy" ? "long" : "short"];
@@ -56,7 +62,9 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
   useEffect(() => { setTargetLeverage(undefined); }, [cap]);
   // For a flat account equity equals cash even before a normal mark exists.
   const sizingEquity = trader?.account?.preview.cashQ ?? 0n;
-  const canSizeLeverage = !!trader?.account && trader.account.preview.positionLots === 0n && !reduceOnly && sizingEquity > 0n;
+  const reservedOrders = !!trader?.account && (trader.account.preview.orders.bidLots > 0n || trader.account.preview.orders.askLots > 0n);
+  const canSizeLeverage = !!trader?.account && trader.account.preview.positionLots === 0n && !reservedOrders && !reduceOnly && sizingEquity > 0n;
+  useEffect(() => { setTargetLeverage(undefined); }, [engine, owner.address, sizingEquity, reservedOrders]);
 
 
   const parsed = useMemo((): Parsed => {
@@ -95,7 +103,9 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
 
   // The state that keeps the order from being sent, in the order the user meets it. Disabled
   // labels name a state; actions the user can take (log in, switch network) stay enabled.
-  const blocker = readUnavailable ? "Live reads unavailable"
+  const blocker = tx.recovery ? "Recover previous request first"
+    : archived && !trader?.account?.preview.positionLots ? "Archived · no position to reduce"
+    : readUnavailable ? "Live reads unavailable"
     : !market
     ? "Loading market"
     : market.halted
@@ -142,6 +152,7 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
     <section aria-label="Order ticket" className="flex h-full flex-col">
       <RegionHead title="Order" />
       <div className="flex flex-col gap-4 p-3">
+        {archived && <p className="text-xs text-fg-3">This market accepts position reductions only in this interface.</p>}
         <div className="grid grid-cols-2" role="group" aria-label="Side">
           {(["buy", "sell"] as const).map((s) => (
             <button
@@ -177,7 +188,7 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
           ))}
         </div>
 
-        <label className="flex flex-col gap-1.5">
+        <label htmlFor={validation.props("price").id} className="flex flex-col gap-1.5">
           <span className="label flex justify-between text-fg-3">
             <span>Price (probability)</span>
             {market && market.bestBid + market.bestAsk > 0 && (
@@ -190,7 +201,7 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
           <FieldError id={validation.errorId("price")}>{validation.message("price")}</FieldError>
         </label>
 
-        <label className="flex flex-col gap-1.5">
+        <label htmlFor={validation.props("size").id} className="flex flex-col gap-1.5">
           <span className="label flex justify-between text-fg-3">
             <span>Size (claims)</span>
             {preview.data && preview.data.acceptedCapLots > 0n && (
@@ -207,11 +218,12 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
           <p className="label flex justify-between text-fg-3"><span>Target leverage</span><span>{cap === undefined ? "Reading limit…" : `Current limit ${cap}×`}</span></p>
           <div className="grid grid-cols-5 gap-1" role="group" aria-label="Target leverage">
             {[1, 2, 3, 4, 5].map((x) => <button key={x} type="button" aria-pressed={targetLeverage === x}
-              disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || !!fieldErrors.price || readUnavailable || trader?.block !== market?.block}
+              disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || (x > 1 && !market?.risk.markAvailable) || !!fieldErrors.price || readUnavailable || trader?.block !== market?.block}
               className={cx("h-9 border text-sm tnum transition-colors disabled:cursor-not-allowed disabled:opacity-35", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong text-fg-2 hover:bg-press")}
-              onClick={() => { try { const lots = leverageLots(sizingEquity, parsePriceToTick(price), side === "buy", x); setSize(lotsToClaims(lots)); setTargetLeverage(x); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
+              onClick={() => { try { const lots = leverageLots(sizingEquity, parsePriceToTick(price), side === "buy", x, market?.risk.markAvailable ? market.risk.markWad : undefined); setSize(lotsToClaims(lots)); setTargetLeverage(x); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
           </div>
-          <p className="text-xs leading-relaxed text-fg-3">{!canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : "Sizes a new position using market equity. Fees, fills and risk checks determine actual leverage."} Limits adjust with price readiness and risk.</p>
+          {market?.active && !market.halted && cap !== undefined && cap < market.listing.deploymentCapX && <p className="border-l-2 border-signal/60 pl-2 text-xs leading-relaxed text-fg-2">{market.risk.pricingMode === 0 ? "Bootstrap: 1× until the price windows are ready and an hourly epoch opens." : !market.risk.indexAvailable || !market.risk.markAvailable ? "Higher leverage is temporarily unavailable while the price windows recover." : "The current risk or reserve limit is below the deployment cap."}</p>}
+          <p className="text-xs leading-relaxed text-fg-3">{reservedOrders ? "Cancel open orders before sizing by leverage." : !canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
         </div>
 
         <label className="label flex items-center gap-2 text-fg-2">
@@ -219,6 +231,7 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
             <input
               type="checkbox"
               checked={reduceOnly}
+              disabled={archived}
               onChange={(e) => { setReduceOnly(e.target.checked); setTargetLeverage(undefined); }}
               className="peer absolute inset-0 m-0 h-full w-full cursor-pointer appearance-none border border-line-strong bg-ground checked:bg-action"
             />
@@ -241,6 +254,13 @@ export function Ticket({ engine, market, trader, intent, readUnavailable = false
         </dl>
 
         {delegated && <label className="flex items-start gap-2 text-xs text-fg-2"><input type="checkbox" checked={oneClick} onChange={(e) => setOneClick(e.target.checked)} />Use Privy one-click trading for this order</label>}
+        {tx.recovery && <div className="border border-line p-3 text-xs text-fg-2">
+          <p>A previous one-click request still needs confirmation. Recover it before starting another order.</p>
+          <p className="mt-2 break-all">Wallet: {tx.recovery.body.wallet}</p>
+          <p className="mt-2 break-all">Market: {tx.recovery.body.engine}</p>
+          {tx.recovery.body.action === "placeOrder" && <p className="mt-1">{tx.recovery.body.place.isBuy ? "Buy" : "Sell"} {lotsToClaims(BigInt(tx.recovery.body.place.size))} claims at {(tx.recovery.body.place.tick / 1000).toFixed(3)}</p>}
+          <Button className="mt-2" disabled={owner.wrongChain || tx.state.status === "pending" || tx.state.status === "sent"} onClick={() => owner.address && tx.recover(owner.address)}>Recover previous request</Button>
+        </div>}
         {!owner.connected ? (
           <Button variant="primary" size="lg" arrow disabled={!loginAction.ready} onClick={() => loginAction.login()}>
             Log in to trade

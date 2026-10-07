@@ -7,7 +7,15 @@ import type { DeliveryReceipt } from './receipts.js';
 export type NonceRecovery={key:string;sender:Hex;nonce:string;originalBody:string;originalSha256:string;
   request:{gas:string;maxFeePerGas:string;maxPriorityFeePerGas:string};
   raw:Hex|null;hash:Hex|null;state:'PREPARING'|'READY'|'UNKNOWN'|'FINALIZED';attempts:number;
-  receipt:DeliveryReceipt|null;reservationWei:string;profile:string;signerJournalId:string};
+  receipt:DeliveryReceipt|null;reservationWei:string;profile:string;signerJournalId:string;
+  attemptedOriginal?:true;expiryCheckpoint?:{number:string;hash:Hex;timestamp:string;observedAt:string}};
+
+// Only explicitly known pre-broadcast stops qualify. Recovery separately checks
+// expiry, zero attempts, exact signed bytes, sender nonce and canonical history.
+export function recoverableUnsentReason(reason:unknown):boolean {
+  return reason==='RELAY_HEADROOM_EXPIRED'||reason==='RESERVED_NONCE_HEADROOM_EXPIRED'
+    ||reason==='LIFECYCLE_BLOCKED:SOURCE_UNAVAILABLE:LIFECYCLE_RPC_UNAVAILABLE';
+}
 
 /** Separate cancellation evidence; the original immutable price request stays intact. */
 export function nonceRecoveries(db:DatabaseSync):NonceRecovery[] {
@@ -29,8 +37,14 @@ export function nonceRecoveries(db:DatabaseSync):NonceRecovery[] {
     const old=JSON.parse(r.originalBody),current=db.prepare('SELECT body,sha256 FROM deliveries WHERE key=?').get(r.key);
     if(!current||policyHash(String(current.body))!==current.sha256)throw new Error('NONCE_RECOVERY_INTEGRITY');
     const delivery=JSON.parse(String(current.body));
-    if(old.state!=='QUARANTINED'||old.attempts!==0||old.nonce!==r.nonce||!old.raw||old.accepted!==null
-      ||!['RELAY_HEADROOM_EXPIRED','RESERVED_NONCE_HEADROOM_EXPIRED'].includes(old.reason)
+    if(old.state!=='QUARANTINED'||(!r.attemptedOriginal?old.attempts!==0:
+        !Number.isSafeInteger(old.attempts)||old.attempts<1||old.attempts>profile.relayPolicy.maxAttempts
+        ||old.reason!=='RESERVED_NONCE_HEADROOM_EXPIRED'||!r.expiryCheckpoint
+        ||!/^\d+$/.test(r.expiryCheckpoint.number)||!/^0x[\da-fA-F]{64}$/.test(r.expiryCheckpoint.hash)
+        ||!/^\d+$/.test(r.expiryCheckpoint.timestamp)||!/^\d+$/.test(r.expiryCheckpoint.observedAt)
+        ||BigInt(r.expiryCheckpoint.timestamp)<=BigInt(r.expiryCheckpoint.observedAt)+30n)
+      ||old.nonce!==r.nonce||!old.raw||old.accepted!==null
+      ||!recoverableUnsentReason(old.reason)
       ||json({...delivery,state:old.state,reason:old.reason})!==r.originalBody
       ||delivery.state!==(r.state==='FINALIZED'?'CANCELLED':'QUARANTINED')
       ||r.state==='FINALIZED'&&delivery.reason!=='NONCE_CANCELLED')throw new Error('NONCE_RECOVERY_INTEGRITY');

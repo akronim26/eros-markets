@@ -170,3 +170,46 @@ The user's explicitly authorized G7 acceptance is recorded in `docs/spec/gate_st
 `accepted=false` and `merge_sha=null`; human acceptance is a separate record, not peer approval.
 The accepted scope is the unified non-oracle local integration candidate. Production inputs
 remain unresolved, oracle integration remains excluded, and no main merge or new deployment occurred.
+
+## 2026-10-07 follow-up: equivalent capture pricing inputs
+
+Live v3 evidence exposed a separate liveness problem in the pending capture fingerprint.
+Hashing the raw floor checkpoint rejects an authenticated same-price, continuously valid
+refresh at or before the capture because its checkpoint timestamp changes. The strict newer
+source seal remains necessary; the raw checkpoint identity is stronger than the capture's
+economic requirements.
+
+For capture time `t`, the revised fingerprint commits to the exact cumulative integral,
+covered seconds and retained-history availability at both `t - 300` and `t`, together with
+the instantaneous INDEX availability and exact value at `t`. Both cumulative endpoints are
+compared individually, before TWAP rounding. Captures before the full window can exist do
+not gain availability from this normalization. The existing source seal still requires the
+pinned source's `lastObservedAt > t` before promotion. All later-block, maximum-age, original
+timestamp, book revision, account/depth fingerprint, epoch, risk and current-context guards
+remain in force.
+
+This proves equality of the capture's INDEX300 numerator, coverage and BASIS input. It does
+not prove that every intermediate historical price was identical. For example, against a
+continuous 0.50 baseline, delayed checkpoints at `t-8` with 0.49, `t-6` with 0.51, and `t-4`
+with 0.50 have cancelling two-second deviations. Their cumulative endpoints and value at
+`t` can be exactly equal. That case is accepted by design when every other guard also holds.
+A change in the exact committed integral, coverage, history availability or instantaneous
+capture value/validity rejects the pending capture. A changed price or validity exactly at
+`t` has zero elapsed integral weight, which is why the separate instantaneous check is
+mandatory.
+
+At publication, the strictly newer source observation seals the actual resulting INDEX
+prefix: subsequent monotone ingress cannot rewrite any time at or before `t`. Earlier
+published BASIS observations were each sealed independently and remain protected by that
+same ordering. Account charge projections use the fixed epoch funding rate and tariff;
+the existing projected-account and reservation fingerprint still detects accounting or
+eligibility changes. Neither equivalent source checkpoint normalization nor the source
+seal extends an observation's original 30-second lifetime, manufactures source coverage,
+or authorizes current MARK when its required windows are unavailable.
+
+This follow-up changes the meaning of the capture-time INDEX fingerprint in the earlier
+regression list from raw checkpoint identity to exact capture pricing equivalence. The
+historical implementation and test counts above remain evidence for their original source
+versions. New source, tests and deployment evidence are recorded separately in
+`docs/integration/PROTOCOL_AUDIT_20261007.md`; v3 live evidence must not be relabeled as a
+successful deployment of the revised contract.

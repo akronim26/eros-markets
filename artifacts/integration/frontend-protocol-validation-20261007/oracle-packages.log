@@ -1,0 +1,24 @@
+@eros-oracle/e2e test:  169 expect() calls
+@eros-oracle/e2e test: Ran 30 tests across 6 files. [2.01s]
+@eros-oracle/e2e test: Exited with code 0
+@eros-oracle/oracle-cli test: (pass) a sample market > list writes pack.json, reference.json and claim.txt, and the pack passes the createMarket dry-run [30375.32ms]
+@eros-oracle/oracle-cli test: (pass) a sample market > reference.json is the captured response byte for byte; dryRunHash is its keccak256 [1.33ms]
+@eros-oracle/oracle-cli test: (pass) a sample market > pack.json has the key structure of ListMarket's example pack, and carries the input values [3.05ms]
+@eros-oracle/oracle-cli test: (pass) a sample market > claim.txt is the template with every token substituted for a Layer 1 YES, within maxClaimBytes [0.46ms]
+@eros-oracle/oracle-cli test: (pass) a sample market > an existing pack directory is not replaced without --force [3.91ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > a reference that is not a finished event [1.84ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > a reference without the value path [2.84ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > a FeedSpec that fails rule 3 (checked before anything is fetched) [3.66ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > a claim whose worst case exceeds maxClaimBytes [3.53ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > createMarket rejects the pack in the dry-run: host not on the provider list (rule 4) [550.68ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > createMarket rejects the pack in the dry-run: T too close to the listing (rule 2) [918.76ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > createMarket rejects the pack in the dry-run: bondBps under the floor (rule 6) [510.96ms]
+@eros-oracle/oracle-cli test: (pass) fails loudly and writes nothing > an input outside the schema [6.38ms]
+@eros-oracle/oracle-cli test: (pass) reference capture > GETs the reference event URL with the authRef secret header from the workflow config [7.80ms]
+@eros-oracle/oracle-cli test: (pass) reference capture > a missing secret or a non-200 response fails [4.37ms]
+@eros-oracle/oracle-cli test: 
+@eros-oracle/oracle-cli test:  37 pass
+@eros-oracle/oracle-cli test:  0 fail
+@eros-oracle/oracle-cli test:  219 expect() calls
+@eros-oracle/oracle-cli test: Ran 37 tests across 3 files. [33.04s]
+@eros-oracle/oracle-cli test: Exited with code 0

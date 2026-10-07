@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, Search, X } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
 import { type MarketManifest } from "@/config/deployment";
 import { useMarketList } from "@/lib/market-list";
 import { fmtDuration, lotsToClaims, wadTo3 } from "@/lib/units";
-import { LoadingPanel } from "./feedback";
 import { chipFor } from "./market-parts";
 import { Chip, Num, SectionRule } from "./ui";
 
@@ -76,7 +77,21 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
 export function MarketsIndex() {
   const head = useHead();
   const discovery = useMarketList();
-  const { markets } = discovery;
+  const markets = discovery.markets.filter((market) => !market.archived);
+  const search = useSearchParams().get("q") ?? "";
+  const setSearch = (value: string) => {
+    const url = new URL(window.location.href);
+    if (value) url.searchParams.set("q", value); else url.searchParams.delete("q");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+  const searchInput = useRef<HTMLInputElement>(null);
+  const normalize = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+  const terms = normalize(search).trim().split(/\s+/).filter(Boolean);
+  const filtered = markets.filter((market) => {
+    const text = normalize([market.title, market.short, market.category, market.source].filter(Boolean).join(" "));
+    return terms.every((term) => text.includes(term));
+  });
+  const clearSearch = () => { setSearch(""); searchInput.current?.focus(); };
   return (
     <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
@@ -93,10 +108,33 @@ export function MarketsIndex() {
       <div className="mt-10">
         <SectionRule name="LISTED" index={1} />
       </div>
+      <div role="search" aria-label="Find a market" className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="frame flex min-h-12 w-full items-center gap-3 bg-panel px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-signal sm:max-w-lg">
+          <Search size={18} className="shrink-0 text-fg-3" aria-hidden />
+          <label htmlFor="market-search" className="sr-only">Search markets</label>
+          <input ref={searchInput} id="market-search" type="search" value={search}
+            onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") clearSearch(); }}
+            placeholder="Search events, teams, topics…" autoComplete="off" spellCheck={false}
+            aria-controls="market-results" className="min-w-0 flex-1 bg-transparent py-3 text-sm text-fg outline-none placeholder:text-fg-3 [&::-webkit-search-cancel-button]:appearance-none" />
+          {search && <button type="button" onClick={clearSearch} aria-label="Clear search" className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center text-fg-3 hover:bg-hover hover:text-fg"><X size={17} aria-hidden /></button>}
+        </div>
+        <p role="status" aria-live="polite" aria-atomic="true" className="tnum text-xs text-fg-3">
+          {terms.length ? `${filtered.length} of ${markets.length} markets` : `${markets.length} ${markets.length === 1 ? "market" : "markets"}`}
+        </p>
+      </div>
       {head.isError && <p role="alert" className="mt-4 text-xs text-ask">Live market data is unavailable. <button className="underline" onClick={() => head.refetch()}>Retry connection</button></p>}
-      {!head.data && !head.isError ? <div className="mt-4"><LoadingPanel label="Reading markets from Monad testnet" /></div> : <>
+      <div id="market-results">
+      {markets.length === 0 ? <div className="frame mt-4 bg-panel p-6">
+        <h2 className="text-lg font-semibold text-fg">A new market is on the way</h2>
+        <p className="mt-2 max-w-xl text-sm text-fg-2">The previous demo has been archived while we prepare its replacement. Existing balances and orders remain accessible in your portfolio.</p>
+        <Link href="/portfolio" className="label mt-4 inline-flex min-h-11 items-center gap-2 bg-signal px-4 text-on-signal">View portfolio <ArrowRight size={14} aria-hidden /></Link>
+      </div> : filtered.length === 0 ? <div className="frame mt-4 bg-panel px-6 py-10">
+        <h2 className="text-lg font-semibold text-fg">No matching markets</h2>
+        <p className="mt-2 text-sm text-fg-2">Try another event, team, or topic.</p>
+        <button type="button" onClick={clearSearch} className="label mt-5 inline-flex min-h-11 items-center gap-2 bg-signal px-4 text-on-signal">Show all markets <ArrowRight size={14} aria-hidden /></button>
+      </div> : <>
       <ul className="mt-4 flex flex-col gap-3 md:hidden">
-        {markets.map((mk) => (
+        {filtered.map((mk) => (
           <MarketCard key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />
         ))}
       </ul>
@@ -115,13 +153,14 @@ export function MarketsIndex() {
             </tr>
           </thead>
           <tbody>
-            {markets.map((mk) => (
+            {filtered.map((mk) => (
               <MarketRow key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />
             ))}
           </tbody>
         </table>
       </div>
       </>}
+      </div>
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
         {discovery.isError ? "Registry discovery is unavailable. Showing the last verified markets." : discovery.isPending ? "Checking the verified markets against the registry…" : "Showing markets in the verified deployment. New listings become tradable after their deployment manifest is verified and updated."}
         {discovery.isError && <> <button className="underline" onClick={() => discovery.refetch()}>Retry discovery</button></>}

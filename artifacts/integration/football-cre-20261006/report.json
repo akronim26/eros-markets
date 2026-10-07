@@ -1,0 +1,104 @@
+{
+  "scope": "Historical completed football fixtures; real authenticated API and CRE CLI simulation. No chain writes.",
+  "checkedAt": "2026-10-06T17:52:04.534844+00:00",
+  "passed": true,
+  "liveCliCases": [
+    {
+      "name": "live-france-yes",
+      "apiFixtureId": 1528944,
+      "question": "Will France win on 2026-10-05?",
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "creOutcome": "YES",
+      "polymarketFinalOutcome": "YES",
+      "agreement": true,
+      "binding": {
+        "fixtureId": 1528944,
+        "leagueId": 5,
+        "season": 2026,
+        "homeTeamId": 2,
+        "awayTeamId": 1,
+        "kickoff": 1791225900,
+        "selection": "HOME"
+      },
+      "conditionId": "0xf288fc1bfe7e0b36969518190630fc4acebbd291e46aaf300ba089b630a3eec3",
+      "yesTokenId": "99045440241699759508230497570236988084197936753753490115234942537747406195984",
+      "polymarketMarketId": "4835307",
+      "polymarketUrl": "https://polymarket.com/event/unl-fra-bel-2026-10-05",
+      "providerResponseSha256": "a29ced0f1ac5b30dea1dffc0fa28256baa972da29a0c68e499b35152113c1ce4",
+      "creResult": "YES|0xc6252915a5849e0a54be27253d4fe03e70861c190d6488eec75ac3b06feb6617|OK"
+    },
+    {
+      "name": "live-belgium-no",
+      "apiFixtureId": 1528944,
+      "question": "Will Belgium win on 2026-10-05?",
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "creOutcome": "NO",
+      "polymarketFinalOutcome": "NO",
+      "agreement": true,
+      "binding": {
+        "fixtureId": 1528944,
+        "leagueId": 5,
+        "season": 2026,
+        "homeTeamId": 2,
+        "awayTeamId": 1,
+        "kickoff": 1791225900,
+        "selection": "AWAY"
+      },
+      "conditionId": "0x8991e075fd88e3a78a1d92792cdaf5690cc974ce5d24a9afcd0e4a482f598528",
+      "yesTokenId": "30199634207324805916711002412680195325966276438156303147045975321017414059271",
+      "polymarketMarketId": "4835310",
+      "polymarketUrl": "https://polymarket.com/event/unl-fra-bel-2026-10-05",
+      "providerResponseSha256": "a29ced0f1ac5b30dea1dffc0fa28256baa972da29a0c68e499b35152113c1ce4",
+      "creResult": "NO|0xc6252915a5849e0a54be27253d4fe03e70861c190d6488eec75ac3b06feb6617|OK"
+    },
+    {
+      "name": "live-draw-no",
+      "apiFixtureId": 1528947,
+      "question": "Will Northern Ireland win on 2026-10-05?",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "creOutcome": "NO",
+      "polymarketFinalOutcome": "NO",
+      "agreement": true,
+      "binding": {
+        "fixtureId": 1528947,
+        "leagueId": 5,
+        "season": 2026,
+        "homeTeamId": 771,
+        "awayTeamId": 1104,
+        "kickoff": 1791225900,
+        "selection": "HOME"
+      },
+      "conditionId": "0xbc828d0786a8256565183187a5d3c0ff2c8d3450d7a2b2a15199e132011fd22a",
+      "yesTokenId": "112887723127468279100834493992329364023967464235351912180961458642266012492011",
+      "polymarketMarketId": "4835304",
+      "polymarketUrl": "https://polymarket.com/event/unl-nir-geo-2026-10-05",
+      "providerResponseSha256": "adec8d87822864dce28bc6788c42e9ed06517dd817c1d312cdae730c71858a16",
+      "creResult": "NO|0xd263828484c3ae774db518cbc5c0c3c5a127523a33f34925dcf54ed65ad50790|OK"
+    }
+  ],
+  "automatedSuites": {
+    "feedspec": 117,
+    "resolutionWorkflow": 14,
+    "dryrunWorkflow": 10,
+    "failed": 0
+  },
+  "notProven": [
+    "New football market deployment and on-chain settlement",
+    "Future fixture Polymarket index freshness, mark readiness and 5x admission",
+    "Cancellation, reschedule or split-payout equivalence; no automatic outcome for these cases"
+  ],
+  "sourceHashes": {
+    "oracle/packages/feedspec/src/football.ts": "26108e72f07f840537c2cdb6839c7d5bb80128703664e02108cd2d524513df99",
+    "oracle/packages/feedspec/src/index.ts": "3b05286b01ea15c79feda0ff2145fa30442bee18034507fc4ece9f4e7a8311e4",
+    "oracle/e2e/src/verify-football-cre.ts": "323a785eb7a9643e49d977846e571867a68cb7061f37bbfb5c179d87df4f5cee"
+  }
+}

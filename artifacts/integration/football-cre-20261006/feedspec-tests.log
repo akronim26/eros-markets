@@ -1,0 +1,133 @@
+bun test v1.3.13 (bf2e2cec)
+
+oracle/packages/feedspec/test/evaluator.test.ts:
+(pass) §11.2 evaluator cases > finished event -> YES and NO [1.06ms]
+(pass) §11.2 evaluator cases > live event -> NOT_READY (finality missing or not equal byte for byte) [0.16ms]
+(pass) §11.2 evaluator cases > wrong value path -> ERROR VALUE_MISSING; malformed path -> ERROR BAD_PATH [0.19ms]
+(pass) §11.2 evaluator cases > DECIMAL 3.10 equals 3.1 at decimals 2
+(pass) §11.2 evaluator cases > DECIMAL 3.105 at decimals 2 -> ERROR (never rounds)
+(pass) §11.2 evaluator cases > exponent -> ERROR
+(pass) §11.2 evaluator cases > INT rejects 3.0 and "03" (and +3, 03 as a number lexeme cannot occur) [0.40ms]
+(pass) §11.2 evaluator cases > HTTP 429 and 5xx, oversize body and invalid JSON -> ERROR [0.21ms]
+(pass) §11.2 evaluator cases > STRING allows only EQ and NEQ [0.06ms]
+(pass) §11.2 evaluator cases > big integers keep precision (no float on any value) [0.13ms]
+(pass) §11.2 evaluator cases > duplicate keys are rejected as ambiguous
+(pass) URL and host rules > buildUrl substitutes {id} once
+(pass) URL and host rules > {id} must come after the first "/" that follows the host (registry rule)
+(pass) URL and host rules > the template is checked before the urlParam, as the registry orders BadFeed codes
+(pass) URL and host rules > hosts: https only, lowercase labels, no port, no userinfo, at least two labels [0.77ms]
+(pass) URL and host rules > allowListed: the URL host must equal allowList[0]
+(pass) parser and paths > numbers keep their exact lexeme
+(pass) parser and paths > nesting depth is at most 64 [0.26ms]
+(pass) parser and paths > strings: escapes decoded, raw control characters refused
+(pass) parser and paths > paths: segments, array indexes, limits [0.16ms]
+(pass) parser and paths > compare on integers
+
+oracle/packages/feedspec/test/football.test.ts:
+(pass) regular-time home, away and draw scores resolve the selected side and bind evidence [0.87ms]
+(pass) live, postponed, cancelled, abandoned, awarded, extra-time and shootout games never resolve [0.70ms]
+(pass) wrong fixture, competition, season, teams and changed kickoff produce no outcome [0.60ms]
+(pass) missing, contradictory or extra-time scores and winner flags never become NO [0.07ms]
+(pass) provider errors in HTTP 200, absent/duplicate results and pagination fail closed [0.58ms]
+(pass) malformed and duplicate-key JSON cannot bypass validation
+(pass) only the pinned, versioned specification and authentic provider URL are accepted
+(pass) football needs a longer L1 window than the historical one-hour deployment globals
+
+oracle/packages/feedspec/test/vectors.test.ts:
+(pass) vectors/feedspec.json: listing validation parity > the file covers every BadFeed code 0-12 [0.29ms]
+(pass) vectors/feedspec.json: listing validation parity > valid B.3 -> 0 [0.09ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: no {id} in template -> 0 [0.03ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: {id} in the query after the path slash -> 0 [0.01ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL GTE 3.1 at 2 decimals -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL negative fraction -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL 18 decimals -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL 0 decimals, integer target -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: STRING EQ -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: STRING NEQ -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: INT -0 -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: indexed paths -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: path name chars _ $ - -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 6-digit index -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 256-byte path -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 128-char urlParam -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 63-char host label -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: buffer and timeout at the bounds -> 0 [0.02ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: known authRef -> 0
+(pass) vectors/feedspec.json: listing validation parity > http scheme -> 1
+(pass) vectors/feedspec.json: listing validation parity > uppercase scheme -> 1
+(pass) vectors/feedspec.json: listing validation parity > uppercase host -> 2
+(pass) vectors/feedspec.json: listing validation parity > port -> 2
+(pass) vectors/feedspec.json: listing validation parity > userinfo -> 2
+(pass) vectors/feedspec.json: listing validation parity > single-label host -> 2
+(pass) vectors/feedspec.json: listing validation parity > leading hyphen label -> 2
+(pass) vectors/feedspec.json: listing validation parity > trailing hyphen label -> 2
+(pass) vectors/feedspec.json: listing validation parity > empty label -> 2
+(pass) vectors/feedspec.json: listing validation parity > 64-char host label -> 2
+(pass) vectors/feedspec.json: listing validation parity > {id} inside the host (host error first) -> 2
+(pass) vectors/feedspec.json: listing validation parity > {id} twice -> 3
+(pass) vectors/feedspec.json: listing validation parity > {id} with no slash after the host -> 3
+(pass) vectors/feedspec.json: listing validation parity > empty urlParam -> 4
+(pass) vectors/feedspec.json: listing validation parity > urlParam with slash -> 4
+(pass) vectors/feedspec.json: listing validation parity > urlParam with space -> 4
+(pass) vectors/feedspec.json: listing validation parity > 129-char urlParam -> 4
+(pass) vectors/feedspec.json: listing validation parity > host not allowList[0] -> 5
+(pass) vectors/feedspec.json: listing validation parity > empty finalPath -> 6
+(pass) vectors/feedspec.json: listing validation parity > empty segment -> 6
+(pass) vectors/feedspec.json: listing validation parity > trailing dot -> 6
+(pass) vectors/feedspec.json: listing validation parity > leading-zero index -> 6
+(pass) vectors/feedspec.json: listing validation parity > 7-digit index -> 6
+(pass) vectors/feedspec.json: listing validation parity > index without name -> 6
+(pass) vectors/feedspec.json: listing validation parity > text after index -> 6
+(pass) vectors/feedspec.json: listing validation parity > unclosed index -> 6
+(pass) vectors/feedspec.json: listing validation parity > space in path -> 6
+(pass) vectors/feedspec.json: listing validation parity > 257-byte path -> 6
+(pass) vectors/feedspec.json: listing validation parity > empty finalValue -> 7
+(pass) vectors/feedspec.json: listing validation parity > STRING with GT -> 8
+(pass) vectors/feedspec.json: listing validation parity > unknown valueType -> 8
+(pass) vectors/feedspec.json: listing validation parity > unknown op -> 8
+(pass) vectors/feedspec.json: listing validation parity > INT with decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > STRING with decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL with 19 decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > INT 3.0 -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT leading zero -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT exponent -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT plus sign -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT lone minus -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT empty -> 10 [0.28ms]
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL too many fraction digits -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL trailing dot -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL no integer part -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL fraction at 0 decimals -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL exponent -> 10 [0.04ms]
+(pass) vectors/feedspec.json: listing validation parity > STRING empty -> 10
+(pass) vectors/feedspec.json: listing validation parity > buffer equals timeout -> 11
+(pass) vectors/feedspec.json: listing validation parity > buffer below min -> 11
+(pass) vectors/feedspec.json: listing validation parity > buffer above max -> 11
+(pass) vectors/feedspec.json: listing validation parity > timeout below min -> 11
+(pass) vectors/feedspec.json: listing validation parity > timeout above max -> 11
+(pass) vectors/feedspec.json: listing validation parity > unknown authRef -> 12
+(pass) vectors/feedspec.json: listing validation parity > order: L1 host and path both wrong -> L1 host first -> 5 [0.07ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > B.3 is 0x5066…80cd [1.54ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > B.3 (no authRef) [0.44ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > with authRef [0.31ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > empty urlParam, no {id} [0.01ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > long strings [0.63ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > decimal [0.31ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > every field changes the hash [1.29ms]
+
+oracle/packages/feedspec/test/fetch.test.ts:
+(pass) one GET with accept, no cache, the timeout given, and no auth header when none is given [0.16ms]
+(pass) an auth header is sent with its value [0.27ms]
+(pass) NOT_READY and ERROR carry the zero value hash [0.05ms]
+(pass) a body over 250 KiB is BODY_TOO_LARGE, before it is decoded [0.15ms]
+(pass) a transport failure is FETCH_FAILED [0.06ms]
+
+oracle/packages/feedspec/test/encoded-array.test.ts:
+(pass) resolved Gamma YES and NO use exact indexed payout strings, independent of JSON whitespace [0.16ms]
+(pass) trading closure or a proposed result cannot resolve the market
+(pass) fractional split payouts, malformed arrays, missing values and booleans produce no outcome
+
+ 117 pass
+ 0 fail
+ 301 expect() calls
+Ran 117 tests across 5 files. [237.00ms]

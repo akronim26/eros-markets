@@ -106,3 +106,16 @@ describe('Layer 1 re-run', () => {
     expect((await checkL1(l1Proposal(1), new FakeChain(), { fetchFn, fallbacks })).kind).toBe('CONTRADICT')
   })
 })
+
+// A size cap must stop reading transport bytes, not merely reject after buffering them.
+test('oversized chunked feeds are cancelled as soon as the byte cap is crossed', async () => {
+  let reads = 0, cancelled = false
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) { reads++; controller.enqueue(new Uint8Array(128 * 1024)); if (reads === 20) controller.close() },
+    cancel() { cancelled = true },
+  }, { highWaterMark: 0 })
+  const result = await evaluateFeed(SPEC, { fetchFn: (async () => new Response(stream)) as unknown as typeof fetch })
+  expect(result.code).toBe('BODY_TOO_LARGE')
+  expect(reads).toBe(2)
+  expect(cancelled).toBe(true)
+})

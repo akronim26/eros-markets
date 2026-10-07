@@ -1,0 +1,151 @@
+{
+  "schema": "eros-fresh-testnet-base-verification/1",
+  "passed": true,
+  "sourceCommit": "52c3be1e5066303e7726d96ec7f41464fb055f99",
+  "chainId": 10143,
+  "deployer": "0xFf49aD13c59592cCCa53552FE09dAcA43cbcF190",
+  "roles": {
+    "INDEX_SIGNER": "0xF18E60aAc27bfd927B51aE7Cb09BD7b9c2A52915",
+    "PUBLISHER": "0xd8736650BDc9a7dC716b56EA366ecB07458AF5A9",
+    "KEEPER": "0x498DF93DeE8B34B27e849131B05ee77830A5c5b9",
+    "SIM_RELAYER": "0x49cC920cB4d04F83Bd9570C06aE54751b001120b",
+    "RUNNER_ATTESTOR": "0x127B3D3e1f1375DA5D6328113D5d7243C3a917e4",
+    "COMMITTEE_1": "0x1B271Cfa6D1DfcEeAF933268A3Ce761DAb1DEeE3",
+    "COMMITTEE_2": "0x858bAbD5E0898D3b2286C0E8c65A4217627fd4BB",
+    "COMMITTEE_3": "0xb54C691c7818CE59b6035C95f2Ea079Aac8c07B2",
+    "WATCHDOG": "0xf9dd1A57C06818E4f4e0Cd700120761cE8e91E40",
+    "MAKER_BUY": "0xefaD5d4507D13b73CE58ea64Cc25F62dEECA1745",
+    "MAKER_SELL": "0x1a65cC794686CE8788EB3bbaC8e83055fff96fA0"
+  },
+  "contracts": {
+    "TestUSDC": {
+      "address": "0x0e0279B152845972479c66f933835c92582E1dC4",
+      "codehash": "0x33e77bc6ce947556391af4c69c994ef8b7e69b4e03bfa4280cdec814cbb9d495",
+      "deployBlock": 68543513,
+      "transactionHash": "0x939b89109a43615d8485ed045c8575bd52d0018265e908647d18395e3f94b6aa"
+    },
+    "Finder": {
+      "address": "0x95c81e9636159CE71a3E7aF793f6BA707EE53165",
+      "codehash": "0x4d1727e21859bbaec3575d1fd8b8a17be93811efd4421dfab4ea07b1780cbe6a",
+      "deployBlock": 68543528,
+      "transactionHash": "0x9e23f26aac486b9812d2601ab63836f105607075862d9d18d531569ad7087c5f"
+    },
+    "Store": {
+      "address": "0xf5a7D95f978d4f8F5f07836F06d751A01317Ba54",
+      "codehash": "0x008e9ce8a6f1cf7cf816c12f0f49062839e2fb0d55a97c7cfbc45997a118e442",
+      "deployBlock": 68543542,
+      "transactionHash": "0x64690f13519409858ff7df319e83654b8a266a1c3b6728fa8d0890985476dfd8"
+    },
+    "AddressWhitelist": {
+      "address": "0x9FE4Db207F828dbc17338F30162d72fE42ade5ba",
+      "codehash": "0x87e5f2459fea5a1ff3c5fb38da735f5f3f893a0e22aac3f6bb1b39b1d16f7676",
+      "deployBlock": 68543574,
+      "transactionHash": "0xf0eb05ddd28b1d751ede3d36783d3816517a45d98964c3e0d66e4a2a2f19b70b"
+    },
+    "IdentifierWhitelist": {
+      "address": "0xb9ff69699CF3CD92A2C3447ef2D3f5BA36fb6277",
+      "codehash": "0x64ac6705092caae19ebee0677e858c1e42e63abbcbcf29246b7f2f3c65872b19",
+      "deployBlock": 68543605,
+      "transactionHash": "0x74a4bae51b1418263e1051c6a2cd8eded277249976c564a4649da1394dc84504"
+    },
+    "ErosSandboxOracle": {
+      "address": "0x0E63d464b368cE0F79469D761Ae14233d6cc84F8",
+      "codehash": "0x9eb025920e9d217949a64f211d65ff232f0102e4f05c08c59850f50b9d7b0150",
+      "deployBlock": 68543636,
+      "transactionHash": "0xd5d7b1000d083d39f87885deae4ea201967783b7c2bd9349e1185719a547482e"
+    },
+    "OptimisticOracleV3": {
+      "address": "0xa14022D918CE96B7dfFF05812Da6612C2B28448a",
+      "codehash": "0xd1f01b5a2859af0e45cb0af4db38235414b404997b4ef80280104ba4fe087eb5",
+      "deployBlock": 68543714,
+      "transactionHash": "0x9448a14decd0f77cbeae58c5150079ee9fa0d7c030dd6ef19921b63666cd0a89"
+    },
+    "Timelock": {
+      "address": "0xF21d785F229d40115F20958A08F94E921D9F2834",
+      "codehash": "0x8b0c0daf13005414da07df4c236d17c6aa0158c2d62009beea914d7ae498665f",
+      "deployBlock": 68543742,
+      "transactionHash": "0x5c2574d626a47434ac0fce86060ab78a451fd915d8decac7dbfa726ed1543ede"
+    },
+    "BondTreasury": {
+      "address": "0x72eAd8F668C4a4550f54382952242e47Da6DCb8a",
+      "codehash": "0xc1b07a1f814e90ba0f47be0a24be46fe383992941fb86bdcb351234b81e5a56d",
+      "deployBlock": 68543773,
+      "transactionHash": "0x1197f95640778b7929a0447775995a8472acc1ad83e3a5da5643cd57ada487c3"
+    },
+    "ResolutionOracle": {
+      "address": "0x2085DaD31c8Ee03025DD07a4EdC103401d493D87",
+      "codehash": "0x6d7419951427ead58bbcdaa4ac957cb6c42f5b6259f1385d3646aaa58d5d036c",
+      "deployBlock": 68543789,
+      "transactionHash": "0xd23807afa3dae90a834a4fa960e5b6f146a7c4a2ea4e31116b843403aec10aee"
+    },
+    "UmaAdapter": {
+      "address": "0x1a57dA704805A07F6Dd1030Bf1a9AdBFef3B3Cf7",
+      "codehash": "0xd0ec498bdf8e351172f25992da606c3f114983308882e249e2e2c346229de40d",
+      "deployBlock": 68543806,
+      "transactionHash": "0xd55d4ef43dd7b6437574d3bca7a8c3ad3e57277bd98698d8cef56d9be63c59df"
+    },
+    "MarketRegistry": {
+      "address": "0x9bE1d595Ac9B6c1109a4dcaa056CE5eFDAF06F45",
+      "codehash": "0xad79ab2974b03c495c6852cb87934bf4e86fb1e731e4dd1be7fda090b0ad10a1",
+      "deployBlock": 68543822,
+      "transactionHash": "0xbdde61eca8d9fd0b19d66cc32f9476cd5c9c38096f4a5548e55a1fbdf9032f1b"
+    },
+    "KeeperRouter": {
+      "address": "0xa555689BddA889ae904cc193080C48ad7d160909",
+      "codehash": "0xda0780a9fb26cc1725a0e1d65e3a20eb2735ad4a0a6775bd8a5602d9321388ee",
+      "deployBlock": 68543839,
+      "transactionHash": "0xf297d088d318b1654c16e2af2e8654334522782a7e62a843139373b8c47117df"
+    },
+    "EngineCodeStore": {
+      "address": "0xb6394Aa1c896Af14B7c4Bfd4DD4f8fc66161C704",
+      "codehash": "0xebfcb4c7922e34d768e04735268bcc39e2859036ae6ea429ea7ba92a5b8cc941",
+      "deployBlock": 68798133,
+      "transactionHash": "0x08c79bab8cfbd36bc8862c712d12e592107889c2b1c782138b11c3eaaa1fc6d3"
+    },
+    "EngineCodeStoreTail": {
+      "address": "0x7818f389eE2F4228C9617183a9248645bA105f60",
+      "codehash": "0xa412ae6168085e79d9ea9d30bc6c128867696b89ead0dc5255084a84e9dc3fe8",
+      "deployBlock": 68798147,
+      "transactionHash": "0xbaaffc99db8ddf5c4ae5afa3167e4ecd40a3d34a49247b837e70e29db28f6c9e"
+    },
+    "MarketFactory": {
+      "address": "0x545afe64D9C462e84107cf623E68dEd5eb4E8D3b",
+      "codehash": "0xc97783b92f03eb9c37e878514a0eb276435c6833e05ab6006ac5e30651652b9c",
+      "deployBlock": 68798158,
+      "transactionHash": "0xd4e53f67b02cdcd2f4022faf6ba1f5a3248833168c0d61a6e039637d310e67a7"
+    },
+    "RolloverBatcher": {
+      "address": "0x65430A9B4863545AFE736941c8B89a467f96e87e",
+      "codehash": "0x9d4c9e5216ee5b5883f983e011ffc6f6c25d0b4a8c362115eef6b478e9e0abfd",
+      "deployBlock": 68543902,
+      "transactionHash": "0x57e429e6c29988e43c5fa98c45a33e17bc08180f90d3fc80e26bc73b5f9dce95"
+    },
+    "CollateralVault": {
+      "address": "0x779D71Dd7Ac25981f36B900566F548545B5213a9",
+      "codehash": "0x7a7c2d715bf27286c87ffca642c11d2fa606edc08ffc2d29cf4c8cf6c797cc3a",
+      "deployBlock": 68798158
+    },
+    "CollateralToken": {
+      "address": "0x0e0279B152845972479c66f933835c92582E1dC4",
+      "codehash": "0x33e77bc6ce947556391af4c69c994ef8b7e69b4e03bfa4280cdec814cbb9d495",
+      "deployBlock": 68543513,
+      "transactionHash": "0x939b89109a43615d8485ed045c8575bd52d0018265e908647d18395e3f94b6aa"
+    }
+  },
+  "verifiedAt": {
+    "blockNumber": "68799175",
+    "blockHash": "0xffaaf64dbccb6bf882fed43cae825c6898d2aca9b21176e65e856614010c5762"
+  },
+  "provenance": {
+    "collateral": "testnet",
+    "calibration": "synthetic",
+    "resolution": "oracle",
+    "oracleDelivery": "CRE simulation forwarder; not a deployed CRE network workflow",
+    "uma": "UMA OOv3 with owner-controlled testnet DVM sandbox"
+  },
+  "replacement": {
+    "previousFactory": "0xE348249c130ed49E33b024495477F81d40244F4D",
+    "reason": "Discard unsealed book mutations without renewing accepted-price freshness",
+    "publicTransactions": 5
+  }
+}

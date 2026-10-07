@@ -34,6 +34,10 @@ contract DepthEligibilityHarness is BookRiskEngine {
     function setCashForTest(address owner, int256 cashQ) external {
         accounts[owner].value.cashQ = cashQ;
     }
+
+    function indexCheckpointForTest(uint64 observedAt) external view returns (bytes32) {
+        return _indexCheckpointAt(observedAt);
+    }
 }
 
 contract BookDepthSamplerTest is BookRiskEngineFixture {
@@ -65,6 +69,25 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         engine.submitObservation(observation, _signature(observation, SIGNER_KEY));
     }
 
+    function _submitIndexAt(uint64 observedAt, uint256 midWad, bool valid) internal {
+        IPriceSource.Observation memory observation =
+            _observation(engine.sourceState(configuration.indexSourceId).lastSequence + 1);
+        observation.observedAt = observedAt;
+        observation.priceWad = midWad;
+        observation.impactBidWad = midWad - 1e16;
+        observation.impactAskWad = midWad + 1e16;
+        if (!valid) observation.bidDepthLots = 0;
+        engine.submitObservation(observation, _signature(observation, SIGNER_KEY));
+    }
+
+    function _captureAfterIndexAge(uint64 age) internal returns (uint64 capturedAt) {
+        _warmIndex();
+        _seedDepth();
+        vm.warp(block.timestamp + age);
+        capturedAt = uint64(block.timestamp);
+        _sampleDepth();
+    }
+
     function _assertPerpRecord(uint64 capturedAt, bool expectedValid) internal {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         uint256 found;
@@ -87,6 +110,137 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
     function _seedDepth() internal {
         _placeDepth(BUYER, true, 490, 500, 0);
         _placeDepth(SELLER, false, 510, 500, 0);
+    }
+
+    function _warmContinuousDepth() internal {
+        vm.warp(1_000_800);
+        configuration.listedAt = uint64(block.timestamp);
+        configuration.scheduledT = uint64(block.timestamp + 10 days);
+        engine = new BookRiskEngine(vault, TREASURY, configuration);
+        vault.registerEngine(address(engine));
+        _fund(BUYER);
+        _fund(SELLER);
+        vm.prank(GOVERNOR);
+        engine.activateMarket();
+        _warmIndex();
+        _placeDepth(BUYER, true, 490, 1000, 0);
+        _placeDepth(SELLER, false, 510, 1000, 0);
+        _publishDepth();
+        for (uint256 i; i < 90; ++i) {
+            vm.warp(block.timestamp + 10);
+            _submitNextIndex();
+            vm.roll(block.number + 1);
+            assertTrue(_sampleDepth());
+        }
+        assertTrue(engine.basisTwap900(uint64(block.timestamp)).available);
+    }
+
+    function testRejectedUnsealedCaptureDoesNotEraseSealedPriceHistoryAfterFill() public {
+        _warmContinuousDepth();
+        uint256 count = engine.ringCount(1);
+        vm.warp(block.timestamp + 2);
+        vm.prank(BUYER);
+        engine.placeOrder(Book.Place(IBookRiskHooks.OrderKind.IOC, true, false, 510, 10, 8, 0));
+        assertEq(IBookDepthEngine(address(engine)).bookDepth().askDepthLots, 500);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth(), "changed candidate is never promoted");
+        assertEq(engine.ringCount(1), count, "rejected candidate must not overwrite sealed history");
+        assertTrue(engine.basisTwap900(uint64(block.timestamp)).available, "prior sealed price keeps only its original 30-second carry");
+        vm.warp(block.timestamp + 10);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        assertTrue(_sampleDepth(), "fresh post-fill depth is separately sealed");
+        assertTrue(engine.basisTwap900(uint64(block.timestamp)).available);
+    }
+
+    function testRejectedCapturesCannotExtendLastAcceptedPriceLifetime() public {
+        _warmContinuousDepth();
+        // Each mutation rejects the unsealed candidate. None can renew coverage.
+        for (uint256 i; i < 4; ++i) {
+            vm.warp(block.timestamp + 10);
+            _placeDepth(BUYER, true, 480, 1, 0);
+            _submitNextIndex();
+            vm.roll(block.number + 1);
+            assertFalse(_sampleDepth());
+        }
+        assertTrue(engine.riskContext().indexOk);
+        assertFalse(engine.perpTwap60(uint64(block.timestamp)).available);
+        assertFalse(engine.basisTwap900(uint64(block.timestamp)).available);
+    }
+
+    function testAuditStableThinDepthEndsCarryBeforeThirtySecondExpiry() public {
+        _warmContinuousDepth();
+        uint256 count = engine.ringCount(1);
+        vm.warp(block.timestamp + 1);
+        vm.prank(SELLER);
+        engine.cancelAll();
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth());
+        assertEq(engine.ringCount(1), count, "mutation only discards the pending capture");
+        assertTrue(engine.basisTwap900(uint64(block.timestamp)).available);
+
+        uint64 thinAt = uint64(block.timestamp);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth());
+        _assertPerpRecord(thinAt, false);
+        assertEq(engine.ringCount(1), count + 1);
+        assertFalse(engine.perpTwap60(uint64(block.timestamp)).available);
+        assertFalse(engine.basisTwap900(uint64(block.timestamp)).available);
+        assertTrue(engine.riskContext().indexOk);
+    }
+
+    function testAuditIndexCorrectionStillInvalidatesWhenBookAlsoMutates() public {
+        _warmContinuousDepth();
+        uint64 capturedAt = uint64(block.timestamp);
+        uint256 count = engine.ringCount(1);
+        IPriceSource.Observation memory correction =
+            _observation(engine.sourceState(configuration.indexSourceId).lastSequence + 1);
+        correction.priceWad = 501e15;
+        correction.impactBidWad = 491e15;
+        correction.impactAskWad = 511e15;
+        engine.submitObservation(correction, _signature(correction, SIGNER_KEY));
+        _placeDepth(BUYER, true, 480, 1, 0);
+
+        vm.warp(block.timestamp + 1);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth());
+        _assertPerpRecord(capturedAt, false);
+        assertEq(engine.ringCount(1), count + 1);
+        assertFalse(engine.basisTwap900(uint64(block.timestamp)).available);
+        assertTrue(engine.riskContext().indexOk);
+    }
+
+    function testEpochRequoteDoesNotEraseSealedPriceHistory() public {
+        _warmContinuousDepth();
+        uint64 openingAt = configuration.listedAt + 3600;
+        while (block.timestamp + 10 < openingAt) {
+            vm.warp(block.timestamp + 10);
+            _submitNextIndex();
+            vm.roll(block.number + 1);
+            assertTrue(_sampleDepth());
+        }
+        vm.warp(openingAt);
+        _submitNextIndex();
+        engine.beginRollover();
+        engine.rollPage(32);
+        engine.finishRollover();
+        assertTrue(engine.riskContext().markOk);
+        _placeDepth(BUYER, true, 490, 1000, 0);
+        _placeDepth(SELLER, false, 510, 1000, 0);
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth());
+        assertTrue(engine.riskContext().markOk);
+        vm.warp(block.timestamp + 10);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        assertTrue(_sampleDepth());
+        assertTrue(engine.riskContext().markOk);
     }
 
     function testColdStartupPlacesMatchesAndCancelsBeforePerpWarmup() public {
@@ -240,6 +394,155 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         vm.recordLogs();
         assertFalse(_sampleDepth());
         _assertPerpRecord(capturedAt, false);
+    }
+
+    function testSamePriceIndexRefreshPreservesCaptureButStillRequiresStrictlyNewerSeal() public {
+        uint64 capturedAt = _captureAfterIndexAge(5);
+        vm.warp(capturedAt + 5);
+        _submitIndexAt(capturedAt - 1, 5e17, true);
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth(), "refresh before capture cannot seal it");
+        assertEq(engine.ringCount(1), 0, "economic identity must not manufacture an outage");
+        _submitIndexAt(capturedAt, 5e17, true);
+        vm.roll(block.number + 1);
+        assertFalse(_sampleDepth(), "equal source timestamp still cannot seal");
+        assertEq(engine.ringCount(1), 0);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertTrue(_sampleDepth());
+        _assertPerpRecord(capturedAt, true);
+    }
+
+    function testCompensatedIndexPathWithSameCapturePricingInputsCanPublish() public {
+        uint64 capturedAt = _captureAfterIndexAge(10);
+        PricingMath.Twap memory beforeWindow = engine.indexTwap300(capturedAt);
+        vm.warp(capturedAt + 1);
+        _submitIndexAt(capturedAt - 8, 49e16, true);
+        _submitIndexAt(capturedAt - 6, 51e16, true);
+        _submitIndexAt(capturedAt - 4, 5e17, true);
+        PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
+        assertEq(afterWindow.integral, beforeWindow.integral, "two low seconds and two high seconds cancel exactly");
+        assertEq(afterWindow.coveredSecs, beforeWindow.coveredSecs);
+        assertEq(afterWindow.twapWad, beforeWindow.twapWad);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertTrue(_sampleDepth(), "the invariant is pricing inputs, not every historical segment");
+        _assertPerpRecord(capturedAt, true);
+    }
+
+    function testNoncompensatedIndexPathRejectsEvenWhenPointAndRoundedTwapMatch() public {
+        uint64 capturedAt = _captureAfterIndexAge(10);
+        PricingMath.Twap memory beforeWindow = engine.indexTwap300(capturedAt);
+        vm.warp(capturedAt + 1);
+        _submitIndexAt(capturedAt - 2, 5e17 + 1, true);
+        _submitIndexAt(capturedAt - 1, 5e17, true);
+        PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
+        assertEq(afterWindow.twapWad, beforeWindow.twapWad, "flooring hides one price-second of correction");
+        assertEq(afterWindow.integral, beforeWindow.integral + 1);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth(), "exact integral changes must invalidate");
+        _assertPerpRecord(capturedAt, false);
+    }
+
+    function testSameTimeIndexPriceCorrectionRejectsDespiteUnchangedWindowIntegral() public {
+        uint64 capturedAt = _captureAfterIndexAge(0);
+        PricingMath.Twap memory beforeWindow = engine.indexTwap300(capturedAt);
+        vm.warp(capturedAt + 1);
+        _submitIndexAt(capturedAt, 501e15, true);
+        PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
+        assertEq(afterWindow.integral, beforeWindow.integral);
+        assertEq(afterWindow.coveredSecs, beforeWindow.coveredSecs);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth(), "instantaneous BASIS input changed at zero elapsed weight");
+        _assertPerpRecord(capturedAt, false);
+    }
+
+    function testSameTimeIndexValidityCorrectionRejectsDespiteUnchangedWindowIntegral() public {
+        uint64 capturedAt = _captureAfterIndexAge(0);
+        PricingMath.Twap memory beforeWindow = engine.indexTwap300(capturedAt);
+        _submitIndexAt(capturedAt, 5e17, false);
+        PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
+        assertEq(afterWindow.integral, beforeWindow.integral);
+        assertEq(afterWindow.coveredSecs, beforeWindow.coveredSecs);
+        assertTrue(engine.riskContext().indexOk, "zero elapsed invalidity has not changed the current INDEX window");
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth());
+        _assertPerpRecord(capturedAt, false);
+    }
+
+    function testIndexBackfillCreatingCoverageGapRejectsPendingCapture() public {
+        uint64 capturedAt = _captureAfterIndexAge(10);
+        PricingMath.Twap memory beforeWindow = engine.indexTwap300(capturedAt);
+        vm.warp(capturedAt + 1);
+        _submitIndexAt(capturedAt - 4, 5e17, false);
+        _submitIndexAt(capturedAt - 2, 5e17, true);
+        PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
+        assertEq(afterWindow.coveredSecs, beforeWindow.coveredSecs - 2);
+        assertFalse(afterWindow.available);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertFalse(_sampleDepth());
+        _assertPerpRecord(capturedAt, false);
+    }
+
+    function testSamePriceRefreshAtStaleBoundaryDoesNotRefreshPerpCaptureAge() public {
+        uint64 capturedAt = _captureAfterIndexAge(30);
+        vm.warp(capturedAt + 1);
+        _submitIndexAt(capturedAt, 5e17, true);
+        _submitNextIndex();
+        vm.roll(block.number + 1);
+        vm.recordLogs();
+        assertTrue(_sampleDepth(), "refresh at the inclusive freshness boundary preserves prior coverage");
+        _assertPerpRecord(capturedAt, true);
+        assertEq(engine.perpTwap60(capturedAt + 31).coveredSecs, 30, "PERP carry still begins at the original capture");
+    }
+
+    function testSamePriceBackfillRepairingStaleGapChangesPricingFingerprint() public {
+        DepthEligibilityHarness probe = new DepthEligibilityHarness(vault, TREASURY, configuration);
+        engine = probe;
+        uint64 first = uint64(block.timestamp);
+        _submitIndexAt(first, 5e17, true);
+        vm.warp(first + 40);
+        uint64 capturedAt = uint64(block.timestamp);
+        bytes32 beforeFingerprint = probe.indexCheckpointForTest(capturedAt);
+        assertEq(engine.indexTwap300(capturedAt).coveredSecs, 30);
+        _submitIndexAt(first + 20, 5e17, true);
+        assertEq(engine.indexTwap300(capturedAt).coveredSecs, 40);
+        assertNotEq(probe.indexCheckpointForTest(capturedAt), beforeFingerprint,
+            "same price cannot hide a change in historical coverage");
+    }
+
+    function testWindowStartCumulativeIsCommittedEvenWhenEndAndPointAreIdentical() public {
+        DepthEligibilityHarness probe = new DepthEligibilityHarness(vault, TREASURY, configuration);
+        engine = probe;
+        uint64 first = uint64(block.timestamp);
+        _submitIndexAt(first, 5e17, true);
+        vm.warp(first + 10);
+        _submitIndexAt(first + 10, 5e17, true);
+        vm.warp(first + 330);
+        uint64 capturedAt = uint64(block.timestamp);
+        bytes32 beforeFingerprint = probe.indexCheckpointForTest(capturedAt);
+        PricingMath.Twap memory beforeWindow = engine.indexTwap300(capturedAt);
+        // Total integral from first to capture remains20e18 and coverage40.
+        // The start at first+30 changes by +2e18, so the300s window must differ.
+        _submitIndexAt(first + 10, 6e17, true);
+        _submitIndexAt(first + 30, 3e17, true);
+        _submitIndexAt(first + 40, 5e17, false);
+        PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
+        assertEq(afterWindow.coveredSecs, beforeWindow.coveredSecs);
+        assertEq(afterWindow.integral, beforeWindow.integral - 2e18);
+        assertFalse(beforeWindow.available);
+        assertFalse(afterWindow.available);
+        assertNotEq(probe.indexCheckpointForTest(capturedAt), beforeFingerprint,
+            "matching the cumulative endpoint and unavailable point is insufficient");
     }
 
     function testWaitingCaptureExpiresRatherThanRenewingObservationTime() public {
@@ -471,6 +774,56 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         vm.prank(BUYER);
         engine.cancel(freshBid);
         assertEq(engine.getOrder(freshBid).size, 0);
+    }
+
+    function testAuditLateBootstrapRolloverUsesExistingCarryToOpenNormal() public {
+        vm.warp(1_000_800);
+        configuration.listedAt = uint64(block.timestamp);
+        configuration.scheduledT = uint64(block.timestamp + 10 days);
+        engine = new BookRiskEngine(vault, TREASURY, configuration);
+        vault.registerEngine(address(engine));
+        _fund(BUYER);
+        _fund(SELLER);
+        vm.prank(GOVERNOR);
+        engine.activateMarket();
+        _warmIndex();
+        uint64 boundary = configuration.listedAt + 3600;
+        uint64 firstCapture = boundary - 891;
+        while (block.timestamp + 10 < firstCapture) {
+            vm.warp(block.timestamp + 10);
+            _submitNextIndex();
+        }
+        vm.warp(firstCapture);
+        _submitNextIndex();
+        _seedDepth();
+        _publishDepth();
+        while (block.timestamp + 10 < boundary) {
+            vm.warp(block.timestamp + 10);
+            _submitNextIndex();
+            vm.roll(block.number + 1);
+            assertTrue(_sampleDepth());
+        }
+        vm.warp(boundary);
+        _submitNextIndex();
+        assertEq(uint8(engine.work()), 0, "storage work has not begun rollover");
+        assertEq(uint8(engine.marketRiskView().accountingState), 1, "expired epoch blocks sampling");
+        assertEq(IBookDepthEngine(address(engine)).bookDepth().bidDepthLots, 0);
+        assertFalse(engine.basisTwap900(boundary).available);
+        assertTrue(engine.perpTwap60(boundary + 17).available, "accepted carry covers opening plus reserve");
+        assertFalse(engine.perpTwap60(boundary + 20).available, "delay cannot extend accepted carry");
+
+        vm.warp(boundary + 9);
+        _submitNextIndex();
+        assertTrue(engine.basisTwap900(uint64(block.timestamp)).available);
+        assertEq(uint8(engine.pricingMode()), uint8(PricingMode.BOOTSTRAP));
+        engine.beginRollover();
+        engine.rollPage(32);
+        engine.finishRollover();
+        assertEq(uint8(engine.pricingMode()), uint8(PricingMode.NORMAL_PRICING));
+        assertTrue(engine.riskContext().markOk);
+        (, uint64 openedAt, uint64 endsAt,,,,) = engine.epoch();
+        assertEq(openedAt, boundary + 9, "opening uses actual time");
+        assertEq(endsAt, boundary + 3600, "opening retains the next hourly boundary");
     }
 
     function testPendingFloorInvalidationExcludesOldDepthBeforeFirstBookAction() public {

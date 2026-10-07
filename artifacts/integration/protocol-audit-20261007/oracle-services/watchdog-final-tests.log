@@ -1,0 +1,62 @@
+bun test v1.3.13 (bf2e2cec)
+
+oracle/services/watchdog/test/sports.test.ts:
+(pass) watchdog independently fetches and binds the F1 companion using the CRE rules [4.89ms]
+(pass) oversized F1 classification streams stop at the shared body cap [0.73ms]
+
+oracle/services/watchdog/test/model.test.ts:
+(pass) recorded answers > the recordings are real 200s with the answers the snapshots call for [1.91ms]
+(pass) recorded answers > agreement: a YES proposal on the 3-1 snapshot [4.14ms]
+(pass) recorded answers > contradiction: a NO proposal on the 3-1 snapshot, a YES proposal on the 1-1 snapshot [1.42ms]
+(pass) recorded answers > with a feed: the Layer 1 feed joins the model; feed and model split → a human [1.57ms]
+(pass) the prompt > its own wording and format, not the panel’s: sources from 1, untrusted text escaped, the rules as authority
+(pass) the prompt > a source cannot close its tag or open a new one
+(pass) answers > parsing: thinking and code fences removed; anything off the schema refused [0.94ms]
+(pass) answers > an outcome counts only if confident, determined and resting on an allow-listed source that exists [0.02ms]
+(pass) answers > failures: 3 retries on 5xx and invalid answers, none on 401, nothing without a key [0.46ms]
+(pass) the snapshot > eros-snapshot from the directory and https, each checked against the evidenceHash [1.18ms]
+(pass) the snapshot > no snapshot, or one for another market: no model outcome (a human looks) [0.74ms]
+
+oracle/services/watchdog/test/intake.test.ts:
+(pass) watchdog intake from the indexer > rows become the same Proposal shape the log path gives [0.39ms]
+(pass) watchdog intake from the indexer > reads up to the progress block only, then continues from there; no log is read [1.08ms]
+(pass) watchdog intake from the indexer > indexer down → the logs from the cursor, in 100-block calls; back up → the indexer from where the logs stopped [0.38ms]
+(pass) watchdog intake from the indexer > an indexer too far behind is not used; a failed log range keeps what was read and resumes there [0.22ms]
+(pass) watchdog intake from the indexer > a long catch-up is read 10,000 blocks per query [0.16ms]
+(pass) watchdog intake from the indexer > server row caps cannot skip proposals or assertions within the same block [0.19ms]
+(pass) watchdog intake from the indexer > a later page failure falls back for the entire range without advancing the cursor [0.13ms]
+(pass) watchdog intake from the indexer > independent pagination exhausts differently capped proposal and assertion lists [0.22ms]
+(pass) watchdog intake from the indexer > without an indexer it is the log scan alone [0.03ms]
+
+oracle/services/watchdog/test/dispute.test.ts:
+(pass) acting on a contradiction > a live assertion is disputed with the float, with gas.json’s limit, and a human is paged [0.64ms]
+(pass) acting on a contradiction > not asserted yet: wait for the keeper to assert it [0.45ms]
+(pass) acting on a contradiction > page only: too late, no float, limit reached, not this market’s watchdog, already disputed, superseded, a revert [0.77ms]
+(pass) acting on a contradiction > one second before the margin is still in time [0.14ms]
+(pass) heartbeat and float > a heartbeat when none was sent, then every 10 minutes, with gas.json’s limit [0.16ms]
+(pass) heartbeat and float > the float against the live bonds: disputed, settled and expired assertions do not count [0.55ms]
+(pass) the loop > an L1 proposal is checked at once and disputed as soon as it is asserted [0.99ms]
+(pass) the loop > agreement ends quietly; an unsure check pages; a failed check is retried [0.52ms]
+
+oracle/services/watchdog/test/l1.test.ts:
+(pass) the verdict rule > [{"source":"L1","outcome":"YES","detail":""}] with YES proposed → AGREE
+(pass) the verdict rule > [{"source":"L1","outcome":"NO","detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"L1","outcome":null,"detail":""}] with YES proposed → UNSURE
+(pass) the verdict rule > [] with YES proposed → UNSURE
+(pass) the verdict rule > [{"source":"L1","outcome":"NO","detail":""},{"source":"FALLBACK","outcome":null,"detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"L1","outcome":"YES","detail":""},{"source":"FALLBACK","outcome":"NO","detail":""}] with YES proposed → UNSURE
+(pass) the verdict rule > [{"source":"MODEL","outcome":"INVALID","detail":""},{"source":"L1","outcome":"NO","detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"MODEL","outcome":null,"detail":""},{"source":"L1","outcome":"YES","detail":""}] with YES proposed → AGREE
+(pass) intake > every new proposal once, in log order, from every path; asserted markets tracked
+(pass) Layer 1 re-run > the FeedSpec URL from the watchdog’s own fetch, evaluated by the shared evaluator [1.21ms]
+(pass) Layer 1 re-run > a recorded L1 YES that the feed now contradicts (home 1) is flagged [0.09ms]
+(pass) Layer 1 re-run > agreement: the recorded outcome and value hold
+(pass) Layer 1 re-run > no answer from the feed is not a contradiction: not final, HTTP error, network failure, missing credentials [0.89ms]
+(pass) Layer 1 re-run > a body over the 250 KB cap is an error [0.28ms]
+(pass) Layer 1 re-run > the listed fallback source: both against → contradiction; split → a human [0.76ms]
+(pass) oversized chunked feeds are cancelled as soon as the byte cap is crossed [0.15ms]
+
+ 46 pass
+ 0 fail
+ 206 expect() calls
+Ran 46 tests across 5 files. [223.00ms]

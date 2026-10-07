@@ -1,0 +1,38 @@
+
+> eros-markets-frontend@0.1.0 test:integration
+> tsx --test tests/integration/*.test.ts
+
+✔ every current and archived owner operation stays bound to that deployment vault (6.473334ms)
+✔ server sends only from the authenticated owner's wallet, with exact order, chain, gas and persisted idempotency (20.38525ms)
+✔ archived markets cannot add exposure through the delegated API (0.357291ms)
+✔ revoked grants, widened policies, stale previews and reversed protection never sign (1.2065ms)
+✔ a triggered rule submits once, records its actual receipt, and never repeats an empty IOC (4.023083ms)
+✔ ambiguous signing blocks duplicate and subsequent sends until reconciliation (1.839125ms)
+✔ reconciliation only releases the wallet after the exact Privy reference has a chain receipt (1.503083ms)
+✔ Privy v2 embedded wallets use the same ownership verification (2.067333ms)
+✔ deployment reads reject wrong networks, changed code, bindings and canonical anchors (10.338042ms)
+✔ a reorg during a pinned read cannot return a mixed snapshot (0.2875ms)
+✔ vault activity is paginated, sorted and deduplicated before history is called complete (6.475125ms)
+✔ hitting the vault pagination limit leaves totals explicitly incomplete (47.519834ms)
+✔ malformed history is rejected before it can crash amount/date rendering or inflate totals (0.818875ms)
+✔ server row caps do not truncate account history or differently capped vault lists (0.63375ms)
+✔ a capped server cannot exceed the account and transfer history bounds (138.679084ms)
+✔ market discovery consumes capped pages through an empty page (0.446541ms)
+✔ market discovery retains its row limit when server caps do not divide it (7.269083ms)
+✔ invalid-depth observations never render a fabricated zero index; overlapping polls deduplicate (3.41625ms)
+✔ reorganized chart reads are rejected, and a replaced cursor discards old history (0.692708ms)
+✔ policy check rejects extra allowances, altered decoded arguments and other chains (21.517292ms)
+✔ capabilities require a matching profile, live ordered envelopes and direction-specific limits (3.004458ms)
+✔ contract rejection and missing code remain distinct from transport failures (1.887083ms)
+✔ only manifest-backed terminals are exposed; unknown addresses never become unusable trading pages (0.606333ms)
+✔ removing the final order clears cached depth without another contract call (5.167875ms)
+✔ authenticated API bodies accept the browser origin when Next uses a bind address (55.933375ms)
+✔ unfinished uploads release every RPC slot after the body deadline (5167.756042ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5677.949708

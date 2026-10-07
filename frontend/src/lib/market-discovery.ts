@@ -14,12 +14,18 @@ export async function readAssets(engine: Address, block: bigint) {
     { address: engine, abi: engineAbi, functionName: "collateralVault" },
     { address: engine, abi: engineAbi, functionName: "listing" },
   ] });
-  const [token, decimals, symbol] = await client.multicall({ blockNumber: block, allowFailure: false, contracts: [
+  const [token, decimals] = await client.multicall({ blockNumber: block, allowFailure: false, contracts: [
     { address: vault, abi: metadataAbi, functionName: "token" },
     { address: listing.token, abi: metadataAbi, functionName: "decimals" },
-    { address: listing.token, abi: metadataAbi, functionName: "symbol" },
   ] });
   if (token.toLowerCase() !== listing.token.toLowerCase() || decimals !== 6) throw new UnsupportedMarket("Unsupported collateral configuration.");
+  // ERC-20 symbol is optional. A missing display label must not hide balances
+  // or disable custody actions for an otherwise verified token and vault.
+  const [label] = await client.multicall({ blockNumber: block, allowFailure: true, contracts: [
+    { address: token, abi: metadataAbi, functionName: "symbol" },
+  ] });
+  const symbol = label.status === "success" && label.result ? label.result
+    : token.toLowerCase() === deployment.risk.collateralToken.toLowerCase() ? deployment.risk.collateralSymbol : "Collateral";
   return { vault, token, decimals, symbol };
 }
 
@@ -28,17 +34,25 @@ export async function resolveMarket(engine: string): Promise<MarketManifest | un
   return isAddress(engine) ? marketByEngine(engine) : undefined;
 }
 
+export async function readIndexedMarketIds(query: typeof indexerQuery = indexerQuery): Promise<Hex[]> {
+  const ids = new Set<Hex>();
+  for (let offset = 0; offset < 100000;) {
+    const limit = Math.min(1000, 100000 - offset);
+    const r = await query<{ Market: { id: Hex }[] }>("query($offset:Int!,$limit:Int!){Market(order_by:{id:asc},limit:$limit,offset:$offset){id}}", { offset, limit });
+    if (r.Market.length > limit) throw new Error("Market discovery exceeded the requested page size.");
+    if (r.Market.length === 0) return [...ids];
+    r.Market.forEach((m) => ids.add(m.id));
+    offset += r.Market.length;
+  }
+  throw new Error("Market discovery exceeded the pagination limit.");
+}
+
 export async function discoverMarkets() {
   await ensureDeployment();
   const ids = new Set<Hex>(oracleMarkets.map((m) => m.id));
   let indexed = false;
   if (INDEXER_URL) {
-    for (let offset = 0; ; offset += 1000) {
-      const r = await indexerQuery<{ Market: { id: Hex }[] }>("query($offset:Int!){Market(order_by:{id:asc},limit:1000,offset:$offset){id}}", { offset });
-      r.Market.forEach((m) => ids.add(m.id));
-      if (r.Market.length < 1000) break;
-      if (offset >= 99000) throw new Error("Market discovery exceeded the pagination limit.");
-    }
+    (await readIndexedMarketIds()).forEach((id) => ids.add(id));
     indexed = true;
   }
   const block = (await client.getBlock({ blockTag: "finalized" })).number;

@@ -7,6 +7,7 @@ import { CRON_TRIGGER_PB } from '@chainlink/cre-sdk/pb'
 import { keccak256, parseAbi, toBytes } from 'viem'
 import { onDryRun } from './main'
 import sample from './config.sample.json'
+import { feed as footballSpec, footballAuth, footballResponse } from '../../packages/feedspec/test/fixtures/football'
 
 const ZERO32 = `0x${'00'.repeat(32)}`
 type Cfg = typeof sample
@@ -95,6 +96,19 @@ test('a known authRef sends its secret in the configured header', () => {
   })
   expect(out.startsWith('YES|')).toBe(true)
   expect(requests[0].headers['x-api-key']).toEqual(['k-123'])
+})
+
+test('football dry-run uses the same validation and authenticated provider without any chain writes', () => {
+  for (const [home, away, status, expected] of [[2, 1, 'FT', 'YES'], [1, 1, 'FT', 'NO'], [2, 1, 'HT', 'NOT_READY']] as const) {
+    const { out, writes, requests } = run({ body: JSON.stringify(footballResponse(home, away, status)),
+      cfg: { ...sample, feed: footballSpec, allowList: ['v3.football.api-sports.io'],
+        authSecrets: [{ authRef: footballAuth, secretId: 'SPORTSDATA_API_KEY', header: 'x-apisports-key', prefix: '' }] },
+      secrets: new Map([['main', new Map([['SPORTSDATA_API_KEY', 'synthetic-test-key']])]]),
+    })
+    expect(out.startsWith(expected + '|')).toBe(true)
+    expect(requests[0].headers['x-apisports-key']).toEqual(['synthetic-test-key'])
+    expect(writes).toHaveLength(0)
+  }
 })
 
 test('the dry-run has no EVM client and calls no write (source check)', async () => {

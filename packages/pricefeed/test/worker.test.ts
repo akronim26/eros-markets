@@ -143,3 +143,23 @@ test('disconnect during REST fetch archives the original bytes but blocks their 
     assert.equal(books,3);assert.equal(metadataCalls,2);assert.equal(j.verify(),true);
   }finally{j.close();}
 });
+
+test('rejected future timestamps cannot poison source ordering across restart',async()=>{
+  const j=new Journal(':memory:');let now=1000100n,currentBook=book;
+  const provider={event:async()=>capture(event,now),metadata:async()=>capture(metadata,now),book:async()=>capture(currentBook,now)};
+  try{
+    const worker=new Worker(cfg,provider,j,'owner',()=>now);
+    assert.equal((await worker.poll()).inspection.status,'COLLECTING');
+    currentBook={...book,timestamp:'9999999999999'};
+    const rejected=await worker.poll();
+    assert.equal(rejected.inspection.reason,'STALE_OR_FUTURE_SOURCE_TIME');
+    assert.equal(rejected.lastSourceMs,1000000n);
+    assert.equal(rejected.book!.data.timestamp,'9999999999999');
+    now+=1000n;currentBook={...book,timestamp:'1001000'};
+    const restored=new Worker(cfg,provider,j,'owner',()=>now);
+    assert.equal((await restored.poll()).inspection.status,'COLLECTING');
+    currentBook={...book,timestamp:'1000000'};
+    assert.equal((await restored.poll()).inspection.reason,'BACKWARDS_SOURCE_TIME');
+    assert.equal(j.verify(),true);
+  }finally{j.close();}
+});

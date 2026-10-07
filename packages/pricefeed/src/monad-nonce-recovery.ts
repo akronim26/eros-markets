@@ -3,7 +3,7 @@ import { setTimeout as pause } from 'node:timers/promises';
 import { keccak256, parseTransaction, recoverAddress, recoverTransactionAddress, type Hex, type TransactionSerialized } from 'viem';
 import type { PrivateKeyAccount } from 'viem/accounts';
 import { openBudgetJournals, type BudgetOptions } from './monad-budget.js';
-import { nonceRecoveries, saveRecovery, validateCancellationReceipt, verifyCancellationSigner, type NonceRecovery } from './nonce-recovery-journal.js';
+import { nonceRecoveries, recoverableUnsentReason, saveRecovery, validateCancellationReceipt, verifyCancellationSigner, type NonceRecovery } from './nonce-recovery-journal.js';
 import { parseTestnetRunPolicy } from './monad-service.js';
 import { policyHash, relayProfileBody, verifyBudgetAudit } from './relay-policy.js';
 import { preflightMonadTestnet } from './monad-preflight.js';
@@ -15,7 +15,7 @@ import { json } from './math.js';
 import { validateReceipt } from './receipts.js';
 import { submitCalldata } from './wire.js';
 
-type RecoveryOptions=BudgetOptions&{keysDirectory:string;policy:unknown;nonce:bigint;originalHash:Hex;maxCostWei:bigint;waitMs:number};
+type RecoveryOptions=BudgetOptions&{keysDirectory:string;policy:unknown;nonce:bigint;originalHash:Hex;maxCostWei:bigint;waitMs:number;allowAttempted?:boolean};
 /** Bound provider calls even when an injected transport ignores its own timeout.
  * A late send remains uncertain; this wrapper never declares it unsuccessful.
  */
@@ -30,11 +30,14 @@ function boundedRpc(provider:MonadSubmissionRpc,timeoutMs:number):MonadSubmissio
     }finally{if(timer)clearTimeout(timer);}
   };
   return {chainId:()=>call(()=>provider.chainId()),block:s=>call(()=>provider.block(s)),
+    ...(provider.codeHash?{codeHash:(a:Hex,b:bigint)=>call(()=>provider.codeHash!(a,b))}:{}),
     code:(a,b)=>call(()=>provider.code(a,b)),read:(a,b,n,s,k)=>call(()=>provider.read(a,b,n,s,k)),
     nonce:a=>call(()=>provider.nonce(a)),balance:a=>call(()=>provider.balance(a)),
     simulate:(s,t,d,g)=>call(()=>provider.simulate(s,t,d,g)),send:r=>call(()=>provider.send(r)),receipt:h=>call(()=>provider.receipt(h))};
 }
-/** Only cancels a known signed, never-broadcast, expired final reservation.
+/** Cancels a known signed, expired final reservation. Attempted sends require
+ * explicit opt-in and a finalized checkpoint beyond the contract's acceptance
+ * deadline. Any original receipt or unexpected sender nonce blocks cancellation.
  * Zero-value, empty-data, 21,000-gas self transaction; no arbitrary signing path.
  * Original price signature/request/raw bytes and every reservation are retained.
  */
@@ -51,6 +54,7 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
   if(reservationWei>options.maxCostWei)throw new Error('NONCE_RECOVERY_COST_CAP');
   const domain={chainId:10143n,engine:d.engineAddress,marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress};
   const ns=packetNamespace(domain),db=openBudgetJournals(options,true);
+  let auditedHistory:{digest:string;block:{number:bigint;hash:Hex;timestamp:bigint}}|undefined;
   let locked=false;
   const begin=()=>{db.exec('BEGIN IMMEDIATE');locked=true;};
   const commit=()=>{db.exec('COMMIT');locked=false;};
@@ -71,8 +75,10 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
     const target=rows.find(r=>r.nonce===options.nonce.toString());
     if(!target||policyHash(String(target.body))!==target.sha256)throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
     const record=JSON.parse(String(target.body)),recoveries=nonceRecoveries(db),existing=recoveries.find(r=>r.key===target.key);
-    if(record.txHash!==options.originalHash||record.namespace!==ns||!record.raw||record.accepted!==null||record.attempts!==0
-      ||!existing&&(record.state!=='QUARANTINED'||!['RELAY_HEADROOM_EXPIRED','RESERVED_NONCE_HEADROOM_EXPIRED'].includes(record.reason))
+    const attempted=options.allowAttempted===true&&Number.isSafeInteger(record.attempts)&&record.attempts>0
+      &&record.attempts<=p.relay.maxAttempts&&(existing?.attemptedOriginal||record.reason==='RESERVED_NONCE_HEADROOM_EXPIRED');
+    if(record.txHash!==options.originalHash||record.namespace!==ns||!record.raw||record.accepted!==null||record.attempts!==0&&!attempted
+      ||!existing&&(record.state!=='QUARANTINED'||!recoverableUnsentReason(record.reason))
       ||existing&&(existing.profile!==profile||existing.signerJournalId!==meta[0]!.id||existing.sender.toLowerCase()!==p.sender.toLowerCase()
         ||json(existing.request)!==json(request)||existing.reservationWei!==reservationWei.toString()))throw new Error('NONCE_RECOVERY_SCOPE');
     const reserved=rows.reduce((s,row)=>{if(policyHash(String(row.body))!==row.sha256)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
@@ -102,18 +108,38 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
         ||(await recoverTransactionAddress({serializedTransaction:state.record.raw as TransactionSerialized})).toLowerCase()!==p.sender.toLowerCase())
         throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');
       const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi:options.abi},now);
+      if(checkpoint.block.timestamp<=packet.packet.observation.observedAt+30n)throw new Error('NONCE_RECOVERY_NOT_CANONICALLY_EXPIRED');
+      if(state.existing?.attemptedOriginal){
+        const expiry=state.existing.expiryCheckpoint!;
+        const block=await rpc.block({blockNumber:BigInt(expiry.number)});
+        if(block.hash!==expiry.hash||block.timestamp!==BigInt(expiry.timestamp)
+          ||expiry.observedAt!==packet.packet.observation.observedAt.toString())throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      }
       const finalized=state.rows.map(r=>JSON.parse(String(r.body))).filter(r=>r.state==='FINALIZED').sort((a,b)=>Number(BigInt(a.nonce)-BigInt(b.nonce)));
       if(state.rows.some(r=>r.key!==state.target.key&&!['FINALIZED','CANCELLED'].includes(JSON.parse(String(r.body)).state)))
         throw new Error('NONCE_RECOVERY_UNRESOLVED_HISTORY');
       const last=finalized.at(-1),lastPacket=last?store.get(domain,BigInt(last.sequence)):null;
       if(checkpoint.engine!.sourceState.lastSequence!==(lastPacket?.packet.observation.sequence??0n)
         ||checkpoint.engine!.sourceState.lastObservedAt!==(lastPacket?.packet.observation.observedAt??0n))throw new Error('BUDGET_CHAIN_HISTORY_CHANGED');
-      for(const r of finalized){
-        const packet=store.get(domain,BigInt(r.sequence)),receipt=await rpc.receipt(r.txHash);
-        if(!packet||!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
-        const block=await rpc.block({blockNumber:receipt.blockNumber});
-        if(json(validateReceipt(packet.packet,r.txHash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)}))!==json(r.accepted))
-          throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+      const historyDigest=policyHash(json(finalized));
+      if(auditedHistory?.digest===historyDigest){
+        // Reuse only this invocation's fully audited finalized history. A hash
+        // change at its finalized anchor invalidates the whole cached ancestry.
+        const anchor=await rpc.block({blockNumber:auditedHistory.block.number});
+        if(anchor.number!==auditedHistory.block.number||anchor.hash!==auditedHistory.block.hash
+          ||anchor.timestamp!==auditedHistory.block.timestamp||checkpoint.block.number<anchor.number)
+          throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      }else{
+        for(const r of finalized){
+          const packet=store.get(domain,BigInt(r.sequence));
+          const [receipt,block]=await Promise.all([rpc.receipt(r.txHash),rpc.block({blockNumber:BigInt(r.accepted.blockNumber)})]);
+          if(!packet||!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+          if(json(validateReceipt(packet.packet,r.txHash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)}))!==json(r.accepted))
+            throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+        }
+        if((await rpc.block({blockNumber:checkpoint.block.number})).hash!==checkpoint.block.hash)
+          throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+        auditedHistory={digest:historyDigest,block:checkpoint.block};
       }
       const [nonce,balance,oldReceipt,code]=await Promise.all([rpc.nonce(p.sender as Hex),rpc.balance(p.sender as Hex),
         rpc.receipt(options.originalHash),rpc.code(p.sender as Hex,checkpoint.block.number)]);
@@ -126,10 +152,17 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
     }finally{source.close();store.close();}
   }
   try{
-    begin();let state=local();await chainAndHistory(state);
+    begin();let state=local();const checkpoint=await chainAndHistory(state);
+    // Source timestamp is read from the already signature-verified packet.
+    const packetStore=new PacketStore(join(options.journalDirectory,'packets.sqlite'),true);
+    let observedAt:string;
+    try{observedAt=packetStore.get(domain,BigInt(state.record.sequence))!.packet.observation.observedAt.toString();}
+    finally{packetStore.close();}
     let r:NonceRecovery=state.existing??{key:String(state.target.key),sender:p.sender as Hex,nonce:options.nonce.toString(),
       originalBody:String(state.target.body),originalSha256:String(state.target.sha256),request,raw:null,hash:null,state:'PREPARING',attempts:0,
-      receipt:null,reservationWei:reservationWei.toString(),profile,signerJournalId:String(state.meta.id)};
+      receipt:null,reservationWei:reservationWei.toString(),profile,signerJournalId:String(state.meta.id),
+      ...(state.record.attempts>0?{attemptedOriginal:true as const,expiryCheckpoint:{number:checkpoint.block.number.toString(),
+        hash:checkpoint.block.hash,timestamp:checkpoint.block.timestamp.toString(),observedAt}}:{})};
     if(!state.existing){
       const estimate=await rpc.simulate(p.sender as Hex,p.sender as Hex,'0x',21000n);
       if(typeof estimate!=='bigint'||estimate>21000n||estimate<21000n)throw new Error('NONCE_RECOVERY_SIMULATION_FAILED');

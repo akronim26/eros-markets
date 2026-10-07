@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "chainId": 10143,
+  "registry": "0x9bE1d595Ac9B6c1109a4dcaa056CE5eFDAF06F45",
+  "profiles": [
+    {
+      "kind": "book-risk",
+      "runtimeCodehash": "0x1415f6c3806c0f1dcf24e44e39661f6f69ea4a72eb7659deae717b153545fa02"
+    }
+  ]
+}

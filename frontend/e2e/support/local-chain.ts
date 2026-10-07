@@ -1,0 +1,11 @@
+import { defineChain } from "viem";
+import { anvil } from "viem/chains";
+export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;
+const url = new URL(RPC_URL);
+if (url.protocol !== "http:" || url.hostname !== "127.0.0.1" || url.username || url.password || url.search || url.hash || url.pathname !== "/") throw new Error("E2E RPC must be loopback only");
+export const chain = defineChain({ ...anvil, name: "Local E2E fixture", rpcUrls: { default: { http: [RPC_URL] } } });
+export const PRIVY_APP_ID = "";
+export const EXPLORER_URL = "";
+export const LOG_BLOCK_CAP = 100n;
+export const explorerAddress = (address: string) => `/portfolio#${address}`;
+export const explorerTx = (hash: string) => `/thank-you?tx=${hash}`;

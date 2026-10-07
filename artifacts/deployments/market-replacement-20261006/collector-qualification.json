@@ -1,0 +1,12 @@
+{
+  "complete": true,
+  "passed": true,
+  "startedAt": "2026-10-06T17:14:34.552Z",
+  "checkedAt": "2026-10-06T17:24:35.188Z",
+  "durationMs": 600636,
+  "count": 597,
+  "failures": 0,
+  "maxAgeMs": 1323,
+  "maxCaptureGapMs": 2623,
+  "maxAdvanceGapMs": 2733
+}

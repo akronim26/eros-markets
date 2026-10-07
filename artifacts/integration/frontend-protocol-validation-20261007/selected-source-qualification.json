@@ -1,0 +1,61 @@
+{
+  "at": "2026-10-07T04:19:06.069549+00:00",
+  "chainId": 10143,
+  "selected": [
+    {
+      "question": "Will an independent win the Nebraska Senate race in 2026?",
+      "qualification": {
+        "scope": "Finite observed source-carry eligibility; not proof of accepted on-chain publication continuity",
+        "complete": true,
+        "passed": true,
+        "startedAt": "2026-10-07T03:38:52.793Z",
+        "firstValidAt": "2026-10-07T03:38:53.514Z",
+        "checkedAt": "2026-10-07T03:53:54.036Z",
+        "durationMs": 901243,
+        "coverageDurationMs": 900522,
+        "count": 900,
+        "validPolls": 893,
+        "rejectedFuturePolls": 7,
+        "failures": 0,
+        "maxAgeMs": 24023,
+        "maxCarryMs": 24998,
+        "maxCaptureGapMs": 2377,
+        "maxAdvanceGapMs": 24771,
+        "maxSourceGapMs": 25000,
+        "sourceId": "0x848114790490867a67b65a6275a802b72f7356b63bdb123b159d5aaf00c635a1",
+        "externalMarketId": "634893",
+        "conditionId": "0x5554740293afa7aafd5fed10fd2de43a898e2884c1f98bd65185e703f371b9db",
+        "outcomeTokenId": "47975366268282823322598946778919483335780002591367838795894307024076579116518"
+      },
+      "sha256": "1a3c90cf1024a9ba8743330f1a3222f2a90aa3ec43e1c9e2b0ea8b9e1c4b2402"
+    },
+    {
+      "question": "Will the Republican Party control the House after the 2026 Midterm elections?",
+      "qualification": {
+        "scope": "Finite observed source-carry eligibility; not proof of accepted on-chain publication continuity",
+        "complete": true,
+        "passed": true,
+        "startedAt": "2026-10-07T04:03:31.513Z",
+        "firstValidAt": "2026-10-07T04:03:32.186Z",
+        "checkedAt": "2026-10-07T04:18:32.371Z",
+        "durationMs": 900858,
+        "coverageDurationMs": 900185,
+        "count": 900,
+        "validPolls": 887,
+        "rejectedFuturePolls": 13,
+        "failures": 0,
+        "maxAgeMs": 21427,
+        "maxCarryMs": 22439,
+        "maxCaptureGapMs": 2988,
+        "maxAdvanceGapMs": 22145,
+        "maxSourceGapMs": 25000,
+        "sourceId": "0x83d7a5d5a6318af187b20c88a6ad17078bdaad26307067243bf0d132c3805f9b",
+        "externalMarketId": "562803",
+        "conditionId": "0x4e4f77e7dbf4cab666e9a1943674d7ae66348e862df03ea6f44b11eb95731928",
+        "outcomeTokenId": "65139230827417363158752884968303867495725894165574887635816574090175320800482"
+      },
+      "sha256": "d0b3fd072c2bf4d8626c2780e56a11ff2293f9e9243c8c2d92e9536722aac67f"
+    }
+  ],
+  "scope": "Finite source eligibility; actual public publication and MARK continuity still require validation."
+}

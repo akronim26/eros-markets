@@ -1,0 +1,63 @@
+
+> eros-markets-frontend@0.1.0 test
+> tsx --test tests/*.test.mjs
+
+✔ depth bars distinguish 10%, 50% and 100% liquidity (2.476417ms)
+✔ a wide spread includes real bids and asks within a bounded sample (0.272708ms)
+✔ empty, one-sided and endpoint books stay inside supported ticks (0.170958ms)
+✔ dependent owner calls wait for finality, then verify canonical block and exact transaction (4.624625ms)
+✔ replacements, reverts, reorgs and changes in sender, target, value or calldata stop the flow (18.593875ms)
+✔ pending finality stops before dependent steps rather than treating inclusion as final (0.439041ms)
+✔ integer leverage sizes exact long and short claim lots without float rounding (0.308291ms)
+✔ 5x sizing reserves adverse spread and fees for either direction (0.226125ms)
+✔ favourable unfilled limits do not create imaginary sizing equity (0.078291ms)
+✔ finalized receipt readers preserve a finalized revert as a failed result (1.309042ms)
+✔ funding uses existing free funds before depositing or approving (2.09325ms)
+✔ retry after a completed deposit never deposits twice (0.156833ms)
+✔ zero, negative and excess amounts cannot be submitted (0.372416ms)
+✔ oracle finality alone never enables payout; zero and recovery are blocked; later reserve credits remain claimable (0.123833ms)
+✔ history totals use exact units and do not count Fill and PairedPosting twice (2.82725ms)
+(node:26446) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ resting order remains live through its expiry block (1.0185ms)
+✔ generations and ownership prevent cancelling another order (0.087125ms)
+✔ cancel-all, market invalidation and position changes invalidate orders (0.101834ms)
+✔ filled and removed orders never appear open (0.075208ms)
+✔ receipt discovery isolates chain, market and wallet without storage (1.4335ms)
+✔ chart retains invalid source intervals and stale gaps instead of drawing continuous prices (2.521166ms)
+✔ chart accepts genuine zero and one while breaking at malformed or reversed history (0.183875ms)
+✔ price protection respects direction, mark availability, flat positions, expiry and halt (1.7845ms)
+✔ guards activate only with the correct capability and threshold; claims need actual entitlement (0.149292ms)
+✔ rules reject invalid sizes, prices and unbounded lifetimes (1.284916ms)
+✔ delegated request refuses transfers, arbitrary calldata, unknown engines, excessive integers and non-reductions (0.429375ms)
+✔ close prefill uses the opposite side and exact lots; expiry never rounds (0.231917ms)
+✔ disputes close at exact expiry; evidence respects the contract byte limit (0.218083ms)
+✔ streamed RPC bodies have a total deadline and cancel stalled readers (198.058417ms)
+✔ streamed RPC limits apply without Content-Length and valid bodies still parse (3.701667ms)
+✔ RPC origin checks use the browser's host when Next binds all interfaces (1.169375ms)
+✔ RPC proxy accepts pinned reads and rejects sends, signing, admin calls and oversized batches (0.393792ms)
+✔ RPC errors preserve revert bytes while removing provider messages and credentials (0.312375ms)
+✔ RPC proxy checks response identities and accepts out-of-order batch responses (0.178958ms)
+✔ separate panels cannot run competing sequences from the same wallet (1.17725ms)
+✔ amount parsing rejects values outside the contract ABI before an RPC request (0.288958ms)
+✔ normal pricing mode alone never labels a stale-price market as trading (0.138125ms)
+✔ approval, deposit and allocation use one session (external) (3.920333ms)
+✔ approval, deposit and allocation use one session (embedded) (0.907208ms)
+✔ unready, disconnected, stale account and wrong network never start a sequence (0.44125ms)
+✔ switching accounts during simulation prevents any wallet request (0.446375ms)
+✔ account after approval stops deposit and allocation (0.448083ms)
+✔ network after approval stops deposit and allocation (0.359416ms)
+✔ disconnect after approval stops deposit and allocation (0.14725ms)
+✔ connector after approval stops deposit and allocation (1.306917ms)
+✔ logout after approval stops deposit and allocation (3.513375ms)
+✔ switching away and back does not resume a previously authorized sequence (0.316917ms)
+✔ a transaction broadcast during a switch is still tracked, with no subsequent send (0.395084ms)
+✔ a rejected wallet prompt stops the flow and does not wait for a nonexistent transaction (1.601792ms)
+ℹ tests 49
+ℹ suites 0
+ℹ pass 49
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1315.647833

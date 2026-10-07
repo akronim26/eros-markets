@@ -1,0 +1,341 @@
+{
+  "scope": "Exact compiled source hashes checked against working tree; recorded sourceCommit is the pre-change base commit, not a claim that it contains these edits.",
+  "compiler": {
+    "version": "0.8.30+commit.73712a01"
+  },
+  "settings": {
+    "remappings": [
+      "@eros-test/=../contracts/test/",
+      "@eros/=../contracts/src/",
+      "@openzeppelin/=lib/openzeppelin-contracts-v4/",
+      "@uma/=lib/uma-protocol/packages/",
+      "ds-test/=lib/openzeppelin-contracts-v4/lib/forge-std/lib/ds-test/src/",
+      "erc4626-tests/=lib/openzeppelin-contracts-v4/lib/erc4626-tests/",
+      "forge-std/=lib/forge-std/src/",
+      "openzeppelin-contracts-v4/=lib/openzeppelin-contracts-v4/",
+      "openzeppelin/=lib/openzeppelin-contracts-v4/contracts/",
+      "solady/=lib/solady/src/",
+      "uma-protocol/=lib/uma-protocol/"
+    ],
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "metadata": {
+      "useLiteralContent": true,
+      "bytecodeHash": "none"
+    },
+    "compilationTarget": {
+      "src/integration/RegistryBookRiskEngine.sol": "RegistryBookRiskEngine"
+    },
+    "evmVersion": "prague",
+    "libraries": {}
+  },
+  "engineCreationCodeHash": "0xe3efe64a689dbec22b7e557dd2b974b634070d2d310208d552760fbaf29ae073",
+  "sources": {
+    "../contracts/src/Book.sol": {
+      "keccak256": "0x61f7876602a10fb9f135258d661a238f0505932972b7344f0ccebd060fc4ea93",
+      "sha256": "e91f7e46ad398319ac5c8feff3f7121da6cd4b9038404aa6aeae1a330fffc53d"
+    },
+    "../contracts/src/engine/BookRiskEngine.sol": {
+      "keccak256": "0x94541daa0a7c2a62c1baaa2cb836bed5ee09b5f32aaa4547331dac9059d37955",
+      "sha256": "821c7980fbc120b30f31372a85995793b59c79f5c1a1d389a791f58980ca65c6"
+    },
+    "../contracts/src/engine/RiskAccountingBridge.sol": {
+      "keccak256": "0x869ae6e96745727a7404b80947834c9007ca984dad2250abcd68c64c4e788acf",
+      "sha256": "d1824b37234341b76dbea3f8b06278da06ad5f7c5b13a1542e4591dd932a5196"
+    },
+    "../contracts/src/interfaces/IAccountingPort.sol": {
+      "keccak256": "0x9e81f5718ac7361ae126fdfe95cffd4aa4241f2e336f97f576ed3013d8de6db4",
+      "sha256": "06dcb03b65112a57eea8756ac94936dfef6b6007827b884d0d7c86b871968687"
+    },
+    "../contracts/src/interfaces/IBookRiskHooks.sol": {
+      "keccak256": "0x526a54c940bd23203b478faf8d0b6807b7fc45c999717c55444a4acb5c4ee4b4",
+      "sha256": "a802bbc0a75872c7ebcb8e078d8563bab004beacfbbe610aced424ab884b565c"
+    },
+    "../contracts/src/interfaces/IMarketConfig.sol": {
+      "keccak256": "0xa988eac458b465269af992387b4198f0e533308211bcc852b8ef266e93d047f2",
+      "sha256": "29acaddbbf0a1bd25398ac2ba9bda3bd66e8a2465d02570fc13a288e0fdc4cdb"
+    },
+    "../contracts/src/interfaces/IPriceSource.sol": {
+      "keccak256": "0xd7933ea221ca48e089e3826ad7472a27689edcce616724b94fc3660badc27c7d",
+      "sha256": "4e590ac32ecd0c7152c6e6a5f30e677b06844ad40807ed6ae708a3eeb4c6e3b1"
+    },
+    "../contracts/src/interfaces/IResolutionIngress.sol": {
+      "keccak256": "0xdefa99e0fe5b0a3bfa0f0c46d9bca41bed73894c2e59eb2db5a382bf3626fe71",
+      "sha256": "bf7d638ac4b9a85bbd6e7ea75d18e5c93c2c030cc9663376e7be4fc089bebc35"
+    },
+    "../contracts/src/math/CoverageMath.sol": {
+      "keccak256": "0x40ae7d54e8cbaeb7af035b73907bd02162bfe2626641a2e7b0258192438a0b48",
+      "sha256": "7b03ff590fc91509f38440fae1896a199d1fb1e3432ae44c219ec0d57c5e0995"
+    },
+    "../contracts/src/math/FeeMath.sol": {
+      "keccak256": "0x43a0a24342c69c4562b5a7b09c8aee161b3bd6d3e8e15f2115f36ddaf299e108",
+      "sha256": "7e9680cd4fe4b1ea4f8a76ead9d502148962791982f2d3ea432c2ee0bab05da4"
+    },
+    "../contracts/src/math/FundingMath.sol": {
+      "keccak256": "0xbc2cb37a943feaff01dc905c0566e3f4fa9efdb9fb3cc73fc24e65aed5f3d6ff",
+      "sha256": "4401bf5a142119bb215ec375f2d18746a35aa4578fc36140b1763a5c589dbfec"
+    },
+    "../contracts/src/math/HazardMath.sol": {
+      "keccak256": "0x992ee10cca59503641a93f3b8d086142030a3810636a5035af28768bb265e990",
+      "sha256": "2c63a201a881429ac525c5891ea8009043dedafdc3c69d5ceb427992349f110c"
+    },
+    "../contracts/src/math/HorizonMath.sol": {
+      "keccak256": "0x54d4792bbfc5491cc5288066edc6fa150df178fe7bec22cbf0f2bf54663bc491",
+      "sha256": "c0d0f02b9162c8d1fa718a3addec3a48dfc11fde5861212a2aefd348644f106e"
+    },
+    "../contracts/src/math/LedgerMath.sol": {
+      "keccak256": "0x6520d0decde523b3fc6126d5d129c996f388bf4ac8e8bf7fbe41a68728febc68",
+      "sha256": "d1e97120fe251a901d0541186c19ea3372b2e34519d21d3a8c590fc10cbe3ae8"
+    },
+    "../contracts/src/math/LifecycleMath.sol": {
+      "keccak256": "0xdc223a83f7c6c1e827abc5de9a3828aa39bb00ced266a5314b3e97d2878e62fd",
+      "sha256": "6b0ab9655f4b26458cdb3a9dbd74233b9bffe9cc2dbc62a8a0cd435a3f197bdd"
+    },
+    "../contracts/src/math/LiquidationMath.sol": {
+      "keccak256": "0x911d32273de774e8939c00573d17f1e980e26592c0ca5584e21f42ec3149ed77",
+      "sha256": "730630b6f3a516e89f4185cabc3bc2d4978d01a1753e23cc145ca84ae1abe534"
+    },
+    "../contracts/src/math/MarginMath.sol": {
+      "keccak256": "0x3160a73448bba7236bab7a3708ff31d5f4a7ee076e337c7b4c232687efceeab0",
+      "sha256": "eb41e0b066aa9603e1d4cc32f7e67eb4c7dc8fad19198474f2b23606d002e6d4"
+    },
+    "../contracts/src/math/MathTypes.sol": {
+      "keccak256": "0xf1cc7d740bfd37d042aa9de62ab5e092d8255d1631015234278573089ac064ec",
+      "sha256": "f34d68b5e0331ea13f521c80c520ce1c58e9db91a74b26c2d1eb853b69ef0575"
+    },
+    "../contracts/src/math/OrderAdmissionMath.sol": {
+      "keccak256": "0x5bacd2d81a7f1136e4833cae2186b81c94e5932cf4eb79d9294d657da8f80497",
+      "sha256": "aff9d86c8d04553e1da8577f3ddb938404473da8865f8cca5dd0f19f325dc119"
+    },
+    "../contracts/src/math/PremiumMath.sol": {
+      "keccak256": "0x426ab8946d124289838cfb470e4891b4ae91ab98c411bc0601a36228a4f11b49",
+      "sha256": "54a7cb4485dbe64bcc2cfd577b541add5821d288397f7a73ee4ae29c242e57d7"
+    },
+    "../contracts/src/math/PricingMath.sol": {
+      "keccak256": "0x3be82fe30f339fcfc27b09172416f877473fa50d74e3469fb3b033352efc4143",
+      "sha256": "bb29e549e5f342bc52edec849bc6ff6ab87e5e825dba4b871461f8d24bdd5f17"
+    },
+    "../contracts/src/math/QMath.sol": {
+      "keccak256": "0xea659bf455b6a9f9b044e1ba36310bf378f7ff44657e57d897dbd7e474076c98",
+      "sha256": "ee5f5883dedcd476ab165cb2930fd7f88e6625e6a627e404b3a922f1c8a55b62"
+    },
+    "../contracts/src/math/RiskTypes.sol": {
+      "keccak256": "0x33ddecd2b64d8c85d9d2e183b68a6679ddc4411f478e28bc796673cca3c62391",
+      "sha256": "1b1bc6b5f2a932bb64e19564039c9631c83749f4fc46faf02e4913caecb945c0"
+    },
+    "../contracts/src/math/SettlementMath.sol": {
+      "keccak256": "0x989154c1c23aa2ebd24ed80db3fc39df8a48bbc0fae5158d51593c1411516300",
+      "sha256": "f3d0ec1b3bbe7d42515617cfa6647688cacf8ff4c38f438f0a9348083b3437fa"
+    },
+    "../contracts/src/pricing/BookDepthSampler.sol": {
+      "keccak256": "0x28c7ddc4bf68f2d22d9abcffea77ac682b9bbd1904dd1aef1ad463b6cf53a60d",
+      "sha256": "d33073327905d5fe59ce701b3d558b4d3922f144e19b58acc05e2caab0bc7d6d"
+    },
+    "../contracts/src/pricing/ObservationStore.sol": {
+      "keccak256": "0x8ed3d823fe5f7fb3ed71f14d830ef507318e2a4a8229179d7c4b3a08b61616fd",
+      "sha256": "e4d72237606dd72f5614d4e43bf2a4f304831f69e16433232f8b8b14ec2a4769"
+    },
+    "../contracts/src/pricing/PriceIngress.sol": {
+      "keccak256": "0xab5838ddba23a3134c7be8add440a04badadd4cfe2ab37e4af3d4b17c9520f62",
+      "sha256": "b06c7604ce8e9d1dc64b2056576bccf65d7e58b72c48cb390e36d6c693642fd3"
+    },
+    "../contracts/src/pricing/RiskPricing.sol": {
+      "keccak256": "0x0f0c6b1eec823dd12039e1582f017331e347ae50401247db1f72d454c4d7f84d",
+      "sha256": "5f7f67d48ef1119e67267266c6b1e1aa3dbb2df0c5954a1d13383183124870b1"
+    },
+    "../contracts/src/pricing/SourceGuards.sol": {
+      "keccak256": "0x89cbae6054244e9e56e3fef74376be7c0cf17a53ef74285373e4fe70cd341a6f",
+      "sha256": "3143a399c873775c430b71bd4b5aad130989d1938cc979070836c0289bab6ae2"
+    },
+    "../contracts/src/risk/AccountRegistry.sol": {
+      "keccak256": "0x2208a82cf2342191ebf178ee25a59fad6ad55b5c549feea040b7658f2eeeb465",
+      "sha256": "a82d3445a91a99d262711207946d862594d0b4570a480191e49e4ec3b8d01b21"
+    },
+    "../contracts/src/risk/AccountSync.sol": {
+      "keccak256": "0x62f94ae29d98619001d13544adde866544ef8d27541f0e98d779caf6dd622a8a",
+      "sha256": "67c9617089eb30b70172f9a315af204d90fc8befabe09867252523c477ce59cb"
+    },
+    "../contracts/src/risk/Accounting.sol": {
+      "keccak256": "0xe1866e0018e8556e988e96928dd7f58ea3add77d47b85d99ad763ddf164084c4",
+      "sha256": "e62a4c11701196e8ad2c311f5b85b5f061199a41e8619d28d2e7c53ea428304f"
+    },
+    "../contracts/src/risk/AccountingEvents.sol": {
+      "keccak256": "0x3de16181f0438643fcacec685fcd255247e5415ccc981131e25a393009369049",
+      "sha256": "b3acb33c6c69dbbe9557b62a9402678d06f89275b094723f66fe414b204606bd"
+    },
+    "../contracts/src/risk/AccountingPort.sol": {
+      "keccak256": "0xf9b53371ae063617dfc00bc3cc5b73e85221883402c25eeee55bc31519c3f9ea",
+      "sha256": "0e0cdfa11df577f7ce3772bab0d42d6fab11c24063a0965495dfd3174f4018e9"
+    },
+    "../contracts/src/risk/BookRiskAdapter.sol": {
+      "keccak256": "0x5f32811fa2947c3778ec7a2fdf769b0bee2c22e77b156bcb777516cd1bae3b23",
+      "sha256": "41b6ca13621ca0c169fc6d3839edb6239dbdc3e8237e11e4e6350a3ed1070520"
+    },
+    "../contracts/src/risk/ClearingCore.sol": {
+      "keccak256": "0xa01ce197cdc9914070ad58a29055ca687ea29760a54a476c67307a73faaf6c58",
+      "sha256": "604d692ceac02d92d6ade9a75b110203a973f56542657ec19cc490d2fdc82845"
+    },
+    "../contracts/src/risk/EpochRollover.sol": {
+      "keccak256": "0x4c3428244672728e675d9eca0b5cdcab98c325b98d3d4ab19d66b073a89e2519",
+      "sha256": "4a01e7976e00f07a89921fb3d5729780c6c1daa4414a6c9b61e1a5c6f814fbcd"
+    },
+    "../contracts/src/risk/FeeAccounting.sol": {
+      "keccak256": "0x98dc0ee2ce7df73945b59f1fd239135febbe993b8ceb4a8e0ed7949b5b5f2f03",
+      "sha256": "cbcf09e015faaeb12a14d281516d4c81e16cdad281a4ab1ad9b32de5c905ab70"
+    },
+    "../contracts/src/risk/FloorAccounting.sol": {
+      "keccak256": "0x77984f0ff9d014fa02d2363c99c50c4a93fd972e765e41d6b68733b0596afb1a",
+      "sha256": "baba8b8a49914faeca9e96277af6c1916d2ff5dce117ba4e5dc4463968e531e5"
+    },
+    "../contracts/src/risk/FloorLifecycle.sol": {
+      "keccak256": "0x70a171f390dd241f02910c8c10b615f9ef8bf5c7d2b6051c947649f533a9fdb8",
+      "sha256": "f84e1acac1a22a7120d3a0ea85522d6695d980e2212fe2b4efa18de285bb2e9c"
+    },
+    "../contracts/src/risk/FreezeAccounting.sol": {
+      "keccak256": "0xfde558e9a2fc0246f2b454fcf5646f2df10d9ab6c3760ccd8eead021fd4ece93",
+      "sha256": "8167b726693675c02ff0ae694df8d8b43a5767a17c7e39b05c5a716315cd6a78"
+    },
+    "../contracts/src/risk/FundingAccounting.sol": {
+      "keccak256": "0xe03016c02464ef1cbad58d1a69be50577619539454d061a2b742f96f9af44e8c",
+      "sha256": "92ee2c6a924e8eb9e8eb1655c7b8d0df1dc77ddd42c2cd80d1e819d5ec47460e"
+    },
+    "../contracts/src/risk/LiquidationBookAdapter.sol": {
+      "keccak256": "0x6e9dfafb3ec9f590086cc55130e301d9790836d8d3c7940ac559055b50362d09",
+      "sha256": "1f4dae807ab664c34a3fd66292c0135f057c0d82752260c19429968e011b8278"
+    },
+    "../contracts/src/risk/LiquidationEligibility.sol": {
+      "keccak256": "0xea8c0f6026e89e22075974a8ca2b12592569605973abf6ce1328dbe212c6439b",
+      "sha256": "26be2adef5753587667c9e46016944b382323435985f721fef1f2ef232fc8829"
+    },
+    "../contracts/src/risk/LiquidationFees.sol": {
+      "keccak256": "0xd8f014a6f05b7fd827f04e8bd6721010867bc62efc39d037bf7623e57d9e19eb",
+      "sha256": "71e3bc0fe197a9d0f0a4911e327feb55e101250ea8675f9b56cc7428a3b094aa"
+    },
+    "../contracts/src/risk/MonitorPolicy.sol": {
+      "keccak256": "0xf57719312725d9552a06d9f96d1f7bb155e7da1c6680ba935b78315f644e3667",
+      "sha256": "8eb582e99368923a8fd8235caf91ba90ec9cc0748d3fbbeb394539fac557b224"
+    },
+    "../contracts/src/risk/OrderAdmission.sol": {
+      "keccak256": "0x7a219fc1014f866ec1040d8e8598aa23aee052138089a95b70abd3ebd9391436",
+      "sha256": "15f77bc4fced6b593abcb18ff7a8affa5bcd26211350dbeb2e20dfe32811fc92"
+    },
+    "../contracts/src/risk/OrderLifecycle.sol": {
+      "keccak256": "0x21add0be7da8f10d95ff00fb280450a6b3f9ab2f3106fa1479a3652e2cc977e1",
+      "sha256": "c598bcd0c17c77d71202068c0aa55a7b5b9e4c5d1ebb491176267d9085c7436d"
+    },
+    "../contracts/src/risk/OrderRisk.sol": {
+      "keccak256": "0x1ba474e4fa7bede84660d4a17783a361db7b99e0b7882b0c4ee4ba72e3e4741b",
+      "sha256": "1153301c0d7552fbaf0a4bb9fd7a23641b56f9b7d23c7bcc2ff4e465894ebd90"
+    },
+    "../contracts/src/risk/PremiumAccounting.sol": {
+      "keccak256": "0xd9c01a8ee8c86c4c78dc4f814c839e1302739c96116781e77f0e73ed88888276",
+      "sha256": "c18d2ff63ee8572ad9bfece22131b02db32e4e806037fe4928b5f6a0c9a5dd93"
+    },
+    "../contracts/src/risk/ReserveAccounting.sol": {
+      "keccak256": "0xa2cfdc922a851734a5d3f9249f76f25472435d8724123371a8c01137b1ee8ab7",
+      "sha256": "a7b358e4e111dfdf1a95875f9a2a489c2ba69ca2e9af84dbc52b81741352197b"
+    },
+    "../contracts/src/risk/RiskContextPort.sol": {
+      "keccak256": "0xd56f3550d69186e4b2fa3d22522cd1bf29473ff6450ed3e8f3955021907303b4",
+      "sha256": "bc1dbefee6062edc85ffd7b1cdfab5d6373b9ad95b93670620066642218a6689"
+    },
+    "../contracts/src/risk/RiskLifecycle.sol": {
+      "keccak256": "0x6dcf677dc078ab2fec5cb599220738d9dc92a1e66af6090b2c475e4aa54577e4",
+      "sha256": "67567b96f077b2d137a868b47a7f2abf8296d826654c04720b8f3549f05a7d8e"
+    },
+    "../contracts/src/risk/RiskLiquidation.sol": {
+      "keccak256": "0xbb4e082fd5582fb26788609680551273e12b11cc40328fa86dcc5ec66258c9d6",
+      "sha256": "5ed5887391755f0b7755c27d4fd61dbd9bcef73c31007183c8d294ab2c1eef91"
+    },
+    "../contracts/src/risk/RiskStorage.sol": {
+      "keccak256": "0x8095b57bc7bfd04bd25f9aef67c20689b445ae8010c59d78b6461967c0768ef4",
+      "sha256": "e27fbb9030ae1406d429a5fc3bc218cc2de63a73abfb9e56bb7fa2f5b6e573e4"
+    },
+    "../contracts/src/risk/RiskView.sol": {
+      "keccak256": "0x3c55cf8901079929de7acde4a54acbe6555356f8f28344c8a7b691c84f6de27c",
+      "sha256": "5a2dc9722613de004e402b17e0338ba86090b6ce1ea74f57550f20351d4badc7"
+    },
+    "../contracts/src/risk/TakeoverAccounting.sol": {
+      "keccak256": "0xf2f8a5988373f187c049f80fd785d8adbe22db93e08dfe8a9a5e4f13b24fde42",
+      "sha256": "f27aae64d4fe9e731926b50d2576c9a03af543c63492f374db33d6d7501e4ef9"
+    },
+    "../contracts/src/risk/TradePreview.sol": {
+      "keccak256": "0xaea93a15317f022cee98893e55b0db7aa300dba97dcb7756443a679b2d5b774f",
+      "sha256": "7bd3f09e4eafb9e45f17f067a9812b45c2b809e23645534e346f3a938b2c4b8d"
+    },
+    "../contracts/src/settlement/ClaimEscrow.sol": {
+      "keccak256": "0x41aca426b5374ef8d7d0c1aeadfccd48926b5ec05eb53365f082074f41daec14",
+      "sha256": "78db4fe7592f5471c831a0c21304e12d8158b2d937b3be81b36b2d366dff56ce"
+    },
+    "../contracts/src/settlement/ConversionGate.sol": {
+      "keccak256": "0x33c83291898b5b569af8d8aeeebeda7a4c2dabcce3d973a728b73ccae97f2602",
+      "sha256": "1917746d11446136a3632bc1b507e6ccc621c274fc8074ced5da8fea7e1f0161"
+    },
+    "../contracts/src/settlement/InvalidPrice.sol": {
+      "keccak256": "0xa85fb02897cfae117eebb10265798ebe82adc0887163e044139209ca5e2f2682",
+      "sha256": "dd4413a281a5e027697c1819b24775f105bf0a9d53749b3c752f5436559bc4a7"
+    },
+    "../contracts/src/settlement/PayoutLedger.sol": {
+      "keccak256": "0x3c63665aba1eaf9d1b61f3771d2f80fae081b64dcc6f1d62a4881d4f3bea97f4",
+      "sha256": "01e2e3a92a7477a4986c50244e41f92ca41004f41a84eb958d588d14bb5ac532"
+    },
+    "../contracts/src/settlement/RecoveryAccounting.sol": {
+      "keccak256": "0x3175d4c7682a13c49dfe6db8792b3f202c8ad6726cfd80067168de645b3ba5ba",
+      "sha256": "f50012a55c2a70ea997f0926b5f8c5ac5bcd7183bd1e66cc05f40273805ff233"
+    },
+    "../contracts/src/settlement/ReserveClaims.sol": {
+      "keccak256": "0x459956161a69666bb4ec4d41a5c42d00ad7bd2d56543ea5ddce5dfe0ccb0b3e4",
+      "sha256": "d2ea3f11147c8c71643dfdfffde2d19c77209e4b382296d0e7b018bc68b494cc"
+    },
+    "../contracts/src/settlement/ResolutionIngress.sol": {
+      "keccak256": "0x59bab5cfb9424662eee0f6171d3d0245834962fd8ef4e9312eddc3ceab075236",
+      "sha256": "f0519eb57f0efad236dcd777345020a1c7fbe21ceca28116a955e808b2ac70b1"
+    },
+    "../contracts/src/settlement/SettlementController.sol": {
+      "keccak256": "0x50e0631c8c8e70a1500b30cf006b435894fb5c91eb501d87b13922dec212f752",
+      "sha256": "b5fd32155114b64e2b77db6fc6e17fc8ab03fc8bd4180bc748bd8f3ddf3508b9"
+    },
+    "../contracts/src/settlement/SnapshotLedger.sol": {
+      "keccak256": "0x7656180c363d954738f83ef263738a498d963131e215ba0e36f9b0a499d83b3c",
+      "sha256": "e44042656dd6a3fa38eb090da8f81fcbc914cd33a44c55b902475871b2158398"
+    },
+    "../contracts/src/vaults/BackstopPool.sol": {
+      "keccak256": "0x3f74d24398256a29e7125c1910d1ffe9aba9ccbb210e32ceeaa9678f160e8f4c",
+      "sha256": "e9e704d9451c6f50031acc7e740c99406d84d7b770c9361236e3ba37a3e62748"
+    },
+    "../contracts/src/vaults/CollateralVault.sol": {
+      "keccak256": "0x2a56ad215d93f639b38f4f533625573632f6ddef118dcb4d590ecb95a8f21c20",
+      "sha256": "2f42ba33478dbe534d74d046ff4b1dac1a8dbc8618a3584b898b3eda4a6ab830"
+    },
+    "../contracts/src/vaults/ReserveVault.sol": {
+      "keccak256": "0x69ef36097d9ea47c270226a5e9cda9d1f7bc4f2b2acfc629a78d88f5f5f49ab6",
+      "sha256": "49830ee6755e669c16e252b4c4f6822eb34528b8f3ccba52ab539278af9878fe"
+    },
+    "lib/solady/src/utils/ECDSA.sol": {
+      "keccak256": "0xefb8644cfd04a9be40a32cb3d6f97a0d75f9f439a057c15292aa6960b1478bfe",
+      "sha256": "135d02009f4763ab2d4fc4f613a88e2082f770d453f09393e3b8ef3922661c40"
+    },
+    "lib/solady/src/utils/FixedPointMathLib.sol": {
+      "keccak256": "0x5ff227b56402748dfb8dccde04789cb9ed1f0d5e2be7a65563dc10ba4541e72e",
+      "sha256": "d322e2a0b1f43dbd80a3cf26a40d1ca1cc19cf03737f1e8513485e266b47e9c3"
+    },
+    "lib/solady/src/utils/LibBit.sol": {
+      "keccak256": "0x7b639e5674dcd47d8ab54b97890302ff184ec35884fdff874cb6ca044100b532",
+      "sha256": "5ca35a798fd000ab0ca3244ad3db3b714450ddebde9fc55255d849424ffda8c4"
+    },
+    "src/integration/RegistryBookRiskEngine.sol": {
+      "keccak256": "0x41a68c5feac9b0b758e515819ffce117327a870c47f4942bbb1796e45aa77502",
+      "sha256": "7fd85249a1c4501ebdf82afae8fc4cfc9895a18e1393b9ebed6a34b0ea90f2f9"
+    },
+    "src/interfaces/IMarketRegistry.sol": {
+      "keccak256": "0xb48e451b458b78ed2a63caf4b4ddcf86104eba9baa584752d6d5e64730048d5b",
+      "sha256": "39a12e34c22bc645d40e7f5bf4265fc7fbe3d14c28625444deb8d9e464abfc5c"
+    },
+    "src/types/OracleTypes.sol": {
+      "keccak256": "0x87b92ca9fc90a71807a2a7cf77c44de46bcc17027cad4142525b145f3e15d9a7",
+      "sha256": "16af1efcb7c355efc51b139747f02eb768d65dc6d3dff211ac69d998c520a48d"
+    }
+  }
+}

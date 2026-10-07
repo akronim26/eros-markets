@@ -1,0 +1,332 @@
+{
+  "date": "2026-10-07",
+  "scope": "independent protocol source review and regression repair",
+  "sourceCommit": "52c3be1e5066303e7726d96ec7f41464fb055f99",
+  "workingTreeDirty": true,
+  "findings": [
+    {
+      "id": "PA-01",
+      "severity": "high",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-02",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-03",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-04",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-05",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-06",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-07",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-08",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "id": "PA-09",
+      "severity": "medium",
+      "status": "wrapper fixed; continuous v3 MARK liveness not established; see PA-11"
+    },
+    {
+      "id": "PA-10",
+      "severity": "low",
+      "status": "fixed; malformed observation timestamp regression passed"
+    },
+    {
+      "id": "PA-11",
+      "severity": "medium",
+      "status": "source fixed; 36 sampler tests and independent review pass; v4 deployment not performed by audit agents"
+    },
+    {
+      "id": "PA-12",
+      "severity": "medium",
+      "status": "fixed; actual server/API and client recovery regressions passed"
+    },
+    {
+      "id": "PA-13",
+      "severity": "low",
+      "status": "fixed; wrong-engine and event-kind regression passed"
+    },
+    {
+      "id": "PA-14",
+      "severity": "medium",
+      "status": "fixed; exact canonical deployment receipt and revert checks"
+    },
+    {
+      "id": "PA-15",
+      "severity": "medium",
+      "status": "fixed; bounded gas policy and productive smaller rollover tests passed"
+    },
+    {
+      "id": "PA-16",
+      "severity": "medium",
+      "status": "fixed; 27 private fixture tests passed; no public execution; operator qualification/selection required"
+    }
+  ],
+  "productionContractsChangedByAudit": true,
+  "publicTransactionsByAudit": false,
+  "liveProcessesChangedByAudit": false,
+  "verification": {
+    "contractSampler": {
+      "passed": 36,
+      "failed": 0
+    },
+    "frontendUnit": {
+      "passed": 58,
+      "failed": 0
+    },
+    "frontendIntegration": {
+      "passed": 28,
+      "failed": 0
+    },
+    "frontendTypecheck": "passed",
+    "runtimeCoordination": {
+      "passed": 3,
+      "failed": 0
+    },
+    "pythonHarness": {
+      "total": 93,
+      "passed": 88,
+      "skipped": 5,
+      "failed": 0,
+      "skipReason": "Windows native process containment requires Windows"
+    },
+    "pythonOwnedProcess": {
+      "total": 14,
+      "passed": 9,
+      "skipped": 5,
+      "failed": 0
+    },
+    "oracleServices": "See oracle-services/verification.json; overlapping counts must not be added",
+    "priorContractCi": "837 tests reported before audit; not rerun",
+    "runtimeCoordinationFollowup": {
+      "passed": 16,
+      "failed": 0,
+      "note": "Includes original tests and regression using actual archived source arrivals; timing traces are not continuous live uptime proof"
+    },
+    "pricefeedLinuxFocused": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "nodeImage": "node:24.21.0-bookworm-slim"
+    },
+    "pricefeedOrphanRepetitions": {
+      "passed": 3,
+      "failed": 0
+    },
+    "pricefeedLinuxFullOwnerReported": {
+      "passed": 466,
+      "failed": 0,
+      "log": "tmp/live-markets-v3-20261007/pricefeed-linux-final.log"
+    },
+    "bootstrapRolloverReadiness": {
+      "passed": 10,
+      "failed": 0,
+      "combinedWrapperSuitePassed": 26
+    },
+    "historyChartFollowup": {
+      "passed": 10,
+      "failed": 0
+    },
+    "semanticFingerprintExpectedRed": {
+      "failedBeforeFix": 3
+    },
+    "samplerGas": {
+      "passed": 2,
+      "failed": 0,
+      "maxPromotionGas": 5878672
+    },
+    "frontendOwnerReportedFinal": {
+      "unitPassed": 49,
+      "integrationPassed": 27,
+      "build": "passed",
+      "visual": "passed",
+      "note": "before v4 manifests; separately reported by deployment owner"
+    },
+    "delegatedAndHistoryFocused": {
+      "passed": 37,
+      "failed": 0,
+      "note": "overlaps full frontend suites; actual server/API with in-memory DB and mocked chain/signing I/O"
+    },
+    "keeperGasPolicy": {
+      "passed": 7,
+      "failed": 0,
+      "assertions": 49,
+      "maxKeeperCeiling": 30000000,
+      "defaultCeiling": 3000000,
+      "v4OperatorCeiling": 8000000,
+      "padded64AccountPromotion": 7358340
+    },
+    "oracleWorkspaceOwnerReported": {
+      "passed": 726,
+      "failed": 0,
+      "packages": 12
+    },
+    "deploymentReceipts": {
+      "passed": 9,
+      "failed": 0,
+      "assertions": 46
+    },
+    "oracleE2eAfterReceipts": {
+      "passed": 39,
+      "failed": 0,
+      "assertions": 215,
+      "typecheck": "passed",
+      "note": "no compiler output written"
+    },
+    "privateOrchestration": {
+      "passed": 27,
+      "failed": 0,
+      "moduleSyntaxChecks": 4,
+      "publicExecution": false,
+      "note": "temporary config files and synthetic RPC/process boundaries"
+    },
+    "keeperGasIndependentReview": "no blocker in measured v4 path; separate read-only reviewer; did not rerun tests",
+    "sourceQualification": {
+      "passed": 7,
+      "failed": 0,
+      "scope": "finite observed source-carry eligibility; not accepted on-chain publication continuity",
+      "independentReview": "no blocker; read-only",
+      "syntax": "passed"
+    },
+    "riskContractCiOwnerReportedFinal": {
+      "passed": 849,
+      "failed": 0
+    },
+    "pricefeedLatencyFollowup": {
+      "classification": "PA-09 operational follow-up; no new finding",
+      "bufferedFocusedPassed": 38,
+      "relayFocusedPassed": 23,
+      "expectedRedBuffered": 3,
+      "expectedRedRelay": 5,
+      "fullLinuxPassed": 474,
+      "fullLinuxFailed": 0,
+      "fullLinuxSkipped": 0,
+      "workspaceBuild": "passed",
+      "countsOverlap": true,
+      "evidence": "artifacts/integration/protocol-audit-20261007/latency-verification.json",
+      "sourceAndDistFrozen": true,
+      "liveLatencyBenefitMeasured": false
+    },
+    "ciScopeFollowupReview": "Read-only: pricefeed workflow includes risk engine ABI and MJS wrappers; oracle workflow includes market-services.ts and keeper-gas-policy.*, and packages job runs the keeper Bun suite. Owner reported exact keeper command 7 passed."
+  },
+  "fileSha256": {
+    "contracts/src/engine/BookRiskEngine.sol": "d474ed5dc1b77a90abb581a467bc2c3f4c12e0ed35f83fbbcf5dd03af3603d12",
+    "contracts/test/integration/BookDepthSampler.t.sol": "8d020ed6cfc0af4e9fd9bd4da6aa9799563f47a1b79c8588fffd4658eae274b1",
+    "frontend/src/app/api/rpc/route.ts": "14d230f0d1be530ca9283eb838880d7a6c3d9db595a83e818b513a5c7f220ff4",
+    "frontend/src/lib/rpc-proxy.ts": "0cec5a758d73c8d6f5eefa245d6bcf5c137e91ab4f3d613999e4da84a5ad984c",
+    "frontend/src/lib/request-origin.ts": "92447653da6f507c2f50bb7241967f90d719c3e3a11fd93dff895b2271fe9f72",
+    "frontend/src/lib/history.ts": "d7a2ce50ad115f2bd3fde69197b4dae1132c439e5ad029790483df144b856748",
+    "frontend/src/lib/market-discovery.ts": "986d5460fa5621781408d743f47471e6fd7b9ff9e7a51ce379f04c25c38ea3f9",
+    "frontend/src/server/privy.ts": "ad8c8a4bf2831c000f2648358c3a96be690fc85215a17879cbe15b7172ff26da",
+    "frontend/tests/rpc-proxy.test.mjs": "c22f6b520c89b357f090c90cb53ad5e04dbede10bfffdea1998b5c659a0bcc26",
+    "frontend/tests/integration/request-origin.test.ts": "d60d617a2c94c25231d017c9d939a43893d9f30ee00196ebe6ce665e431b4605",
+    "frontend/tests/integration/rpc-read-budget.test.ts": "3ce955c5f6b4c82339e46154dea4601beafe4972ecdc724fbd3eb261f367326b",
+    "frontend/tests/integration/history-pagination.test.ts": "ae2af2c7522a787ee30a2f26aaa134ef84d0d41ca22debd9caf7081817ed2200",
+    "oracle/packages/oracle-sdk/src/indexer.ts": "7e4b66d29bb5f703942b6e73cbb16a26ab4ee276808495a4f4608ef86d3fe65e",
+    "oracle/packages/oracle-sdk/test/indexer.test.ts": "20cfbd0e5361c348bfacf050de3e99fac4649ab8ddb38f270ce2c67cac11e68d",
+    "oracle/services/watchdog/src/chain.ts": "b6e22aa272856fb77ed28271f95a2aac1d6a94b0c76d80c8b1c2d037e60fe072",
+    "oracle/services/watchdog/src/l1.ts": "c628d3b4f9c9e85cff378d966df0d6883898e170892d99d374e715ac5bb14b43",
+    "oracle/services/watchdog/test/intake.test.ts": "f92f9c40280577adad234e8ab68269b7d020ebe83a33cd113cb155ee5b8f60b3",
+    "oracle/services/watchdog/test/l1.test.ts": "f7c2e7bf8c1e837de0a83fd14b54a9cd4bf95a99add94ab014a53a56e84c2cdf",
+    "packages/pricefeed/src/worker.ts": "0988278dc54d969ed0164473db03a01abcaab05e62b416662535f113197252f2",
+    "packages/pricefeed/test/worker.test.ts": "bf0a68be678ba4c24fca0150f5a9056422b0af11a1450b81ce5762df0ab89350",
+    "scripts/integration/owned_process.py": "808d2ef9f92ab34e117499ae9cb206ca7b4588888a20d3c9b2819bf9e1ab5dd0",
+    "scripts/integration/test_owned_process.py": "9daad98a339c03832315d2afecc704ab64e767232bfb2969f59b3db45b31c75a",
+    "scripts/e2e/sampler-coordination.mjs": "5451d4796bfa0a11062b3c9cf1e42ef1f3691d0a5097a32bf4811dc4e9cc9e1a",
+    "scripts/e2e/sampler-coordination.test.mjs": "cb4c6b708e5c0d48ae134f8fbb231fb7100c8c7efc2e8be170afe1976ca27535",
+    "docs/integration/PROTOCOL_AUDIT_20261007.md": "ff5d853f0121162d774aec076007b01a888be04840f6231198fe3b05a2f34737"
+  },
+  "limits": [
+    "No zero-defect certification",
+    "No interactive funded Privy or hosted signer validation by audit agents",
+    "Public live proof and runtime restarts belong to deployment owner",
+    "Existing future-poisoned journals preserved for explicit recovery",
+    "Source qualification is finite evidence; genuine vendor timestamp gaps above30seconds still create unavailable windows",
+    "Uncertain hosted signer requests require exact reconciliation; no blind superseding request is allowed"
+  ],
+  "followupFileSha256": {
+    "scripts/e2e/pricefeed-watch.mjs": "dce2cf205a33121615d5365120328b2de36b96fdfc7a77a6d55ce7652e27c92f",
+    "scripts/e2e/market-services.ts": "f4e3d2a9ddc6d1d01c390dd9d507a143a42fe10793cb29609f3f51d1e1a754aa",
+    "scripts/e2e/sampler-coordination.mjs": "5451d4796bfa0a11062b3c9cf1e42ef1f3691d0a5097a32bf4811dc4e9cc9e1a",
+    "scripts/e2e/sampler-coordination.test.mjs": "cb4c6b708e5c0d48ae134f8fbb231fb7100c8c7efc2e8be170afe1976ca27535",
+    "scripts/e2e/sample-capture.mjs": "bda51c1701e39acf565fce67ab854ca35d6f1f35b7000e39c3f02fb58648ea23",
+    "scripts/e2e/sample-capture.d.mts": "63ea8fbf1075945e9ed36ad86a353b3cd499d8465d1d332b6708d7870412f794",
+    "scripts/e2e/sample-capture.test.mjs": "3112de8ef4599e69cafaf1085b3ceb8659ec2271efed1ea8ecd62d90869acee0",
+    "packages/pricefeed/test/deployment.test.ts": "030332c2d49686c321df59fd640b00805203a13f81e1c48c9656e2d8f4aaeb4f",
+    "packages/pricefeed/test/load.test.ts": "5274a4a55a0431fdf9659eef1183da1967e3d81335ee1eae9a91943f2dc6cbcd",
+    "packages/pricefeed/test/load-fixture.ts": "2b3fd8cdb6951afb50624ff12c38bda201458be280bf284d4698320d5dea18e3",
+    "scripts/e2e/rollover-readiness.mjs": "5b5048c356fee91171e64810166b02903fee8416add46f3bc0876e4c7045bfd0",
+    "scripts/e2e/rollover-readiness.d.mts": "dc8efad84a6a4e6e8446f9d320d28506bf1a15ac5a42c6d6565addade3e39b00",
+    "scripts/e2e/rollover-readiness.test.mjs": "7fdaa1fc2a5b2052ee855acece9e63ba3c87a3e1c7f2ac3da5bf9d8e4e6bd865",
+    "artifacts/integration/protocol-audit-20261007/runtime-followup-evidence.json": "1cf82c77dd405ca073e6fd24e7240c134fcb34633f8c9a38320414424f575725",
+    "docs/questions/RB-I11-index-prefix-seal.md": "fb4219c1c2be4ff70d004087fdb55e66dbeb47421aa67cddb0bf22c1ccd9906e",
+    "scripts/e2e/keeper-gas-policy.mjs": "e99bf7a85172fe667e49abdf8f5fe6be87efb7075e679d768b874262374f3fa5",
+    "scripts/e2e/keeper-gas-policy.d.mts": "e02dfb5eb42a3520a4257e467a93b55413941ad287495dcb49cea1ddf184ace4",
+    "scripts/e2e/keeper-gas-policy.test.ts": "39a1c176b82c1c73225bcd8a60993c8fc187a8c29aa2c139754ffe23052b5833",
+    "oracle/e2e/src/fresh-testnet.ts": "31d1d83a1b3657f6e1a0d34dce916a4900b697314719f45088a6029ef3b619a1",
+    "oracle/e2e/test/fresh-receipts.test.ts": "097c8bd407331380626e3e5eb9379baacf5f39be3bcfc5b3bdcd3b1df6038849",
+    ".github/workflows/oracle.yml": "e59603f368c9509eb3e907fc9dab28b9114d097d9c166a39aaaa5a44aced81c1",
+    "frontend/src/lib/delegated-attempt.ts": "b1be67cb3e7b4af98839a91034fce4136a8d3eaf4bb75f93f9c8a354a7dd0676",
+    "frontend/src/lib/delegated-intent.ts": "6d263f600f444600491e06be336f13b3830c56d885f31b25b1e778085500a1f3",
+    "frontend/src/lib/privy-api.ts": "d0e7e98794acd56d8561a8755f776793ea20fa0200298a54744b574120df6559",
+    "frontend/src/lib/tx.ts": "d8cfbe74901c9cb5d2811d25bd06f7a7ef448db6e49323459bb7ffc4f57b1b00",
+    "frontend/src/lib/finality.ts": "19dc3f7171c98cd1f85ad5aaa717500af16b863a16b088f3926a0fa38a3c664b",
+    "frontend/src/server/trade.ts": "b6375b409d2eb07ff27942811adbdfe27e2a57292f6fea05fd0646248b87677e",
+    "frontend/src/app/api/trade/route.ts": "f27f2948df2953b84e5c46793905ee5c3cd2cb2581db4c33b79c9aa7a618762d",
+    "frontend/src/components/ticket.tsx": "9fb77f1f0eb473943281a2aa05dbafc2d1f5ee0bbe427952ff901b6244b4cfd3",
+    "frontend/tests/delegated-retry.test.mjs": "048e22382467ffc8e5ed7c0eecbcc31c8ff9dab829adc80e88487fcadf236313",
+    "frontend/tests/finality.test.mjs": "1c2ea692059ee3bcae454a40b873d93fc670ba17a7621f0a048ec39d6feb9862",
+    "frontend/tests/integration/delegation.test.ts": "f28f5db56e91e4794356d816aa7a7912edbc1a2621a1b71e4c0712d017be7cc1",
+    "tmp/sports-unified-20261006/v4-state.mjs": "7173044107f64af7ddb5582ee57881fd706cff5f22810c0fbd942b28a7d8689f",
+    "tmp/sports-unified-20261006/deploy-v4-markets.mjs": "fafc1c3c7eedf00f0059155e0830b3f40c18cb4b5e6c73a98f92cbc73626798e",
+    "tmp/sports-unified-20261006/wire-v4-frontend.mjs": "b277453e062dc67860e7458f967bc101cc22b436a10c69e730f0db49fbbc62fe",
+    "tmp/sports-unified-20261006/start-v4-services.mjs": "1b2213943eaec43322e0d9f400e6f435b8987c2e898381a0f3915224c4cb3132",
+    "tmp/protocol-audit-20261007/v4-state.test.mjs": "2ed1cb51119ac1142f6c0efc054ba05968a37c4d83938ba67f2bce5250a2c325",
+    "artifacts/integration/protocol-audit-20261007/deployment-receipts.log": "ec6edffde0d3ced8016062a796ee6a3d3bc33ce864dcc73fe213aad6cc56cc42",
+    "artifacts/integration/protocol-audit-20261007/private-orchestration-fixtures.log": "6c9803d3aaf438cbb7d3024838071e02480420c0730259d1a56f221b6b2c8af4",
+    "scripts/e2e/selected-source.mjs": "e2d1a00ff73a78b430a1fa6d8f290b778fb4205768d6d8b9e2d13e6d0c4c45f4",
+    "scripts/e2e/source-qualification.mjs": "dc885e61378d53955ba37b28c28c08e291ba0df6281743017a80a34f36b7aa48",
+    "scripts/e2e/source-qualification.test.mjs": "a0fc74cc0723638fd2799558fb6d042e2f96047548776ff5e20a58697cc50ce6",
+    "artifacts/integration/protocol-audit-20261007/source-qualification-verification.json": "a6df6519233422676a8395c261a45403bd62c4ce1baf38ea8a65ec24c2d405ce",
+    "packages/pricefeed/src/durable-pipeline.ts": "33056268f4be0123b95a11daa537cc1b72e42a6ccc4551bcae9299b977e70b40",
+    "packages/pricefeed/src/durable-relay.ts": "79c61e7de0f6455ccf423a4ae94accff49df333c73f05e672cb5cedad0eb18a2",
+    "packages/pricefeed/src/monad-service.ts": "27237ca7c45c14ec6a18d29e00600c4b6bd1e9d1b9a1284c0ec1a5090e433a7a",
+    "packages/pricefeed/dist/src/durable-pipeline.js": "0a78778d0d4efa17dfbece27d39f2637b92a871c62518e70550f78d99bbc540f",
+    "packages/pricefeed/dist/src/durable-relay.js": "22ccab32f35e4dcc8b31502fb268fe1eff782171bcb99cbe9776ef2575c55d96",
+    "packages/pricefeed/dist/src/monad-service.js": "cd48c7c0a2a34b3e91236bfb342e13ecd0e3445deaba44fce6eb12f863b79504",
+    "packages/pricefeed/test/pipeline.test.ts": "eec44db80b7c7957e0866240e41159d608e9854984180747fbd13d21463c8ac3",
+    "packages/pricefeed/test/local-relay.test.ts": "be961e04eadfc3f167d5edc95521827bd7577468470e4684e1d4704792f31c7f",
+    ".github/workflows/pricefeed.yml": "59f6b7389a22695ad2b6e4cd1d856d6b2dba29ebbb1251b4abcf600a8b4ab4c2",
+    "artifacts/integration/protocol-audit-20261007/latency-verification.json": "f0a87728f56aa2b54c3e77257cc561fadffbdb39f69cc612e0ad8dbe77fcd385",
+    "artifacts/integration/protocol-audit-20261007/v3-publication-sampling-timing.json": "b1c79754c7c6a5efd088e3307eccecea4b21091039a8c0293b4b6e301a36e782",
+    "artifacts/integration/protocol-audit-20261007/latency-pricefeed-linux.log": "c68593b8a6fccdd4304876bede7f1d0d40201b89d7cec4a28292637a059d47f0"
+  },
+  "historicalSourceHashes": {
+    "v3BookRiskEngine.sol": "821c7980fbc120b30f31372a85995793b59c79f5c1a1d389a791f58980ca65c6",
+    "oracleWorkflowBeforeKeeperScopeFollowup": "2414d7f600544e009773514512a6d4b508703e5da8f90cfee1a203259bd06fc5"
+  },
+  "productionContractChangeScope": "Only BookRiskEngine._indexCheckpointAt normalization and comments; v4 deployment/fresh full validation owned by deployment operator"
+}

@@ -1,0 +1,29 @@
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 31a99894e337e77f782c4d58fdfe53a90fcf0287507c2db4507412fae1b1d179
+  Config hash: 996a7edfb980a4eaf9ff9dfa85b45102cffe37c14fb774ba12c3440ed82c2a8f
+2026-10-06T23:20:13Z [SIMULATION] Simulator Initialized
+
+2026-10-06T23:20:13Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-10-06T23:20:14Z [USER LOG] dryrun https://v3.football.api-sports.io/fixtures?id=1528947: NO|0xd263828484c3ae774db518cbc5c0c3c5a127523a33f34925dcf54ed65ad50790|OK
+
+✓ Workflow Simulation Result:
+"NO|0xd263828484c3ae774db518cbc5c0c3c5a127523a33f34925dcf54ed65ad50790|OK"
+
+2026-10-06T23:20:14Z [SIMULATION] Execution finished signal received
+2026-10-06T23:20:14Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯
+Initializing...
+Loading settings...
+Checking RPC connectivity...
+Compiling workflow...
+
+⚠️  Update available! You’re running 1.36.0, but 1.37.0 is the latest.
+Run `cre update` or visit https://github.com/smartcontractkit/cre-cli/releases to upgrade.
+

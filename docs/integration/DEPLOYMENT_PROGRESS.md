@@ -1,6 +1,71 @@
 # Fresh Monad testnet deployment
 
-## Scope — 2026-10-06
+## 7 October 2026 — current deployment complete; services stopped
+
+- User supplied 40 test MON; initial verified balance 40.374 MON. Two source probes
+  passed: Nebraska independent Senate outcome 634893 and Republican House
+  outcome 562803. Their exact identities and finite qualification reports are
+  retained; future source continuity remains a live validation gate.
+- The two code stores, replacement factory and its shared vault are deployed on
+  Monad testnet. Governance authorization and all five canonical receipts now passed.
+  Confirmed base-plan cost: **3.543841896 MON**. Both replacement engines are
+  deployed and activated, with verified reserve funding and canonical receipts.
+  The rebuilt frontend selects both current markets.
+- The House rehearsal caught insufficient assertion-bond coverage before any
+  deployment transaction. Canonically verified funding increased the test-token
+  assertion ledger to **22,000**, with a **3,336** lifetime per-market allowance.
+  This covers the three-attempt envelope of **21,016.8** across the resulting
+  commitments at current cap bonds. The separate watchdog float is still 100;
+  full-cap automatic dispute funding is not claimed. See the
+  [treasury evidence](../../artifacts/deployments/monad-testnet-20261007-factory-v4/treasury-funding.json).
+- [addresses.md](../../addresses.md) is refreshed after each confirmed deployment,
+  with transaction links, blocks and activation status. Local fork addresses are
+  excluded. The register lists only the current V1 contracts; historical evidence
+  stays in deployment artifacts.
+- Publisher latency follow-up passed 474 isolated Linux tests and independent
+  Astra review. Fresh matching local backend lifecycle, receipt and source
+  integrity checks passed. No 5× public
+  fills or continuous public MARK availability are claimed yet.
+
+- At the user's request, all local services and test processes were stopped.
+  No automatic restart is scheduled. Public MARK continuity and actual 5×
+  fills remain incomplete; see [E2E_PROGRESS.md](E2E_PROGRESS.md).
+
+## Historical v3 checkpoint — before the funded v4 replacement
+
+Two v3 markets replace the earlier engines after the mark-sampling continuity
+repair. Both public deployment plans were rehearsed and their canonical receipts,
+runtime hashes, listings and factory/vault bindings verified before frontend use.
+
+| Identity | Address |
+| --- | --- |
+| Current MarketFactory | `0x545afe64D9C462e84107cf623E68dEd5eb4E8D3b` |
+| Current CollateralVault | `0x779D71Dd7Ac25981f36B900566F548545B5213a9` |
+| Democratic Senate engine | `0x0fC0CB70C1B0bbf9dD8de0eBDF539fFa8b98533E` |
+| Republican control engine | `0xdDECC6051b1477b09B693eCD8D1b41a2769E4B87` |
+
+Registry, resolution oracle and test collateral token retain the October 6
+addresses below. Public evidence and operator configuration are in
+`artifacts/deployments/monad-testnet-20261007-democratic-senate-v3/` and
+`artifacts/deployments/monad-testnet-20261007-republican-control-v3/`.
+The primary frontend manifest selects these markets; archived manifests retain
+older vault/engine identities for existing owner balances. No funds were migrated.
+
+Local publishers, makers, samplers and epoch operators ran bounded test campaigns.
+At 23:07 UTC on October 6, they were gracefully drained after reaching gas reserves;
+their journals were preserved and no pending transaction remained. A further
+sampler fingerprint correction is implemented and under final validation. Its v4
+replacement plan is prepared, but no v4 contract has been broadcast. Public
+deployment and sustained price-window checks require the requested test MON top-up.
+
+The earlier full contract CI passed 837 tests. Production build and 20 frontend
+integration tests passed after the manifest switch; Chrome checks passed in both
+themes at 320/768/1024/1440 px. The first market's independent-owner funding and
+opening fill have passed. Normal MARK, 5× round trips, the independent Astra audit
+and final push remain in progress. See [E2E_PROGRESS.md](E2E_PROGRESS.md) for the
+latest completed evidence and limits. Permanent service hosting is still deferred.
+
+## Historical scope — 2026-10-06
 
 The user authorized a fresh deployment of the required contracts using the
 private key in the root `.env`, followed by frontend integration and service

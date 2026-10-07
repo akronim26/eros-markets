@@ -1,0 +1,62 @@
+{
+  "chainId": 10143,
+  "passed": true,
+  "deployer": "0xFf49aD13c59592cCCa53552FE09dAcA43cbcF190",
+  "transactions": [
+    {
+      "name": "deploy:EngineCodeStore",
+      "hash": "0x042cf43820ff4060557d28f29e0e9961dd462570f0bf78236e5adfc306108af5",
+      "contractAddress": "0x1140abbf623d24f4a5f1db4a33b681c2e0cfc26f",
+      "blockNumber": "68873614",
+      "blockHash": "0x7b7f3091cf1bb586b8ebea1538f59137aef9d4c71910ef18b6e95a2ba7a020a4",
+      "status": "success",
+      "gasUsed": "23994276",
+      "gasLimit": "23994276",
+      "gasPrice": "102000000000"
+    },
+    {
+      "name": "deploy:EngineCodeStoreTail",
+      "hash": "0x2fac62cba3dbceaf96b2d971b4202ac64b8c194bd6f880c509d6fd7cbcaab1e2",
+      "contractAddress": "0x5bd9b69280edb01c37a4bae95b745652df01efc9",
+      "blockNumber": "68873630",
+      "blockHash": "0x5f0184ce71fec032096ad1d5cea07012d92df2045dec3b16b973b9ee5bae87ff",
+      "status": "success",
+      "gasUsed": "7840920",
+      "gasLimit": "7840920",
+      "gasPrice": "102000000000"
+    },
+    {
+      "name": "deploy:MarketFactory",
+      "hash": "0xaa315561cb70242d399d2f1615fff6015d4adf5a176985664c2d785aee7460b2",
+      "contractAddress": "0xbd2f5e6211dd35210d334124a239d78daef5878e",
+      "blockNumber": "68873641",
+      "blockHash": "0x8f790f053bb85ba4a2d5eedefeeebac6827815c039e2fa30447e8ef359e8ba9c",
+      "status": "success",
+      "gasUsed": "2704260",
+      "gasLimit": "2704260",
+      "gasPrice": "102000000000"
+    },
+    {
+      "name": "governance:propose-factory",
+      "hash": "0x4ccb6e387dde6a01a30f835d3d5dc0e0732002dd0433a515186bf5a29d6de4bf",
+      "contractAddress": null,
+      "blockNumber": "68873651",
+      "blockHash": "0xee6cc27fa9593dde806aa6e14c79275342230e1054d45a32c4e4e11df7009e6b",
+      "status": "success",
+      "gasUsed": "94457",
+      "gasLimit": "94457",
+      "gasPrice": "102000000000"
+    },
+    {
+      "name": "governance:execute-factory",
+      "hash": "0xa8274231be73798cec5bc6dd2e45378b9ea22b948df31301de585ba8e34610fa",
+      "contractAddress": null,
+      "blockNumber": "68874654",
+      "blockHash": "0xe023011b38b04eaa976070b69ac4ca05f77c4e084b92c57f37eb93d06ebd8d67",
+      "status": "success",
+      "gasUsed": "109635",
+      "gasLimit": "109635",
+      "gasPrice": "102000000000"
+    }
+  ]
+}

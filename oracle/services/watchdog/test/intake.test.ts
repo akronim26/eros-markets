@@ -11,15 +11,16 @@ const row = (block: number, logIndex: number, path = 3) => ({
   valueHash: path === 1 ? `0x${'22'.repeat(32)}` : null, observedAt: path === 1 ? '1791000000' : null, attempt: 0, block, logIndex,
 })
 
-type Ix = { up: boolean; progress: number; calls: { from: number; to: number }[]; rows: ReturnType<typeof row>[] }
+type Ix = { up: boolean; progress: number; calls: { from: number; to: number }[]; rows: ReturnType<typeof row>[]; cap?: number; failPage?: boolean }
 const indexer = (x: Ix) =>
   new IndexerClient('http://indexer/v1/graphql', 10143, (async (_u: string, init: RequestInit) => {
     if (!x.up) throw new TypeError('connect ECONNREFUSED')
     const { query, variables } = JSON.parse(init.body as string)
     if (query.includes('_meta')) return Response.json({ data: { _meta: [{ chainId: 10143, progressBlock: x.progress, sourceBlock: x.progress, isReady: true }] } })
-    x.calls.push(variables)
+    x.calls.push({ from: variables.from, to: variables.to })
+    if (x.failPage && variables.proposalOffset > 0) throw new Error("page unavailable")
     const inRange = (b: number) => b > variables.from && b <= variables.to
-    return Response.json({ data: { Proposal: x.rows.filter((r) => inRange(r.block)), Assertion: x.rows.filter((r) => inRange(r.block)).map((r) => ({ id: A, market_id: r.market_id, assertedBlock: r.block, assertedLogIndex: r.logIndex + 1 })) } })
+    return Response.json({ data: { Proposal: x.rows.filter((r) => inRange(r.block)).slice(variables.proposalOffset ?? 0, (variables.proposalOffset ?? 0) + (x.cap ?? 1000)), Assertion: x.rows.filter((r) => inRange(r.block)).slice(variables.assertionOffset ?? 0, (variables.assertionOffset ?? 0) + (x.cap ?? 1000)).map((r) => ({ id: A, market_id: r.market_id, assertedBlock: r.block, assertedLogIndex: r.logIndex + 1 })) } })
   }) as unknown as typeof fetch)
 
 function logs() {
@@ -52,7 +53,7 @@ describe('watchdog intake from the indexer', () => {
     const l = logs()
     const r = new IntakeReader({ start: 900n, head: async () => head.n, readLogs: l.readLogs, indexer: { client: indexer(x), maxLagBlocks: 300n } })
     expect((await r.events()).proposals.map((p) => p.block)).toEqual([980n])
-    expect(x.calls).toEqual([{ from: 899, to: 990 }])
+    expect(x.calls).toEqual([{ from: 899, to: 990 }, { from: 899, to: 990 }])
     x.progress = 1_000
     expect((await r.events()).proposals.map((p) => p.block)).toEqual([995n])
     expect(x.calls.at(-1)).toEqual({ from: 990, to: 1_000 })
@@ -97,6 +98,43 @@ describe('watchdog intake from the indexer', () => {
     for (let i = 0; i < 4; i++) await r.events()
     expect(x.calls).toEqual([{ from: 0, to: 10_000 }, { from: 10_000, to: 20_000 }, { from: 20_000, to: 25_000 }])
     expect(r.cursor).toBe(25_001n)
+  })
+
+
+  test('server row caps cannot skip proposals or assertions within the same block', async () => {
+    const x: Ix = { up: true, progress: 100, calls: [], cap: 1, rows: [row(99, 0), row(99, 2), row(99, 4)] }
+    const l = logs()
+    const r = new IntakeReader({ start: 90n, head: async () => 100n, readLogs: l.readLogs, indexer: { client: indexer(x), maxLagBlocks: 10n } })
+    const out = await r.events()
+    expect(out.proposals.map(p => p.logIndex)).toEqual([0, 2, 4])
+    expect(out.asserted).toHaveLength(3)
+    expect(r.cursor).toBe(101n)
+    expect(l.ranges).toEqual([])
+  })
+
+  test('a later page failure falls back for the entire range without advancing the cursor', async () => {
+    const x: Ix = { up: true, progress: 100, calls: [], cap: 1, failPage: true, rows: [row(99, 0), row(99, 2)] }
+    const l = logs()
+    const r = new IntakeReader({ start: 90n, head: async () => 100n, readLogs: l.readLogs, indexer: { client: indexer(x), maxLagBlocks: 10n } })
+    expect((await r.events()).proposals.map(p => p.block)).toEqual([100n])
+    expect(l.ranges).toEqual([[90n, 100n]])
+    expect(r.cursor).toBe(101n)
+  })
+
+  test('independent pagination exhausts differently capped proposal and assertion lists', async () => {
+    const proposals = [row(99, 0), row(99, 2)]
+    const assertions = Array.from({ length: 5 }, (_, n) => ({ id: `0x${String(n).padStart(64, '0')}`, market_id: M }))
+    const c = new IndexerClient('https://indexer.invalid', 10143, (async (_url, init) => {
+      const { query, variables: v } = JSON.parse(init!.body as string)
+      if (query.includes('_meta')) return Response.json({ data: { _meta: [{ chainId: 10143, progressBlock: 100, sourceBlock: 100, isReady: true }] } })
+      return Response.json({ data: { Proposal: proposals.slice(v.proposalOffset, v.proposalOffset + 1), Assertion: assertions.slice(v.assertionOffset, v.assertionOffset + 2) } })
+    }) as typeof fetch)
+    const l = logs()
+    const r = new IntakeReader({ start: 90n, head: async () => 100n, readLogs: l.readLogs, indexer: { client: c, maxLagBlocks: 10n } })
+    const out = await r.events()
+    expect(out.proposals.map(p => p.logIndex)).toEqual([0, 2])
+    expect(out.asserted.map(a => a.assertionId)).toEqual(assertions.map(a => a.id as Hex))
+    expect(l.ranges).toEqual([])
   })
 
   test('without an indexer it is the log scan alone', async () => {

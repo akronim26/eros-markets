@@ -2,6 +2,7 @@ import { PrivyClient } from "@privy-io/node";
 import { isAddress } from "viem";
 import { policyMatches, type SignerMode } from "./policy";
 import { rateLimit } from "./store";
+import { isSameOriginRequest } from "@/lib/request-origin";
 
 export function signerConfig(mode: SignerMode) {
   return { signer: process.env[mode === "trade" ? "PRIVY_TRADE_SIGNER_ID" : "PRIVY_PROTECT_SIGNER_ID"], policy: process.env[mode === "trade" ? "PRIVY_POLICY_TRADE_ID" : "PRIVY_POLICY_PROTECT_ID"], key: process.env[mode === "trade" ? "PRIVY_AUTHORIZATION_PRIVATE_KEY" : "PRIVY_PROTECT_AUTHORIZATION_PRIVATE_KEY"] };
@@ -44,7 +45,7 @@ export async function signingWallet(user: string, address: string, mode: SignerM
   return { wallet, config };
 }
 export async function jsonBody(request: Request) {
-  if (request.headers.get("origin") && request.headers.get("origin") !== new URL(request.url).origin) throw new Error("Invalid request origin.");
+  if (!isSameOriginRequest(request)) throw new Error("Invalid request origin.");
   if (Number(request.headers.get("content-length")) > 12000) throw new Error("Request is too large.");
   const reader = request.body?.getReader();
   if (!reader) throw new Error("Missing request body.");

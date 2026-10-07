@@ -5,7 +5,7 @@ import { parseConfig, type MarketConfig } from './config.js';
 import type { LocalRelayTransport, RelayPolicy } from './durable-relay.js';
 import type { DeliveryReceipt } from './receipts.js';
 import type { MonadTestnetTransactionSigner } from './monad-signers.js';
-import { monadTestnetReadRpc, parseEngineReadAbi, preflightMonadTestnet, type MonadReadRpc } from './monad-preflight.js';
+import { monadReadTransport, monadTestnetReadRpc, parseEngineReadAbi, preflightMonadTestnet, type MonadReadRpc } from './monad-preflight.js';
 import { sizeGas } from './gas.js';
 
 export interface MonadSubmissionRpc extends MonadReadRpc {
@@ -15,22 +15,25 @@ export interface MonadSubmissionRpc extends MonadReadRpc {
   send(raw:Hex):Promise<Hex>;
   receipt(hash:Hex):Promise<DeliveryReceipt|null>;
 }
-/** HTTPS testnet I/O. No wallet client, fallback block tag or automatic RPC retry. */
+/** HTTPS testnet I/O. Reads may retry once; signed broadcasts never auto-retry. */
 export function monadSubmissionRpc(rpcUrl:string):MonadSubmissionRpc {
   const read=monadTestnetReadRpc(rpcUrl);
   const client=createPublicClient({chain:monadTestnet,transport:http(rpcUrl,{timeout:5000,retryCount:0,fetchOptions:{redirect:'error'}})});
+  const reads=createPublicClient({chain:monadTestnet,transport:monadReadTransport(rpcUrl)});
   return {...read,
-    nonce:async(sender)=>BigInt(await client.getTransactionCount({address:sender,blockTag:'pending'})),
-    balance:(sender)=>client.getBalance({address:sender,blockTag:'pending'}),
+    nonce:async(sender)=>BigInt(await reads.getTransactionCount({address:sender,blockTag:'pending'})),
+    balance:(sender)=>reads.getBalance({address:sender,blockTag:'pending'}),
     simulate:async(sender,to,data,gasCap)=>{
-      await client.call({account:sender,to,data,gas:gasCap,blockTag:'pending'});
-      const estimate=await client.estimateGas({account:sender,to,data,gas:gasCap,blockTag:'pending'});
+      const [,estimate]=await Promise.all([
+        reads.call({account:sender,to,data,gas:gasCap,blockTag:'pending'}),
+        reads.estimateGas({account:sender,to,data,gas:gasCap,blockTag:'pending'}),
+      ]);
       if(estimate>gasCap)throw new Error('MONAD_GAS_CAP_EXCEEDED');return estimate;
     },
     send:(raw)=>client.sendRawTransaction({serializedTransaction:raw}),
     receipt:async(hash)=>{
       try{
-        const r=await client.getTransactionReceipt({hash});
+        const r=await reads.getTransactionReceipt({hash});
         return {status:r.status,transactionHash:r.transactionHash,blockNumber:r.blockNumber,blockHash:r.blockHash,
           logs:r.logs.map(l=>{
             if(l.transactionHash===null||l.blockNumber===null||l.blockHash===null||l.logIndex===null)throw new Error('MONAD_INCOMPLETE_RECEIPT');
@@ -57,7 +60,7 @@ export function monadRpcTransport(rpcUrl:string,config:MarketConfig,engineAbi:un
   const check=async()=>{if(await fixed('MONAD_RPC_CHAIN_FAILED',()=>rpc.chainId())!==10143)throw new Error('MONAD_WRONG_CHAIN');};
   const destination=(to:string)=>{if(to.toLowerCase()!==d.engineAddress.toLowerCase())throw new Error('MONAD_RECEIVER_MISMATCH');};
   return {rpcUrl,sender:account,transactionJournal:signer,finalizedHead:true,
-    pendingNonce:async()=>{await check();return fixed('MONAD_NONCE_READ_FAILED',()=>rpc.nonce(account));},
+    pendingNonce:async()=>{const [,nonce]=await Promise.all([check(),fixed('MONAD_NONCE_READ_FAILED',()=>rpc.nonce(account))]);return nonce;},
     identity:async(domain)=>{
       if(domain.chainId!==10143n||domain.engine.toLowerCase()!==d.engineAddress.toLowerCase()
         ||domain.marketId.toLowerCase()!==d.marketId.toLowerCase()||domain.sourceId.toLowerCase()!==d.sourceId.toLowerCase()
@@ -70,8 +73,9 @@ export function monadRpcTransport(rpcUrl:string,config:MarketConfig,engineAbi:un
         lastSequence:engine.sourceState.lastSequence,lastObservedAt:engine.sourceState.lastObservedAt};
     },
     simulate:async(to,data,reservedGas)=>{
-      destination(to);await check();
-      if(await fixed('MONAD_BALANCE_READ_FAILED',()=>rpc.balance(account))<policy.maxCostWei)throw new Error('MONAD_SENDER_NEEDS_TEST_MON');
+      destination(to);
+      const [,balance]=await Promise.all([check(),fixed('MONAD_BALANCE_READ_FAILED',()=>rpc.balance(account))]);
+      if(balance<policy.maxCostWei)throw new Error('MONAD_SENDER_NEEDS_TEST_MON');
       if(reservedGas!==undefined&&(reservedGas<21000n||reservedGas>policy.gasCap))throw new Error('MONAD_GAS_CAP_EXCEEDED');
       const estimate=await fixed('MONAD_SIMULATION_FAILED',()=>rpc.simulate(account,to as Hex,data,reservedGas??policy.gasCap));
       if(policy.gasSafetyMarginBps===undefined)return;
@@ -100,13 +104,13 @@ export function monadRpcTransport(rpcUrl:string,config:MarketConfig,engineAbi:un
         throw new Error('MONAD_TRANSACTION_MISMATCH');
       return fixed('MONAD_BROADCAST_RESULT_UNKNOWN',()=>rpc.send(raw));
     },
-    receipt:async(hash)=>{await check();return fixed('MONAD_RECEIPT_READ_FAILED',()=>rpc.receipt(hash));},
+    receipt:async(hash)=>{const [,receipt]=await Promise.all([check(),fixed('MONAD_RECEIPT_READ_FAILED',()=>rpc.receipt(hash))]);return receipt;},
     block:async(number)=>{
-      await check();
-      try{return await rpc.block({blockNumber:number});}catch(error){if(error instanceof BlockNotFoundError)return null;throw new Error('MONAD_BLOCK_READ_FAILED');}
+      const block=async()=>{try{return await rpc.block({blockNumber:number});}catch(error){if(error instanceof BlockNotFoundError)return null;throw new Error('MONAD_BLOCK_READ_FAILED');}};
+      const [,result]=await Promise.all([check(),block()]);return result;
     },
     head:async()=>{
-      await check();const b=await fixed('MONAD_FINALIZED_BLOCK_FAILED',()=>rpc.block({blockTag:'finalized'}));
+      const [,b]=await Promise.all([check(),fixed('MONAD_FINALIZED_BLOCK_FAILED',()=>rpc.block({blockTag:'finalized'}))]);
       const age=now()-b.timestamp*1000n;
       if(age<0n||age>30000n)throw new Error('MONAD_STALE_OR_FUTURE_BLOCK');
       return b.number;

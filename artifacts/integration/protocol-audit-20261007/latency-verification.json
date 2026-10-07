@@ -1,0 +1,68 @@
+{
+  "status": "SOURCE_AND_DIST_FROZEN",
+  "scope": "Buffered scheduling plus independently owned relay identity/simulation overlap. No oracle/out compilation, broadcast or process restart.",
+  "checks": {
+    "focusedBuffered": {
+      "passed": 38,
+      "failed": 0
+    },
+    "bufferedRegressionAgainstRevertedCompiledCopy": {
+      "passed": 0,
+      "failedAsExpected": 3
+    },
+    "relayFocusedReportedByOwner": {
+      "passed": 23,
+      "failed": 0
+    },
+    "fullLinuxNode24_21ProcessIsolation": {
+      "passed": 474,
+      "failed": 0,
+      "skipped": 0
+    },
+    "workspaceTsc": "passed",
+    "diffCheck": "passed",
+    "workspaceRuntimeVsLinuxTestedOutput": "Identical after removing comments. Buffered comment precision changed after Linux compilation; executable output unchanged.",
+    "relayRegressionAgainstPriorImplementation": {
+      "failedAsExpected": 5,
+      "passedAfterFix": 5
+    },
+    "solidityEngineUnchanged": {
+      "path": "contracts/src/engine/BookRiskEngine.sol",
+      "sha256": "d474ed5dc1b77a90abb581a467bc2c3f4c12e0ed35f83fbbcf5dd03af3603d12"
+    }
+  },
+  "preexistingPreserved": "Lifecycle timeout drains the reader before releasing journals; existing latest-snapshot/preflight code retained. Not counted as new buffered work.",
+  "sha256": {
+    "packages/pricefeed/src/durable-pipeline.ts": "33056268f4be0123b95a11daa537cc1b72e42a6ccc4551bcae9299b977e70b40",
+    "packages/pricefeed/src/durable-relay.ts": "79c61e7de0f6455ccf423a4ae94accff49df333c73f05e672cb5cedad0eb18a2",
+    "packages/pricefeed/src/monad-service.ts": "27237ca7c45c14ec6a18d29e00600c4b6bd1e9d1b9a1284c0ec1a5090e433a7a",
+    "packages/pricefeed/dist/src/durable-pipeline.js": "0a78778d0d4efa17dfbece27d39f2637b92a871c62518e70550f78d99bbc540f",
+    "packages/pricefeed/dist/src/durable-relay.js": "22ccab32f35e4dcc8b31502fb268fe1eff782171bcb99cbe9776ef2575c55d96",
+    "packages/pricefeed/dist/src/monad-service.js": "cd48c7c0a2a34b3e91236bfb342e13ecd0e3445deaba44fce6eb12f863b79504",
+    "packages/pricefeed/test/pipeline.test.ts": "eec44db80b7c7957e0866240e41159d608e9854984180747fbd13d21463c8ac3",
+    "packages/pricefeed/test/local-relay.test.ts": "be961e04eadfc3f167d5edc95521827bd7577468470e4684e1d4704792f31c7f"
+  },
+  "evidence": [
+    "artifacts/integration/protocol-audit-20261007/latency-pricefeed-linux.log",
+    "artifacts/integration/protocol-audit-20261007/v3-publication-sampling-timing.json",
+    "tmp/protocol-audit-20261007/buffered-pipeline-red/regression.tap",
+    "tmp/protocol-audit-20261007/relay-overlap-red.log",
+    "tmp/protocol-audit-20261007/relay-overlap-green.log"
+  ],
+  "environmentFailure": "Initial disposable Linux attempt omitted Python/procps; stopped and log preserved as full-suite-missing-deps.tap, excluded from passing proof.",
+  "findingClassification": "Operational follow-up to PA-09; findings count remains 16",
+  "proofBoundary": "Pricefeed src and dist are included in local-stack.py SOURCE_PATTERNS; earlier backend proof is historical until rerun against this freeze.",
+  "liveLatencyBenefitMeasured": false,
+  "retainedEnvironmentFailure": {
+    "path": "tmp/protocol-audit-20261007/buffered-pipeline-linux/full-suite-missing-deps.tap",
+    "sha256": "2552d755e59ba5fdc755e9991d699510a41111f9f5ada9fafe31cfdd13ef9f1f",
+    "passingEvidence": false
+  },
+  "evidenceSha256": {
+    "artifacts/integration/protocol-audit-20261007/latency-pricefeed-linux.log": "c68593b8a6fccdd4304876bede7f1d0d40201b89d7cec4a28292637a059d47f0",
+    "artifacts/integration/protocol-audit-20261007/v3-publication-sampling-timing.json": "b1c79754c7c6a5efd088e3307eccecea4b21091039a8c0293b4b6e301a36e782",
+    "tmp/protocol-audit-20261007/buffered-pipeline-red/regression.tap": "be17398363d7460d349ea76120f9bc548cf2d61c7ef016a064cc24d22176dc10",
+    "tmp/protocol-audit-20261007/relay-overlap-red.log": "8d0989c6c46a5c044f6e0ae8bb82c2ff83dd561ff94fcda090e61917045d5686",
+    "tmp/protocol-audit-20261007/relay-overlap-green.log": "41c00e9ee8bd4145fb4d21cca128e7ef6731c97c92f2110b096b7e7547eb3215"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "scope": "contracts/src and related tests; concrete sampler continuity emphasis",
+  "date": "2026-10-07",
+  "productionContractsChanged": false,
+  "newConfirmedProductionDefects": 0,
+  "newRegressionTests": 2,
+  "command": "FOUNDRY_PROFILE=risk /private/tmp/eros-foundry-v1.8.3/forge test --root contracts --match-contract BookDepthSamplerTest -vv",
+  "foundryVersion": "1.8.3",
+  "foundryCommit": "cae51ad458f6abb64852b7709eb784352429825d",
+  "solcVersion": "0.8.30",
+  "result": { "passed": 26, "failed": 0, "skipped": 0 },
+  "newTests": [
+    "testAuditStableThinDepthEndsCarryBeforeThirtySecondExpiry",
+    "testAuditIndexCorrectionStillInvalidatesWhenBookAlsoMutates"
+  ],
+  "log": "tmp/protocol-audit-20261007/contracts-sampler.log",
+  "limitations": [
+    "Scoped source review and local deterministic regression tests, not a zero-defect certification",
+    "Prior 837-test full CI baseline was not rerun",
+    "No deployed-state mutation or public transaction performed"
+  ]
+}

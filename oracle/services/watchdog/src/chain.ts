@@ -79,7 +79,22 @@ export class IntakeReader {
         const to = upTo < this.next + WATCHDOG_RANGE_BLOCKS - 1n ? upTo : this.next + WATCHDOG_RANGE_BLOCKS - 1n // rest next tick
         if (to < this.next) return { proposals: [], asserted: [] }
         try {
-          const out = fromIndexer(await idx.client.query(WATCHDOG_EVENTS, { from: Number(this.next) - 1, to: Number(to) }))
+          // Hasura may cap either list below the requested size. Only empty
+          // pages prove completion; keep independent offsets for the two lists.
+          // A failure discards all pages and re-reads this range through RPC.
+          const out: Events = { proposals: [], asserted: [] }
+          let proposalOffset = 0, assertionOffset = 0
+          for (;;) {
+            const rows = await idx.client.query<{ Proposal: IndexedProposal[]; Assertion: IndexedAssertion[] }>(WATCHDOG_EVENTS,
+              { from: Number(this.next) - 1, to: Number(to), limit: 1000, proposalOffset, assertionOffset })
+            if (!Array.isArray(rows.Proposal) || !Array.isArray(rows.Assertion)) throw new Error('Missing watchdog event lists')
+            if (rows.Proposal.length === 0 && rows.Assertion.length === 0) break
+            const page = fromIndexer(rows)
+            out.proposals.push(...page.proposals)
+            out.asserted.push(...page.asserted)
+            proposalOffset += rows.Proposal.length
+            assertionOffset += rows.Assertion.length
+          }
           this.next = to + 1n
           if (this.usingIndexer !== true) idx.log?.('info', 'intake: reading the indexer', { progressBlock: fresh.progress.progressBlock })
           this.usingIndexer = true

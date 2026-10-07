@@ -1,0 +1,24 @@
+|-----------------+----------------+-------+---------+----------|
+| CombinedHandler | place2         | 1933  | 0       | 0        |
+|-----------------+----------------+-------+---------+----------|
+| CombinedHandler | prepare        | 1896  | 0       | 0        |
+|-----------------+----------------+-------+---------+----------|
+| CombinedHandler | release        | 1930  | 0       | 0        |
+|-----------------+----------------+-------+---------+----------|
+| CombinedHandler | rest           | 1919  | 0       | 0        |
+|-----------------+----------------+-------+---------+----------|
+| CombinedHandler | rest2          | 1933  | 0       | 0        |
+|-----------------+----------------+-------+---------+----------|
+| CombinedHandler | shock          | 1961  | 0       | 0        |
+╰-----------------+----------------+-------+---------+----------╯
+
+Logs:
+  COVERAGE rest=2 fill=1 filledLots=13698 release=1 rollover=4 liqReduce=0 takeover=0 floorReconciled=1 halt=1 finality=1 invalidCaptured=3 claimsEnabled=0 claimPaid=0
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 180.04s (180.01s CPU time)
+
+Ran 1 test for test/audit/BD02PreviewParity.t.sol:BD02PreviewParityTest
+[PASS] testFuzzPreviewEqualsTouch(uint64,bool) (runs: 10000, μ: 135295677, ~: 123555082)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 1379.84s (1379.83s CPU time)
+
+Ran 131 test suites in 1397.31s (3397.75s CPU time): 849 tests passed, 0 failed, 0 skipped (849 total tests)

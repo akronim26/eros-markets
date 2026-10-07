@@ -13,8 +13,8 @@ export function usePriceSeries(engine: Address, head?: bigint) {
     for (const e of history.data?.prices ?? []) {
       if (live.since !== undefined && BigInt(e.block) >= live.since) continue;
       const p = JSON.parse(e.payload), block = BigInt(e.block);
-      if (e.kind === "ObservationAccepted" && p.depthValid === true) index.push({ t: Number(p.observedAt), v: Number(BigInt(p.priceWad) / 10n ** 12n) / 1e6, block });
-      if (e.kind === "PerpObservationRecorded" && p.valid) perp.push({ t: Number(p.t), v: Number(BigInt(p.midWad) / 10n ** 12n) / 1e6, block });
+      if (e.kind === "ObservationAccepted") index.push({ valid: p.depthValid === true, t: Number(p.observedAt), v: Number(BigInt(p.priceWad) / 10n ** 12n) / 1e6, block });
+      if (e.kind === "PerpObservationRecorded") perp.push({ valid: p.valid === true, t: Number(p.t), v: Number(BigInt(p.midWad) / 10n ** 12n) / 1e6, block });
       if (e.kind === "Fill") trades.push({ t: Number(e.timestamp), tick: Number(p.tick), size: BigInt(p.size), block, tx: e.txHash });
     }
     return { index, perp, trades };

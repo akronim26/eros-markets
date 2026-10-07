@@ -193,3 +193,89 @@ test('headroom exhausted during simulation never reserves a nonce or changes the
     assert.deepEqual(s.packets.get(s.domain,1n),s.signed);
   }finally{s.close();}
 });
+
+function deferred<T>(){
+  let resolve!:(value:T|PromiseLike<T>)=>void,reject!:(reason:unknown)=>void;
+  const promise=new Promise<T>((yes,no)=>{resolve=yes;reject=no;});
+  return {promise,resolve,reject};
+}
+test('identity and simulation overlap and both settle before nonce reservation',async()=>{
+  const s=await setup();
+  const identity=s.transport.identity,identityGate=deferred<void>(),simulationGate=deferred<void>();
+  let identityStarted=false,simulationStarted=false;
+  try{
+    s.transport.identity=async domain=>{identityStarted=true;await identityGate.promise;return identity(domain);};
+    s.transport.simulate=async()=>{simulationStarted=true;await simulationGate.promise;};
+    const delivery=s.relay.deliver(config,'owner',s.fence,1n);
+    await new Promise(resolve=>setImmediate(resolve));
+    const overlapped=identityStarted&&simulationStarted;
+    assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.prepareCalls(),0);assert.equal(s.sent.length,0);
+    identityGate.resolve();await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.prepareCalls(),0);
+    simulationGate.resolve();const result=await delivery;
+    assert.equal(result.nonce,0n);assert.equal(overlapped,true);
+  }finally{identityGate.resolve();simulationGate.resolve();s.close();}
+});
+test('overlapped read failures preserve identity listing sequence time and freshness priority',async()=>{
+  for(const boundary of ['transport','pin','listing','sequence','time','freshness','simulation']){
+    const s=await setup(),identity=s.transport.identity;let simulations=0;
+    try{
+      s.transport.identity=async domain=>{
+        if(boundary==='transport')throw Error('IDENTITY_TRANSPORT_FAILED');
+        const result=await identity(domain);
+        if(boundary==='pin')result.engineCodeHash=h('99');
+        if(boundary==='listing')result.listing.indexSigner=sender.address;
+        if(boundary==='sequence')result.lastSequence=1n;
+        if(boundary==='time')result.lastObservedAt=1001n;
+        return result;
+      };
+      s.transport.simulate=async()=>{simulations++;if(boundary==='freshness')s.setNow(1030001n);throw Error('SIMULATION_FAILED');};
+      const expected={transport:/IDENTITY_TRANSPORT_FAILED/,pin:/RELAY_IDENTITY_MISMATCH/,listing:/LISTING/,sequence:/RECEIPT_RECONCILIATION_REQUIRED/,
+        time:/BACKWARDS_CHAIN_SOURCE_TIME/,freshness:/RELAY_HEADROOM_EXPIRED/,simulation:/SIMULATION_FAILED/}[boundary]!;
+      await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),expected);
+      assert.equal(simulations,1);assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.prepareCalls(),0);assert.equal(s.sent.length,0);
+      s.transport.identity=identity;s.transport.simulate=async()=>{};s.setNow(1000100n);
+      assert.equal((await s.relay.deliver(config,'owner',s.fence,1n)).nonce,0n);
+    }finally{s.close();}
+  }
+});
+test('identity rejection waits for the concurrent simulation to settle without reservation',async()=>{
+  const s=await setup(),gate=deferred<void>();let simulationStarted=false,settled=false;
+  try{
+    s.transport.identity=async()=>{throw Error('IDENTITY_TRANSPORT_FAILED');};
+    s.transport.simulate=async()=>{simulationStarted=true;await gate.promise;throw Error('SIMULATION_FAILED');};
+    const delivery=s.relay.deliver(config,'owner',s.fence,1n);
+    const checked=assert.rejects(delivery,/IDENTITY_TRANSPORT_FAILED/).finally(()=>{settled=true;});
+    await new Promise(resolve=>setImmediate(resolve));
+    const waited=simulationStarted&&!settled;
+    gate.resolve();await checked;
+    assert.equal(waited,true);assert.equal(s.prepareCalls(),0);assert.equal(s.sent.length,0);assert.equal(s.relay.get(s.domain,1n),null);
+  }finally{gate.resolve();s.close();}
+});
+test('original hash mined during overlapped sequence check wins over simulation failure',async()=>{
+  const s=await setup();try{
+    const original=await s.relay.deliver(config,'owner',s.fence,1n),identity=s.transport.identity;
+    let simulations=0;
+    s.transport.identity=async domain=>({...await identity(domain),lastSequence:1n});
+    s.transport.simulate=async()=>{simulations++;s.accepted(original.txHash!);throw Error('DUPLICATE_SEQUENCE');};
+    const result=await s.relay.deliver(config,'owner',s.fence,1n);
+    assert.equal(simulations,1);assert.equal(result.state,'MINED');assert.equal(result.txHash,original.txHash);
+    assert.equal(result.raw,original.raw);assert.equal(result.nonce,original.nonce);assert.equal(s.prepareCalls(),1);assert.equal(s.sent.length,1);
+  }finally{s.close();}
+});
+test('headroom expiry during overlapped reads outranks simulation error and quarantines only an existing reservation',async()=>{
+  for(const reserved of [false,true]){
+    const s=await setup();try{
+      const original=reserved?await s.relay.deliver(config,'owner',s.fence,1n):null;
+      const identity=s.transport.identity,gate=deferred<void>();
+      s.transport.identity=async domain=>{await gate.promise;return identity(domain);};
+      s.transport.simulate=async()=>{s.setNow(1030001n);gate.resolve();throw Error('SIMULATION_FAILED');};
+      await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/RELAY_HEADROOM_EXPIRED/);
+      const record=s.relay.get(s.domain,1n);
+      if(original){assert.equal(record!.state,'QUARANTINED');assert.equal(record!.raw,original.raw);assert.equal(record!.nonce,original.nonce);}
+      else assert.equal(record,null);
+      assert.equal(s.prepareCalls(),reserved?1:0);assert.equal(s.sent.length,reserved?1:0);
+      assert.deepEqual(s.packets.get(s.domain,1n),s.signed);
+    }finally{s.close();}
+  }
+});

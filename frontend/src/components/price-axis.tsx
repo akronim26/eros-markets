@@ -1,188 +1,118 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { Level, Point, Trade } from "@/lib/reads";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import type { Point } from "@/lib/reads";
+import { priceSegments } from "@/lib/price-chart";
 import { cx } from "./ui";
-import { depthBarWidth } from "@/lib/book-depth";
 
-function useSize<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  useEffect(() => {
-    if (!ref.current) return;
-    const ro = new ResizeObserver(([e]) => setSize({ w: e.contentRect.width, h: e.contentRect.height }));
-    ro.observe(ref.current);
-    return () => ro.disconnect();
-  }, []);
-  return [ref, size] as const;
-}
+const RANGES = [{ label: "Live", seconds: 900 }, { label: "1H", seconds: 3600 }, { label: "6H", seconds: 21600 }, { label: "1D", seconds: 86400 }, { label: "All", seconds: Infinity }] as const;
+const timeLabel = (t: number, long = false) => new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", ...(long ? { second: "2-digit" } : {}) });
+const priceLabel = (p: number) => p.toFixed(3);
 
 type Props = {
   index: Point[];
   perp: Point[];
-  trades: Trade[];
-  levels: Level[];
-  markUnit?: number; // mark as a number in [0,1] for geometry only; undefined = unavailable
-  bestBid: number;
-  bestAsk: number;
+  markUnit?: number;
+  indexUnit?: number;
   emptyTitle: string;
   emptyReason: string;
-  ladderEmptyReason: string;
+  historyStatus: string;
+  readError?: boolean;
 };
 
-const AXIS_W = 56;
-const PAD_TOP = 30; // reserves the axis slot where an unavailable mark is stated
-const PAD_Y = 14;
-
-/**
- * Signature move: chart and order book share one probability axis. A book level sits at the same
- * height as that price on the chart; the Signal bar marks the mark price across both.
- */
+/** Historical points are authenticated source observations, not reconstructed mark prices. */
 export function PriceAxis(p: Props) {
-  const [ref, { w, h }] = useSize<HTMLDivElement>();
-  const LADDER_W = w < 640 ? Math.round(w * 0.24) : 196;
-  const chartW = Math.max(0, w - LADDER_W - AXIS_W);
-  const narrow = w > 0 && w < 640;
-
-  const range = useMemo(() => {
-    const vals = [
-      ...p.index.map((x) => x.v),
-      ...p.perp.map((x) => x.v),
-      ...p.trades.map((x) => x.tick / 1000),
-      ...p.levels.filter((l) => l.bidLots > 0n || l.askLots > 0n).map((l) => l.tick / 1000),
-      ...(p.markUnit !== undefined ? [p.markUnit] : []),
-    ];
-    if (vals.length === 0) return { lo: 0, hi: 1, step: 0.1 };
-    let lo = Math.min(...vals);
-    let hi = Math.max(...vals);
-    const span = Math.max(hi - lo, 0.04);
-    lo = Math.max(0, lo - span * 0.35);
-    hi = Math.min(1, hi + span * 0.35);
-    const step = hi - lo > 0.3 ? 0.05 : hi - lo > 0.12 ? 0.02 : 0.01;
-    return { lo, hi, step };
-  }, [p.index, p.perp, p.trades, p.levels, p.markUnit]);
-
-  const y = (v: number) => PAD_TOP + (1 - (v - range.lo) / (range.hi - range.lo)) * (h - PAD_TOP - PAD_Y);
-  const ticks = useMemo(() => {
-    const out: number[] = [];
-    for (let v = Math.ceil(range.lo / range.step) * range.step; v <= range.hi + 1e-9; v += range.step) out.push(+v.toFixed(3));
-    return out;
-  }, [range]);
-
-  const series = useMemo(() => {
-    const pts = [...p.index, ...p.perp, ...p.trades];
-    if (pts.length === 0) return null;
-    const t0 = Math.min(...pts.map((x) => x.t));
-    const t1 = Math.max(...pts.map((x) => x.t), t0 + 1);
-    const x = (t: number) => ((t - t0) / (t1 - t0)) * (chartW - 12) + 6;
-    const path = (s: Point[]) => s.map((pt, i) => `${i ? "L" : "M"}${x(pt.t).toFixed(1)},${y(pt.v).toFixed(1)}`).join("");
-    return { index: path(p.index), perp: path(p.perp), x };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.index, p.perp, p.trades, chartW, h, range]);
-
-  const maxLots = useMemo(
-    () => p.levels.reduce((m, l) => [m, l.bidLots, l.askLots].reduce((a, b) => a > b ? a : b), 0n),
-    [p.levels],
-  );
-  const rowH = Math.max(2, Math.min(12, ((h - PAD_TOP - PAD_Y) / ((range.hi - range.lo) * 1000)) * 0.8));
-  const hasSeries = !!series && (p.index.length > 1 || p.perp.length > 1 || p.trades.length > 0);
-  const hasBook = maxLots > 0n;
-  const compactEmpty = w > 0 && w < 480 && !hasBook;
-
+  const id = useId().replace(/:/g, "");
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  const [range, setRange] = useState(0);
+  const [book, setBook] = useState(false);
+  const [mark, setMark] = useState(true);
+  const [hoverTime, setHoverTime] = useState<number>();
+  useEffect(() => {
+    const ro = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    if (ref.current) ro.observe(ref.current);
+    const timer = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 5000);
+    return () => { ro.disconnect(); clearInterval(timer); };
+  }, []);
+  const model = useMemo(() => {
+    const end = Math.max(now, p.index.at(-1)?.t ?? 0, p.perp.at(-1)?.t ?? 0);
+    const start = range === 4 ? Math.min(p.index[0]?.t ?? end - 900, ...(book && p.perp.length ? [p.perp[0].t] : []), end - 60) : end - RANGES[range].seconds;
+    const index = p.index.filter(v => v.t >= start && v.t <= end);
+    const perp = book ? p.perp.filter(v => v.t >= start && v.t <= end) : [];
+    const indexSegments = priceSegments(index), perpSegments = priceSegments(perp);
+    const availableIndex = index.filter(v => v.valid !== false), availablePerp = perp.filter(v => v.valid !== false);
+    const values = [...availableIndex.map(v => v.v), ...availablePerp.map(v => v.v), ...(mark && p.markUnit !== undefined ? [p.markUnit] : [])];
+    const min = values.length ? Math.min(...values) : Math.max(0, (p.indexUnit ?? 0.5) - 0.05);
+    const max = values.length ? Math.max(...values) : Math.min(1, (p.indexUnit ?? 0.5) + 0.05);
+    const padding = Math.max((max - min) * 0.2, 0.002);
+    return { start, end, index: availableIndex, perp: availablePerp, indexSegments, perpSegments, lo: Math.max(0, min - padding), hi: Math.min(1, max + padding) };
+  }, [p.index, p.perp, p.markUnit, p.indexUnit, range, now, book, mark]);
+  const height = 286, left = 14, right = Math.max(left + 1, width - 62), top = 18, bottom = height - 32;
+  const x = (t: number) => left + (t - model.start) / (model.end - model.start) * (right - left);
+  const y = (v: number) => bottom - (v - model.lo) / (model.hi - model.lo) * (bottom - top);
+  const path = (segments: Point[][]) => segments.map(points => points.map((pt, i) => `${i === 0 ? "M" : "L"}${x(pt.t).toFixed(2)},${y(pt.v).toFixed(2)}`).join(" ")).join(" ");
+  const last = model.index.at(-1);
+  const fresh = !!last && now - last.t <= 30 && last.t <= now + 2 && p.index.at(-1)?.valid !== false && !p.readError;
+  const hovered = hoverTime === undefined ? undefined : model.index.reduce<Point | undefined>((a, b) => !a || Math.abs(b.t - hoverTime) < Math.abs(a.t - hoverTime) ? b : a, undefined);
+  const selected = hovered ?? last;
+  const change = last && model.index.length > 1 ? last.v - model.index[0].v : undefined;
+  const pointer = (clientX: number) => {
+    const bounds = ref.current?.getBoundingClientRect();
+    if (bounds) setHoverTime(model.start + Math.max(0, Math.min(1, (clientX - bounds.left - left) / (right - left))) * (model.end - model.start));
+  };
   return (
-    <div ref={ref} className="relative h-full min-h-[280px] w-full select-none">
-      {w > 0 && h > 0 && (
-        <svg width={w} height={h} className="absolute inset-0" role="img" aria-label="Price chart and order book on one probability axis">
-          {/* hairline grid, shared by chart and ladder */}
-          {ticks.map((v) => (
-            <g key={v}>
-              <line x1={0} x2={chartW + LADDER_W} y1={Math.round(y(v)) + 0.5} y2={Math.round(y(v)) + 0.5} stroke="var(--color-line)" />
-              <text x={w - 8} y={y(v) + 4} textAnchor="end" className="tnum" fontSize={12} fill="var(--color-fg-4)">
-                {v.toFixed(range.step < 0.02 ? 3 : 2)}
-              </text>
-            </g>
-          ))}
-          {/* chart / ladder seam */}
-          <line x1={chartW + 0.5} x2={chartW + 0.5} y1={0} y2={h} stroke="var(--color-line-strong)" />
-          <line x1={chartW + LADDER_W + 0.5} x2={chartW + LADDER_W + 0.5} y1={0} y2={h} stroke="var(--color-line)" />
-
-          {hasSeries && (
-            <>
-              <path d={series!.perp} fill="none" stroke="var(--color-fg-3)" strokeWidth={1} strokeDasharray="3 3" />
-              <path d={series!.index} fill="none" stroke="var(--color-fg)" strokeWidth={1.5} />
-              {p.trades.map((trade, i) => <circle key={`${trade.tx}-${i}`} cx={series!.x(trade.t)} cy={y(trade.tick / 1000)} r={2.5} fill="var(--color-signal)"><title>Trade at {(trade.tick / 1000).toFixed(3)}</title></circle>)}
-            </>
-          )}
-
-          {/* depth ladder: flat bars growing from the seam, bids below, asks above */}
-          {p.levels.map((l) => {
-            const lots = l.bidLots > 0n ? l.bidLots : l.askLots;
-            if (lots === 0n || maxLots === 0n) return null;
-            const width = depthBarWidth(lots, maxLots, LADDER_W - 8);
-            return (
-              <rect
-                key={l.tick}
-                x={chartW + 1}
-                y={y(l.tick / 1000) - rowH / 2}
-                width={Math.min(width, LADDER_W - 8)}
-                height={rowH}
-                fill={l.bidLots > 0n ? "var(--color-bid)" : "var(--color-ask)"}
-                opacity={0.85}
-              />
-            );
-          })}
-
-          {/* empty book stated as zero: hollow rows at the seam, one per price level of the grid */}
-          {!hasBook &&
-            ticks.map((v) => (
-              <rect key={`z${v}`} x={chartW + 6.5} y={Math.round(y(v)) - 3.5} width={6} height={6} fill="none" stroke="var(--color-line-strong)" />
-            ))}
-
-          {/* unavailable mark stated as a mark: an outlined Signal tag in the reserved axis slot */}
-          {p.markUnit === undefined && (
-            <g>
-              <rect x={chartW + LADDER_W + 4.5} y={6.5} width={AXIS_W - 9} height={17} fill="none" stroke="var(--color-signal)" />
-              <text x={chartW + LADDER_W + AXIS_W / 2} y={19} textAnchor="middle" fontSize={12} fontWeight={600} fill="var(--color-signal)">
-                —
-              </text>
-            </g>
-          )}
-
-          {/* the Signal bar: mark price across chart and book, as in the mark */}
-          {p.markUnit !== undefined && (
-            <g>
-              <rect x={0} y={y(p.markUnit) - 1.5} width={chartW + LADDER_W} height={3} fill="var(--color-signal)" />
-              <rect x={chartW + LADDER_W} y={y(p.markUnit) - 9} width={AXIS_W} height={18} fill="var(--color-signal)" />
-              <text x={w - 6} y={y(p.markUnit) + 4} textAnchor="end" fontSize={12} fontWeight={600} className="tnum" fill="var(--color-on-signal)">
-                {p.markUnit.toFixed(3)}
-              </text>
-            </g>
-          )}
-        </svg>
-      )}
-
-      {!hasSeries && (
-        <div
-          className={cx("pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center px-3 sm:px-5", compactEmpty && "pb-12")}
-          style={{ width: compactEmpty ? w - AXIS_W : chartW || "60%" }}
-        >
-          <div className="frame max-w-sm bg-ground">
-            {!compactEmpty && <p className="label px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">STATE.PRICE</p>}
-            <div className="p-4">
-              <p className="text-lg font-medium text-fg">{p.emptyTitle}</p>
-              <p className="mt-2 text-sm leading-relaxed text-fg-3">{p.emptyReason}</p>
-            </div>
+    <section aria-label="Index price chart" className="flex min-w-0 flex-col">
+      <div className="flex min-h-[94px] flex-wrap items-start justify-between gap-2 px-4 pb-3 pt-4">
+        <div>
+          <p className="label text-fg-3">Polymarket index feed</p>
+          <div className="mt-1 flex items-baseline gap-3">
+            <span className="tnum text-[2rem] font-medium leading-tight tracking-tight" data-testid="chart-price">{selected ? priceLabel(selected.v) : "—"}</span>
+            {!hovered && change !== undefined && <span className={cx("tnum text-xs", change >= 0 ? "text-bid" : "text-ask")}>{change >= 0 ? "+" : ""}{(change * 100).toFixed(2)} pp</span>}
           </div>
+          <p className="mt-1 text-2xs text-fg-3">{hovered ? new Date(hovered.t * 1000).toLocaleString() : last ? `Last observation ${timeLabel(last.t, true)}` : "Waiting for a source observation"}</p>
         </div>
-      )}
-      {!hasBook && w > 0 && (
-        <div
-          className={cx("absolute bottom-0 bg-ground px-3 py-1.5 text-2xs text-fg-3", narrow && "px-1.5")}
-          style={{ left: chartW + 1, width: LADDER_W - 1 }}
-        >
-          {p.ladderEmptyReason}
-        </div>
-      )}
-    </div>
+        <span className={cx("label mt-1 inline-flex items-center gap-2 border px-2 py-1", fresh ? "border-bid/25 text-bid" : "border-line text-fg-3")}><span className={cx("h-1.5 w-1.5 rounded-full", fresh ? "bg-bid motion-safe:animate-pulse" : "bg-fg-4")} aria-hidden />{p.readError ? "Reconnecting" : fresh ? "Live" : last ? "Delayed" : "Connecting"}</span>
+      </div>
+      <div ref={ref} className="relative min-w-0" style={{ height }}>
+        {width > 0 && <svg width={width} height={height} role="img" tabIndex={0} aria-label="Index price over time. Use left and right arrow keys to inspect observations; Escape to return to live."
+          className="touch-pan-y outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-signal"
+          onPointerMove={e => pointer(e.clientX)} onPointerDown={e => pointer(e.clientX)} onPointerLeave={() => setHoverTime(undefined)} onBlur={() => setHoverTime(undefined)}
+          onKeyDown={e => {
+            if (e.key === "Escape") { setHoverTime(undefined); return; }
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key) || !model.index.length) return;
+            e.preventDefault();
+            const current = hovered ? model.index.indexOf(hovered) : model.index.length - 1;
+            const next = e.key === "Home" ? 0 : e.key === "End" ? model.index.length - 1 : Math.max(0, Math.min(model.index.length - 1, current + (e.key === "ArrowLeft" ? -1 : 1)));
+            setHoverTime(model.index[next].t);
+          }}>
+          <defs><clipPath id={`${id}-plot`}><rect x={left} y={top - 8} width={right - left} height={bottom - top + 16} /></clipPath></defs>
+          {Array.from({ length: 5 }, (_, i) => model.lo + (model.hi - model.lo) * i / 4).map(v => <g key={v}>
+            <line x1={left} x2={right} y1={y(v)} y2={y(v)} stroke="var(--color-line)" strokeDasharray="2 5" />
+            <text x={width - 8} y={y(v) + 4} textAnchor="end" fontSize={11} fill="var(--color-fg-3)" className="tnum">{priceLabel(v)}</text>
+          </g>)}
+          {Array.from({ length: width < 400 ? 3 : 5 }, (_, i) => i).map((_, i, ticks) => {
+            const t = model.start + (model.end - model.start) * i / (ticks.length - 1);
+            return <text key={i} x={x(t)} y={height - 7} textAnchor={i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"} fontSize={10} fill="var(--color-fg-4)" className="tnum">{model.end - model.start > 86400 ? new Date(t * 1000).toLocaleDateString([], { month: "short", day: "numeric" }) : timeLabel(t)}</text>;
+          })}
+          <g clipPath={`url(#${id}-plot)`}>
+            {mark && p.markUnit !== undefined && <line x1={left} x2={right} y1={y(p.markUnit)} y2={y(p.markUnit)} stroke="var(--color-fg-3)" strokeDasharray="5 5"><title>Current mark {priceLabel(p.markUnit)}; this is not historical mark data.</title></line>}
+            <path d={path(model.perpSegments)} fill="none" stroke="var(--color-fg-3)" strokeWidth={1.5} />
+            <path d={path(model.indexSegments)} fill="none" stroke="var(--color-signal)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+            {model.indexSegments.map(segment => segment[0]).map(pt => <circle key={`${pt.t}-${pt.block}`} cx={x(pt.t)} cy={y(pt.v)} r={2} fill="var(--color-signal)" />)}
+            {last && <g><circle cx={x(last.t)} cy={y(last.v)} r={fresh ? 7 : 4} fill="var(--color-signal)" opacity={0.15} className={fresh ? "motion-safe:animate-pulse" : ""} /><circle cx={x(last.t)} cy={y(last.v)} r={3} fill="var(--color-signal)" /></g>}
+            {hovered && <g><line x1={x(hovered.t)} x2={x(hovered.t)} y1={top} y2={bottom} stroke="var(--color-fg-4)" strokeDasharray="3 3" /><line x1={left} x2={right} y1={y(hovered.v)} y2={y(hovered.v)} stroke="var(--color-fg-4)" strokeDasharray="3 3" /><circle cx={x(hovered.t)} cy={y(hovered.v)} r={5} fill="var(--color-signal)" stroke="var(--color-ground)" strokeWidth={2} /></g>}
+          </g>
+        </svg>}
+        {!last && <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6"><div className="max-w-xs border border-line bg-ground p-4"><p className="font-medium">{p.emptyTitle}</p><p className="mt-2 text-xs leading-relaxed text-fg-3">{p.emptyReason}</p></div></div>}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3">
+        <div role="group" aria-label="Chart time range" className="flex gap-1">{RANGES.map((r, i) => <button key={r.label} aria-pressed={range === i} onClick={() => { setRange(i); setHoverTime(undefined); }} className={cx("tnum min-h-9 min-w-9 px-2 text-xs transition-colors", range === i ? "bg-fg text-ground" : "text-fg-3 hover:bg-panel hover:text-fg")}>{r.label}</button>)}</div>
+        <div className="flex gap-3 text-2xs text-fg-3"><button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")}><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
+      </div>
+      <p className="px-4 pb-3 text-2xs leading-relaxed text-fg-4" title="This chart shows signed Polymarket source observations. The execution INDEX above is their 300-second TWAP. A current mark reference is shown only when the contract makes it available. Gaps are retained when observations are more than 30 seconds apart.">{p.historyStatus} · Source observations; gaps preserved. {p.markUnit === undefined ? "Mark warming or unavailable." : "Dashed line: current mark."}</p>
+      <span className="sr-only" role="status">{hovered ? `Observation ${priceLabel(hovered.v)} at ${new Date(hovered.t * 1000).toLocaleString()}` : ""}</span>
+    </section>
   );
 }
