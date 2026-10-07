@@ -13,7 +13,7 @@ import { MarketLifecycle } from "./market-lifecycle";
 import { OracleLayers } from "./oracle-layers";
 import { TerminalSys } from "./terminal-sys";
 
-const ENGINE = markets[0].engine;
+const ACTIVE_MARKET = markets.find((market) => !market.archived);
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ------------------------------------------------------------------ interactions */
@@ -183,8 +183,21 @@ function MarkDither() {
 }
 
 function LiveMarket() {
+  return ACTIVE_MARKET ? <ActiveLiveMarket engine={ACTIVE_MARKET.engine} /> : (
+    <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
+      <SectionRule name="TESTNET_STATUS" index={4} />
+      <div className="frame mt-6 bg-panel p-6">
+        <h2 className="text-2xl font-semibold text-fg">The next event perp is on the way</h2>
+        <p className="mt-3 text-sm text-fg-2">We’re preparing a new market. You can still manage previous demo balances from your portfolio.</p>
+        <Link href="/portfolio" className="label mt-4 inline-flex min-h-11 items-center bg-signal px-4 text-on-signal">View portfolio</Link>
+      </div>
+    </section>
+  );
+}
+
+function ActiveLiveMarket({ engine }: { engine: (typeof markets)[number]["engine"] }) {
   const head = useHead();
-  const market = useMarket(ENGINE, head.data?.number);
+  const market = useMarket(engine, head.data?.number);
   const m = market.data;
   return (
     <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
@@ -195,7 +208,7 @@ function LiveMarket() {
         Explore a real Polymarket event with test collateral. Leverage depends on live prices and risk limits.
       </p>
       <div className="frame mt-6 grid grid-cols-1 bg-ground md:grid-cols-2">
-        <TerminalSys engine={ENGINE} market={m} readError={head.isError || market.isError} />
+        <TerminalSys engine={engine} market={m} readError={head.isError || market.isError} />
         {/* mark */}
         <div className="flex min-h-[300px] flex-col shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-none">
           <PanelHead left="MARK.DITHER" right={<span className="tnum">76×76</span>} />
@@ -252,8 +265,12 @@ function Resolution() {
 
 /** Live ticker: chain values read now, and protocol constants. No logos, no claims. */
 function LiveTicker() {
+  return ACTIVE_MARKET ? <ActiveLiveTicker engine={ACTIVE_MARKET.engine} /> : null;
+}
+
+function ActiveLiveTicker({ engine }: { engine: (typeof markets)[number]["engine"] }) {
   const head = useHead();
-  const m = useMarket(ENGINE, head.data?.number).data;
+  const m = useMarket(engine, head.data?.number).data;
   const now = useClock(head.data ? head.data.timestamp + BigInt(Math.floor((Date.now() - head.data.at) / 1000)) : undefined);
   const T = m?.listing.scheduledT;
   const items = [

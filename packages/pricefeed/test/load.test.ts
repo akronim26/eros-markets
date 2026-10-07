@@ -27,7 +27,12 @@ test('25 markets across three categories share ordered nonces through two slow-R
       assert.ok(outputs.every(o=>o.state==='FINALIZED'));assert.ok(outputs.every(o=>o.sequence===BigInt(round+1)));
     }
     assert.deepEqual(s.sent.map(raw=>parseTransaction(raw).nonce),Array.from({length:50},(_,i)=>i));
-    assert.equal(s.stats.maxRpcActive,1);assert.ok(s.entries.every(e=>e.signer.reservations().length===2));
+    // Canonical-block and head reads run concurrently; transaction signing and
+    // broadcast must still share the one serialized sender/nonce lane.
+    assert.ok(s.stats.maxRpcActive>=2);assert.equal(s.stats.maxWriteRpcActive,1);
+    assert.equal(s.stats.writeRpcActive,0);assert.equal(s.stats.rpcActive,0);
+    assert.deepEqual(s.stats.preparedNonces,Array.from({length:50},(_,i)=>i));
+    assert.ok(s.entries.every(e=>e.signer.reservations().length===2));
     assert.ok(s.entries.every(e=>s.packets.list(e.domain).length===2));
     assert.equal(s.stats.headroomAtBroadcastMs.length,50);assert.ok(s.stats.headroomAtBroadcastMs.every(ms=>BigInt(ms)>=1000n));
     console.log('LOAD_CASE '+JSON.stringify({scenario:'slow-rpc-two-rounds',...s.report()}));

@@ -1,0 +1,19 @@
+{
+  "scope": "finite observed source-carry eligibility; not accepted on-chain publication continuity",
+  "command": "packages/pricefeed/node_modules/node/bin/node --test scripts/e2e/source-qualification.test.mjs",
+  "passed": 7,
+  "failed": 0,
+  "usesActualCompiledCollector": true,
+  "liveNetworkCalls": false,
+  "frozenBackendOrFrontendEdits": false,
+  "compilerOutputsWritten": false,
+  "independentReview": "read-only helper and runner review; no blocker; tests not repeated",
+  "durationFromFirstValidReceiptMs": 900000,
+  "minimumValidPolls": 800,
+  "originalTtlMs": 30000,
+  "fileSha256": {
+    "scripts/e2e/selected-source.mjs": "e2d1a00ff73a78b430a1fa6d8f290b778fb4205768d6d8b9e2d13e6d0c4c45f4",
+    "scripts/e2e/source-qualification.mjs": "dc885e61378d53955ba37b28c28c08e291ba0df6281743017a80a34f36b7aa48",
+    "scripts/e2e/source-qualification.test.mjs": "a0fc74cc0723638fd2799558fb6d042e2f96047548776ff5e20a58697cc50ce6"
+  }
+}

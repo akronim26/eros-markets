@@ -6,12 +6,12 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { expectedPolicy, delegatedEngines } from "../../src/server/policy";
 import { privy } from "../../src/server/privy";
-import { delegatedTrade } from "../../src/server/trade";
+import { delegatedTrade, TradeDeliveryError } from "../../src/server/trade";
 import { processProtectionBlock } from "../../src/server/automation";
 import { client } from "../../src/lib/public-client";
 import { reconcileRequest } from "../../src/server/reconcile";
 import { db } from "../../src/server/store";
-import { publicManifest as manifest } from "../../src/config/deployment";
+import { publicManifest as manifest, deploymentManifests, markets } from "../../src/config/deployment";
 import { keccak256 } from "viem";
 
 // SDK/chain doubles exercise the actual server paths. This is not a live Privy policy test.
@@ -23,7 +23,7 @@ after(() => { db().close(); rmSync(directory, { recursive: true, force: true });
 const address = "0x1111111111111111111111111111111111111111", engine = delegatedEngines[0];
 const now = BigInt(Math.floor(Date.now() / 1000));
 // Deterministic code pins are confined to this test process, as in deployment.test.ts.
-for (const contract of [...Object.values(manifest.contracts), ...manifest.markets]) contract.codehash = keccak256("0x1234");
+for (const contract of deploymentManifests.flatMap(m => [...Object.values(m.contracts), ...m.markets])) contract.codehash = keccak256("0x1234");
 const deploymentContracts = manifest.contracts, market = manifest.markets[0];
 let rpcChain = 10143;
 let walletType = "privy";
@@ -34,8 +34,11 @@ const sdk = privy();
 (sdk.wallets() as any).get = async () => ({ id: "alice-wallet", address, chain_type: "ethereum", additional_signers: revoked ? [] : [{ signer_id: "trade-signer", override_policy_ids: ["trade-policy"] }, { signer_id: "protect-signer", override_policy_ids: ["protect-policy"] }] });
 (sdk.policies() as any).get = async (id: string) => { const p = expectedPolicy(id === "trade-policy" ? "trade" : "protect"); if (badPolicy) p.rules[0].conditions = []; return p; };
 (sdk.wallets().ethereum() as any).sendTransaction = async (id: string, request: any) => { sends++; calls.push({ id, request }); if (failSend) throw new Error("network ambiguity"); return { hash: `0x${String(sends).padStart(64, "0")}` }; };
-Object.assign(client, { getChainId: async () => rpcChain, getCode: async () => "0x1234", getBlock: async (args?: any) => ({ number: 1001n, timestamp: now, hash: args?.blockNumber === BigInt(manifest.verifiedAt.blockNumber) ? manifest.verifiedAt.blockHash : `0x${"12".repeat(32)}` }), getBalance: async () => 10n ** 18n, getGasPrice: async () => 1n, call: async () => ({ data: "0x" }), estimateGas: async () => 100000n,
+Object.assign(client, { getChainId: async () => rpcChain, getCode: async () => "0x1234", getBlock: async (args?: any) => ({ number: 1001n, timestamp: now, hash: deploymentManifests.find(m => args?.blockNumber === BigInt(m.verifiedAt.blockNumber))?.verifiedAt.blockHash ?? `0x${"12".repeat(32)}` }), getBalance: async () => 10n ** 18n, getGasPrice: async () => 1n, call: async (args:any) => ({ data: !args.to && /^0x73[\da-fA-F]{40}3f60005260206000f3$/.test(args.data) ? keccak256("0x1234") : "0x" }), estimateGas: async () => 100000n,
   readContract: async (c: any) => {
+    const selected = deploymentManifests.find(d => d.markets.some(m => m.engine.toLowerCase() === c.address?.toLowerCase() || m.marketId.toLowerCase() === c.args?.[0]?.toLowerCase?.())) ?? deploymentManifests.find(d => Object.values(d.contracts).some(v => v.address.toLowerCase() === c.address?.toLowerCase())) ?? manifest;
+    const deploymentContracts = selected.contracts;
+    const market = selected.markets.find((m) => m.engine.toLowerCase() === c.address?.toLowerCase() || m.marketId.toLowerCase() === c.args?.[0]?.toLowerCase?.()) ?? manifest.markets[0];
     if (c.functionName === "listing") return { marketId: market.marketId, indexSourceId: market.sourceId, token: deploymentContracts.CollateralToken.address, registry: deploymentContracts.MarketRegistry.address, resolutionAuthority: deploymentContracts.ResolutionOracle.address };
     if (c.functionName === "listingHash") return market.listingHash;
     const binding = ({ factory: deploymentContracts.MarketFactory.address, oracle: deploymentContracts.ResolutionOracle.address, registry: deploymentContracts.MarketRegistry.address, collateralVault: deploymentContracts.CollateralVault.address, token: deploymentContracts.CollateralToken.address, engineOf: market.engine } as Record<string, string>)[c.functionName];
@@ -56,6 +59,13 @@ test("server sends only from the authenticated owner's wallet, with exact order,
   await assert.rejects(delegatedTrade("bob", intent()), /does not belong/);
   await assert.rejects(delegatedTrade("alice", { ...input, place: { ...input.place, tick: 379 } }), /different order/);
   await assert.rejects(delegatedTrade("alice", { ...intent(), action: "cancel", place: undefined, orderId: 9 }), /Unexpected request field/);
+});
+test("archived markets cannot add exposure through the delegated API", async () => {
+  const archived = markets.find(m => m.archived);
+  assert.ok(archived, "the migration fixture retains archived markets");
+  const before = sends, input = intent();
+  await assert.rejects(delegatedTrade("alice", { ...input, engine: archived.engine.toLowerCase(), place: { ...input.place, reduceOnly: false } }), /Archived markets/);
+  assert.equal(sends, before);
 });
 test("revoked grants, widened policies, stale previews and reversed protection never sign", async () => {
   const before = sends;
@@ -81,7 +91,7 @@ test("ambiguous signing blocks duplicate and subsequent sends until reconciliati
   const input = intent(); failSend = true;
   await assert.rejects(delegatedTrade("alice", input), /did not confirm/);
   const before = sends; failSend = false;
-  await assert.rejects(delegatedTrade("alice", input), /already submitted/);
+  await assert.rejects(delegatedTrade("alice", input), error => error instanceof TradeDeliveryError && error.delivery === "pending");
   await assert.rejects(delegatedTrade("alice", intent()), /reconciliation/);
   assert.equal(sends, before);
 });

@@ -55,7 +55,7 @@ try {
   const envFile = join(secretDir, '.env')
   writeFileSync(envFile, `MONAD_TESTNET_RPC=${rpcUrl}\nCRE_ETH_PRIVATE_KEY=${env('CRE_ETH_PRIVATE_KEY')}\n`, { mode: 0o600 })
   const logFile = join(output, 'cre-simulation.log')
-  cli = Bun.spawn([process.env.CRE_BIN ?? 'cre', 'workflow', 'simulate', 'resolution', '--target', 'local-sim', '--limits', 'default',
+  const running = Bun.spawn([process.env.CRE_BIN ?? 'cre', 'workflow', 'simulate', 'resolution', '--target', 'local-sim', '--limits', 'default',
     '--trigger-index', '0', '--evm-tx-hash', request.transactionHash, '--evm-event-index', String(receiptIndex),
     '--broadcast', '--non-interactive', '-e', envFile], {
     cwd: join(root, 'workflows'),
@@ -63,9 +63,10 @@ try {
     env: { ...process.env, MONAD_TESTNET_RPC: rpcUrl, CRE_ETH_PRIVATE_KEY: env('CRE_ETH_PRIVATE_KEY') },
     stdout: 'pipe', stderr: 'pipe',
   })
+  cli = running
   const timer = setTimeout(() => cli?.kill(), 180_000)
   let stdout: string, stderr: string, code: number
-  try { [stdout, stderr, code] = await Promise.all([new Response(cli.stdout).text(), new Response(cli.stderr).text(), cli.exited]) }
+  try { [stdout, stderr, code] = await Promise.all([new Response(running.stdout).text(), new Response(running.stderr).text(), running.exited]) }
   finally { clearTimeout(timer); cli = undefined }
   writeFileSync(logFile, stdout + stderr)
   assert(code === 0, 'CRE CLI simulation exited successfully')

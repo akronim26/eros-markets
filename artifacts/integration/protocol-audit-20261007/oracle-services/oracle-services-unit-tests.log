@@ -1,0 +1,512 @@
+bun test v1.3.13 (bf2e2cec)
+
+oracle/workflows/dryrun/main.test.ts:
+(pass) a finished event over the target prints YES with the value hash, and writes nothing [9.32ms]
+(pass) a finished event at or under the target prints NO, and writes nothing [0.86ms]
+(pass) a live event prints NOT_READY, and writes nothing [0.50ms]
+(pass) a wrong path prints ERROR, and writes nothing [0.48ms]
+(pass) HTTP 429, 5xx and invalid JSON print ERROR, and write nothing [0.97ms]
+(pass) a host not first on the allow-list or an unknown authRef prints ERROR and fetches nothing [0.38ms]
+(pass) a known authRef sends its secret in the configured header [0.67ms]
+(pass) football dry-run uses the same validation and authenticated provider without any chain writes [1.88ms]
+(pass) the dry-run has no EVM client and calls no write (source check) [1.62ms]
+(pass) dry-run and resolution build their node-mode fetch from the same shared function [0.63ms]
+
+oracle/workflows/listen/poller.test.ts:
+(pass) a long outage catches up in inclusive ranges of at most 100 blocks without gaps [0.38ms]
+(pass) cursor and queued event survive a JSON restart and replay is deduplicated [0.10ms]
+(pass) two requests in one transaction remain distinct and use receipt-local indexes
+(pass) refuse to reuse checkpoints across chains, oracle addresses, targets or broadcast modes [0.42ms]
+(pass) corrupt checkpoints fail closed
+
+oracle/workflows/resolution/parity.test.ts:
+(pass) RESOLUTION_REQUESTED is the ABI snapshot event topic, 0xa3af…3a13 (C.7) [0.98ms]
+(pass) STATE_L1_PENDING is RState.L1Pending, 3 [3.98ms]
+
+oracle/workflows/resolution/main.test.ts:
+(pass) final YES writes a v1 report bound to chain, oracle, market, observedAt [9.93ms]
+(pass) live event writes nothing [2.45ms]
+(pass) HTTP 429 writes nothing [1.93ms]
+(pass) final NO writes outcome 2 with the value hash of the lexeme [2.91ms]
+(pass) state != L1Pending writes nothing and fetches nothing [5.31ms]
+(pass) specHash mismatch writes nothing and fetches nothing [1.27ms]
+(pass) unknown authRef writes nothing and fetches nothing [1.41ms]
+(pass) a known authRef sends its secret in the configured header (prefix included) [2.54ms]
+(pass) a host that is not first on the allow-list writes nothing and fetches nothing [1.12ms]
+(pass) HTTP 5xx and invalid JSON write nothing [3.69ms]
+(pass) football CRE fetches the authenticated fixture and binds YES/NO to the exact on-chain specification [6.16ms]
+(pass) football live, postponed, mismatched and contradictory results never send an oracle report [6.84ms]
+(pass) common sports rules bind a real NBA result to the on-chain market and specification [3.64ms]
+
+oracle/packages/feedspec/test/sports.test.ts:
+(pass) american-football > authentic captured result resolves through the common predicate [0.51ms]
+(pass) american-football > provider failures, incomplete pages and conflicting identities never resolve [0.82ms]
+(pass) american-football > unknown, changed and noncanonical specifications cannot produce a payout [0.76ms]
+(pass) baseball > authentic captured result resolves through the common predicate [0.47ms]
+(pass) baseball > provider failures, incomplete pages and conflicting identities never resolve [0.52ms]
+(pass) baseball > unknown, changed and noncanonical specifications cannot produce a payout [0.53ms]
+(pass) formula-1 > authentic captured result resolves through the common predicate [1.07ms]
+(pass) formula-1 > provider failures, incomplete pages and conflicting identities never resolve [2.97ms]
+(pass) formula-1 > unknown, changed and noncanonical specifications cannot produce a payout [1.62ms]
+(pass) handball > authentic captured result resolves through the common predicate [0.27ms]
+(pass) handball > provider failures, incomplete pages and conflicting identities never resolve [0.22ms]
+(pass) handball > unknown, changed and noncanonical specifications cannot produce a payout
+(pass) hockey > authentic captured result resolves through the common predicate
+(pass) hockey > provider failures, incomplete pages and conflicting identities never resolve [0.91ms]
+(pass) hockey > unknown, changed and noncanonical specifications cannot produce a payout [0.11ms]
+(pass) mma > authentic captured result resolves through the common predicate [0.39ms]
+(pass) mma > provider failures, incomplete pages and conflicting identities never resolve [0.14ms]
+(pass) mma > unknown, changed and noncanonical specifications cannot produce a payout [0.24ms]
+(pass) nba > authentic captured result resolves through the common predicate [0.15ms]
+(pass) nba > provider failures, incomplete pages and conflicting identities never resolve [0.33ms]
+(pass) nba > unknown, changed and noncanonical specifications cannot produce a payout [0.37ms]
+(pass) volleyball > authentic captured result resolves through the common predicate [0.15ms]
+(pass) volleyball > provider failures, incomplete pages and conflicting identities never resolve [0.19ms]
+(pass) volleyball > unknown, changed and noncanonical specifications cannot produce a payout [0.46ms]
+(pass) football > authentic captured result resolves through the common predicate [3.52ms]
+(pass) football > provider failures, incomplete pages and conflicting identities never resolve [12.40ms]
+(pass) football > unknown, changed and noncanonical specifications cannot produce a payout [6.65ms]
+(pass) shared draw and exact half-point total predicates [7.04ms]
+(pass) MMA weight-class labels and conflicting provider clocks are handled explicitly [0.06ms]
+(pass) rugby uses the same final-score predicate (synthetic schema fixture; no live evidence) [0.41ms]
+(pass) unfinished, cancelled, changed scores and ambiguous fights never default to NO [14.14ms]
+(pass) F1 requires completed race AND complete, unique classification from the same race [1.47ms]
+(pass) CRE fetches the bound F1 classification only after race completion, with the same secret [1.08ms]
+
+oracle/packages/feedspec/test/evaluator.test.ts:
+(pass) §11.2 evaluator cases > finished event -> YES and NO [0.28ms]
+(pass) §11.2 evaluator cases > live event -> NOT_READY (finality missing or not equal byte for byte) [0.03ms]
+(pass) §11.2 evaluator cases > wrong value path -> ERROR VALUE_MISSING; malformed path -> ERROR BAD_PATH [0.09ms]
+(pass) §11.2 evaluator cases > DECIMAL 3.10 equals 3.1 at decimals 2
+(pass) §11.2 evaluator cases > DECIMAL 3.105 at decimals 2 -> ERROR (never rounds) [0.17ms]
+(pass) §11.2 evaluator cases > exponent -> ERROR [0.07ms]
+(pass) §11.2 evaluator cases > INT rejects 3.0 and "03" (and +3, 03 as a number lexeme cannot occur)
+(pass) §11.2 evaluator cases > HTTP 429 and 5xx, oversize body and invalid JSON -> ERROR
+(pass) §11.2 evaluator cases > STRING allows only EQ and NEQ [0.42ms]
+(pass) §11.2 evaluator cases > big integers keep precision (no float on any value)
+(pass) §11.2 evaluator cases > duplicate keys are rejected as ambiguous
+(pass) URL and host rules > buildUrl substitutes {id} once [0.24ms]
+(pass) URL and host rules > {id} must come after the first "/" that follows the host (registry rule) [0.10ms]
+(pass) URL and host rules > the template is checked before the urlParam, as the registry orders BadFeed codes [0.08ms]
+(pass) URL and host rules > hosts: https only, lowercase labels, no port, no userinfo, at least two labels
+(pass) URL and host rules > allowListed: the URL host must equal allowList[0] [0.22ms]
+(pass) parser and paths > numbers keep their exact lexeme [0.02ms]
+(pass) parser and paths > nesting depth is at most 64 [0.08ms]
+(pass) parser and paths > strings: escapes decoded, raw control characters refused
+(pass) parser and paths > paths: segments, array indexes, limits
+(pass) parser and paths > compare on integers
+
+oracle/packages/feedspec/test/football.test.ts:
+(pass) regular-time home, away and draw scores resolve the selected side and bind evidence [0.71ms]
+(pass) live, postponed, cancelled, abandoned, awarded, extra-time and shootout games never resolve [0.72ms]
+(pass) wrong fixture, competition, season, teams and changed kickoff produce no outcome [0.58ms]
+(pass) missing, contradictory or extra-time scores and winner flags never become NO [0.02ms]
+(pass) provider errors in HTTP 200, absent/duplicate results and pagination fail closed
+(pass) malformed and duplicate-key JSON cannot bypass validation
+(pass) only the pinned, versioned specification and authentic provider URL are accepted [0.99ms]
+(pass) football needs a longer L1 window than the historical one-hour deployment globals [0.18ms]
+
+oracle/packages/feedspec/test/vectors.test.ts:
+(pass) vectors/feedspec.json: listing validation parity > the file covers every BadFeed code 0-12 [0.27ms]
+(pass) vectors/feedspec.json: listing validation parity > valid B.3 -> 0 [0.07ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: no {id} in template -> 0 [0.01ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: {id} in the query after the path slash -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL GTE 3.1 at 2 decimals -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL negative fraction -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL 18 decimals -> 0 [0.07ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL 0 decimals, integer target -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: STRING EQ -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: STRING NEQ -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: INT -0 -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: indexed paths -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: path name chars _ $ - -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 6-digit index -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 256-byte path -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 128-char urlParam -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 63-char host label -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: buffer and timeout at the bounds -> 0 [0.10ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: known authRef -> 0 [0.01ms]
+(pass) vectors/feedspec.json: listing validation parity > http scheme -> 1
+(pass) vectors/feedspec.json: listing validation parity > uppercase scheme -> 1
+(pass) vectors/feedspec.json: listing validation parity > uppercase host -> 2
+(pass) vectors/feedspec.json: listing validation parity > port -> 2
+(pass) vectors/feedspec.json: listing validation parity > userinfo -> 2
+(pass) vectors/feedspec.json: listing validation parity > single-label host -> 2
+(pass) vectors/feedspec.json: listing validation parity > leading hyphen label -> 2
+(pass) vectors/feedspec.json: listing validation parity > trailing hyphen label -> 2
+(pass) vectors/feedspec.json: listing validation parity > empty label -> 2
+(pass) vectors/feedspec.json: listing validation parity > 64-char host label -> 2
+(pass) vectors/feedspec.json: listing validation parity > {id} inside the host (host error first) -> 2
+(pass) vectors/feedspec.json: listing validation parity > {id} twice -> 3
+(pass) vectors/feedspec.json: listing validation parity > {id} with no slash after the host -> 3 [0.13ms]
+(pass) vectors/feedspec.json: listing validation parity > empty urlParam -> 4
+(pass) vectors/feedspec.json: listing validation parity > urlParam with slash -> 4
+(pass) vectors/feedspec.json: listing validation parity > urlParam with space -> 4
+(pass) vectors/feedspec.json: listing validation parity > 129-char urlParam -> 4
+(pass) vectors/feedspec.json: listing validation parity > host not allowList[0] -> 5
+(pass) vectors/feedspec.json: listing validation parity > empty finalPath -> 6
+(pass) vectors/feedspec.json: listing validation parity > empty segment -> 6
+(pass) vectors/feedspec.json: listing validation parity > trailing dot -> 6
+(pass) vectors/feedspec.json: listing validation parity > leading-zero index -> 6
+(pass) vectors/feedspec.json: listing validation parity > 7-digit index -> 6
+(pass) vectors/feedspec.json: listing validation parity > index without name -> 6
+(pass) vectors/feedspec.json: listing validation parity > text after index -> 6
+(pass) vectors/feedspec.json: listing validation parity > unclosed index -> 6
+(pass) vectors/feedspec.json: listing validation parity > space in path -> 6
+(pass) vectors/feedspec.json: listing validation parity > 257-byte path -> 6
+(pass) vectors/feedspec.json: listing validation parity > empty finalValue -> 7
+(pass) vectors/feedspec.json: listing validation parity > STRING with GT -> 8
+(pass) vectors/feedspec.json: listing validation parity > unknown valueType -> 8
+(pass) vectors/feedspec.json: listing validation parity > unknown op -> 8
+(pass) vectors/feedspec.json: listing validation parity > INT with decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > STRING with decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL with 19 decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > INT 3.0 -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT leading zero -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT exponent -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT plus sign -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT lone minus -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT empty -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL too many fraction digits -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL trailing dot -> 10 [0.08ms]
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL no integer part -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL fraction at 0 decimals -> 10 [0.03ms]
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL exponent -> 10 [0.02ms]
+(pass) vectors/feedspec.json: listing validation parity > STRING empty -> 10
+(pass) vectors/feedspec.json: listing validation parity > buffer equals timeout -> 11
+(pass) vectors/feedspec.json: listing validation parity > buffer below min -> 11
+(pass) vectors/feedspec.json: listing validation parity > buffer above max -> 11
+(pass) vectors/feedspec.json: listing validation parity > timeout below min -> 11
+(pass) vectors/feedspec.json: listing validation parity > timeout above max -> 11
+(pass) vectors/feedspec.json: listing validation parity > unknown authRef -> 12 [0.04ms]
+(pass) vectors/feedspec.json: listing validation parity > order: L1 host and path both wrong -> L1 host first -> 5 [0.03ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > B.3 is 0x5066…80cd [0.67ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > B.3 (no authRef) [0.16ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > with authRef
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > empty urlParam, no {id} [0.66ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > long strings [0.90ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > decimal [0.67ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > every field changes the hash [1.53ms]
+
+oracle/packages/feedspec/test/fetch.test.ts:
+(pass) one GET with accept, no cache, the timeout given, and no auth header when none is given [0.40ms]
+(pass) an auth header is sent with its value [0.18ms]
+(pass) NOT_READY and ERROR carry the zero value hash [0.05ms]
+(pass) a body over 250 KiB is BODY_TOO_LARGE, before it is decoded [0.10ms]
+(pass) a transport failure is FETCH_FAILED [0.14ms]
+
+oracle/packages/feedspec/test/encoded-array.test.ts:
+(pass) resolved Gamma YES and NO use exact indexed payout strings, independent of JSON whitespace [0.20ms]
+(pass) trading closure or a proposed result cannot resolve the market [0.06ms]
+(pass) fractional split payouts, malformed arrays, missing values and booleans produce no outcome [0.21ms]
+
+oracle/packages/oracle-sdk/test/eip712.test.ts:
+(pass) types and domain > type strings and typehashes are the Solidity ones [0.36ms]
+(pass) types and domain > domain separator matches, and moves with the chain and the contract [1.04ms]
+(pass) digests > P1 and R1 digests match the vectors [1.48ms]
+(pass) digests > every field is bound: changing any one changes the digest [5.80ms]
+(pass) signatures > the attestor signature over P1 is the vector, byte for byte, and recovers to the signer [28.91ms]
+(pass) signatures > the two committee signatures over R1 are the vectors, in ascending signer order [6.97ms]
+(pass) signatures > a signature SigLib refuses is refused here: wrong length, bad v, high s [0.79ms]
+
+oracle/packages/oracle-sdk/test/indexer.test.ts:
+(pass) only ready, correctly identified, integral indexer progress is usable [1.00ms]
+
+oracle/packages/oracle-sdk/test/bond.test.ts:
+(pass) bond > every vector in bond.json [0.43ms]
+(pass) bond > the proportional term rounds up; either floor wins when larger [0.11ms]
+(pass) bond > out-of-range inputs are refused, not wrapped [0.16ms]
+(pass) liveness and watchdog > fresh watchdog: L1 and L2_AUTO use their own; stale: reviewed [0.16ms]
+(pass) liveness and watchdog > freshness: never-sent, future, revoked and the age boundary [0.07ms]
+(pass) void bound > production and testnet vectors [0.20ms]
+(pass) void bound > without a feed T_L1 drops out [0.02ms]
+
+oracle/packages/oracle-sdk/test/trading.test.ts:
+(pass) browser-safe owner-correct trading client > public identity strips private transports recursively and preserves explicit provenance [0.44ms]
+(pass) browser-safe owner-correct trading client > all writes encode the selected owner, exact amounts and correct custody recipient [4.48ms]
+(pass) browser-safe owner-correct trading client > owner, chain, units and order bounds are enforced without computing a replacement margin rule [0.48ms]
+(pass) browser-safe owner-correct trading client > browser entry builds without Node or Bun runtime imports [15.83ms]
+(pass) browser-safe owner-correct trading client > claimability requires both the actual claims gate and owner escrow, even after oracle finality [0.10ms]
+
+oracle/packages/oracle-sdk/test/claim.test.ts:
+(pass) claim vectors > the file covers valid renders, both errors and a Layer 1 evidence case [0.04ms]
+(pass) claim vectors > example-l1-yes [1.03ms]
+(pass) claim vectors > example-uri-no [0.22ms]
+(pass) claim vectors > example-invalid
+(pass) claim vectors > unicode-and-escapes
+(pass) claim vectors > reordered-adjacent-no-tau-unix
+(pass) claim vectors > bare-no-tau-unix
+(pass) claim vectors > literal-braces
+(pass) claim vectors > token-at-end-tau-unix
+(pass) claim vectors > tau-epoch [0.81ms]
+(pass) claim vectors > tau-leap-day
+(pass) claim vectors > tau-2000-leap
+(pass) claim vectors > tau-year-9999
+(pass) claim vectors > uint64-tau-uint256-chain
+(pass) claim vectors > leading-zeros
+(pass) claim vectors > empty-strings [0.39ms]
+(pass) claim vectors > hex-looking-text [0.06ms]
+(pass) claim vectors > max-evidence-uri
+(pass) claim vectors > long-l1-url
+(pass) claim vectors > missing-token
+(pass) claim vectors > duplicate-token [0.22ms]
+(pass) claim vectors > tau-unix-twice [0.02ms]
+(pass) claim vectors > unknown-token
+(pass) claim vectors > triple-brace
+(pass) claim vectors > trailing-open-braces
+(pass) claim vectors > truncated-token
+(pass) claim vectors > no-outcome
+(pass) claim vectors > invalid-wins-over-no-outcome
+(pass) dates > utc agrees with the JavaScript calendar across leap years, centuries and the year 9999 [0.34ms]
+
+oracle/packages/oracle-sdk/test/deployments.test.ts:
+(pass) loadDeployments > parses the testnet file DeployOracle writes [3.49ms]
+(pass) loadDeployments > addresses come back checksummed whatever their case in the file [0.93ms]
+(pass) loadDeployments > a missing core contract, a bad address, another network or chain is refused [4.10ms]
+(pass) loadDeployments > an unknown contract name is an error, not undefined [0.22ms]
+(pass) loadGas > reads the measured limits; an unlisted call has no guessed limit [1.26ms]
+
+oracle/packages/oracle-sdk/test/abiText.test.ts:
+(pass) ABI text fingerprint portability > only checkout CRLF line endings are normalized [0.31ms]
+(pass) ABI text fingerprint portability > ABI changes and other byte changes still fail the fingerprint
+
+oracle/packages/oracle-sdk/test/local-rpc-readiness.test.ts:
+(pass) known data-unavailable read is retried, while contract and unrelated RPC failures are not
+(pass) persistent data-unavailable reads have a finite retry budget
+(pass) receipt finality is awaited and its canonical block is checked before continuing
+(pass) a receipt that never finalizes fails closed without continuing the dependent transaction sequence [1.32ms]
+
+oracle/services/watchdog/test/sports.test.ts:
+(pass) watchdog independently fetches and binds the F1 companion using the CRE rules [1.66ms]
+
+oracle/services/watchdog/test/model.test.ts:
+(pass) recorded answers > the recordings are real 200s with the answers the snapshots call for [1.42ms]
+(pass) recorded answers > agreement: a YES proposal on the 3-1 snapshot [2.78ms]
+(pass) recorded answers > contradiction: a NO proposal on the 3-1 snapshot, a YES proposal on the 1-1 snapshot [2.26ms]
+(pass) recorded answers > with a feed: the Layer 1 feed joins the model; feed and model split → a human [1.31ms]
+(pass) the prompt > its own wording and format, not the panel’s: sources from 1, untrusted text escaped, the rules as authority
+(pass) the prompt > a source cannot close its tag or open a new one [0.42ms]
+(pass) answers > parsing: thinking and code fences removed; anything off the schema refused [0.52ms]
+(pass) answers > an outcome counts only if confident, determined and resting on an allow-listed source that exists [0.07ms]
+(pass) answers > failures: 3 retries on 5xx and invalid answers, none on 401, nothing without a key [0.64ms]
+(pass) the snapshot > eros-snapshot from the directory and https, each checked against the evidenceHash [1.11ms]
+(pass) the snapshot > no snapshot, or one for another market: no model outcome (a human looks) [0.67ms]
+
+oracle/services/watchdog/test/intake.test.ts:
+(pass) watchdog intake from the indexer > rows become the same Proposal shape the log path gives
+(pass) watchdog intake from the indexer > reads up to the progress block only, then continues from there; no log is read [1.57ms]
+(pass) watchdog intake from the indexer > indexer down → the logs from the cursor, in 100-block calls; back up → the indexer from where the logs stopped [0.47ms]
+(pass) watchdog intake from the indexer > an indexer too far behind is not used; a failed log range keeps what was read and resumes there [0.35ms]
+(pass) watchdog intake from the indexer > a long catch-up is read 10,000 blocks per query [0.17ms]
+(pass) watchdog intake from the indexer > server row caps cannot skip proposals or assertions within the same block [0.35ms]
+(pass) watchdog intake from the indexer > a later page failure falls back for the entire range without advancing the cursor [0.07ms]
+(pass) watchdog intake from the indexer > independent pagination exhausts differently capped proposal and assertion lists
+(pass) watchdog intake from the indexer > without an indexer it is the log scan alone [0.57ms]
+
+oracle/services/watchdog/test/dispute.test.ts:
+(pass) acting on a contradiction > a live assertion is disputed with the float, with gas.json’s limit, and a human is paged [0.66ms]
+(pass) acting on a contradiction > not asserted yet: wait for the keeper to assert it
+(pass) acting on a contradiction > page only: too late, no float, limit reached, not this market’s watchdog, already disputed, superseded, a revert [0.75ms]
+(pass) acting on a contradiction > one second before the margin is still in time [0.36ms]
+(pass) heartbeat and float > a heartbeat when none was sent, then every 10 minutes, with gas.json’s limit [0.20ms]
+(pass) heartbeat and float > the float against the live bonds: disputed, settled and expired assertions do not count [0.64ms]
+(pass) the loop > an L1 proposal is checked at once and disputed as soon as it is asserted [1.18ms]
+(pass) the loop > agreement ends quietly; an unsure check pages; a failed check is retried [0.94ms]
+
+oracle/services/watchdog/test/l1.test.ts:
+(pass) the verdict rule > [{"source":"L1","outcome":"YES","detail":""}] with YES proposed → AGREE
+(pass) the verdict rule > [{"source":"L1","outcome":"NO","detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"L1","outcome":null,"detail":""}] with YES proposed → UNSURE
+(pass) the verdict rule > [] with YES proposed → UNSURE
+(pass) the verdict rule > [{"source":"L1","outcome":"NO","detail":""},{"source":"FALLBACK","outcome":null,"detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"L1","outcome":"YES","detail":""},{"source":"FALLBACK","outcome":"NO","detail":""}] with YES proposed → UNSURE
+(pass) the verdict rule > [{"source":"MODEL","outcome":"INVALID","detail":""},{"source":"L1","outcome":"NO","detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"MODEL","outcome":null,"detail":""},{"source":"L1","outcome":"YES","detail":""}] with YES proposed → AGREE
+(pass) intake > every new proposal once, in log order, from every path; asserted markets tracked [0.43ms]
+(pass) Layer 1 re-run > the FeedSpec URL from the watchdog’s own fetch, evaluated by the shared evaluator [0.37ms]
+(pass) Layer 1 re-run > a recorded L1 YES that the feed now contradicts (home 1) is flagged [0.19ms]
+(pass) Layer 1 re-run > agreement: the recorded outcome and value hold [0.18ms]
+(pass) Layer 1 re-run > no answer from the feed is not a contradiction: not final, HTTP error, network failure, missing credentials [0.58ms]
+(pass) Layer 1 re-run > a body over the 250 KB cap is an error [0.03ms]
+(pass) Layer 1 re-run > the listed fallback source: both against → contradiction; split → a human [0.65ms]
+
+oracle/services/keeper/test/sources.test.ts:
+(pass) stateVersion > is keccak256 of the Resolution tuple, encoded independently here [0.63ms]
+(pass) stateVersion > changes with every field and not otherwise [2.23ms]
+(pass) IndexerSource > pages through every Market id until an empty page [0.70ms]
+(pass) IndexerSource > a server capping rows below the page size does not end the list early [0.12ms]
+(pass) IndexerSource > an HTTP error, GraphQL errors or a malformed answer throw [0.02ms]
+(pass) IndexerSource > treasury disputes: the Dispute rows funded by the float [0.27ms]
+(pass) RegistryLogSource > scans from the deploy block in 100-block ranges, then only the new blocks [0.66ms]
+(pass) RegistryLogSource > a failed range is read again from the same block [0.21ms]
+(pass) the indexer first, RPC logs as the fallback > a fresh indexer is used and no log is read; its progress moves the log cursor [1.12ms]
+(pass) the indexer first, RPC logs as the fallback > an indexer more than the allowed lag behind the head is not used [0.33ms]
+(pass) the indexer first, RPC logs as the fallback > an indexer that answers _meta but fails the list query falls back too [0.22ms]
+
+oracle/services/keeper/test/fork-safety.test.ts:
+(pass) owned local fork harness > refuses an occupied loopback port before any Anvil or Forge process is spawned [9.71ms]
+(pass) owned local fork harness > rejects public/redirect-shaped endpoints and invalid ports
+(pass) owned local fork harness > strips inherited credentials, arbitrary controls and proxy/public RPC settings while pinning every RPC alias
+(pass) owned local fork harness > keeps prior evidence intact and allocates a different empty directory for the same port [1.41ms]
+(pass) owned local fork harness > requires both an alive spawned child and Anvil chain 31337, including after async identity reads [0.28ms]
+
+oracle/services/keeper/test/keeper.test.ts:
+(pass) duplicates > a job is sent once: later ticks at the same state version skip it until the state moves [3.50ms]
+(pass) duplicates > the same job executed concurrently is sent once [0.40ms]
+(pass) duplicates > the same market listed twice by the source is planned once [0.32ms]
+(pass) duplicates > once the state moves, the next job gets a new key and old keys are forgotten [0.73ms]
+(pass) stale state > a job planned on a version that changed before sending is dropped [0.34ms]
+(pass) stale state > a job for a version that is no longer current is dropped by execute [0.21ms]
+(pass) two instances > the delayed instance re-reads after the first one landed and sends nothing [1.15ms]
+(pass) two instances > when both send before either lands, the second transaction is a no-op on chain [0.76ms]
+(pass) gates before sending > a call the eth_call says would change nothing is not sent, and is re-checked next tick [0.36ms]
+(pass) gates before sending > a reverting call is not sent [0.39ms]
+(pass) gates before sending > a call without a measured gas limit is never sent [0.16ms]
+(pass) gates before sending > a custom no-op test reads the simulated result [0.30ms]
+(pass) retries > a failed broadcast is retried next tick [0.56ms]
+(pass) retries > a transaction that reverted on chain is forgotten and the job sent again [0.41ms]
+(pass) retries > a transaction with no receipt past resendAfterMs is forgotten; before that it is not [0.57ms]
+(pass) isolation > one market per tick gets at most one job, in planner order [0.34ms]
+(pass) isolation > an unreadable market, a throwing planner or a planner returning another market's job does not stop the others [0.60ms]
+(pass) isolation > a failing source fails the tick; run() logs it and keeps going [0.77ms]
+(pass) options > an option passed as undefined keeps its default [0.33ms]
+(pass) job keys > the key is case-insensitive in the ids and distinct per action [0.19ms]
+
+oracle/services/keeper/test/local-integration.test.ts:
+(pass) local keeper gas measurements > rejects an unknown settlement target before reading inputs or contacting RPC [0.91ms]
+(pass) local keeper gas measurements > binds the estimate to a real local engine and gives it bounded headroom [0.44ms]
+(pass) local keeper gas measurements > will not manufacture a measurement for invalid input, public chain or stub
+
+oracle/services/keeper/test/sdkPaths.test.ts:
+(pass) SDK paths remain filesystem paths when the checkout contains spaces and a Windows drive [14.85ms]
+
+oracle/services/keeper/test/resolution.test.ts:
+(pass) every planned job names a measured gas limit > testnet keys exist in gas.json; mainnet keys without a measurement are refused by the keeper, not guessed [1.73ms]
+(pass) void > from voidDeadline on, any non-Final market; the stuck key when an assertion is live
+(pass) void > no-op: before the deadline, without one (pre-halt), or once Final [0.82ms]
+(pass) halt > pre-halt states at and after T [0.29ms]
+(pass) halt > no-op: before T, or once halted
+(pass) expire early > EarlyCheck or EarlyReview once earlyStartedAt + earlyTtlSecs has passed (before T) [0.39ms]
+(pass) expire early > no-op: TTL running, or None [0.22ms]
+(pass) Layer 1: escalate and request > escalate at T + l1TimeoutSecs, ahead of another request [0.27ms]
+(pass) Layer 1: escalate and request > request from T + bufferSecs, then every 5 minutes (or the onchain floor if longer) [0.47ms]
+(pass) Layer 1: escalate and request > no-op: before T + bufferSecs (the contract reverts TooEarly) or without a feed (NoFeed) [0.21ms]
+(pass) open > L2Pending or Review past l2StartedAt + l2DeadlineSecs, or past retryOpensAt when set [0.19ms]
+(pass) open > no-op: before the deadline, before retryOpensAt even past the deadline, or before T (early halt) [0.21ms]
+(pass) assert > Proposed without a live assertion when the ASSERTION ledger holds the bond [0.20ms]
+(pass) assert > no-op with an alert: the ledger is short, or every attempt is used [0.06ms]
+(pass) sync dispute and finalize > sync when the venue shows the live assertion disputed and unsettled [0.45ms]
+(pass) sync dispute and finalize > finalize: past expiresAt, settled on the venue, or Disputed (the DVM may have answered); batched on testnet [0.36ms]
+(pass) sync dispute and finalize > no-op: liveness running and undisputed; a simulated NOT_READY; DISPUTED again from Disputed [0.29ms]
+(pass) sync dispute and finalize > states with nothing to do: Open, Final, a Proposed market without a venue read when none is live [0.15ms]
+(pass) finalize batching through the keeper > due markets go out as finalizeMany in runs of at most 4, each run with its measured limit [2.22ms]
+(pass) finalize batching through the keeper > a run of one is sent as finalizeMarket; members that fail their checks are left out of the batch
+(pass) finalize batching through the keeper > nothing to apply yet (NOT_READY) sends nothing [1.12ms]
+(pass) finalize batching through the keeper > the batch limit is the line through the two measured limits, and only measured sizes are allowed
+(pass) finalize batching through the keeper > the listing is read once per market, not every tick [1.82ms]
+(pass) exclusive group conflict > a Proposed YES in a group with a Final YES is sent as the conflict, not refused as a no-op
+(pass) exclusive group conflict > without a Final YES in the group, or outside a group, it is the ordinary assertion
+(pass) exclusive group conflict > the keeper sends it although the simulated assertProposal returns false [0.13ms]
+
+oracle/services/keeper/test/gas.test.ts:
+(pass) BookRiskEngine gas provenance > accepts only a sufficient measured limit bound to this chain and runtime [0.28ms]
+(pass) BookRiskEngine gas provenance > refuses wrong engine, chain, runtime, missing source, and invalid gas measurements [0.29ms]
+(pass) BookRiskEngine gas provenance > requires the same provenance on settlement preparation calls [0.12ms]
+(pass) BookRiskEngine gas provenance > the keeper refuses existing seam-harness limits without broadcasting and permits a corrected profile on retry [0.71ms]
+
+oracle/services/keeper/test/engineIdentity.test.ts:
+(pass) engine identity configuration > binds the identity file to one chain and registry [0.86ms]
+(pass) engine identity configuration > rejects ambiguous or malformed approval profiles [0.31ms]
+(pass) engine identity configuration > validates actual runtime code on the configured RPC chain without caching approvals [0.33ms]
+(pass) per-market engine routing > batches only validated stubs, handles a real market separately, and isolates an unknown engine [0.98ms]
+(pass) per-market engine routing > revalidates cached markets on the next tick [0.35ms]
+(pass) per-market engine routing > drops an identity that changes between planning and checking while other markets still send [0.50ms]
+(pass) per-market engine routing > rechecks immediately before sending and removes changed members from a stub batch [0.13ms]
+(pass) per-market engine routing > never runs real settlement preparation on a stub and preserves missing-limit refusal on a real engine [0.98ms]
+
+oracle/services/keeper/test/followup.test.ts:
+(pass) engine follow-up after Final > the next step is sent: snapshot chunk, then payout chunk, then finish (each later step reverts until due) [1.31ms]
+(pass) engine follow-up after Final > a chunk is not sent twice while the engine shows the same progress [0.62ms]
+(pass) engine follow-up after Final > progress made between planning and sending makes the job stale [0.25ms]
+(pass) engine follow-up after Final > INVALID without a price: only the capture, which is a no-op until a price can be captured [0.82ms]
+(pass) engine follow-up after Final > nothing before Final, once claims are enabled (the testnet stub at once), or before the halt [0.46ms]
+(pass) engine follow-up after Final > RECOVERY_REQUIRED alerts Risk and sends nothing
+(pass) engine follow-up after Final > an engine call without a configured limit is refused [0.49ms]
+(pass) engine follow-up after Final > the engine version moves with every status field the jobs depend on [0.36ms]
+(pass) engine follow-up after Final > the engine ABI copy is what Risk's SettlementController compiles to (forge inspect EngineHarness) [172.72ms]
+(pass) treasury disputes and skim > closeDispute for each open dispute the call would close, then skim when it credits [1.03ms]
+(pass) treasury disputes and skim > no-op: a dispute still running (the call returns false), nothing to skim, a dispute already closed [0.21ms]
+(pass) treasury disputes and skim > a dispute closed between planning and sending is stale; a closed dispute is not read again [0.36ms]
+(pass) treasury disputes and skim > a skim is sent once per treasury state; a new deposit or credit is a new key [0.22ms]
+(pass) hourly commitments check > alerts when the ledger is below the commitments or the next bond, and sends nothing [0.70ms]
+(pass) hourly commitments check > exactly covered is covered; a market whose assertion is already live needs no next bond [0.46ms]
+(pass) hourly commitments check > no alert when covered; checked at most hourly by chain time [0.70ms]
+(pass) fallbacks in the core > a job that would revert or change nothing gives way to the next; any other outcome stops the list [0.60ms]
+
+oracle/services/keeper/test/config.test.ts:
+(pass) explicit keeper configuration > loads an ordinary deployment and separate gas file from paths containing spaces [1.56ms]
+(pass) explicit keeper configuration > a local manifest identifies the mock venue without a fake UmaAdapter [1.45ms]
+(pass) explicit keeper configuration > local-only safety constraints cannot be bypassed by a manifest or endpoint change [2.92ms]
+(pass) explicit keeper configuration > ordinary manifests still require the production schema and matching network [0.89ms]
+(pass) explicit keeper configuration > identity chain and registry mismatches are still refused [0.83ms]
+(pass) explicit keeper configuration > startup rejects the wrong actual chain before jobs can run [0.15ms]
+
+oracle/services/market-ops/test/store.test.ts:
+(pass) journal survives reopening and excludes concurrent processes and different identities [2.31ms]
+(pass) corrupt or tampered pending transaction cannot be rebroadcast [1.17ms]
+
+oracle/services/market-ops/test/broadcast.test.ts:
+(pass) receipt-index lag can rebroadcast the exact already-mined transaction [0.82ms]
+(pass) an unknown transaction or a different consumed nonce is never accepted [0.16ms]
+(pass) unrelated RPC errors still stop the sender
+
+oracle/services/market-ops/test/operations.test.ts:
+(pass) pending receipt reads overlap identity verification but cannot finalize after an identity failure [1.81ms]
+(pass) measured bounded rollover batches > selects the largest fitting current estimate, pins the block and keeps the hard ceiling with margin [0.95ms]
+(pass) measured bounded rollover batches > four owners use one page and completed sweeps still estimate an eligible zero-page finish [0.15ms]
+(pass) measured bounded rollover batches > only classified gas-cap failures reduce the candidate; custom reverts and transport failures abort [1.35ms]
+(pass) measured bounded rollover batches > missing estimates, impossible margin and changed helper identity stop before signing [1.01ms]
+(pass) measured bounded rollover batches > recognizes only an exact nested RPC code3 empty revert and rejects custom data or malformed cause chains [1.07ms]
+(pass) measured bounded rollover batches > an opaque larger estimate ends search at the already measured fit and preserves the reason through finality [0.57ms]
+(pass) measured bounded rollover batches > opaque estimation without a prior fit, custom or transport failures after a fit, and retained-fit simulation failures cannot sign [1.36ms]
+(pass) measured bounded rollover batches > epoch/work/cursor races during estimation or simulation discard the plan [1.88ms]
+(pass) measured bounded rollover batches > one signed batch waits for finality, rebroadcasts exact bytes after interruption, and surfaces revert [1.20ms]
+(pass) measured bounded rollover batches > helper identity is journal-bound while gas policy stays adjustable and legacy manifests stay supported [0.45ms]
+(pass) measured bounded rollover batches > bounds reject invalid page counts and never fabricate gas [0.17ms]
+(pass) measured bounded rollover batches > helper runtime verification reads the exact snapshot block and rejects missing or replaced bytecode [0.22ms]
+(pass) bounded epoch rollover > begins, pages in bounded chunks and finishes only after all accounts [1.14ms]
+(pass) bounded epoch rollover > empty sweeps finish without a no-op page; inactive, early, floor and halt states never send [0.81ms]
+(pass) bounded epoch rollover > an advanced epoch or page, including advancement to another page, discards the plan [0.61ms]
+(pass) bounded epoch rollover > simulation and rechecked identity failures stop before signing [0.32ms]
+(pass) bounded epoch rollover > requires measured gas for each action and rejects missing or unbounded state [0.53ms]
+(pass) bounded epoch rollover > one pending operation waits for finality and resumes the exact signed transaction [0.58ms]
+(pass) bounded epoch rollover > simulation does not mutate the journal and a failed save cannot broadcast [0.25ms]
+(pass) sampler and durable transactions > false simulation still broadcasts the initial state-changing capture [0.14ms]
+(pass) sampler and durable transactions > default is simulation only without signing [0.22ms]
+(pass) sampler and durable transactions > restarts rebroadcast identical signed bytes without preparing a replacement [0.03ms]
+(pass) sampler and durable transactions > no broadcast if durable save fails
+(pass) sampler and durable transactions > an unfinalized receipt blocks new work and finalized receipt controls block cadence [0.77ms]
+(pass) sampler and durable transactions > revert stops the tick and never chains another operation
+(pass) sampler and durable transactions > halts both explicitly and from the listing schedule [0.40ms]
+(pass) sampler and durable transactions > missing gas and failed simulation cannot send [0.11ms]
+(pass) sampler and durable transactions > concurrent ticks cannot create two pending transactions [0.36ms]
+(pass) bounded liquidation operator > healthy accounts send nothing and a restart continues after the bounded scan [1.10ms]
+(pass) bounded liquidation operator > unpriced, positive equity without liquidity and disabled takeover are no work
+(pass) bounded liquidation operator > authorized nonpositive-equity takeover may send without book liquidity [0.32ms]
+(pass) bounded liquidation operator > simulation leaves the cursor and journal untouched [0.43ms]
+(pass) bounded liquidation operator > accounting work, pacing exhaustion, 1x and halt stop scanning [0.95ms]
+(pass) bounded liquidation operator > requires measured gas and a bounded participant set
+(pass) bounded liquidation operator > a candidate that becomes healthy before final simulation is not sent
+(pass) bounded liquidation operator > failed durable write never sends and a disconnected send replays identical bytes [0.72ms]
+(pass) explicit monitor incidents > restricts before requesting, waits for finality and deduplicates a completed incident [0.49ms]
+(pass) explicit monitor incidents > wrong monitor, existing oracle request and expired market refuse new work [0.27ms]
+(pass) externally signed INDEX envelopes > digest equals independently packed ABI words, without an EIP-712 envelope [1.78ms]
+(pass) externally signed INDEX envelopes > accepts raw digest signature from pinned source and never signs a price [2.05ms]
+(pass) externally signed INDEX envelopes > rejects wrong chain, engine, market, source and rules before sending [1.15ms]
+(pass) externally signed INDEX envelopes > rejects personal_sign, wrong signer, future timestamps and backward time [5.07ms]
+(pass) externally signed INDEX envelopes > obsolete sequence is skipped and contract digest mismatch refuses broadcast [0.53ms]
+
+ 434 pass
+ 0 fail
+ 1923 expect() calls
+Ran 434 tests across 36 files. [1263.00ms]

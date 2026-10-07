@@ -1,5 +1,7 @@
 // FeedSpec evaluator shared by the CRE workflow, the watchdog and the listing CLI. No runtime dependencies, no
 // Node or browser APIs, and no floats: numbers stay exact lexemes. URL checks match the registry's, in its order.
+import { evaluateFootball } from './football'
+import { evaluateSports } from './sports'
 
 export enum ValueType { STRING = 0, INT = 1, DECIMAL = 2 }
 export enum Op { EQ = 0, NEQ = 1, GT = 2, GTE = 3, LT = 4, LTE = 5 }
@@ -236,11 +238,19 @@ export function compare(a: bigint | string, op: Op, b: bigint | string): boolean
 
 // ---------------------------------------------------------------- evaluation
 
-export function evaluateResponse(spec: FeedSpec, statusCode: number, body: string, bodyBytes: number): Evaluation {
+export function evaluateResponse(spec: FeedSpec, statusCode: number, body: string, bodyBytes: number, companion?: { statusCode: number; body: string; bodyBytes: number }): Evaluation {
   try {
     if (statusCode < 200 || statusCode > 299) return { status: 'ERROR', code: `HTTP_${statusCode}`, valueLexeme: '' }
     if (bodyBytes > MAX_BODY_BYTES) return { status: 'ERROR', code: 'BODY_TOO_LARGE', valueLexeme: '' }
     const root = parseJson(body)
+    if (spec.finalPath.startsWith('erosSports.')) {
+      if (companion && (companion.statusCode !== 200 || companion.bodyBytes > MAX_BODY_BYTES)) return { status: 'ERROR', code: 'SPORTS_COMPANION_UNAVAILABLE', valueLexeme: '' }
+      return evaluateSports(spec, root, companion ? parseJson(companion.body) : undefined)
+    }
+    // This explicit, versioned provider adapter is shared by CRE, listing checks
+    // and watchdogs. Its virtual paths are derived only after identity validation.
+    if (spec.finalPath.startsWith('erosFootball.') || spec.urlTemplate.startsWith('https://v3.football.api-sports.io/'))
+      return evaluateFootball(spec, root)
     const fin = resolvePath(root, spec.finalPath)
     const finText = fin ? scalarText(fin) : undefined
     if (finText === undefined || finText !== spec.finalValue) return { status: 'NOT_READY', code: 'NOT_FINAL', valueLexeme: '' }

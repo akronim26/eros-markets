@@ -6,6 +6,7 @@ import { config } from './publication-fixture.js';
 import { json } from '../src/math.js';
 import type { PollResult } from '../src/worker.js';
 import { RefreshSignal } from '../src/service.js';
+import { sourceTime } from '../src/time.js';
 
 const cfg={...config,poll:{...config.poll,intervalMs:5}};
 const make=(at:bigint,status:PollResult['inspection']['status']='COLLECTING'):PollResult=>({worker:cfg.key,category:cfg.category,
@@ -13,6 +14,18 @@ const make=(at:bigint,status:PollResult['inspection']['status']='COLLECTING'):Po
   inspection:{status,reason:status==='DEGRADED'?'SOURCE_TIMEOUT':null,time:null,summary:null,engineObservation:null},
   event:null,metadata:null,book:null,baselineRulesDigest:null,lastSourceMs:at});
 const pause=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
+
+test('book sampling boundary requires a strictly newer authentic source time without changing the archived snapshot',async()=>{
+  for(const status of ['COLLECTING','QUARANTINED'] as const){
+    const result=make(1000000n,status);result.inspection.time=sourceTime('1000000',1000000n,null,5000n);
+    const buffer=new SourceSnapshotBuffer({config:cfg,poll:async()=>result});await buffer.poll();
+    assert.equal(buffer.snapshotAfter(null)!.inspection.status,status);
+    assert.equal(buffer.snapshotAfter(999n)!.inspection.status,status);
+    assert.equal(buffer.snapshotAfter(1000n)!.inspection.status,status==='QUARANTINED'?'QUARANTINED':'DEGRADED');
+    assert.equal(buffer.snapshot()!.inspection.status,status);
+    assert.equal(buffer.snapshotAfter(1000n)!.inspection.time!.observedAt,1000n);
+  }
+});
 
 test('source collection advances while a publication is held, with only one frozen latest result',async()=>{
   let polls=0,active=0,maxActive=0;const stop=new AbortController();

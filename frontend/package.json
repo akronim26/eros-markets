@@ -15,7 +15,9 @@
     "automation": "node --env-file=.env.local --import tsx ../services/automation/worker.ts",
     "test:integration": "tsx --test tests/integration/*.test.ts",
     "privy:policies": "tsx scripts/privy-policies.ts",
-    "automation:reconcile": "node --env-file=.env.local --import tsx scripts/reconcile-request.ts"
+    "automation:reconcile": "node --env-file=.env.local --import tsx scripts/reconcile-request.ts",
+    "test:e2e": "python3 ../scripts/e2e/run.py",
+    "test:e2e:browser": "playwright test"
   },
   "dependencies": {
     "@eros-oracle/oracle-sdk": "file:../oracle/packages/oracle-sdk",
@@ -33,6 +35,7 @@
     "wagmi": "3.7.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.10.0",
     "@types/react": "19.3.0",

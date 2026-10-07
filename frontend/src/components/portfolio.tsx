@@ -20,7 +20,7 @@ function Line({ mk, owner, block }: { mk: MarketManifest; owner: `0x${string}`; 
   const chip = m.data ? chipFor(m.data) : null;
   return (
     <tr className="hair-b">
-      <td className="py-3 pr-6 pl-4"><Link href={`/m/${mk.engine}`} className="text-sm font-medium text-fg hover:underline">{mk.short}</Link></td>
+      <td className="py-3 pr-6 pl-4"><Link href={`/m/${mk.engine}`} className="text-sm font-medium text-fg hover:underline">{mk.short}</Link>{mk.archived && <p className="label mt-1 text-fg-3">Archived</p>}</td>
       <td className="pr-6">{chip && <Chip tone={chip.tone}>{chip.label}</Chip>}{(m.isError || t.isError) && <p role="alert" className="mt-1 text-xs text-ask">Read failed. <button className="underline" onClick={() => { void m.refetch(); void t.refetch(); }}>Retry</button></p>}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? `${lotsToClaims(p.positionLots)}` : <span className="text-fg-3">{t.isError ? "unavailable" : t.data ? "not funded" : "Reading…"}</span>}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? two(qToMoney(p.cashQ).usdc) : "—"}</td>

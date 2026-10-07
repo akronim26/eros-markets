@@ -1,0 +1,97 @@
+{
+  "mode": "MONAD_TESTNET_EXTERNAL_SOURCE",
+  "schemaVersion": 1,
+  "chainId": 10143,
+  "marketId": "0x1fd0566d710373a851f2f7d44e7f9dc85e3b11ce4e843c33558471e0a34c1a2f",
+  "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+  "sourceRulesHash": "0xfdd99e63ada012a0061fe013a9fcea20768c6ce4790484ec7f1ccf56e078b303",
+  "scheduledT": "1793768340",
+  "depthNLots": "1000000",
+  "maxSpreadWad": "50000000000000000",
+  "question": "2026 Balance of Power: R Senate, R House",
+  "description": "This market will resolve according to the party that wins control of the United States Senate and the party that wins control of the United States House of Representatives in the 2026 United States midterm election.\n\nA party wins control of the United States Senate if it wins a majority of the chamber’s voting seats. If no party wins a majority of voting seats, the party that wins control of the chamber is the party that wins half of the voting seats and holds the Vice Presidency. If the outcome remains ambiguous after applying the above criteria, the chamber will be deemed controlled by the party with which the first selected President Pro Tempore of the Congress that convenes after the specified election is affiliated.\n\nA party wins control of the United States House of Representatives if it wins a majority of the chamber’s voting seats. If no party wins a majority of voting seats, the chamber will be deemed controlled by the party with which the first elected Speaker of the House of the Congress that convenes after the 2026 midterm election is affiliated.\n\nThe following rules govern the counting of seats for determining which party wins control of the chambers.\n\nFor determining Senate control, all regular and special Senate elections that determine representation in the upcoming 120th Congress and are scheduled to take place in November 2026 as of October 31, 2026 are included. Vacant Senate seats for which no election or special election to fill the seat is scheduled to take place in November 2026 as of October 31, 2026 will be treated as held by the party affiliation of the most recent member to hold that seat. For determining House control, all House elections in the 2026 United States midterm election that elect voting members and determine representation in the upcoming 120th Congress are included. Where a Senate or House seat is decided by a runoff, the runoff result will determine attribution of that seat, even if it takes place after November 2026.\n\nFor seats contested in the specified election, seats are attributed to the party under which the member was elected. If a member-elect changes party affiliation, or vacates their seat, between election day and the formal organization of Congress, the seat is attributed to the party under which the member was elected. \n\nFor seats not contested in the specified election, seats are attributed to the party that holds the seat as of the date of the election. If a current sitting member of the U.S. Senate who is not up for election changes party affiliation or vacates their seat after the date of the election, the seat is attributed to the party under which the member was affiliated at the time of the election.\n\nSenate and House members elected as independents who formally caucus with, or, for newly elected members, who announce their intent to caucus with, a party are included in that party’s count. If the caucus decisions of members of the Senate or House elected as independents cannot be determined on the date of the election, this market may remain open until the earlier of (i) an announcement from the relevant members of their intents to caucus, or (ii) January 4th, 11:59 PM ET of the following calendar year. If no such announcement is made by January 4th, 11:59 PM ET of the following calendar year, the member will not count towards the seat count of any party.\n\nThe resolution sources for this market will be official information from relevant state electoral authorities, the United States Congress, and a consensus of credible reporting.",
+  "resolutionSource": "",
+  "config": {
+    "schemaVersion": "1",
+    "configVersion": "monad-integrated-demo-1",
+    "key": "live-562831",
+    "category": "politics",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "32228",
+      "externalMarketId": "562831",
+      "conditionId": "0xc5eae79d1ffe716572353962eb926b1e3964c500a4880a7a94f58408218ee76b",
+      "outcomeTokenId": "103704141773947678931823410030956181918562062788486034785782641603149828893320",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "authentic-vendor-ms-floor-diagnostic",
+      "quantityPolicyId": "claims-floor-total-diagnostic",
+      "quotePolicyId": "before-fee-vwap-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": "1793768340",
+    "poll": {
+      "intervalMs": 1000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 2000000
+    }
+  },
+  "rules": {
+    "schemaVersion": "1",
+    "venue": "polymarket",
+    "eventId": "32228",
+    "externalMarketId": "562831",
+    "conditionId": "0xc5eae79d1ffe716572353962eb926b1e3964c500a4880a7a94f58408218ee76b",
+    "outcomeTokenId": "103704141773947678931823410030956181918562062788486034785782641603149828893320",
+    "outcomeLabel": "Yes",
+    "marketId": "0x1fd0566d710373a851f2f7d44e7f9dc85e3b11ce4e843c33558471e0a34c1a2f",
+    "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+    "erosRulesHash": "0xbe7a3233ad5eb9a6f811d2f1d822bc68453221d4f5b18a2a307871e2fe9749a9",
+    "externalRulesDigest": "0xb1dc55f85b1a8ddeaf15372cd7351d32cbf4bdcf0467c7213eafec393dda0b43",
+    "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+    "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+    "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+    "failurePolicyHash": "0x0fa1db1edbc336046ff5259520ba63997b7a0493671fbb3b9047d6dbe755ac0d",
+    "scheduledT": "1793768340",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+  },
+  "preparedAtMs": "1791310062511",
+  "productionApproved": false,
+  "calibration": "SYNTHETIC_TEST_RISK_PARAMETERS_NOT_EMPIRICAL",
+  "namedOutcomeReview": {
+    "marketId": "562831",
+    "label": "Republicans Sweep",
+    "negativeRisk": true,
+    "eventAugmented": false,
+    "scope": "Exact named binary YES-token order book and eventual finalized binary payout only; no outcome conversions, Other or placeholders.",
+    "reference": "https://docs.polymarket.com/concepts/negative-risk"
+  },
+  "indexSigner": "0xF91F2BC01E971ae420869663B9727B717fF9cDE2",
+  "erosRulesHash": "0xbe7a3233ad5eb9a6f811d2f1d822bc68453221d4f5b18a2a307871e2fe9749a9",
+  "resolution": {
+    "provider": "Polymarket Gamma",
+    "yesIndex": 0,
+    "statusRequired": "resolved",
+    "fractionalPayout": "review/invalid; no L1 binary report"
+  },
+  "deploymentRevision": "mark-continuity-v3"
+}

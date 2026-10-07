@@ -52,8 +52,12 @@ function useSticky<T extends { data: unknown }>(q: T, scope = "public"): T {
 
 export function useMarket(engine: Address, block: bigint | undefined) {
   return useSticky(useQuery({
-    queryKey: ["market", engine, block?.toString()],
+    // Keep one in-flight read per market. A new head must not abandon a slower
+    // snapshot and start another overlapping request that never reaches the UI.
+    queryKey: ["market", engine],
     enabled: block !== undefined,
+    refetchInterval: 4000,
+    staleTime: 3500,
     queryFn: async () => canonicalRead(block!, async () => {
       const c = { address: engine, abi: engineAbi } as const;
       const [
@@ -110,8 +114,10 @@ export type MarketSnapshot = NonNullable<ReturnType<typeof useMarket>["data"]>;
 
 export function useTrader(engine: Address, owner: Address | undefined, block: bigint | undefined) {
   return useSticky(useQuery({
-    queryKey: ["trader", engine, owner, block?.toString()],
+    queryKey: ["trader", engine, owner],
     enabled: !!owner && block !== undefined,
+    refetchInterval: 4000,
+    staleTime: 3500,
     queryFn: async () => canonicalRead(block!, async () => {
       const assets = await readAssets(engine, block!);
       const [traderId, free, wallet, allowance] = await client.multicall({
@@ -151,8 +157,10 @@ export function useLadder(engine: Address, block: bigint | undefined, bestBid: n
 export function ladderOptions(engine: Address, block: bigint | undefined, bestBid: number, bestAsk: number, span = 30) {
   const empty = bestBid === 0 && bestAsk === 0;
   return {
-    queryKey: ["ladder", engine, block?.toString(), bestBid, bestAsk, span],
+    queryKey: ["ladder", engine, bestBid, bestAsk, span],
     enabled: block !== undefined,
+    refetchInterval: 4000,
+    staleTime: 3500,
     queryFn: async (): Promise<Level[]> => {
       if (empty) return [];
       return canonicalRead(block!, async () => {

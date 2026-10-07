@@ -1,0 +1,40 @@
+Compiling 1 files with Solc 0.8.30
+Solc 0.8.30 finished in 8.56s
+Compiler run successful with warnings:
+Warning (2018): Function state mutability can be restricted to view
+  --> test/integration/BookDepthSampler.t.sol:68:5:
+   |
+68 |     function _assertPerpRecord(uint64 capturedAt, bool expectedValid) internal {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Ran 26 tests for test/integration/BookDepthSampler.t.sol:BookDepthSamplerTest
+[PASS] testAuditIndexCorrectionStillInvalidatesWhenBookAlsoMutates() (gas: 135421458)
+[PASS] testAuditStableThinDepthEndsCarryBeforeThirtySecondExpiry() (gas: 135421493)
+[PASS] testCanonicalIdExistsBeforeFirstBookAction() (gas: 15681)
+[PASS] testColdStartupPlacesMatchesAndCancelsBeforePerpWarmup() (gas: 12512227)
+[PASS] testDelayedIndexBackfillBeforeSealInvalidatesCapture() (gas: 12110326)
+[PASS] testDepthUsesExactNMultiLevelNotionalNotBestLevelOrLastTick() (gas: 13468729)
+[PASS] testDirtyQueueConsumesAll64StepsWithoutCounting65thNode() (gas: 50984874)
+[PASS] testEpochRequoteDoesNotEraseSealedPriceHistory() (gas: 395967903)
+[PASS] testExpiredAndCancelledOrdersNeverCountAsDepth() (gas: 11340419)
+[PASS] testIneligibleMakerCannotContributeDisplayedDepth() (gas: 40550302)
+[PASS] testLaterIndexSamplesDoNotStarvePriorBlockPromotion() (gas: 11773324)
+[PASS] testLaterInvalidIndexCannotPublishThroughUnavailableCurrentWindow() (gas: 11510046)
+[PASS] testMutationOnEitherSideInvalidatesPendingCapture() (gas: 14144133)
+[PASS] testNormalPricingNeedsAllWindowsAndEpochThenThinBookFallsBack() (gas: 394708340)
+[PASS] testPendingAccountTopupAndHaltCannotReuseOldCapture() (gas: 12176519)
+[PASS] testPendingFloorInvalidationExcludesOldDepthBeforeFirstBookAction() (gas: 41158228)
+[PASS] testPromotionRetainsOriginalCaptureTimeAndCannotLaunderExpiry() (gas: 12118546)
+[PASS] testReduceOnlyLiquidityIsExcludedRatherThanDoubleCounted() (gas: 12276718)
+[PASS] testRejectedCapturesCannotExtendLastAcceptedPriceLifetime() (gas: 140206964)
+[PASS] testRejectedUnsealedCaptureDoesNotEraseSealedPriceHistoryAfterFill() (gas: 137066641)
+[PASS] testRevisedCaptureTimeIndexCheckpointRejectsPromotion() (gas: 11493911)
+[PASS] testSameBlockCannotPublishItsCapturedDepth() (gas: 11847318)
+[PASS] testSealedPublicationRejectsAuthenticatedCaptureTimeCorrection() (gas: 12176524)
+[PASS] testThreeLotImpactBidFloorsAndAskCeils() (gas: 43093954)
+[PASS] testUnsealedCaptureWaitsWithoutPublishingOrChangingItsTimestamp() (gas: 12924346)
+[PASS] testWaitingCaptureExpiresRatherThanRenewingObservationTime() (gas: 11873536)
+Suite result: ok. 26 passed; 0 failed; 0 skipped; finished in 603.12ms (2.31s CPU time)
+
+Ran 1 test suite in 608.71ms (603.12ms CPU time): 26 tests passed, 0 failed, 0 skipped (26 total tests)

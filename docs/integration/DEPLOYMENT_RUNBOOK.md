@@ -45,6 +45,22 @@ Required input fields:
 
 The input must name wallets with the required onchain roles and enough collateral. No collateral is minted by preparation or rehearsal. A nonzero seed and explicit profile are mandatory above 1x. The registry's configured providers, bond rules, time bounds and available assertion funding must also admit the listing; sequential rehearsal verifies those contract guards. New markets using a 29-day schedule require sufficient `maxVoidSecs`; existing public testnet globals may require an explicit governed update. The tool does not silently relax these constraints.
 
+Check the treasury again for every additional listing: `ASSERTION` must cover
+`totalCommitted + bondAtCap`. The lifetime `maxPerMarket` allowance must cover
+the intended assertion attempts; returned bonds do not reset `fundedTotal`.
+Three full-cap attempts require three times the largest applicable bond, and
+covering repeated losses across markets requires additional assertion funding.
+`WATCHDOG_FLOAT` is a separate ledger and needs its own dispute funding.
+Funding transactions consume sender nonces; retain any unexecuted plan and
+prepare a fresh deployment plan afterward.
+
+After each confirmed public contract deployment, update the root
+[`addresses.md`](../../addresses.md) with its chain, address, transaction and
+deployment block. Record factory-created engines and vaults after verifying
+their bindings and runtime code. This file lists only the current V1 deployment;
+remove superseded addresses when switching deployments. Historical evidence stays
+in deployment artifacts. Never enter fork-only predicted addresses as deployed contracts.
+
 ```powershell
 python scripts/integration/preflight-integrated.py --config tmp/integrated-input.json --output tmp/integrated-unsigned.json
 ```

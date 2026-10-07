@@ -1,0 +1,29 @@
+{
+  "schedule": "0 */5 * * * *",
+  "httpTimeout": "8s",
+  "allowList": [
+    "v3.football.api-sports.io"
+  ],
+  "authSecrets": [
+    {
+      "authRef": "0x89845a896b85faa4a04eb539e6f4f6a5dc9adef6d80173a6fbfab33485dd9023",
+      "secretId": "SPORTSDATA_API_KEY",
+      "header": "x-apisports-key",
+      "prefix": ""
+    }
+  ],
+  "feed": {
+    "urlTemplate": "https://v3.football.api-sports.io/fixtures?id={id}",
+    "urlParam": "1528947",
+    "authRef": "0x89845a896b85faa4a04eb539e6f4f6a5dc9adef6d80173a6fbfab33485dd9023",
+    "finalPath": "erosFootball.status",
+    "finalValue": "FINAL_REGULATION_V1",
+    "valuePath": "erosFootball.winner",
+    "valueType": 0,
+    "decimals": 0,
+    "op": 0,
+    "target": "football-regulation-v1:1528947:5:2026:771:1104:1791225900:HOME",
+    "bufferSecs": 7200,
+    "l1TimeoutSecs": 21600
+  }
+}

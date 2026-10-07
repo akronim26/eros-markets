@@ -1,6 +1,7 @@
 // Node-mode fetch shared by both workflows. It has no package imports: each workflow has its own node_modules, so
 // the caller passes in its own SDK `text` and keccak.
 import { evaluateResponse, type FeedSpec, MAX_BODY_BYTES } from './index'
+import { sportsCompanionUrl } from './sports'
 
 export const ZERO32 = `0x${'00'.repeat(32)}`
 
@@ -43,7 +44,15 @@ export const nodeFetch =
         .result()
       const bodyBytes = resp.body.length
       if (bodyBytes > MAX_BODY_BYTES) return 'ERROR|' + ZERO32 + '|BODY_TOO_LARGE'
-      const ev = evaluateResponse(spec, resp.statusCode, deps.text(resp), bodyBytes)
+      let ev = evaluateResponse(spec, resp.statusCode, deps.text(resp), bodyBytes)
+      if (ev.code === 'SPORTS_CLASSIFICATION_REQUIRED') {
+        const companionUrl = sportsCompanionUrl(spec)
+        if (!companionUrl) return 'ERROR|' + ZERO32 + '|SPORTS_SPEC_INVALID'
+        const other = sendRequester.sendRequest({ url: companionUrl, method: 'GET', multiHeaders, timeout, cacheSettings: { store: false } }).result()
+        if (other.body.length > MAX_BODY_BYTES) return 'ERROR|' + ZERO32 + '|BODY_TOO_LARGE'
+        ev = evaluateResponse(spec, resp.statusCode, deps.text(resp), bodyBytes,
+          { statusCode: other.statusCode, body: deps.text(other), bodyBytes: other.body.length })
+      }
       const vh = ev.status === 'YES' || ev.status === 'NO' ? deps.hashLexeme(ev.valueLexeme) : ZERO32
       return `${ev.status}|${vh}|${ev.code}`
     } catch {

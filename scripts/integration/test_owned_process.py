@@ -7,7 +7,7 @@ import sys
 import tempfile
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 spec = importlib.util.spec_from_file_location("owned_process", Path(__file__).with_name("owned_process.py"))
 owned = importlib.util.module_from_spec(spec)
@@ -51,7 +51,13 @@ def alive(pid):
         finally:
             _winapi.CloseHandle(handle)
     try:
-        return Path(f"/proc/{pid}/stat").read_text().rsplit(") ", 1)[1].split()[0] != "Z"
+        if Path("/proc").is_dir():
+            return Path(f"/proc/{pid}/stat").read_text().rsplit(") ", 1)[1].split()[0] != "Z"
+        result = subprocess.run(["ps", "-p", str(pid), "-o", "stat="], capture_output=True, text=True, timeout=1)
+        if result.returncode == 1 and not result.stdout.strip():
+            return False
+        result.check_returncode()
+        return any(not status.startswith("Z") for status in result.stdout.split())
     except FileNotFoundError:
         return False
 
@@ -150,6 +156,56 @@ class OwnedProcessTests(unittest.TestCase):
             owned.OwnedProcess([str(self.directory / "missing-executable")], stdout=self.output)
         if os.name == "nt":
             self.assertTrue(caught.exception.owned_process_cleanup["stopped"])
+
+    @unittest.skipIf(os.name == "nt", "POSIX process-group enumeration")
+    def test_nonproc_group_containing_only_zombies_is_stopped_without_signal_probe(self):
+        process = owned.OwnedProcess.__new__(owned.OwnedProcess)
+        process.pid = 1234
+        process.returncode = None
+        process._process = Mock()
+        process._process.poll.return_value = 0
+        listing = subprocess.CompletedProcess([], 0, "1234 1234 Z\n1235 1234 Z+\n9999 9999 S\n", "")
+        with patch.object(owned.Path, "is_dir", return_value=False), \
+                patch.object(owned.subprocess, "run", return_value=listing), \
+                patch.object(owned.os, "killpg", side_effect=PermissionError("zombie group probe")) as kill:
+            self.assertEqual(process._posix_live_members(), [])
+        process._process.poll.assert_called_once()
+        self.assertEqual(process.returncode, 0)
+        kill.assert_not_called()
+
+    @unittest.skipIf(os.name == "nt", "POSIX process-group enumeration")
+    def test_nonproc_enumeration_selects_only_exact_owned_group_and_non_zombies(self):
+        process = owned.OwnedProcess.__new__(owned.OwnedProcess)
+        process.pid = 1234
+        process.returncode = 0
+        listing = subprocess.CompletedProcess([], 0, "1234 1234 Z\n1235 1234 S+\n1236 1234 R\n1237 1234 ?\n12340 12340 S\n9999 9999 S\n0 0 ?\n", "")
+        with patch.object(owned.Path, "is_dir", return_value=False), \
+                patch.object(owned.subprocess, "run", return_value=listing) as run, \
+                patch.object(owned.os, "killpg") as kill:
+            self.assertEqual(process._posix_live_members(), [1235, 1236, 1237])
+        self.assertEqual(run.call_args.args[0], ["ps", "-axo", "pid=,pgid=,stat="])
+        kill.assert_not_called()
+
+    @unittest.skipIf(os.name == "nt", "POSIX process-group enumeration")
+    def test_nonproc_enumeration_errors_do_not_claim_no_live_members(self):
+        process = owned.OwnedProcess.__new__(owned.OwnedProcess)
+        process.pid = 1234
+        process.returncode = 0
+        responses = [
+            subprocess.CalledProcessError(1, ["ps"]),
+            subprocess.TimeoutExpired(["ps"], 1),
+            subprocess.CompletedProcess([], 0, "1234 unknown S\n", ""),
+            subprocess.CompletedProcess([], 0, "", ""),
+        ]
+        for response in responses:
+            with self.subTest(response=response), \
+                    patch.object(owned.Path, "is_dir", return_value=False), \
+                    patch.object(owned.subprocess, "run", side_effect=response if isinstance(response, Exception) else None,
+                                 return_value=response), \
+                    patch.object(owned.os, "killpg") as kill:
+                with self.assertRaises((OSError, subprocess.SubprocessError)):
+                    process._posix_live_members()
+                kill.assert_not_called()
 
     @unittest.skipUnless(os.name == "nt", "Windows native job assignment")
     def test_assignment_failure_kills_suspended_child_before_any_user_code_runs(self):

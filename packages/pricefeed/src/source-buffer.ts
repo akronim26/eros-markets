@@ -27,6 +27,13 @@ export class SourceSnapshotBuffer {
     if(this.failure)throw this.failure;
     return this.latest&&this.latestRevision===(this.worker.refresh?.resyncRevision??0)?structuredClone(this.latest):null;
   }
+  snapshotAfter(observedAt:bigint|null):PollResult|null {
+    const latest=this.snapshot();
+    if(latest&&observedAt!==null&&latest.inspection.status!=='QUARANTINED'
+      &&(!latest.inspection.time||latest.inspection.time.observedAt<=observedAt))
+      return {...latest,inspection:{...latest.inspection,status:'DEGRADED',reason:'WAITING_FOR_SOURCE_AFTER_BOOK_SAMPLE'}};
+    return latest;
+  }
   publicationReady():boolean {
     if(this.failure)throw this.failure;
     return this.latest!==null&&this.latestRevision===(this.worker.refresh?.resyncRevision??0)

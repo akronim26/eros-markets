@@ -103,7 +103,9 @@ export class Worker {
           ?this.eventCapture!.receivedAtMs:this.metadataCapture!.receivedAtMs;
         inspection=inspectSnapshot(this.config,book.data,book.receivedAtMs,this.lastSourceMs,this.metadata!,metadataAt,this.rulesDigest??undefined);
         if(this.rulesDigest===null)this.rulesDigest=this.metadata!.rulesDigest;
-        if(inspection.time?.monotone)this.lastSourceMs=inspection.time.sourceMs;
+        // A future timestamp is rejected evidence, never an ordering baseline:
+        // persisting it would quarantine the next correctly timed source forever.
+        if(inspection.time?.monotone&&inspection.time.sourceAgeMs>=0n)this.lastSourceMs=inspection.time.sourceMs;
         if(inspection.status==='QUARANTINED')this.quarantined=inspection.reason;
       }
     }catch(error){

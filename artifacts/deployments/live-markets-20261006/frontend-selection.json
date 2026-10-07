@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "verifiedAt": {
+    "blockNumber": "68775595",
+    "blockHash": "0xd8856f999c317048f129dac7cc531cdc791c0e2d2ce8725ae66d34a807ddbcc4"
+  },
+  "deployments": [
+    "artifacts/deployments/monad-testnet-20261006-democratic-senate-v2",
+    "artifacts/deployments/monad-testnet-20261006-republican-control-v2"
+  ],
+  "active": [
+    "0xE97032806ffe4009A70Af7e31a17D07459630c74",
+    "0xa832bF72adFcCCCcD52Ef055FB4c314eCb773bD8"
+  ],
+  "archived": [
+    "0xcDf0EA81497895155E2911443f46157c00F965Db",
+    "0xC16a9334289dA785BAfd652360F6EA67dE3c0AfE",
+    "0x66f0e2129184c770e7BD2C1F5B89A1E9735a167B"
+  ]
+}

@@ -42,7 +42,7 @@ async function main():Promise<void> {
     'quote-monad-gas':['--rpc-env','--config','--rules','--abi','--keys-dir','--journal-dir','--policy'],
     'plan-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--old-policy','--new-policy','--transition-id','--reason'],
     'apply-monad-budget':['--rpc-env','--config','--abi','--journal-dir','--plan','--plan-sha256'],
-    'recover-monad-nonce':['--rpc-env','--config','--abi','--journal-dir','--keys-dir','--policy','--nonce','--original-hash','--max-cost-wei','--wait-ms'],
+    'recover-monad-nonce':['--rpc-env','--config','--abi','--journal-dir','--keys-dir','--policy','--nonce','--original-hash','--max-cost-wei','--wait-ms','--allow-attempted'],
     'discover-markets':['--category','--tag-slug','--page-size','--max-pages']};
   if(!Object.hasOwn(allowed,command))throw new Error('UNKNOWN_COMMAND');
   for(const key of options.keys())if(!allowed[command]!.includes(key))throw new Error('UNSUPPORTED_OPTION');
@@ -59,13 +59,15 @@ async function main():Promise<void> {
     console.log(json(await discoverMarkets(provider,discovery)));return;
   }
   if(command==='recover-monad-nonce'){
+    const attempted=options.get('--allow-attempted');
+    if(attempted!==undefined&&!['true','false'].includes(attempted))throw new Error('BAD_NONCE_RECOVERY_LIMIT');
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
     const integer=(key:string)=>{const v=need(key);if(!/^(0|[1-9]\d*)$/.test(v))throw new Error('BAD_NONCE_RECOVERY_LIMIT');return BigInt(v);};
     const originalHash=need('--original-hash');if(!/^0x[\da-fA-F]{64}$/.test(originalHash))throw new Error('BAD_NONCE_RECOVERY_LIMIT');
     const result=await recoverMonadNonce({rpcUrl,config:parseConfig(read(need('--config'))),abi:read(need('--abi')),
       journalDirectory:need('--journal-dir'),keysDirectory:need('--keys-dir'),policy:read(need('--policy')),
-      nonce:integer('--nonce'),originalHash:originalHash as `0x${string}`,maxCostWei:integer('--max-cost-wei'),waitMs:Number(integer('--wait-ms'))});
+      nonce:integer('--nonce'),originalHash:originalHash as `0x${string}`,maxCostWei:integer('--max-cost-wei'),waitMs:Number(integer('--wait-ms')),allowAttempted:attempted==='true'});
     console.log(json(result));if(result.status!=='FINALIZED')process.exitCode=2;return;
   }
   if(command==='plan-monad-budget'||command==='apply-monad-budget'){

@@ -2,7 +2,7 @@ import { parseAbiItem, type Address, type Hex } from "viem";
 import { LOG_BLOCK_CAP } from "@/config/chain";
 import { client } from "./public-client";
 
-export type Point = { t: number; v: number; block: bigint };
+export type Point = { t: number; v: number; block: bigint; valid?: boolean };
 export type Trade = { t: number; tick: number; size: bigint; block: bigint; tx: Hex };
 export type LiveSeries = { index: Point[]; perp: Point[]; trades: Trade[]; since?: bigint; cursor?: bigint; cursorHash?: Hex; error?: string };
 export const emptySeries = (): LiveSeries => ({ index: [], perp: [], trades: [] });
@@ -28,8 +28,8 @@ export async function readLiveSeries(engine: Address, head: bigint, previous: Li
   if ((await client.getBlock({ blockNumber: to })).hash !== anchor.hash) throw new Error("Chain reorganized during log read; refreshing");
   return {
     cursor: to, cursorHash: anchor.hash, since: reset ? from : previous.since ?? from,
-    index: [...(reset ? [] : previous.index.filter((p) => p.block < from)), ...obs.filter((l) => l.args.depthValid).map((l) => ({ t: Number(l.args.observedAt), v: Number(l.args.priceWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
-    perp: [...(reset ? [] : previous.perp.filter((p) => p.block < from)), ...perp.filter((l) => l.args.valid).map((l) => ({ t: Number(l.args.t), v: Number(l.args.midWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
+    index: [...(reset ? [] : previous.index.filter((p) => p.block < from)), ...obs.map((l) => ({ valid: l.args.depthValid, t: Number(l.args.observedAt), v: Number(l.args.priceWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
+    perp: [...(reset ? [] : previous.perp.filter((p) => p.block < from)), ...perp.map((l) => ({ valid: l.args.valid, t: Number(l.args.t), v: Number(l.args.midWad! / 10n ** 12n) / 1e6, block: l.blockNumber! }))].slice(-2000),
     trades: [...(reset ? [] : previous.trades.filter((p) => p.block < from)), ...fills.map((l) => ({ t: timestamps.get(l.blockNumber!)!, tick: l.args.tick!, size: l.args.size!, block: l.blockNumber!, tx: l.transactionHash! }))].slice(-500),
   };
 }

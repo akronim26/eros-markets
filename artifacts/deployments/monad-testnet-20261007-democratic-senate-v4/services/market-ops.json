@@ -1,0 +1,20 @@
+{
+  "chainId": 10143,
+  "engine": "0x21f038E4Ab2c67d1420567401408aD093aFd5F5d",
+  "engineCodeHash": "0x8e5be844bf42c56943c6f2355461f0c8cf80a11491d098cf8316a5f0251a5c96",
+  "listingHash": "0xf9b272c4d59203868361db0404a36c372daf372aa7554f3c97b6800ac6ac8805",
+  "marketId": "0x8b8bc4869d071dc4c802f511ccffed9175ca512a51a0c4fdbd8b74cdfba299b5",
+  "oracle": "0x2085DaD31c8Ee03025DD07a4EdC103401d493D87",
+  "oracleCodeHash": "0x6d7419951427ead58bbcdaa4ac957cb6c42f5b6259f1385d3646aaa58d5d036c",
+  "sender": "0x39c7bdbE3e90A50Fe9729419Dd494C5776c35667",
+  "rolloverHelper": {
+    "address": "0x65430A9B4863545AFE736941c8B89a467f96e87e",
+    "codeHash": "0x9d4c9e5216ee5b5883f983e011ffc6f6c25d0b4a8c362115eef6b478e9e0abfd",
+    "maxPages": 32,
+    "gasCeiling": 30000000
+  },
+  "sampleEveryBlocks": "30",
+  "gas": {
+    "samplePerp": 303273
+  }
+}

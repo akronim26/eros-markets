@@ -1,0 +1,102 @@
+{
+  "schema": "eros-local-validation/1",
+  "at": "2026-10-07T05:15:26.228624+00:00",
+  "status": "local-validation-complete-public-validation-incomplete-services-stopped-by-user",
+  "publicChainId": 10143,
+  "selectedPublicRevision": "v4-deployment-attempt; V1 protocol",
+  "v4Broadcast": true,
+  "riskContracts": {
+    "passed": 849,
+    "failed": 0,
+    "skipped": 0
+  },
+  "oracleContracts": {
+    "passed": 342,
+    "failed": 0,
+    "skipped": 0
+  },
+  "oracleMonad": {
+    "passed": 82,
+    "failed": 0,
+    "skipped": 0
+  },
+  "frontend": {
+    "unitPassed": 58,
+    "integrationPassed": 28,
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "chromeLayouts": "passed: light/dark at 320/768/1024/1440; range/keyboard/order-book controls",
+    "currentPublicChrome": "Both current markets visible; no page errors, missing assets or horizontal overflow at1440px"
+  },
+  "public5xFills": "unverified",
+  "sourceHashes": {
+    "contracts/src/engine/BookRiskEngine.sol": "d474ed5dc1b77a90abb581a467bc2c3f4c12e0ed35f83fbbcf5dd03af3603d12",
+    "contracts/test/integration/BookDepthSampler.t.sol": "8d020ed6cfc0af4e9fd9bd4da6aa9799563f47a1b79c8588fffd4658eae274b1",
+    "oracle/e2e/src/fresh-testnet.ts": "31d1d83a1b3657f6e1a0d34dce916a4900b697314719f45088a6029ef3b619a1",
+    "scripts/e2e/market-services.ts": "f4e3d2a9ddc6d1d01c390dd9d507a143a42fe10793cb29609f3f51d1e1a754aa",
+    "scripts/e2e/keeper-gas-policy.mjs": "e99bf7a85172fe667e49abdf8f5fe6be87efb7075e679d768b874262374f3fa5",
+    "scripts/e2e/live-trader.ts": "18c398f5985e43dfac124b2cf27a77c35a47ba3dddfd1ede13f90d97e3ec9958",
+    "frontend/src/components/price-axis.tsx": "38693ccd426f8580232f5a7048a812fbddbd22328962e9686e6d5aec89bfb127",
+    "frontend/src/components/ticket.tsx": "9fb77f1f0eb473943281a2aa05dbafc2d1f5ee0bbe427952ff901b6244b4cfd3",
+    "frontend/src/lib/tx.ts": "d8cfbe74901c9cb5d2811d25bd06f7a7ef448db6e49323459bb7ffc4f57b1b00",
+    "frontend/src/server/trade.ts": "b6375b409d2eb07ff27942811adbdfe27e2a57292f6fea05fd0646248b87677e"
+  },
+  "notes": [
+    "Test totals overlap and must not be summed.",
+    "No zero-defect or public-readiness guarantee.",
+    "The first isolated CI replica lacked Python and the committed ABI fixture; that failed run is retained. The corrected replica passed."
+  ],
+  "fullLocalBackendLifecycle": "passed on final publisher source/dist and contract artifacts",
+  "fullLocalBrowserLifecycle": "passed on final current-market frontend sources",
+  "browserEvidence": "browser-e2e.json",
+  "ci": {
+    "keeperWrapperPassed": 7,
+    "nodeWrapperPassed": 33,
+    "pricefeedCleanLinux": {
+      "passed": 466,
+      "failed": 0,
+      "skipped": 0,
+      "wrapperPassed": 33,
+      "pythonContainer": "3.11.2",
+      "pythonGithubPinned": "3.12",
+      "node": "24.21.0"
+    },
+    "github": "not-run; not pushed",
+    "workflowSha256": {
+      ".github/workflows/pricefeed.yml": "59f6b7389a22695ad2b6e4cd1d856d6b2dba29ebbb1251b4abcf600a8b4ab4c2",
+      ".github/workflows/oracle.yml": "e59603f368c9509eb3e907fc9dab28b9114d097d9c166a39aaaa5a44aced81c1"
+    },
+    "pricefeedLatencyFollowup": {
+      "passed": 474,
+      "failed": 0,
+      "skipped": 0,
+      "workspaceBuild": "passed",
+      "independentReview": "approved",
+      "evidence": "../protocol-audit-20261007/latency-verification.json"
+    }
+  },
+  "publicDeploymentBlockers": [
+    "Continuous public INDEX/MARK validation incomplete; all local services stopped by user",
+    "Actual public 5x round trips pending",
+    "Latest frontend historical-versus-fresh price status follow-up unfinished"
+  ],
+  "sourceQualification": "selected-source-qualification.json",
+  "funding": {
+    "topUpConfirmed": true,
+    "deployerBalanceMon": "40.374020727999727",
+    "replacementGasReservedAt102GweiMon": "9.885062454",
+    "initialRuntimeFundingMon": "18",
+    "newTestOwnersFundingMon": "4",
+    "scope": "Initial budget snapshot; v4 factory and first market deployed. Actual cost recorded in canonical receipts."
+  },
+  "v4Factory": "verified and governance-authorized",
+  "v4Markets": "both deployed, activated and selected in rebuilt frontend",
+  "shutdown": {
+    "requestedBy": "user",
+    "allLocalProjectServicesStopped": true,
+    "automaticRestartScheduled": false,
+    "journalsPreserved": true,
+    "public5xFills": "unverified",
+    "markContinuity": "unverified"
+  }
+}

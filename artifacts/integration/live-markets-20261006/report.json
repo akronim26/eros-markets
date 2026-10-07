@@ -1,0 +1,246 @@
+{
+  "schema": "eros-live-market-proof/1",
+  "reportedAt": "2026-10-06T20:23:44.888661+00:00",
+  "scope": "Monad testnet; local services; real Polymarket source; synthetic risk calibration and test collateral",
+  "completePublicReadiness": false,
+  "markets": [
+    {
+      "name": "democratic-senate",
+      "engine": "0xE97032806ffe4009A70Af7e31a17D07459630c74",
+      "marketId": "0x0e4a6cc0b204c1944eebb883efc96f12cfa049142295d332dea8bf137d7e7f16",
+      "sourceId": "0xd3b19d4014aa540ecb42abc305df55d279ae5f72c0ef9184968e63ee25f4de44",
+      "publicDeploymentPassed": true,
+      "deploymentTransactions": 7,
+      "deploymentCeiling": "5",
+      "capacity": {
+        "oiCapLots": "10000000",
+        "depthNLots": "1000000",
+        "samplingHeadroomLots": "9000000"
+      },
+      "latestRead": {
+        "at": "2026-10-06T20:23:34.237Z",
+        "block": "68779081",
+        "indexAvailable": false,
+        "indexWad": "0",
+        "markAvailable": false,
+        "directionalCaps": [
+          "1",
+          "1"
+        ],
+        "sourceAgeSeconds": "18",
+        "indexWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "296",
+          "integral": "190920000000000000000"
+        },
+        "perpWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "28",
+          "integral": "18060000000000000000"
+        },
+        "basisWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "242",
+          "integral": "0"
+        }
+      }
+    },
+    {
+      "name": "republican-control",
+      "engine": "0xa832bF72adFcCCCcD52Ef055FB4c314eCb773bD8",
+      "marketId": "0xdbb9208130b573a20574d02c529dd8f0508e167cff11bf8b08887a348291daed",
+      "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+      "publicDeploymentPassed": true,
+      "deploymentTransactions": 7,
+      "deploymentCeiling": "5",
+      "capacity": {
+        "oiCapLots": "10000000",
+        "depthNLots": "1000000",
+        "samplingHeadroomLots": "9000000"
+      },
+      "latestRead": {
+        "at": "2026-10-06T20:23:33.622Z",
+        "block": "68779077",
+        "indexAvailable": false,
+        "indexWad": "0",
+        "markAvailable": false,
+        "directionalCaps": [
+          "1",
+          "1"
+        ],
+        "sourceAgeSeconds": "19",
+        "indexWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "299",
+          "integral": "25415000000000000000"
+        },
+        "perpWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "0",
+          "integral": "0"
+        },
+        "basisWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "307",
+          "integral": "0"
+        }
+      }
+    }
+  ],
+  "frontendPrices": {
+    "passed": true,
+    "checkedAt": "2026-10-06T20:21:50.399Z",
+    "checks": [
+      {
+        "market": "democratic-senate",
+        "engine": "0xE97032806ffe4009A70Af7e31a17D07459630c74",
+        "tableIndex": "0.645",
+        "terminalIndex": "0.645",
+        "at": "2026-10-06T20:21:46.333Z"
+      },
+      {
+        "market": "republican-control",
+        "engine": "0xa832bF72adFcCCCcD52Ef055FB4c314eCb773bD8",
+        "tableIndex": "0.085",
+        "terminalIndex": "0.085",
+        "at": "2026-10-06T20:21:50.399Z"
+      }
+    ],
+    "errors": [],
+    "scope": "Rendered INDEX fields in Chrome; mark availability and leveraged fills are separate checks."
+  },
+  "frontendSearch": {
+    "passed": true,
+    "checkedAt": "2026-10-06T20:07:28.103Z",
+    "checks": [
+      "case insensitive multiple-word search",
+      "empty state and clear focus",
+      "category, source and Escape reset",
+      "light and dark themes at 320, 768, 1024 and 1440px",
+      "filtered market opens its own terminal"
+    ],
+    "errors": []
+  },
+  "ownerFlow": {
+    "passed": true,
+    "owner": "0x09f3b504a4D79B4e89F4D9FA736F23A602877c64",
+    "engine": "0xE97032806ffe4009A70Af7e31a17D07459630c74",
+    "fullyBacked": true,
+    "phases": [
+      {
+        "phase": "gas",
+        "hashes": [
+          "0xac84be9a736ea1abf8c4d5ed5de0fd6e6b452ba314e00a31de753014e2dca882"
+        ],
+        "block": "68775893",
+        "blockHash": "0x2aaa1a7fe6c32581a0879b95a2a8a64ee84598c2f33aea407e57e9934e5be2e3"
+      },
+      {
+        "phase": "funding",
+        "hashes": [
+          "0x72236d571bb21ecd6529a2641e92ee6a5272db32a7e0319a6a192a67bc479888",
+          "0x0ad7f1f818cfc9d1a64c664a2d8bdc32e10aeb22eb1a90b0294731d4dbf26d5a",
+          "0x1fbab618a8419b079aa72ec0491ebd4ca4b9677757a857323bca56bbd679a7ac",
+          "0x62ffe17890ec6977962335118aa52d14eae7e12c0a250c06bb007d5a38ad59cc"
+        ],
+        "block": "68776078",
+        "blockHash": "0x6f18f89eebd98fff0900138783da17295b37031a03225ef8a7f9a7e887f3f6c2"
+      },
+      {
+        "phase": "buy",
+        "hashes": [
+          "0x577c6ff0dc1061d48cd08a6b5ad8b9263b3f19ce67dee464251b1029e23dc0dc"
+        ],
+        "block": "68776350",
+        "blockHash": "0x21ccd410a295b1188b09253287b58244f556ae6472162ebaf6f5e2a7dd9fa9f9"
+      },
+      {
+        "phase": "close",
+        "hashes": [
+          "0x3db7eab44171363f5e6d94a07e6e3f2f2ed85aa02434e4745252b37b52f7f489"
+        ],
+        "block": "68776625",
+        "blockHash": "0xb267b61006ec771bd39260dae19351fbac337eca6f1fb046cd8b8dffd726ccbd"
+      },
+      {
+        "phase": "release",
+        "hashes": [
+          "0x653cbd17f0ff67a7028dcd6f5111f044da369d90ba7edf8031241f5e33ccbb10"
+        ],
+        "block": "68778620",
+        "blockHash": "0x348f69554680e7fde81955145b88f6515d4b6490df80c39e925694648f7e718f"
+      },
+      {
+        "phase": "withdraw",
+        "hashes": [
+          "0x9a8df76d83169fbe44df0bf56aa61de93583e305b0bfd576ac96a5921a97f2cd"
+        ],
+        "block": "68778830",
+        "blockHash": "0x43187a213f37e023fe9fc1504a8ef237e61735594245fc164080ba0272ce5fa4"
+      }
+    ],
+    "finalPositionLots": "0",
+    "finalAllocatedCashQ": "8800000000000000000000000",
+    "finalFreeAtoms": "0",
+    "finalWalletAtoms": "11000000"
+  },
+  "postFillDepth": {
+    "passed": true,
+    "engine": "0xE97032806ffe4009A70Af7e31a17D07459630c74",
+    "block": "68776362",
+    "blockHash": "0x3049ff2fce9e84423fb325b78d81b5293c8783081adacbd6ec3b694d6afe5469",
+    "depth": {
+      "bidWad": "635000000000000000",
+      "askWad": "655000000000000000",
+      "bidDepthLots": "1000000",
+      "askDepthLots": "1000000",
+      "examined": 2,
+      "fingerprint": "0x7893f109f8cd1b1b6b268d206d84b6516f9fa9061b1cbbd19edf16222403a461"
+    },
+    "buyHash": "0x577c6ff0dc1061d48cd08a6b5ad8b9263b3f19ce67dee464251b1029e23dc0dc"
+  },
+  "postFillSample": {
+    "passed": true,
+    "engine": "0xE97032806ffe4009A70Af7e31a17D07459630c74",
+    "buyHash": "0x577c6ff0dc1061d48cd08a6b5ad8b9263b3f19ce67dee464251b1029e23dc0dc",
+    "sampleHash": "0xb4b65a4b41e58ccefd0dd144f3f8ae444f32ef1ea81e0279821bcf5f26176724",
+    "block": "68776613",
+    "blockHash": "0xdf7f289a0495a59f14a34f3831442b924ec35d106853d1da04a312b8e393356c",
+    "event": {
+      "t": "1791317453",
+      "midWad": "645000000000000000",
+      "valid": true,
+      "basisWad": "0",
+      "basisValid": true
+    },
+    "scope": "Canonical valid perp/basis observation after a real fill; full normal mark and leveraged fills remain separate."
+  },
+  "checks": {
+    "frontendProductionBuild": "passed",
+    "frontendIntegrationTests": 18,
+    "pricefeedRegressionTests": 68,
+    "marketOperationsTests": 49,
+    "capacityContractRegressions": 2,
+    "traderTypecheck": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "remaining": [
+    "Observe continuous normal mark availability and live directional caps after the completed epoch opening.",
+    "Execute and verify a real leveraged fill when admitted.",
+    "Move bounded local services to continuous hosting after testing.",
+    "Resolve the actual future event only when its authentic final outcome is available."
+  ],
+  "limitations": [
+    "Feed continuity has not passed an endurance gate; a publisher gas interruption and a short index coverage gap are retained in the logs.",
+    "The live owner round trip was fully backed; it does not certify a 5x fill.",
+    "The running normal-pricing observer is read-only and cannot certify a leveraged fill.",
+    "Previous deployments remain archived in the frontend for portfolio access.",
+    "No commit or push was made."
+  ]
+}

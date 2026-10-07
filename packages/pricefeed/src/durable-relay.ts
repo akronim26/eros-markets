@@ -196,7 +196,16 @@ export class DurableRelay {
       const ns=packetNamespace(d);let r=this.get(d,seq);
       if(r&&['UNKNOWN','ORPHANED','MINED','FINALIZED'].includes(r.state))r=await this.reconcileDelivery(cfg,seq);
       if(r&&['MINED','FINALIZED','REVERTED'].includes(r.state))return r;
-      const identity=await this.bounded(this.transport.identity(d));
+      const data=submitCalldata(packet.packet.observation,packet.signature);
+      // These reads are independent. Settle both before evaluating them in the
+      // original identity/sequence/freshness/simulation order; neither may reserve
+      // a nonce or sign, and retry recovery must still use the original hash.
+      const [identityResult,simulationResult]=await Promise.allSettled([
+        this.bounded(Promise.resolve().then(()=>this.transport.identity(d))),
+        this.bounded(Promise.resolve().then(()=>this.transport.simulate(d.engine,data,r?.request?.gas))),
+      ]);
+      if(identityResult.status==='rejected')throw identityResult.reason;
+      const identity=identityResult.value;
       if(identity.chainId!==this.profile.chainId||identity.engineCodeHash.toLowerCase()!==dest.engineCodeHash.toLowerCase()
         ||identity.abiHash.toLowerCase()!==dest.abiHash.toLowerCase()||identity.signer.toLowerCase()!==dest.signerAddress.toLowerCase()
         ||identity.rulesHash.toLowerCase()!==dest.sourceRulesHash.toLowerCase())throw new Error('RELAY_IDENTITY_MISMATCH');
@@ -223,19 +232,17 @@ export class DurableRelay {
       };
       requireFresh();
       if(r?.state==='QUARANTINED')throw new Error('RELAY_RECOVERY_REQUIRED');
-      const data=submitCalldata(packet.packet.observation,packet.signature);
       // A rejected simulation must not burn a shared-account nonce before signing.
-      let sizing:Awaited<ReturnType<LocalRelayTransport['simulate']>>;
-      try{sizing=await this.bounded(this.transport.simulate(d.engine,data,r?.request?.gas));}
-      catch(error){
+      if(simulationResult.status==='rejected'){
         // Inclusion between identity and simulation makes a valid retry revert
         // as a duplicate. Reconcile the original hash, with all receipt checks.
         if(r?.txHash){
           r=await this.reconcileDelivery(cfg,seq);
           if(['MINED','FINALIZED','REVERTED'].includes(r.state))return r;
         }
-        throw error;
+        throw simulationResult.reason;
       }
+      const sizing=simulationResult.value;
       if(this.policy.gasSafetyMarginBps!==undefined&&(!sizing||sizing.gasLimit>this.policy.gasCap
         ||sizing.estimatedGas<21000n||sizing.gasLimit<sizing.estimatedGas
         ||sizing.marginBps!==this.policy.gasSafetyMarginBps))throw new Error('MONAD_GAS_ESTIMATE_REQUIRED');
@@ -320,18 +327,28 @@ export class DurableRelay {
     const receipt=await this.bounded(this.transport.receipt(r.txHash));
     if(receipt){
       if(receipt.transactionHash.toLowerCase()!==r.txHash)throw new Error('RECEIPT_IDENTITY_MISMATCH');
-      const block=await this.bounded(this.transport.block(receipt.blockNumber));if(!block)return r;
+      // The receipt's canonical block and finalized head are independent reads.
+      // Settle both before inspecting them, preserving error priority and every
+      // identity/finality check while avoiding a serial RPC round trip.
+      const [blockRead,headRead]=await Promise.allSettled([
+        this.bounded(this.transport.block(receipt.blockNumber)),this.bounded(this.transport.head()),
+      ]);
+      if(blockRead.status==='rejected')throw blockRead.reason;
+      const block=blockRead.value;if(!block)return r;
       if(block.hash.toLowerCase()!==receipt.blockHash.toLowerCase())r={...r,state:'ORPHANED',reason:'NONCANONICAL_RECEIPT',accepted:null};
       else if(receipt.status==='reverted')r={...r,state:'REVERTED',reason:'TRANSACTION_REVERTED',accepted:null};
       else{
         const packet=this.packets.get(d,seq);if(!packet||packet.digest!==r.digest)throw new Error('DELIVERY_PACKET_MISMATCH');
         const accepted=validateReceipt(packet.packet,r.txHash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)});
-        const state=confirmationState(accepted,block.hash,await this.bounded(this.transport.head()),this.policy.confirmations);
+        if(headRead.status==='rejected')throw headRead.reason;
+        const state=confirmationState(accepted,block.hash,headRead.value,this.policy.confirmations);
         r={...r,state,accepted,reason:null};
       }
     }else if(r.accepted){
-      const block=await this.bounded(this.transport.block(r.accepted.blockNumber));
-      const state=confirmationState(r.accepted,block?.hash??null,await this.bounded(this.transport.head()),this.policy.confirmations);
+      const [block,head]=await Promise.all([
+        this.bounded(this.transport.block(r.accepted.blockNumber)),this.bounded(this.transport.head()),
+      ]);
+      const state=confirmationState(r.accepted,block?.hash??null,head,this.policy.confirmations);
       if(state==='ORPHANED')r={...r,state,accepted:null,reason:'ORPHANED_ACCEPTANCE'};
       // Missing receipt cannot newly establish finality even with a canonical block hash.
     }

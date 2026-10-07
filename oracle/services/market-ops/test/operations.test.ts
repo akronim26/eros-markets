@@ -72,6 +72,19 @@ function setup(configuration = manifest) {
 const sample = { action: 'sample' } as const
 const early = { action: 'early-check', incident: { incident: 'operator-confirmed-result-1', reason: fixedHex(9) } } as const
 
+test('pending receipt reads overlap identity verification but cannot finalize after an identity failure', async () => {
+  const { transport, store, operations } = setup()
+  await operations.tick(sample, true)
+  const before = structuredClone(store.journal)
+  let entered!: () => void
+  const receiptStarted = new Promise<void>(resolve => { entered = resolve })
+  transport.snapshot = async () => { await receiptStarted; throw new Error('Identity changed') }
+  transport.receipt = async () => { entered(); return { status: 'success', block: 101n, finalized: true } }
+  await expect(operations.tick(sample, true)).rejects.toThrow('Identity changed')
+  expect(store.journal).toEqual(before)
+  expect(transport.broadcasts).toHaveLength(1)
+})
+
 describe('measured bounded rollover batches', () => {
   const configuration: Manifest = { ...manifest, rolloverHelper: {
     address: '0x3333333333333333333333333333333333333333', codeHash: fixedHex(11), maxPages: 32, gasCeiling: 30_000_000,

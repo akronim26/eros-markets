@@ -17,6 +17,9 @@ import { rememberOrders } from "./orders";
 import { ensureDeployment } from "./deployment-check";
 import { finalizedOwnerReceipt } from "./finality";
 import { lockWalletTransaction } from "./transaction-lock";
+import { markets } from "@/config/deployment";
+import { DelegatedAttemptStore, assertAttemptBinding, confirmDelegatedAttempt, delegatedCall, recoverDelegatedAttempt, type DelegatedAttempt } from "./delegated-attempt";
+import { validateIntent } from "./delegated-intent";
 
 export type TxState =
   | { status: "idle" }
@@ -36,6 +39,8 @@ export function revertMessage(e: unknown): string {
 }
 
 type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string; account?: Address; chainId?: number; validate?: (block: bigint) => Promise<void> };
+const delegatedEngines = markets.map(m => m.engine.toLowerCase());
+const attempts = () => new DelegatedAttemptStore(window.sessionStorage, delegatedEngines, chain.id);
 
 /** preview → simulate → explicit gas (estimate × 1.10, Monad charges the limit) → send → receipt. */
 export function useTx() {
@@ -47,17 +52,34 @@ export function useTx() {
   const current = getSnapshot();
   const scope = `${current.address?.toLowerCase()}:${current.connectorUid}:${current.version}`;
   const state: TxState = result.scope === scope ? result.state : { status: "idle" };
+  let recovery: DelegatedAttempt | undefined;
+  try { if (current.address && typeof window !== "undefined") recovery = attempts().read(current.address); } catch { /* run() fails closed on an unreadable saved request. */ }
 
-  async function run(account: Address, calls: Call[], summarize?: (logs: readonly unknown[]) => { summary: string; tone: "bid" | "ask" | "neutral" }, delegated?: { previewBlock: bigint }) {
+  async function run(account: Address, calls: Call[], summarize?: (logs: readonly unknown[]) => { summary: string; tone: "bid" | "ask" | "neutral" }, delegated?: { previewBlock: bigint }, recoverSaved = false) {
     if (running.current) return;
     running.current = true;
     const setState = (state: TxState) => setResult({ scope, state });
     let last: Hash | undefined;
     let stop: (() => void) | undefined;
     let unlock: (() => void) | undefined;
+    let terminalState: TxState | undefined;
+    let attempt: DelegatedAttempt | undefined;
+    let store: DelegatedAttemptStore | undefined;
     try {
       const guard = createWalletGuard(getSnapshot, account, chain.id);
       unlock = lockWalletTransaction(chain.id, account);
+      if (delegated || calls.some(c => ["placeOrder", "cancel", "cancelAll"].includes(c.functionName))) {
+        store = attempts();
+        attempt = store.read(account);
+      }
+      if (attempt && calls.some(c => ["placeOrder", "cancel", "cancelAll"].includes(c.functionName))) {
+        const c = calls[0];
+        if (!delegated || calls.length !== 1)
+          throw new Error("Recover the saved trading request before starting or changing an order.");
+        assertAttemptBinding(attempt, { owner: account, chainId: chain.id, engine: c.address, action: c.functionName,
+          calldata: encodeFunctionData({ abi: c.abi, functionName: c.functionName, args: c.args ?? [] }),
+          connectorUid: guard.initial.connectorUid, sessionVersion: guard.initial.version }, recoverSaved);
+      } else if (!delegated) attempt = undefined; // A saved order does not prevent custody actions.
       // Subscribe before any await so switching away and back during deployment
       // verification also permanently invalidates this sequence.
       stop = config.subscribe((s) => s, guard.observe);
@@ -67,6 +89,9 @@ export function useTx() {
       await runWalletCalls(calls, {
         assertCurrent: guard.assertCurrent,
         prepare: async (c) => {
+          // The first attempt may already have filled. Its old preview must not
+          // prevent retrieving the saved hash, and its body must remain exact.
+          if (delegated && attempt) return { request: {}, gas: 0n };
           setState({ status: "pending", step: `Simulating ${c.label}` });
           if ((c.account && c.account.toLowerCase() !== account.toLowerCase()) || (c.chainId && c.chainId !== chain.id)) throw new Error("Transaction belongs to a different wallet or network.");
           if (await client.getChainId() !== chain.id) throw new Error("RPC network changed. Remaining steps were stopped.");
@@ -89,38 +114,57 @@ export function useTx() {
           let hash: Hash;
           if (delegated) {
             if (calls.length !== 1 || !["placeOrder", "cancel", "cancelAll"].includes(c.functionName)) throw new Error("This action requires wallet confirmation.");
-            setState({ status: "pending", step: "Signing with your Privy trading permission" });
-            const response = await privyRequest<{ hash: Hash }>("/api/trade", { wallet: account, engine: c.address, previewBlock: delegated.previewBlock.toString(), clientNonce: crypto.randomUUID(), action: c.functionName,
-              ...(c.functionName === "placeOrder" ? { place: c.args?.[0] } : c.functionName === "cancel" ? { orderId: c.args?.[0] } : {}) }, guard.assertCurrent);
-            hash = response.hash;
+            setState({ status: "pending", step: attempt ? attempt.hash ? "Checking saved transaction" : "Recovering saved request" : "Signing with your Privy trading permission" });
+            if (!attempt) {
+              const body = validateIntent(JSON.parse(JSON.stringify({ wallet: account, engine: c.address, previewBlock: delegated.previewBlock.toString(), clientNonce: crypto.randomUUID(), action: c.functionName,
+                ...(c.functionName === "placeOrder" ? { place: c.args?.[0] } : c.functionName === "cancel" ? { orderId: c.args?.[0] } : {}) }, (_, value) => typeof value === "bigint" ? value.toString() : value)), delegatedEngines);
+              attempt = { version: 1, chainId: chain.id, body,
+                calldata: encodeFunctionData({ abi: c.abi, functionName: c.functionName, args: c.args ?? [] }),
+                connectorUid: guard.initial.connectorUid!, sessionVersion: guard.initial.version, createdAt: Date.now() };
+            }
+            hash = await recoverDelegatedAttempt(store!, attempt, body => privyRequest<{ hash: Hash }>("/api/trade", body, guard.assertCurrent));
           } else hash = await writeContract(config, { ...request, account, connector, chainId: chain.id, gas } as never);
           last = hash;
           return hash;
         },
         confirm: async (hash, c, final) => {
           setState({ status: "sent", hash, step: `${c.label}: waiting for finality` });
-          const receipt = await finalizedOwnerReceipt(client, hash, { owner: account, to: c.address,
+          const readReceipt = () => finalizedOwnerReceipt(client, hash, { owner: account, to: c.address,
             data: encodeFunctionData({ abi: c.abi, functionName: c.functionName, args: c.args ?? [] }) });
+          const receipt = delegated && attempt ? await confirmDelegatedAttempt(store!, attempt, readReceipt) : await readReceipt();
           const orders = parseEventLogs({ abi: engineAbi, eventName: "OrderPlaced", logs: receipt.logs.filter((l) => l.address.toLowerCase() === c.address.toLowerCase()) });
           rememberOrders(chain.id, c.address, account, orders.map((l) => l.args.id));
           guard.assertCurrent();
           if (final) {
             const out = summarize ? summarize(receipt.logs) : { summary: `${c.label} confirmed`, tone: "neutral" as const };
-            setState({ status: "done", hash, ...out });
+            terminalState = { status: "done", hash, ...out };
           }
         },
       });
     } catch (e) {
-      setState({ status: "error", message: revertMessage(e), ...(last ? { hash: last } : {}) });
+      terminalState = { status: "error", message: revertMessage(e), ...(last ? { hash: last } : {}) };
     } finally {
       stop?.();
+      // Finality ends the signing sequence. Release its lock before publishing
+      // completion, so a confirmed transaction cannot block the next action.
+      unlock?.();
+      running.current = false;
+      if (terminalState) setState(terminalState);
       // Refresh even after a partial sequence: an approval or deposit may already have succeeded.
-      try { if (last) await qc.invalidateQueries(); }
-      finally { unlock?.(); running.current = false; }
+      // Read failures are surfaced by the queries; they must not retain a signing lock.
+      if (last) void qc.invalidateQueries().catch(() => {});
     }
   }
 
-  return { state, run, reset: () => setResult({ scope, state: { status: "idle" } }) };
+  async function recover(account: Address) {
+    try {
+      const saved = attempts().read(account);
+      if (!saved) throw new Error("No saved trading request remains. Review the order before submitting.");
+      await run(account, [{ ...delegatedCall(saved.body), label: "saved order" }], summarizeOrder,
+        { previewBlock: BigInt(saved.body.previewBlock) }, true);
+    } catch (error) { setResult({ scope, state: { status: "error", message: revertMessage(error) } }); }
+  }
+  return { state, run, recovery, recover, reset: () => setResult({ scope, state: { status: "idle" } }) };
 }
 
 /** placeOrder can succeed with id 0: fills, rejections and cancels come only from logs (R8). */

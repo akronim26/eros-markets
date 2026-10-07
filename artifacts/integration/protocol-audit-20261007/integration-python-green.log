@@ -1,0 +1,23 @@
+................................................................[source-probe]
+........[source-probe]
+......sss.s.....s..usage: python3.14 -m unittest [-h] [--rpc RPC | --rpc-env RPC_ENV]
+                              [--deployments DEPLOYMENTS] [--config CONFIG]
+                              --output OUTPUT [--rehearse-local]
+python3.14 -m unittest: error: --rehearse-local requires --config and an explicit --rpc or --rpc-env
+usage: python3.14 -m unittest [-h] [--rpc RPC | --rpc-env RPC_ENV]
+                              [--deployments DEPLOYMENTS] [--config CONFIG]
+                              --output OUTPUT [--rehearse-local]
+python3.14 -m unittest: error: --rehearse-local requires an explicit loopback Anvil RPC
+.usage: python3.14 -m unittest [-h] [--rpc RPC | --rpc-env RPC_ENV]
+                              [--deployments DEPLOYMENTS] [--config CONFIG]
+                              --output OUTPUT [--rehearse-local]
+python3.14 -m unittest: error: --output must be a JSON report inside repository tmp/
+usage: python3.14 -m unittest [-h] [--rpc RPC | --rpc-env RPC_ENV]
+                              [--deployments DEPLOYMENTS] [--config CONFIG]
+                              --output OUTPUT [--rehearse-local]
+python3.14 -m unittest: error: Report must not replace a source/input file
+.
+----------------------------------------------------------------------
+Ran 93 tests in 2.365s
+
+OK (skipped=5)

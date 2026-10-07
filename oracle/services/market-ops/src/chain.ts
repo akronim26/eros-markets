@@ -22,7 +22,13 @@ type Listing = {
 
 export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: Hex): Transport {
   const chain = defineChain({ id: manifest.chainId, name: 'market-ops', nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 }, rpcUrls: { default: { http: [rpcUrl] } } })
-  const client = createPublicClient({ chain, transport: http(rpcUrl) })
+  const client = createPublicClient({ chain, transport: http(rpcUrl, { batch: { batchSize: 8, wait: 16 }, timeout: 5000, retryCount: 1, retryDelay: 150 }) })
+  const runtimeHash = async (address: Address, blockNumber: bigint) => {
+    // Creation eth_call returns EXTCODEHASH without downloading the large engine.
+    const { data } = await client.call({ data: `0x73${address.slice(2)}3f60005260206000f3`, blockNumber })
+    if (!data || !/^0x[\da-fA-F]{64}$/.test(data)) throw new Error('Invalid runtime hash response')
+    return data
+  }
   const account = privateKey ? privateKeyToAccount(privateKey) : undefined
   if (account && !equalHex(account.address, manifest.sender)) throw new Error('Signing account does not match manifest.sender')
   const callAbi = (call: Pick<Call, 'functionName'>): Abi => call.functionName === 'rollover' ? RolloverBatcherAbi
@@ -31,12 +37,12 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
 
   return {
     async snapshot() {
-      if (await client.getChainId() !== manifest.chainId) throw new Error('RPC chain does not match manifest')
-      const block = await client.getBlock({ blockTag: 'latest' })
+      const [chainId, block] = await Promise.all([client.getChainId(), client.getBlock({ blockTag: 'latest' })])
+      if (chainId !== manifest.chainId) throw new Error('RPC chain does not match manifest')
       const blockNumber = block.number
-      const [engineCode, oracleCode, listingHash, rawListing, halt, risk, participants, epoch, work, cursor, count] = await Promise.all([
-        client.getCode({ address: manifest.engine, blockNumber }),
-        client.getCode({ address: manifest.oracle, blockNumber }),
+      const [engineCode, oracleCode, listingHash, rawListing, halt, risk, participants, epoch, work, cursor, count, resolution] = await Promise.all([
+        runtimeHash(manifest.engine, blockNumber),
+        runtimeHash(manifest.oracle, blockNumber),
         readEngine('listingHash', [], blockNumber),
         readEngine('listing', [], blockNumber),
         readEngine('getHaltSnapshot', [], blockNumber),
@@ -46,16 +52,16 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
         readEngine('work', [], blockNumber),
         readEngine('cursor', [], blockNumber),
         readEngine('sweepCount', [], blockNumber),
+        client.readContract({ address: manifest.oracle, abi: ResolutionOracleAbi, functionName: 'getResolution', args: [manifest.marketId], blockNumber }),
+        verifyRolloverHelper(manifest.rolloverHelper, blockNumber,
+          (address, blockNumber) => client.getCode({ address, blockNumber })),
       ])
-      if (!engineCode || !equalHex(keccak256(engineCode), manifest.engineCodeHash)) throw new Error('Engine runtime hash mismatch')
-      if (!oracleCode || !equalHex(keccak256(oracleCode), manifest.oracleCodeHash)) throw new Error('Oracle runtime hash mismatch')
-      await verifyRolloverHelper(manifest.rolloverHelper, blockNumber,
-        (address, blockNumber) => client.getCode({ address, blockNumber }))
+      if (!equalHex(engineCode, manifest.engineCodeHash)) throw new Error('Engine runtime hash mismatch')
+      if (!equalHex(oracleCode, manifest.oracleCodeHash)) throw new Error('Oracle runtime hash mismatch')
       if (!equalHex(listingHash as Hex, manifest.listingHash)) throw new Error('Listing hash mismatch')
       const listing = rawListing as Listing
       if (!equalHex(listing.marketId, manifest.marketId) || !equalHex(listing.resolutionAuthority, manifest.oracle)) throw new Error('Listing market or oracle mismatch')
-      const [resolution, core, source] = await Promise.all([
-        client.readContract({ address: manifest.oracle, abi: ResolutionOracleAbi, functionName: 'getResolution', args: [manifest.marketId], blockNumber }),
+      const [core, source] = await Promise.all([
         client.readContract({ address: listing.registry, abi: MarketRegistryAbi, functionName: 'getMarketCore', args: [manifest.marketId], blockNumber }),
         readEngine('sourceState', [listing.indexSourceId], blockNumber),
       ])

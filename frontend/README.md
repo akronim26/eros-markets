@@ -2,9 +2,11 @@
 
 ## Run locally
 
-The frontend selects the verified **2026-10-06 integrated Monad testnet deployment**
-in `src/config/public-manifest.json`. It includes the real factory, shared collateral
-vault and Polymarket event engine. The complete address/receipt inventory and service
+The frontend selects the verified **2026-10-07 integrated Monad testnet deployment**
+in `src/config/public-manifest.json`. It includes the factory, shared collateral
+vault and two Polymarket event engines. Previous manifests are retained in
+`src/config/archived-deployments.json` so each existing owner's balances and custody
+transactions remain bound to the original vault. The address/receipt inventory and service
 activation instructions are in [DEPLOYMENT_PROGRESS.md](../docs/integration/DEPLOYMENT_PROGRESS.md).
 The old manual fixture is historical. Never copy local chain addresses into this manifest.
 
@@ -13,6 +15,28 @@ keep that directory in frontend build checkouts. `.npmrc` packs this local depen
 so a separate Bun workspace install is not needed to build the frontend.
 
 Copy `.env.example` to `.env.local`, set the public `NEXT_PUBLIC_PRIVY_APP_ID`, then run `npm run dev` from this directory. Configure email, Google and wallet login in the Privy dashboard, and allow the localhost/deployed origins used by this app. Restart the dev server (or rebuild production) after changing public environment variables. Never put a Privy app secret in the frontend.
+
+For a sponsored RPC with an access token in its URL, set
+`NEXT_PUBLIC_READ_RPC_URL=/api/rpc` and put the full endpoint in the **server-only**
+`MONAD_RPC_URL`. Keep `NEXT_PUBLIC_RPC_URL` credential-free for wallet network
+configuration. The proxy accepts bounded read/simulation requests, strips upstream
+error messages, and refuses transaction submission and signing methods. Restart
+the server after changing the private endpoint; rebuild after changing public settings.
+
+Index and mark prices come from the verified engine. The Polymarket publisher,
+funded book makers, sampler and epoch operator must run continuously. A successful
+source fetch alone does not establish an on-chain price: INDEX needs 300 seconds
+of complete coverage; the mark also needs PERP60/BASIS900 coverage and the normal
+pricing transition at an epoch opening. The UI keeps these values unavailable
+until those contract checks pass.
+
+The terminal chart shows authenticated Polymarket source observations over time;
+the execution INDEX is their 300-second TWAP. Live/1H/6H/1D/All controls, pointer
+inspection and keyboard arrows inspect recorded observations. Invalid observations
+and gaps longer than 30 seconds break the plotted line. The optional dashed line
+is the current MARK, not reconstructed historical marks. Order-book sizes are gross
+resting claims and may contain stale orders; exact contract previews and fill events
+determine executable orders. Clicking a book price prefills the ticket without signing.
 
 Without an App ID, public market data remains available and wallet actions are disabled.
 If browser storage is blocked, public pages remain available and the wallet button

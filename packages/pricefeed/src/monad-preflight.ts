@@ -1,4 +1,4 @@
-import { createPublicClient, http, keccak256, parseAbi, stringToHex, type Abi, type AbiParameter, type Hex } from 'viem';
+import { createPublicClient, fallback, http, keccak256, parseAbi, stringToHex, type Abi, type AbiParameter, type Hex } from 'viem';
 import { monadTestnet } from 'viem/chains';
 import { record } from './book.js';
 import { parseConfig, verifyListing, type MarketConfig } from './config.js';
@@ -18,6 +18,7 @@ export interface MonadReadRpc {
   chainId():Promise<number>;
   block(selector:{blockTag:'finalized'}|{blockNumber:bigint}):Promise<MonadBlock>;
   code(address:Hex,blockNumber:bigint):Promise<Hex|undefined>;
+  codeHash?(address:Hex,blockNumber:bigint):Promise<Hex>;
   read(address:Hex,abi:Abi,name:EngineRead,sourceId:Hex,blockNumber:bigint):Promise<unknown>;
 }
 const hash=(value:unknown):value is Hex=>typeof value==='string'&&/^0x[0-9a-fA-F]{64}$/.test(value);
@@ -28,15 +29,33 @@ async function rpcCall<T>(code:string,call:()=>Promise<T>):Promise<T> {
 }
 
 /** HTTPS only. RPC credentials are never included in returned state or errors. */
+export function monadReadTransport(rpcUrl:string){
+  const urls=[...new Set([rpcUrl,...(process.env.MONAD_READ_FALLBACK_URLS??'').split(',').filter(Boolean)])];
+  for(const value of urls){
+    let url:URL;try{url=new URL(value);}catch{throw new Error('MONAD_BAD_RPC_URL');}
+    if(url.protocol!=='https:'||url.username||url.password||url.hash)throw new Error('MONAD_HTTPS_RPC_REQUIRED');
+  }
+  // Some public Monad endpoints reject JSON-RPC arrays. Retry reads individually
+  // before moving to another explicitly configured endpoint. No write uses this.
+  const primary=http(rpcUrl,{batch:{batchSize:8,wait:8},timeout:2000,retryCount:0,fetchOptions:{redirect:'error'}});
+  const singles=urls.map(url=>http(url,{batch:false,timeout:2000,retryCount:0,fetchOptions:{redirect:'error'}}));
+  return fallback([primary,...singles],{rank:false,retryCount:0});
+}
 export function monadTestnetReadRpc(rpcUrl:string):MonadReadRpc {
-  let url:URL;try{url=new URL(rpcUrl);}catch{throw new Error('MONAD_BAD_RPC_URL');}
-  if(url.protocol!=='https:'||url.username||url.password||url.hash)throw new Error('MONAD_HTTPS_RPC_REQUIRED');
   if(monadTestnet.id!==MONAD_TESTNET_CHAIN_ID)throw new Error('MONAD_CHAIN_DEFINITION_MISMATCH');
-  const client=createPublicClient({chain:monadTestnet,transport:http(rpcUrl,{timeout:5000,retryCount:0,fetchOptions:{redirect:'error'}})});
+  const client=createPublicClient({chain:monadTestnet,transport:monadReadTransport(rpcUrl)});
   return {
     chainId:()=>client.getChainId(),
     block:async(selector)=>{const b=await client.getBlock(selector);return {number:b.number,hash:b.hash,timestamp:b.timestamp};},
     code:(engine,blockNumber)=>client.getBytecode({address:engine,blockNumber}),
+    codeHash:async(engine,blockNumber)=>{
+      // Read EXTCODEHASH in a creation eth_call. No deployment or transaction;
+      // return the exact runtime hash at the same pinned block in just 32 bytes.
+      // PUSH20 address; EXTCODEHASH; PUSH1 0; MSTORE; PUSH1 32; PUSH1 0; RETURN.
+      const result=await client.call({data:`0x73${engine.slice(2)}3f60005260206000f3`,blockNumber});
+      if(!hash(result.data))throw new Error('MONAD_BAD_CODE_HASH');
+      return result.data;
+    },
     read:(engine,abi,name,sourceId,blockNumber)=>client.readContract({address:engine,abi,functionName:name,
       ...(name==='sourceState'?{args:[sourceId]}:{}),blockNumber}),
   };
@@ -93,20 +112,38 @@ export async function preflightMonadTestnet(rpc:MonadReadRpc,
     // A diagnostic guard only; production checkpoint/delivery budgets remain Q07/Q09.
     if(age<0n||age>30000n)throw new Error('MONAD_STALE_OR_FUTURE_BLOCK');
   };
-  await checkChain();
-  const block=await rpcCall('MONAD_FINALIZED_BLOCK_FAILED',()=>rpc.block({blockTag:'finalized'}));checkBlock(block);
+  const [networkRead,headRead]=await Promise.allSettled([
+    checkChain(),rpcCall('MONAD_FINALIZED_BLOCK_FAILED',()=>rpc.block({blockTag:'finalized'})),
+  ]);
+  if(networkRead.status==='rejected')throw networkRead.reason;
+  if(headRead.status==='rejected')throw headRead.reason;
+  const block=headRead.value;checkBlock(block);
   let verified:MonadPreflightResult['engine']=null;
   if(cfg&&d&&parsed){
     const engineAddress=d.engineAddress as Hex,sourceId=d.sourceId as Hex;
-    const code=await rpcCall('MONAD_CODE_READ_FAILED',()=>rpc.code(engineAddress,block.number));
-    if(!code||!/^0x(?:[0-9a-fA-F]{2})+$/.test(code))throw new Error('MONAD_ENGINE_CODE_MISSING');
-    const engineCodeHash=keccak256(code);
-    if(engineCodeHash.toLowerCase()!==d.engineCodeHash.toLowerCase())throw new Error('MONAD_CODE_PIN_MISMATCH');
-    const [listingRaw,stateRaw,halted]=await Promise.all([
+    const runtime=async()=>{
+      let value:Hex;
+      if(rpc.codeHash){
+        value=await rpcCall('MONAD_CODE_READ_FAILED',()=>rpc.codeHash!(engineAddress,block.number));
+        if(!hash(value)||/^0x0{64}$/i.test(value)||value===keccak256('0x'))throw new Error('MONAD_ENGINE_CODE_MISSING');
+      }else{
+        const code=await rpcCall('MONAD_CODE_READ_FAILED',()=>rpc.code(engineAddress,block.number));
+        if(!code||!/^0x(?:[0-9a-fA-F]{2})+$/.test(code))throw new Error('MONAD_ENGINE_CODE_MISSING');
+        value=keccak256(code);
+      }
+      if(value.toLowerCase()!==d.engineCodeHash.toLowerCase())throw new Error('MONAD_CODE_PIN_MISMATCH');
+      return value;
+    };
+    // Independent reads share the verified block. Settle every call, preserving
+    // deterministic error priority without serial network round trips.
+    const results=await Promise.allSettled([
+      runtime(),
       rpcCall('MONAD_LISTING_READ_FAILED',()=>rpc.read(engineAddress,parsed.abi,'listing',sourceId,block.number)),
       rpcCall('MONAD_SOURCE_READ_FAILED',()=>rpc.read(engineAddress,parsed.abi,'sourceState',sourceId,block.number)),
       rpcCall('MONAD_HALT_READ_FAILED',()=>rpc.read(engineAddress,parsed.abi,'halted',sourceId,block.number)),
     ]);
+    const values=results.map(result=>{if(result.status==='rejected')throw result.reason;return result.value;});
+    const [engineCodeHash,listingRaw,stateRaw,halted]=values as [Hex,unknown,unknown,unknown];
     let listing:Record<string,unknown>;try{listing=record(listingRaw);verifyListing(cfg,listing);}catch{throw new Error('MONAD_LISTING_PIN_MISMATCH');}
     let state:Record<string,unknown>;try{state=record(stateRaw);}catch{throw new Error('MONAD_BAD_SOURCE_STATE');}
     if(!address(state.signer)||!hash(state.rulesHash)||!uint64(state.lastSequence)||!uint64(state.lastObservedAt)

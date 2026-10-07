@@ -1,0 +1,115 @@
+{
+  "chainId": 10143,
+  "at": "2026-10-07T04:47:24.066290+00:00",
+  "collateral": "mintable test token; not real USDC",
+  "phases": [
+    {
+      "phase": "bond-funding",
+      "planHash": "0x04c8346c9d1fc5c36e5a85619db42ec98a5cdeb04dba7911c5891839e4a8d57b",
+      "verification": {
+        "passed": true,
+        "publicTransactions": 5,
+        "treasury": "0x72eAd8F668C4a4550f54382952242e47Da6DCb8a",
+        "balance": "8000000000",
+        "committed": "5893600000",
+        "limit": "3336000000",
+        "disputes": 20,
+        "verifiedAt": {
+          "blockNumber": "68878488",
+          "blockHash": "0x47f7c5650968c85e1db679f9366f2cd814db10f4f3abbe70e5287426a8246fdb"
+        }
+      },
+      "transactions": [
+        {
+          "name": "bond:mint",
+          "transactionHash": "0xab73d323d1ad724f319d3ab7fce643c5af7cafcd5e2b8671deda2827fc487f38",
+          "blockNumber": "68877451",
+          "blockHash": "0xd0584e219592ee64ac86796aa936350b2c76e33e51e47eea17485981f3756be2",
+          "gasUsed": "80184",
+          "status": "success"
+        },
+        {
+          "name": "bond:approve",
+          "transactionHash": "0xdc31fd0d4e49d0002ced4f9e489b2133fa6fdc67d67999e9c1dcdea5d1e6f31d",
+          "blockNumber": "68877461",
+          "blockHash": "0x0cb6ca2c3045535befdba3b05f08583d184af829553f69aa635dd18fb2a18c48",
+          "gasUsed": "67463",
+          "status": "success"
+        },
+        {
+          "name": "bond:deposit",
+          "transactionHash": "0xd2ee15153ec90f0d05562a9b62f3df04fa550a712eb654215264dda350af31a3",
+          "blockNumber": "68877472",
+          "blockHash": "0xa39d3433d792c981cb2c116789d88aa588226824c854efef0246acab5a09b2a5",
+          "gasUsed": "116034",
+          "status": "success"
+        },
+        {
+          "name": "bond:propose-limits",
+          "transactionHash": "0x88304cc5801b91199011858dbd7e247c4094087d20f4b628f44fa7f12a40bb59",
+          "blockNumber": "68877482",
+          "blockHash": "0xb5fa97040eb5649c06eda856b4eba7efc0b04ae4e14a4707db031dfb7af36acf",
+          "gasUsed": "94680",
+          "status": "success"
+        },
+        {
+          "name": "bond:execute-limits",
+          "transactionHash": "0x78d6729199c7852301e34939530a093722f8769eaa7ee217ec9c46243933e6f1",
+          "blockNumber": "68878486",
+          "blockHash": "0x34bb9b9f821d421c68db7521328207805dfb7167739b6c4f7bcefc5060e84251",
+          "gasUsed": "122556",
+          "status": "success"
+        }
+      ]
+    },
+    {
+      "phase": "bond-retry-funding",
+      "planHash": "0x5ddc80ae0768dd85d09616acb926d864f9b182d281e3df138da2fce697be696d",
+      "verification": {
+        "passed": true,
+        "publicTransactions": 3,
+        "balance": "22000000000",
+        "cap": "3336000000",
+        "committed": "5893600000",
+        "plannedTotalCommitments": "7005600000",
+        "threeAttemptEnvelope": "21016800000",
+        "verifiedAt": {
+          "blockNumber": "68878586",
+          "blockHash": "0x4279d98809745e2d0ce16f7f7fe086105d83a9ee036812c588588c8e2eba1b6b"
+        }
+      },
+      "transactions": [
+        {
+          "name": "retry:mint",
+          "transactionHash": "0xe566b2415f2e1302d36ff97d642d247f5e73565583a594c690ace10c1e8d4118",
+          "blockNumber": "68878563",
+          "blockHash": "0xc95a826c1baf7959cac4b27765b1998a8493168b02f9ef3197c6b2d2f0383c3b",
+          "gasUsed": "80197",
+          "status": "success"
+        },
+        {
+          "name": "retry:approve",
+          "transactionHash": "0x6b6fd77fddacfaa6ac6dade80798ff24f09053daa6b14d210698c86507188f2c",
+          "blockNumber": "68878574",
+          "blockHash": "0x822fb7ddbdfa410bac00488d31fa3a42404875c60f3a212f0e251e91ebf3e3ea",
+          "gasUsed": "67477",
+          "status": "success"
+        },
+        {
+          "name": "retry:deposit",
+          "transactionHash": "0x43675e97ea4d5bb39df102e09bbb5d050b8e22a900aa71d9434662d610666c53",
+          "blockNumber": "68878584",
+          "blockHash": "0x395a6ca7777daa6e8fd157832512eff6d90a162e0ad2f43a8a384b342dc5137c",
+          "gasUsed": "116047",
+          "status": "success"
+        }
+      ]
+    }
+  ],
+  "plannedCommitmentsAfterHouseAtoms": "7005600000",
+  "threeAttemptEnvelopeAtoms": "21016800000",
+  "assertionLedgerAtoms": "22000000000",
+  "maxPerMarketAtoms": "3336000000",
+  "watchdogFloatAtoms": "100000000",
+  "watchdogScope": "Separate ledger; full-cap automatic dispute funding not established."
+}

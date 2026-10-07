@@ -1,6 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { useWalletSession } from "@/components/wallet-session";
+import { DelegatedDeliveryError } from "./delegated-intent";
 export async function privyRequest<T>(path: string, body?: unknown, assertCurrent?: () => void): Promise<T> {
   const { getAccessToken } = await import("@privy-io/react-auth");
   const token = await getAccessToken();
@@ -12,7 +13,8 @@ export async function privyRequest<T>(path: string, body?: unknown, assertCurren
   } catch { throw new Error(body ? "The service did not confirm the result. Check wallet activity and rule status before retrying." : "The service is unavailable. Please retry."); }
   let data;
   try { data = await response.json(); } catch { throw new Error("The service returned an invalid response. Check the action's status before retrying."); }
-  if (!response.ok) throw new Error(data.error || "Request failed.");
+  if (!response.ok) throw new DelegatedDeliveryError(data.error || "Request failed.",
+    data.delivery === "rejected" || data.delivery === "pending" ? data.delivery : "unknown");
   return data as T;
 }
 export type Permissions = { configured: boolean; workerOnline?: boolean; modes: { mode: "trade" | "protect"; signer: string; policy: string; granted: boolean; observedAt?: number; engines: string[] }[] };

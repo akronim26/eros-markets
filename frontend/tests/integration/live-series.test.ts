@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readLiveSeries, emptySeries } from "../../src/lib/live-series";
+import { priceSegments } from "../../src/lib/price-chart";
 import { client } from "../../src/lib/public-client";
 const engine = "0x1111111111111111111111111111111111111111";
 const hash = `0x${"12".repeat(32)}`;
@@ -12,9 +13,11 @@ test("invalid-depth observations never render a fabricated zero index; overlappi
     {blockNumber:100n,args:{observedAt:991n,priceWad:0n,depthValid:false}},
   ] : []);
   const first = await readLiveSeries(engine, 100n, emptySeries());
-  assert.equal(first.index.length,1); assert.equal(first.index[0].v,0.5);
+  assert.equal(first.index.length,2); assert.equal(first.index[1].valid,false);
+  assert.deepEqual(priceSegments(first.index).flat().map(p => p.v),[0.5]);
   const second = await readLiveSeries(engine,101n,{...first,error:"old failure"});
-  assert.equal(second.index.length,1); assert.equal(second.error,undefined);
+  assert.equal(second.index.length,2); assert.equal(second.error,undefined);
+  assert.deepEqual(priceSegments(second.index).flat().map(p => p.v),[0.5]);
 });
 test("reorganized chart reads are rejected, and a replaced cursor discards old history",async(t)=>{
   let reads=0;

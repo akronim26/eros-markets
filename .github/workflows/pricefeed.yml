@@ -1,0 +1,38 @@
+name: pricefeed
+
+on:
+  push:
+    paths: ["packages/pricefeed/**", "artifacts/risk/engine-abi.json", "scripts/e2e/*.mjs", ".github/workflows/pricefeed.yml"]
+  pull_request:
+    paths: ["packages/pricefeed/**", "artifacts/risk/engine-abi.json", "scripts/e2e/*.mjs", ".github/workflows/pricefeed.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.21.0"
+          cache: npm
+          cache-dependency-path: packages/pricefeed/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned pricefeed dependencies
+        working-directory: packages/pricefeed
+        run: npm ci
+      # Scripted source/RPC fixtures only: no credentials or public transactions.
+      - name: Pricefeed regression suite
+        working-directory: packages/pricefeed
+        run: npm test
+      - name: Source qualification and sampler coordination
+        run: node --test scripts/e2e/*.test.mjs

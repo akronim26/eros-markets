@@ -26,25 +26,40 @@ export async function readHistory(chainId: number, engine: string, owner: string
   const through = Math.min(Number(head), progress);
   const events: HistoryEvent[] = [];
   let exhausted = !owner;
-  if (owner) for (let offset = 0; offset < 20000; offset += 1000) {
-    const data = await query<{ TradingEvent: HistoryEvent[] }>(`query($chain:Int!,$engine:String!,$owner:String!,$trader:numeric!,$block:Int!,$offset:Int!){TradingEvent(where:{chainId:{_eq:$chain},engine:{_eq:$engine},block:{_lte:$block},_or:[{owner:{_eq:$owner}},{trader:{_eq:$trader}},{maker:{_eq:$trader}},{taker:{_eq:$trader}}]},order_by:[{block:asc},{logIndex:asc}],limit:1000,offset:$offset){${FIELDS}}}`, { chain: chainId, engine: engine.toLowerCase(), owner: owner.toLowerCase(), trader: trader ?? -1, block: through, offset }, signal);
+  // The server may cap pages below our requested limit; only an empty page proves exhaustion.
+  if (owner) for (let offset = 0; offset < 20000;) {
+    const limit = Math.min(1000, 20000 - offset);
+    const data = await query<{ TradingEvent: HistoryEvent[] }>(`query($chain:Int!,$engine:String!,$owner:String!,$trader:numeric!,$block:Int!,$offset:Int!,$limit:Int!){TradingEvent(where:{chainId:{_eq:$chain},engine:{_eq:$engine},block:{_lte:$block},_or:[{owner:{_eq:$owner}},{trader:{_eq:$trader}},{maker:{_eq:$trader}},{taker:{_eq:$trader}}]},order_by:[{block:asc},{logIndex:asc}],limit:$limit,offset:$offset){${FIELDS}}}`, { chain: chainId, engine: engine.toLowerCase(), owner: owner.toLowerCase(), trader: trader ?? -1, block: through, offset, limit }, signal);
+    if (data.TradingEvent.length > limit) throw new Error("History exceeded the requested page size.");
     events.push(...data.TradingEvent);
-    if (data.TradingEvent.length < 1000) { exhausted = true; break; }
+    if (data.TradingEvent.length === 0) { exhausted = true; break; }
+    offset += data.TradingEvent.length;
   }
   let vaultComplete = true, transfersComplete = true;
   if (owner && assets) {
     vaultComplete = false; transfersComplete = false;
-    for (let offset = 0; offset < 20000 && (!vaultComplete || !transfersComplete); offset += 1000) {
-      const data = await query<{ TradingEvent: HistoryEvent[]; CollateralTransfer: { id: string; from: string; to: string; atoms: string; block: number; logIndex: number; timestamp: string; txHash: `0x${string}` }[] }>(`query($chain:Int!,$owner:String!,$vault:String!,$token:String!,$block:Int!,$offset:Int!){
-        TradingEvent(where:{chainId:{_eq:$chain},source:{_eq:$vault},engine:{_eq:""},owner:{_eq:$owner},block:{_lte:$block}},order_by:[{block:asc},{logIndex:asc}],limit:1000,offset:$offset){${FIELDS}}
-        CollateralTransfer(where:{chainId:{_eq:$chain},token:{_eq:$token},block:{_lte:$block},_or:[{from:{_eq:$vault},to:{_eq:$owner}},{from:{_eq:$owner},to:{_eq:$vault}}]},order_by:[{block:asc},{logIndex:asc}],limit:1000,offset:$offset){id from to atoms block logIndex timestamp txHash}
-      }`, { chain: chainId, owner: owner.toLowerCase(), vault: assets.vault.toLowerCase(), token: assets.token.toLowerCase(), block: through, offset }, signal);
+    // Each list can have a different server cap and must advance by its own returned row count.
+    let vaultOffset = 0, transferOffset = 0;
+    while ((!vaultComplete && vaultOffset < 20000) || (!transfersComplete && transferOffset < 20000)) {
+      const vaultLimit: number = vaultComplete ? 0 : Math.min(1000, 20000 - vaultOffset);
+      const transferLimit: number = transfersComplete ? 0 : Math.min(1000, 20000 - transferOffset);
+      const data = await query<{ TradingEvent: HistoryEvent[]; CollateralTransfer: { id: string; from: string; to: string; atoms: string; block: number; logIndex: number; timestamp: string; txHash: `0x${string}` }[] }>(`query($chain:Int!,$owner:String!,$vault:String!,$token:String!,$block:Int!,$vaultOffset:Int!,$transferOffset:Int!,$vaultLimit:Int!,$transferLimit:Int!){
+        TradingEvent(where:{chainId:{_eq:$chain},source:{_eq:$vault},engine:{_eq:""},owner:{_eq:$owner},block:{_lte:$block}},order_by:[{block:asc},{logIndex:asc}],limit:$vaultLimit,offset:$vaultOffset){${FIELDS}}
+        CollateralTransfer(where:{chainId:{_eq:$chain},token:{_eq:$token},block:{_lte:$block},_or:[{from:{_eq:$vault},to:{_eq:$owner}},{from:{_eq:$owner},to:{_eq:$vault}}]},order_by:[{block:asc},{logIndex:asc}],limit:$transferLimit,offset:$transferOffset){id from to atoms block logIndex timestamp txHash}
+      }`, { chain: chainId, owner: owner.toLowerCase(), vault: assets.vault.toLowerCase(), token: assets.token.toLowerCase(), block: through, vaultOffset, transferOffset, vaultLimit, transferLimit }, signal);
+      if (data.TradingEvent.length > vaultLimit || data.CollateralTransfer.length > transferLimit) throw new Error("History exceeded the requested page size.");
       events.push(...data.TradingEvent, ...data.CollateralTransfer.map((e) => ({ ...e, engine: "", owner, kind: "VaultTransfer", payload: JSON.stringify(e) })));
-      vaultComplete ||= data.TradingEvent.length < 1000;
-      transfersComplete ||= data.CollateralTransfer.length < 1000;
+      if (vaultLimit !== 0) vaultComplete = data.TradingEvent.length === 0;
+      if (transferLimit !== 0) transfersComplete = data.CollateralTransfer.length === 0;
+      vaultOffset += data.TradingEvent.length;
+      transferOffset += data.CollateralTransfer.length;
     }
   }
   const prices = await query<{ TradingEvent: HistoryEvent[] }>(`query($chain:Int!,$engine:String!,$block:Int!){TradingEvent(where:{chainId:{_eq:$chain},engine:{_eq:$engine},block:{_lte:$block},kind:{_in:["ObservationAccepted","PerpObservationRecorded","Fill"]}},order_by:[{block:desc},{logIndex:desc}],limit:2000){${FIELDS}}}`, { chain: chainId, engine: engine.toLowerCase(), block: through }, signal);
+  // Price rows have one engine and three event kinds. Account history also
+  // includes vault events with an empty engine, so this binding is query-specific.
+  if (prices.TradingEvent.some(e => typeof e?.engine !== "string" || e.engine.toLowerCase() !== engine.toLowerCase()
+    || !["ObservationAccepted", "PerpObservationRecorded", "Fill"].includes(e.kind))) throw new Error("History returned prices for another market or event kind.");
   return { events: validatedEvents(events, through), prices: validatedEvents(prices.TradingEvent, through), progress: through, complete: exhausted && vaultComplete && transfersComplete && !!meta._meta[0]?.isReady };
 }
 
@@ -63,6 +78,13 @@ export function validatedEvents(events: HistoryEvent[], through: number): Histor
       const value = p[key];
       if (!(typeof value === "string" || typeof value === "number") || !(signed ? /^-?\d+$/ : /^\d+$/).test(String(value))) throw new Error("History returned an invalid amount.");
     };
+    const observationTime = (key: string) => {
+      integer(key);
+      const time = Number(p[key]);
+      // Source observations and captured book samples cannot postdate their event.
+      // Check before chart code converts seconds into numbers and Date milliseconds.
+      if (!Number.isSafeInteger(time) || time > 8640000000000 || time > Number(e.timestamp)) throw new Error("History returned an invalid observation time.");
+    };
     if (p.atoms !== undefined) integer("atoms");
     if (["CashAllocated", "Released"].includes(e.kind)) integer("atoms");
     if (e.kind === "AccountSynced") { integer("fundingPaymentQ", true); integer("premiumQ"); }
@@ -73,11 +95,11 @@ export function validatedEvents(events: HistoryEvent[], through: number): Histor
     if (e.kind === "Fill") for (const k of ["maker", "taker", "makerFeeQ", "takerFeeQ"]) integer(k);
     if (e.kind === "PairReduction") for (const k of ["target", "partner", "lots", "feeTargetQ", "feePartnerQ"]) integer(k);
     if (e.kind === "ObservationAccepted") {
-      integer("observedAt"); integer("priceWad");
+      observationTime("observedAt"); integer("priceWad");
       if (typeof p.depthValid !== "boolean" || BigInt(String(p.priceWad)) > 10n ** 18n) throw new Error("History returned an invalid observation.");
     }
     if (e.kind === "PerpObservationRecorded") {
-      integer("t"); integer("midWad");
+      observationTime("t"); integer("midWad");
       if (typeof p.valid !== "boolean" || BigInt(String(p.midWad)) > 10n ** 18n) throw new Error("History returned an invalid observation.");
     }
     const old = unique.get(e.id);

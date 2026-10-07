@@ -1,6 +1,65 @@
 {
   "polymarket-demo": {
     "title": "US announces end of Iranian blockade by October 31, 2026?",
-    "short": "Iran blockade \u00b7 Oct 31"
+    "short": "Iran blockade · Oct 31",
+    "archived": true,
+    "category": "Politics",
+    "source": "Polymarket"
+  },
+  "polymarket-562831": {
+    "title": "2026 Balance of Power: R Senate, R House",
+    "short": "Republican control · Nov 3",
+    "archived": true,
+    "category": "Politics",
+    "source": "Polymarket"
+  },
+  "polymarket-562793": {
+    "title": "Will the Democratic Party control the Senate after the 2026 Midterm elections?",
+    "short": "Democratic Senate · Nov 3",
+    "archived": true,
+    "category": "Politics",
+    "source": "Polymarket"
+  },
+  "polymarket-562793-e9703280": {
+    "title": "Will the Democratic Party control the Senate after the 2026 Midterm elections?",
+    "short": "Democratic Senate · Nov 3",
+    "source": "Polymarket",
+    "category": "Politics",
+    "archived": true
+  },
+  "polymarket-562831-a832bf72": {
+    "title": "2026 Balance of Power: R Senate, R House",
+    "short": "Republican control · Nov 3",
+    "source": "Polymarket",
+    "category": "Politics",
+    "archived": true
+  },
+  "polymarket-562793-0fc0cb70": {
+    "title": "Will the Democratic Party control the Senate after the 2026 Midterm elections?",
+    "short": "Democratic Senate · Nov 3",
+    "source": "Polymarket",
+    "category": "Politics",
+    "archived": true
+  },
+  "polymarket-562831-ddecc605": {
+    "title": "2026 Balance of Power: R Senate, R House",
+    "short": "Republican control · Nov 3",
+    "source": "Polymarket",
+    "category": "Politics",
+    "archived": true
+  },
+  "polymarket-634893-21f038e4": {
+    "title": "Will an independent win the Nebraska Senate race in 2026?",
+    "short": "Will an independent win the Nebraska Senate race in 2026?",
+    "source": "Polymarket",
+    "category": "Politics",
+    "archived": false
+  },
+  "polymarket-562803-fda2baf1": {
+    "title": "Will the Republican Party control the House after the 2026 Midterm elections?",
+    "short": "Will the Republican Party control the House after the 2026 Midterm elections?",
+    "source": "Polymarket",
+    "category": "Politics",
+    "archived": false
   }
 }

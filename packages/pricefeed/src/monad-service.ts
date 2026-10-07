@@ -44,7 +44,8 @@ export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
   return {sender:p.sender,relay,budget};
 }
 export type TestnetServiceOptions={config:MarketConfig;rules:RulesManifest;abi:unknown;rpcUrl:string;
-  keysDirectory:string;journalDirectory:string;policy:TestnetRunPolicy;durationSeconds:number;stopAfterFinalized:number;initialize:boolean;streamHints?:boolean;publicationIntervalMs?:number};
+  keysDirectory:string;journalDirectory:string;policy:TestnetRunPolicy;durationSeconds:number;stopAfterFinalized:number;initialize:boolean;streamHints?:boolean;publicationIntervalMs?:number;
+  minimumObservedAt?:()=>bigint|null};
 /** Explicit cadence affects scheduling only; source clocks, finality and budget remain authoritative. */
 export function testnetPublicationInterval(collectionIntervalMs:number,requested?:number):number {
   const interval=requested??Math.max(20000,collectionIntervalMs);
@@ -101,7 +102,8 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
     // The collector owns/relinquishes its lease after both loops have drained.
     // Pipeline shutdown must not release it during an independent in-flight poll.
     pipeline=new MonadTestnetPipeline([{worker:{config:cfg,poll:()=>snapshots.poll()},rules,signer,lifecycle,
-      latestSnapshot:()=>snapshots.snapshot(),...(stream?{sourceReady:()=>snapshots.publicationReady()}:{}),publicationIntervalMs}],packets,relay,transport,policy.relay);
+      bufferedCollection:true,
+      latestSnapshot:()=>snapshots.snapshotAfter(options.minimumObservedAt?.()??null),...(stream?{sourceReady:()=>snapshots.publicationReady()}:{}),publicationIntervalMs}],packets,relay,transport,policy.relay);
     await pipeline.start();
     const inventory=()=>packets.list(domain).map(p=>({packet:p.packet,digest:p.digest,signature:p.signature,state:p.state,
       delivery:relay!.get(domain,p.packet.observation.sequence)}));

@@ -162,9 +162,19 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         accountFingerprint = keccak256(abi.encode(projected, reservations, eligible));
     }
 
+    /// @dev Commit to exact capture-time INDEX300 inputs and the instantaneous BASIS input.
+    /// A same-price refresh may replace a raw checkpoint without changing these inputs.
+    /// Equal inputs do not imply an identical intermediate price path: compensating changes
+    /// may cancel. Publication still requires a strictly newer source time to seal that path.
     function _indexCheckpointAt(uint64 observedAt) internal view returns (bytes32) {
-        (bool found, PricingMath.Cum memory checkpoint) = _floorCp(INDEX, observedAt);
-        return found ? keccak256(abi.encode(checkpoint)) : bytes32(0);
+        if (observedAt < PricingMath.INDEX_WINDOW) return bytes32(0);
+        (bool startFound, int256 startIntegral, uint256 startCovered) =
+            _cumAt(INDEX, observedAt - PricingMath.INDEX_WINDOW);
+        (bool endFound, int256 endIntegral, uint256 endCovered) = _cumAt(INDEX, observedAt);
+        (bool pointValid, int256 pointValue) = _valueAt(INDEX, observedAt);
+        return keccak256(abi.encode(
+            startFound, startIntegral, startCovered, endFound, endIntegral, endCovered, pointValid, pointValue
+        ));
     }
 
     function samplePerp() external nonReentrant returns (bool published) {
@@ -195,14 +205,24 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
                 if (published && _sources[_indexSourceId].lastObservedAt <= pending.observedAt) {
                     return false;
                 }
+                _recordPerp(
+                    pending.observedAt,
+                    published ? pending.quote.bidWad : 0,
+                    published ? pending.quote.askWad : 0,
+                    published ? pending.quote.bidDepthLots : 0,
+                    published ? pending.quote.askDepthLots : 0
+                );
             }
-            _recordPerp(
-                pending.observedAt,
-                published ? pending.quote.bidWad : 0,
-                published ? pending.quote.askWad : 0,
-                published ? pending.quote.bidDepthLots : 0,
-                published ? pending.quote.askDepthLots : 0
-            );
+            if (!unchanged && (context.economicTime - pending.observedAt > STALE
+                || pending.indexCheckpoint != _indexCheckpointAt(pending.observedAt) || !context.indexOk)) {
+                _recordPerp(pending.observedAt, 0, 0, 0, 0);
+            }
+            // A book/account/epoch change does not authenticate a historical
+            // outage. Discard that unsealed candidate without rewriting history.
+            // Prior accepted prices retain only their original STALE lifetime;
+            // no timestamp, coverage or price is refreshed by this rejection.
+            // Expiry, changed capture-time INDEX pricing inputs, unavailable INDEX and a stable
+            // confirmed thin book still record unavailability above.
         }
         delete _pendingBookSample;
         if (context.economicTime > _lastCaptureTime) {

@@ -2,9 +2,9 @@ name: oracle
 
 on:
   push:
-    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", ".github/workflows/oracle.yml"]
   pull_request:
-    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", ".github/workflows/oracle.yml"]
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", ".github/workflows/oracle.yml"]
 
 permissions:
   contents: read
@@ -65,10 +65,18 @@ jobs:
         env:
           FOUNDRY_PROFILE: integration
         run: forge build --skip test --skip script
+      # The fresh deployment planner also loads the real UMA sandbox contracts.
+      # They use a separate exact compiler and are not imported by integration src.
+      - name: Build UMA artifacts for deployment planner tests
+        env:
+          FOUNDRY_PROFILE: default
+        run: forge build test/uma/UmaImports.sol --evm-version london
       # Each workspace member's own `test` script: a bare `bun test` here would also pick up the test files of
       # the vendored libraries under lib/ (ADJ-11).
       - name: Test (packages and services)
         run: bun run --filter '*' test
+      - name: Keeper wrapper gas policy
+        run: bun test ../scripts/e2e/keeper-gas-policy.test.ts
       - name: Typecheck integration services
         run: |
           bun run --cwd services/keeper typecheck

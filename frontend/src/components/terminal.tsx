@@ -8,6 +8,7 @@ import { usePriceSeries } from "@/lib/price-history";
 import type { MarketManifest } from "@/config/deployment";
 import { wadToUnit } from "@/lib/units";
 import { PriceAxis } from "./price-axis";
+import { OrderBook, type BookPriceIntent } from "./order-book";
 import { closeIntent, type CloseIntent } from "@/lib/trade-intent";
 import { PageLoading } from "./feedback";
 import { Ticket } from "./ticket";
@@ -35,12 +36,15 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const ladder = useLadder(manifest.engine, block, m.data?.bestBid ?? 0, m.data?.bestAsk ?? 0);
   const live = usePriceSeries(manifest.engine, block);
   const [intent, setIntent] = useState<CloseIntent>();
+  const [bookPrice, setBookPrice] = useState<BookPriceIntent>();
   useEffect(() => setIntent(undefined), [owner.address]);
   const [picked, setTab] = useState<(typeof TABS)[number] | null>(null);
   const tab = picked ?? (owner.connected ? "Position" : "Market info");
 
   const md = m.data;
-  const emptyReason = !md
+  const emptyReason = manifest.archived
+    ? "This demo has been archived. Live price services have stopped; historical observations may still appear."
+    : !md
     ? "Reading the market from Monad testnet…"
     : !md.active
       ? "This market is not active yet. The index, book price and trades will appear here as they become available."
@@ -59,38 +63,28 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
         </Link>
         <span className="label text-fg-3">Trading terminal</span>
       </div>
+      {manifest.archived && <p role="status" className="hair-b col-span-full bg-panel px-4 py-3 text-sm text-fg-2"><strong className="text-fg">Archived demo.</strong> New positions are disabled here. Existing orders, position reductions and collateral controls remain available, subject to contract checks. Live price services have stopped.</p>}
       <div className={cx(styles.content, "flex min-w-0 flex-col")}>
         <MarketHeader manifest={manifest} m={md} />
         {(m.isError || t.isError || head.isError || ladder.isError) && <p role="alert" className="hair-b px-4 py-2 text-xs text-signal-text">Live reads failed. Any displayed snapshot retains its original block; transactions are checked again before signing. <button className="underline" onClick={() => { void head.refetch(); void m.refetch(); void ladder.refetch(); if (owner.address) void t.refetch(); }}>Retry</button></p>}
-        <div className="label hair-b flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 text-fg-3">
-          <span className="flex items-center gap-1.5"><span className={cx("h-[2px] w-4", md?.risk.indexAvailable ? "bg-fg" : "bg-fg-4 [mask:repeating-linear-gradient(90deg,#000_0_2px,transparent_2px_4px)]")} aria-hidden />Index</span>
-          <span className="flex items-center gap-1.5"><span className="h-px w-4 border-t border-dashed border-ivory-3" aria-hidden />Book price</span>
-          <span className="flex items-center gap-1.5"><span className={cx("h-[5px] w-4", md?.risk.markAvailable ? "bg-signal" : "shadow-[inset_0_0_0_1px_var(--color-signal)]")} aria-hidden />Mark</span>
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-bid" aria-hidden />Bids</span>
-          <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-ask" aria-hidden />Asks</span>
-          <span className="ml-auto tnum max-md:hidden">
-            {live.since !== undefined ? `${live.historyStatus} · Live ${live.since}` : "Connecting…"}
-            {live.error ? " · log read failed, retrying" : ""}
-          </span>
-        </div>
-        <div className="h-[280px] shrink-0 md:h-[300px]">
+        <div className={cx(styles.priceWorkspace, "hair-b grid min-w-0")}>
           <PriceAxis
             index={live.index}
             perp={live.perp}
-            trades={live.trades}
-            levels={ladder.isError ? [] : ladder.data ?? []}
             markUnit={md?.risk.markAvailable ? wadToUnit(md.risk.markWad) : undefined}
-            bestBid={md?.bestBid ?? 0}
-            bestAsk={md?.bestAsk ?? 0}
-            emptyTitle={md && !md.active ? "No price yet" : "Waiting for price"}
+            indexUnit={md?.risk.indexAvailable ? wadToUnit(md.risk.indexWad) : undefined}
+            emptyTitle={manifest.archived ? "Market archived" : md && !md.active ? "No price yet" : "Waiting for price"}
             emptyReason={emptyReason}
-            ladderEmptyReason={ladder.isError || m.isError || head.isError ? "Book unavailable" : !md || (!ladder.data && !!(md.bestBid || md.bestAsk)) ? "Loading book…" : "Book empty"}
+            historyStatus={live.historyStatus}
+            readError={!!live.error || m.isError || head.isError}
           />
+          <OrderBook levels={ladder.isError ? [] : ladder.data ?? []} bestBid={md?.bestBid ?? 0} bestAsk={md?.bestAsk ?? 0}
+            emptyReason={ladder.isError || m.isError || head.isError ? "Book unavailable" : !md || (!ladder.data && !!(md.bestBid || md.bestAsk)) ? "Loading book…" : "Book empty"}
+            onPrice={tick => setBookPrice({ tick, nonce: Date.now() })} />
         </div>
-        <DeadlineStrip m={md} now={head.data?.timestamp} />
         <div className="flex flex-col lg:hidden">
           <div className="hair-b">
-            <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} readUnavailable={head.isError || m.isError || t.isError} />
+            <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} bookPrice={bookPrice} readUnavailable={head.isError || m.isError || t.isError} />
           </div>
           <AccountPanel engine={manifest.engine} m={md} t={t.data} readUnavailable={head.isError || m.isError || t.isError} />
         </div>
@@ -116,7 +110,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
           {tab === "Position" ? (
             <PositionPanel m={md} t={t.data} onReduce={(bps) => { if (md && t.data?.account?.preview.positionLots) { setIntent(closeIntent(t.data.account.preview.positionLots, md.bestBid, md.bestAsk, bps)); document.querySelector<HTMLElement>(window.innerWidth >= 1024 ? 'aside[aria-label="Trade"]' : 'section[aria-label="Order ticket"]')?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} />
           ) : tab === "Market info" ? (
-            <MarketInfo manifest={manifest} m={md} />
+            <><DeadlineStrip m={md} now={head.data?.timestamp} /><MarketInfo manifest={manifest} m={md} /></>
           ) : tab === "Open orders" ? (
             <OpenOrders engine={manifest.engine} traderId={t.data?.traderId} block={block} />
           ) : tab === "Protection" ? (
@@ -138,7 +132,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
 
       <aside className="hidden flex-col border-l border-line-strong lg:flex" aria-label="Trade">
         <div className="hair-b">
-          <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} readUnavailable={head.isError || m.isError || t.isError} />
+          <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={md} trader={t.data} intent={intent} bookPrice={bookPrice} readUnavailable={head.isError || m.isError || t.isError} />
         </div>
         <div className="flex min-h-0 flex-1 flex-col">
           <AccountPanel engine={manifest.engine} m={md} t={t.data} readUnavailable={head.isError || m.isError || t.isError} />

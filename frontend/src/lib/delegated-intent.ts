@@ -1,4 +1,7 @@
 export type OrderIntent = { kind: number; isBuy: boolean; reduceOnly: boolean; tick: number; size: string; maxFills: number; expiryBlock: number };
+export class DelegatedDeliveryError extends Error {
+  constructor(message: string, readonly delivery: "rejected" | "pending" | "unknown") { super(message); }
+}
 export type DelegatedIntent = { wallet: string; engine: string; previewBlock: string; clientNonce: string; action: "placeOrder"; place: OrderIntent } |
   { wallet: string; engine: string; previewBlock: string; clientNonce: string; action: "cancel"; orderId: number } |
   { wallet: string; engine: string; previewBlock: string; clientNonce: string; action: "cancelAll" };

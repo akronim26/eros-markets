@@ -225,8 +225,13 @@ def process_identity(pid):
             return None if fields[0] == "Z" else fields[19]
         except FileNotFoundError:
             return None
-    result = subprocess.run(["ps", "-p", str(pid), "-o", "lstart="], text=True, capture_output=True)
-    return result.stdout.strip() or None
+    result = subprocess.run(["ps", "-p", str(pid), "-o", "stat=", "-o", "lstart="], text=True, capture_output=True)
+    fields = result.stdout.strip().split(None, 1)
+    # macOS keeps an exited child as a zombie until its parent reaps it.
+    # Match the /proc branch: an exited process is no longer a live owned root.
+    if len(fields) != 2 or fields[0].startswith("Z"):
+        return None
+    return fields[1].strip()
 
 
 def stop_recorded(record, timeout=10):

@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { parseEnv } from 'node:util'
 import { createPublicClient, createWalletClient, defineChain, encodeAbiParameters, encodeDeployData, encodeFunctionData,
-  getContractAddress, http, keccak256, parseEther, stringToHex, toHex, zeroAddress, zeroHash, type Address, type Hex } from 'viem'
+  getContractAddress, http, keccak256, parseEther, stringToHex, toHex, zeroAddress, zeroHash, type Address, type Hex, type Transaction, type TransactionReceipt } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { loadArtifacts } from './integrated-preflight'
 
@@ -152,6 +152,32 @@ export function runtimeMatches(actual: Hex, compiled: { object: Hex; immutableRe
   return live === expected
 }
 
+export function recordCanonicalPlanReceipt({ plan, step, entry, receipt, canonical, transaction }: {
+  plan: Pick<Plan, 'deployer'>
+  step: Step
+  entry: { hash: Hex; raw?: Hex; receipt?: unknown }
+  receipt: Pick<TransactionReceipt, 'status' | 'transactionHash' | 'blockNumber' | 'blockHash' | 'contractAddress'>
+  canonical: { number: bigint | null; hash: Hex | null }
+  transaction: Pick<Transaction, 'hash' | 'from' | 'to' | 'nonce' | 'input' | 'value' | 'blockNumber' | 'blockHash'>
+}) {
+  const sameHex = (a: string | null | undefined, b: string | null | undefined) =>
+    typeof a === 'string' && typeof b === 'string' && a.toLowerCase() === b.toLowerCase()
+  // viem may resolve a same-nonce replacement's receipt. A successful receipt
+  // only proves this journal entry when both hashes and mined block agree.
+  // Validate before recording confirmation or discarding uncertain signed bytes.
+  if (!sameHex(receipt.transactionHash, entry.hash)
+    || !sameHex(transaction.hash, entry.hash) || transaction.blockNumber !== receipt.blockNumber
+    || !sameHex(transaction.blockHash, receipt.blockHash) || canonical.number !== receipt.blockNumber
+    || !sameHex(canonical.hash, receipt.blockHash) || transaction.from.toLowerCase() !== plan.deployer.toLowerCase()
+    || transaction.value !== BigInt(step.valueWei ?? 0) || transaction.nonce !== step.nonce || transaction.input.toLowerCase() !== step.data.toLowerCase()
+    || (transaction.to ?? '').toLowerCase() !== (step.to ?? '').toLowerCase()
+    || (receipt.status === 'success' && step.expectedAddress
+      && receipt.contractAddress?.toLowerCase() !== step.expectedAddress.toLowerCase())) throw new Error('CANONICAL_RECEIPT_MISMATCH')
+  if (receipt.status !== 'success') throw new Error(`TRANSACTION_REVERTED:${step.name}:${entry.hash}`)
+  entry.receipt = JSON.parse(json(receipt))
+  delete entry.raw
+}
+
 async function verifyBase(plan: Plan, pc: ReturnType<typeof client>['public'], journal: any) {
   const block = await pc.getBlock({ blockTag: journal.broadcast ? 'finalized' : 'latest' }), a = plan.addresses
   const contracts: Record<string, unknown> = {}
@@ -273,15 +299,9 @@ export async function executePlan(plan: Plan, directory: string, endpoint: strin
       }
     }
     const receipt = await pc.waitForTransactionReceipt({ hash: entry.hash, timeout: 180000 })
-    if (receipt.status !== 'success') throw new Error(`TRANSACTION_REVERTED:${step.name}:${entry.hash}`)
     if (broadcast) while ((await pc.getBlock({ blockTag: 'finalized' })).number < receipt.blockNumber) await pause(500)
     const [canonical, transaction] = await Promise.all([pc.getBlock({ blockNumber: receipt.blockNumber }), pc.getTransaction({ hash: entry.hash })])
-    if (canonical.hash !== receipt.blockHash || transaction.from.toLowerCase() !== plan.deployer.toLowerCase()
-      || transaction.value !== BigInt(step.valueWei ?? 0) || transaction.nonce !== step.nonce || transaction.input.toLowerCase() !== step.data.toLowerCase()
-      || (transaction.to ?? '').toLowerCase() !== (step.to ?? '').toLowerCase()
-      || (step.expectedAddress && receipt.contractAddress?.toLowerCase() !== step.expectedAddress.toLowerCase())) throw new Error('CANONICAL_RECEIPT_MISMATCH')
-    entry.receipt = JSON.parse(json(receipt))
-    delete entry.raw // Finalized transaction is public; no signed pending bytes remain necessary.
+    recordCanonicalPlanReceipt({ plan, step, entry, receipt, canonical, transaction })
     atomicWrite(filename, journal)
     console.log(json({ step: index + 1, total: plan.steps.length, name: step.name, hash: entry.hash, gasUsed: receipt.gasUsed }).trim())
   }

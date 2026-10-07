@@ -6,8 +6,9 @@ import { rulesHash } from '../../../packages/pricefeed/src/rules'
 import { calibratorHash } from '../../services/panel-runner/src/calibration'
 import { toPublicManifest } from '../../packages/oracle-sdk/src/trading-manifest'
 import { evaluateResponse, type FeedSpec } from '../../packages/feedspec/src'
+import { testnetMarketCapacity } from './market-capacity'
 
-const ROOT = resolve(import.meta.dir, '../../..'), RPC = 'https://testnet-rpc.monad.xyz'
+const ROOT = resolve(import.meta.dir, '../../..'), RPC = process.env.MONAD_TESTNET_RPC || 'https://testnet-rpc.monad.xyz'
 const read = (path: string) => JSON.parse(readFileSync(path, 'utf8'))
 const hash = (value: string) => keccak256(stringToHex(value))
 const json = (value: unknown) => JSON.stringify(value, (_, v) => typeof v === 'bigint' ? v.toString() : v, 2) + '\n'
@@ -20,27 +21,45 @@ export async function prepareMarket(directory: string, sourcePath: string) {
   if (!baseReport.passed) throw new Error('VERIFIED_BASE_REQUIRED')
   const pc = client(RPC).public, block = await pc.getBlock({ blockTag: 'finalized' }), a = base.addresses
   const source = read(sourcePath), mapping = source.config.mapping
+  const category = source.config.category
+  if (!['crypto', 'politics', 'sports'].includes(category)) throw new Error('INVALID_SOURCE_CATEGORY')
   if (!/^[0-9]+$/.test(mapping.externalMarketId)) throw new Error('INVALID_EXTERNAL_MARKET_ID')
-  const response = await fetch(`https://gamma-api.polymarket.com/markets/${mapping.externalMarketId}`, { redirect: 'error', signal: AbortSignal.timeout(10000) })
-  if (!response.ok) throw new Error('SOURCE_METADATA_UNAVAILABLE')
-  const reference = await response.text()
+  let reference: string
+  if (process.env.EROS_SOURCE_CAPTURE_FILE) {
+    const capture = read(process.env.EROS_SOURCE_CAPTURE_FILE)
+    if (capture.url !== `https://gamma-api.polymarket.com/markets/${mapping.externalMarketId}`
+      || !Number.isSafeInteger(capture.receivedAtMs) || Date.now() < capture.receivedAtMs
+      || Date.now() - capture.receivedAtMs > 90000 || typeof capture.body !== 'string') throw new Error('STALE_SOURCE_CAPTURE')
+    reference = capture.body
+  } else {
+    const response = await fetch(`https://gamma-api.polymarket.com/markets/${mapping.externalMarketId}`, { redirect: 'error', signal: AbortSignal.timeout(10000) })
+    if (!response.ok) throw new Error('SOURCE_METADATA_UNAVAILABLE')
+    reference = await response.text()
+  }
   if (reference.length > 131072) throw new Error('SOURCE_METADATA_TOO_LARGE')
   const metadata = JSON.parse(reference)
   const outcomes = typeof metadata.outcomes === 'string' ? JSON.parse(metadata.outcomes) : metadata.outcomes
   const tokens = typeof metadata.clobTokenIds === 'string' ? JSON.parse(metadata.clobTokenIds) : metadata.clobTokenIds
-  const yes = outcomes.findIndex((s: string) => s.toLowerCase() === 'yes')
+  const yes = outcomes.findIndex((s: string) => s === mapping.outcomeLabel)
   if (String(metadata.id) !== mapping.externalMarketId || metadata.conditionId !== mapping.conditionId
-    || outcomes.length !== 2 || yes < 0 || !outcomes.some((s: string) => s.toLowerCase() === 'no')
+    || outcomes.length !== 2 || new Set(outcomes).size !== 2 || yes < 0
     || tokens[yes] !== mapping.outcomeTokenId || metadata.question !== source.question || metadata.description !== source.description
     || metadata.closed || Math.floor(Date.parse(metadata.endDate) / 1000) !== Number(source.scheduledT)) throw new Error('SOURCE_IDENTITY_CHANGED')
+  // The deployed registry also enforces a 30-day-minus-one-hour maximum.
+  // Changing a script option cannot extend that immutable protocol boundary.
   if (BigInt(source.scheduledT) < block.timestamp + 25n * 3600n || BigInt(source.scheduledT) > block.timestamp + 29n * 86400n) throw new Error('SOURCE_HORIZON_CHANGED')
   const nonce = await pc.getTransactionCount({ address: base.deployer, blockTag: 'pending' })
   if (nonce !== await pc.getTransactionCount({ address: base.deployer, blockTag: 'latest' })) throw new Error('PENDING_DEPLOYER_TRANSACTION')
   const factoryNonce = await pc.getTransactionCount({ address: a.MarketFactory, blockTag: 'latest' })
   const engine = getContractAddress({ from: a.MarketFactory, nonce: BigInt(factoryNonce) })
-  const marketId = hash(`EROS_MONAD_TESTNET_MARKET_V1:${a.MarketRegistry}:${mapping.conditionId}:${mapping.outcomeTokenId}`)
+  const revision = source.deploymentRevision
+  if (revision !== undefined && (typeof revision !== 'string' || !/^[a-z0-9-]{1,32}$/.test(revision))) throw new Error('INVALID_DEPLOYMENT_REVISION')
+  const marketId = hash(revision
+    ? `EROS_MONAD_TESTNET_MARKET_V2:${a.MarketRegistry}:${mapping.conditionId}:${mapping.outcomeTokenId}:${revision}`
+    : `EROS_MONAD_TESTNET_MARKET_V1:${a.MarketRegistry}:${mapping.conditionId}:${mapping.outcomeTokenId}`)
+  const capacity = testnetMarketCapacity(BigInt(source.depthNLots))
   const rules = `Monad testnet mirror of Polymarket market ${mapping.externalMarketId}, condition ${mapping.conditionId}. `
-    + 'YES if the finalized binary payout for its YES token is 1; NO if it is 0. A fractional/split or unavailable payout must not be treated as NO; the oracle review/invalid process applies. '
+    + `YES if the finalized binary payout for outcome ${JSON.stringify(mapping.outcomeLabel)}, token ${mapping.outcomeTokenId}, is 1; NO if it is 0. A fractional/split or unavailable payout must not be treated as NO; the oracle review/invalid process applies. `
     + 'The API must report umaResolutionStatus=resolved. Merely closing trading is insufficient. Test collateral, synthetic risk calibration and the owner-controlled UMA testnet sandbox apply. '
     + `External event description hash: ${hash(source.description)}. Source: https://gamma-api.polymarket.com/markets/${mapping.externalMarketId}.`
   const sourceRules = { ...source.rules, marketId, erosRulesHash: hash(rules) }
@@ -59,10 +78,10 @@ export async function prepareMarket(directory: string, sourcePath: string) {
     windowStart: block.timestamp, windowEnd: BigInt(source.scheduledT), tau: BigInt(source.scheduledT), groupId: zeroHash, groupExclusive: false,
     hasFeed: true, feed, allowList: ['gamma-api.polymarket.com', 'clob.polymarket.com'],
     ai: { allowListPtr: zeroAddress, modelIdHashes: models.map(hash),
-      promptHash: hash(readFileSync(resolve(ROOT, 'oracle/services/panel-runner/src/prompts/templates/politics.txt'), 'utf8')),
-      calibratorHash: calibratorHash(maps), categoryId: hash('politics'), highConfBps: 9100 },
+      promptHash: hash(readFileSync(resolve(ROOT, `oracle/services/panel-runner/src/prompts/templates/${category}.txt`), 'utf8')),
+      calibratorHash: calibratorHash(maps), categoryId: hash(category), highConfBps: 9100 },
     uma: { bondCurrency: a.TestUSDC, minBond: 2_000000n, bondBps: 1112, livenessL1: 120n, livenessAuto: 120n, livenessReviewed: 300n, claimTemplatePtr: zeroAddress },
-    l2DeadlineSecs: 600, voidSecs: 30 * 86400, monitor: base.roles.KEEPER, oiCapLots: 1_000_000n,
+    l2DeadlineSecs: 600, voidSecs: 30 * 86400, monitor: base.roles.KEEPER, oiCapLots: capacity.oiCapLots,
     dryRunHash: hash(reference), ambiguityLogHash: hash('Testnet mirror uses resolved binary Polymarket payout; fractional outcomes require review. Synthetic risk and placeholder AI calibration are separately labeled.') }
   const listing = { marketId: zeroHash, token: a.TestUSDC, registry: zeroAddress, resolutionAuthority: zeroAddress, monitor: zeroAddress,
     governance: a.Timelock, listedAt: 0n, scheduledT: 0n, sourceHash: zeroHash, rulesHash: zeroHash,
@@ -71,7 +90,11 @@ export async function prepareMarket(directory: string, sourcePath: string) {
     indexRulesHash: mappedSource.sourceRulesHash, depthNLots: BigInt(source.depthNLots), maxSpreadWad: BigInt(source.maxSpreadWad),
     bootstrapBandWad: 50_000_000_000_000_000n, minOrderLots: 1n, maxOrderLots: 4_294_967_295n, maxLiqLotsPerBlock: 100_000n, fundingEnabled: false }
   // Exact existing deterministic fixture parameters, explicitly synthetic.
-  const envelope = { hSecs: [30n * 86400n], sigmaWad: [0n], validFrom: block.timestamp, validUntil: BigInt(source.scheduledT) }
+  // Long-dated events must renew calibration; the test fixture is never treated
+  // as empirical calibration valid until a multi-year election resolves.
+  const calibrationEnd = block.timestamp + 30n * 86400n < BigInt(source.scheduledT)
+    ? block.timestamp + 30n * 86400n : BigInt(source.scheduledT)
+  const envelope = { hSecs: [30n * 86400n], sigmaWad: [0n], validFrom: block.timestamp, validUntil: calibrationEnd }
   const riskParams = { h0Secs: 300n, absorptionClaimsPerMin: 1000n, queueSecs: 0n, hazard0WadPerDay: 100_000_000_000_000n,
     hazard1WadPerDay: 100_000_000_000_000n, epsilonWad: 10_000_000_000_000_000n, gammaWad: 1_500_000_000_000_000_000n,
     sWad: 5_000_000_000_000_000n, lambdaWadPerClaim: 1_000_000_000_000n, template: 0, calibrated: true, deploymentCapX: 5n,
@@ -109,11 +132,12 @@ async function verify(raw: Plan, pc: ReturnType<typeof client>['public'], journa
   const p = raw as MarketPlan, m = p.market, a = p.addresses
   const block = await pc.getBlock({ blockTag: journal.broadcast ? 'finalized' : 'latest' })
   const readAt = (name: string, address: Address, functionName: string, args: unknown[] = []) => pc.readContract({ abi: artifact(name).abi, address, functionName, args, blockNumber: block.number }) as Promise<any>
-  const [listing, listingHash, vault, active, reserve, code, actualEngine, profileHash] = await Promise.all([
+  const [listing, listingHash, vault, active, reserve, code, actualEngine, profileHash, core] = await Promise.all([
     readAt('RegistryBookRiskEngine', m.engine, 'listing'), readAt('RegistryBookRiskEngine', m.engine, 'listingHash'),
     readAt('RegistryBookRiskEngine', m.engine, 'collateralVault'), readAt('RegistryBookRiskEngine', m.engine, 'active'),
     readAt('RegistryBookRiskEngine', m.engine, 'reserve'), pc.getCode({ address: m.engine, blockNumber: block.number }),
     readAt('MarketFactory', a.MarketFactory, 'engineOf', [m.marketId]), readAt('RegistryBookRiskEngine', m.engine, 'profileHashOf', [m.riskParams]),
+    readAt('MarketRegistry', a.MarketRegistry, 'getMarketCore', [m.marketId]),
   ])
   const base = read(resolve(directory, journal.broadcast ? 'base-verification.json' : 'rehearsal-verification.json'))
   if (!active || !code || !runtimeMatches(code, artifact('RegistryBookRiskEngine').deployedBytecode)
@@ -122,7 +146,9 @@ async function verify(raw: Plan, pc: ReturnType<typeof client>['public'], journa
     || listing.resolutionAuthority.toLowerCase() !== a.ResolutionOracle.toLowerCase() || listing.indexSourceId !== m.source.sourceId
     || listing.indexRulesHash !== m.source.sourceRulesHash || listing.indexSigner.toLowerCase() !== p.roles.INDEX_SIGNER.toLowerCase()
     || listing.rulesHash !== m.source.erosRulesHash || listing.deploymentCapX !== 5n || listing.fundingEnabled
-    || reserve[1] !== 100_000n * 10n ** 24n || profileHash !== m.profileHash) throw new Error('INTEGRATED_MARKET_VERIFICATION_FAILED')
+    || reserve[1] !== 100_000n * 10n ** 24n || profileHash !== m.profileHash
+    || core.oiCapLots !== BigInt(m.pack.marketInput.oiCapLots)
+    || core.oiCapLots <= listing.depthNLots) throw new Error('INTEGRATED_MARKET_VERIFICATION_FAILED')
   const inputs = artifact('RegistryBookRiskEngine').abi.find((f: any) => f.name === 'listing').outputs
   if (keccak256(encodeAbiParameters(inputs, [listing])) !== listingHash) throw new Error('LISTING_HASH_MISMATCH')
   const caps = await readAt('RegistryBookRiskEngine', m.engine, 'leverageCaps')
@@ -135,6 +161,7 @@ async function verify(raw: Plan, pc: ReturnType<typeof client>['public'], journa
     verifiedAt: { blockNumber: block.number.toString(), blockHash: block.hash }, contracts: base.contracts, markets: [identity], accounts: {} })
   if ((await pc.getBlock({ blockNumber: block.number })).hash !== block.hash) throw new Error('VERIFICATION_BLOCK_REORGED')
   return { passed: true, publicTransactions: journal.broadcast ? journal.steps.length : 0, manifest, listing, caps,
+    capacity: { oiCapLots: core.oiCapLots, depthNLots: listing.depthNLots, samplingHeadroomLots: core.oiCapLots - listing.depthNLots },
     profileHash, title: m.title, oracleDelivery: 'CRE simulation; production network workflow not deployed', uma: 'owner-controlled testnet sandbox',
     publication: 'configured external source; continuous operators require service activation' }
 }

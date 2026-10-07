@@ -1,0 +1,17 @@
+bun test v1.3.13 (bf2e2cec)
+
+test/fresh-receipts.test.ts:
+(pass) exact canonical deployment receipt > rejects a successful replacement receipt paired with a cached pending original [0.31ms]
+(pass) exact canonical deployment receipt > rejects a different receipt hash even when all other fields match
+(pass) exact canonical deployment receipt > rejects a different fetched transaction hash
+(pass) exact canonical deployment receipt > requires transaction and canonical block membership to match the receipt [0.13ms]
+(pass) exact canonical deployment receipt > retains sender, nonce, value, input and target checks [0.19ms]
+(pass) exact canonical deployment receipt > an exact canonical revert is a known failure and retains signed bytes [0.06ms]
+(pass) exact canonical deployment receipt > only exact confirmation records the receipt and discards signed bytes [0.06ms]
+(pass) exact canonical deployment receipt > hex case differences do not change identity [0.06ms]
+(pass) exact canonical deployment receipt > creation receipts must confirm the predicted address and have no call target [0.06ms]
+
+ 9 pass
+ 0 fail
+ 46 expect() calls
+Ran 9 tests across 1 file. [132.00ms]

@@ -228,17 +228,19 @@ test('Monad watcher CLI archives fixture engine state, reports health and cleanl
         depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad),bootstrapBandWad:0n,
         minOrderLots:1n,maxOrderLots:10n,maxLiqLotsPerBlock:100n,fundingEnabled:false};
       globalThis.fetch=async(_input,init)=>{
-        const req=JSON.parse(init.body);let result;
+        const body=JSON.parse(init.body);const respond=req=>{let result;
         if(req.method==='eth_chainId')result='0x279f';
         else if(req.method==='eth_getBlockByNumber')result={number,hash,timestamp:'0x'+t.toString(16),transactions:[]};
         else if(req.method==='eth_getCode')result=${JSON.stringify(code)};
         else if(req.method==='eth_call'){
           if(req.params[1]!==number)throw new Error('WRONG_BLOCK');
+          if(!req.params[0].to)return {jsonrpc:'2.0',id:req.id,result:d.engineCodeHash};
           const fn=decodeFunctionData({abi,data:req.params[0].data});
           result=encodeFunctionResult({abi,functionName:fn.functionName,result:fn.functionName==='listing'?listing:
             fn.functionName==='sourceState'?{signer:d.signerAddress,rulesHash:d.sourceRulesHash,lastSequence:1n,lastObservedAt:BigInt(d.listedAt)+86400n-1n,configured:true}:true});
         }else throw new Error('UNEXPECTED_METHOD');
-        return new Response(JSON.stringify({jsonrpc:'2.0',id:req.id,result}),{headers:{'Content-Type':'application/json'}});
+        return {jsonrpc:'2.0',id:req.id,result};};
+        return new Response(JSON.stringify(Array.isArray(body)?body.map(respond):respond(body)),{headers:{'Content-Type':'application/json'}});
       };
     `);
     const env:NodeJS.ProcessEnv={...process.env,PRICEFEED_TEST_RPC:'https://fixture.invalid/private-rpc-secret'};delete env.NODE_TEST_CONTEXT;

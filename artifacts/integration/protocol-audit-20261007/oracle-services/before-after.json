@@ -1,0 +1,26 @@
+{
+  "OS-01": {
+    "fixture": "3 same-block proposals; server cap 1",
+    "before": [
+      0
+    ],
+    "after": [
+      0,
+      2,
+      4
+    ]
+  },
+  "OS-03": {
+    "fixture": "healthy source1000000 then future9999999999999",
+    "beforePersistedSourceMs": "9999999999999",
+    "afterPersistedSourceMs": "1000000",
+    "restartHealthyRecovery": true,
+    "genuineBackwardsStillQuarantines": true
+  },
+  "OS-04": {
+    "fixture": "20 chunks of128KiB, cap250KiB, primary and F1 companion",
+    "beforeChunksRead": 20,
+    "afterChunksRead": 2,
+    "afterReaderCancelled": true
+  }
+}

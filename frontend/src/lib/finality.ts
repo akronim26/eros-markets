@@ -3,6 +3,7 @@ import type { Address, Hash, Hex, PublicClient, TransactionReceipt } from "viem"
 type FinalityClient = Pick<PublicClient, "waitForTransactionReceipt" | "getTransactionReceipt" | "getBlock">;
 type ReceiptClient = FinalityClient & Pick<PublicClient, "getTransaction">;
 type Options = { timeoutMs?: number; pollMs?: number };
+export class FinalizedOwnerRevert extends Error {}
 
 /** Inclusion is not finality. Re-read the receipt and its canonical block after finalization. */
 export async function canonicalFinalizedReceipt(client: FinalityClient, hash: Hash, options: Options = {}): Promise<TransactionReceipt> {
@@ -27,12 +28,12 @@ export async function canonicalFinalizedReceipt(client: FinalityClient, hash: Ha
 export async function finalizedOwnerReceipt(client: ReceiptClient, hash: Hash,
   expected: { owner: Address; to: Address; data: Hex }, options: Options = {}): Promise<TransactionReceipt> {
   const receipt = await canonicalFinalizedReceipt(client, hash, options);
-  if (receipt.status !== "success") throw new Error(`Transaction reverted in block ${receipt.blockNumber}.`);
   const transaction = await client.getTransaction({ hash });
   if (transaction.hash.toLowerCase() !== hash.toLowerCase() || transaction.blockHash !== receipt.blockHash
     || transaction.blockNumber !== receipt.blockNumber || transaction.from.toLowerCase() !== expected.owner.toLowerCase()
     || transaction.to?.toLowerCase() !== expected.to.toLowerCase()
     || transaction.input.toLowerCase() !== expected.data.toLowerCase() || transaction.value !== 0n)
     throw new Error("Transaction identity or canonical block changed. Remaining steps were stopped.");
+  if (receipt.status !== "success") throw new FinalizedOwnerRevert(`Transaction reverted in block ${receipt.blockNumber}.`);
   return receipt;
 }

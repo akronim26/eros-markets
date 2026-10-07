@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -20,16 +20,22 @@ const pause=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 type Running={child:ReturnType<typeof spawn>;records:Record<string,unknown>[];completion:Promise<{code:number|null;signal:string|null}>;
   until:(check:()=>boolean,timeout?:number)=>Promise<void>;output:()=>{stdout:string;stderr:string}};
 
-function fixture(sourceDelayMs=0){
+function fixture(sourceDelayMs=0,gateSource=false){
   const dir=mkdtempSync(join(tmpdir(),'pricefeed-deployment-')),state=join(dir,'state'),configsFile=join(dir,'configs.json'),profileFile=join(dir,'profile.json');
-  const cfg={...base,poll:{...base.poll,intervalMs:100,timeoutMs:200,maxRetries:0,retryDelayMs:0}};
+  const sourceGate=join(dir,'hold-source'),sourceEntered=join(dir,'source-held');
+  const cfg={...base,poll:{...base.poll,intervalMs:100,timeoutMs:gateSource?5000:200,maxRetries:0,retryDelayMs:0}};
   writeFileSync(configsFile,json([cfg]));
   const profile=parseDeploymentProfile({schemaVersion:'1',mode:'READ_ONLY_COLLECTION',stateDirectory:state,
     inputs:{configs:{path:configsFile,sha256:sha(readFileSync(configsFile))}},restart:{delayMs:1000,maxRestarts:2,stopTimeoutMs:2000},streamHints:false,testnet:null});
   writeFileSync(profileFile,json(profile));const preload=join(dir,'source.mjs');
   writeFileSync(preload,`
+    import {existsSync,writeFileSync} from 'node:fs';
     const event=${JSON.stringify(event)},metadata=${JSON.stringify(metadata)},book=${body};
     globalThis.fetch=async url=>{
+      if(${gateSource}&&existsSync(${JSON.stringify(sourceGate)})){
+        writeFileSync(${JSON.stringify(sourceEntered)},String(process.pid));
+        while(existsSync(${JSON.stringify(sourceGate)}))await new Promise(resolve=>setTimeout(resolve,10));
+      }
       if(${sourceDelayMs}){
         console.log(JSON.stringify({event:'FIXTURE_REQUEST'}));
         await new Promise(resolve=>setTimeout(resolve,${sourceDelayMs}));
@@ -57,6 +63,7 @@ function fixture(sourceDelayMs=0){
   const rows=()=>{const db=source();try{return Number(db.prepare('SELECT count(*) n FROM captures').get()!.n);}finally{db.close();}};
   const stop=async(s:ReturnType<typeof launch>)=>{if(s.child.exitCode===null&&s.child.signalCode===null)s.child.kill('SIGTERM');await s.completion;};
   const close=async()=>{
+    rmSync(sourceGate,{force:true});
     for(const s of children){
       if(s.child.exitCode===null&&s.child.signalCode===null)s.child.kill('SIGTERM');
       for(const e of s.records)if(e.event==='LOCK_HOLDER_STARTED'&&typeof e.pid==='number'){
@@ -64,7 +71,9 @@ function fixture(sourceDelayMs=0){
     }
     await Promise.all(children.map(c=>c.completion));rmSync(dir,{recursive:true,force:true});
   };
-  return {dir,state,cfg,configsFile,profileFile,profile,env,launch,source,rows,stop,close};
+  return {dir,state,cfg,configsFile,profileFile,profile,env,launch,source,rows,stop,close,
+    holdSource:()=>writeFileSync(sourceGate,''),sourceHeld:()=>existsSync(sourceEntered),
+    releaseSource:()=>rmSync(sourceGate,{force:true})};
 }
 
 test('explicit preparation pins inputs and refuses existing/missing/corrupt state without rebuilding it',async()=>{
@@ -152,14 +161,23 @@ test('persisted unfinished-run restart allowance cannot be reset by host relaunc
 });
 
 test('an orphaned worker retains the OS lock after its supervisor is killed, then a new supervisor reconciles state',async()=>{
-  const f=fixture();try{
+  const f=fixture(0,true);try{
     prepareDeployment(f.profile);const first=f.launch();await first.until(()=>first.records.some(e=>e.event==='SOURCE_CAPTURE'));
     const parent=first.records.find(e=>e.event==='SUPERVISOR_READY')!.pid as number;
     const worker=first.records.find(e=>e.event==='WORKER_STARTED')!.pid as number;
-    process.kill(parent,'SIGKILL');await pause(150);
+    // Pin the crash interleaving while the owned worker is in a source request.
+    // Do not stop it with SIGSTOP: orphaned stopped POSIX groups receive SIGHUP.
+    f.holdSource();await first.until(f.sourceHeld);
+    const heldRows=f.rows();
+    process.kill(parent,'SIGKILL');await first.until(()=>first.child.exitCode!==null||first.child.signalCode!==null);
     const duplicate=f.launch();assert.equal((await duplicate.completion).code,78);
     assert.ok(!duplicate.records.some(e=>e.event==='WORKER_STARTED'));
+    assert.equal(f.rows(),heldRows);
+    const locked=f.source();try{assert.equal(locked.prepare('SELECT fence FROM writers').get()!.fence,1);}finally{locked.close();}
+    f.releaseSource();await first.until(()=>f.rows()>heldRows);
     process.kill(worker,'SIGTERM');await first.completion;const before=f.rows();
+    assert.ok(first.records.some(e=>e.event==='WORKER_STOPPED'&&e.operatorStop===false));
+    const drained=f.source();try{assert.equal(drained.prepare('SELECT until_ms FROM writers').get()!.until_ms,'0');}finally{drained.close();}
     assert.equal(readSupervision(f.profile).phase,'RUNNING');
     const resumed=f.launch();await resumed.until(()=>resumed.records.some(e=>e.event==='SOURCE_CAPTURE'));await f.stop(resumed);
     assert.ok(f.rows()>before);assert.equal(readSupervision(f.profile).restarts,1);

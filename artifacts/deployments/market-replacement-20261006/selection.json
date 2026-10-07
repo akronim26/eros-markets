@@ -1,0 +1,45 @@
+{
+  "schema": "eros-market-selection/1",
+  "status": "selected-not-deployed",
+  "market": {
+    "id": "561229",
+    "question": "Will JD Vance win the 2028 US Presidential Election?",
+    "slug": "will-jd-vance-win-the-2028-us-presidential-election",
+    "conditionId": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+    "endDate": "2028-11-08T04:59:00Z",
+    "description": "The 2028 US Presidential Election is scheduled to take place on November 7, 2028.\n\nThis market will resolve to the person who wins the 2028 US Presidential Election.\n\nThe resolution source for this market is the Associated Press, Fox News, and NBC. This market will resolve once all three sources call the race for the same candidate. If all three sources haven\u2019t called the race for the same candidate by the inauguration date (January 20, 2029) this market will resolve based on who is inaugurated.",
+    "volume24hr": 179926.700513,
+    "liquidityClob": 464794.8628
+  },
+  "eventSlug": "presidential-election-winner-2028",
+  "outcomes": [
+    "Yes",
+    "No"
+  ],
+  "outcomeTokenIds": [
+    "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+    "94476829201604408463453426454480212459887267917122244941405244686637914508323"
+  ],
+  "targetChainId": 10143,
+  "intendedTemplate": "SCHEDULED",
+  "intendedDeploymentCapX": 5,
+  "sourceEvidence": {
+    "qualification": "qualification.json",
+    "rawCapturesSha256": "a1dd1998818b841a18508ba2e6fd21ab06fb8c25667bd6076dfff155fe96e653",
+    "successfulCaptures": 420,
+    "maxObservedAgeMs": 1098,
+    "unobservedCaptureGapMs": 128489,
+    "longestContinuousSegmentSeconds": 421.3,
+    "originalContinuousQualificationPassed": false,
+    "limitation": "All four capture streams share an approximately 128-second observation gap. No claim is made about source behavior during that gap. The original strict qualification report is retained unchanged."
+  },
+  "deploymentPrerequisites": [
+    "Recheck source metadata, binary YES mapping, and continuous source freshness immediately before deployment.",
+    "Adapt fresh-market.ts explicit 29-day demo horizon policy for this scheduled 2028 event; use bounded, renewable test calibration, not an assumed two-year empirical profile.",
+    "Rehearse the market deployment against verified existing shared infrastructure and current deployer nonce; verify gas budget.",
+    "Export a newly verified manifest retaining the archived engine under a distinct metadata name.",
+    "Enroll/start exact source publisher, book sampler, keeper, maker and indexer configuration using preserved journals.",
+    "Confirm INDEX300, PERP60, BASIS900 and epoch activation, then read actual leverageCaps and order previews before advertising leveraged trading."
+  ],
+  "publicTransactionsSentForReplacement": 0
+}

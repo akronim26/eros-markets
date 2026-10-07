@@ -1,0 +1,96 @@
+{
+  "mode": "MONAD_TESTNET_EXTERNAL_SOURCE",
+  "schemaVersion": 1,
+  "chainId": 10143,
+  "marketId": "0x93ff9c53d0798dc58e39f1167c163d816b6be8bdb196807811be6a9c58d18952",
+  "sourceId": "0xd3b19d4014aa540ecb42abc305df55d279ae5f72c0ef9184968e63ee25f4de44",
+  "sourceRulesHash": "0x40ea7d19f688526ca2fb63c807028ec662e4648652e8d367be9386cb21695369",
+  "scheduledT": "1793768340",
+  "depthNLots": "1000000",
+  "maxSpreadWad": "50000000000000000",
+  "question": "Will the Democratic Party control the Senate after the 2026 Midterm elections?",
+  "description": "This market will resolve according to the party that wins control of the United States Senate in the 2026 United States midterm election.\n\nA party wins control of the United States Senate if it wins a majority of the chamber’s voting seats. If no party wins a majority of voting seats, the party that wins control of the chamber is the party that wins half of the voting seats and holds the Vice Presidency. If the outcome remains ambiguous after applying the above criteria, the chamber will be deemed controlled by the party with which the first selected President Pro Tempore of the Congress that convenes after the specified election is affiliated.\n\nThe following rules govern the counting of seats for determining which party wins control of the chamber.\n\nAll regular and special Senate elections that determine representation in the upcoming 120th Congress and are scheduled to take place in November 2026 as of October 31, 2026 are included. Runoffs for qualifying elections will determine attribution of the relevant seat, even if they take place after November 2026. Vacant seats for which no election or special election to fill the seat is scheduled to take place in November 2026 as of October 31, 2026 will be treated as held by the party affiliation of the most recent member to hold that seat.\n\nFor seats contested in the specified election, seats are attributed to the party under which the member was elected. If a member-elect changes party affiliation, or vacates their seat, between election day and the formal organization of Congress, the seat is attributed to the party under which the member was elected.\n\nFor seats not contested in the specified election, seats are attributed to the party that holds the seat as of the date of the election. If a current sitting member of the U.S. Senate who is not up for election changes party affiliation or vacates their seat after the date of the election, the seat is attributed to the party under which the member was affiliated at the time of the election.\n\nSenate members elected as independents who formally caucus with, or, for newly elected members, who announce their intent to caucus with, a party are included in that party’s count. If the caucus decisions of members of the Senate elected as independents cannot be determined on the date of the election, this market may remain open until the earlier of (i) an announcement from the relevant members of their intents to caucus, or (ii) January 4th, 11:59 PM ET of the following calendar year. If no such announcement is made by January 4th, 11:59 PM ET of the following calendar year, the member will not count towards the seat count of any party.\n\nThe resolution sources for this market will be official information from relevant state electoral authorities, the United States Congress, and a consensus of credible reporting.",
+  "resolutionSource": "",
+  "config": {
+    "schemaVersion": "1",
+    "configVersion": "monad-integrated-demo-1",
+    "key": "live-562793",
+    "category": "politics",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "32224",
+      "externalMarketId": "562793",
+      "conditionId": "0x307a1ed89d60b61002dd5bbf00e1408c5ed2ab3fcdb056191ca7ef9bc34d38f3",
+      "outcomeTokenId": "113287701564209339913693347405685749986285999146352375265161592243948562084773",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "authentic-vendor-ms-floor-diagnostic",
+      "quantityPolicyId": "claims-floor-total-diagnostic",
+      "quotePolicyId": "before-fee-vwap-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": "1793768340",
+    "poll": {
+      "intervalMs": 1000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 1000000
+    }
+  },
+  "rules": {
+    "schemaVersion": "1",
+    "venue": "polymarket",
+    "eventId": "32224",
+    "externalMarketId": "562793",
+    "conditionId": "0x307a1ed89d60b61002dd5bbf00e1408c5ed2ab3fcdb056191ca7ef9bc34d38f3",
+    "outcomeTokenId": "113287701564209339913693347405685749986285999146352375265161592243948562084773",
+    "outcomeLabel": "Yes",
+    "marketId": "0x93ff9c53d0798dc58e39f1167c163d816b6be8bdb196807811be6a9c58d18952",
+    "sourceId": "0xd3b19d4014aa540ecb42abc305df55d279ae5f72c0ef9184968e63ee25f4de44",
+    "erosRulesHash": "0x04f14ab6a69b7789d77aa99c3115ff66a9d620aa3bec6118138043fed71524c9",
+    "externalRulesDigest": "0xaf08f2b66c52d1e14550c4d3ed5083b30627eab260c9c92b3043bfd6be4eac2e",
+    "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+    "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+    "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+    "failurePolicyHash": "0x0fa1db1edbc336046ff5259520ba63997b7a0493671fbb3b9047d6dbe755ac0d",
+    "scheduledT": "1793768340",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+  },
+  "preparedAtMs": "1791308394425",
+  "productionApproved": false,
+  "calibration": "SYNTHETIC_TEST_RISK_PARAMETERS_NOT_EMPIRICAL",
+  "namedOutcomeReview": {
+    "marketId": "562793",
+    "label": "Democratic Party",
+    "negativeRisk": true,
+    "eventAugmented": true,
+    "scope": "Exact named binary YES-token order book and eventual finalized binary payout only; no outcome conversions, Other or placeholders.",
+    "reference": "https://docs.polymarket.com/concepts/negative-risk"
+  },
+  "indexSigner": "0xfc41F6b8095C4e2Cbf411876ec3E3DB45bb2E235",
+  "erosRulesHash": "0x04f14ab6a69b7789d77aa99c3115ff66a9d620aa3bec6118138043fed71524c9",
+  "resolution": {
+    "provider": "Polymarket Gamma",
+    "yesIndex": 0,
+    "statusRequired": "resolved",
+    "fractionalPayout": "review/invalid; no L1 binary report"
+  }
+}

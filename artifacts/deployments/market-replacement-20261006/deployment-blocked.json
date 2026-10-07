@@ -1,0 +1,8 @@
+{
+  "status": "awaiting-event-scope-choice",
+  "publicTransactionsSent": 0,
+  "rehearsalResult": "reverted: BadTimes(1)",
+  "reason": "MarketRegistry maxListingHorizon is capped at 2588400 seconds (30 days minus one hour), not just by the deployment script. The selected 2028 election cannot be listed on this deployment.",
+  "leverageTests": "3 passed: real sampler/direct 5x, reserve admission restriction, uncalibrated/epoch transition",
+  "sourceQualification": "source-qualification.json"
+}

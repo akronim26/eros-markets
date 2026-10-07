@@ -1,0 +1,39 @@
+{
+  "kind": "fixture",
+  "description": "RiskFixture.profile(5,true), zero empirical envelopes; bounded validity/horizon as in the deterministic leveraged integration.",
+  "riskParams": {
+    "h0Secs": "300",
+    "absorptionClaimsPerMin": "1000",
+    "queueSecs": "0",
+    "hazard0WadPerDay": "100000000000000",
+    "hazard1WadPerDay": "100000000000000",
+    "epsilonWad": "10000000000000000",
+    "gammaWad": "1500000000000000000",
+    "sWad": "5000000000000000",
+    "lambdaWadPerClaim": "1000000000000",
+    "template": 0,
+    "calibrated": true,
+    "deploymentCapX": "5",
+    "realized": {
+      "hSecs": [
+        "2592000"
+      ],
+      "sigmaWad": [
+        "0"
+      ],
+      "validFrom": "1791310356",
+      "validUntil": "1793768340"
+    },
+    "templateEnv": {
+      "hSecs": [
+        "2592000"
+      ],
+      "sigmaWad": [
+        "0"
+      ],
+      "validFrom": "1791310356",
+      "validUntil": "1793768340"
+    }
+  },
+  "profileHash": "0x377a0479636e56bb70448f503cee7533da42042ea52a0407409a07e831e16f2d"
+}

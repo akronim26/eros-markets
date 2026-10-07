@@ -1,0 +1,9 @@
+{
+  "block": "68880542",
+  "blockHash": "0x5e7182ee1e8b4ae2eb0fc619063da71fa009a98e19d73c707aaabeeebcdd92a6",
+  "samplePerp": {
+    "estimate": "226556",
+    "limit": 293195
+  },
+  "scope": "Remeasured dynamically with funded depth by market-services.ts."
+}

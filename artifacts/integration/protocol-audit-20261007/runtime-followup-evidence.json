@@ -1,0 +1,4042 @@
+{
+  "scope": "Read-only canonical receipt inspection and finite timing models, not continuous uptime certification",
+  "initialRestartUTC": "2026-10-06T22:41:43Z to 22:41:47Z",
+  "productionSolidityChanged": false,
+  "indexReceipts": [
+    {
+      "sequence": "100",
+      "callback": "2026-10-06T22:41:54.676Z",
+      "hash": "0x0fda95d65b860cc323c9935cf11fdef633d4b9a37ff5eb48e3de9d5f12aea6ef",
+      "block": "68806557",
+      "blockHash": "0x7023ef382e0da5143a744b922606d4fdd0d3975953694cb980802c580e70e428",
+      "canonical": true,
+      "timestamp": "1791326505",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "100",
+            "observedAt": "1791326499",
+            "publishedAt": "1791326501",
+            "acceptedAt": "1791326505",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0xf816c7d9083808f29ff0c250b737e152c962167754ea44f56d9a1a1a87f5447b"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "101",
+      "callback": "2026-10-06T22:42:05.659Z",
+      "hash": "0x59a76f004aaadeef6c9a2c6246f7ab7455f6e9a7de30ec9df481799154b4ec44",
+      "block": "68806615",
+      "blockHash": "0x8ae3a1f3c0c07e498e460d38c5391dc57f56cb78d5f098b8beea30398bad0ccb",
+      "canonical": true,
+      "timestamp": "1791326523",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "101",
+            "observedAt": "1791326514",
+            "publishedAt": "1791326518",
+            "acceptedAt": "1791326523",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x18d4e38eff603404cd59160d6a685a8e721bcfd31d5a074787df7f6a934fbcad"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "102",
+      "callback": "2026-10-06T22:42:14.682Z",
+      "hash": "0xba474aebd52abac7beba1df00069df4ca9da19f2bcfef27f87c75ff218757736",
+      "block": "68806645",
+      "blockHash": "0xf760fb40440392ca970c5a14abede52d830efbd2ca612f14e00daa650126082c",
+      "canonical": true,
+      "timestamp": "1791326532",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "102",
+            "observedAt": "1791326524",
+            "publishedAt": "1791326527",
+            "acceptedAt": "1791326532",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x8897effef1bd17137a3874037dddf8b995c52939abea9609bfadd663df3c8f3d"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "103",
+      "callback": "2026-10-06T22:42:28.655Z",
+      "hash": "0xe42f5acc4e7cf478ab2ccfee1a3122fa5cf56aa08065ac37583fce83116044fb",
+      "block": "68806698",
+      "blockHash": "0xfcb125cab753cbd4cf27cb7a4401c7698ac5d6ea9539dfa606aadcd285ef536a",
+      "canonical": true,
+      "timestamp": "1791326548",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "103",
+            "observedAt": "1791326543",
+            "publishedAt": "1791326543",
+            "acceptedAt": "1791326548",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x127c73f4117c0edf109f156797f0871917619f2fc89f69cfbcec7812b3d88acc"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "104",
+      "callback": "2026-10-06T22:42:41.970Z",
+      "hash": "0x4db24e892742cc39a5cefebaf976c0b39f884f8d81eb1ac608e795ab8e5310ed",
+      "block": "68806736",
+      "blockHash": "0xca46dd63ab4aa6beebff830f37571f88eed003b4d5d3a67129008644422b8cfc",
+      "canonical": true,
+      "timestamp": "1791326559",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "104",
+            "observedAt": "1791326554",
+            "publishedAt": "1791326555",
+            "acceptedAt": "1791326559",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x3c5a62726c4c8a3304b08a08ceaa1e6d3b7985ce5908a794f91bede1792e8358"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "105",
+      "callback": "2026-10-06T22:42:55.690Z",
+      "hash": "0x733a35d1b42e815218c87d88ddaaeceff2a84eadfb830a7fe24c4bda8958a21d",
+      "block": "68806787",
+      "blockHash": "0x77f2e4f0302351fd6f5aa655afd546a04d6471d1224203ebf58446948cd9b56d",
+      "canonical": true,
+      "timestamp": "1791326575",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "105",
+            "observedAt": "1791326567",
+            "publishedAt": "1791326569",
+            "acceptedAt": "1791326575",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x39552604d93a8fcb0c42d03e09d3f89c8d5a4153ec0720b67cb3c1303006eb97"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "106",
+      "callback": "2026-10-06T22:43:12.080Z",
+      "hash": "0xcdc07cb34402d8582e390328878929fde6cbb4a8f43c1a55fc09eca355ffdaac",
+      "block": "68806835",
+      "blockHash": "0xb4c1d6e075219360610f7d111a3af5ebbb0f96b044d295cb8f9ac97883621239",
+      "canonical": true,
+      "timestamp": "1791326589",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "106",
+            "observedAt": "1791326584",
+            "publishedAt": "1791326585",
+            "acceptedAt": "1791326589",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x9469b585b532d8b0dcc9689465fb00e3d5ad7558c21155698dfc05472c6f1f1a"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "107",
+      "callback": "2026-10-06T22:43:26.995Z",
+      "hash": "0x581ec065ac7dd373f3b92bb8608eec04dd62e88e5b23b9e30d7583b481f54480",
+      "block": "68806883",
+      "blockHash": "0x289181c4f99417af9cacfe11680b7ed4d943f55cd68df0fd409eb411d18475b9",
+      "canonical": true,
+      "timestamp": "1791326604",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "107",
+            "observedAt": "1791326596",
+            "publishedAt": "1791326599",
+            "acceptedAt": "1791326604",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x4aa596126e91e579f3c533aee2cd88fb711ce686e24891de2fdefc508f123875"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "108",
+      "callback": "2026-10-06T22:43:39.769Z",
+      "hash": "0x59a7b4222f76fd7f806841734148726f4b3a532b87334192916d506bdd661f9f",
+      "block": "68806927",
+      "blockHash": "0x023f99745bbd762d564a9782b9c314d05c3acbfc4b187d95e633f2154175d998",
+      "canonical": true,
+      "timestamp": "1791326617",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "108",
+            "observedAt": "1791326611",
+            "publishedAt": "1791326612",
+            "acceptedAt": "1791326617",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x57991d20e11a061879ff552911ffe2d957122693bef3d7e95e1fe651e19e6be2"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "109",
+      "callback": "2026-10-06T22:43:55.983Z",
+      "hash": "0xe4322871bda295246cb3bbfca317c06de5264071bec98c9489487232b73abcb3",
+      "block": "68806981",
+      "blockHash": "0x4c83501abb0be936c5acbb15ec162e6d9b358ba7ff9f10f698b58e3a5ea79a55",
+      "canonical": true,
+      "timestamp": "1791326633",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "109",
+            "observedAt": "1791326627",
+            "publishedAt": "1791326628",
+            "acceptedAt": "1791326633",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0xd14cd6668d54ce6e9380bc08f16d59421117bd09fa491c640a375ddfb6439750"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "110",
+      "callback": "2026-10-06T22:44:09.935Z",
+      "hash": "0x9a5f8faa0cee089b5b49cee72722e729a53d9e95ad23ef00d15ef8879a6a2635",
+      "block": "68807033",
+      "blockHash": "0x3d6e260ebb559944a787f7c7d8dfbbe5db03264acf3da1f26c8217ea7cdd31f0",
+      "canonical": true,
+      "timestamp": "1791326649",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "110",
+            "observedAt": "1791326633",
+            "publishedAt": "1791326645",
+            "acceptedAt": "1791326649",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0xbc1a4088407b7f2723f0678a327bfaf45f369fccb6bd7f0ce88e1c119c058ab9"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "111",
+      "callback": "2026-10-06T22:44:17.385Z",
+      "hash": "0xef85f68f006574aa6f34dca8b7dee959f4ddfe12b003e3bff868921d4de2123c",
+      "block": "68807058",
+      "blockHash": "0x20584abc4bf6b7685d99119a87a2011ff9eb8b0a24a32ef847334f33b92d8f7c",
+      "canonical": true,
+      "timestamp": "1791326657",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "111",
+            "observedAt": "1791326647",
+            "publishedAt": "1791326652",
+            "acceptedAt": "1791326657",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x5e889abdac040ea11fb748137e5b37466f6b6cfc1a9f07b14c61ba89b15be753"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "112",
+      "callback": "2026-10-06T22:44:32.461Z",
+      "hash": "0x409cc9e4e1c831076ca700dc5f22cde68d4084f15e5772e1e5b8551719f22d40",
+      "block": "68807102",
+      "blockHash": "0x78a3fe32829a210729c37bc5ce7361837f11a1e06f2d715a79e59f8aa1998c7c",
+      "canonical": true,
+      "timestamp": "1791326670",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "112",
+            "observedAt": "1791326658",
+            "publishedAt": "1791326665",
+            "acceptedAt": "1791326670",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0xc75a3cbffc0548ac91f17d1476b8730164bad2c995dde5c4006388767f84b2a4"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "113",
+      "callback": "2026-10-06T22:44:41.428Z",
+      "hash": "0x803531ed25bfcd0902ff94ac2179676ea0064fce58f35c923b40514b0b687d49",
+      "block": "68807131",
+      "blockHash": "0xae79429c20302fe31345730ab6583a3d9b8b60f5994cf5468b10bf4d16ce9574",
+      "canonical": true,
+      "timestamp": "1791326679",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "113",
+            "observedAt": "1791326674",
+            "publishedAt": "1791326674",
+            "acceptedAt": "1791326679",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x84c041cb4eff09a8ab0687dc60e503fab49605d7bc42651570a76001074e2257"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "114",
+      "callback": "2026-10-06T22:44:57.163Z",
+      "hash": "0x1d51c96d63042d3ce6dfc917ed79be27d7639cbdb9d96858dc7fa4bcd7cf866c",
+      "block": "68807190",
+      "blockHash": "0xc62bdfa8c31eed358c013dfe6a9af44127edbc9510247a505acf0d49f6f30781",
+      "canonical": true,
+      "timestamp": "1791326696",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "114",
+            "observedAt": "1791326681",
+            "publishedAt": "1791326692",
+            "acceptedAt": "1791326696",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x5852f2e06ed3d57aa44a12065b0c0fcde30628378fa0f6a6c7baed995cc948f3"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "115",
+      "callback": "2026-10-06T22:45:06.585Z",
+      "hash": "0x5c850a22ec8b8ef1b21cd40682a460c6ff4d69687d3667034da763ec0a97874a",
+      "block": "68807215",
+      "blockHash": "0xc7832342a978259b872e9dc9854d887d53b88b9bc6cf0fd5756072710ea5a634",
+      "canonical": true,
+      "timestamp": "1791326704",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "115",
+            "observedAt": "1791326693",
+            "publishedAt": "1791326699",
+            "acceptedAt": "1791326704",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0xeb28184fed0f1bb38d6220186643e06281345fbd760f625ae4b8e675c78e8aa0"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "116",
+      "callback": "2026-10-06T22:45:18.848Z",
+      "hash": "0x18358fd21443cdaf8f06d6db2075f5ff3af9af06e2b46d967e537c65bca74bc1",
+      "block": "68807255",
+      "blockHash": "0xfb25ad7db4768a49fd40c6befa222ece35eae3e90138669f1b260d95c8e21877",
+      "canonical": true,
+      "timestamp": "1791326716",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "116",
+            "observedAt": "1791326710",
+            "publishedAt": "1791326711",
+            "acceptedAt": "1791326716",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x8bb273f2cd03bb0722b217a87a3a0b2d6441b41d35a435d1471145994e466811"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "117",
+      "callback": "2026-10-06T22:45:33.587Z",
+      "hash": "0x14fcad0efeea83b24d76e55c66274a1f3c514db8cc04b9e0775362a96f592a26",
+      "block": "68807304",
+      "blockHash": "0x812fe9f2382403a8f0e81d2721b61de3dd830cb7f5da7e371a57ded7af085d1d",
+      "canonical": true,
+      "timestamp": "1791326731",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "117",
+            "observedAt": "1791326724",
+            "publishedAt": "1791326726",
+            "acceptedAt": "1791326731",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0xa299a2eaf581586374931688a3063f586c733daedf6b9516a0f3a9719f825a38"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "118",
+      "callback": "2026-10-06T22:45:44.283Z",
+      "hash": "0x5c2f6b5d0fde7164fc67d6b53dab4b8c65178573b1044a8412e570f6c049c9bc",
+      "block": "68807346",
+      "blockHash": "0x04c00ebfa485e5784116fc864c7f13b5d53b7ab2adab9b255c93f7c1bd8bb8f0",
+      "canonical": true,
+      "timestamp": "1791326744",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "118",
+            "observedAt": "1791326739",
+            "publishedAt": "1791326739",
+            "acceptedAt": "1791326744",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x4b88ea56c22485433db7ba38b321488ba902c6714997150f40b223e9f22bacb2"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "119",
+      "callback": "2026-10-06T22:46:00.113Z",
+      "hash": "0x25896deb8c1e919676a89d7f3b96bd34a027cf47abd4bae08608ac1deb83db07",
+      "block": "68807392",
+      "blockHash": "0xcdbd1613a579743c36ac5ab5960adf99e6aa9fa1a4f244345cb2e9ade285fbe3",
+      "canonical": true,
+      "timestamp": "1791326757",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "119",
+            "observedAt": "1791326752",
+            "publishedAt": "1791326753",
+            "acceptedAt": "1791326757",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x220959b8b7734f801adf380e063bfa52685b3daaa60d417526c0597828bdfce4"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "120",
+      "callback": "2026-10-06T22:46:15.865Z",
+      "hash": "0x5400e6abf093b9cec7c3e7355e3ecc59d30d2716e8105dbf2439b0337394ae28",
+      "block": "68807444",
+      "blockHash": "0x8e9e9d7fa3c3e6c75f9e4f6f68daefa6d534f968836593edda3866c33a5240fc",
+      "canonical": true,
+      "timestamp": "1791326773",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "120",
+            "observedAt": "1791326768",
+            "publishedAt": "1791326768",
+            "acceptedAt": "1791326773",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x8a8bf4066983ad098e5a9112c64695e1375e3f49d3c241df745992e385c13214"
+          }
+        }
+      ]
+    },
+    {
+      "sequence": "121",
+      "callback": "2026-10-06T22:46:28.624Z",
+      "hash": "0xb141f8760dde6369bcfec442a5ef27fd0f7dbd19b78455cad4440033f966b524",
+      "block": "68807486",
+      "blockHash": "0x0f3ca02be877b0857f49c54fa74fc89ea19f3d1825be990f9469fd1975c80df0",
+      "canonical": true,
+      "timestamp": "1791326786",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "ObservationAccepted",
+          "args": {
+            "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+            "sequence": "121",
+            "observedAt": "1791326779",
+            "publishedAt": "1791326781",
+            "acceptedAt": "1791326786",
+            "priceWad": "85000000000000000",
+            "depthValid": true,
+            "payloadDigest": "0x686bd106b5a8b517fd93df70b444fdc93b56fee7b709a748252cd818c5f49d36"
+          }
+        }
+      ]
+    }
+  ],
+  "sampleReceipts": [
+    {
+      "at": "2026-10-06T22:41:09.443Z",
+      "hash": "0x48ebea9493b706b626c44678feabb28c8fe37bc2a98e209c5d73de51dc5f11eb",
+      "block": "68806430",
+      "canonical": true,
+      "timestamp": "1791326467",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326454",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326467",
+            "observedBlock": "68806430",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:41:24.343Z",
+      "hash": "0xad2611208d855f375d20714447273420cbea802458f95db11f2d56fe7f3d01c5",
+      "block": "68806479",
+      "canonical": true,
+      "timestamp": "1791326482",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326467",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326482",
+            "observedBlock": "68806479",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:41:38.673Z",
+      "hash": "0x8f135634d3a7cbf9d318765a17e374ee4b8b365fbb2da4405d1ad968e52a7a0b",
+      "block": "68806527",
+      "canonical": true,
+      "timestamp": "1791326496",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326482",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326496",
+            "observedBlock": "68806527",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:42:00.463Z",
+      "hash": "0x6b687e961cb56c65905016ac8bcb957e4da9da303cd73cd0b529dcacd0c41795",
+      "block": "68806597",
+      "canonical": true,
+      "timestamp": "1791326517",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326496",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326517",
+            "observedBlock": "68806597",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:42:19.850Z",
+      "hash": "0x75ef22a5046dfd5b21e10e4b204c027f1ac1b76fce91e3010d2ea8d259e57e5f",
+      "block": "68806661",
+      "canonical": true,
+      "timestamp": "1791326537",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326517",
+            "midWad": "0",
+            "valid": false,
+            "basisWad": "0",
+            "basisValid": false
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326537",
+            "observedBlock": "68806661",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:42:34.741Z",
+      "hash": "0x11fdd81cf74efc07bebf966935ec221633cba84e826698c84d718299f4529f6a",
+      "block": "68806711",
+      "canonical": true,
+      "timestamp": "1791326552",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326537",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326552",
+            "observedBlock": "68806711",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:42:47.174Z",
+      "hash": "0xdf10baca63066e58c983d4af56f745e937ce809e99abcdce249f8b618c891622",
+      "block": "68806752",
+      "canonical": true,
+      "timestamp": "1791326564",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326552",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326564",
+            "observedBlock": "68806752",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:43:02.923Z",
+      "hash": "0x1b5b39b1f3bd8b70e2a54e64fa154df682963f67fc981a42b63de313ce337f29",
+      "block": "68806803",
+      "canonical": true,
+      "timestamp": "1791326580",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326564",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326580",
+            "observedBlock": "68806803",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:43:17.840Z",
+      "hash": "0x6303bc009b508d768914050f49968cefdcb19368c839b15243a00de279bcbdba",
+      "block": "68806854",
+      "canonical": true,
+      "timestamp": "1791326595",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326580",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326595",
+            "observedBlock": "68806854",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:43:32.134Z",
+      "hash": "0x7fd56477df4189e0fc4e45a972d41b1d6e3645464655e0bcd6a9883adc8538af",
+      "block": "68806901",
+      "canonical": true,
+      "timestamp": "1791326609",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326595",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326609",
+            "observedBlock": "68806901",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:43:44.868Z",
+      "hash": "0xbdb8d4e04c11d8fe97e9d448e9f9433817a40b01fe5d8ef543ea2d3508d248bb",
+      "block": "68806943",
+      "canonical": true,
+      "timestamp": "1791326622",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326609",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326622",
+            "observedBlock": "68806943",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:44:01.163Z",
+      "hash": "0x1e2a36b8e1c9339bd74bd7445478cfa5672b83b5aa06d0024ca4bd3688003a9d",
+      "block": "68806997",
+      "canonical": true,
+      "timestamp": "1791326638",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326622",
+            "midWad": "85000000000000000",
+            "valid": true,
+            "basisWad": "0",
+            "basisValid": true
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326638",
+            "observedBlock": "68806997",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:44:23.258Z",
+      "hash": "0x2e25d52ac0fdb0a5b3359893ccd44c916aed48ab677e5f95715e366cb07823d1",
+      "block": "68807070",
+      "canonical": true,
+      "timestamp": "1791326660",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326638",
+            "midWad": "0",
+            "valid": false,
+            "basisWad": "0",
+            "basisValid": false
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326660",
+            "observedBlock": "68807070",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-06T22:44:46.405Z",
+      "hash": "0xd5fda4ad2c2611623222bee509c7a278f9238212ab653d4322e86ef7e800af8e",
+      "block": "68807147",
+      "canonical": true,
+      "timestamp": "1791326684",
+      "status": "success",
+      "events": [
+        {
+          "eventName": "PerpObservationRecorded",
+          "args": {
+            "t": "1791326660",
+            "midWad": "0",
+            "valid": false,
+            "basisWad": "0",
+            "basisValid": false
+          }
+        },
+        {
+          "eventName": "BookDepthCaptured",
+          "args": {
+            "observedAt": "1791326684",
+            "observedBlock": "68807147",
+            "examined": 2,
+            "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+          }
+        }
+      ]
+    }
+  ],
+  "archivedSourceArrivals": [
+    {
+      "captureId": 2177,
+      "receivedAtMs": "1791326500689",
+      "sourceMs": "1791326499582",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2180,
+      "receivedAtMs": "1791326501900",
+      "sourceMs": "1791326499582",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2181,
+      "receivedAtMs": "1791326502687",
+      "sourceMs": "1791326499582",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2185,
+      "receivedAtMs": "1791326513058",
+      "sourceMs": "1791326509929",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2186,
+      "receivedAtMs": "1791326513595",
+      "sourceMs": "1791326509929",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2187,
+      "receivedAtMs": "1791326514593",
+      "sourceMs": "1791326514000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2190,
+      "receivedAtMs": "1791326515586",
+      "sourceMs": "1791326514000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2192,
+      "receivedAtMs": "1791326516589",
+      "sourceMs": "1791326514000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2194,
+      "receivedAtMs": "1791326517588",
+      "sourceMs": "1791326514000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2196,
+      "receivedAtMs": "1791326518601",
+      "sourceMs": "1791326514000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2198,
+      "receivedAtMs": "1791326519593",
+      "sourceMs": "1791326519037",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2199,
+      "receivedAtMs": "1791326520600",
+      "sourceMs": "1791326519037",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2201,
+      "receivedAtMs": "1791326521599",
+      "sourceMs": "1791326519037",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2203,
+      "receivedAtMs": "1791326522612",
+      "sourceMs": "1791326522572",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2204,
+      "receivedAtMs": "1791326523596",
+      "sourceMs": "1791326522572",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2206,
+      "receivedAtMs": "1791326524611",
+      "sourceMs": "1791326522572",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2208,
+      "receivedAtMs": "1791326525685",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2209,
+      "receivedAtMs": "1791326526607",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2211,
+      "receivedAtMs": "1791326527616",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2214,
+      "receivedAtMs": "1791326528607",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2215,
+      "receivedAtMs": "1791326529614",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2217,
+      "receivedAtMs": "1791326530612",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2219,
+      "receivedAtMs": "1791326531648",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2220,
+      "receivedAtMs": "1791326532655",
+      "sourceMs": "1791326524946",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2222,
+      "receivedAtMs": "1791326533647",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2224,
+      "receivedAtMs": "1791326534708",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2226,
+      "receivedAtMs": "1791326535663",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2228,
+      "receivedAtMs": "1791326536706",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2230,
+      "receivedAtMs": "1791326537661",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2232,
+      "receivedAtMs": "1791326538649",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2234,
+      "receivedAtMs": "1791326539652",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2236,
+      "receivedAtMs": "1791326540662",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2238,
+      "receivedAtMs": "1791326541665",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2241,
+      "receivedAtMs": "1791326542663",
+      "sourceMs": "1791326533464",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2242,
+      "receivedAtMs": "1791326543672",
+      "sourceMs": "1791326543375",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2245,
+      "receivedAtMs": "1791326544717",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2246,
+      "receivedAtMs": "1791326545707",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2248,
+      "receivedAtMs": "1791326546722",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2250,
+      "receivedAtMs": "1791326547723",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2251,
+      "receivedAtMs": "1791326548726",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2252,
+      "receivedAtMs": "1791326549729",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2254,
+      "receivedAtMs": "1791326550745",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2256,
+      "receivedAtMs": "1791326551726",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2258,
+      "receivedAtMs": "1791326552731",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2260,
+      "receivedAtMs": "1791326553756",
+      "sourceMs": "1791326544007",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2262,
+      "receivedAtMs": "1791326554731",
+      "sourceMs": "1791326554177",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2265,
+      "receivedAtMs": "1791326555753",
+      "sourceMs": "1791326554177",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2266,
+      "receivedAtMs": "1791326556737",
+      "sourceMs": "1791326554177",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2268,
+      "receivedAtMs": "1791326558237",
+      "sourceMs": "1791326557140",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2270,
+      "receivedAtMs": "1791326558729",
+      "sourceMs": "1791326557140",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2271,
+      "receivedAtMs": "1791326559747",
+      "sourceMs": "1791326557140",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2273,
+      "receivedAtMs": "1791326560735",
+      "sourceMs": "1791326557140",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2274,
+      "receivedAtMs": "1791326561769",
+      "sourceMs": "1791326557140",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2277,
+      "receivedAtMs": "1791326562735",
+      "sourceMs": "1791326557140",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2279,
+      "receivedAtMs": "1791326563787",
+      "sourceMs": "1791326563721",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2281,
+      "receivedAtMs": "1791326564734",
+      "sourceMs": "1791326563721",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2283,
+      "receivedAtMs": "1791326565803",
+      "sourceMs": "1791326565032",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2285,
+      "receivedAtMs": "1791326566805",
+      "sourceMs": "1791326565032",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2287,
+      "receivedAtMs": "1791326567805",
+      "sourceMs": "1791326567000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2289,
+      "receivedAtMs": "1791326568809",
+      "sourceMs": "1791326567000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2291,
+      "receivedAtMs": "1791326569807",
+      "sourceMs": "1791326567000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2293,
+      "receivedAtMs": "1791326570835",
+      "sourceMs": "1791326567000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2294,
+      "receivedAtMs": "1791326571820",
+      "sourceMs": "1791326567000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2296,
+      "receivedAtMs": "1791326572917",
+      "sourceMs": "1791326572392",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2298,
+      "receivedAtMs": "1791326573825",
+      "sourceMs": "1791326573084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2299,
+      "receivedAtMs": "1791326574835",
+      "sourceMs": "1791326573084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2300,
+      "receivedAtMs": "1791326575821",
+      "sourceMs": "1791326573084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2301,
+      "receivedAtMs": "1791326576817",
+      "sourceMs": "1791326573084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2303,
+      "receivedAtMs": "1791326577915",
+      "sourceMs": "1791326573084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2304,
+      "receivedAtMs": "1791326578808",
+      "sourceMs": "1791326573084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2307,
+      "receivedAtMs": "1791326579811",
+      "sourceMs": "1791326579654",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2308,
+      "receivedAtMs": "1791326580820",
+      "sourceMs": "1791326579654",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2311,
+      "receivedAtMs": "1791326581846",
+      "sourceMs": "1791326579654",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2312,
+      "receivedAtMs": "1791326582860",
+      "sourceMs": "1791326579654",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2314,
+      "receivedAtMs": "1791326583866",
+      "sourceMs": "1791326579654",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2316,
+      "receivedAtMs": "1791326584869",
+      "sourceMs": "1791326584759",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2318,
+      "receivedAtMs": "1791326585856",
+      "sourceMs": "1791326584759",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2320,
+      "receivedAtMs": "1791326586870",
+      "sourceMs": "1791326584759",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2321,
+      "receivedAtMs": "1791326587857",
+      "sourceMs": "1791326584759",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2324,
+      "receivedAtMs": "1791326588862",
+      "sourceMs": "1791326584759",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2325,
+      "receivedAtMs": "1791326589884",
+      "sourceMs": "1791326584759",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2327,
+      "receivedAtMs": "1791326590870",
+      "sourceMs": "1791326590222",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2328,
+      "receivedAtMs": "1791326591873",
+      "sourceMs": "1791326590222",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2331,
+      "receivedAtMs": "1791326592871",
+      "sourceMs": "1791326590222",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2332,
+      "receivedAtMs": "1791326593879",
+      "sourceMs": "1791326590222",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2334,
+      "receivedAtMs": "1791326594877",
+      "sourceMs": "1791326590222",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2336,
+      "receivedAtMs": "1791326595882",
+      "sourceMs": "1791326590222",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2339,
+      "receivedAtMs": "1791326596870",
+      "sourceMs": "1791326596001",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2341,
+      "receivedAtMs": "1791326597931",
+      "sourceMs": "1791326596001",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2343,
+      "receivedAtMs": "1791326598881",
+      "sourceMs": "1791326596001",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2345,
+      "receivedAtMs": "1791326599874",
+      "sourceMs": "1791326599708",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2347,
+      "receivedAtMs": "1791326600877",
+      "sourceMs": "1791326599708",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2348,
+      "receivedAtMs": "1791326601884",
+      "sourceMs": "1791326601442",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2350,
+      "receivedAtMs": "1791326602891",
+      "sourceMs": "1791326601442",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2352,
+      "receivedAtMs": "1791326604123",
+      "sourceMs": "1791326601442",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2353,
+      "receivedAtMs": "1791326604896",
+      "sourceMs": "1791326601442",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2355,
+      "receivedAtMs": "1791326605883",
+      "sourceMs": "1791326605741",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2356,
+      "receivedAtMs": "1791326606925",
+      "sourceMs": "1791326605741",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2359,
+      "receivedAtMs": "1791326607883",
+      "sourceMs": "1791326605741",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2361,
+      "receivedAtMs": "1791326608885",
+      "sourceMs": "1791326608122",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2363,
+      "receivedAtMs": "1791326609893",
+      "sourceMs": "1791326608122",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2365,
+      "receivedAtMs": "1791326610885",
+      "sourceMs": "1791326608122",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2367,
+      "receivedAtMs": "1791326611887",
+      "sourceMs": "1791326611790",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2369,
+      "receivedAtMs": "1791326612892",
+      "sourceMs": "1791326611790",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2371,
+      "receivedAtMs": "1791326613904",
+      "sourceMs": "1791326611790",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2372,
+      "receivedAtMs": "1791326614903",
+      "sourceMs": "1791326614001",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2374,
+      "receivedAtMs": "1791326615897",
+      "sourceMs": "1791326615161",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2376,
+      "receivedAtMs": "1791326616905",
+      "sourceMs": "1791326615161",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2377,
+      "receivedAtMs": "1791326617897",
+      "sourceMs": "1791326615161",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2379,
+      "receivedAtMs": "1791326618897",
+      "sourceMs": "1791326615161",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2381,
+      "receivedAtMs": "1791326619907",
+      "sourceMs": "1791326615161",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2383,
+      "receivedAtMs": "1791326620901",
+      "sourceMs": "1791326615161",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2385,
+      "receivedAtMs": "1791326621903",
+      "sourceMs": "1791326621002",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2387,
+      "receivedAtMs": "1791326622899",
+      "sourceMs": "1791326622801",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2389,
+      "receivedAtMs": "1791326623925",
+      "sourceMs": "1791326622801",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2391,
+      "receivedAtMs": "1791326624928",
+      "sourceMs": "1791326622801",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2394,
+      "receivedAtMs": "1791326625930",
+      "sourceMs": "1791326622801",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2395,
+      "receivedAtMs": "1791326626912",
+      "sourceMs": "1791326622801",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2398,
+      "receivedAtMs": "1791326627911",
+      "sourceMs": "1791326627063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2400,
+      "receivedAtMs": "1791326628918",
+      "sourceMs": "1791326628154",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2402,
+      "receivedAtMs": "1791326629914",
+      "sourceMs": "1791326628154",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2403,
+      "receivedAtMs": "1791326630920",
+      "sourceMs": "1791326628154",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2405,
+      "receivedAtMs": "1791326631922",
+      "sourceMs": "1791326628154",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2407,
+      "receivedAtMs": "1791326632969",
+      "sourceMs": "1791326628154",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2408,
+      "receivedAtMs": "1791326633986",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2410,
+      "receivedAtMs": "1791326634972",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2412,
+      "receivedAtMs": "1791326636010",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2414,
+      "receivedAtMs": "1791326636975",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2416,
+      "receivedAtMs": "1791326638032",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2418,
+      "receivedAtMs": "1791326639068",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2420,
+      "receivedAtMs": "1791326640030",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2422,
+      "receivedAtMs": "1791326641030",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2425,
+      "receivedAtMs": "1791326642078",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2426,
+      "receivedAtMs": "1791326643040",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2429,
+      "receivedAtMs": "1791326644053",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2431,
+      "receivedAtMs": "1791326645045",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2433,
+      "receivedAtMs": "1791326646047",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2434,
+      "receivedAtMs": "1791326647036",
+      "sourceMs": "1791326633494",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2436,
+      "receivedAtMs": "1791326648038",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2438,
+      "receivedAtMs": "1791326649044",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2439,
+      "receivedAtMs": "1791326650243",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2440,
+      "receivedAtMs": "1791326651051",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2442,
+      "receivedAtMs": "1791326652044",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2444,
+      "receivedAtMs": "1791326653053",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2446,
+      "receivedAtMs": "1791326654053",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2447,
+      "receivedAtMs": "1791326655056",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2449,
+      "receivedAtMs": "1791326656057",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2451,
+      "receivedAtMs": "1791326657046",
+      "sourceMs": "1791326647491",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2452,
+      "receivedAtMs": "1791326658046",
+      "sourceMs": "1791326657973",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2454,
+      "receivedAtMs": "1791326659058",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2456,
+      "receivedAtMs": "1791326660053",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2458,
+      "receivedAtMs": "1791326661057",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2460,
+      "receivedAtMs": "1791326662060",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2462,
+      "receivedAtMs": "1791326663074",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2464,
+      "receivedAtMs": "1791326664064",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2466,
+      "receivedAtMs": "1791326665062",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2469,
+      "receivedAtMs": "1791326666122",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2470,
+      "receivedAtMs": "1791326667069",
+      "sourceMs": "1791326658084",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2471,
+      "receivedAtMs": "1791326668068",
+      "sourceMs": "1791326667869",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2473,
+      "receivedAtMs": "1791326669064",
+      "sourceMs": "1791326669062",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2475,
+      "receivedAtMs": "1791326670063",
+      "sourceMs": "1791326669158",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2477,
+      "receivedAtMs": "1791326671066",
+      "sourceMs": "1791326669158",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2478,
+      "receivedAtMs": "1791326672079",
+      "sourceMs": "1791326669158",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2480,
+      "receivedAtMs": "1791326673083",
+      "sourceMs": "1791326669158",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2482,
+      "receivedAtMs": "1791326674070",
+      "sourceMs": "1791326674000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2485,
+      "receivedAtMs": "1791326675102",
+      "sourceMs": "1791326674000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2486,
+      "receivedAtMs": "1791326676070",
+      "sourceMs": "1791326674000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2488,
+      "receivedAtMs": "1791326677104",
+      "sourceMs": "1791326674000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2490,
+      "receivedAtMs": "1791326678069",
+      "sourceMs": "1791326674000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2491,
+      "receivedAtMs": "1791326679087",
+      "sourceMs": "1791326674000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2493,
+      "receivedAtMs": "1791326680147",
+      "sourceMs": "1791326674000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2494,
+      "receivedAtMs": "1791326681155",
+      "sourceMs": "1791326681130",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2497,
+      "receivedAtMs": "1791326682152",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2498,
+      "receivedAtMs": "1791326683159",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2501,
+      "receivedAtMs": "1791326684162",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2503,
+      "receivedAtMs": "1791326685165",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2505,
+      "receivedAtMs": "1791326686166",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2507,
+      "receivedAtMs": "1791326687172",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2509,
+      "receivedAtMs": "1791326688179",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2511,
+      "receivedAtMs": "1791326689181",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2513,
+      "receivedAtMs": "1791326690171",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2516,
+      "receivedAtMs": "1791326691199",
+      "sourceMs": "1791326681473",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2518,
+      "receivedAtMs": "1791326692322",
+      "sourceMs": "1791326691795",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2520,
+      "receivedAtMs": "1791326693182",
+      "sourceMs": "1791326691795",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2521,
+      "receivedAtMs": "1791326694176",
+      "sourceMs": "1791326693219",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2523,
+      "receivedAtMs": "1791326695591",
+      "sourceMs": "1791326693219",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2525,
+      "receivedAtMs": "1791326696187",
+      "sourceMs": "1791326693219",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2526,
+      "receivedAtMs": "1791326697191",
+      "sourceMs": "1791326693219",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2527,
+      "receivedAtMs": "1791326698186",
+      "sourceMs": "1791326693219",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2529,
+      "receivedAtMs": "1791326699197",
+      "sourceMs": "1791326693219",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2531,
+      "receivedAtMs": "1791326700182",
+      "sourceMs": "1791326699482",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2533,
+      "receivedAtMs": "1791326701181",
+      "sourceMs": "1791326699482",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2534,
+      "receivedAtMs": "1791326702185",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2536,
+      "receivedAtMs": "1791326703194",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2538,
+      "receivedAtMs": "1791326704186",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2540,
+      "receivedAtMs": "1791326705242",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2541,
+      "receivedAtMs": "1791326706199",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2543,
+      "receivedAtMs": "1791326707204",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2545,
+      "receivedAtMs": "1791326708198",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2548,
+      "receivedAtMs": "1791326709190",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2550,
+      "receivedAtMs": "1791326710201",
+      "sourceMs": "1791326702063",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2552,
+      "receivedAtMs": "1791326711189",
+      "sourceMs": "1791326710484",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2554,
+      "receivedAtMs": "1791326712207",
+      "sourceMs": "1791326712000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2556,
+      "receivedAtMs": "1791326713205",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2557,
+      "receivedAtMs": "1791326714214",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2559,
+      "receivedAtMs": "1791326715217",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2561,
+      "receivedAtMs": "1791326716218",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2563,
+      "receivedAtMs": "1791326717287",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2564,
+      "receivedAtMs": "1791326718217",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2566,
+      "receivedAtMs": "1791326719226",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2568,
+      "receivedAtMs": "1791326720239",
+      "sourceMs": "1791326712803",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2570,
+      "receivedAtMs": "1791326721273",
+      "sourceMs": "1791326720427",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2572,
+      "receivedAtMs": "1791326722219",
+      "sourceMs": "1791326720427",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2574,
+      "receivedAtMs": "1791326723225",
+      "sourceMs": "1791326720427",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2576,
+      "receivedAtMs": "1791326724235",
+      "sourceMs": "1791326724143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2578,
+      "receivedAtMs": "1791326725244",
+      "sourceMs": "1791326724143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2580,
+      "receivedAtMs": "1791326726221",
+      "sourceMs": "1791326724143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2583,
+      "receivedAtMs": "1791326727299",
+      "sourceMs": "1791326727001",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2584,
+      "receivedAtMs": "1791326728228",
+      "sourceMs": "1791326727949",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2585,
+      "receivedAtMs": "1791326729229",
+      "sourceMs": "1791326729149",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2588,
+      "receivedAtMs": "1791326730250",
+      "sourceMs": "1791326729149",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2589,
+      "receivedAtMs": "1791326731230",
+      "sourceMs": "1791326729149",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2591,
+      "receivedAtMs": "1791326732247",
+      "sourceMs": "1791326729149",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2592,
+      "receivedAtMs": "1791326733255",
+      "sourceMs": "1791326729149",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2594,
+      "receivedAtMs": "1791326734247",
+      "sourceMs": "1791326734250",
+      "status": "DEGRADED"
+    },
+    {
+      "captureId": 2596,
+      "receivedAtMs": "1791326735252",
+      "sourceMs": "1791326735006",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2599,
+      "receivedAtMs": "1791326736297",
+      "sourceMs": "1791326735006",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2600,
+      "receivedAtMs": "1791326737253",
+      "sourceMs": "1791326735006",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2603,
+      "receivedAtMs": "1791326738250",
+      "sourceMs": "1791326735006",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2604,
+      "receivedAtMs": "1791326739266",
+      "sourceMs": "1791326739039",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2607,
+      "receivedAtMs": "1791326740254",
+      "sourceMs": "1791326739039",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2608,
+      "receivedAtMs": "1791326741457",
+      "sourceMs": "1791326739039",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2610,
+      "receivedAtMs": "1791326742255",
+      "sourceMs": "1791326739039",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2612,
+      "receivedAtMs": "1791326743291",
+      "sourceMs": "1791326739039",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2613,
+      "receivedAtMs": "1791326744279",
+      "sourceMs": "1791326739039",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2614,
+      "receivedAtMs": "1791326745282",
+      "sourceMs": "1791326744978",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2616,
+      "receivedAtMs": "1791326746366",
+      "sourceMs": "1791326746250",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2618,
+      "receivedAtMs": "1791326747358",
+      "sourceMs": "1791326746250",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2620,
+      "receivedAtMs": "1791326748365",
+      "sourceMs": "1791326746250",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2622,
+      "receivedAtMs": "1791326749456",
+      "sourceMs": "1791326746250",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2624,
+      "receivedAtMs": "1791326750465",
+      "sourceMs": "1791326746250",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2626,
+      "receivedAtMs": "1791326751456",
+      "sourceMs": "1791326750908",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2628,
+      "receivedAtMs": "1791326752452",
+      "sourceMs": "1791326752102",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2630,
+      "receivedAtMs": "1791326753462",
+      "sourceMs": "1791326752102",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2632,
+      "receivedAtMs": "1791326754457",
+      "sourceMs": "1791326752102",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2633,
+      "receivedAtMs": "1791326755465",
+      "sourceMs": "1791326752102",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2635,
+      "receivedAtMs": "1791326756460",
+      "sourceMs": "1791326756435",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2637,
+      "receivedAtMs": "1791326757467",
+      "sourceMs": "1791326756584",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2638,
+      "receivedAtMs": "1791326758462",
+      "sourceMs": "1791326758166",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2640,
+      "receivedAtMs": "1791326759471",
+      "sourceMs": "1791326758166",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2642,
+      "receivedAtMs": "1791326760472",
+      "sourceMs": "1791326758166",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2644,
+      "receivedAtMs": "1791326761471",
+      "sourceMs": "1791326758166",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2645,
+      "receivedAtMs": "1791326762473",
+      "sourceMs": "1791326758166",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2646,
+      "receivedAtMs": "1791326763470",
+      "sourceMs": "1791326758166",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2647,
+      "receivedAtMs": "1791326764471",
+      "sourceMs": "1791326763800",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2649,
+      "receivedAtMs": "1791326765470",
+      "sourceMs": "1791326763800",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2651,
+      "receivedAtMs": "1791326766466",
+      "sourceMs": "1791326763800",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2653,
+      "receivedAtMs": "1791326767479",
+      "sourceMs": "1791326763800",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2655,
+      "receivedAtMs": "1791326768479",
+      "sourceMs": "1791326768331",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2658,
+      "receivedAtMs": "1791326769480",
+      "sourceMs": "1791326768675",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2659,
+      "receivedAtMs": "1791326770470",
+      "sourceMs": "1791326770000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2661,
+      "receivedAtMs": "1791326771479",
+      "sourceMs": "1791326770000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2663,
+      "receivedAtMs": "1791326772481",
+      "sourceMs": "1791326770000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2664,
+      "receivedAtMs": "1791326773483",
+      "sourceMs": "1791326773000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2666,
+      "receivedAtMs": "1791326774479",
+      "sourceMs": "1791326773514",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2667,
+      "receivedAtMs": "1791326775474",
+      "sourceMs": "1791326773514",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2669,
+      "receivedAtMs": "1791326776476",
+      "sourceMs": "1791326776277",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2671,
+      "receivedAtMs": "1791326777478",
+      "sourceMs": "1791326776277",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2674,
+      "receivedAtMs": "1791326778521",
+      "sourceMs": "1791326776277",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2675,
+      "receivedAtMs": "1791326779481",
+      "sourceMs": "1791326779143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2678,
+      "receivedAtMs": "1791326780491",
+      "sourceMs": "1791326779143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2679,
+      "receivedAtMs": "1791326781486",
+      "sourceMs": "1791326779143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2682,
+      "receivedAtMs": "1791326782506",
+      "sourceMs": "1791326779143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2683,
+      "receivedAtMs": "1791326783519",
+      "sourceMs": "1791326779143",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2685,
+      "receivedAtMs": "1791326784530",
+      "sourceMs": "1791326784537",
+      "status": "DEGRADED"
+    },
+    {
+      "captureId": 2687,
+      "receivedAtMs": "1791326785527",
+      "sourceMs": "1791326785192",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2688,
+      "receivedAtMs": "1791326786771",
+      "sourceMs": "1791326785985",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2690,
+      "receivedAtMs": "1791326787551",
+      "sourceMs": "1791326785985",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2692,
+      "receivedAtMs": "1791326788658",
+      "sourceMs": "1791326785985",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2694,
+      "receivedAtMs": "1791326789608",
+      "sourceMs": "1791326785985",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2696,
+      "receivedAtMs": "1791326790642",
+      "sourceMs": "1791326789842",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2698,
+      "receivedAtMs": "1791326791665",
+      "sourceMs": "1791326789842",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2700,
+      "receivedAtMs": "1791326792739",
+      "sourceMs": "1791326789842",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2702,
+      "receivedAtMs": "1791326793768",
+      "sourceMs": "1791326789842",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2704,
+      "receivedAtMs": "1791326794920",
+      "sourceMs": "1791326789842",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2706,
+      "receivedAtMs": "1791326795765",
+      "sourceMs": "1791326795383",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2707,
+      "receivedAtMs": "1791326796769",
+      "sourceMs": "1791326795383",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2710,
+      "receivedAtMs": "1791326797881",
+      "sourceMs": "1791326795383",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2711,
+      "receivedAtMs": "1791326798774",
+      "sourceMs": "1791326795383",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2712,
+      "receivedAtMs": "1791326799768",
+      "sourceMs": "1791326795383",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2714,
+      "receivedAtMs": "1791326800780",
+      "sourceMs": "1791326795383",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2716,
+      "receivedAtMs": "1791326801768",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2717,
+      "receivedAtMs": "1791326802782",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2719,
+      "receivedAtMs": "1791326803789",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2721,
+      "receivedAtMs": "1791326804793",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2723,
+      "receivedAtMs": "1791326805800",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2725,
+      "receivedAtMs": "1791326806831",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2727,
+      "receivedAtMs": "1791326807823",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2729,
+      "receivedAtMs": "1791326808814",
+      "sourceMs": "1791326801190",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2731,
+      "receivedAtMs": "1791326809814",
+      "sourceMs": "1791326809700",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2733,
+      "receivedAtMs": "1791326810823",
+      "sourceMs": "1791326809700",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2735,
+      "receivedAtMs": "1791326811831",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2736,
+      "receivedAtMs": "1791326812826",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2738,
+      "receivedAtMs": "1791326813829",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2740,
+      "receivedAtMs": "1791326814839",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2741,
+      "receivedAtMs": "1791326815833",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2743,
+      "receivedAtMs": "1791326816832",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2745,
+      "receivedAtMs": "1791326817872",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2747,
+      "receivedAtMs": "1791326818881",
+      "sourceMs": "1791326811451",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2749,
+      "receivedAtMs": "1791326819875",
+      "sourceMs": "1791326819000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2751,
+      "receivedAtMs": "1791326820877",
+      "sourceMs": "1791326820000",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2753,
+      "receivedAtMs": "1791326821876",
+      "sourceMs": "1791326821594",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2755,
+      "receivedAtMs": "1791326822876",
+      "sourceMs": "1791326821594",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2757,
+      "receivedAtMs": "1791326823893",
+      "sourceMs": "1791326821594",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2759,
+      "receivedAtMs": "1791326824924",
+      "sourceMs": "1791326824830",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2760,
+      "receivedAtMs": "1791326825879",
+      "sourceMs": "1791326825409",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2762,
+      "receivedAtMs": "1791326826881",
+      "sourceMs": "1791326825409",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2764,
+      "receivedAtMs": "1791326827882",
+      "sourceMs": "1791326825409",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2765,
+      "receivedAtMs": "1791326828888",
+      "sourceMs": "1791326825409",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2767,
+      "receivedAtMs": "1791326829880",
+      "sourceMs": "1791326828913",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2768,
+      "receivedAtMs": "1791326830891",
+      "sourceMs": "1791326828913",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2771,
+      "receivedAtMs": "1791326832089",
+      "sourceMs": "1791326828913",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2772,
+      "receivedAtMs": "1791326832936",
+      "sourceMs": "1791326828913",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2775,
+      "receivedAtMs": "1791326833896",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2777,
+      "receivedAtMs": "1791326834943",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2779,
+      "receivedAtMs": "1791326835898",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2780,
+      "receivedAtMs": "1791326836892",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2782,
+      "receivedAtMs": "1791326837935",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2784,
+      "receivedAtMs": "1791326838930",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2785,
+      "receivedAtMs": "1791326839958",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2787,
+      "receivedAtMs": "1791326840957",
+      "sourceMs": "1791326833603",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2788,
+      "receivedAtMs": "1791326841955",
+      "sourceMs": "1791326841231",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2791,
+      "receivedAtMs": "1791326842965",
+      "sourceMs": "1791326841231",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2793,
+      "receivedAtMs": "1791326844012",
+      "sourceMs": "1791326841231",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2795,
+      "receivedAtMs": "1791326844955",
+      "sourceMs": "1791326844953",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2797,
+      "receivedAtMs": "1791326845959",
+      "sourceMs": "1791326845041",
+      "status": "COLLECTING"
+    },
+    {
+      "captureId": 2799,
+      "receivedAtMs": "1791326846957",
+      "sourceMs": "1791326846194",
+      "status": "COLLECTING"
+    }
+  ],
+  "counterfactualModel": {
+    "assumptions": [
+      "stable book",
+      "4/5/6 second fixed inclusion scenarios",
+      "2 seconds finality",
+      "3 seconds capture",
+      "2 seconds acknowledgement",
+      "real archived source arrival timestamps; captures shift causally"
+    ],
+    "reserve8Valid": [
+      27,
+      25,
+      22
+    ],
+    "reserve8Invalid": [
+      0,
+      0,
+      0
+    ],
+    "reserve12Invalid": [
+      4,
+      8,
+      9
+    ],
+    "notGuarantees": [
+      "variable RPC latency",
+      "vendor outage",
+      "book churn",
+      "complete live contract execution"
+    ]
+  },
+  "reserve8LiveReceipts": {
+    "sample": [
+      {
+        "at": "2026-10-06T22:49:22.011Z",
+        "hash": "0x95be5de99d72047ea97ae2a30ac4ff3cd1e6900701ddb00323607ada2e8f35b0",
+        "block": "68808060",
+        "canonical": true,
+        "timestamp": "1791326959",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791326941",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791326959",
+              "observedBlock": "68808060",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:49:39.593Z",
+        "hash": "0xd0ffdd83f38eb545e460e0e72be940c6245294424e0dbcc72e95040b1cf4163e",
+        "block": "68808118",
+        "canonical": true,
+        "timestamp": "1791326977",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791326959",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791326977",
+              "observedBlock": "68808118",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:49:52.419Z",
+        "hash": "0x7e5ef5b4f85a0bedee25ebcac13f5b9d33f4dbe05b04268195593ef905ed138e",
+        "block": "68808161",
+        "canonical": true,
+        "timestamp": "1791326990",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791326977",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791326990",
+              "observedBlock": "68808161",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:11.159Z",
+        "hash": "0xf1748e2b5296737e51bf542f32314d59658ae61dfdc21409b1ab34a2e6d1c794",
+        "block": "68808223",
+        "canonical": true,
+        "timestamp": "1791327008",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791326990",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327008",
+              "observedBlock": "68808223",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:24.764Z",
+        "hash": "0x849b72edf79a0352ae99429176b3c75e578f11ad10dad510606e06e380ad8b28",
+        "block": "68808268",
+        "canonical": true,
+        "timestamp": "1791327022",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327008",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327022",
+              "observedBlock": "68808268",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:45.004Z",
+        "hash": "0x5d214bf598515a12a50da9ab111fef42410d07dc76a0459ee74c1991368c94ee",
+        "block": "68808335",
+        "canonical": true,
+        "timestamp": "1791327042",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327022",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327042",
+              "observedBlock": "68808335",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:56.214Z",
+        "hash": "0x34ecd14d2f792fd47ed3ac581b081662e6d255942696c5c0c13a35e3edafe6a5",
+        "block": "68808372",
+        "canonical": true,
+        "timestamp": "1791327053",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327042",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327053",
+              "observedBlock": "68808372",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:51:10.882Z",
+        "hash": "0x21a38ba80f3466180ddbc11940785abb30ab8c72341579dda768c126cfe60dd0",
+        "block": "68808421",
+        "canonical": true,
+        "timestamp": "1791327068",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327053",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327068",
+              "observedBlock": "68808421",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:51:25.695Z",
+        "hash": "0xf2ca54c7cce5589b7a353cd1ccc837bd952bc59933035456dcbce1fb968f1ec4",
+        "block": "68808470",
+        "canonical": true,
+        "timestamp": "1791327083",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327068",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327083",
+              "observedBlock": "68808470",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:51:39.566Z",
+        "hash": "0xfb9e8b5ebe5f32b90cb174f1ce0e4cde8928a3187141cd8a3d01a37287ee04a7",
+        "block": "68808516",
+        "canonical": true,
+        "timestamp": "1791327097",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327083",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327097",
+              "observedBlock": "68808516",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:08.447Z",
+        "hash": "0xce437da0d31af1a141811edb7d3eb35037368b9e6af43aabdee973ce89c5d69d",
+        "block": "68808612",
+        "canonical": true,
+        "timestamp": "1791327126",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327097",
+              "midWad": "0",
+              "valid": false,
+              "basisWad": "0",
+              "basisValid": false
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327126",
+              "observedBlock": "68808612",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:23.197Z",
+        "hash": "0x1485349a0c4fbadd3a861c8fc42f3020cdbb51239475bcd43bebaf0e99cbc449",
+        "block": "68808661",
+        "canonical": true,
+        "timestamp": "1791327141",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327126",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327141",
+              "observedBlock": "68808661",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:35.898Z",
+        "hash": "0xb64e293b076800e96dd12c6ad7464c537b12107950ab8995f63793476f155ab5",
+        "block": "68808703",
+        "canonical": true,
+        "timestamp": "1791327153",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327141",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327153",
+              "observedBlock": "68808703",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:51.953Z",
+        "hash": "0xd20b658cb0b6ab888299f743ad16365cd461898f0ee000292f04226105de2e8e",
+        "block": "68808756",
+        "canonical": true,
+        "timestamp": "1791327169",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327153",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327169",
+              "observedBlock": "68808756",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:53:05.470Z",
+        "hash": "0xdf4d95d8987f11f14d041cf4c8e6f820f29538b2f936694121c5efd4e5f606be",
+        "block": "68808801",
+        "canonical": true,
+        "timestamp": "1791327183",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327169",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327183",
+              "observedBlock": "68808801",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:53:34.176Z",
+        "hash": "0xd00fad446cbb70425966f2a24d1612da853b82c44af3d07d7335f6a83bd46a53",
+        "block": "68808896",
+        "canonical": true,
+        "timestamp": "1791327211",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327183",
+              "midWad": "0",
+              "valid": false,
+              "basisWad": "0",
+              "basisValid": false
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327211",
+              "observedBlock": "68808896",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:53:50.458Z",
+        "hash": "0xb001de0b34cc06eed1697197c3ea6ca67b8d3e105780d70e349a525590923f72",
+        "block": "68808950",
+        "canonical": true,
+        "timestamp": "1791327228",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327211",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327228",
+              "observedBlock": "68808950",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:54:10.610Z",
+        "hash": "0xd3e86ff40bf7db19f63dc12035caa14203642e5d2a87ef7605bcc6137fdaa0b7",
+        "block": "68809017",
+        "canonical": true,
+        "timestamp": "1791327248",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327228",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327248",
+              "observedBlock": "68809017",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:54:24.269Z",
+        "hash": "0xacf97fe963be26cf78c4c20da13b7965a92f136d3651d770ff030630f5a6cc25",
+        "block": "68809064",
+        "canonical": true,
+        "timestamp": "1791327262",
+        "events": [
+          {
+            "eventName": "PerpObservationRecorded",
+            "args": {
+              "t": "1791327248",
+              "midWad": "85000000000000000",
+              "valid": true,
+              "basisWad": "0",
+              "basisValid": true
+            }
+          },
+          {
+            "eventName": "BookDepthCaptured",
+            "args": {
+              "observedAt": "1791327262",
+              "observedBlock": "68809064",
+              "examined": 2,
+              "fingerprint": "0x0b4346c592a6999647ece5982adf781962f38a7e488bf756adad475e5c839428"
+            }
+          }
+        ]
+      }
+    ],
+    "index": [
+      {
+        "at": "2026-10-06T22:49:33.501Z",
+        "sequence": "134",
+        "hash": "0x5f96c81a53ac10d7f282f41b51e9337e1ca28609944e2821063a4c122fed29cc",
+        "block": "68808105",
+        "canonical": true,
+        "timestamp": "1791326973",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "134",
+              "observedAt": "1791326966",
+              "publishedAt": "1791326968",
+              "acceptedAt": "1791326973",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xec34097c92508a8318f2c99d4c57b00797b1c1f46a6ae9594ea1a16c76a6624f"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:49:47.290Z",
+        "sequence": "135",
+        "hash": "0xd878be29621bbd0959e99dc750f3faf112ba225cf25d4faa5677c4e116812730",
+        "block": "68808144",
+        "canonical": true,
+        "timestamp": "1791326984",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "135",
+              "observedAt": "1791326978",
+              "publishedAt": "1791326980",
+              "acceptedAt": "1791326984",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xe7cd4d5c791a877df8e910b23a859a8946575d3cea6ac750125195d2ca96c6a6"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:06.000Z",
+        "sequence": "136",
+        "hash": "0xbc5b7c42c7177e106275177b86230193a1502657ae9d46b7946800a8c5307b43",
+        "block": "68808206",
+        "canonical": true,
+        "timestamp": "1791327003",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "136",
+              "observedAt": "1791326997",
+              "publishedAt": "1791326998",
+              "acceptedAt": "1791327003",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x733a6af3fa798a3b97635f9963c95009a04801dd9619c71f849fe0f5ef9bc5b9"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:19.366Z",
+        "sequence": "137",
+        "hash": "0xcd8c608bee62cbd86478cc6b48adfa68674d2357d00261b499f0b1deb16b7500",
+        "block": "68808251",
+        "canonical": true,
+        "timestamp": "1791327017",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "137",
+              "observedAt": "1791327010",
+              "publishedAt": "1791327011",
+              "acceptedAt": "1791327017",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x0b445582af4740d135c1f3f408ec3d6538fcd08f6d645fd88494a6127dea1959"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:39.774Z",
+        "sequence": "138",
+        "hash": "0xbfa294be1586ac1900b1065d49a6eabcbc39b0b3ab32859f5b05fc9ff5d99a4a",
+        "block": "68808318",
+        "canonical": true,
+        "timestamp": "1791327037",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "138",
+              "observedAt": "1791327030",
+              "publishedAt": "1791327032",
+              "acceptedAt": "1791327037",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x26dc60a7ac1d3ef234b93c8160d5e9022d912128b4c36f0398da286a8e456b23"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:50:50.464Z",
+        "sequence": "139",
+        "hash": "0xf5936a0e007b6f4705dd6ba6364627cd521931e4868b9a1e317774fbd61a2fd8",
+        "block": "68808360",
+        "canonical": true,
+        "timestamp": "1791327050",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "139",
+              "observedAt": "1791327043",
+              "publishedAt": "1791327045",
+              "acceptedAt": "1791327050",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x385d8c75908088b0f98538b809c4d193a2250de1e41f4e81a53d06093f985527"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:51:05.941Z",
+        "sequence": "140",
+        "hash": "0x66fe7485cb04dae8b953af0c1b9de65fae49f338995a4f2e38c9b5245fd374ce",
+        "block": "68808405",
+        "canonical": true,
+        "timestamp": "1791327063",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "140",
+              "observedAt": "1791327057",
+              "publishedAt": "1791327058",
+              "acceptedAt": "1791327063",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x27a9ba4dc8a1f129edcbb4c0567b43090976a03091f9259f142d6503f28dc7bd"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:51:18.775Z",
+        "sequence": "141",
+        "hash": "0x299ed29f0384210a5d34ac17f780a2f7dce6504e076e467c61e58394010a79b0",
+        "block": "68808454",
+        "canonical": true,
+        "timestamp": "1791327078",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "141",
+              "observedAt": "1791327073",
+              "publishedAt": "1791327073",
+              "acceptedAt": "1791327078",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x9c340260edddf38b29b3c6bef1774fb1d47df6780bae5463c8eb803598a72823"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:51:34.444Z",
+        "sequence": "142",
+        "hash": "0xd5e25cfc90e8c3350eb04b64ed357fd222e39489c7e3595c4aca0d4f362ebc2c",
+        "block": "68808499",
+        "canonical": true,
+        "timestamp": "1791327092",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "142",
+              "observedAt": "1791327086",
+              "publishedAt": "1791327087",
+              "acceptedAt": "1791327092",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x39dbe3873a078fa68e94fc796bc274d808d4d73a81ea143060453923d1ddd3ae"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:51:53.177Z",
+        "sequence": "143",
+        "hash": "0xbde85367b5dc0505ca7ff372f7f43f5a76779d6d72c819f05c0adc4f07f0c28f",
+        "block": "68808568",
+        "canonical": true,
+        "timestamp": "1791327112",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "143",
+              "observedAt": "1791327096",
+              "publishedAt": "1791327108",
+              "acceptedAt": "1791327112",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xe2d2ba1d58624938e57d2545d083cf8c60ea5ecdadc53c4f6459aadf27d557c9"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:03.453Z",
+        "sequence": "144",
+        "hash": "0x062bf98bd252c0d496e3c1fef084465b36db2b02ce28ffbf10e0df242cc5e9e0",
+        "block": "68808595",
+        "canonical": true,
+        "timestamp": "1791327121",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "144",
+              "observedAt": "1791327110",
+              "publishedAt": "1791327115",
+              "acceptedAt": "1791327121",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xaffb88c1dfe77c624b524ffb34b023a27c4f78ab600de97d42e08edccdb8b08b"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:18.095Z",
+        "sequence": "145",
+        "hash": "0xd376fcbbc36e1f6766c22dc4e824f14b6318d98faa088ff077ab30d9986110a8",
+        "block": "68808644",
+        "canonical": true,
+        "timestamp": "1791327135",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "145",
+              "observedAt": "1791327128",
+              "publishedAt": "1791327130",
+              "acceptedAt": "1791327135",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x1d4b552e03e5c3b69b7e323a9161423a2f972fe06a8cee2b87de9f0a7ffb9ade"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:30.940Z",
+        "sequence": "146",
+        "hash": "0x6f70aa2418ef2f82f1b2ec0c4c1787204ab47f6d2a8ce616373ed1380273930d",
+        "block": "68808686",
+        "canonical": true,
+        "timestamp": "1791327148",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "146",
+              "observedAt": "1791327143",
+              "publishedAt": "1791327143",
+              "acceptedAt": "1791327148",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xb0f457988d27daf4900d342bcdd4b00c3d0320d7e813225725594964335b6f60"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:46.838Z",
+        "sequence": "147",
+        "hash": "0x1168f5e380ddcf2e383ed1ba43891bee40c59bde756a885da8b67ac40d3b6614",
+        "block": "68808740",
+        "canonical": true,
+        "timestamp": "1791327164",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "147",
+              "observedAt": "1791327157",
+              "publishedAt": "1791327159",
+              "acceptedAt": "1791327164",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xba6236041399a00aed37600b8f0a48ba409ec1a5d9c93f0ad9c1cad942c41a2e"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:52:59.783Z",
+        "sequence": "148",
+        "hash": "0x7f5d3f416fee3496369587315f402d7c16698f0082b94e6e54c65308687b607d",
+        "block": "68808782",
+        "canonical": true,
+        "timestamp": "1791327177",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "148",
+              "observedAt": "1791327171",
+              "publishedAt": "1791327172",
+              "acceptedAt": "1791327177",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xfc7f052e3ee39e7db5eca97da8e0862cf60c221b3e3ea7643df5f9e22c001f89"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:53:20.234Z",
+        "sequence": "149",
+        "hash": "0x0519dd2185b2d1f6def060385e15c6d94d02dc4d698a523e4d57e2da5d23bceb",
+        "block": "68808850",
+        "canonical": true,
+        "timestamp": "1791327198",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "149",
+              "observedAt": "1791327181",
+              "publishedAt": "1791327193",
+              "acceptedAt": "1791327198",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x0e6fb3920d23e8a51a3f7dd8d9968a5d422a71409f62f0f4d9ec461f10148505"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:53:27.958Z",
+        "sequence": "150",
+        "hash": "0x366610033ce0291a752419a514ce0e0e70a4018ad0ea2d3b3a263bf6a4f43fb4",
+        "block": "68808882",
+        "canonical": true,
+        "timestamp": "1791327207",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "150",
+              "observedAt": "1791327201",
+              "publishedAt": "1791327202",
+              "acceptedAt": "1791327207",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xdf149ad06e09c21d1380333934d934859d219ad3cbab38eaf7ce313dbd60d899"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:53:45.383Z",
+        "sequence": "151",
+        "hash": "0x91c8273cd8e8cfccb117e40028006c7b44dc3215eb91f2527209e7139245be10",
+        "block": "68808933",
+        "canonical": true,
+        "timestamp": "1791327223",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "151",
+              "observedAt": "1791327217",
+              "publishedAt": "1791327218",
+              "acceptedAt": "1791327223",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xef21bf5303422c2e7d7f2e618418f853ccd2c94d2ed5b10eb02b51f9e157f159"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:54:05.280Z",
+        "sequence": "152",
+        "hash": "0x8f4e2f2ec0f31293df0231f58307850cb0d1edb29c041f7f24a7e99b3a84c878",
+        "block": "68808999",
+        "canonical": true,
+        "timestamp": "1791327243",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "152",
+              "observedAt": "1791327237",
+              "publishedAt": "1791327237",
+              "acceptedAt": "1791327243",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x73f0133d2f200fef0164e5c45517f7ab2cff7817f2a82095c71da90393e55067"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:54:19.985Z",
+        "sequence": "153",
+        "hash": "0xcac21f1c2dfb7a7eec3e13ec275f142795eaaffac5c3921227d9c11b434f80fc",
+        "block": "68809048",
+        "canonical": true,
+        "timestamp": "1791327257",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "153",
+              "observedAt": "1791327250",
+              "publishedAt": "1791327252",
+              "acceptedAt": "1791327257",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0xb6426e74a2ba1bce7e6c0131a3ae0701f1fc89221df1b33eddf5f594b7594b04"
+            }
+          }
+        ]
+      },
+      {
+        "at": "2026-10-06T22:54:34.992Z",
+        "sequence": "154",
+        "hash": "0x061134c8cafa224c61dda275c6b3acc83aa795ab905685772c489170cd81ef8e",
+        "block": "68809097",
+        "canonical": true,
+        "timestamp": "1791327272",
+        "events": [
+          {
+            "eventName": "ObservationAccepted",
+            "args": {
+              "sourceId": "0x1db680ff3df09d03cf10092d4e7a11e798256669368edaab0e7d5a0498b602d8",
+              "sequence": "154",
+              "observedAt": "1791327266",
+              "publishedAt": "1791327267",
+              "acceptedAt": "1791327272",
+              "priceWad": "85000000000000000",
+              "depthValid": true,
+              "payloadDigest": "0x272757d6ee870e32032b057246297df0684484828108b1e0bf144dabe084922f"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "reserve8LiveConclusion": "Additional same-price raw-checkpoint invalidations remained after reserve tuning; v3 continuous MARK liveness was not established. These receipts motivated the separate semantic contract repair."
+}

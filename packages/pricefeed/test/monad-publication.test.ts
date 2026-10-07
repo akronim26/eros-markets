@@ -27,7 +27,7 @@ import { INGRESS_ABI, type Observation } from '../src/wire.js';
 import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
 import { quoteMonadGas } from '../src/monad-gas-quote.js';
 import { parseConfig } from '../src/config.js';
-import { planMonadBudget, applyMonadBudget, budgetPlanHash } from '../src/monad-budget.js';
+import { planMonadBudget, applyMonadBudget, budgetPlanHash, budgetJournalSnapshot, openBudgetJournals } from '../src/monad-budget.js';
 import { json } from '../src/math.js';
 import { SourceSnapshotBuffer } from '../src/source-buffer.js';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -108,6 +108,39 @@ function renewalPolicies(sender:string){
   const next={...old,relay:{...old.relay,gasSafetyMarginBps:'1000'},budget:{maxTransactions:4,totalMaxCostWei:'480000000000000000',budgetRevision:1}};
   return {old,next};
 }
+test('streamed budget snapshot preserves legacy hashes with multi-row, empty and optional tables',async()=>{
+  const s=await setup();
+  try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());s.pipeline.close();
+    const db=openBudgetJournals({config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir},false);
+    try{
+      const tables=[['main','relay_control','id'],['main','relay_nonce','sender'],['main','relay_signer','sender'],['main','deliveries','key'],
+        ['source','writers','worker'],['source','captures','id'],['packets','packet_workers','ns'],['packets','packets','ns,sequence'],
+        ['signer','signer_fences','ns'],['signer','signer_reservations','identity'],
+        ['transactions','transaction_signer','id'],['transactions','transaction_reservations','nonce']];
+      for(const [table,order] of [['relay_budget_audit','revision'],['nonce_recoveries','key']]){
+        if(db.prepare("SELECT name FROM sqlite_master WHERE name=?").get(table!))tables.push(['main',table!,order!]);
+      }
+      const parts=tables.map(([schema,table,order])=>{
+        const query=db.prepare(`SELECT * FROM ${schema}.${table} ORDER BY ${order}`);query.setReadBigInts(true);
+        return {table:schema+'.'+table,rows:query.all()};
+      });
+      assert.equal(budgetJournalSnapshot(db),policyHash(json(parts)));
+    }finally{db.close();}
+  }finally{s.close();}
+});
+test('a timed-out lifecycle reader drains before pipeline shutdown and can resume without resetting journals',async()=>{
+  const s=await setup(3,{...policy,timeoutMs:50});
+  try{
+    await s.pipeline.start();
+    const chainId=s.rpc.chainId;let completed=false;
+    s.rpc.chainId=async()=>{await new Promise(resolve=>setTimeout(resolve,150));completed=true;return chainId();};
+    await assert.rejects(s.pipeline.run(new AbortController().signal,()=>assert.fail('must not publish after timeout')),/PIPELINE_TIMEOUT/);
+    assert.equal(completed,true);assert.equal(s.sent.length,0);assert.equal(s.journal.verify(),true);
+    s.rpc.chainId=chainId;s.restart();await s.pipeline.start();
+    assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
+  }finally{s.close();}
+});
 test('budget renewal is read-only to plan, atomic to apply, idempotent, and resumes original signed history',async()=>{
   const s=await setup();let nextRelay:MonadTestnetRelay|undefined,nextPipeline:MonadTestnetPipeline|undefined;
   try{
@@ -420,6 +453,60 @@ test('unknown cancellation send is durable and retries only identical bytes',asy
     await assert.rejects(f.s.relay.start(),/RELAY_NONCE_RECOVERY_REQUIRED/);
     f.setFail(false);assert.equal((await f.run()).status,'FINALIZED');
     assert.equal(f.cancelSends.length,2);assert.equal(f.cancelSends[0],f.cancelSends[1]);
+  }finally{f.s.close();}
+});
+
+test('recovery refuses a changed finalized audit anchor before broadcasting cancellation',async()=>{
+  const f=await recoveryFixture();try{
+    let changed=false;const block=f.s.rpc.block,simulate=f.s.rpc.simulate;
+    f.s.rpc.block=async selector=>({...await block(selector),...(changed?{hash:('0x'+'ef'.repeat(32)) as Hex}:{})});
+    f.s.rpc.simulate=async(...args)=>{const result=await simulate(...args);changed=true;return result;};
+    await assert.rejects(f.run(),/NONCE_RECOVERY_CANONICAL_MISMATCH/);
+    assert.equal(f.cancelSends.length,0);
+  }finally{f.s.close();}
+});
+
+test('attempted expired delivery cancellation requires opt-in, canonical expiry and no original receipt',async()=>{
+  const f=await recoveryFixture();try{
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));
+    const row=db.prepare('SELECT key,body FROM deliveries').get()!;
+    const body=json({...JSON.parse(String(row.body)),attempts:1,reason:'RESERVED_NONCE_HEADROOM_EXPIRED'});
+    db.prepare('UPDATE deliveries SET body=?,sha256=? WHERE key=?').run(body,policyHash(body),row.key!);db.close();
+    await assert.rejects(f.run(),/NONCE_RECOVERY_SCOPE/);
+    const run=()=>recoverMonadNonce({...f.options,allowAttempted:true},f.s.rpc,()=>1032000n,f.account);
+    const block=f.s.rpc.block;f.s.rpc.block=async s=>({...await block(s),timestamp:1030n});
+    await assert.rejects(run(),/NONCE_RECOVERY_NOT_CANONICALLY_EXPIRED/);f.s.rpc.block=block;
+    const receipt=f.s.rpc.receipt;
+    f.s.rpc.receipt=async hash=>hash===f.old.txHash?{transactionHash:hash,status:'reverted',blockNumber:1n,blockHash:('0x'+'aa'.repeat(32)) as Hex,logs:[]}:receipt(hash);
+    await assert.rejects(run(),/NONCE_RECOVERY_ORIGINAL_INCLUDED/);f.s.rpc.receipt=receipt;
+    assert.equal(f.cancelSends.length,0);
+    assert.equal((await run()).status,'FINALIZED');assert.equal(f.cancelSends.length,1);
+    assert.equal((await run()).status,'FINALIZED');assert.equal(f.cancelSends.length,1);
+    f.s.restart();f.s.setNow(1040000n);f.s.advanceBlock();await f.s.pipeline.start();
+    assert.equal((await f.s.pipeline.process(await f.s.worker.poll())).state,'FINALIZED');
+  }finally{f.s.close();}
+});
+
+test('expired never-broadcast lifecycle RPC failure can recover without admitting other quarantine reasons',async()=>{
+  const f=await recoveryFixture();try{
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));
+    const row=db.prepare('SELECT key,body FROM deliveries').get()!;
+    const original=JSON.parse(String(row.body));
+    const update=(reason:string,attempts=0)=>{
+      const body=json({...original,reason,attempts});
+      db.prepare('UPDATE deliveries SET body=?,sha256=? WHERE key=?').run(body,policyHash(body),row.key!);
+    };
+    try{
+      for(const reason of ['SIGNED_TRANSACTION_MISMATCH','LIFECYCLE_BLOCKED:QUARANTINED:IDENTITY_MISMATCH']){
+        update(reason);await assert.rejects(f.run(),/NONCE_RECOVERY_SCOPE/);
+      }
+      const reason='LIFECYCLE_BLOCKED:SOURCE_UNAVAILABLE:LIFECYCLE_RPC_UNAVAILABLE';
+      update(reason,1);await assert.rejects(f.run(),/NONCE_RECOVERY_SCOPE/);
+      update(reason);assert.equal((await f.run()).status,'FINALIZED');
+      assert.equal(f.cancelSends.length,1);assert.equal(f.s.relay.get(f.s.domain,1n)!.raw,f.old.raw);
+      f.s.restart();f.s.setNow(1040000n);f.s.advanceBlock();await f.s.pipeline.start();
+      assert.equal((await f.s.pipeline.process(await f.s.worker.poll())).state,'FINALIZED');
+    }finally{db.close();}
   }finally{f.s.close();}
 });
 test('stalled recovery reads release all five journal locks and cannot create false cancellation evidence',async()=>{

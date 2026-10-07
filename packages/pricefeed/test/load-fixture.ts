@@ -34,6 +34,7 @@ export function loadFixture(count:number,options:{sourceDelayMs?:number;rpcDelay
   const journal=new Journal(join(dir,'source.sqlite')),packets=new PacketStore(join(dir,'packets.sqlite'));
   const limiter=new RequestLimiter(1,options.maxPending??500);
   const stats={sourceCalls:0,sourceActive:0,maxSourceActive:0,rpcCalls:0,rpcActive:0,maxRpcActive:0,
+    writeRpcActive:0,maxWriteRpcActive:0,preparedNonces:[] as number[],
     perWorkerPolls:Array<number>(count).fill(0),maxBookActive:Array<number>(count).fill(0),
     sourceAgeAtBroadcastMs:[] as string[],headroomAtBroadcastMs:[] as string[],elapsedSinceSigningAtSimulationMs:[] as string[]};
   const signedAt=new Map<string,bigint>();
@@ -42,8 +43,10 @@ export function loadFixture(count:number,options:{sourceDelayMs?:number;rpcDelay
   let rpcHook:((phase:string,data:Hex|null)=>Promise<void>)=async()=>{};
   const rpc=async<T>(phase:string,fn:()=>T|Promise<T>,data:Hex|null=null):Promise<T>=>{
     stats.rpcCalls++;stats.rpcActive++;stats.maxRpcActive=Math.max(stats.maxRpcActive,stats.rpcActive);
+    const writes=phase==='prepare'||phase==='broadcast';
+    if(writes){stats.writeRpcActive++;stats.maxWriteRpcActive=Math.max(stats.maxWriteRpcActive,stats.writeRpcActive);}
     try{await rpcHook(phase,data);if(options.rpcDelayMs)await pause(options.rpcDelayMs);return await fn();}
-    finally{stats.rpcActive--;}
+    finally{stats.rpcActive--;if(writes)stats.writeRpcActive--;}
   };
   const entries=Array.from({length:count},(_,index)=>{
     const mapping={...config.mapping,eventId:String(50000+index),externalMarketId:String(60000+index),
@@ -95,8 +98,11 @@ export function loadFixture(count:number,options:{sourceDelayMs?:number;rpcDelay
       if(at!==undefined)stats.elapsedSinceSigningAtSimulationMs.push((now()-at).toString());
       return rpc('simulate',()=>{},data);
     },
-    prepare:async req=>rpc('prepare',()=>sender.signTransaction({type:'eip1559',chainId:31337,to:req.to as Hex,data:req.data,
-      nonce:Number(req.nonce),gas:req.gas,maxFeePerGas:req.maxFeePerGas,maxPriorityFeePerGas:req.maxPriorityFeePerGas,value:0n}),req.data),
+    prepare:async req=>rpc('prepare',()=>{
+      stats.preparedNonces.push(Number(req.nonce));
+      return sender.signTransaction({type:'eip1559',chainId:31337,to:req.to as Hex,data:req.data,
+        nonce:Number(req.nonce),gas:req.gas,maxFeePerGas:req.maxFeePerGas,maxPriorityFeePerGas:req.maxPriorityFeePerGas,value:0n});
+    },req.data),
     broadcast:async raw=>rpc('broadcast',()=>{
       const tx=parseTransaction(raw),o=decodeFunctionData({abi:INGRESS_ABI,data:tx.data!}).args[0] as unknown as Observation;
       if(BigInt(tx.nonce!)!==nextNonce)throw new Error('FIXTURE_NONCE_ORDER');nextNonce++;
