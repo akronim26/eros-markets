@@ -1,0 +1,499 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-10-07T16:55:15.014710+00:00",
+  "baseCommit": "f7e3d35ed87fcfa7e79ed39780393848b36b0538",
+  "scope": "Read-only restart verification plus exact keeper top-up executed by the root operator; no contract redeployment or journal reset.",
+  "chainId": 10143,
+  "controlledPricefeedBuild": {
+    "at": "2026-10-07T16:45:57.794627+00:00",
+    "typescriptBuild": "passed",
+    "focusedBudgetTests": 7,
+    "testsPassed": true,
+    "files": {
+      "packages/pricefeed/src/monad-budget.ts": "720d7cf65762e8273a0633c87cb1b654d0387ff99ee7862dc0953c2af6c2b76b",
+      "packages/pricefeed/dist/src/monad-budget.js": "887b227daa22a056bc527922c1de34c815f6dd52dd5c52a48f600fbfe30ba1ca",
+      "packages/pricefeed/test/monad-publication.test.ts": "ae94c447767722b0ecf3c557d519e995f4b42a8663e5612920fe36801accb9f4"
+    }
+  },
+  "funding": {
+    "passed": true,
+    "approvalHash": "2d20e459413f1d33209f2c530eca50d9159b02478eaf2343bb0f7801297147b8",
+    "rootBalanceWei": "3140462015999727000",
+    "rootReserveWei": "3000000000000000000",
+    "receipts": [
+      {
+        "hash": "0xa081c20ff0f2ac8805f0c880ae5e7230f755a5007679d312a265432c8e20d37c",
+        "block": "69022019",
+        "blockHash": "0x2699400445c501acf10254f2a0f6094abdc5203118fcdf8c9013b90e5632ee39",
+        "valueWei": "8000000000000000000",
+        "to": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "gasUsed": "21000",
+        "effectiveGasPrice": "102000000000"
+      },
+      {
+        "hash": "0x31b1a67f7ddaa43e65bc4a3a4e678bb552433a6812a6fa7f1d6c5e6b29fb5bdc",
+        "block": "69022034",
+        "blockHash": "0xb1b2678be4bec022aad0335b876e33560003076d2d3e325f3e1d6663757f8046",
+        "valueWei": "4000000000000000000",
+        "to": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "gasUsed": "21000",
+        "effectiveGasPrice": "102000000000"
+      }
+    ],
+    "recipientBalancesNotUsedForProof": true,
+    "verifiedAt": "2026-10-07T16:49:41.290Z"
+  },
+  "fundingHelperReview": {
+    "independentReviewer": "astra_protocol_audit",
+    "focusedTestsPassed": 2,
+    "receiptIdentityGuardReview": "Exact transaction and receipt hash, block number/hash, canonical block number/hash, sender, recipient, nonce, value and gas bounds checked. Recipient balance changes are not used because active keepers spend gas.",
+    "helperSha256": {
+      "keeper-topup.mjs": "cd201a10db66c146d94bc739dcf0fadc53d4858efe1be3cb7401233a19760803",
+      "keeper-topup-policy.mjs": "1751d77f964f07d7a0ac4c66e73431d2d36bc2b56d85a23541aeafa4b6f7c1aa",
+      "keeper-topup-policy.test.mjs": "eee7818baf210a820ffa86e17cea857ac5fd4bda7cb1c63e609dca7b87031406"
+    }
+  },
+  "journalRecovery": {
+    "market": "republican-house",
+    "sequence": "399",
+    "nonce": "398",
+    "before": "UNKNOWN",
+    "after": "FINALIZED",
+    "sameTransactionHash": "0x2dfd5bee3353857bc6e6dfc459c7bb54d29e02e49bf20b525931539bd5ebc30d",
+    "sameAttemptCount": 1,
+    "acceptedReceipt": {
+      "transactionHash": "0x2dfd5bee3353857bc6e6dfc459c7bb54d29e02e49bf20b525931539bd5ebc30d",
+      "blockNumber": "68980791",
+      "blockHash": "0x878cfbf1b3394448c2fd2dc68fbb5e4117892ef355d013065380b63a6db9f3ef",
+      "logIndex": 7,
+      "acceptedAt": "1791379300",
+      "digest": "0xfff424e8a7a51e5a04d0d94c6d414b14f98b9f878c30328ffbea2424cb58f74e"
+    },
+    "mode": "Ordinary publisher resume reconciled the existing successful canonical receipt. No cancellation, duplicate send or new nonce was used for this sequence."
+  },
+  "markets": [
+    {
+      "market": "nebraska-senate",
+      "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+      "publicManifest": "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/public-manifest.json",
+      "roles": {
+        "INDEX_SIGNER": "0xE9914f2dA19aB747bAC1a7B99C1F44C9350c4751",
+        "PUBLISHER": "0x97A25EFD08f8727abafB5e2a1eD1a8a7D4910BB1",
+        "KEEPER": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "MAKER_BUY": "0xd537552A20DD0d4276e33956A65A2c7eb402F435",
+        "MAKER_SELL": "0x8594DaE1460850f0D4BF51426324c455713ee814"
+      },
+      "startedAt": "2026-10-07T16:49:13.232Z",
+      "durationSeconds": 1800,
+      "plannedDeadlinesUtc": {
+        "operations": "2026-10-07T17:19:13.238000+00:00",
+        "publisher": "2026-10-07T17:19:13.244000+00:00",
+        "makers": "2026-10-07T17:19:13.249000+00:00"
+      },
+      "supervisorStatusAtObservation": "running",
+      "childrenAliveAtObservation": {
+        "publisher": true,
+        "operations": true,
+        "makers": true
+      },
+      "preparedHashesMatched": {
+        "pricefeed-config.json": true,
+        "pricefeed-rules.json": true,
+        "pricefeed-policy.json": true,
+        "market-ops.json": true,
+        "oracle-deployments.json": true,
+        "engine-abi.json": true
+      },
+      "preparedSha256": {
+        "pricefeed-config.json": "51bf9599568df71667f8ea7e4425dbe0704c9d21ef2f50c5a9859172fd9a1c1e",
+        "pricefeed-rules.json": "0ff07f3b37098ff0804a82d1641152865101d92b8b203ca9eba107a8d58c6663",
+        "pricefeed-policy.json": "2adf57a79a9bc28978cbdf9ceaa29657aca1f6780e7a62d25bf9d66d730f7021",
+        "market-ops.json": "e9c830df1d36f43e2ef9a512b4b1e1e39b2da7b5d2b1ca96bec8dc83b30ca757",
+        "oracle-deployments.json": "a659b4afa433d4de6608c074c242a2405db793e653ad5c4c454971991af5d003",
+        "engine-abi.json": "995ec14c455f1cdcfb4e39a29c44d70fdd3cb87abbcce0ecc5a5e612d9867786"
+      },
+      "sampleEveryBlocks": "30",
+      "publisherBudgetRevision": 1,
+      "publisherRemainingReservationWeiBeforeRestart": "7862840100000000000",
+      "snapshot": {
+        "at": "2026-10-07T16:55:08.252Z",
+        "market": "nebraska-senate",
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "block": "69023113",
+        "blockTime": "1791392105",
+        "risk": {
+          "asOfTime": "1791392105",
+          "stage": 0,
+          "pricingMode": 0,
+          "accountingState": 0,
+          "indexAvailable": false,
+          "indexWad": "0",
+          "markAvailable": false,
+          "markWad": "0",
+          "riskVersion": "2",
+          "profileHash": "0x5edd2955bb51a727c0f572deaa7cb0a95e2be842f0acbaa1f8deb5ecf4c7431f",
+          "secsToT": "2376235",
+          "monitorRestricted": false,
+          "fundingFreshThrough": "1791391761",
+          "floorStatus": 0,
+          "floorCursor": "0",
+          "floorCount": "0",
+          "liquidationCapLots": "100000",
+          "liquidationRemainingLots": "100000",
+          "pendingWork": 0
+        },
+        "caps": [
+          "1",
+          "1"
+        ],
+        "epoch": [
+          "4",
+          "1791391761",
+          "1791392400",
+          "1791391761",
+          "1791391761",
+          "0",
+          true
+        ],
+        "sequence": "453",
+        "sourceAge": "19",
+        "depth": {
+          "bidWad": "0",
+          "askWad": "0",
+          "bidDepthLots": "0",
+          "askDepthLots": "0",
+          "examined": 0,
+          "fingerprint": "0x0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "indexWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "299",
+          "integral": "85215000000000000000"
+        },
+        "perpWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "0",
+          "integral": "0"
+        },
+        "basisWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "0",
+          "integral": "0"
+        },
+        "canonicalAtObservation": true
+      }
+    },
+    {
+      "market": "republican-house",
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "publicManifest": "artifacts/deployments/monad-testnet-20261007-republican-house-audited/public-manifest.json",
+      "roles": {
+        "INDEX_SIGNER": "0x841055a0328A3BC3C97fdd5FE51740AE80490340",
+        "PUBLISHER": "0xd530303a6EFdAB90394e7C085BbF2501541Dfb73",
+        "KEEPER": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "MAKER_BUY": "0x301a887Adf53c9C71ca9D11c36E0d4a184F6240c",
+        "MAKER_SELL": "0x66dDefB1E8E3a2F668695bD251616d5288aa856C"
+      },
+      "startedAt": "2026-10-07T16:41:34.681Z",
+      "durationSeconds": 1800,
+      "plannedDeadlinesUtc": {
+        "operations": "2026-10-07T17:11:34.691000+00:00",
+        "publisher": "2026-10-07T17:11:34.698000+00:00",
+        "makers": "2026-10-07T17:11:34.702000+00:00"
+      },
+      "supervisorStatusAtObservation": "running",
+      "childrenAliveAtObservation": {
+        "publisher": true,
+        "operations": true,
+        "makers": true
+      },
+      "preparedHashesMatched": {
+        "pricefeed-config.json": true,
+        "pricefeed-rules.json": true,
+        "pricefeed-policy.json": true,
+        "market-ops.json": true,
+        "oracle-deployments.json": true,
+        "engine-abi.json": true
+      },
+      "preparedSha256": {
+        "pricefeed-config.json": "e6eed93fe6a41974becf3edb5fb8e8f8d08ef2fddad17663ca381452cb792d2c",
+        "pricefeed-rules.json": "6817f413fbbf891a08b7b0c1c1dc9d518c7516a8bfce5b4ca58d70315eb8265d",
+        "pricefeed-policy.json": "b565effb4661e0d56395600af76edcbb42264d50cc1670cb60bf0d111cbf5791",
+        "market-ops.json": "a843dbe08c5a3605a77a8cbfe2bfafde44389fa2871263457ef9ad0c56a8d27f",
+        "oracle-deployments.json": "a659b4afa433d4de6608c074c242a2405db793e653ad5c4c454971991af5d003",
+        "engine-abi.json": "995ec14c455f1cdcfb4e39a29c44d70fdd3cb87abbcce0ecc5a5e612d9867786"
+      },
+      "sampleEveryBlocks": "30",
+      "publisherBudgetRevision": 1,
+      "publisherRemainingReservationWeiBeforeRestart": "8725749900000000000",
+      "snapshot": {
+        "at": "2026-10-07T16:55:06.202Z",
+        "market": "republican-house",
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "block": "69023106",
+        "blockTime": "1791392103",
+        "risk": {
+          "asOfTime": "1791392103",
+          "stage": 0,
+          "pricingMode": 0,
+          "accountingState": 0,
+          "indexAvailable": true,
+          "indexWad": "75000000000000000",
+          "markAvailable": false,
+          "markWad": "0",
+          "riskVersion": "2",
+          "profileHash": "0xa7c24def0dab4d6e2530eec31df08a8a00cc8bf17de9dd42a422ab6aae90cd20",
+          "secsToT": "2376237",
+          "monitorRestricted": false,
+          "fundingFreshThrough": "1791391300",
+          "floorStatus": 0,
+          "floorCursor": "0",
+          "floorCount": "0",
+          "liquidationCapLots": "100000",
+          "liquidationRemainingLots": "100000",
+          "pendingWork": 0
+        },
+        "caps": [
+          "1",
+          "1"
+        ],
+        "epoch": [
+          "4",
+          "1791391300",
+          "1791392400",
+          "1791391300",
+          "1791391300",
+          "0",
+          true
+        ],
+        "sequence": "454",
+        "sourceAge": "27",
+        "depth": {
+          "bidWad": "65000000000000000",
+          "askWad": "85000000000000000",
+          "bidDepthLots": "1000000",
+          "askDepthLots": "1000000",
+          "examined": 6,
+          "fingerprint": "0xa69001ee679fd27be2f0bd3dadedeb884b917fcb4fe9b4366d0a54c81c591d39"
+        },
+        "indexWindow": {
+          "available": true,
+          "twapWad": "75000000000000000",
+          "coveredSecs": "300",
+          "integral": "22500000000000000000"
+        },
+        "perpWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "48",
+          "integral": "3600000000000000000"
+        },
+        "basisWindow": {
+          "available": false,
+          "twapWad": "0",
+          "coveredSecs": "384",
+          "integral": "0"
+        },
+        "canonicalAtObservation": true
+      }
+    }
+  ],
+  "limitations": [
+    "Snapshots establish service and chain state only at the recorded times.",
+    "Both campaigns are bounded to 1800 seconds and can stop earlier on error, exhausted reservations or gas floors. This is not permanent hosting.",
+    "Live MARK and 5x trading were not proven by this restart. Both snapshots retain the authoritative 1x directional caps while bootstrap price windows are incomplete.",
+    "Polymarket source timestamps remain authoritative. Genuine upstream freshness gaps can prevent continuous INDEX/PERP/BASIS coverage; no timestamps, prices or TTL checks were weakened.",
+    "Private signing keys, credentials, raw signed transactions, local PIDs and journal contents are intentionally excluded."
+  ],
+  "nebraskaFreshnessGap": {
+    "reviewedAt": "2026-10-07T16:58:07.261525+00:00",
+    "sequencePair": [
+      "446",
+      "447"
+    ],
+    "sourceMs": [
+      "1791391961111",
+      "1791391992490"
+    ],
+    "vendorAdvanceMs": 31379,
+    "observedAtGapSeconds": 31,
+    "contractCarrySeconds": 30,
+    "missingCoverageSeconds": 1,
+    "archiveBodiesSha256Verified": true,
+    "responseCount": 33,
+    "consecutiveOldTimestampResponses": 31,
+    "maxObservedResponseIntervalMs": 1453,
+    "lastOldResponse": {
+      "captureAtMs": "1791391992123",
+      "sourceMs": "1791391961111",
+      "receivedAtMs": "1791391992123",
+      "latencyMs": "241",
+      "rawBookSha256": "1fe5dbc47f149deb128e8e99054b6f5fed1b0b1cb2ef7d002e43ecee4ccebfac",
+      "status": "DEGRADED",
+      "reason": "STALE_OR_FUTURE_SOURCE_TIME"
+    },
+    "firstNewResponse": {
+      "captureAtMs": "1791391993098",
+      "sourceMs": "1791391992490",
+      "receivedAtMs": "1791391993097",
+      "latencyMs": "215",
+      "rawBookSha256": "fb3d56b266069588f2ad8984287a2f1e929ab87c4149f21acb642a19318d1016",
+      "status": "COLLECTING",
+      "reason": null
+    },
+    "acceptedReceipts": [
+      {
+        "sequence": "446",
+        "nonce": "444",
+        "txHash": "0x2ce7b5644f3a7bf2acd74b389a6b42f19ef2b0ce7046f9b3834a798a5cc5f34e",
+        "state": "FINALIZED",
+        "attempts": 1,
+        "acceptedReceipt": {
+          "blockNumber": "69022702",
+          "blockHash": "0x04184b0eca464888036f3112647d8661bf192492b7656363d9ac205f57ed2d8a",
+          "acceptedAt": "1791391981",
+          "digest": "0x1b35266afa0dbe4f2cc2ee4a248760b7c8d3b4defbef72161b0ffc2498b68abc"
+        }
+      },
+      {
+        "sequence": "447",
+        "nonce": "445",
+        "txHash": "0x40049a6d0b8dfab5678e4c15f03506b467ab655405632005935ecd0cec469fdf",
+        "state": "FINALIZED",
+        "attempts": 1,
+        "acceptedReceipt": {
+          "blockNumber": "69022768",
+          "blockHash": "0x67bec5efe5a7fed550cec08cf9604e37b87f7f5d682dd1a633e83ff73e14395a",
+          "acceptedAt": "1791392001",
+          "digest": "0xdf3fff84f682537599c14db0dd3a015236da0a390e03dc52589267e8d3231cf3"
+        }
+      }
+    ],
+    "interpretation": "The upstream timestamp remained unchanged beyond the 30-second carry limit while REST polling continued. A real one-second historical coverage gap, not frontend display starvation, keeps INDEX unavailable until that gap exits the rolling window and all other freshness conditions hold."
+  },
+  "handoffCanonicalHealthSnapshots": [
+    {
+      "market": "republican-house",
+      "at": "2026-10-07T16:58:52.855Z",
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "block": "69023856",
+      "blockTime": "1791392329",
+      "risk": {
+        "asOfTime": "1791392329",
+        "stage": 0,
+        "pricingMode": 0,
+        "accountingState": 0,
+        "indexAvailable": true,
+        "indexWad": "75000000000000000",
+        "markAvailable": false,
+        "markWad": "0",
+        "riskVersion": "2",
+        "profileHash": "0xa7c24def0dab4d6e2530eec31df08a8a00cc8bf17de9dd42a422ab6aae90cd20",
+        "secsToT": "2376011",
+        "monitorRestricted": false,
+        "fundingFreshThrough": "1791391300",
+        "floorStatus": 0,
+        "floorCursor": "0",
+        "floorCount": "0",
+        "liquidationCapLots": "100000",
+        "liquidationRemainingLots": "100000",
+        "pendingWork": 0
+      },
+      "caps": [
+        "1",
+        "1"
+      ],
+      "sequence": "469",
+      "sourceAge": "19",
+      "depth": {
+        "bidWad": "65000000000000000",
+        "askWad": "85000000000000000",
+        "bidDepthLots": "1000000",
+        "askDepthLots": "1000000",
+        "examined": 6,
+        "fingerprint": "0xa69001ee679fd27be2f0bd3dadedeb884b917fcb4fe9b4366d0a54c81c591d39"
+      },
+      "indexWindow": {
+        "available": true,
+        "twapWad": "75000000000000000",
+        "coveredSecs": "300",
+        "integral": "22500000000000000000"
+      },
+      "perpWindow": {
+        "available": true,
+        "twapWad": "75000000000000000",
+        "coveredSecs": "60",
+        "integral": "4500000000000000000"
+      },
+      "basisWindow": {
+        "available": false,
+        "twapWad": "0",
+        "coveredSecs": "508",
+        "integral": "0"
+      }
+    },
+    {
+      "market": "nebraska-senate",
+      "at": "2026-10-07T16:58:54.094Z",
+      "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+      "block": "69023864",
+      "blockTime": "1791392332",
+      "risk": {
+        "asOfTime": "1791392332",
+        "stage": 0,
+        "pricingMode": 0,
+        "accountingState": 0,
+        "indexAvailable": true,
+        "indexWad": "285000000000000000",
+        "markAvailable": false,
+        "markWad": "0",
+        "riskVersion": "2",
+        "profileHash": "0x5edd2955bb51a727c0f572deaa7cb0a95e2be842f0acbaa1f8deb5ecf4c7431f",
+        "secsToT": "2376008",
+        "monitorRestricted": false,
+        "fundingFreshThrough": "1791391761",
+        "floorStatus": 0,
+        "floorCursor": "0",
+        "floorCount": "0",
+        "liquidationCapLots": "100000",
+        "liquidationRemainingLots": "100000",
+        "pendingWork": 0
+      },
+      "caps": [
+        "1",
+        "1"
+      ],
+      "sequence": "473",
+      "sourceAge": "10",
+      "depth": {
+        "bidWad": "275000000000000000",
+        "askWad": "0",
+        "bidDepthLots": "1000000",
+        "askDepthLots": "0",
+        "examined": 7,
+        "fingerprint": "0x4bea881b0b103f295759a5aea8f0f12c307089e89df918466a667eb797f4a1c3"
+      },
+      "indexWindow": {
+        "available": true,
+        "twapWad": "285000000000000000",
+        "coveredSecs": "300",
+        "integral": "85500000000000000000"
+      },
+      "perpWindow": {
+        "available": false,
+        "twapWad": "0",
+        "coveredSecs": "0",
+        "integral": "0"
+      },
+      "basisWindow": {
+        "available": false,
+        "twapWad": "0",
+        "coveredSecs": "0",
+        "integral": "0"
+      }
+    }
+  ]
+}

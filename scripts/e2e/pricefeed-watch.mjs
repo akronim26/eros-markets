@@ -11,7 +11,7 @@ import { recoverMonadNonce } from '../../packages/pricefeed/dist/src/monad-nonce
 import { recoverableUnsentReason } from '../../packages/pricefeed/dist/src/nonce-recovery-journal.js';
 import { SampleCoordinator, indexFreshCutoff } from './sampler-coordination.mjs';
 import { PacketStore, packetNamespace } from '../../packages/pricefeed/dist/src/packet-store.js';
-import { publisherInitializationAfterFailure, transientPublisherFailure } from './publisher-restart-policy.mjs';
+import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce } from './publisher-restart-policy.mjs';
 
 const [rpcFile, publicDir, privateDir, policyFile, evidenceFile, seconds = '5400', setup] = process.argv.slice(2);
 if (!evidenceFile || !/^\d+$/.test(seconds) || +seconds < 1 || +seconds > 86400 || (setup !== undefined && setup !== '--initialize'))
@@ -152,14 +152,12 @@ while (!stop.signal.aborted && Date.now() < end) {
       // identity, every canonical receipt, sender nonce and cumulative budget.
       const p = pending[0]; recoveries++;
       await new Promise(r => setTimeout(r, 31_000));
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const recovered = await recoverMonadNonce({ rpcUrl, config, abi, journalDirectory, keysDirectory, policy: policyInput,
+      await recoverPublisherNonce({ signal: stop.signal, deadline: end,
+        recover: () => recoverMonadNonce({ rpcUrl, config, abi, journalDirectory, keysDirectory, policy: policyInput,
           nonce: BigInt(p.nonce), originalHash: p.txHash, maxCostWei: 21_000n * policy.relay.maxFeePerGas, waitMs: 120_000,
-          allowAttempted: p.attempts > 0 });
-        log({ recovery: recovered.status, nonce: recovered.nonce, hash: recovered.hash });
-        if (recovered.status === 'FINALIZED') break;
-        if (attempt === 2) throw new Error('RECOVERY_STILL_PENDING');
-      }
+          allowAttempted: p.attempts > 0 }),
+        onResult: recovered => log({ recovery: recovered.status, nonce: recovered.nonce, hash: recovered.hash }),
+      });
     } else {
       if (!transientPublisherFailure(reason) || pending.length || ++consecutiveFailures > 5) throw new Error(reason);
       await new Promise(r => setTimeout(r, 2000));

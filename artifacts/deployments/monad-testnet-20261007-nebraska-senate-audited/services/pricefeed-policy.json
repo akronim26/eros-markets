@@ -14,7 +14,8 @@
     "gasSafetyMarginBps": "1000"
   },
   "budget": {
-    "maxTransactions": 500,
-    "totalMaxCostWei": "16000000000000000000"
+    "maxTransactions": 1000,
+    "totalMaxCostWei": "24000000000000000000",
+    "budgetRevision": 1
   }
 }

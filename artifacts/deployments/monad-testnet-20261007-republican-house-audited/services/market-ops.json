@@ -13,7 +13,7 @@
     "maxPages": 32,
     "gasCeiling": 30000000
   },
-  "sampleEveryBlocks": "45",
+  "sampleEveryBlocks": "30",
   "gas": {
     "samplePerp": 293195
   }

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-07",
+  "status": "frontend-and-existing-indexer-resumed-detached-browser-checks-passed",
+  "scope": "Restore local web frontend and read-only Envio indexing from existing database without public signing, config changes or resets",
+  "frontend": {
+    "url": "http://localhost:3100",
+    "nodeVersion": "22.23.3",
+    "buildId": "49HaY62Jz_R9_Kmd4qKoY",
+    "processMode": "detached-new-session",
+    "detachedAndReparented": true,
+    "httpRoutesPassed": [
+      "/markets",
+      "/m/0x171503494eF5f1A9e6705781647451A2582995bD",
+      "/m/0xf1172fF5b008ACB49FD9109cf616434A482BE0f0"
+    ],
+    "sourceOrEnvironmentChanges": false
+  },
+  "terminationDiagnosis": {
+    "priorFrontendPidAbsent": true,
+    "priorToolSessionUnavailable": true,
+    "priorFrontendErrorLogs": 0,
+    "exactExitCauseKnown": false,
+    "note": "The previous tool-owned process/session disappeared without application error or recorded shutdown reason. New supervisors use independent process sessions with ignored stdin and durable logs."
+  },
+  "indexer": {
+    "database": "eros_redeployment_20261007_ready",
+    "resumedExistingDatabase": true,
+    "configurationUnchanged": true,
+    "privateEnvironmentUnchanged": true,
+    "containersReused": true,
+    "resetPerformed": false,
+    "health": {
+      "checkedAt": "2026-10-07T17:28:32.792569+00:00",
+      "passed": true,
+      "chainId": 10143,
+      "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+      "headBlock": 69029757,
+      "indexer": {
+        "progressBlock": 69029668,
+        "isReady": true
+      },
+      "blockLag": 89,
+      "resumedFromBlock": 69026708,
+      "advancedBlocks": 2960,
+      "marketIdentitiesMatch": true,
+      "databasePreserved": true,
+      "configUnchanged": true,
+      "privateEnvironmentUnchanged": true,
+      "supervisorsDetachedAndReparented": true
+    }
+  },
+  "browser": {
+    "checkedAt": "2026-10-07T17:28:06.566Z",
+    "scope": "Detached frontend resume: both current terminals render; price availability and leverage compared with exact canonical displayed blocks; no owner signing",
+    "markets": [
+      {
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53",
+        "title": "Will an independent win the Nebraska Senate race in 2026?",
+        "url": "http://localhost:3100/m/0x171503494eF5f1A9e6705781647451A2582995bD",
+        "checkedAt": "2026-10-07T17:28:28.934Z",
+        "block": "69029733",
+        "mark": "warming",
+        "index": "unavailable",
+        "source": "0.285delayed",
+        "allChartPrice": "0.285",
+        "headerStatus": "Will an independent win the Nebraska Senate race in 2026?Index window unavailable",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "allRangeSourcePrice": "0.285",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.285\n+0.00 pp\n\nLast observation 10:54:38 PM\n\nDELAYED\n0.283\n0.284\n0.285\n0.286\n0.287\n05:04 PM\n06:32 PM\n08:01 PM\n09:29 PM\n10:58 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 69029668 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0x05e8110d6e4803a7fb050ac06b9ca6978ee4575300610f4d2bcfb22d4b252cf1",
+        "onchain": {
+          "indexAvailable": false,
+          "indexWad": "0",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      },
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+        "title": "Will the Republican Party control the House after the 2026 Midterm elections?",
+        "url": "http://localhost:3100/m/0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "checkedAt": "2026-10-07T17:28:30.952Z",
+        "block": "69029733",
+        "mark": "warming",
+        "index": "unavailable",
+        "source": "0.075delayed",
+        "allChartPrice": "0.075",
+        "headerStatus": "Will the Republican Party control the House after the 2026 Midterm elections?Index window unavailable",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "allRangeSourcePrice": "0.075",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.075\n+0.00 pp\n\nLast observation 10:37:39 PM\n\nDELAYED\n0.073\n0.074\n0.075\n0.076\n0.077\n05:10 PM\n06:37 PM\n08:04 PM\n09:31 PM\n10:58 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 69029668 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0x05e8110d6e4803a7fb050ac06b9ca6978ee4575300610f4d2bcfb22d4b252cf1",
+        "onchain": {
+          "indexAvailable": false,
+          "indexWad": "0",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      }
+    ],
+    "errors": [],
+    "passed": true,
+    "finishedAt": "2026-10-07T17:28:31.069Z"
+  },
+  "evidence": {
+    "tmp/service-resume-20261007-1718/frontend-running.json": "2cd7df6f3f0943415bd0cfdf666ab1e83b652e7b5e1193eda40432d2c672ee56",
+    "tmp/service-resume-20261007-1718/indexer-running.json": "b055d4e842578da28545123a784b280efb82378b863f9ec89376b84e936ca42f",
+    "tmp/service-resume-20261007-1718/health.json": "9e69a804ca79b2999b6da7f28ada2804ee542c818a2dd7d953e128ecdedabfad",
+    "tmp/service-resume-20261007-1718/browser-check.mjs": "ec9e24d22e240206e0c09202f5a99f1e2c26463df7490a4b0967cdb270f03be9",
+    "tmp/service-resume-20261007-1718/resume-indexer.mjs": "41ffeb047a745610e29bc7782d27af3c6bb0c3319e2e1a553820a2764f41be67",
+    "tmp/service-resume-20261007-1718/browser/report.json": "0a81b03a74298267c702587f0f4bcf34eaaa3570b2865ee800e9cf67d8bc75d6",
+    "tmp/service-resume-20261007-1718/browser/market-1.png": "ec27d86840e5fbaf859c66e8c718f5206e87d628b03477ace00dffe1e6c4d79c",
+    "tmp/service-resume-20261007-1718/browser/market-2.png": "e3bde9d4bec588b3766453582c924302a1c738e766dacadd246d4a463c15a036",
+    "tmp/service-resume-20261007-1718/browser/markets.png": "f69bf5ade921634c7cc061ff0ce6b10b747179610b75654b80316af84e346367"
+  },
+  "limitations": [
+    "Public market worker restarts and available INDEX/MARK/leverage are separate. At this snapshot both execution INDEX values were unavailable, source observations were delayed, MARK warming and actual directional caps1x; exact pinned contract comparisons passed.",
+    "No wallet login or signing performed. Optional one-click/protection server credentials remain unconfigured as documented in the prior restart checkpoint.",
+    "Detachment avoids tool-session process-group cleanup; it does not establish a production service supervisor or guarantee uptime."
+  ]
+}

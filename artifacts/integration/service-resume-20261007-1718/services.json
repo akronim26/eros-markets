@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-10-07T17:41:20.496779+00:00",
+  "baseCommit": "f7e3d35ed87fcfa7e79ed39780393848b36b0538",
+  "status": "Both detached campaigns running with canonical nonce-recovery receipts and new finalized price publications.",
+  "chainId": 10143,
+  "priorStops": [
+    {
+      "market": "nebraska-senate",
+      "at": "2026-10-07T17:00:35.773Z",
+      "reason": "MONAD_SIMULATION_FAILED",
+      "journalState": "Signed observation without native transaction reservation; normal pipeline restart can expire it while preserving signed evidence."
+    },
+    {
+      "market": "republican-house",
+      "at": "2026-10-07T17:08:36.560Z",
+      "reason": "RELAY_RECOVERY_REQUIRED followed by NONCE_RECOVERY_RPC_FAILED",
+      "journalState": "Sequence506 native nonce505 quarantined, attempts0, retained signed bytes; supported nonce recovery required."
+    },
+    {
+      "market": "nebraska-senate",
+      "at": "2026-10-07T17:25:04.621Z",
+      "reason": "RELAY_HEADROOM_EXPIRED followed by MONAD_RPC_CHAIN_FAILED during recovery preflight",
+      "journalState": "Sequence485 native nonce482 quarantined, attempts0, retained signed bytes; supported nonce recovery required."
+    }
+  ],
+  "fixes": [
+    "Bounded publisher retry for simulation failures before native nonce reservation; existing pipeline expiry and all guards remain authoritative.",
+    "Bounded retries of the same guarded nonce recovery for exact transport/preflight read failures; fatal identity, canonical receipt, original-included and budget checks still fail closed.",
+    "At most eight workers validate all canonical historical receipts during recovery, draining active reads before returning the first failure. No partial audit is cached."
+  ],
+  "verification": {
+    "at": "2026-10-07T17:27:30.652085+00:00",
+    "typescriptBuild": "passed",
+    "isolatedTargetedTests": 10,
+    "wrapperPolicyTests": 6,
+    "independentReview": "astra_protocol_audit passed",
+    "files": {
+      "scripts/e2e/pricefeed-watch.mjs": "693c85f074e1ac6bf8fcbd47165fe97fc952285425ce4d3cc15da507068a83b5",
+      "scripts/e2e/publisher-restart-policy.mjs": "3d13cff07c1abe7834d68c39fda643056da793cde0caa8c788a8790a42af07de",
+      "scripts/e2e/publisher-restart-policy.test.mjs": "8c6b448cd3d5bf82184d0a246feda16a687bb8329e8f894a488acf4557e4bf0c",
+      "packages/pricefeed/src/monad-nonce-recovery.ts": "00ff48051b070561716d0238c369d82f28d29d862d3b73d29eb19e6f99fb09b0",
+      "packages/pricefeed/dist/src/monad-nonce-recovery.js": "4d73314a8be5b0c9400d93f8923ee2c43edb90b7de41225ff9363209f964166c",
+      "packages/pricefeed/test/monad-publication.test.ts": "906966f368ce8bed99d35581534a6d4ded8b8a755ffd7d7009dd4aea418591d5"
+    },
+    "wrapperLastUpdatedAt": "2026-10-07T17:29:37.547269+00:00",
+    "wrapperPreflightReadFailuresCovered": true
+  },
+  "commands": [
+    "node --test scripts/e2e/publisher-restart-policy.test.mjs",
+    "node --check scripts/e2e/pricefeed-watch.mjs",
+    "tsc -p tsconfig.json --outDir <isolated output>",
+    "TMPDIR=<canonical temporary directory> node --test --test-isolation=none --test-name-pattern=\"selected gas limit|nonce recovery bounds|never-broadcast nonce|unknown cancellation|recovery refuses|attempted expired|expired never-broadcast|stalled recovery|timed-out cancellation|recovery provider\" <isolated output>/test/monad-publication.test.js",
+    "tsc -p tsconfig.json"
+  ],
+  "limitations": [
+    "This verifies current service resumption, not uninterrupted future operation. The original campaigns each run for 1800 seconds and can stop earlier on exhausted reservations, gas floors or fatal safety errors.",
+    "Campaign deadlines are approximately18:06UTC Nebraska and18:07UTC House; no permanent hosting or automatic extension is configured.",
+    "Fresh source observations have resumed. Execution INDEX needs its complete rolling window; MARK and 5x availability are not proven by these restart receipts.",
+    "Polymarket source timestamps, freshness limits, nonce guards and original signing evidence were preserved."
+  ],
+  "markets": [
+    {
+      "market": "nebraska-senate",
+      "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+      "startedAt": "2026-10-07T17:36:26.990Z",
+      "durationSeconds": 1800,
+      "statusAtObservation": "running",
+      "childrenAliveAtObservation": {
+        "publisher": true,
+        "operations": true,
+        "makers": true
+      },
+      "preparedConfigHashesMatched": true,
+      "sampleEveryBlocks": "30",
+      "configuredDeadlinesUtc": {
+        "operations": "2026-10-07T18:06:26.997000+00:00",
+        "publisher": "2026-10-07T18:06:27.002000+00:00",
+        "makers": "2026-10-07T18:06:27.007000+00:00"
+      },
+      "recovery": {
+        "sequence": "485",
+        "nonce": "482",
+        "state": "FINALIZED",
+        "originalPriceHash": "0x931e84ec990d47c522174029948f30764af443c47eae296a9d36b73925a2c946",
+        "originalAttempts": 0,
+        "cancellationHash": "0x8de4e961ebaba604f9971fb7a9bc73c92d5723dc6e42c0207af1c4f710107574",
+        "cancellationAttempts": 1,
+        "receipt": {
+          "status": "success",
+          "transactionHash": "0x8de4e961ebaba604f9971fb7a9bc73c92d5723dc6e42c0207af1c4f710107574",
+          "blockNumber": "69031938",
+          "blockHash": "0x30f20632d5ad6fda7d565bf2b64a66a2036dd377ba4039d941e59c387f9dcf74",
+          "logs": []
+        },
+        "originalRequestAndRawBytesPreserved": true,
+        "originalDeliveryState": "CANCELLED",
+        "reservationWei": "3150000000000000"
+      },
+      "firstFreshFinalizedPublication": {
+        "sequence": "486",
+        "nonce": "483",
+        "state": "FINALIZED",
+        "txHash": "0x84f8189524eb65f47ce10fbf6fdde9fd832bfb47d592c0ee645f68d6aa9498ac",
+        "attempts": 1,
+        "observedAt": "1791394789",
+        "sourceMs": "1791394789208",
+        "accepted": {
+          "blockNumber": "69032017",
+          "blockHash": "0xca47ec809b43a591ff670eeccad7d26bed05504c99a3e6f9e5e9475b9f595856",
+          "acceptedAt": "1791394794",
+          "digest": "0xb0a4e7aa8047f3f6037cf33a019915bbcc8b4904468b20361bd1b284851700e3",
+          "priceWad": "285000000000000000",
+          "depthValid": true
+        }
+      },
+      "latestFreshFinalizedPublication": {
+        "sequence": "492",
+        "nonce": "489",
+        "state": "FINALIZED",
+        "txHash": "0xc630cce157747c1b6eedfb03bded9a0fb95cc5def657fb71c4d3dc6a6c165a80",
+        "attempts": 1,
+        "observedAt": "1791394865",
+        "sourceMs": "1791394865079",
+        "accepted": {
+          "blockNumber": "69032284",
+          "blockHash": "0x0239fdba53b922f718ebdb04eaf38204c36748a368b2ac8e36e30e1017491c21",
+          "acceptedAt": "1791394875",
+          "digest": "0xca47bbeb6419d9a8c3c8eba974d26f85dc4925179ac519ef8e428f8bbe025158",
+          "priceWad": "285000000000000000",
+          "depthValid": true
+        }
+      },
+      "freshFinalizedPublicationCountAtObservation": 7,
+      "unreservedObservation480": {
+        "state": "EXPIRED",
+        "reason": "UNSENT_HEADROOM_EXPIRED",
+        "nativeNonceNotConsumed": true
+      }
+    },
+    {
+      "market": "republican-house",
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "startedAt": "2026-10-07T17:37:07.683Z",
+      "durationSeconds": 1800,
+      "statusAtObservation": "running",
+      "childrenAliveAtObservation": {
+        "publisher": true,
+        "operations": true,
+        "makers": true
+      },
+      "preparedConfigHashesMatched": true,
+      "sampleEveryBlocks": "30",
+      "configuredDeadlinesUtc": {
+        "operations": "2026-10-07T18:07:07.686000+00:00",
+        "publisher": "2026-10-07T18:07:07.697000+00:00",
+        "makers": "2026-10-07T18:07:07.702000+00:00"
+      },
+      "recovery": {
+        "sequence": "506",
+        "nonce": "505",
+        "state": "FINALIZED",
+        "originalPriceHash": "0xa5797df866e097f8119b4f8a3df7dbcf7749f1e9b7f1a4f0f4a58d4827ce055a",
+        "originalAttempts": 0,
+        "cancellationHash": "0x093826d8d4ea82f0a3e5152838e7f9ed43ab773b3ef2d155a34f97ce67d644d0",
+        "cancellationAttempts": 1,
+        "receipt": {
+          "status": "success",
+          "transactionHash": "0x093826d8d4ea82f0a3e5152838e7f9ed43ab773b3ef2d155a34f97ce67d644d0",
+          "blockNumber": "69031903",
+          "blockHash": "0xb8cfb04bb644103e671cb398757746a29c944b76e9f69cae3208901e33d1f67e",
+          "logs": []
+        },
+        "originalRequestAndRawBytesPreserved": true,
+        "originalDeliveryState": "CANCELLED",
+        "reservationWei": "3150000000000000"
+      },
+      "firstFreshFinalizedPublication": {
+        "sequence": "507",
+        "nonce": "506",
+        "state": "FINALIZED",
+        "txHash": "0xbafe2e2334e70656c1d008e58c82246ec3ef6f70df8e3a5ccaf5f2ef0475a173",
+        "attempts": 1,
+        "observedAt": "1791394769",
+        "sourceMs": "1791394769857",
+        "accepted": {
+          "blockNumber": "69031976",
+          "blockHash": "0xfdba2f40e2c8ce1fca833d8d3bd8c6eb7108f39fd92190e31ff013b1b60552d9",
+          "acceptedAt": "1791394782",
+          "digest": "0xb578a2393ae87c125bc1dcf7dbe2ab0a70f4f677daa25d918c30d7df78572b14",
+          "priceWad": "75000000000000000",
+          "depthValid": true
+        }
+      },
+      "latestFreshFinalizedPublication": {
+        "sequence": "514",
+        "nonce": "513",
+        "state": "FINALIZED",
+        "txHash": "0x75d34119bf9db8db93c7a961c01583bf289ae38284414770bac026b1dfc7d800",
+        "attempts": 1,
+        "observedAt": "1791394867",
+        "sourceMs": "1791394867831",
+        "accepted": {
+          "blockNumber": "69032284",
+          "blockHash": "0x0239fdba53b922f718ebdb04eaf38204c36748a368b2ac8e36e30e1017491c21",
+          "acceptedAt": "1791394875",
+          "digest": "0x595160821f007622193cc095a1893ec1c65f7b7897b9ce53fc0c027f69e25637",
+          "priceWad": "75000000000000000",
+          "depthValid": true
+        }
+      },
+      "freshFinalizedPublicationCountAtObservation": 8
+    }
+  ]
+}

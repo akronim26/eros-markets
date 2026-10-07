@@ -168,6 +168,44 @@ test('budget renewal is read-only to plan, atomic to apply, idempotent, and resu
     assert.equal(parseTransaction(s.sent[1]!).gas,110002n);assert.deepEqual(nextRelay.get(s.domain,1n),delivery);
   }finally{nextPipeline?.close();nextRelay?.close();s.close();}
 });
+test('budget receipt proof bounds RPC concurrency, drains failures and retains checkpoint expiry',async()=>{
+  const s=await setup(24);
+  try{
+    await s.pipeline.start();
+    for(let i=0;i<24;i++)assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
+    s.pipeline.close();
+    const base=renewalPolicies(s.sender);
+    const old={...base.old,budget:{maxTransactions:24,totalMaxCostWei:(24n*policy.maxCostWei).toString()}};
+    const next={...base.next,budget:{maxTransactions:25,totalMaxCostWei:(25n*policy.maxCostWei).toString(),budgetRevision:1}};
+    const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir};
+    const snapshot=()=>{const db=openBudgetJournals(options,false);try{return budgetJournalSnapshot(db);}finally{db.close();}};
+    const before=snapshot(),receipt=s.rpc.receipt,block=s.rpc.block;
+    let active=0,peak=0,receiptCalls=0,fail=false,elapsed=false,clock=1000100n;
+    const failure=new Error('ORIGINAL_RECEIPT_FAILURE');
+    const measured=async<T>(read:()=>Promise<T>)=>{
+      active++;peak=Math.max(peak,active);
+      try{await new Promise(resolve=>setImmediate(resolve));return await read();}finally{active--;}
+    };
+    s.rpc.receipt=async hash=>{
+      receiptCalls++;
+      return measured(async()=>{if(fail&&hash===keccak256(s.sent[0]!))throw failure;return receipt(hash);});
+    };
+    s.rpc.block=selector=>measured(async()=>{
+      const result=await block(selector);
+      if(elapsed&&receiptCalls===24&&'blockNumber' in selector&&selector.blockNumber===33n)clock=1030200n;
+      return result;
+    });
+    const plan=await planMonadBudget(options,old,next,randomUUID(),'BOUNDED_RECEIPTS',s.rpc,()=>clock);
+    assert.equal(plan.deliveryCount,24);assert.equal(receiptCalls,24);assert.equal(peak,8);assert.equal(active,0);
+    assert.equal(snapshot(),before);assert.equal(s.sent.length,24);
+    fail=true;receiptCalls=0;peak=0;
+    await assert.rejects(planMonadBudget(options,old,next,randomUUID(),'FAILED_RECEIPT',s.rpc,()=>clock),error=>error===failure);
+    assert.ok(receiptCalls<=8);assert.equal(active,0);assert.ok(peak<=8);assert.equal(snapshot(),before);
+    fail=false;elapsed=true;receiptCalls=0;
+    await assert.rejects(planMonadBudget(options,old,next,randomUUID(),'EXPIRED_CHECKPOINT',s.rpc,()=>clock),/BUDGET_CHECKPOINT_EXPIRED/);
+    assert.equal(active,0);assert.equal(snapshot(),before);assert.equal(s.sent.length,24);
+  }finally{s.close();}
+});
 test('budget plans reject live writers and changes outside finite budgets and enabling gas estimates',async()=>{
   const s=await setup();try{
     await s.pipeline.start();await s.pipeline.process(await s.worker.poll());
@@ -355,6 +393,16 @@ test('a selected gas limit that fails simulation cannot consume a nonce',async()
     s.rpc.simulate=async(_sender,_to,_data,gas)=>{if(gas<800000n)throw new Error('out of gas');return 100000n;};
     await s.pipeline.start();await assert.rejects(s.pipeline.process(await s.worker.poll()),/MONAD_SIMULATION_FAILED/);
     assert.equal(s.relay.get(s.domain,1n),null);assert.equal(s.sent.length,0);
+    const before=s.packets.get(s.domain,1n)!;assert.equal(before.state,'SIGNED');
+    s.restart();s.setNow(1040000n);s.advanceBlock();s.rpc.simulate=async()=>100000n;
+    await s.pipeline.start();
+    assert.equal((await s.pipeline.process(await s.worker.poll())).state,'EXPIRED');
+    const expired=s.packets.get(s.domain,1n)!;
+    assert.equal(expired.state,'EXPIRED');assert.equal(expired.reason,'UNSENT_HEADROOM_EXPIRED');
+    assert.equal(expired.signature,before.signature);assert.equal(expired.digest,before.digest);
+    assert.deepEqual(expired.packet,before.packet);assert.equal(s.sent.length,0);
+    assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
+    assert.equal(s.sent.length,1);assert.equal(parseTransaction(s.sent[0]!).nonce,0);
   }finally{s.close();}
 });
 test('gas quote records an expired signed packet without sending or consuming a transaction nonce',async()=>{
@@ -404,19 +452,25 @@ test('unfunded testnet simulation reserves no nonce and broadcasts nothing',asyn
   }finally{s.close();}
 });
 
-async function recoveryFixture(timeoutMs=policy.timeoutMs){
+async function recoveryFixture(timeoutMs=policy.timeoutMs,historyCount=0){
   const runPolicy={...policy,timeoutMs};
-  const s=await setup(4,runPolicy),prepare=s.transport.prepare;
+  const maxTransactions=4+historyCount,expiredAt=1032000n+BigInt(historyCount)*1000n;
+  const s=await setup(maxTransactions,runPolicy),prepare=s.transport.prepare;
   await s.pipeline.start();
-  s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(1032000n);s.advanceBlock();return raw;};
+  for(let i=0;i<historyCount;i++){
+    s.setNow(1000100n+BigInt(i)*1000n);
+    assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
+  }
+  if(historyCount)s.setNow(1000100n+BigInt(historyCount)*1000n);
+  s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(expiredAt);s.advanceBlock();return raw;};
   await assert.rejects(s.pipeline.process(await s.worker.poll()),/RELAY_HEADROOM_EXPIRED/);s.pipeline.close();
-  const old=s.relay.get(s.domain,1n)!;
-  assert.equal(old.state,'QUARANTINED');assert.equal(old.attempts,0);assert.equal(s.sent.length,0);
+  const old=s.relay.get(s.domain,BigInt(historyCount)+1n)!;
+  assert.equal(old.state,'QUARANTINED');assert.equal(old.attempts,0);assert.equal(s.sent.length,historyCount);
   const code=s.rpc.code;s.rpc.code=async(address,block)=>address.toLowerCase()===s.sender.toLowerCase()?'0x':code(address,block);
   s.rpc.simulate=async()=>21000n;
   const send=s.rpc.send,receipt=s.rpc.receipt,nonce=s.rpc.nonce;
   let cancelled=false,fail=false;const cancelSends:Hex[]=[],cancelReceipts=new Map<Hex,DeliveryReceipt>();
-  s.rpc.nonce=async()=>cancelled?1n:nonce(s.sender as Hex);
+  s.rpc.nonce=async()=>cancelled?BigInt(historyCount)+1n:nonce(s.sender as Hex);
   s.rpc.receipt=async hash=>cancelReceipts.get(hash)??await receipt(hash);
   s.rpc.send=async raw=>{
     if((parseTransaction(raw).data??'0x')!=='0x'){cancelled=false;return send(raw);}
@@ -425,11 +479,39 @@ async function recoveryFixture(timeoutMs=policy.timeoutMs){
     cancelReceipts.set(hash,{status:'success',transactionHash:hash,blockNumber:block.number,blockHash:block.hash,logs:[]});return hash;
   };
   const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir,keysDirectory:s.dir,
-    policy:{schemaVersion:'1',sender:s.sender,relay:JSON.parse(json(runPolicy)),budget:{maxTransactions:4,totalMaxCostWei:'480000000000000000'}},
-    nonce:0n,originalHash:old.txHash!,maxCostWei:3150000000000000n,waitMs:600};
+    policy:{schemaVersion:'1',sender:s.sender,relay:JSON.parse(json(runPolicy)),budget:{maxTransactions,totalMaxCostWei:(BigInt(maxTransactions)*policy.maxCostWei).toString()}},
+    nonce:BigInt(historyCount),originalHash:old.txHash!,maxCostWei:3150000000000000n,waitMs:600};
   const account=loadTestnetKey(join(s.dir,'tx-key'),join(s.dir,'tx-password'),s.sender);
-  return {s,old,options,account,cancelSends,setFail:(v:boolean)=>{fail=v;},run:()=>recoverMonadNonce(options,s.rpc,()=>1032000n,account)};
+  return {s,old,options,account,cancelSends,setFail:(v:boolean)=>{fail=v;},run:()=>recoverMonadNonce(options,s.rpc,()=>expiredAt,account)};
 }
+test('nonce recovery bounds a large history audit and drains failures without changing journals',async()=>{
+  const f=await recoveryFixture(policy.timeoutMs,24);try{
+    const history=new Set(f.s.sent.map(raw=>keccak256(raw))),first=keccak256(f.s.sent[0]!);
+    const receipt=f.s.rpc.receipt;let active=0,peak=0,calls=0,corrupt=true;
+    f.s.rpc.receipt=async hash=>{
+      if(!history.has(hash))return receipt(hash);
+      active++;calls++;peak=Math.max(peak,active);
+      try{
+        await new Promise(resolve=>setTimeout(resolve,corrupt&&hash===first?1:10));
+        const value=await receipt(hash);
+        return corrupt&&hash===first?{...value!,blockHash:('0x'+'ef'.repeat(32)) as Hex}:value;
+      }finally{active--;}
+    };
+    const snapshot=()=>{
+      const db=openBudgetJournals(f.options,false);
+      try{return budgetJournalSnapshot(db);}finally{db.close();}
+    };
+    const before=snapshot();
+    await assert.rejects(f.run(),/RECEIPT_IDENTITY_MISMATCH/);
+    assert.equal(peak,8);assert.equal(active,0);assert.equal(calls,8);
+    assert.equal(snapshot(),before);assert.equal(f.cancelSends.length,0);
+    corrupt=false;calls=0;peak=0;
+    assert.equal((await f.run()).status,'FINALIZED');
+    assert.equal(calls,24);assert.equal(peak,8);assert.equal(active,0);
+    assert.equal(f.cancelSends.length,1);assert.equal(parseTransaction(f.cancelSends[0]!).nonce,24);
+    assert.equal(f.s.relay.get(f.s.domain,25n)!.raw,f.old.raw);
+  }finally{f.s.close();}
+});
 test('never-broadcast nonce cancellation preserves original signed history and resumes with the next nonce',async()=>{
   const f=await recoveryFixture();try{
     const packet=f.s.packets.get(f.s.domain,1n),result=await f.run();assert.equal(result.status,'FINALIZED');

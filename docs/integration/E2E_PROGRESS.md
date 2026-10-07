@@ -1,23 +1,124 @@
 # E2E progress — current checkpoint: 7 October 2026
 
-## Funded audit repair rollout (7 October, 11:40 UTC)
+## Recovery and detached restart — 7 October, 17:40 UTC
+
+The frontend and matching Envio indexer now run as detached local processes.
+The indexer resumed its existing database and caught up after its old process
+stopped; an HTTP-ready GraphQL endpoint alone did not prove active ingestion.
+Both market routes passed anonymous browser checks with no application exceptions.
+
+Both operator groups restarted with their existing custody, policies and journals:
+Nebraska at 17:36:26 UTC, House at 17:37:07 UTC. Supported recovery reconciled the
+expired, never-broadcast publisher reservations (Nebraska nonce 482 / sequence 485;
+House nonce 505 / sequence 506). No journals or original signed bytes were cleared.
+Fresh price publications resumed around 17:39–17:40 UTC.
+
+The restart fixes add bounded retries for transient simulation/read failures and
+validate recovery history with at most eight concurrent workers. All canonical,
+signature, nonce and budget checks remain in force. Ten targeted recovery tests,
+six watcher-policy tests, a TypeScript build and independent review passed.
+
+At canonical block **69032109** (17:40 UTC), Nebraska had accepted sequence 488
+and 33/300 seconds of INDEX coverage; House had sequence 510 and 53/300 seconds.
+Source ages were 19 and 18 seconds respectively. Both INDEX and MARK remained
+unavailable and both directional caps remained **1×**. Genuine Polymarket YES
+order-book observations supply the depth-weighted source price; execution INDEX
+requires a fully covered five-minute TWAP. New source timestamp or delivery gaps
+can interrupt this window, so approximately 17:45 UTC / 23:15 IST is only an
+initial earliest estimate, not a guaranteed readiness time. MARK and leveraged
+admission have additional book, basis and epoch requirements.
+
+These operator runs retain their 30-minute bounds and gas/failure limits:
+Nebraska ends around **18:06 UTC / 23:36 IST** and House around
+**18:07 UTC / 23:37 IST** unless a guard stops them earlier. The frontend and
+indexer are detached from the command session and do not share that timer.
+No contracts were redeployed, and no commit or push was performed.
+
+Evidence: `artifacts/integration/service-resume-20261007-1718/` and the canonical
+read-only checkpoints under the matching ignored `tmp/` directory. Earlier
+checkpoints below describe their original times, not current service health.
+
+## Current local restart — 7 October, 16:55 UTC
+
+The frontend was restarted on `http://localhost:3100` using the same verified
+production build. The matching indexer remained healthy and was retained. Its
+registry, both market identities, chain 10143 and canonical listing receipts
+were checked again through the frontend RPC path. Privy login controls, portfolio,
+resolution reads and public pages passed anonymous browser checks.
+
+Both publisher/keeper/maker groups resumed their original journals and exact
+configuration. House's previous UNKNOWN sequence 399 reconciled the existing
+canonical receipt, with the same hash, nonce and attempt count. Nothing was
+cleared or resubmitted. The latest pricefeed source was rebuilt, including the
+bounded budget-verification fix; seven focused regression tests passed.
+
+Two exact keeper gas transfers finalized: **8 MON to Nebraska and 4 MON to House**.
+The deployment wallet retained **3.140462015999727 MON**. Independent review checked
+both signed intents and canonical receipts. Current sessions are bounded to
+30 minutes and still stop at their existing gas/failure limits:
+
+| Market | Worker start (UTC) | Scheduled end (UTC / IST) |
+| --- | --- | --- |
+| House | 16:41:34 | 17:11:34 / 22:41:34 |
+| Nebraska | 16:49:13 | 17:19:13 / 22:49:13 |
+
+Latest anonymous terminal checks at 16:55–16:56 UTC passed with no application
+exceptions and exact comparisons to canonical contract reads. House had an
+available 0.075 INDEX; Nebraska's 0.285 source chart was present but its INDEX
+window was incomplete. Both source charts correctly labeled delayed observations;
+both MARK values remained unavailable and both directional caps were 1×.
+
+At the 16:58 UTC handoff check, both engines again reported an available INDEX.
+This is a point-in-time check; genuine upstream timestamp gaps can interrupt
+availability. MARK remained unavailable and directional caps remained 1×.
+
+Restarting does not establish continuous MARK or 5× admission. Current price
+windows and on-chain caps remain authoritative. The optional one-click trading,
+automated protection and claim-delivery services remain unconfigured: the public
+Privy App ID supports manual wallet flows, but does not replace their server-side
+credentials and separate signing policies. No resolution workflow listener was
+activated and no new contract was deployed.
+
+Evidence: `artifacts/integration/service-restart-20261007/`. No commit or push
+was performed. The earlier deployment and audit evidence below is historical.
+
+## Funded audit repair rollout (7 October, 12:55 UTC)
 
 The user funded and authorized a fresh deployment after the deep audit. The
 repaired base and both markets are now deployed and verified, each with 100,000
 reserve test tokens. Four independent makers each allocated 2,000 test tokens;
-publisher, keeper and maker wallets received 39 test MON in total. The frontend
+publisher, keeper and maker wallets received 99 test MON in total across two
+separately rehearsed funding passes. The frontend
 selects the fresh deployment, its production build passed, and the matching local
 indexer is running. Existing owner balances remain accessible through archived
 deployment identities.
 
-Current public INDEX/MARK windows, browser checks and higher-leverage admission
-are being verified. A successful deployment is not evidence of a public 5× fill.
-The Nebraska publisher has finalized genuine Polymarket observations; the House
-publisher's transient startup retry was repaired and passed three focused tests
-(74 assertions), preserving complete signing-journal recovery requirements.
+Eleven anonymous public browser checks passed with zero application exceptions.
+Both publishers have finalized genuine Polymarket observations and funded books.
+Both are running after guarded restarts. Nebraska's expired, never-broadcast
+signed observation was reconciled while preserving its signed bytes and history. MARK and higher leverage remain unproven: Nebraska's complete windows
+lost their fresh carry at the 12:00 epoch boundary because its sealing transaction
+landed after expiry. Both markets correctly remained at 1×. Sampler boundary timing
+and maker refresh repairs passed focused tests and independent review. House
+restarted at 12:21 UTC, but genuine 32/33-second source/sample gaps were recorded;
+A later genuine 34.595-second Polymarket timestamp gap caused five seconds of
+missing INDEX coverage. At 12:52 both INDEX values were available, but MARK and
+higher leverage were still unavailable; no successful 13:00 transition is claimed.
+The House publisher's transient startup retry was repaired and passed three Node
+tests (74 assertions), preserving complete signing-journal recovery requirements.
 See [deployment progress](DEPLOYMENT_PROGRESS.md) and the separate evidence in
 `artifacts/integration/redeployment-20261007/`. Earlier audit and E2E reports below
-retain their historical sources and limits. No new GitHub run is claimed.
+retain their historical sources and limits. All four GitHub workflows passed on
+the user-pushed `f7e3d35`; subsequent local runtime changes are not covered by that
+run. Four canonical transfers recovered 18.13916877 MON from retired operator
+wallets for the new keepers. Two independent traders completed their fresh owner
+funding sequences. The House owner then completed opening and closing fills,
+release and withdrawal with four canonical public receipts, ending flat with 11
+test tokens in its wallet and 8.8 allocated. This is a fully backed owner flow,
+not a 5× or Privy-signing proof. Nebraska's separate trader flow remains unexecuted.
+See [owner flow evidence](../../artifacts/integration/redeployment-20261007/owner-flow.json).
+Local worker deadlines are 13:21:32 UTC for House and 13:46:08 UTC for Nebraska;
+frontend and indexer remain running. Prices require the workers, not just the web server.
 
 ## Historical stop at the user's request (earlier 7 October 2026)
 

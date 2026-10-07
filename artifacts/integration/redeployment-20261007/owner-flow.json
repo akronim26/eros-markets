@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "at": "2026-10-07T12:54:54.379601+00:00",
+  "passed": true,
+  "chainId": 10143,
+  "market": "republican-house",
+  "scope": "Separate test owner, fully backed public testnet trading and withdrawal; not 5x or a Privy signing claim.",
+  "owner": "0x50767BAc468c1B0fA7C8fF519ACb8BfD4115526a",
+  "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+  "phases": [
+    {
+      "phase": "buy",
+      "block": "68972815",
+      "blockHash": "0x7d04865d70a948c8a0b6bdf17c3f090833edb8367d35f38092661b3a19402928",
+      "hashes": [
+        "0x9a746998fbc790a943490936b262af51aba6bb57640e889a28bb928669de0a7b"
+      ],
+      "fills": [
+        {
+          "makerOrder": 4,
+          "maker": 2,
+          "taker": 3,
+          "tick": 85,
+          "size": "10000",
+          "makerFeeQ": "0",
+          "takerFeeQ": "0"
+        }
+      ],
+      "free": "0",
+      "wallet": "10000000"
+    },
+    {
+      "phase": "close",
+      "block": "68973161",
+      "blockHash": "0x1c5638fdaf7bc3930b869dcd36992c52fea65bf411b6ece72d02462c868a5029",
+      "hashes": [
+        "0xaba8b3a1c38c19bde1686e7ea3a9afb87226882e2c9acad6c3e4cb8d958eec75"
+      ],
+      "fills": [
+        {
+          "makerOrder": 3,
+          "maker": 1,
+          "taker": 3,
+          "tick": 65,
+          "size": "10000",
+          "makerFeeQ": "0",
+          "takerFeeQ": "0"
+        }
+      ],
+      "free": "0",
+      "wallet": "10000000"
+    },
+    {
+      "phase": "release",
+      "block": "68974597",
+      "blockHash": "0x5cf3740766dd48cd44a740f324ae0ea98cdc287f7a58333b25e88778ebc465f9",
+      "hashes": [
+        "0xcf5c45389193896c33dc89dae5f04d39a5bc684103d36d1995ebac84eaf2558d"
+      ],
+      "fills": [],
+      "free": "1000000",
+      "wallet": "10000000"
+    },
+    {
+      "phase": "withdraw",
+      "block": "68975157",
+      "blockHash": "0x26972e2a70548a19871a93e45812a82094f949ecaca87a7fdb3f5073f5e58150",
+      "hashes": [
+        "0x66ec38c7a62808124523b573c823e4c3df72ea3374f3918322aa4f40202bdb53"
+      ],
+      "fills": [],
+      "free": "0",
+      "wallet": "11000000"
+    }
+  ],
+  "finalPositionLots": "0",
+  "finalCashQ": "8800000000000000000000000",
+  "testTokenWalletAtoms": "11000000",
+  "vaultFreeAtoms": "0",
+  "initialMintedAtoms": "20000000",
+  "initialAllocatedAtoms": "10000000",
+  "realizedSpreadLossAtoms": "200000",
+  "withdrawnAtoms": "1000000",
+  "failedRehearsalsPreserved": 2,
+  "failedPublicTransactions": 0,
+  "limitations": [
+    "Nebraska public trader flow was funded but not executed in this checkpoint.",
+    "Current MARK and higher leverage remain unavailable under the contracts' price-window checks.",
+    "Browser Privy login and owner wallet confirmations remain a human check."
+  ]
+}

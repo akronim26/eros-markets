@@ -130,13 +130,26 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
           ||anchor.timestamp!==auditedHistory.block.timestamp||checkpoint.block.number<anchor.number)
           throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
       }else{
-        for(const r of finalized){
+        // Audit every receipt without serializing hundreds of network trips or
+        // flooding the provider. Drain active reads before releasing journals
+        // and preserve the first validation failure; no partial audit is cached.
+        let cursor=0,failed=false,failure:unknown;
+        const verify=async(r:typeof finalized[number])=>{
           const packet=store.get(domain,BigInt(r.sequence));
-          const [receipt,block]=await Promise.all([rpc.receipt(r.txHash),rpc.block({blockNumber:BigInt(r.accepted.blockNumber)})]);
+          const receipt=await rpc.receipt(r.txHash);
           if(!packet||!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+          const block=await rpc.block({blockNumber:BigInt(r.accepted.blockNumber)});
           if(json(validateReceipt(packet.packet,r.txHash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)}))!==json(r.accepted))
             throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
-        }
+        };
+        const next=async()=>{
+          while(!failed&&cursor<finalized.length){
+            const record=finalized[cursor++]!;
+            try{await verify(record);}catch(error){if(!failed){failed=true;failure=error;}}
+          }
+        };
+        await Promise.all(Array.from({length:Math.min(8,finalized.length)},next));
+        if(failed)throw failure;
         if((await rpc.block({blockNumber:checkpoint.block.number})).hash!==checkpoint.block.hash)
           throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
         auditedHistory={digest:historyDigest,block:checkpoint.block};

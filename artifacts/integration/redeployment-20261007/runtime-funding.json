@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "at": "2026-10-07T11:56:36.156844+00:00",
+  "passed": true,
+  "initialNativeRoleFundingMON": 39,
+  "additionalNativeRoleFundingMON": 60,
+  "cumulativeNativeRoleFundingMON": 99,
+  "topupTransactions": 8,
+  "topupGasCostWei": "27009600000000000",
+  "verification": {
+    "passed": true,
+    "phase": "runtime-topup",
+    "publicTransactions": 8,
+    "transferredWei": "60000000000000000000",
+    "verifiedAt": {
+      "blockNumber": "68963594",
+      "blockHash": "0xff9c03310d499849ff601d93d681fdade020496e6ed486164992a79c3a9c4336"
+    },
+    "transfers": [
+      {
+        "role": "nebraska-senate:PUBLISHER",
+        "address": "0x97A25EFD08f8727abafB5e2a1eD1a8a7D4910BB1",
+        "transferredWei": "22000000000000000000",
+        "transactionHash": "0x9472c5db1f25d7722f2f2275456219d01d0473774f8b48db74f913e45ffac098",
+        "blockNumber": "68963514",
+        "blockHash": "0xbf9be1b96d2a5ed278c60ef1f84d0d59223708cff32fc3f17c8f46482324f074",
+        "beforeBalanceWei": "2210015158000000000",
+        "afterBalanceWei": "23729146868000000000"
+      },
+      {
+        "role": "nebraska-senate:KEEPER",
+        "address": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "transferredWei": "7000000000000000000",
+        "transactionHash": "0x4f5f3561fda748c8cf3aa42b8113cd628d2d2d9629ba1198d80a8d533f3911a9",
+        "blockNumber": "68963527",
+        "blockHash": "0xe528015ed9c5be4538628f5344551d0184a3376948a23a32bd527db469cd46bf",
+        "beforeBalanceWei": "11271195326000000000",
+        "afterBalanceWei": "16955445714000000000"
+      },
+      {
+        "role": "nebraska-senate:MAKER_BUY",
+        "address": "0xd537552A20DD0d4276e33956A65A2c7eb402F435",
+        "transferredWei": "500000000000000000",
+        "transactionHash": "0x69b3d8cafde78c318e8f405e6c1e8d8574a79eeb188161e5ca2e94528d27fb73",
+        "blockNumber": "68963538",
+        "blockHash": "0x3571ba610963f2f8a2ae50038edc9d543ec1dc84db5317dd47ec532646cf315e",
+        "beforeBalanceWei": "557834448000000000",
+        "afterBalanceWei": "1057834448000000000"
+      },
+      {
+        "role": "nebraska-senate:MAKER_SELL",
+        "address": "0x8594DaE1460850f0D4BF51426324c455713ee814",
+        "transferredWei": "500000000000000000",
+        "transactionHash": "0xfc026c96eae9f82c98660cc9dde3a1568a45fe42c887c48f15bb90d964905250",
+        "blockNumber": "68963548",
+        "blockHash": "0x6003ca770f31a270b503ef580b888393bb1697876e110af1e794ad0d39ca595a",
+        "beforeBalanceWei": "564561858000000000",
+        "afterBalanceWei": "1064561858000000000"
+      },
+      {
+        "role": "republican-house:PUBLISHER",
+        "address": "0xd530303a6EFdAB90394e7C085BbF2501541Dfb73",
+        "transferredWei": "22000000000000000000",
+        "transactionHash": "0xe42e67b6cd06b2bee3a100c74427eb86c809da1ebf37757123b5cc0f5257a3de",
+        "blockNumber": "68963559",
+        "blockHash": "0x44f6095cb934863552ce6d363f8d7b30739d2efe487f441c5d9d74609e47552c",
+        "beforeBalanceWei": "2629211188000000000",
+        "afterBalanceWei": "24160354214000000000"
+      },
+      {
+        "role": "republican-house:KEEPER",
+        "address": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "transferredWei": "7000000000000000000",
+        "transactionHash": "0x2e48d0a2fe022ba006851c9c15b2a5c67a3f294afee5c06bc74574f2ebfe4d18",
+        "blockNumber": "68963572",
+        "blockHash": "0xd465e4692528113eea041b59061dec69e70afc3d825da31f0fd35b0d8b16ab02",
+        "beforeBalanceWei": "12892876292000000000",
+        "afterBalanceWei": "18495415092000000000"
+      },
+      {
+        "role": "republican-house:MAKER_BUY",
+        "address": "0x301a887Adf53c9C71ca9D11c36E0d4a184F6240c",
+        "transferredWei": "500000000000000000",
+        "transactionHash": "0x51d4a3b183c0433131582fc4a5875f1b1cb1211f4c647446469c9971494f9028",
+        "blockNumber": "68963582",
+        "blockHash": "0x6f1d017ec84ca67e374ac7c70326a49c2996ab277050e7b0be6c02f27f6c7cee",
+        "beforeBalanceWei": "560013474000000000",
+        "afterBalanceWei": "1060013474000000000"
+      },
+      {
+        "role": "republican-house:MAKER_SELL",
+        "address": "0x66dDefB1E8E3a2F668695bD251616d5288aa856C",
+        "transferredWei": "500000000000000000",
+        "transactionHash": "0xa66fe1c5334721a4acf971ea28d5dc1e67c882dbc4fb30eb2ff306c24ef33941",
+        "blockNumber": "68963593",
+        "blockHash": "0xc1445eabb43d0a439aceb17f08702ea69f04a596736db068018241ae046a7575",
+        "beforeBalanceWei": "564121932000000000",
+        "afterBalanceWei": "1064121932000000000"
+      }
+    ],
+    "recipientSpendingAllowed": true,
+    "initialFundingJournalPreserved": true
+  },
+  "sourceSha256": "b3299e6d1d312aa5faced048ab21d98d44208ef5e0b46090e72018477bdd53b1",
+  "boundary": "Incoming funding and canonical receipt evidence; recipients remain active and balances continue to change. No claim of uninterrupted runtime or higher leverage admission.",
+  "retiredOperatorRecovery": {
+    "completedAt": "2026-10-07T12:31:36.303Z",
+    "transferredWei": "18139168770000000000",
+    "origin": "Previously funded, stopped publisher and keeper wallets; not a new deployer contribution.",
+    "traderWalletsAndCollateralUntouched": true,
+    "transfers": [
+      {
+        "passed": true,
+        "publicTransactions": 1,
+        "source": "0x8EEEA70150C54AeD3Eeae6e6F32E24930ddA95E2",
+        "destination": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "valueWei": "2962309320000000000",
+        "hash": "0x3a431367d23a90e41647f281705207667519e46d5d2a1aea3063c29b1cc1e442",
+        "sourceBalanceWei": "501623800000000000",
+        "sourceFloorWei": "500000000000000000",
+        "block": "68970484",
+        "blockHash": "0xc732857917a7df70b2d64be10d9ef6535a023410ca6860c5a9af4be256294647"
+      },
+      {
+        "passed": true,
+        "publicTransactions": 1,
+        "source": "0x39c7bdbE3e90A50Fe9729419Dd494C5776c35667",
+        "destination": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "valueWei": "5595377784000000000",
+        "hash": "0xe460cb6429cc019cb44e02d030424a817e267d3ceced9dcd03034a8310197ecd",
+        "sourceBalanceWei": "501623800000000000",
+        "sourceFloorWei": "500000000000000000",
+        "block": "68970599",
+        "blockHash": "0x8c6f4e3f2b17df27c10454f7213e583067a898c764be04e37e107651fa58496f"
+      },
+      {
+        "passed": true,
+        "publicTransactions": 1,
+        "source": "0xbab4C0FF8c6169813C7128cA31724B7a701B7918",
+        "destination": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "valueWei": "3338762236000000000",
+        "hash": "0x008b4d93a13ba2b3fb2c939d2a0211246b6987ba48c012e71d82a928a6d07b15",
+        "sourceBalanceWei": "501623800000000000",
+        "sourceFloorWei": "500000000000000000",
+        "block": "68970730",
+        "blockHash": "0x35bdca30d8777d560b20687df6efbe0fc693430f323dfa6784bb099180374917"
+      },
+      {
+        "passed": true,
+        "publicTransactions": 1,
+        "source": "0x498DF93DeE8B34B27e849131B05ee77830A5c5b9",
+        "destination": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "valueWei": "6242719430000000000",
+        "hash": "0xe29be06fb1b1fea90cb088f4940f233af8ebf492c6f276091da11003fad0e463",
+        "sourceBalanceWei": "501623800000000000",
+        "sourceFloorWei": "500000000000000000",
+        "block": "68970830",
+        "blockHash": "0x6d9b4cc25ddf8d1dbc561ff7bdf063ceb26c6bb23d5c7d0717113d4bc2add3e4"
+      }
+    ]
+  },
+  "cumulativeGrossRuntimeWalletInflowsMON": "117.13916877",
+  "grossInflowsAreNotCurrentBalances": true,
+  "independentTraderFunding": {
+    "wallets": 2,
+    "nativeMONPerWallet": "1.5",
+    "mintedTestTokensPerWallet": "20",
+    "allocatedTestTokensPerWallet": "10",
+    "verifiedSetupReceiptCountIncludingRecoveryAndTraders": 97
+  }
+}

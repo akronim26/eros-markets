@@ -1,6 +1,6 @@
 {
   "schema": "eros-redeployment-services-evidence/1",
-  "checkedAt": "2026-10-07T11:49:06.829527+00:00",
+  "checkedAt": "2026-10-07T12:55:04.567174+00:00",
   "baseCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
   "sourceSha256": {
     "scripts/e2e/pricefeed-watch.mjs": "52b5d9eef930c0700f5cfe67d4ef3c236247ba12ede1d55843125c98f1b4c4ef",
@@ -10,7 +10,13 @@
     "scripts/e2e/select-live-markets.ts": "bbb99d6fc5e84515dd32aea658b6b0575e50ad19324cf5600ff2e205c2c61295",
     "scripts/e2e/manifest-selection.ts": "fdcccacab0c9201f40e517de00f9ce1a1fdff66da92fa19fa3ae3692a9d18821",
     "scripts/e2e/manifest-selection.test.ts": "eb8acc4321c5c2b8c3caa12cea3b7af5299162fd0c4a9386b1e07b382e3235da",
-    "scripts/e2e/publisher-restart-policy.test.mjs": "1cf2459a48cd230fef19c2e1d161d7c112928cbf5ec440ca33895cbafc00a64f"
+    "scripts/e2e/publisher-restart-policy.test.mjs": "1cf2459a48cd230fef19c2e1d161d7c112928cbf5ec440ca33895cbafc00a64f",
+    "scripts/e2e/market-services.ts": "6b4cd7ee502787c0fe73f7bf42e124646ac16667b599c2cf668504966248b388",
+    "scripts/e2e/epoch-sampling-policy.mjs": "c1c9affba39a64d8c2ca851ef99fe370ff182c35241105dfe7fafad0f18852b5",
+    "scripts/e2e/epoch-sampling-policy.d.mts": "9543b0277f1f4d813570e1a5639df3040b10c0f25263b11be604d0acf4c4b4f5",
+    "scripts/e2e/epoch-sampling-policy.test.mjs": "eeac2c037f75a9a19a8fe12433739c7ee52b42fc72b64552c43fc25a67809d6d",
+    "packages/pricefeed/src/monad-budget.ts": "720d7cf65762e8273a0633c87cb1b654d0387ff99ee7862dc0953c2af6c2b76b",
+    "packages/pricefeed/test/monad-publication.test.ts": "ae94c447767722b0ecf3c557d519e995f4b42a8663e5612920fe36801accb9f4"
   },
   "preparation": {
     "bothMarketsPassed": true,
@@ -164,8 +170,10 @@
   ],
   "limitations": [
     "Services are bounded local testnet campaigns, not permanent production hosting.",
-    "No claim of 5x execution until actual dynamic caps, previews and confirmed fills permit it.",
-    "Current House bootstrap cannot complete BASIS900 before the 12:00:20UTC grace deadline; the next hourly transition is13:00UTC if windows and budget permit."
+    "Both latest canonical snapshots show INDEX available but MARK unavailable and dynamic caps1/1; live5x remains unverified.",
+    "Authentic House source timestamps include a34.595-second gap despite1s successful polling, which prevents continuous INDEX/PERP/BASIS availability for that interval.",
+    "Deployed code supports up to5x conditionally; publication uptime or elapsed warmup is insufficient to claim current5x admission.",
+    "Root controls service lifecycle and all public transactions. The services audit agent performed no public broadcast, funding, start/stop, commit or push."
   ],
   "samplerDiagnosis": {
     "checkedAt": "2026-10-07T11:47:20.215Z",
@@ -184,5 +192,294 @@
     "cause": "Each transaction seals the preceding capture. With16\u201324second capture intervals, the newest sealed observation can briefly be older than30seconds before the next seal. These checked observations retained continuous valid historical timestamps; reduced current coverage was temporary sealing lag.",
     "restriction": "Do not extend timestamps, TTL or carry. Unconditional samples without a newer INDEX cannot seal the pending capture.",
     "recommendedPlan": "Keep current Nebraska campaign through12:00UTC, then perform a coordinated journal-preserving policy/cadence30 restart and rewarm before13:00UTC; reserve enough budget for the bounded follow-up campaign."
-  }
+  },
+  "epochBoundaryFix": {
+    "incident": "The final Nebraska sample at12:00:02UTC arrived after epoch expiry and captured an empty book instead of sealing11:59:42. The last sealed11:59:25 sample expired11:59:55, so12:00:12 rollover correctly retained bootstrap.",
+    "change": "Use an actual canonical block-pinned epoch for sample admission; accelerate to at most12blocks in the final60seconds; stop admitting fresh samples with8seconds or less left; repeat the canonical check after transaction-request preparation immediately before signing. Nonfatal unsigned refusal never clears signed pending work.",
+    "verification": {
+      "newTestsPassed": 4,
+      "command": "packages/pricefeed/node_modules/node/bin/node --test scripts/e2e/epoch-sampling-policy.test.mjs scripts/e2e/sampler-coordination.test.mjs scripts/e2e/rollover-readiness.test.mjs",
+      "combinedTestsPassed": 27,
+      "entrypointBundle": "bun --no-env-file build scripts/e2e/market-services.ts --target=bun passed",
+      "independentReview": "Astra protocol agent found no concrete safety regression."
+    },
+    "limitations": "The8second inclusion reserve and12block final-minute cadence are bounded scheduling preferences, not guarantees of upstream or RPC latency. Actual post-restart rollover/mark/leverage validation remains necessary."
+  },
+  "epoch1200Proof": {
+    "checkedAt": "2026-10-07T12:10:36.501Z",
+    "rollovers": [
+      {
+        "market": "nebraska-senate",
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "hash": "0x987555a2e967a7ba23737df0681c626c16da62f6bf72390878a288babb81698a",
+        "block": "68964603",
+        "blockHash": "0xeb4da57ea61e9514fa670f413ad2426dd6294f4734161bccf1f946749940159f",
+        "blockTime": "1791374412",
+        "gasUsed": "805564",
+        "costWei": "82167528000000000",
+        "events": [
+          {
+            "name": "SweepProgress",
+            "args": {
+              "kind": 1,
+              "generation": "1",
+              "cursor": "2",
+              "count": "2"
+            }
+          },
+          {
+            "name": "EpochOpened",
+            "args": {
+              "epoch": "2",
+              "start": "1791374412",
+              "end": "1791378000",
+              "rateQPerLotSec": "0",
+              "budgetQ": "0"
+            }
+          }
+        ],
+        "stateAtReceipt": {
+          "pricingMode": 0,
+          "indexAvailable": true,
+          "markAvailable": false,
+          "epoch": [
+            "2",
+            "1791374412",
+            "1791378000",
+            "1791374412",
+            "1791374412",
+            "0",
+            true
+          ],
+          "caps": [
+            "1",
+            "1"
+          ]
+        }
+      },
+      {
+        "market": "republican-house",
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "hash": "0x85858eac3318f0c7b2b064bcb02ae796a99803873dfe38c8e73946984f17becf",
+        "block": "68964597",
+        "blockHash": "0x1cfee75ab87b9f53742f4065e14a63e7a387492080d8386e9cd3454caca1ec45",
+        "blockTime": "1791374410",
+        "gasUsed": "747285",
+        "costWei": "76223070000000000",
+        "events": [
+          {
+            "name": "SweepProgress",
+            "args": {
+              "kind": 1,
+              "generation": "1",
+              "cursor": "2",
+              "count": "2"
+            }
+          },
+          {
+            "name": "EpochOpened",
+            "args": {
+              "epoch": "2",
+              "start": "1791374410",
+              "end": "1791378000",
+              "rateQPerLotSec": "0",
+              "budgetQ": "0"
+            }
+          }
+        ],
+        "stateAtReceipt": {
+          "pricingMode": 0,
+          "indexAvailable": true,
+          "markAvailable": false,
+          "epoch": [
+            "2",
+            "1791374410",
+            "1791378000",
+            "1791374410",
+            "1791374410",
+            "0",
+            true
+          ],
+          "caps": [
+            "1",
+            "1"
+          ]
+        }
+      }
+    ]
+  },
+  "postRestartSourceCarryEvidence": {
+    "checkedAt": "2026-10-07T12:31:17.875Z",
+    "market": "republican-house",
+    "normalCadenceBlocks": 30,
+    "finalizedAnchor": {
+      "block": "68970762",
+      "hash": "0x29f299fa04d5efe12b3a29deacede40f14ecd2b09800b3ed9259361fd4ae6ff7"
+    },
+    "canonicalInvalidSamples": [
+      {
+        "hash": "0xf489334c2f43390954442eb2fcdbc8686278b3109a4c56fcf5d8aed9d6e79963",
+        "block": "68970315",
+        "blockTime": "1791376137",
+        "finalizedLoggedAt": "2026-10-07T12:29:00.542Z",
+        "events": [
+          {
+            "name": "PerpObservationRecorded",
+            "t": "1791376105",
+            "midWad": "0",
+            "valid": false,
+            "basisWad": "0",
+            "basisValid": false
+          },
+          {
+            "name": "BookDepthCaptured",
+            "observedAt": "1791376137",
+            "observedBlock": "68970315",
+            "examined": 4,
+            "fingerprint": "0x8725f39f5995cc891c7fc49302e50715e54c0cfa7d5f740c50d8b157f8436a83"
+          }
+        ]
+      },
+      {
+        "hash": "0x7d4074d9b26c5808fcb5e21ec9966095732ddfddbaf25907d68daa11bd736d89",
+        "block": "68970605",
+        "blockTime": "1791376224",
+        "finalizedLoggedAt": "2026-10-07T12:30:27.576Z",
+        "events": [
+          {
+            "name": "PerpObservationRecorded",
+            "t": "1791376191",
+            "midWad": "0",
+            "valid": false,
+            "basisWad": "0",
+            "basisValid": false
+          },
+          {
+            "name": "BookDepthCaptured",
+            "observedAt": "1791376224",
+            "observedBlock": "68970605",
+            "examined": 4,
+            "fingerprint": "0x8725f39f5995cc891c7fc49302e50715e54c0cfa7d5f740c50d8b157f8436a83"
+          }
+        ]
+      }
+    ],
+    "cause": "A strictly newer source observation must be finalized before the existing capture can seal. The 25.477-second upstream timestamp gap from 12:29:45.270 to 12:30:10.747, followed by publication and sampler execution, produced a 33-second capture interval. Contract expiry correctly marked that prior capture unavailable. One-second source polling was already active.",
+    "readinessBoundary": "Thirty-block normal scheduling alone does not establish continuous BASIS900 coverage. No timestamp, source freshness or expiry guard was relaxed."
+  },
+  "offlineExpiryRecovery": {
+    "prepared": true,
+    "invokedByAuditAgent": false,
+    "targetMarket": "nebraska-senate",
+    "targetSequence": "174",
+    "digest": "0x2ca8f2a5d80d4611c7e5b3f3c0b290f40a2f55f771cc85c4408f72da10e143d4",
+    "reason": "Budget renewal refused an expired signed observation that had no relay delivery or transaction reservation.",
+    "method": "Require exact identity and finalized source state, stopped services and shared launcher lock; validate TTL against finalized chain time and wall time; use supported PacketStore APIs on a private copy and production budget planning to prove every historical signature, reservation and receipt. Root applies only the reviewed before/after logical journal hashes. Packet bytes, signatures and next sequence are preserved; lease owner/fence changes are explicit.",
+    "testsPassed": 4,
+    "independentReview": "Astra review found no unsafe mutation path. Partial failure after lease acquisition intentionally requires review rather than bypassing changed journal hashes.",
+    "publicTransactionsSentByHelper": 0,
+    "signaturesProducedByHelper": 0,
+    "helperSha256": {
+      "expire-nebraska-unsent.mjs": "507c689b09432d4505cfa4f36b7d30d1b4af261465fe65aee79d9f31a9eb1df3",
+      "expiry-policy.mjs": "1ced2b6f6e6566dd27abfcdd4169331bbd3f13f1dd92afd537b503a9a4c05807",
+      "expiry-policy.test.mjs": "98791d894b846ae96c3b283f601dcc8fb5d0146823536fb65405a22b2e19734f",
+      "bounded-proof-rpc.mjs": "7f7cdbb14db72ca8bc0bc2a53da4523c0f9919b51fc0da13851c79da4678d491",
+      "bounded-proof-rpc.test.mjs": "5413a31ad04ed9a7e0f1384981c82516beeab71b5a4a5988d0e42a283708071e"
+    },
+    "appliedByRoot": true,
+    "appliedAt": "2026-10-07T12:42:42.015Z",
+    "approvalHash": "90c9cbedfb7254ca0de7aeb7036a9261abdfef40383c1f6c9142b524074b6f5e",
+    "verifiedDeliveryCount": 174,
+    "targetPacketBytesAndSignaturePreserved": true,
+    "sourceSignatureAndTransactionRowsPreserved": true,
+    "expectedPacketLeaseMetadataChanged": true,
+    "boundedProofReads": 8
+  },
+  "budgetProofConcurrencyFix": {
+    "incident": "The ordinary budget proof started173 receipt validations simultaneously, causing RPC timeouts while public services shared the endpoint.",
+    "change": "Limit receipt proof to8 worker tasks. Each still validates its exact accepted receipt and canonical block. First failure stops dequeueing, active reads drain before locks close, and the original error is rethrown. Cancellation validation and30s checkpoint freshness remain unchanged.",
+    "verification": {
+      "typescriptCompile": "Isolated outDir tmp/budget-proof-audit-20261007/dist; active packages/pricefeed/dist left unchanged.",
+      "testsPassed": 7,
+      "command": "TMPDIR=/private/tmp packages/pricefeed/node_modules/node/bin/node --test --test-name-pattern='budget receipt proof|budget renewal|budget plans|failed or changed budget|budget audit|applying a budget|streamed budget snapshot' tmp/budget-proof-audit-20261007/dist/test/monad-publication.test.js",
+      "newRegression": "24 real signed fixture publications; peak8 read calls, every receipt validated, exact original error preserved, all in-flight calls drained, journal snapshots unchanged,30s checkpoint expiry still rejects.",
+      "independentReview": "Astra protocol agent found no concrete issue.",
+      "macosInitialAttempt": "Default TMPDIR aliases /var and failed existing private path guard; rerun used canonical /private/tmp and passed7/7."
+    },
+    "baseCommit": "f7e3d35ed87fcfa7e79ed39780393848b36b0538"
+  },
+  "authenticHouseIndexGap": {
+    "checkedAt": "2026-10-07T12:49:50.010Z",
+    "sourcePollsChecked": 36,
+    "allSourceArchiveHashesVerified": true,
+    "priorSourceMs": "1791377091649",
+    "nextSourceMs": "1791377126244",
+    "authenticSourceAdvanceMs": 34595,
+    "acceptedSequences": [
+      "246",
+      "247"
+    ],
+    "acceptedObservedAt": [
+      "1791377091",
+      "1791377126"
+    ],
+    "indexCoverageDeficitSeconds": 5,
+    "conclusion": "The vendor returned the same timestamp through36 successful collection records.1s polling was active. Source became stale before advancing; no timestamp or freshness guard was changed. Neither a shorter sampler interval nor RPC optimization can remove this authentic source gap."
+  },
+  "latestReadOnlyServiceCheckpoints": [
+    {
+      "market": "nebraska-senate",
+      "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+      "checkedAt": "2026-10-07T12:54:58.297Z",
+      "canonicalBlock": "68975477",
+      "sourceSequence": "222",
+      "sourceAgeSeconds": "16",
+      "indexAvailable": true,
+      "indexWad": "285000000000000000",
+      "markAvailable": false,
+      "markWad": "0",
+      "caps": [
+        "1",
+        "1"
+      ],
+      "indexCoverageSeconds": "300",
+      "perpCoverageSeconds": "60",
+      "basisCoverageSeconds": "203",
+      "supervisorStatus": "running",
+      "campaignStartedAt": "2026-10-07T12:46:08.639Z",
+      "configuredDurationSeconds": 3600,
+      "configuredServiceDeadlineUtc": "2026-10-07T13:46:08.644000+00:00",
+      "publisherBudgetRevision": 1,
+      "publisherBudgetApprovalHash": "88c91ae62202c532f34814626b476b696552c54067131d39a6a3e0f335e1c17a",
+      "normalCadenceBlocks": 30,
+      "qualification": "Read-only root health snapshot; deadlines or gas/failure floors stop this local campaign. Both campaigns were left running by the root operator for user testing. No live 5x result or normal mark established."
+    },
+    {
+      "market": "republican-house",
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "checkedAt": "2026-10-07T12:54:56.370Z",
+      "canonicalBlock": "68975435",
+      "sourceSequence": "294",
+      "sourceAgeSeconds": "17",
+      "indexAvailable": true,
+      "indexWad": "75000000000000000",
+      "markAvailable": false,
+      "markWad": "0",
+      "caps": [
+        "1",
+        "1"
+      ],
+      "indexCoverageSeconds": "300",
+      "perpCoverageSeconds": "60",
+      "basisCoverageSeconds": "546",
+      "supervisorStatus": "running",
+      "campaignStartedAt": "2026-10-07T12:21:32.241Z",
+      "configuredDurationSeconds": 3600,
+      "configuredServiceDeadlineUtc": "2026-10-07T13:21:32.246000+00:00",
+      "publisherBudgetRevision": 1,
+      "publisherBudgetApprovalHash": "a3d62fb39ec1f2ff69443159b6adfad313e0cba34a5f8f60415544e53802c1e0",
+      "normalCadenceBlocks": 30,
+      "qualification": "Read-only root health snapshot; deadlines or gas/failure floors stop this local campaign. Both campaigns were left running by the root operator for user testing. No live 5x result or normal mark established."
+    }
+  ]
 }
