@@ -116,3 +116,12 @@ test("Privy v2 embedded wallets use the same ownership verification", async () =
  try { const { ownedWallet } = await import("../../src/server/privy"); assert.equal((await ownedWallet("alice",address)).id,"alice-wallet"); }
  finally { walletType = "privy"; }
 });
+
+test("future-dated RPC heads cannot authorize delegated orders or protection processing", async (t) => {
+ const original = client.getBlock;
+ t.mock.method(client, "getBlock", async (args?: any) => ({ ...await original(args), timestamp: BigInt(Math.floor(Date.now() / 1000) + 120) }));
+ const before = sends;
+ await assert.rejects(delegatedTrade("alice", intent()), /stale/);
+ await assert.rejects(processProtectionBlock(), /stale/);
+ assert.equal(sends, before);
+});

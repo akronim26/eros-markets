@@ -1,6 +1,25 @@
 # E2E progress — current checkpoint: 7 October 2026
 
-## Stopped at the user's request (7 October 2026)
+## Funded audit repair rollout (7 October, 11:40 UTC)
+
+The user funded and authorized a fresh deployment after the deep audit. The
+repaired base and both markets are now deployed and verified, each with 100,000
+reserve test tokens. Four independent makers each allocated 2,000 test tokens;
+publisher, keeper and maker wallets received 39 test MON in total. The frontend
+selects the fresh deployment, its production build passed, and the matching local
+indexer is running. Existing owner balances remain accessible through archived
+deployment identities.
+
+Current public INDEX/MARK windows, browser checks and higher-leverage admission
+are being verified. A successful deployment is not evidence of a public 5× fill.
+The Nebraska publisher has finalized genuine Polymarket observations; the House
+publisher's transient startup retry was repaired and passed three focused tests
+(74 assertions), preserving complete signing-journal recovery requirements.
+See [deployment progress](DEPLOYMENT_PROGRESS.md) and the separate evidence in
+`artifacts/integration/redeployment-20261007/`. Earlier audit and E2E reports below
+retain their historical sources and limits. No new GitHub run is claimed.
+
+## Historical stop at the user's request (earlier 7 October 2026)
 
 - All local project services, public transaction workers, indexers, local chains,
   test browsers, health monitors and audit agents were stopped. No automatic

@@ -97,13 +97,15 @@ export async function gql<T>(url: string, query: string, variables: Record<strin
   let res: Response
   try {
     res = await fetchFn(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query, variables }), signal: AbortSignal.timeout(timeoutMs) })
-  } catch (e) {
-    throw new IndexerError(`indexer ${url}: ${e instanceof Error ? e.message : String(e)}`)
+  } catch {
+    // These errors are logged by keepers/watchdogs. Provider URLs commonly embed
+    // credentials in the path or query, and transport errors may echo that URL.
+    throw new IndexerError('indexer: request failed or timed out')
   }
-  if (!res.ok) throw new IndexerError(`indexer ${url}: HTTP ${res.status}`)
+  if (!res.ok) throw new IndexerError(`indexer: HTTP ${res.status}`)
   const body = (await res.json().catch(() => null)) as { data?: T; errors?: { message: string }[] } | null
-  if (body?.errors?.length) throw new IndexerError(`indexer ${url}: ${body.errors.map((e) => e.message).join('; ')}`)
-  if (!body?.data) throw new IndexerError(`indexer ${url}: no data in the response`)
+  if (body?.errors?.length) throw new IndexerError('indexer: GraphQL request rejected')
+  if (!body?.data) throw new IndexerError('indexer: no data in the response')
   return body.data
 }
 
@@ -125,21 +127,29 @@ export class IndexerClient {
     const { _meta } = await this.query<{ _meta: IndexerProgress[] }>(INDEXER_PROGRESS, { chainId: this.chainId })
     const m = _meta?.[0]
     if (!m || m.chainId !== this.chainId || !Number.isSafeInteger(m.progressBlock) || m.progressBlock < 0
-      || !Number.isSafeInteger(m.sourceBlock) || m.sourceBlock < m.progressBlock) throw new IndexerError(`indexer ${this.url}: no progress for chain ${this.chainId}`)
+      || !Number.isSafeInteger(m.sourceBlock) || m.sourceBlock < m.progressBlock) throw new IndexerError(`indexer: no progress for chain ${this.chainId}`)
     return m
   }
 
-  /** Every row of a `$limit`/`$offset` query. Stops at an empty page, not a short one: Hasura may cap rows per page. */
+  /** Bounded complete scan. Short pages can be server caps; only an empty page completes the list. */
   async all<T>(query: string, field: string, pageSize = 1000): Promise<T[]> {
+    if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 10_000) throw new IndexerError('indexer: invalid page size')
     const rows: T[] = []
-    for (let offset = 0; ; ) {
+    let previous: string | undefined
+    for (let offset = 0, pages = 0; pages < 1000; pages++) {
       const data = await this.query<Record<string, T[]>>(query, { limit: pageSize, offset })
       const page = data[field]
-      if (!Array.isArray(page)) throw new IndexerError(`indexer ${this.url}: no ${field} list in the response`)
+      if (!Array.isArray(page)) throw new IndexerError(`indexer: no ${field} list in the response`)
       if (page.length === 0) return rows
+      const signature = JSON.stringify(page)
+      if (signature === previous) throw new IndexerError('indexer: repeated page; complete scan unavailable')
+      if (rows.length + page.length > 100_000) throw new IndexerError('indexer: row limit; complete scan unavailable')
+      previous = signature
       rows.push(...page)
       offset += page.length
     }
+    // Never return a partial list that would advance a keeper's RPC cursor.
+    throw new IndexerError('indexer: page limit; complete scan unavailable')
   }
 }
 

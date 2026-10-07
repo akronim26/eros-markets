@@ -182,11 +182,11 @@ export function EventPerpDemo() {
       </div>
       <details className="group border-t border-line-strong">
         <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-4 text-xs text-fg-3 hover:bg-hover sm:px-7 [&::-webkit-details-marker]:hidden">
-          <span>Practice only · Testnet trading is 1x</span>
+          <span>Practice only · Live limits vary up to 5×</span>
           <span className="inline-flex items-center gap-2 text-fg">About this demo <Plus size={14} className="group-open:rotate-45" aria-hidden /></span>
         </summary>
         <div className="max-w-[95ch] space-y-3 px-5 pb-5 text-xs leading-relaxed text-fg-3 sm:px-7">
-          <p>This example uses invented prices. Leverage above 1x is hypothetical. Fees, funding, liquidations, and reserve protection are omitted; displayed price P&amp;L is not a predicted account payout.</p>
+          <p>This example uses invented prices. Live leverage depends on each market’s current limits. Fees, funding, liquidations, and reserve protection are omitted; displayed price P&amp;L is not a predicted account payout.</p>
           <p>Price P&amp;L = claims × price change (reversed for shorts). Demo collateral = claims × entry price ÷ leverage for longs, or claims × (1 − entry price) ÷ leverage for shorts. Price return = P&amp;L ÷ collateral. Leverage changes collateral at a fixed position size; actual required margin may be higher.</p>
           <p>Real trades require matching orders. Open positions settle after trading halts, the outcome is final, and payouts are prepared.</p>
         </div>

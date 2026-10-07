@@ -10,6 +10,8 @@ import { deployment, type MarketManifest } from "@/config/deployment";
 import { explorerAddress } from "@/config/chain";
 import { useOwner } from "./wallet";
 import { Button, Chip, Num, RegionHead, Row, Stat, Unavailable, cx } from "./ui";
+import type { Point } from "@/lib/reads";
+import { latestSourceObservation } from "@/lib/price-chart";
 import terminalStyles from "./terminal.module.css";
 import { AccountActions } from "./account-actions";
 
@@ -31,7 +33,8 @@ export function chipFor(m: MarketSnapshot) {
 }
 
 /** Market header: identity, state, and the prices a trader reads first. */
-export function MarketHeader({ manifest, m }: { manifest: MarketManifest; m?: MarketSnapshot }) {
+export function MarketHeader({ manifest, m, source = [], now = Math.floor(Date.now() / 1000), readError = false }: { manifest: MarketManifest; m?: MarketSnapshot; source?: Point[]; now?: number; readError?: boolean }) {
+  const observation = latestSourceObservation(source, now, readError);
   const chip = m ? chipFor(m) : null;
   const spread = m && m.bestBid && m.bestAsk ? m.bestAsk - m.bestBid : null;
   return (
@@ -42,10 +45,13 @@ export function MarketHeader({ manifest, m }: { manifest: MarketManifest; m?: Ma
       </div>
       <div className="flex flex-wrap items-center gap-x-7 gap-y-2">
         <Stat label="Mark" tone={m?.risk.markAvailable ? "signal" : undefined}>
-          {m?.risk.markAvailable ? <Num value={wadTo3(m.risk.markWad)} /> : <Unavailable signal short="no mark" reason="No normal mark: bootstrap pricing or missing windows" />}
+          {m?.risk.markAvailable ? <Num value={wadTo3(m.risk.markWad)} /> : <Unavailable signal short={m?.risk.pricingMode === 0 ? "warming" : "unavailable"} reason="The contract requires complete index, book and basis windows and normal pricing to provide a mark." />}
         </Stat>
-        <Stat label="Index">
-          {m?.risk.indexAvailable ? <Num value={wadTo3(m.risk.indexWad)} /> : <Unavailable short="no index" reason="No fresh signed index window" />}
+        <Stat label="Index · 5m TWAP">
+          {m?.risk.indexAvailable ? <Num value={wadTo3(m.risk.indexWad)} /> : <Unavailable short={observation.fresh ? "warming" : "unavailable"} reason="The execution index requires a complete, fresh 300-second signed source window. A historical chart observation is not an executable index." />}
+        </Stat>
+        <Stat label="Polymarket source">
+          {observation.point ? <span title={`Source observation at ${new Date(observation.point.t * 1000).toLocaleString()}`}><Num value={observation.point.v.toFixed(3)} /><span className={cx("ml-2 text-2xs", observation.fresh ? "text-bid" : "text-fg-3")}>{observation.fresh ? "live" : "delayed"}</span></span> : <Unavailable short="unavailable" reason="No valid source observation has been read for this market." />}
         </Stat>
         <Stat label="Bid / Ask">
           {m && (m.bestBid || m.bestAsk) ? (

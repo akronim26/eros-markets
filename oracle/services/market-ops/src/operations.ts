@@ -88,7 +88,7 @@ export class Operations {
         }
         return { outcome: 'pending', action: pending.action, hash: pending.hash, ...(pending.rolloverBatch ? { rolloverBatch: pending.rolloverBatch } : {}) }
       }
-      if (pending.action === 'sample') journal.lastSampleBlock = receipt.block.toString()
+      if (pending.action === 'sample' && receipt.status === 'success') journal.lastSampleBlock = receipt.block.toString()
       if (receipt.status === 'success' && (pending.action === 'early-check' || pending.action === 'relay')) {
         journal.completed.push(pending.requestId)
       }

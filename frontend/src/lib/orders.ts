@@ -15,6 +15,11 @@ export function orderStatus(id: number, order: OrderRecord, context: {
   return "live";
 }
 
+/** Bulk cancellation invalidates epochs immediately; physical book nodes are pruned later. */
+export function openOrdersAt<T extends OrderRecord & { id: number }>(orders: T[], context: Parameters<typeof orderStatus>[2]) {
+  return orders.flatMap(order => orderStatus(order.id, order, context) === "live" ? [{ ...order, status: "live" as const }] : []);
+}
+
 const memory = new Map<string, number[]>();
 const keyFor = (chain: number, engine: string, owner: string) => `eros-orders:${chain}:${engine.toLowerCase()}:${owner.toLowerCase()}`;
 

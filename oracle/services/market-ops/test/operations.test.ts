@@ -85,6 +85,21 @@ test('pending receipt reads overlap identity verification but cannot finalize af
   expect(transport.broadcasts).toHaveLength(1)
 })
 
+test('a reverted sample preserves the last successful cadence and permits retry after restart', async () => {
+  const { transport, store, operations } = setup()
+  store.journal.lastSampleBlock = '90'
+  await operations.tick(sample, true)
+  transport.receiptValue = { status: 'reverted', block: 101n, finalized: true }
+  await expect(operations.tick(sample, true)).rejects.toThrow('Transaction reverted')
+  expect(store.journal.lastSampleBlock).toBe('90')
+  expect(store.journal.pending).toBeUndefined()
+  transport.receiptValue = null
+  transport.state.block = 101n
+  const resumed = new Operations(manifest, transport, store)
+  expect((await resumed.tick(sample, true)).outcome).toBe('sent')
+  expect(transport.prepared).toHaveLength(2)
+})
+
 describe('measured bounded rollover batches', () => {
   const configuration: Manifest = { ...manifest, rolloverHelper: {
     address: '0x3333333333333333333333333333333333333333', codeHash: fixedHex(11), maxPages: 32, gasCeiling: 30_000_000,

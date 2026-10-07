@@ -18,10 +18,25 @@ ROOT = Path(__file__).resolve().parents[2]
 FRONTEND = ROOT / "frontend"
 
 
+def browser_sources(root=ROOT):
+    """Bind browser evidence to every first-party build input, including JS/SDKs."""
+    patterns = ("frontend/src/**/*.ts", "frontend/src/**/*.tsx", "frontend/src/**/*.json", "frontend/src/**/*.css",
+                "frontend/src/**/*.mjs", "frontend/src/**/*.js", "frontend/public/**/*",
+                "frontend/e2e/**/*.ts", "frontend/e2e/**/*.tsx", "frontend/e2e/**/*.mjs", "frontend/playwright.config.mjs",
+                "frontend/next.config.ts", "frontend/package*.json", "frontend/tsconfig.json", "frontend/postcss.config.*",
+                "packages/risk-sdk/src/**/*.ts", "packages/risk-sdk/package.json",
+                "oracle/packages/oracle-sdk/src/**/*.ts", "oracle/packages/oracle-sdk/package.json",
+                "scripts/e2e/*.py", "scripts/e2e/*.ts", "scripts/e2e/*.mjs")
+    files = {p for pattern in patterns for p in root.glob(pattern) if p.is_file()}
+    return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(files)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--proof-directory", type=Path, help="Reuse a passed, source-matching contract proof")
-    parser.add_argument("--ui-directory", type=Path, help="Use a fresh, passed, running fully-backed local stack")
+    parser.add_argument("--ui-directory", type=Path, help="Use a fresh, passed, running local stack matching --browser-scenario")
+    parser.add_argument("--browser-scenario", choices=["fully-backed", "leveraged"], default="leveraged",
+                        help="Use a leveraged browser fixture by default so the UI's 1x–5x controls and fills are exercised")
     parser.add_argument("--rpc-port", type=int, default=18566)
     parser.add_argument("--read-port", type=int, default=8798)
     parser.add_argument("--web-port", type=int, default=3111)
@@ -49,13 +64,6 @@ def main():
     def save():
         (directory / "report.json").write_text(json.dumps(report, indent=2) + "\n")
         (ROOT / "tmp/e2e-latest.json").write_text(json.dumps({"directory": str(directory), "status": report["status"]}, indent=2) + "\n")
-
-    def browser_sources():
-        patterns = ("frontend/src/**/*.ts", "frontend/src/**/*.tsx", "frontend/src/**/*.json", "frontend/src/**/*.css",
-                    "frontend/e2e/**/*.ts", "frontend/e2e/**/*.tsx", "frontend/e2e/**/*.mjs", "frontend/playwright.config.mjs",
-                    "frontend/next.config.ts", "frontend/package*.json", "scripts/e2e/*.py")
-        files = {p for pattern in patterns for p in ROOT.glob(pattern) if p.is_file()}
-        return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(files)}
 
     def run(name, command, cwd=ROOT, timeout=7200):
         stage = {"name": name, "status": "running", "startedAt": time.time(), "log": f"{name}.log"}
@@ -103,12 +111,13 @@ def main():
         run("frontend-integration", ["npm", "run", "test:integration"], FRONTEND, 180)
         ui = args.ui_directory or directory / "browser-stack"
         if not args.ui_directory:
-            run("browser-fixture", [sys.executable, "scripts/integration/local-stack.py", "run", "--scenario", "fully-backed",
+            run("browser-fixture", [sys.executable, "scripts/integration/local-stack.py", "run", "--scenario", args.browser_scenario,
                                     "--directory", ui, "--rpc-port", args.rpc_port, "--read-port", args.read_port, "--keep-running"])
         record = checked_run(ui, False)
-        if record["status"] != "passed" or record["scenario"] != "fully-backed":
-            raise RuntimeError("Browser fixture must be a running fully-backed stack")
+        if record["status"] != "passed" or record["scenario"] != args.browser_scenario:
+            raise RuntimeError("Browser fixture must be running and match --browser-scenario")
         report["browserFixture"] = str(ui.resolve())
+        report["browserScenario"] = args.browser_scenario
         env.update(EROS_E2E_DIRECTORY=str(directory), EROS_E2E_STACK=str(ui.resolve()),
                    EROS_E2E_MANIFEST=str((ui / "public-manifest.json").resolve()), EROS_E2E_RPC_URL=record["rpcUrl"],
                    EROS_E2E_BASE_URL=f"http://127.0.0.1:{args.web_port}")

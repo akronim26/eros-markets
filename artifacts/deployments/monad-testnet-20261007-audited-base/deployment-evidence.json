@@ -1,0 +1,274 @@
+{
+  "scope": "Monad testnet only",
+  "chainId": 10143,
+  "baseCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+  "sourceState": "Audited working tree; uncommitted oracle repair included. Exact source/artifact hashes recorded below.",
+  "passed": true,
+  "publicTransactions": 32,
+  "gasCostWei": "6905266278000000000",
+  "canonicalReceipts": [
+    {
+      "name": "deploy:TestUSDC",
+      "hash": "0x7130e9accf1b8c33755b60905032adfba80a54724b8c047fe79d782dc3b8ff74",
+      "block": "68951846",
+      "blockHash": "0xf5c7bb3d026b8d5482512dcbcea2abdfc4c7e8a5ab985cb053403b98f9f50386",
+      "gasUsed": "608299",
+      "status": "success"
+    },
+    {
+      "name": "deploy:Finder",
+      "hash": "0xca632eafb41b66d12988f373285f8b08907ef7b7a0f85003ef4200e4ac9a5d49",
+      "block": "68951861",
+      "blockHash": "0xa2b610606243af1e451733fde349b4d7775713d405fbe51e74f255a560f00367",
+      "gasUsed": "324025",
+      "status": "success"
+    },
+    {
+      "name": "deploy:Store",
+      "hash": "0xa7d9c455669d2a2d2b06a8371c241f344ede3e96b833f29d2b7c88c6a34d3597",
+      "block": "68951873",
+      "blockHash": "0x112de1379ad969e7cc71fa4bff81ebf349a38501e9eefda9001b919cd0573781",
+      "gasUsed": "1729068",
+      "status": "success"
+    },
+    {
+      "name": "uma:final-fee",
+      "hash": "0xad583aa78455a9e9a6f4a5d2a2ef12177768a2211389d99db721c83e452d4711",
+      "block": "68951884",
+      "blockHash": "0x5a015d3c11c64df34d240acb66249141bb06fc8916cca3d414d08b33d1cd312c",
+      "gasUsed": "76499",
+      "status": "success"
+    },
+    {
+      "name": "deploy:AddressWhitelist",
+      "hash": "0x828d6d0b2d7034c6e868a1d8bdbac73dc4c0e17d9ccab6f7eb28f11c919d32ee",
+      "block": "68951895",
+      "blockHash": "0x6adfb3290f0276b98613175c283757104a594db4633084a4128dbb219f443ff8",
+      "gasUsed": "610146",
+      "status": "success"
+    },
+    {
+      "name": "uma:collateral",
+      "hash": "0x6bc8a4f91e25d3caf29e722736ba4e6e3fb9d801c89ee6aed03e54bbf641ae70",
+      "block": "68951907",
+      "blockHash": "0x7061072b233ecd69d9bc0af3c2dbc70ac290a4052d73d07e0c4423632962032b",
+      "gasUsed": "132591",
+      "status": "success"
+    },
+    {
+      "name": "deploy:IdentifierWhitelist",
+      "hash": "0xb7041530062f569e10a173b6e716c4f735dc07e6b70d4d773c4fffe85571c56f",
+      "block": "68951918",
+      "blockHash": "0x01b812bfd76b51f6241ce4b36ebc49c1008b464fa41606f93dbc1fcd703265a4",
+      "gasUsed": "307821",
+      "status": "success"
+    },
+    {
+      "name": "uma:identifier",
+      "hash": "0xbb2350208cbdb702c906039c8e539b8c2799f6b787c1f6229b4c465a1aa47eae",
+      "block": "68951931",
+      "blockHash": "0xb96be6be2d470c53eae5a4199dda75efe8e04169cd441208b83de5cd6c118cd6",
+      "gasUsed": "75940",
+      "status": "success"
+    },
+    {
+      "name": "deploy:ErosSandboxOracle",
+      "hash": "0xae485da4e4dc8d932f018e1bb5c02df5d0a6f1dadd4e9ad166a7f9831c4163b3",
+      "block": "68951943",
+      "blockHash": "0x19b90ab1d7df58a8c2bbd2bf0aadceabe39417606454607b7022d92d22e0f3ad",
+      "gasUsed": "745850",
+      "status": "success"
+    },
+    {
+      "name": "uma:finder:Store",
+      "hash": "0xade3416c0e7b733cab78368f5809696207d622ffbebb46feaefc14747f615897",
+      "block": "68951955",
+      "blockHash": "0x854af49b4997549a5c20bc90f7ded193d449f00fe4c667793a409eb227060f0a",
+      "gasUsed": "76622",
+      "status": "success"
+    },
+    {
+      "name": "uma:finder:CollateralWhitelist",
+      "hash": "0x5afb660b319dabdcd53cbed2008710d71e6d7efabacc9f3303b825474d049886",
+      "block": "68951966",
+      "blockHash": "0x15f0f51457c880dbd7e0bfc595cc901e0d0bcf4eb82925825ed9a9bc7f412624",
+      "gasUsed": "76808",
+      "status": "success"
+    },
+    {
+      "name": "uma:finder:IdentifierWhitelist",
+      "hash": "0x3141836ea50e84b4b1d4bbcc0794791eb2fdbd102dff47bd3aa271b55e2b14f4",
+      "block": "68951980",
+      "blockHash": "0x2a326ef01972c64389f6ab76c66a1525980d1e607428ea294da990b25971a983",
+      "gasUsed": "76808",
+      "status": "success"
+    },
+    {
+      "name": "uma:finder:Oracle",
+      "hash": "0x5b3ea79da5df36e248156321ee929d25b05550cab8d2e7f4a93d7175397777d4",
+      "block": "68951991",
+      "blockHash": "0xad4d8f946a99a82c92bec5546a3c668a7b54d533866f2f56b8b6547b02a459bb",
+      "gasUsed": "76635",
+      "status": "success"
+    },
+    {
+      "name": "deploy:OptimisticOracleV3",
+      "hash": "0x3d1511a341864f135957232c11a25808fccad04d41aeda1b3806143c48a948ee",
+      "block": "68952003",
+      "blockHash": "0x9d4f827e326dde86bb7e72e5b73dea96d4acbba34e08eedfb16c6ae0c64d0f14",
+      "gasUsed": "3659893",
+      "status": "success"
+    },
+    {
+      "name": "uma:requester",
+      "hash": "0x2c982f326eff03bb64d8ed04987eacd549ad307cd47c083bbd2c26757b5a508f",
+      "block": "68952017",
+      "blockHash": "0x5f8bb5094393c67afa8a1225c7bd3d80d076758aa90ac0d78897a5998a2fadc7",
+      "gasUsed": "74795",
+      "status": "success"
+    },
+    {
+      "name": "deploy:Timelock",
+      "hash": "0x285db2631df703560d88f5f8c18e1ec785c796135c02be920cfb0a8c9a8d6942",
+      "block": "68952028",
+      "blockHash": "0x924fa6ece1e075f85a0d360b0082cdf071ec36cb0139b746ba258579da2984ac",
+      "gasUsed": "1114437",
+      "status": "success"
+    },
+    {
+      "name": "governance:initialize",
+      "hash": "0xccb72681b80ab697c15ff33406425fc51c5af6f019a45b6fd9d0e9df3f9b020f",
+      "block": "68952038",
+      "blockHash": "0x86372747584abf5ef5ab18fb219f3cd33423a6157aea550eda3d9f87583e4d76",
+      "gasUsed": "266750",
+      "status": "success"
+    },
+    {
+      "name": "deploy:BondTreasury",
+      "hash": "0x409d47e648993d26e24e1e6d8ca9a7024fff6c03c91c16b218e7c86a53fb20d5",
+      "block": "68952051",
+      "blockHash": "0x8c2b921bf53ba0345a4a7df914a0e604563523a70231e59e2c5824e2da398ab5",
+      "gasUsed": "2381862",
+      "status": "success"
+    },
+    {
+      "name": "deploy:ResolutionOracle",
+      "hash": "0x4ab7f6dbc2a338fd56334ef8f8984675757a5ecf1f8a093cbd650a8384943405",
+      "block": "68952065",
+      "blockHash": "0xbc41fdce051f47b760cca5d2cce9334c2509535e322fc701b3a66396904233ac",
+      "gasUsed": "9997234",
+      "status": "success"
+    },
+    {
+      "name": "deploy:UmaAdapter",
+      "hash": "0x84dd1203bde6377da7ecd2398b7585cc6b4286be422d772f93a7f1b941617027",
+      "block": "68952077",
+      "blockHash": "0x7ba6499c953f8df5924073fee0d6102a617735c4a18abaff54523bb60d041acd",
+      "gasUsed": "1147946",
+      "status": "success"
+    },
+    {
+      "name": "deploy:MarketRegistry",
+      "hash": "0x4022e4f2d7e0f3796c4ffe80e0fd90974e92737ab80146fb1f6f6cd80bf04a82",
+      "block": "68952089",
+      "blockHash": "0x68a71de2b19d57bad2ac5123b0a7945c3162c826d604ab1c9896ba03c533eb0b",
+      "gasUsed": "6936372",
+      "status": "success"
+    },
+    {
+      "name": "deploy:KeeperRouter",
+      "hash": "0x8ea53ba87ac3f9cc6f28124c543ee2cc4a4ec8ad031e81ea4ce91e678d79e635",
+      "block": "68952100",
+      "blockHash": "0x829ec151c59ba5035f02921f69df969be126aaa4307395ffadf07d00a40afd55",
+      "gasUsed": "492291",
+      "status": "success"
+    },
+    {
+      "name": "deploy:EngineCodeStore",
+      "hash": "0xdeefc8ae585f65915e10c383aecdf8f3e0dd83faa2025c370dd4810bab786b03",
+      "block": "68952114",
+      "blockHash": "0xbdae96027c18a41cc3504df6cec94fb3e1db5511ea59379472b14f4915d24a62",
+      "gasUsed": "23994276",
+      "status": "success"
+    },
+    {
+      "name": "deploy:EngineCodeStoreTail",
+      "hash": "0x4965e884feb5334f77e6fdca88a473414f78e3bdf07075bbb78da065309424d0",
+      "block": "68952127",
+      "blockHash": "0x10fc657b78d18a94fb1a7aaa262218d5c19728acec7f29a05dfb8908a4b62e4a",
+      "gasUsed": "7840920",
+      "status": "success"
+    },
+    {
+      "name": "deploy:MarketFactory",
+      "hash": "0x9f786f996eb5d95bebe2daff25ccacdc9f2541718a66b40b279b7a31eafa07a6",
+      "block": "68952139",
+      "blockHash": "0x3f4fba9c7eadc6725152179561b8d5169d96fd6e36f00dbafdf53ca5a0e044d9",
+      "gasUsed": "2704260",
+      "status": "success"
+    },
+    {
+      "name": "deploy:RolloverBatcher",
+      "hash": "0x73572b5d91a767f37f992a01e03fffdc7fc7eb1c92ae699c2907f55d922e2c77",
+      "block": "68952150",
+      "blockHash": "0x1e414a76fd5e5a6a55d75835e072b479b899e54b039f35cd2d068b554dfc54fd",
+      "gasUsed": "704107",
+      "status": "success"
+    },
+    {
+      "name": "governance:propose-base",
+      "hash": "0x26b7e890f8848537c9427580f0101aeab23ad2875af6940ccc74073cd626b1f1",
+      "block": "68952162",
+      "blockHash": "0xdb6366a598660f133f2d791f18a8960e3ab054658b77b13137f4f0d8a10cc776",
+      "gasUsed": "152568",
+      "status": "success"
+    },
+    {
+      "name": "governance:execute-base",
+      "hash": "0x3fa6f1eac7b5c0811f2fb3d1e7fdc5a4eab7c36796853c239064bd4686a20150",
+      "block": "68953158",
+      "blockHash": "0x3e9632392fed79dd874c8ad1d1a64a6a6b67ecb63e7c314b7695c263ab99315a",
+      "gasUsed": "858611",
+      "status": "success"
+    },
+    {
+      "name": "treasury:faucet",
+      "hash": "0x20f9661d43a486e5bf9473d53d6a5425c27f63f86dd6a14f59a367597ebda5da",
+      "block": "68953173",
+      "blockHash": "0xce00f12825b652cfe6cd8505c31c1e34fe3a1a0be620499475d171a529631e73",
+      "gasUsed": "98957",
+      "status": "success"
+    },
+    {
+      "name": "treasury:approve",
+      "hash": "0xe85026b45710b198af53bff9d82b723fa4d6f6078fd5453c99ccaba98ef1222a",
+      "block": "68953185",
+      "blockHash": "0xa024278f121913701db479415721943fb4232248b02cd4ec1da8f88c08c9dcb9",
+      "gasUsed": "67450",
+      "status": "success"
+    },
+    {
+      "name": "treasury:assertion",
+      "hash": "0x338089bea302828390af4beddc673dc30dd2b377da25cdd9ae7901718e33a9cf",
+      "block": "68953197",
+      "blockHash": "0xe1ec022f25beae6b87d542794292a62349cfa52cd150f7577245ada96063055e",
+      "gasUsed": "153878",
+      "status": "success"
+    },
+    {
+      "name": "treasury:watchdog",
+      "hash": "0x3d69f0198e27d2f28f9eb1660ddde7da01f12061a4b11fa21b6f8c8a9232d8c4",
+      "block": "68953209",
+      "blockHash": "0x2466498ddba1c3e46a4891c978e2b948a068d0d21b01c9722b410fa4959872eb",
+      "gasUsed": "134970",
+      "status": "success"
+    }
+  ],
+  "sha256": {
+    "oracle/src/ResolutionOracle.sol": "443d3e11b8e16ef6d8149efcfdfc9f1a50b4303bb43708363f0f29611589f5a7",
+    "oracle/out/ResolutionOracle.sol/ResolutionOracle.json": "618c4819cb083d3faed3ae77bbc1f93e1c9268e076b08e1f5ece18e65e7efb85",
+    "tmp/redeploy-audit-20261007/base-plan.json": "a57fced0e0fe0d8a3b89b3f148963c21732e6ae37cf235431f11d7bf0206fe51",
+    "tmp/redeploy-audit-20261007/broadcast-journal.json": "894075e5a88d367efa876af0530dc23a7841cc49de5b08d28635489f33dfd63f",
+    "tmp/redeploy-audit-20261007/base-verification.json": "1f37a63c9e01d4249e608416d501e253954041edbe17e1b43e726d6d781cfa33"
+  }
+}

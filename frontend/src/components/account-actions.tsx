@@ -2,14 +2,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
-import { engineAbi } from "@/abi/engine";
 import { ownerTrader } from "@/lib/trader";
 import { deployment, marketByEngine } from "@/config/deployment";
-import { client, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
+import { type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { amountWithinBalance, atomsToInput, canClaim, fundingPlan } from "@/lib/funds";
 import { atomsToUsdc, parseUsdcToAtoms } from "@/lib/units";
 import { REJECT } from "@/lib/enums";
-import { canonicalRead } from "@/lib/deployment-check";
+import { releasePreviewOptions } from "@/lib/collateral-queries";
+import { pinnedReadCurrent } from "@/lib/pinned-read";
 import { useTx } from "@/lib/tx";
 import { useOwner } from "./wallet";
 import { Button, cx } from "./ui";
@@ -29,17 +29,17 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
   const available = !t ? 0n : mode === "Fund" ? t.wallet + t.free : mode === "Withdraw" ? t.free : t.account?.preview.usableReleaseAtoms ?? 0n;
   try { if (input) { amount = parseUsdcToAtoms(input); if (!amount) throw new Error("Enter an amount greater than zero."); if (t) amount = amountWithinBalance(amount, available); } } catch (e) { error = (e as Error).message; }
   const validation = useFieldErrors({ amount: error || (!input ? "Enter an amount greater than zero." : "") });
-  const release = useQuery({
-    queryKey: ["release-preview", engine, owner.address, t?.traderId, amount.toString(), m?.block.toString()],
-    enabled: mode === "Release" && amount > 0n && !error && !!t?.traderId && !!m,
-    queryFn: () => canonicalRead(m!.block, () => client.readContract({ address: engine, abi: engineAbi, functionName: "previewRelease", args: [t!.traderId, amount], blockNumber: m!.block })),
-  });
-  const busy = tx.state.status === "pending" || tx.state.status === "sent";
   const readsReady = !!t && !!m && t.block === m.block && !readUnavailable;
+  const release = useQuery({
+    ...releasePreviewOptions(engine, owner.address, t?.traderId ?? 0, amount, m?.block ?? 0n),
+    enabled: mode === "Release" && amount > 0n && !error && !!t?.traderId && readsReady,
+  });
+  const releasePreview = readsReady && pinnedReadCurrent(release.data, m?.block) ? release.data?.value : undefined;
+  const busy = tx.state.status === "pending" || tx.state.status === "sent";
   const blocker = mode === "Fund" && fundDisabled ? "Archived market"
     : owner.wrongChain ? "Switch to Monad testnet" : readUnavailable ? "Live reads unavailable" : !readsReady ? "Reading balances…"
     : mode !== "Withdraw" && m?.halted ? "Market halted"
-    : error || (!amount ? "Enter an amount" : mode === "Release" ? release.isError ? "Release preview unavailable" : !release.data ? "Checking release…" : !release.data[0] ? REJECT[release.data[1]] || "Release unavailable" : "" : "");
+    : error || (!amount ? "Enter an amount" : mode === "Release" ? release.isError ? "Release preview unavailable" : !releasePreview ? "Checking release…" : !releasePreview[0] ? REJECT[releasePreview[1]] || "Release unavailable" : "" : "");
 
   async function submit() {
     if (!owner.address || !t || blocker || busy) return;
@@ -59,6 +59,7 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
       {MODES.map((x) => <button key={x} disabled={busy || (x === "Fund" && fundDisabled)} aria-pressed={mode === x} className={cx("label h-9 disabled:opacity-40", x === mode ? "bg-press text-fg" : "bg-ground text-fg-3")} onClick={() => { setMode(x); setInput(""); validation.reset(); tx.reset(); }}>{x}</button>)}
     </div>
     <p className="text-xs leading-relaxed text-fg-3">{mode === "Fund" ? "Add collateral to this market. Free vault funds are used first." : mode === "Release" ? "Move excess market collateral into your free vault balance." : "Send free vault collateral back to your selected wallet."}</p>
+    {mode === "Release" && m && !m.halted && !m.risk.indexAvailable && <p role="status" className="border-l-2 border-signal pl-2 text-xs leading-relaxed text-fg-2">Releasing market collateral requires a fresh index, including for a flat account. Existing free vault funds can still be withdrawn.</p>}
     <label className="flex flex-col gap-1.5">
       <span className="label text-fg-3">Amount ({t?.assets.symbol ?? deployment.risk.collateralSymbol})</span>
       <div className="flex"><input inputMode="decimal" disabled={busy} {...validation.props("amount")} value={input} onChange={(e) => setInput(e.target.value)} placeholder="0.00" className="h-10 min-w-0 flex-1 border border-line-strong bg-ground px-2 text-sm tnum" /><Button className="h-10" disabled={!t || busy} onClick={() => setInput(atomsToInput(available))}>Max</Button></div>

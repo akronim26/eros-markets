@@ -133,8 +133,10 @@ export class LocalReadModel {
     const seen = new Set<string>()
     const canonicalHashes = new Map<bigint, Hex>()
     const permittedAddresses = new Set(addresses.map(address => address.toLowerCase()))
-    for (let cursor = fromBlock; cursor <= toBlock; cursor += 250n) {
-      const end = cursor + 249n < toBlock ? cursor + 249n : toBlock
+    // Monad's public RPC limits eth_getLogs to 100 blocks, inclusive. Keep each
+    // transport request within that bound while retaining a 5,000-block API page.
+    for (let cursor = fromBlock; cursor <= toBlock; cursor += 100n) {
+      const end = cursor + 99n < toBlock ? cursor + 99n : toBlock
       const logs = await this.client.getLogs({ address: addresses, fromBlock: cursor, toBlock: end })
       for (const log of logs) {
         if (log.removed || log.blockHash === null || log.blockNumber === null || log.transactionHash === null || log.logIndex === null) throw new Error('INCOMPLETE_EVENT_LOG')

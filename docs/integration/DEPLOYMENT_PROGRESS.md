@@ -1,6 +1,50 @@
 # Fresh Monad testnet deployment
 
-## 7 October 2026 — current deployment complete; services stopped
+## Audit repair rollout — 7 October 2026, deployed and funded
+
+The user funded the deployment wallet and authorized redeployment and service
+funding for frontend testing. The repaired oracle has immutable registry/treasury
+bindings, so this rollout creates a fresh connected deployment. Existing markets
+and owner balances remain on their original contracts and are retained as archived
+frontend deployments.
+
+- Fresh base: all **32 public transactions** finalized and passed runtime and
+  reciprocal binding verification. Actual gas cost: **6.905266278 test MON**.
+- The address register is refreshed from canonical finalized receipts during the
+  rollout. It contains the replacement deployment only.
+- The treasury has **22,000 assertion test tokens**, with a 3,336 per-market
+  allowance. Both market listings, calibration and activation passed canonical
+  verification, with **100,000 reserve test tokens per market**.
+- Eight independent runtime wallets received **39 test MON** in total. Four
+  maker owners each confirmed their own faucet, approval, deposit and allocation
+  sequence, allocating **2,000 test tokens per maker**. These are separate from
+  the user's wallet and any balances retained in archived deployments.
+- The frontend selects the two fresh markets and its production build passed.
+  A matching local Envio indexer serves their current deployment at loopback
+  port 8083; the frontend runs on port 3100. Public browser checks and continuous
+  INDEX/MARK window validation are in progress.
+- Current source probes are recorded separately, including intermittent vendor
+  timing and transport failures. No continuous public price coverage or 5× fill
+  is claimed by deployment alone. Live publication and admission guards remain
+  unchanged.
+- The archived-market oracle routing fix passed 70 frontend unit tests, 47
+  integration tests, four deployment selection/export checks and typecheck.
+  The indexer passed 40 tests, typecheck and code generation. New evidence is in
+  `artifacts/integration/redeployment-20261007/`; earlier audit reports retain
+  their original source fingerprints.
+
+Local runtime campaigns are explicitly bounded to one hour. At startup the
+Nebraska publisher finalized genuine external observations; the House publisher
+stopped safely after a transient RPC preflight failure, before creating signing
+journals. Its retry handling is being repaired before restart. Deployment has a
+5× ceiling; available leverage still depends on fresh INDEX/PERP/BASIS windows
+and an eligible epoch. Deployment and funding alone do not establish MARK or 5×
+admission. Keep the laptop powered while using these local services.
+
+Private journals and operator custody remain under `tmp/redeploy-audit-20261007/`.
+No private key or credential-bearing RPC URL belongs in deployment artifacts.
+
+## Historical checkpoint — earlier 7 October deployment; services stopped
 
 - User supplied 40 test MON; initial verified balance 40.374 MON. Two source probes
   passed: Nebraska independent Senate outcome 634893 and Republican House

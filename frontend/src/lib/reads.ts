@@ -5,9 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { type Address, type Hex } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { vaultAbi } from "@/abi/vault";
-import { resolutionOracleAbi } from "@/abi/resolutionOracle";
-import { marketRegistryAbi } from "@/abi/marketRegistry";
-import { deployment } from "@/config/deployment";
+import { resolveOracleBinding } from "./oracle-binding";
+import { readOracleSnapshot } from "./oracle-reads";
 
 import { client } from "./public-client";
 import { readAssets } from "./market-discovery";
@@ -52,13 +51,15 @@ function useSticky<T extends { data: unknown }>(q: T, scope = "public"): T {
 
 export function useMarket(engine: Address, block: bigint | undefined) {
   return useSticky(useQuery({
-    // Keep one in-flight read per market. A new head must not abandon a slower
-    // snapshot and start another overlapping request that never reaches the UI.
     queryKey: ["market", engine],
     enabled: block !== undefined,
     refetchInterval: 4000,
     staleTime: 3500,
-    queryFn: async () => canonicalRead(block!, async () => {
+    queryFn: () => canonicalRead(block!, () => readMarket(engine, block!)),
+  }), engine.toLowerCase());
+}
+
+async function readMarket(engine: Address, block: bigint) {
       const c = { address: engine, abi: engineAbi } as const;
       const [
         active, halted, priceReady, risk, settlement, listing, bba, touch, depth, oi, participants,
@@ -107,8 +108,6 @@ export function useMarket(engine: Address, block: bigint | undefined) {
         liqBudget: { cap: liqBudget[0], remaining: liqBudget[1] },
         maxFills, freshness: { freshThrough: freshness[0], movementRestricted: freshness[2] },
       };
-    }),
-  }), engine.toLowerCase());
 }
 export type MarketSnapshot = NonNullable<ReturnType<typeof useMarket>["data"]>;
 
@@ -118,7 +117,11 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
     enabled: !!owner && block !== undefined,
     refetchInterval: 4000,
     staleTime: 3500,
-    queryFn: async () => canonicalRead(block!, async () => {
+    queryFn: () => canonicalRead(block!, () => readTrader(engine, owner!, block!)),
+  }), `${engine.toLowerCase()}:${owner?.toLowerCase() ?? "disconnected"}`);
+}
+
+async function readTrader(engine: Address, owner: Address, block: bigint) {
       const assets = await readAssets(engine, block!);
       const [traderId, free, wallet, allowance] = await client.multicall({
         blockNumber: block,
@@ -142,10 +145,36 @@ export function useTrader(engine: Address, owner: Address | undefined, block: bi
         ],
       });
       return { block: block!, assets, traderId, free, wallet, allowance, account: { preview, riskView, claimable, claimed } };
-    }),
-  }), `${engine.toLowerCase()}:${owner?.toLowerCase() ?? "disconnected"}`);
 }
 export type TraderSnapshot = NonNullable<ReturnType<typeof useTrader>["data"]>;
+
+/** Read the terminal's public and owner state as one block-pinned snapshot.
+ * Independent polling can drift permanently, leaving every owner action disabled.
+ * One stable query also bounds in-flight work when an RPC is slower than polling.
+ */
+export function tradingSnapshotOptions(engine: Address, owner: Address | undefined, block: bigint | undefined) {
+  return {
+    queryKey: ["trading-snapshot", engine.toLowerCase(), owner?.toLowerCase()],
+    enabled: block !== undefined,
+    refetchInterval: 4000,
+    staleTime: 3500,
+    queryFn: () => canonicalRead(block!, async () => {
+      const [market, account] = await Promise.allSettled([
+        readMarket(engine, block!),
+        owner ? readTrader(engine, owner, block!) : Promise.resolve(undefined),
+      ]);
+      if (market.status === "rejected") throw market.reason;
+      return { market: market.value, trader: account.status === "fulfilled" ? account.value : undefined,
+        accountError: account.status === "rejected" };
+    }),
+  };
+}
+
+export function useTradingSnapshot(engine: Address, owner: Address | undefined, block: bigint | undefined) {
+  return useSticky(useQuery(tradingSnapshotOptions(engine, owner, block)),
+    `${engine.toLowerCase()}:${owner?.toLowerCase() ?? "disconnected"}`);
+}
+
 
 export type Level = { tick: number; bidLots: bigint; askLots: bigint };
 
@@ -204,28 +233,15 @@ export function useLiveSeries(engine: Address, head: bigint | undefined) {
   return result.scope === scope ? result.series : emptySeries();
 }
 
-export function useOracleMarket(id: Hex) {
+export function useOracleMarket(id: Hex, engine?: string) {
+  const oracle = resolveOracleBinding(id, engine);
   return useQuery({
-    queryKey: ["oracle-market", id],
+    queryKey: ["oracle-market", oracle.marketRegistry, oracle.resolutionOracle, id, oracle.engine],
     refetchInterval: 15000,
     queryFn: async () => {
-      const o = deployment.oracle;
       await ensureDeployment();
       const head = await client.getBlock({ blockTag: "finalized" });
-      const block = head.number;
-      return canonicalRead(block, async () => {
-      const [question, rules, core, resolution, evidenceURI, bond, liveness, claim] = await client.multicall({ blockNumber: block, allowFailure: false, contracts: [
-        { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getQuestion", args: [id] },
-        { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getRules", args: [id] },
-        { address: o.marketRegistry, abi: marketRegistryAbi, functionName: "getMarketCore", args: [id] },
-        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "getResolution", args: [id] },
-        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "evidenceURIOf", args: [id] },
-        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "bondFor", args: [id] },
-        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "livenessFor", args: [id] },
-        { address: o.resolutionOracle, abi: resolutionOracleAbi, functionName: "renderClaim", args: [id] },
-      ] });
-      return { id, question, rules, core, resolution, evidenceURI, block, now: head.timestamp, bond, liveness, claim };
-      });
+      return readOracleSnapshot(id, oracle, head.number, head.timestamp);
     },
   });
 }

@@ -5,6 +5,7 @@ import { marketRegistryAbi } from "@/abi/marketRegistry";
 import { deployment, marketByEngine, markets, oracleMarkets, type MarketManifest } from "@/config/deployment";
 import { INDEXER_URL, indexerQuery } from "./history";
 import { canonicalRead, ensureDeployment } from "./deployment-check";
+import { resolveOracleBinding } from "./oracle-binding";
 
 class UnsupportedMarket extends Error {}
 
@@ -56,8 +57,14 @@ export async function discoverMarkets() {
     indexed = true;
   }
   const block = (await client.getBlock({ blockTag: "finalized" })).number;
-  const results = await canonicalRead(block, () => Promise.all([...ids].map(async (id) => {
-    const core = await client.readContract({ address: deployment.oracle.marketRegistry, abi: marketRegistryAbi, functionName: "getMarketCore", args: [id], blockNumber: block });
+  const records = [
+    ...markets.filter(m => m.oracleMarketId).map(m => ({ id: m.oracleMarketId!, engine: m.engine as string | undefined })),
+    ...[...ids].filter(id => !markets.some(m => m.oracleMarketId === id)).map(id => ({ id, engine: undefined })),
+  ];
+  const results = await canonicalRead(block, () => Promise.all(records.map(async ({ id, engine }) => {
+    const binding = resolveOracleBinding(id, engine);
+    const core = await client.readContract({ address: binding.marketRegistry, abi: marketRegistryAbi, functionName: "getMarketCore", args: [id], blockNumber: block });
+    if (binding.engine && core.engine.toLowerCase() !== binding.engine.toLowerCase()) throw new UnsupportedMarket("Registry record does not match the verified engine.");
     return resolveMarket(core.engine);
   })));
   const merged = new Map(markets.map((m) => [m.engine.toLowerCase(), m]));

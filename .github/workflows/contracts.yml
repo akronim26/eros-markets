@@ -34,6 +34,10 @@ jobs:
           version: v1.8.3
 
       - name: Build and contract sizes
+        env:
+          # The CI profile permits oversized test harnesses; the build size gate
+          # must still enforce Monad's 128 KiB production runtime limit.
+          FOUNDRY_CODE_SIZE_LIMIT: "131072"
         run: forge build --sizes
 
       - name: Test (unit, fuzz, invariant, differential, gas snapshots)

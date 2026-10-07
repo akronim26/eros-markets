@@ -31,8 +31,8 @@ export function OpenOrders({ engine, traderId, block }: { engine: Address; trade
         <tbody>{q.data.orders.map((o) => <tr key={o.id} className="hair-b">
           <td className="py-2 pr-3 tnum">{o.id}</td><td className="pr-3">{o.flags & 1 ? "Buy" : "Sell"}{o.flags & 2 ? " · reduce only" : ""}</td>
           <td className="pr-3 tnum">{tickToPrice(o.tick)}</td><td className="pr-3 tnum">{lotsToClaims(o.size)}</td>
-          <td className="pr-3">{o.status === "live" ? "Resting" : "Stale · awaiting pruning"}</td>
-          <td><Button size="sm" disabled={disabled || o.status !== "live"} onClick={() => cancel(o.id)} aria-label={`Cancel order ${o.id}`}>Cancel</Button></td>
+          <td className="pr-3">Resting</td>
+          <td><Button size="sm" disabled={disabled} onClick={() => cancel(o.id)} aria-label={`Cancel order ${o.id}`}>Cancel</Button></td>
         </tr>)}</tbody>
       </table></div>}
     {q.data && !q.data.complete && <p className="mt-3 text-xs text-fg-3">Older orders from other sessions may be missing. Cancel all cancels every resting order for this wallet in this market.</p>}

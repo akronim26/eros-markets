@@ -129,8 +129,8 @@ export function WalletPickerProvider({ children }: { children: ReactNode }) {
       // Disconnect every wagmi connector so no previously selected account survives logout.
       for (const c of getConnections(config)) await disconnect(config, { connector: c.connector });
       await privyLogout();
-      await qc.cancelQueries({ predicate: (q) => q.queryKey[0] === "trader" || q.queryKey[0] === "previewOrder" });
-      qc.removeQueries({ predicate: (q) => q.queryKey[0] === "trader" || q.queryKey[0] === "previewOrder" });
+      await qc.cancelQueries({ predicate: (q) => ["trader", "trading-snapshot", "previewOrder"].includes(String(q.queryKey[0])) });
+      qc.removeQueries({ predicate: (q) => ["trader", "trading-snapshot", "previewOrder"].includes(String(q.queryKey[0])) });
       dialog.current?.close();
     } catch (e) { setError(message(e)); }
     finally { setBusy(false); }

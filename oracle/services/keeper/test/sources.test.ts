@@ -72,7 +72,7 @@ describe('IndexerSource', () => {
   test('an HTTP error, GraphQL errors or a malformed answer throw', async () => {
     const src = (pages: unknown[]) => new IndexerSource(new IndexerClient('u', 10143, fake(pages)), 2)
     await expect(src([new Response('x', { status: 502 })]).marketIds()).rejects.toThrow(/HTTP 502/)
-    await expect(src([{ errors: [{ message: 'field "Market" not found' }] }]).marketIds()).rejects.toThrow(/not found/)
+    await expect(src([{ errors: [{ message: 'field "Market" not found' }] }]).marketIds()).rejects.toThrow(/GraphQL request rejected/)
     await expect(src([{ data: {} }]).marketIds()).rejects.toThrow(/no Market list/)
   })
 
@@ -202,5 +202,19 @@ describe('the indexer first, RPC logs as the fallback', () => {
     const { c } = chainLogs(head, new Map([[1_200n, id(4)]]), new Map())
     const markets = indexedMarkets(indexer(m), new RegistryLogSource(c, REGISTRY, 1_000n), c.getBlockNumber, 300n)
     expect(await markets.marketIds()).toEqual([id(4)])
+  })
+
+  test('a repeated indexer page triggers RPC fallback without advancing past unlisted markets', async () => {
+    const head = { n: 2_000n }
+    const { c, ranges } = chainLogs(head, new Map([[1_200n, id(4)], [1_999n, id(5)]]), new Map())
+    const repeated = new IndexerClient('https://indexer.invalid', 10143, (async (_u, init) => {
+      const { query } = JSON.parse(init!.body as string)
+      return Response.json({ data: query.includes('_meta')
+        ? { _meta: [{ chainId: 10143, progressBlock: 2000, sourceBlock: 2000, isReady: true }] }
+        : { Market: [{ id: id(4) }] } })
+    }) as typeof fetch)
+    const markets = indexedMarkets(repeated, new RegistryLogSource(c, REGISTRY, 1_000n), c.getBlockNumber, 300n)
+    expect(await markets.marketIds()).toEqual([id(4), id(5)])
+    expect(ranges[0]).toEqual([REGISTRY, 1000n, 1099n])
   })
 })

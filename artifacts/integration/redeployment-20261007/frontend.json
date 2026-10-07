@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-07",
+  "owner": "frontend_audit",
+  "status": "fresh-selection-build-and-anonymous-browser-validation-passed",
+  "scope": "Fresh full-base redeployment frontend archive bindings, verified selection/export helpers and anonymous public-browser validation. Indexer operated locally using read-only chain requests; no chain transactions sent by frontend agent.",
+  "historicalAudit": "artifacts/integration/deep-audit-20261007/frontend.json",
+  "historicalBrowserProof": "artifacts/integration/deep-audit-20261007/e2e.json",
+  "finding": {
+    "id": "FE-11",
+    "severity": "high",
+    "status": "fixed",
+    "title": "Archived resolution reads and actions targeted the newest oracle after a full base redeployment",
+    "reproduction": "Oracle views, discovery and action handlers referenced the selected deployment globally. Once the oracle and registry are redeployed, an archived engine requires its previous registry/oracle. The regression uses a repeated market ID in two deployments to make wrong targeting explicit.",
+    "fix": "Resolve engine plus market ID against verified manifests; carry the exact registry/oracle binding in canonical read snapshots; use that oracle in all action simulations and writes; render resolution entries per engine and query discovery against each original registry. Ambiguous IDs without engine scope and unexpected registry-engine bindings fail closed.",
+    "evidence": [
+      "frontend/tests/integration/oracle-binding.test.ts",
+      "frontend/tests/polled-actions.test.mjs"
+    ],
+    "validationBoundary": "Targeted9 tests and full70 unit/47 integration/typecheck passed; fresh verified public manifests selected, production build passed and anonymous public-browser checks completed. New public owner signing and leveraged fills are separate."
+  },
+  "validation": [
+    {
+      "command": "npm test",
+      "workingDirectory": "frontend",
+      "result": "passed",
+      "tests": 70,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run test:integration",
+      "workingDirectory": "frontend",
+      "result": "passed",
+      "tests": 47,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run typecheck",
+      "workingDirectory": "frontend",
+      "result": "passed"
+    },
+    {
+      "command": "npx tsx --test ../scripts/e2e/manifest-selection.test.ts",
+      "workingDirectory": "frontend",
+      "result": "passed",
+      "tests": 4,
+      "failures": 0,
+      "skipped": 0
+    }
+  ],
+  "independentReviews": [
+    {
+      "reviewer": "astra_protocol_audit",
+      "scope": "Archived oracle resolver, snapshots and action target bindings",
+      "result": "No concrete regression found; existing wallet/network/fresh simulation/finality guards retained."
+    },
+    {
+      "reviewer": "frontend_audit",
+      "scope": "Fresh manifest selection and oracle service export helpers by services_audit",
+      "result": "Fresh first incoming shared base, archive preservation, staged apply/rollback, source/engine and contract checks reviewed. Added missing factory.registry verification; four pure helper tests passed."
+    }
+  ],
+  "selection": {
+    "applied": true,
+    "marketCount": 2,
+    "chainId": 10143,
+    "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+    "verifiedAt": {
+      "blockNumber": "68958833",
+      "blockHash": "0xa94a2c13240952164b6cedcf59f7371796967b4f63bf67ca680947813c91f1a2"
+    },
+    "log": "tmp/redeploy-audit-20261007/frontend-selection.log",
+    "logHash": "d7474d6eac0d76280cec6ae48d51623895ad08a79260bd0c22a58dd60a4cfd0e",
+    "configurationHashes": {
+      "frontend/src/config/public-manifest.json": "01394ddb4b581f03b244fc8ee7c7f14a6f5012c99a2f53efe9bdb08e657a0008",
+      "frontend/src/config/archived-deployments.json": "dbac4d84c9cf2e5d07b07e68fc213d49308f25b199b3961cea433298cd96d835",
+      "frontend/src/config/market-metadata.json": "775a79a9b57c1391bf68cf3bdd287b2c9a79c77f00170914d768ac1ad1e4fa57",
+      "frontend/src/config/risk-calibrations.json": "c5148d3418a98e2d5fb9fde5ee9da3ec63b512ea9593f16dfe54ed7d0ae026bb"
+    }
+  },
+  "browserValidation": {
+    "result": "passed",
+    "checkedAt": "2026-10-07T11:40:26.103Z",
+    "finishedAt": "2026-10-07T11:41:05.174Z",
+    "checks": [
+      {
+        "name": "Only the two fresh markets are listed with current terminal URLs",
+        "passed": true
+      },
+      {
+        "name": "Search, no-results, escape clearing and URL persistence",
+        "passed": true
+      },
+      {
+        "name": "Fresh market 1: terminal route, current title, source history and anonymous account guard",
+        "passed": true
+      },
+      {
+        "name": "Fresh market 1: chart controls and every terminal panel",
+        "passed": true
+      },
+      {
+        "name": "Fresh market 1: light/dark mobile layouts do not overflow",
+        "passed": true
+      },
+      {
+        "name": "Fresh market 2: terminal route, current title, source history and anonymous account guard",
+        "passed": true
+      },
+      {
+        "name": "Fresh market 2: chart controls and every terminal panel",
+        "passed": true
+      },
+      {
+        "name": "Fresh market 2: light/dark mobile layouts do not overflow",
+        "passed": true
+      },
+      {
+        "name": "Archived terminal retains old identity and explicit restricted/archive state",
+        "passed": true
+      },
+      {
+        "name": "Browser RPC outage labels cached data and recovers without wallet activity",
+        "passed": true
+      },
+      {
+        "name": "Public pages and custom 404 render with no application exceptions",
+        "passed": true
+      }
+    ],
+    "applicationExceptions": [],
+    "viewports": [
+      320,
+      390,
+      768,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "report": "tmp/redeploy-audit-20261007/browser-readonly/report.json",
+    "reportHash": "926fea03e2fb2febe999f63cdae54e71847de9b6df86bdd0ed1db9edaeadf004",
+    "browserScript": "tmp/redeploy-audit-20261007/browser-readonly.mjs",
+    "browserScriptHash": "ff914a0dfb16b55cce1b7d3e381f3ae79f77fd7e73178346f8d957cc84f77a1f",
+    "screenshots": [
+      "tmp/redeploy-audit-20261007/browser-readonly/markets-desktop.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-desktop-light.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-mobile-light.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-mobile-dark.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-desktop-dark.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-desktop-light.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-mobile-light.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-mobile-dark.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-desktop-dark.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/archived-terminal.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/rpc-outage.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/nebraska-book-loaded.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/mobile-dark-stable.png",
+      "tmp/redeploy-audit-20261007/browser-readonly/privy-login-modal.png"
+    ],
+    "networkResult": "Only navigation-cancelled requests (ERR_ABORTED) and intentionally injected RPC-outage failures were observed. Recovery passed.",
+    "pricesObserved": [
+      {
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "source": "0.285 live",
+        "executionIndex": "0.285 available",
+        "mark": "warming",
+        "currentCaps": "1x bootstrap",
+        "orderBook": "2000 claims bid0.275 and ask0.295"
+      },
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "source": "0.075 live",
+        "executionIndex": "warming at snapshot",
+        "mark": "warming",
+        "currentCaps": "1x bootstrap"
+      }
+    ],
+    "supplementalPrivy": {
+      "passed": true,
+      "checkedAt": "2026-10-07T11:45:11.953Z",
+      "privyControlsVisible": true,
+      "emailVisible": true,
+      "existingWalletOptionVisible": true,
+      "loginAttempted": false,
+      "transactions": 0
+    },
+    "supplementalCollateral": {
+      "passed": true,
+      "checkedAt": "2026-10-07T11:44:42.823Z",
+      "block": "68961516",
+      "blockHash": "0x4be6e0747236540e45bf6f90e0a816c012105909b79dcf1600d8b9b9e6966411",
+      "token": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+      "vault": "0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329",
+      "bindings": [
+        {
+          "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+          "vault": "0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329"
+        },
+        {
+          "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+          "vault": "0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329"
+        }
+      ],
+      "freeFaucetSimulationPassed": true,
+      "actualTransactions": 0,
+      "balanceUnchanged": true,
+      "scope": "Read-only simulation of fresh test collateral faucet and engine-vault identity. Logged-in funding button and owner signing remain user checks."
+    },
+    "historicalLocalE2EDoesNotCertifyTheseNewChanges": true,
+    "harnessNotes": [
+      "Privy dialog wrapper has zero height because its children are fixed-position. Validation targets visible email, heading and existing-wallet controls.",
+      "The initial modal probe expected the default heading; the site deliberately uses Log in to trade. Corrected selector passed; no source change was needed."
+    ],
+    "screenshotHashes": {
+      "tmp/redeploy-audit-20261007/browser-readonly/markets-desktop.png": "593eae2019324b4e6f13a02e6a2a15acfb3a758d5e62a992d3c062299ec27c23",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-desktop-light.png": "48912c64cf494a71392dfde0f7a15a32d70aa20015570a09f1a4763e99be8f6a",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-mobile-light.png": "6b4ad34fe638e10ae2c44221cbb5cde12585f011ab56adaecdede3b9d334cf8c",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-mobile-dark.png": "82134659081c105b1fca367e958bb41b9eef383018dc6c60534b70704931ec40",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-1-desktop-dark.png": "d8b4d488cf1b5f72c57333070fca4bb4f0feae42b2242277ffbeb23b0c713873",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-desktop-light.png": "96e782ea3f87267c6aa68d6030eb39fabead47396c72d2e957596fa8f5c206f3",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-mobile-light.png": "c9b58694c93152769caacf0ab76033f2c6da745bc79cf7474240a4f2d19cf999",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-mobile-dark.png": "31327a38da14826fabbe820d7b5626bbd89ee01f27a443f86d0098326bd138d5",
+      "tmp/redeploy-audit-20261007/browser-readonly/market-2-desktop-dark.png": "f98940d7435f7773bd897b06556c7159e03441a34983608560752c80cb4812be",
+      "tmp/redeploy-audit-20261007/browser-readonly/archived-terminal.png": "00505ca1d4f143a98eccf21f7be5ce2472b1ea2a48c0a1bf45c12673d6d413c3",
+      "tmp/redeploy-audit-20261007/browser-readonly/rpc-outage.png": "960f26b04ef4440af7e1d6f42b5cf0152f8f4b74dddb7a80b8ba94007f6b0b54",
+      "tmp/redeploy-audit-20261007/browser-readonly/nebraska-book-loaded.png": "e44d25583241a7c16483d985adad40105d7a7ed2c075cb41ef30679fdeaab3d6",
+      "tmp/redeploy-audit-20261007/browser-readonly/mobile-dark-stable.png": "dceb3b08fc9fa1cf9f3fb297f0e95a7bc25a12e83ebd737c6295ab1a7d618dc6",
+      "tmp/redeploy-audit-20261007/browser-readonly/privy-login-modal.png": "1780cf43eb2e0cfb58b0744264aa72f7899af93c73cc37aab05bf02c464f8d41"
+    }
+  },
+  "sourceHashes": {
+    "frontend/src/lib/oracle-binding.ts": "7cdb356ae8dc226d8e68d6f6df0bda5f8c2af305352cf19479ffd93660d92caf",
+    "frontend/src/lib/oracle-reads.ts": "0558611af1f04a8764f28d16bd633f2cbc861acb57157dca8f3165322cfb37fc",
+    "frontend/src/lib/reads.ts": "9a7741556e7f67902d9f04214c55660009f9303620df5fe441c590d4ceb8ae27",
+    "frontend/src/lib/market-discovery.ts": "3fbb667abecf2ab50e0feede041a8b1074dbb0ff6c99fa87892507b88f8dcf56",
+    "frontend/src/components/oracle-actions.tsx": "6aee7b73848a56ae5de18c1f62136396f63012900966c5c7d0e7eb5fa48ba60c",
+    "frontend/src/components/resolution.tsx": "e2e7bdddd48d578e8aaae82ee0449bebf6f71f75dd9f47a6d850937135fdfc59",
+    "frontend/src/components/terminal.tsx": "53857e6d80162c09a23a5cd3517a5604f01229aa42593d8798318b3098a1c770",
+    "frontend/tests/integration/oracle-binding.test.ts": "d8d70274377760194b7c69a7502b9a18e73000f5c1b319cd2a67a5b2cc4817fe",
+    "frontend/tests/polled-actions.test.mjs": "f27024ed4fb8a542a01594f75b96c20ba35f664fe8f72f6d45649ce263f50f84",
+    "scripts/e2e/manifest-selection.ts": "fdcccacab0c9201f40e517de00f9ce1a1fdff66da92fa19fa3ae3692a9d18821",
+    "scripts/e2e/select-live-markets.ts": "bbb99d6fc5e84515dd32aea658b6b0575e50ad19324cf5600ff2e205c2c61295",
+    "scripts/e2e/service-deployment.ts": "dc78401287d685114d7c45490c07bdf2443704fce6f74e1c4067834f4b7041f5",
+    "scripts/e2e/export-market-services.ts": "9e2267231d28283c0b71e67c9dd173a55904d4c1121b373fceabe1131180ebef",
+    "scripts/e2e/manifest-selection.test.ts": "eb8acc4321c5c2b8c3caa12cea3b7af5299162fd0c4a9386b1e07b382e3235da"
+  },
+  "limitations": [
+    "Public owner login, funding and signing were not exercised; only the login modal and read-only fresh collateral faucet simulation were checked.",
+    "At browser capture both markets retained truthful bootstrap1x caps and MARK warmup; Nebraska execution INDEX was ready, House source samples were still completing its5-minute window.",
+    "Continuous public INDEX/MARK readiness, fivefold admission/fills and operator runtime monitoring require separate live service evidence.",
+    "The prior complete local lifecycle proof belongs only to its preserved historical source hashes.",
+    "Browser history currently uses a local loopback indexer. Public hosting remains separate."
+  ],
+  "productionBuild": {
+    "result": "passed",
+    "command": "npm run build",
+    "log": "tmp/redeploy-audit-20261007/frontend-build.log",
+    "logHash": "006cd446b0fe487a2e32e4f36fd908681fe074744fef76e328bf60f4eb4d2b1f",
+    "attribution": "Root built and started localhost3100; anonymous browser checks used that running production server."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1",
+  "configVersion": "monad-integrated-demo-1",
+  "key": "live-562803",
+  "category": "politics",
+  "enabled": false,
+  "destination": {
+    "chainId": "10143",
+    "engineAddress": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+    "engineCodeHash": "0x27019888efea0653710ba87b04b8389b2c6d1b76f1623455bf754485b4626201",
+    "abiHash": "0x3e3af1c4b7db5ef077b170f7a63d5b89cb8558f54dc5d0c58061ae04c2aaa60a",
+    "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+    "sourceId": "0x83d7a5d5a6318af187b20c88a6ad17078bdaad26307067243bf0d132c3805f9b",
+    "sourceRulesHash": "0xb56bc1d079e6f6dcf427d12e5d943c33671d3775f5f91a43e6ccf39c0ada7aa5",
+    "signerAddress": "0x841055a0328A3BC3C97fdd5FE51740AE80490340",
+    "listedAt": "1791372142",
+    "scheduledT": "1793768340",
+    "invalidRule": {
+      "captureGraceSecs": "3600",
+      "voidSecs": "2592000",
+      "fallbackListed": true,
+      "fallbackPriceWad": "500000000000000000"
+    }
+  },
+  "mapping": {
+    "eventId": "32225",
+    "externalMarketId": "562803",
+    "conditionId": "0x4e4f77e7dbf4cab666e9a1943674d7ae66348e862df03ea6f44b11eb95731928",
+    "outcomeTokenId": "65139230827417363158752884968303867495725894165574887635816574090175320800482",
+    "outcomeLabel": "Yes"
+  },
+  "pricing": {
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "impactMethod": "vwap"
+  },
+  "policies": {
+    "timestampPolicyId": "authentic-vendor-ms-floor-diagnostic",
+    "quantityPolicyId": "claims-floor-total-diagnostic",
+    "quotePolicyId": "before-fee-vwap-unapproved",
+    "mappingApprovalId": null,
+    "pricingApprovalId": null,
+    "timeApprovalId": null,
+    "rulesApprovalId": null,
+    "unitsApprovalId": null,
+    "invalidApprovalId": null,
+    "operatingApprovalId": null
+  },
+  "requiredFeedUntil": "1793768340",
+  "poll": {
+    "intervalMs": 1000,
+    "timeoutMs": 4000,
+    "maxRetries": 1,
+    "retryDelayMs": 200,
+    "metadataMaxAgeMs": 90000,
+    "minimumHeadroomMs": 5000,
+    "bodyLimitBytes": 2000000
+  }
+}
