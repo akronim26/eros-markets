@@ -7,11 +7,12 @@ import { client, actor, demo, token, vault, guard, syncClock, runtime } from './
 
 /** EIP-1193 transport for loopback Anvil. Keys never enter the page or its traces. */
 export async function installWallet(page, index = 16) {
-  assert.ok([16, 17].includes(index));
+  assert.ok([16, 17, 20, 21].includes(index));
+  const pair = index < 20 ? [16, 17] : [20, 21];
   let selected = actor(index).address, rejectNext = false, switchNext = false;
   const receipts = [];
   await guard();
-  for (const i of [16, 17]) await client.request({ method: 'anvil_setBalance', params: [actor(i).address, toHex(parseEther('10'))] });
+  for (const i of pair) await client.request({ method: 'anvil_setBalance', params: [actor(i).address, toHex(parseEther('10'))] });
   await page.exposeBinding('__erosFixtureRequest', async (_source, request) => {
     try {
       const { method, params = [] } = request;
@@ -30,7 +31,7 @@ export async function installWallet(page, index = 16) {
         assert.ok(BigInt(tx.gas) <= 30_000_000n, 'Excessive transaction gas');
         if (rejectNext) { rejectNext = false; return { error: { code: 4001, message: 'User rejected the request.' } }; }
         // Send the already selected approval, then switch accounts before dependent deposit/allocation.
-        const account = actor(selected === actor(16).address ? 16 : 17);
+        const account = actor(pair.find(i => actor(i).address === selected));
         const signer = createWalletClient({ chain: anvil, transport: http(runtime.rpcUrl), account });
         const hash = await signer.sendTransaction({ to: tx.to, data: tx.data, value: 0n, gas: BigInt(tx.gas),
           ...(tx.gasPrice ? { gasPrice: BigInt(tx.gasPrice) } : {}),
@@ -38,7 +39,7 @@ export async function installWallet(page, index = 16) {
         receipts.push({ hash, from: tx.from, to: tx.to, data: tx.data });
         fs.appendFileSync(path.join(process.env.EROS_E2E_DIRECTORY, 'browser-transactions.jsonl'), JSON.stringify(receipts.at(-1)) + '\n');
         if (switchNext) {
-          switchNext = false; selected = actor(selected === actor(16).address ? 17 : 16).address;
+          switchNext = false; selected = actor(pair.find(i => actor(i).address !== selected)).address;
           await page.evaluate(address => window.__erosTestWallet.emit('accountsChanged', [address]), selected);
         }
         return { result: hash };
@@ -64,7 +65,7 @@ export async function installWallet(page, index = 16) {
   return {
     get address() { return selected; }, receipts,
     rejectNext: () => { rejectNext = true; }, switchAfterNext: () => { switchNext = true; },
-    select: async next => { assert.ok([16, 17].includes(next)); selected = actor(next).address; await page.evaluate(address => window.__erosTestWallet.emit('accountsChanged', [address]), selected); },
+    select: async next => { assert.ok(pair.includes(next)); selected = actor(next).address; await page.evaluate(address => window.__erosTestWallet.emit('accountsChanged', [address]), selected); },
     wrongChain: async () => page.evaluate(() => window.__erosTestWallet.emit('chainChanged', '0x1')),
     correctChain: async () => page.evaluate(() => window.__erosTestWallet.emit('chainChanged', '0x7a69')),
   };

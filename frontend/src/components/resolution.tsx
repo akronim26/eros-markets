@@ -17,7 +17,7 @@ import { Chip, Row, SectionRule } from "./ui";
 const LIVE_STATES = new Set([5, 6, 7, 8]);
 
 export function OracleMarket({ id, note = "", engine }: { id: Hex; note?: string; engine?: string }) {
-  const q = useOracleMarket(id);
+  const q = useOracleMarket(id, engine);
   if (q.isLoading) return <LoadingPanel label="Reading the resolution oracle" />;
   if (q.isError || !q.data) return <ReadError message="Could not read this market from the oracle." retry={() => { void q.refetch(); }} />;
   const { question, rules, core, resolution: r, evidenceURI, block } = q.data;
@@ -66,6 +66,10 @@ function ResolutionEntry({ id, title, engine }: { id: Hex; title?: string; engin
 export function ResolutionPage() {
   const list = useMarketList();
   const ids = list.data?.oracleIds ?? oracleMarkets.map((m) => m.id);
+  const entries = [
+    ...list.markets.filter(m => !!m.oracleMarketId).map(m => ({ id: m.oracleMarketId!, title: m.title, engine: m.engine as string | undefined })),
+    ...ids.filter(id => !list.markets.some(m => m.oracleMarketId === id)).map(id => ({ id, title: undefined, engine: undefined })),
+  ];
   return (
     <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
       <h1 className="pixel text-5xl leading-none text-fg uppercase">Resolution</h1>
@@ -82,10 +86,7 @@ export function ResolutionPage() {
       </div>
       {list.isError && <p role="alert" className="mt-4 text-xs text-ask">Market discovery is unavailable. Showing the last known oracle records. <button className="underline" onClick={() => list.refetch()}>Retry</button></p>}
       <div className="frame mt-4">
-        {ids.map((id) => {
-          const market = list.markets.find((m) => m.oracleMarketId === id);
-          return <ResolutionEntry key={id} id={id} title={market?.title} engine={market?.engine} />;
-        })}
+        {entries.map(entry => <ResolutionEntry key={`${entry.id}:${entry.engine ?? "oracle"}`} {...entry} />)}
       </div>
     </main>
   );

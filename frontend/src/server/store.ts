@@ -1,3 +1,4 @@
+import { PublicError } from "@/lib/public-error";
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -21,6 +22,6 @@ export function db() {
 export function rateLimit(user: string) {
   const bucket = Math.floor(Date.now() / 60000), key = `${user}:${bucket}`;
   const row = db().prepare("INSERT INTO rate_limits(id,count) VALUES (?,1) ON CONFLICT(id) DO UPDATE SET count=count+1 RETURNING count").get(key) as { count: number };
-  if (row.count > 30) throw new Error("Too many requests. Try again in one minute.");
+  if (row.count > 30) throw new PublicError("Too many requests. Try again in one minute.");
   db().prepare("DELETE FROM rate_limits WHERE id NOT LIKE ?").run(`%:${bucket}`);
 }

@@ -184,6 +184,45 @@ contract OraclePanelTest is OracleFixture {
 
     // ------------------------------------------------------------------ early panel routing
 
+    function test_auditEarlyPanelCannotRenewExpiredCheck() public {
+        (bytes32 id, MockResolutionEngine e) = _listFeed();
+        _toEarlyCheck(id, e);
+        PanelResult memory p = _panel(id, Phase.EARLY, Y, Y, Y);
+        bytes memory sig = _psig(p);
+        vm.warp(NOW + 600); // TTL is exclusive, independently of the signature's later deadline.
+        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.WrongState.selector, RState.EarlyCheck));
+        ro.submitPanelResult(id, p, URI, sig);
+        assertTrue(ro.expireEarly(id));
+        assertFalse(e.getHaltSnapshot().halted);
+    }
+
+    function test_auditEarlyPanelCannotRouteAtScheduledTime() public {
+        (bytes32 id, MockResolutionEngine e) = _listFeed();
+        vm.warp(T - 10);
+        _toEarlyCheck(id, e);
+        PanelResult memory p = _panel(id, Phase.EARLY, Y, Y, Y);
+        bytes memory sig = _psig(p);
+        vm.warp(T); // The early TTL and signature are both live, but the scheduled phase has begun.
+        vm.expectRevert(abi.encodeWithSelector(IResolutionOracle.WrongState.selector, RState.EarlyCheck));
+        ro.submitPanelResult(id, p, URI, sig);
+        assertTrue(ro.haltScheduled(id));
+        assertEq(uint8(_state(id)), uint8(RState.L1Pending));
+    }
+
+    function test_auditEarlyPanelOneSecondBeforeExpiryCanStartReview() public {
+        (bytes32 id, MockResolutionEngine e) = _listFeed();
+        _toEarlyCheck(id, e);
+        PanelResult memory p = _panel(id, Phase.EARLY, Y, Y, Y);
+        bytes memory sig = _psig(p);
+        vm.warp(NOW + 599);
+        assertEq(uint8(ro.submitPanelResult(id, p, URI, sig)), uint8(RState.EarlyReview));
+        assertEq(_res(id).earlyStartedAt, NOW + 599);
+        vm.warp(NOW + 1198);
+        assertFalse(ro.expireEarly(id));
+        vm.warp(NOW + 1199);
+        assertTrue(ro.expireEarly(id));
+    }
+
     /// EarlyCheck routing: known or flagged → EarlyReview, otherwise None; the confidence floor; payload checks.
     function test_earlyPanel() public {
         uint256 snap = vm.snapshotState();

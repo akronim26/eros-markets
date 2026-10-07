@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-07",
+  "scope": [
+    "contracts Solidity and tests",
+    "oracle Solidity and tests",
+    "packages/risk-sdk",
+    "contracts CI workflow"
+  ],
+  "baselineCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+  "sourceState": "Audited working-tree changes relative to baseline; not represented as deployed or remotely tested changes.",
+  "sourceSha256": {
+    "oracle/src/ResolutionOracle.sol": "443d3e11b8e16ef6d8149efcfdfc9f1a50b4303bb43708363f0f29611589f5a7",
+    "oracle/test/unit/OraclePanel.t.sol": "2a18d387fb16e97677ae17ac9c7492885634e9f0b4df77930b14de526b99f614",
+    "oracle/test/gas/OracleGas.t.sol": "98f8e6999e423743ac2675daffeb624334e156c50878923c15a7d788d5e8c14f",
+    ".github/workflows/contracts.yml": "fef91875947f26225d1c8af4e340755f869638e3e9b62ea26e1cc299934ca665"
+  },
+  "findings": [
+    {
+      "id": "DA-CONTRACT-01",
+      "severity": "medium",
+      "title": "Expired early panel can renew review or route after scheduled resolution time",
+      "location": "oracle/src/ResolutionOracle.sol:326",
+      "description": "submitPanelResult checked stored EarlyCheck state and signature validity, but did not independently enforce earlyStartedAt + earlyTtlSecs or scheduled time tau. A still-valid signed panel could route an expired check into EarlyReview and reset its review timer if no keeper had expired the check; it could also route after tau.",
+      "impactBoundary": "This is an early-resolution state-machine timing defect. The review did not demonstrate arbitrary finalization; committee and assertion requirements remain.",
+      "repair": "Reject the EarlyCheck route at either the early TTL deadline or scheduled resolution time, matching the existing early committee proposal deadline rules.",
+      "preFixReproduction": {
+        "method": "Added two deadline regressions against the original implementation before applying the guard.",
+        "passed": 0,
+        "failed": 2,
+        "failure": "next call did not revert as expected",
+        "tests": [
+          "test_auditEarlyPanelCannotRenewExpiredCheck",
+          "test_auditEarlyPanelCannotRouteAtScheduledTime"
+        ]
+      },
+      "postFixRegressions": [
+        "test_auditEarlyPanelCannotRenewExpiredCheck",
+        "test_auditEarlyPanelCannotRouteAtScheduledTime",
+        "test_auditEarlyPanelOneSecondBeforeExpiryCanStartReview"
+      ],
+      "fixtureRepairs": "Two existing OracleGas early panel cases now warp inside their check TTL and before tau. Their shared setup previously left the clock after tau.",
+      "status": "fixed in audited source",
+      "deploymentRequired": true,
+      "abiChanged": false
+    },
+    {
+      "id": "DA-CI-01",
+      "severity": "low",
+      "title": "Production size gate inherited oversized test-harness allowance",
+      "location": ".github/workflows/contracts.yml:36",
+      "description": "The build size check inherited the ci profile code_size_limit of 1000000 bytes, intended for test harnesses, instead of enforcing the production Monad runtime limit.",
+      "repair": "Set FOUNDRY_CODE_SIZE_LIMIT=131072 only on the build and contract sizes step. Preserve the test step profile, harness allowance, fuzz count and invariant depth.",
+      "status": "fixed in audited workflow"
+    }
+  ],
+  "toolVersions": {
+    "forge": "1.8.3",
+    "forgeCommit": "cae51ad458f6abb64852b7709eb784352429825d",
+    "erosSolc": "0.8.30",
+    "legacyUmaSolc": "0.8.16",
+    "evm": "prague (EROS)",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "riskSdkTypeScript": "5.9.3"
+  },
+  "validation": {
+    "isolation": "Forge output and cache directories were isolated. No default oracle/out writes were performed by this reviewer.",
+    "oracleUnits": {
+      "profile": "default",
+      "command": "forge test --root oracle --match-path test/unit/Oracle*.t.sol -vv",
+      "passed": 95,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 11
+    },
+    "oracleBeforeGasFixtureRepair": {
+      "profile": "default",
+      "passed": 343,
+      "failed": 2,
+      "failureCause": "Both existing early panel gas fixtures executed after their check TTL and scheduled time. Retained as intermediate evidence, not counted as a passing gate."
+    },
+    "oracleFinal": {
+      "profile": "default",
+      "command": "forge test --root oracle -vv",
+      "passed": 345,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 39,
+      "fuzzRuns": 1000,
+      "invariantRuns": 64,
+      "invariantDepth": 64,
+      "invariantFailOnRevert": false,
+      "excludedPath": "test/integration/**"
+    },
+    "contractsFinal": {
+      "profile": "risk",
+      "command": "forge test --root contracts -vv",
+      "passed": 849,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 131,
+      "fuzzRuns": 1000,
+      "fuzzSeed": "0x45524f53",
+      "invariantRuns": 48,
+      "invariantDepth": 64,
+      "invariantFailOnRevert": true,
+      "qualification": "This local result uses the risk profile, not the stronger ci profile."
+    },
+    "riskSdk": {
+      "command": "npm test --prefix packages/risk-sdk",
+      "typecheck": "passed",
+      "accountingAssertions": "passed",
+      "readModelTests": {
+        "passed": 6,
+        "failed": 0
+      },
+      "environmentRepair": "Installed the pinned local TypeScript dependency after the first invocation failed because it was absent. No SDK source change."
+    },
+    "abiComparison": {
+      "contract": "ResolutionOracle",
+      "method": "Structural equality of compiled ABI against the existing baseline artifact ABI",
+      "equal": true
+    },
+    "productionSizeGate": {
+      "profile": "ci",
+      "command": "FOUNDRY_CODE_SIZE_LIMIT=131072 forge build --root contracts --sizes",
+      "exitCode": 0,
+      "runtimeLimitBytes": 131072,
+      "engineRuntimeBytes": 121581,
+      "engineRuntimeMarginBytes": 9491,
+      "engineInitcodeBytes": 131635,
+      "negativeControl": {
+        "runtimeLimitBytes": 120000,
+        "exitCode": 1,
+        "error": "some contracts exceed the runtime size limit (120000 bytes)"
+      }
+    },
+    "diffWhitespaceCheck": "passed",
+    "oracleCiBuild": {
+      "profile": "ci",
+      "command": "forge build --sizes",
+      "workingDirectory": "oracle",
+      "rayonThreads": 2,
+      "exitCode": 0,
+      "runtimeLimitBytes": 131072,
+      "resolutionOracleRuntimeBytes": 41291,
+      "registryBookRiskEngineRuntimeBytes": 122374
+    },
+    "oracleCiFinal": {
+      "profile": "ci",
+      "command": "forge test -vvv",
+      "workingDirectory": "oracle",
+      "rayonThreads": 2,
+      "exitCode": 0,
+      "passed": 345,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 39,
+      "durationSeconds": 223.38,
+      "fuzzRuns": 10000,
+      "invariantRuns": 256,
+      "invariantDepth": 128,
+      "invariantFailOnRevert": false,
+      "excludedPath": "test/integration/**"
+    },
+    "oracleMonadIntegration": {
+      "profile": "integration",
+      "command": "forge test --match-path 'test/integration/*.t.sol' --network monad --hardfork monad:MonadTen --isolate --gas-limit 10000000000 -vv",
+      "workingDirectory": "oracle",
+      "rayonThreads": 2,
+      "exitCode": 0,
+      "passed": 82,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 8,
+      "durationSeconds": 13.73,
+      "fuzzRuns": 1000,
+      "fuzzSeed": "0x45524f53",
+      "execution": "Local EVM execution under MonadTen rules; no public RPC, fork, signing, or broadcast."
+    }
+  },
+  "remoteBaselineCi": {
+    "runId": 37585740671,
+    "url": "https://github.com/akronim26/eros-markets/actions/runs/37585740671",
+    "commit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+    "conclusion": "success",
+    "profile": "ci",
+    "passed": 849,
+    "failed": 0,
+    "suites": 131,
+    "fuzzRuns": 10000,
+    "invariantRuns": 256,
+    "invariantDepth": 128,
+    "testDurationSeconds": 2052.72,
+    "dominantTest": "BD02PreviewParityTest.testFuzzPreviewEqualsTouch",
+    "dominantTestDurationSeconds": 2040.14,
+    "qualification": "Baseline remote run; it does not contain the new workflow size-limit override."
+  },
+  "boundaries": {
+    "publicTransactionsSent": false,
+    "publicServicesStarted": false,
+    "existingPublicDeploymentsPatched": false,
+    "resolutionOracleRedeploymentRequired": true,
+    "resolutionOracleAbiUnchanged": true,
+    "engineSolidityChanged": false,
+    "riskSdkSourceChanged": false,
+    "livePriceContinuityProvenByTheseTests": false,
+    "scopeLimitation": "Passing local suites is not a completeness proof. Public live pricing, delegated service availability and deployment replacement require independent evidence."
+  },
+  "retainedLogSha256": {
+    "eros-audit2-contracts.log": "6791a20c94e98fb8312660bf2e49815fbb30302d51471e404c3d944f1a1cd493",
+    "eros-audit2-oracle-final.log": "b7a94f882c3e556d868bb755f5a9269fa8db4d9eb3e986286f56237bceccaa1c",
+    "eros-audit2-oracle-full.log": "7b40513e1949fc86c727fca2e8739a61f69cdeb5bbdd52716e8ad721a4b88554",
+    "eros-audit2-oracle-units.log": "8a58ed851d6a8a4f5f58c688b4f36ca9bc62d725a55dbe95c7d724edd601659f",
+    "eros-contract-ci-size-gate.log": "0d0799410bdc1d13e8c5ca5e9ea3fb2031446f9975efd5d61f02b343853e80b9",
+    "eros-contract-ci-size-gate-negative.log": "41eaaa5f7b39952ca8403b0e0d5c3ebe8d3557782120978508dfee9e81acf007",
+    "eros-contract-ci-37585740671.log": "831a6c8e01273535714f07a0bac7909ab1603f0e050501c70511db2cef7ffd5e",
+    "eros-audit2-oracle-ci-build.log": "ce56c6318c6169ded3acd7a0c476c89485ff4d36650e42487cbcc131d7ba45c5",
+    "eros-audit2-oracle-ci-test.log": "53d5aaaa1c9dd90b0b5b2253da3137932d2685ee5ce9e6870d355818c7d6a49b",
+    "eros-audit2-oracle-monad.log": "163946948996802057039385e1f35e0e9c3745e9277b370300322c7d233c5ea6"
+  }
+}

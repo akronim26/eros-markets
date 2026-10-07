@@ -324,6 +324,12 @@ contract ResolutionOracle is EIP712, ReentrancyGuard, IResolutionOracle {
         Resolution storage r = _known(id);
         RState st = r.state;
         if (st == RState.EarlyCheck) {
+            // Derive expiry here too: a delayed keeper must not let an otherwise
+            // live signature renew an expired check or enter early review after T.
+            MarketCore memory c = _core(id);
+            if (block.timestamp >= c.tau || block.timestamp >= uint256(r.earlyStartedAt) + c.earlyTtlSecs) {
+                revert IResolutionOracle.WrongState(st);
+            }
             AIConfig memory ai = _checkPanel(id, r, p, evidenceURI, sig, Phase.EARLY, activeTrustSetId);
             if (p.flags != 0 || (_unanimous(p.labels, false) && _confident(p.calibratedBps, ai.highConfBps))) {
                 r.earlyStartedAt = uint64(block.timestamp);

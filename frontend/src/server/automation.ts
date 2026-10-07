@@ -16,7 +16,7 @@ export async function processProtectionBlock() {
   if (!configured("protect")) throw new Error("Protection credentials are missing or share the trade signing key.");
   await ensureDeployment();
   const head = await client.getBlock();
-  if (await client.getChainId() !== 10143 || Date.now() / 1000 - Number(head.timestamp) > 30) throw new Error("Chain head is stale or on the wrong network.");
+  if (await client.getChainId() !== 10143 || Math.abs(Date.now() / 1000 - Number(head.timestamp)) > 30) throw new Error("Chain head is stale or on the wrong network.");
   db().prepare("INSERT INTO service VALUES ('heartbeat',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value").run(Date.now());
   const rows = db().prepare("SELECT * FROM rules WHERE status='active' ORDER BY checked,id LIMIT 100").all() as StoredRule[];
   for (const row of rows) {
@@ -25,7 +25,7 @@ export async function processProtectionBlock() {
       if (!marketByEngine(row.engine)) throw new Error("Rule market is not in the verified deployment");
       db().prepare("UPDATE rules SET checked=? WHERE id=?").run(Date.now(), row.id);
       const head = await client.getBlock();
-      if (Date.now() / 1000 - Number(head.timestamp) > 30) throw new Error("Stale chain head");
+      if (await client.getChainId() !== 10143 || Math.abs(Date.now() / 1000 - Number(head.timestamp)) > 30) throw new Error("Stale chain head or wrong network");
       const trader = await client.readContract({ address: row.engine, abi: engineAbi, functionName: "participantId", args: [row.wallet], blockNumber: head.number });
       const [risk, account, maxFills, claimable, settlement, listing] = await client.multicall({ blockNumber: head.number, allowFailure: false, contracts: [
         { address: row.engine, abi: engineAbi, functionName: "marketRiskView" }, { address: row.engine, abi: engineAbi, functionName: "previewAccount", args: [trader] },
@@ -42,6 +42,7 @@ export async function processProtectionBlock() {
         if (preview.rejection || !preview.acceptedCapLots) { db().prepare("UPDATE rules SET message=? WHERE id=?").run("Trigger reached; no admitted reduction at the chosen limit. Waiting.", row.id); continue; }
         if (size > preview.acceptedCapLots) size = preview.acceptedCapLots;
       }
+      if ((await client.getBlock({ blockNumber: head.number })).hash !== head.hash) throw new Error("Rule evaluation block changed");
       // Atomic claim: a second worker or an owner cancellation cannot execute the same active rule.
       const claimed = db().prepare("UPDATE rules SET status='sending',message='Trigger reached; submitting once' WHERE id=? AND status='active'").run(row.id);
       if (!claimed.changes) continue;

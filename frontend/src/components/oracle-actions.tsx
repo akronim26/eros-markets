@@ -4,11 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { formatUnits, hexToString, parseAbi, zeroAddress, zeroHash, type Address, type Hex } from "viem";
 import { resolutionOracleAbi } from "@/abi/resolutionOracle";
 import { umaAdapterAbi } from "@/abi/umaAdapter";
-import { deployment } from "@/config/deployment";
 import { client, erc20Abi, useOracleMarket } from "@/lib/reads";
 import { canDispute, ORACLE_ACTIONS, validEvidence } from "@/lib/oracle-actions";
 import { fmtDuration } from "@/lib/units";
-import { canonicalRead } from "@/lib/deployment-check";
+import { readPinned, pinnedReadCurrent } from "@/lib/pinned-read";
 import { useTx } from "@/lib/tx";
 import { useOwner } from "./wallet";
 import { Button, Row } from "./ui";
@@ -29,8 +28,8 @@ export function OracleActions({ data: d }: { data: Data }) {
   const validation = useFieldErrors({ uri: uriValid ? "" : "Use an HTTPS or IPFS evidence URL, up to 256 bytes.", hash: hashValid ? "" : "Enter a nonzero 32-byte content hash (0x followed by 64 hex characters)." });
   const r = d.resolution;
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
-  const info = useQuery({ queryKey: ["oracle-actions", d.id, d.block.toString(), owner.address], queryFn: async () => canonicalRead(d.block, async () => {
-    const oracle = { address: deployment.oracle.resolutionOracle, abi: resolutionOracleAbi, blockNumber: d.block } as const;
+  const info = useQuery({ queryKey: ["oracle-actions", d.oracle.resolutionOracle, d.id, owner.address, r.state, r.trustSetId.toString(), r.assertionId, r.assertionVenue, r.attempts, r.rejectedMask, d.bond.toString(), d.liveness.toString()], refetchInterval: 4000, staleTime: 3500, queryFn: () => readPinned(d.block, async () => {
+    const oracle = { address: d.oracle.resolutionOracle, abi: resolutionOracleAbi, blockNumber: d.block } as const;
     const trust = r.trustSetId ? await client.readContract({ ...oracle, functionName: "trustSet", args: [r.trustSetId] }) : undefined;
     const venue = r.assertionVenue !== zeroAddress ? r.assertionVenue : trust?.cfg.venue;
     const allowed = await Promise.all(ORACLE_ACTIONS.map(async ([name]) => {
@@ -53,24 +52,25 @@ export function OracleActions({ data: d }: { data: Data }) {
     ] });
     return { allowed, bond: { venue, token, oo, assertion, decimals, symbol, balance, amount: actual?.bond ?? d.bond } };
   })});
-  const bond = info.data?.bond;
+  const current = !info.isError && pinnedReadCurrent(info.data, d.block) ? info.data?.value : undefined;
+  const bond = current?.bond;
   const dispute = bond?.assertion && canDispute(bond.assertion, d.now);
   const propose = r.state === 6 && r.attempts < 3;
-  const ready = !!owner.address && !owner.wrongChain && !busy && !info.isError;
+  const ready = !!owner.address && !owner.wrongChain && !busy && !!current;
   async function bonded(action: "propose" | "dispute") {
     if (!ready || !bond || !accepted || !owner.address) return;
     const amount = action === "propose" ? d.bond : bond.amount;
     const spender = action === "propose" ? bond.venue : bond.oo;
     await tx.run(owner.address, [
       { address: bond.token, abi: erc20Abi, functionName: "approve", args: [spender, amount], label: "approve exact bond" },
-      action === "propose" ? { address: deployment.oracle.resolutionOracle, abi: resolutionOracleAbi, functionName: "proposePermissionless", args: [d.id, outcome, uri, hash as Hex], label: "propose outcome" }
+      action === "propose" ? { address: d.oracle.resolutionOracle, abi: resolutionOracleAbi, functionName: "proposePermissionless", args: [d.id, outcome, uri, hash as Hex], label: "propose outcome" }
         : { address: bond.oo, abi: ooAbi, functionName: "disputeAssertion", args: [r.assertionId, owner.address], label: "dispute assertion" },
     ]);
     setAccepted(false);
   }
   return <div className="col-span-full border-t border-line pt-4">
     {d.claim !== "0x" && <details className="mb-4"><summary className="label cursor-pointer text-fg-2">Exact assertion claim</summary><p className="mt-2 whitespace-pre-wrap break-words text-xs text-fg-3">{hexToString(d.claim)}</p></details>}
-    {info.isPending && <PendingState>Checking available oracle actions…</PendingState>}
+    {!info.isError && !current && <PendingState>Checking available oracle actions…</PendingState>}
     {info.isError && <p role="alert" className="text-sm text-ask">Action checks unavailable. <button className="underline" onClick={() => info.refetch()}>Retry</button></p>}
     {(propose || dispute) && bond && <div className="mb-4 grid max-w-xl gap-3 border border-line-strong p-4">
       <h3 className="text-base font-semibold">{propose ? "Propose an outcome" : "Challenge this outcome"}</h3>
@@ -83,7 +83,7 @@ export function OracleActions({ data: d }: { data: Data }) {
       <label className="flex items-start gap-2 text-xs text-fg-2"><input type="checkbox" className="mt-0.5" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />I understand this bond can be lost if the decision goes against me.</label>
       <Button variant="primary" size="lg" disabled={!ready || !accepted || bond.balance < (propose ? d.bond : bond.amount) || (propose && (!validEvidence(uri, hash) || !!(r.rejectedMask & (1 << outcome))))} onClick={() => bonded(propose ? "propose" : "dispute")}>{!owner.address ? "Log in to continue" : owner.wrongChain ? "Switch to Monad testnet" : bond.balance < (propose ? d.bond : bond.amount) ? "Insufficient bond tokens" : propose ? "Post proposal and bond" : "Dispute and post bond"}</Button>
     </div>}
-    <div className="flex flex-wrap gap-2">{ORACLE_ACTIONS.map(([name, label], i) => info.data?.allowed[i] && <Button key={name} disabled={!ready} onClick={() => owner.address && tx.run(owner.address, [{ address: deployment.oracle.resolutionOracle, abi: resolutionOracleAbi, functionName: name, args: [d.id], label }])}>{label}</Button>)}</div>
+    <div className="flex flex-wrap gap-2">{ORACLE_ACTIONS.map(([name, label], i) => current?.allowed[i] && <Button key={name} disabled={!ready} onClick={() => owner.address && tx.run(owner.address, [{ address: d.oracle.resolutionOracle, abi: resolutionOracleAbi, functionName: name, args: [d.id], label }])}>{label}</Button>)}</div>
     <TxFeedback state={tx.state} />
   </div>;
 }

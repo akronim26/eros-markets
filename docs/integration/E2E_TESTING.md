@@ -14,7 +14,8 @@ a fake login.
 | Leveraged backend | Existing full local lifecycle, required observation windows, 5× admission, reserve loss, oracle finality, bounded preparation, owner claims, receipt/source audit |
 | Browser ownership | Connect, reject a signature, switch accounts during funding, block wrong-network writes |
 | Browser custody | Faucet, validation, approve → deposit → allocate, release → withdraw |
-| Browser trading | Resting order, cancel, cancel all, IOC fill, reduce-only close, two independent browser owners trading |
+| Browser trading | Integer 1×–5× sizing, actual 5× fill and close, resting order, cancel, cancel all, IOC fill, reduce-only close, two independent browser owners trading |
+| Browser recovery | RPC outage blocks writes and recovers; restricted browser storage, search, navigation, themes, all terminal tabs and 320/768/1024/1440-pixel layouts |
 | Browser settlement | No early claim, scripted oracle finality, preparation, exact owner claim, withdrawal, no duplicate claim |
 | Real Privy | Separate headed login checkpoint; requires a person |
 | Public services/history | Separate public gate; local fixture success is not a hosting/indexer check |
@@ -44,9 +45,13 @@ traces/screenshots. Browser retries are disabled so failed transactions cannot b
 silently resubmitted. A failed assertion fails the whole command. Cleanup stops only
 the owned processes; `--keep-ui` preserves a failed fixture for diagnosis.
 
+The browser uses a leveraged fixture by default. `--browser-scenario fully-backed`
+selects the older 1× control scenario and explicitly skips the browser 5× proof.
+The separate leveraged backend settlement proof still runs in either mode.
+
 For development, `--proof-directory tmp/<passed-leveraged-run>` reuses a settled
 proof only when its backend source fingerprints still match. `--ui-directory`
-requires a fresh, passed, still-running fully-backed fixture; a test consumes it.
+requires a fresh, passed, still-running fixture matching `--browser-scenario`; a test consumes it.
 Do not reuse a fixture after trading or settlement. Restart from a fresh stack.
 
 ## Isolation
@@ -60,7 +65,10 @@ fixture banner, and clear public indexer/Privy configuration.
 The browser's EIP-1193 bridge has no private key. The Node test process uses only the
 public Anvil mnemonic, checks the chain and canonical deployment anchor, and permits
 zero-value calls to the selected engine, vault and test token. Accounts 16 and 17
-receive disposable local gas. Fixture clock alignment keeps normal frontend stale-head
+exercise the lifecycle; fresh accounts 20 and 21 exercise leveraged trading without
+reusing the backend SDK owner. These accounts receive disposable local gas.
+The leveraged scenario requires zero initial token, vault and market balances before
+funding through the browser faucet. Fixture clock alignment keeps normal frontend stale-head
 checks enabled despite the backend's explicit controlled-time advances.
 
 ## Real wallet checkpoint

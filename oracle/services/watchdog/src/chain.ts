@@ -84,17 +84,29 @@ export class IntakeReader {
           // A failure discards all pages and re-reads this range through RPC.
           const out: Events = { proposals: [], asserted: [] }
           let proposalOffset = 0, assertionOffset = 0
-          for (;;) {
+          let previousProposal: string | undefined, previousAssertion: string | undefined
+          let complete = false
+          for (let pages = 0; pages < 1000; pages++) {
             const rows = await idx.client.query<{ Proposal: IndexedProposal[]; Assertion: IndexedAssertion[] }>(WATCHDOG_EVENTS,
               { from: Number(this.next) - 1, to: Number(to), limit: 1000, proposalOffset, assertionOffset })
             if (!Array.isArray(rows.Proposal) || !Array.isArray(rows.Assertion)) throw new Error('Missing watchdog event lists')
-            if (rows.Proposal.length === 0 && rows.Assertion.length === 0) break
+            if (rows.Proposal.length === 0 && rows.Assertion.length === 0) { complete = true; break }
+            const proposalPage = JSON.stringify(rows.Proposal), assertionPage = JSON.stringify(rows.Assertion)
+            if (rows.Proposal.length && proposalPage === previousProposal || rows.Assertion.length && assertionPage === previousAssertion) {
+              throw new Error('Repeated watchdog indexer page')
+            }
+            if (proposalOffset + rows.Proposal.length + assertionOffset + rows.Assertion.length > 100_000) {
+              throw new Error('Watchdog indexer row limit')
+            }
+            if (rows.Proposal.length) previousProposal = proposalPage
+            if (rows.Assertion.length) previousAssertion = assertionPage
             const page = fromIndexer(rows)
             out.proposals.push(...page.proposals)
             out.asserted.push(...page.asserted)
             proposalOffset += rows.Proposal.length
             assertionOffset += rows.Assertion.length
           }
+          if (!complete) throw new Error('Watchdog indexer page limit')
           this.next = to + 1n
           if (this.usingIndexer !== true) idx.log?.('info', 'intake: reading the indexer', { progressBlock: fresh.progress.progressBlock })
           this.usingIndexer = true

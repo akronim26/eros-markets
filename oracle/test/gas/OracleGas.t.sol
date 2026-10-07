@@ -445,12 +445,14 @@ contract OracleGasTest is RegistryFixture {
     }
 
     function test_gas_submitPanelResult_earlyReview() public {
+        vm.warp(ro.getResolution(mEarly).earlyStartedAt + 60); // before T and inside this check's TTL
         PanelResult memory p = _panel(mEarly, Phase.EARLY, [PanelLabel.YES, PanelLabel.YES, PanelLabel.YES]);
         _checkLimit("submitPanelResult", address(ro), _submitPanel(mEarly, p));
         assertEq(uint8(ro.getResolution(mEarly).state), uint8(RState.EarlyReview));
     }
 
     function test_gas_submitPanelResult_earlyNone() public {
+        vm.warp(ro.getResolution(mEarly).earlyStartedAt + 60); // before T and inside this check's TTL
         PanelResult memory p = _panel(mEarly, Phase.EARLY, [PanelLabel.YES, PanelLabel.NO, PanelLabel.ABSTAIN]);
         _checkLimit("submitPanelResult", address(ro), _submitPanel(mEarly, p));
         assertEq(uint8(ro.getResolution(mEarly).state), uint8(RState.None));

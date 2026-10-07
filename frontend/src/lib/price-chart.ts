@@ -13,3 +13,20 @@ export function priceSegments(points: Point[]): Point[][] {
   }
   return segments;
 }
+
+/** A chart retains historical observations even while execution prices are unavailable. */
+export function latestSourceObservation(points: Point[], now: number, readError = false) {
+  const point = points.findLast(p => p.valid !== false && Number.isFinite(p.t) && Number.isFinite(p.v) && p.v >= 0 && p.v <= 1);
+  const newest = points.at(-1);
+  return { point, fresh: !!point && point === newest && now - point.t <= 30 && point.t <= now + 2 && !readError };
+}
+
+export function priceReadiness(risk: { indexAvailable: boolean; markAvailable: boolean; pricingMode: number }, sourceFresh: boolean) {
+  if (risk.indexAvailable && risk.markAvailable) return undefined;
+  if (!risk.indexAvailable) return sourceFresh
+    ? "Source prices are arriving. The execution index needs a complete 5-minute window; the chart shows individual source observations."
+    : "The execution index is unavailable: its 5-minute window has gaps or stale observations. Any chart price is historical. Live publishers and book sampling must resume before prices and leverage recover.";
+  return risk.pricingMode === 0
+    ? "The 5-minute index is ready. The mark needs complete book and 15-minute basis windows, then an epoch opening before leveraged trading is available."
+    : "The index is ready, but the mark's book or basis window is unavailable. Higher leverage remains restricted until those windows recover.";
+}

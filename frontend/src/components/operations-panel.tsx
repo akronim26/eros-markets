@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { client, type MarketSnapshot } from "@/lib/reads";
-import { canonicalRead } from "@/lib/deployment-check";
+import { readPinned, pinnedReadCurrent } from "@/lib/pinned-read";
 import { useTx } from "@/lib/tx";
 import { lotsToClaims, qToMoney } from "@/lib/units";
 import { useOwner } from "./wallet";
@@ -11,7 +11,7 @@ import { Button, Row } from "./ui";
 import { TxFeedback } from "./tx-feedback";
 import { isContractRevert } from "@/lib/read-errors";
 
-export function OperationsPanel({ engine, m }: { engine: Address; m: MarketSnapshot }) {
+export function OperationsPanel({ engine, m, readUnavailable = false }: { engine: Address; m: MarketSnapshot; readUnavailable?: boolean }) {
   const owner = useOwner(), tx = useTx();
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
   const s = m.settlement;
@@ -27,26 +27,29 @@ export function OperationsPanel({ engine, m }: { engine: Address; m: MarketSnaps
     { name: "preparePayoutChunk", label: "Prepare payouts (32)", args: [32n], due: s.oracleFinalityAccepted && !s.claimsEnabled && !s.recoveryRequired },
     { name: "finishPreparation", label: "Open claims", args: [], due: s.oracleFinalityAccepted && s.accountingComplete && !s.claimsEnabled && !s.recoveryRequired },
   ];
-  const q = useQuery({ queryKey: ["operations", engine, m.block.toString(), owner.address], queryFn: async () => canonicalRead(m.block, async () => {
+  const q = useQuery({ queryKey: ["operations", engine, owner.address, m.epoch.id.toString(), actions.map(a => a.due)], refetchInterval: 4000, staleTime: 3500, queryFn: () => readPinned(m.block, async () => {
     const available = await Promise.all(actions.map(async (a) => { if (!a.due) return false; try { const simulation = await client.simulateContract({ address: engine, abi: engineAbi, functionName: a.name, args: a.args, account: owner.address, blockNumber: m.block } as never); return a.name === "samplePerp" || (simulation.result as unknown) !== false; } catch (error) { if (isContractRevert(error)) return false; throw error; } }));
     const earnings = owner.address ? await client.readContract({ address: engine, abi: engineAbi, functionName: "keeperQ", args: [owner.address], blockNumber: m.block }) : 0n;
     return { available, earnings };
   })});
-  const candidates = useQuery({ queryKey: ["liquidation-candidates", engine, m.block.toString()], enabled: m.listing.deploymentCapX > 1n && !m.halted && m.participants <= 1024n, queryFn: async () => canonicalRead(m.block, async () => {
+  const candidates = useQuery({ queryKey: ["liquidation-candidates", engine], refetchInterval: 4000, staleTime: 3500, enabled: m.listing.deploymentCapX > 1n && !m.halted && m.participants <= 1024n, queryFn: () => readPinned(m.block, async () => {
     const people = await client.multicall({ blockNumber: m.block, allowFailure: false, contracts: Array.from({ length: Number(m.participants) }, (_, i) => ({ address: engine, abi: engineAbi, functionName: "traderIdAt", args: [BigInt(i)] } as const)) });
     const values = await client.multicall({ blockNumber: m.block, allowFailure: false, contracts: people.map(([id]) => ({ address: engine, abi: engineAbi, functionName: "accountRiskView", args: [id] } as const)) });
     return values.filter((v) => v.liquidationMode !== 0);
   })});
-  const ready = !!owner.address && !owner.wrongChain && !busy;
+  const operations = !q.isError && pinnedReadCurrent(q.data, m.block) ? q.data?.value : undefined;
+  const liquidations = !candidates.isError && !m.halted && m.listing.deploymentCapX > 1n && pinnedReadCurrent(candidates.data, m.block) ? candidates.data?.value : undefined;
+  const ready = !!owner.address && !owner.wrongChain && !busy && !readUnavailable;
   return <section className="p-4" aria-label="Permissionless operations">
     <h3 className="text-base font-semibold">Market upkeep</h3><p className="mt-2 max-w-2xl text-sm text-fg-3">Anyone can advance due accounting and settlement work. Each action processes a bounded page, is simulated first, and requires your wallet&apos;s gas.</p>
-    <dl className="my-4 max-w-xl"><Row k="Snapshot progress" v={`${s.snapshotCursor} / ${s.accountCount}`} /><Row k="Payout progress (scan + allocation)" v={`${s.payoutCursor} / ${2n * s.accountCount}`} /><Row k="Keeper earnings" v={q.data ? qToMoney(q.data.earnings).usdc : "…"} /></dl>
-    {q.isError ? <p className="text-sm text-ask">Operation checks failed. <button className="underline" onClick={() => q.refetch()}>Retry</button></p> : <div className="flex flex-wrap gap-2">{actions.map((a, i) => q.data?.available[i] && <Button disabled={!ready} key={a.name} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: a.name, args: a.args, label: a.label }])}>{a.label}</Button>)}{q.data?.available.every((v) => !v) && <p className="text-sm text-fg-3">No executable upkeep action at this block.</p>}
-      {!!q.data?.earnings && <Button disabled={!ready} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "withdrawKeeper", args: [], label: "release keeper earnings to vault" }])}>Collect keeper earnings</Button>}
+    <dl className="my-4 max-w-xl"><Row k="Snapshot progress" v={`${s.snapshotCursor} / ${s.accountCount}`} /><Row k="Payout progress (scan + allocation)" v={`${s.payoutCursor} / ${2n * s.accountCount}`} /><Row k="Keeper earnings" v={operations ? qToMoney(operations.earnings).usdc : "…"} /></dl>
+    {q.isError ? <p className="text-sm text-ask">Operation checks failed. <button className="underline" onClick={() => q.refetch()}>Retry</button></p> : <div className="flex flex-wrap gap-2">{actions.map((a, i) => operations?.available[i] && <Button disabled={!ready} key={a.name} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: a.name, args: a.args, label: a.label }])}>{a.label}</Button>)}{operations?.available.every((v) => !v) && <p className="text-sm text-fg-3">No executable upkeep action at this block.</p>}
+      {!!operations?.earnings && <Button disabled={!ready} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "withdrawKeeper", args: [], label: "release keeper earnings to vault" }])}>Collect keeper earnings</Button>}
     </div>}
+    {!q.isError && !operations && <p role="status" className="text-sm text-fg-3">Checking upkeep at a fresh block…</p>}
     {candidates.isError && <p className="mt-3 text-sm text-ask">Liquidation candidate reads failed.</p>}
-    {!!candidates.data?.length && <div className="mt-6"><h3 className="mb-2 text-base">Liquidation candidates</h3>{candidates.data.map((v) => {
-      const partner = candidates.data.find((p) => p.trader !== v.trader && p.positionLots * v.positionLots < 0n)?.trader ?? 0;
+    {!!liquidations?.length && <div className="mt-6"><h3 className="mb-2 text-base">Liquidation candidates · block {candidates.data!.block.toString()}</h3>{liquidations!.map((v) => {
+      const partner = liquidations!.find((p) => p.trader !== v.trader && p.positionLots * v.positionLots < 0n)?.trader ?? 0;
       const size = v.positionLots < 0n ? -v.positionLots : v.positionLots;
       return <div key={v.trader} className="hair-b flex flex-wrap items-center justify-between gap-3 py-2 text-sm"><span>Account {v.trader} · {lotsToClaims(v.positionLots)} claims · mode {v.liquidationMode}</span><Button disabled={!ready} onClick={() => owner.address && tx.run(owner.address, [{ address: engine, abi: engineAbi, functionName: "liquidate", args: [v.trader, size, m.maxFills, partner], label: `liquidate account ${v.trader}` }])}>Process liquidation</Button></div>;
     })}</div>}

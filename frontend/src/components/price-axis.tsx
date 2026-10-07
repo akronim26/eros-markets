@@ -66,7 +66,7 @@ export function PriceAxis(p: Props) {
     <section aria-label="Index price chart" className="flex min-w-0 flex-col">
       <div className="flex min-h-[94px] flex-wrap items-start justify-between gap-2 px-4 pb-3 pt-4">
         <div>
-          <p className="label text-fg-3">Polymarket index feed</p>
+          <p className="label text-fg-3">Polymarket source price</p>
           <div className="mt-1 flex items-baseline gap-3">
             <span className="tnum text-[2rem] font-medium leading-tight tracking-tight" data-testid="chart-price">{selected ? priceLabel(selected.v) : "—"}</span>
             {!hovered && change !== undefined && <span className={cx("tnum text-xs", change >= 0 ? "text-bid" : "text-ask")}>{change >= 0 ? "+" : ""}{(change * 100).toFixed(2)} pp</span>}
@@ -111,7 +111,7 @@ export function PriceAxis(p: Props) {
         <div role="group" aria-label="Chart time range" className="flex gap-1">{RANGES.map((r, i) => <button key={r.label} aria-pressed={range === i} onClick={() => { setRange(i); setHoverTime(undefined); }} className={cx("tnum min-h-9 min-w-9 px-2 text-xs transition-colors", range === i ? "bg-fg text-ground" : "text-fg-3 hover:bg-panel hover:text-fg")}>{r.label}</button>)}</div>
         <div className="flex gap-3 text-2xs text-fg-3"><button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")}><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
       </div>
-      <p className="px-4 pb-3 text-2xs leading-relaxed text-fg-4" title="This chart shows signed Polymarket source observations. The execution INDEX above is their 300-second TWAP. A current mark reference is shown only when the contract makes it available. Gaps are retained when observations are more than 30 seconds apart.">{p.historyStatus} · Source observations; gaps preserved. {p.markUnit === undefined ? "Mark warming or unavailable." : "Dashed line: current mark."}</p>
+      <p className="px-4 pb-3 text-2xs leading-relaxed text-fg-4" title="This chart shows signed Polymarket source observations. The execution INDEX above is their 300-second TWAP. A current mark reference is shown only when the contract makes it available. Gaps are retained when observations are more than 30 seconds apart.">{p.historyStatus} · Source observations · execution index is the 5-minute TWAP above. {p.markUnit === undefined ? "Mark warming or unavailable." : "Dashed line: current mark."}</p>
       <span className="sr-only" role="status">{hovered ? `Observation ${priceLabel(hovered.v)} at ${new Date(hovered.t * 1000).toLocaleString()}` : ""}</span>
     </section>
   );

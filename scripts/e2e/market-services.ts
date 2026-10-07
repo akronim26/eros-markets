@@ -10,6 +10,7 @@ import { FileStore } from '../../oracle/services/market-ops/src/store';
 import { readCanonicalSampleCapture } from './sample-capture.mjs';
 import { readBootstrapRolloverDeferral } from './rollover-readiness.mjs';
 import { keeperGasCeiling, boundedRolloverHelper, requireKeeperGas, runKeeperAction } from './keeper-gas-policy.mjs';
+import { sampleCadenceRemaining, isFinalizedSample } from './sampler-request-policy.mjs';
 const require = createRequire(new URL('../../oracle/services/market-ops/package.json', import.meta.url));
 const { createPublicClient, createWalletClient, http, encodeFunctionData, keccak256 } = require('viem');
 const manifestPath = process.argv[2], journalPath = process.argv[3], evidencePath = process.argv[4];
@@ -103,6 +104,9 @@ try {
       if (action === 'sample' && !store.read().pending) {
         const block = await client.getBlock();
         const blockNumber = block.number;
+        // Do not acknowledge a request that has not executed. Keep it outstanding
+        // and avoid expensive readiness/estimation RPCs until the cadence allows it.
+        if (sampleCadenceRemaining(store.read().lastSampleBlock, blockNumber, manifest.sampleEveryBlocks) > 0n) continue;
         // Estimate against the same block while readiness reads are in flight.
         // An estimate never grants readiness; its error is considered only after
         // the source, accounting and funded-depth gates below have passed.
@@ -149,7 +153,7 @@ try {
         knownEpochEnd = epoch[2];
         rolloverCheckAfter = Math.min(Date.now() + 30_000, Number(epoch[2]) * 1000);
       }
-      if (sampleRequest && (result.action === 'sample' && result.outcome === 'finalized' || action === 'sample' && result.outcome === 'cadence')) await ack(sampleRequest.id, result.outcome);
+      if (sampleRequest && isFinalizedSample(result)) await ack(sampleRequest.id, result.outcome);
       if (result.outcome === 'finalized') { if (result.action === 'sample') samples++; if (result.action === 'rollover') rollovers++; }
       log({ requested: action, ...result, samples, rollovers });
     }

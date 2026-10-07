@@ -1,0 +1,188 @@
+{
+  "schema": "eros-redeployment-services-evidence/1",
+  "checkedAt": "2026-10-07T11:49:06.829527+00:00",
+  "baseCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+  "sourceSha256": {
+    "scripts/e2e/pricefeed-watch.mjs": "52b5d9eef930c0700f5cfe67d4ef3c236247ba12ede1d55843125c98f1b4c4ef",
+    "scripts/e2e/publisher-restart-policy.mjs": "8d3d43ca0641d74ae5663195d6d7321607b871b0537cb9db9bc5e5fce0d4d041",
+    "scripts/e2e/export-market-services.ts": "9e2267231d28283c0b71e67c9dd173a55904d4c1121b373fceabe1131180ebef",
+    "scripts/e2e/service-deployment.ts": "dc78401287d685114d7c45490c07bdf2443704fce6f74e1c4067834f4b7041f5",
+    "scripts/e2e/select-live-markets.ts": "bbb99d6fc5e84515dd32aea658b6b0575e50ad19324cf5600ff2e205c2c61295",
+    "scripts/e2e/manifest-selection.ts": "fdcccacab0c9201f40e517de00f9ce1a1fdff66da92fa19fa3ae3692a9d18821",
+    "scripts/e2e/manifest-selection.test.ts": "eb8acc4321c5c2b8c3caa12cea3b7af5299162fd0c4a9386b1e07b382e3235da",
+    "scripts/e2e/publisher-restart-policy.test.mjs": "1cf2459a48cd230fef19c2e1d161d7c112928cbf5ec440ca33895cbafc00a64f"
+  },
+  "preparation": {
+    "bothMarketsPassed": true,
+    "cadenceBlocks": 45,
+    "freshEncryptedRoleKeys": true,
+    "canonicalBaseAndMarketJournalsChecked": true,
+    "runtimeAndSourceArtifactBindingsChecked": true,
+    "exportedSixConfigurationHashesPerMarketChecked": true,
+    "freshEngineOracleRegistryFactoryVaultTokenSignerBindingsChecked": true,
+    "publicTransactionsByPreparation": 0
+  },
+  "confirmedFix": {
+    "issue": "Fresh publisher aborted after transient preflight RPC failure before creating any journals, incorrectly treating an empty new journal set as a partial set.",
+    "observedFailure": "MONAD_FINALIZED_BLOCK_FAILED followed by TESTNET_JOURNAL_SET_INCOMPLETE; all five journal files absent.",
+    "fix": "Retry recognized transient failures with original initialization authorization and no journals; preserve bounded five-failure retry policy. Resume all existing journals; reject every partial set and missing journals for a resumed publisher.",
+    "verification": {
+      "command": "packages/pricefeed/node_modules/node/bin/node --test scripts/e2e/publisher-restart-policy.test.mjs",
+      "testsPassed": 3,
+      "assertions": 74,
+      "syntaxCheck": "Node24.21.0 --check scripts/e2e/pricefeed-watch.mjs passed",
+      "diffCheck": "git diff --check passed",
+      "independentReview": "Astra protocol agent read-only review found no concrete flaw.",
+      "node": "24.21.0",
+      "ciCoverage": "Existing pricefeed workflow Node test glob scripts/e2e/*.test.mjs includes this regression."
+    }
+  },
+  "freshSourceProbeBoundary": {
+    "fresh900SecondQualificationPassed": false,
+    "genuineVendorCarryFailureMs": 25695,
+    "publicationHeadroomCarryLimitMs": 25000,
+    "separateSharedHostInterruption": {
+      "cause": "Critical-battery LowPowerSleep at 1%; awake after AC attach.",
+      "sleepUtc": "2026-10-07T11:12:54Z",
+      "wakeUtc": "2026-10-07T11:13:28Z"
+    },
+    "decision": "Retain failed finite probes; leave all TTL/headroom guards unchanged and validate actual canonical publication, price windows and leverage before readiness claims."
+  },
+  "startupProofs": [
+    {
+      "checkedAt": "2026-10-07T11:41:39.742Z",
+      "market": "nebraska-senate",
+      "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+      "sourceId": "0x848114790490867a67b65a6275a802b72f7356b63bdb123b159d5aaf00c635a1",
+      "finalizedAnchor": {
+        "number": "68960905",
+        "hash": "0x14882cc961c98fa630113892aec723b7a6ddc970af658b9bedd4451dd4311d29"
+      },
+      "publicationCount": 46,
+      "quarantinedCount": 0,
+      "sampleCount": 7,
+      "receipts": [
+        {
+          "hash": "0xa018ac6868536d3fcfde10bcc78a6780481dd89aa8dcded4f8a3c4facf34a1dd",
+          "block": "68959526",
+          "blockHash": "0x2310f6589ccc292bade90c9c46f83b4a0bb4b2fa7bcc311f1db3b5b147fbc46c",
+          "role": "PUBLISHER",
+          "gasUsed": "303628",
+          "effectiveGasPrice": "102000000000",
+          "costWei": "30970056000000000",
+          "kind": "first-publication",
+          "sequence": "1",
+          "observedAt": "1791372863",
+          "acceptedAt": "1791372879",
+          "priceWad": "285000000000000000",
+          "depthValid": true
+        },
+        {
+          "hash": "0x58e37c259c0abe2e31ca4772bf62e946d02cee0927b40c3f740afe3bebfa2d09",
+          "block": "68960533",
+          "blockHash": "0x60db9aa1d4fd56c2a8ce99931c4c677f3e6114808f2cd60b9857c6ce862f20dd",
+          "role": "KEEPER",
+          "gasUsed": "669902",
+          "effectiveGasPrice": "102000000000",
+          "costWei": "68330004000000000",
+          "kind": "book-sample",
+          "observedAt": "1791373183",
+          "observedBlock": "68960533",
+          "examined": 2
+        },
+        {
+          "hash": "0xbec0ef25b3ff3aa30067b44ff5ce96a1ba5b905acafaec7963422117bbb221b1",
+          "block": "68960883",
+          "blockHash": "0x04e0821d924e110ddcd806f32cc3cd19a8da7b08d744bc4c80473a04989db354",
+          "role": "KEEPER",
+          "gasUsed": "751751",
+          "effectiveGasPrice": "102000000000",
+          "costWei": "76678602000000000",
+          "kind": "book-sample",
+          "observedAt": "1791373289",
+          "observedBlock": "68960883",
+          "examined": 2
+        },
+        {
+          "hash": "0xce511e4c703209a813daff24368c936f044f22bff0c3f9e9a90deab78fcc023a",
+          "block": "68960487",
+          "blockHash": "0x202975119142645197fe75e23fb1801ede0c3318dc0371cc40d645fc21772f15",
+          "role": "MAKER_BUY",
+          "gasUsed": "1119437",
+          "effectiveGasPrice": "102000000000",
+          "costWei": "114182574000000000",
+          "kind": "first-maker-order",
+          "side": "buy",
+          "tick": 275,
+          "epoch": "1"
+        },
+        {
+          "hash": "0xe56ea73f29c465e8b753a53de0f336f88e5ec59e8b6d41173144855a762fa8f9",
+          "block": "68960500",
+          "blockHash": "0x70240b21b49bef1e9c9df4ff8ce0231bcbebbc61a1caaaf166b0c4727c0d9e78",
+          "role": "MAKER_SELL",
+          "gasUsed": "1084547",
+          "effectiveGasPrice": "102000000000",
+          "costWei": "110623794000000000",
+          "kind": "first-maker-order",
+          "side": "sell",
+          "tick": 295,
+          "epoch": "1"
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-10-07T11:43:15.383Z",
+      "market": "republican-house",
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "sourceId": "0x83d7a5d5a6318af187b20c88a6ad17078bdaad26307067243bf0d132c3805f9b",
+      "finalizedAnchor": {
+        "number": "68961226",
+        "hash": "0x31c0ef450be917a50543f538f18b5422df0471405862f7eb4f995e2554e3f497"
+      },
+      "publicationCount": 23,
+      "quarantinedCount": 0,
+      "sampleCount": 0,
+      "receipts": [
+        {
+          "hash": "0xa61050b9262ee1d2605aabac68d6ac406f9f66e6f7be70377e208a15cc15f8f5",
+          "block": "68960697",
+          "blockHash": "0x7e380d11b6d0d74be125b1dcab59572f86e97f0af8f846ab57a951fcdf517e78",
+          "role": "PUBLISHER",
+          "gasUsed": "303655",
+          "effectiveGasPrice": "102000000000",
+          "costWei": "30972810000000000",
+          "kind": "first-publication",
+          "sequence": "1",
+          "observedAt": "1791373227",
+          "acceptedAt": "1791373232",
+          "priceWad": "75000000000000000",
+          "depthValid": true
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Services are bounded local testnet campaigns, not permanent production hosting.",
+    "No claim of 5x execution until actual dynamic caps, previews and confirmed fills permit it.",
+    "Current House bootstrap cannot complete BASIS900 before the 12:00:20UTC grace deadline; the next hourly transition is13:00UTC if windows and budget permit."
+  ],
+  "samplerDiagnosis": {
+    "checkedAt": "2026-10-07T11:47:20.215Z",
+    "market": "nebraska-senate",
+    "canonicalReceiptsChecked": 8,
+    "allPerpAndBasisObservationsValid": true,
+    "observedCaptureIntervalsSeconds": [
+      17,
+      23,
+      17,
+      16,
+      17,
+      17,
+      24
+    ],
+    "cause": "Each transaction seals the preceding capture. With16\u201324second capture intervals, the newest sealed observation can briefly be older than30seconds before the next seal. These checked observations retained continuous valid historical timestamps; reduced current coverage was temporary sealing lag.",
+    "restriction": "Do not extend timestamps, TTL or carry. Unconditional samples without a newer INDEX cannot seal the pending capture.",
+    "recommendedPlan": "Keep current Nebraska campaign through12:00UTC, then perform a coordinated journal-preserving policy/cadence30 restart and rewarm before13:00UTC; reserve enough budget for the bounded follow-up campaign."
+  }
+}

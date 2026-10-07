@@ -5,7 +5,7 @@ import { parseAbiItem, type Address } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { chain, LOG_BLOCK_CAP } from "@/config/chain";
 import { client } from "./reads";
-import { orderStatus, rememberedOrders, rememberOrders } from "./orders";
+import { openOrdersAt, rememberedOrders, rememberOrders } from "./orders";
 import { useHistory } from "./history-reads";
 import { canonicalRead } from "./deployment-check";
 
@@ -14,8 +14,10 @@ const placed = parseAbiItem("event OrderPlaced(uint32 indexed id, uint32 indexed
 export function useOrders(engine: Address, owner: Address | undefined, traderId: number | undefined, block: bigint | undefined) {
   const history = useHistory(engine, owner, traderId, block);
   return useQuery({
-    queryKey: ["orders", engine, owner, traderId, block?.toString(), history.dataUpdatedAt],
+    queryKey: ["orders", engine, owner, traderId],
     enabled: !!owner && traderId !== undefined && block !== undefined,
+    refetchInterval: 4000,
+    staleTime: 3500,
     queryFn: async () => canonicalRead(block!, async () => {
       if (!traderId) return { block: block!, complete: true, orders: [] };
       const recent = await client.getLogs({ address: engine, event: placed, args: { trader: traderId },
@@ -30,8 +32,7 @@ export function useOrders(engine: Address, owner: Address | undefined, traderId:
       const values = await client.multicall({ blockNumber: block, allowFailure: false,
         contracts: ids.map((id) => ({ address: engine, abi: engineAbi, functionName: "getOrder", args: [id] } as const)) });
       const context = { traderId, block: block!, marketEpoch, accountEpoch: account.orderEpoch, positionVersion: account.positionVersion };
-      return { block: block!, complete: !!history.data?.complete && !history.isError && BigInt(history.data.progress) + LOG_BLOCK_CAP >= block!, orders: values.map((order, i) => ({ id: ids[i], ...order, status: orderStatus(ids[i], order, context) }))
-        .filter((order) => order.status === "live" || order.status === "stale") };
+      return { block: block!, complete: !!history.data?.complete && !history.isError && BigInt(history.data.progress) + LOG_BLOCK_CAP >= block!, orders: openOrdersAt(values.map((order, i) => ({ id: ids[i], ...order })), context) };
     }),
   });
 }

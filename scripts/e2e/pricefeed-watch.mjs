@@ -11,6 +11,7 @@ import { recoverMonadNonce } from '../../packages/pricefeed/dist/src/monad-nonce
 import { recoverableUnsentReason } from '../../packages/pricefeed/dist/src/nonce-recovery-journal.js';
 import { SampleCoordinator, indexFreshCutoff } from './sampler-coordination.mjs';
 import { PacketStore, packetNamespace } from '../../packages/pricefeed/dist/src/packet-store.js';
+import { publisherInitializationAfterFailure, transientPublisherFailure } from './publisher-restart-policy.mjs';
 
 const [rpcFile, publicDir, privateDir, policyFile, evidenceFile, seconds = '5400', setup] = process.argv.slice(2);
 if (!evidenceFile || !/^\d+$/.test(seconds) || +seconds < 1 || +seconds > 86400 || (setup !== undefined && setup !== '--initialize'))
@@ -122,12 +123,16 @@ while (!stop.signal.aborted && Date.now() < end) {
     // Never log a provider exception or credential-bearing endpoint.
     const reason = error instanceof Error && /^[A-Z0-9_:]+$/.test(error.message) ? error.message : 'UNCLASSIFIED_SERVICE_FAILURE';
     log({ stoppedFor: reason });
-    // Once created, all five journals must be resumed. Never recreate a partial
-    // set or reset a signer after a failed first publication.
+    // A transient preflight failure can happen before any journal is created.
+    // Retry that fresh start; once created, all five journals must be resumed.
     const files = ['source.sqlite', 'packets.sqlite', 'signer.sqlite', 'transactions.sqlite', 'relay.sqlite'];
-    if (!files.every(name => existsSync(join(journalDirectory, name)))) throw new Error('TESTNET_JOURNAL_SET_INCOMPLETE');
-    initialize = false;
+    initialize = publisherInitializationAfterFailure(initialize, files.map(name => existsSync(join(journalDirectory, name))));
     if (stop.signal.aborted || Date.now() >= end) break;
+    if (initialize) {
+      if (!transientPublisherFailure(reason) || ++consecutiveFailures > 5) throw new Error(reason);
+      await new Promise(r => setTimeout(r, 2000));
+      continue;
+    }
     const db = new DatabaseSync(join(journalDirectory, 'relay.sqlite'), { readOnly: true });
     let pending;
     try {
@@ -156,9 +161,7 @@ while (!stop.signal.aborted && Date.now() < end) {
         if (attempt === 2) throw new Error('RECOVERY_STILL_PENDING');
       }
     } else {
-      const transient = /^MONAD_(?:RPC_CHAIN|FINALIZED_BLOCK|CANONICAL_BLOCK|CODE_READ|LISTING_READ|SOURCE_READ|HALT_READ|BLOCK_READ|RECEIPT_READ|NONCE_READ|BALANCE_READ)_FAILED$/.test(reason)
-        || ['MONAD_STALE_OR_FUTURE_BLOCK', 'PIPELINE_TIMEOUT', 'RELAY_TIMEOUT'].includes(reason);
-      if (!transient || pending.length || ++consecutiveFailures > 5) throw new Error(reason);
+      if (!transientPublisherFailure(reason) || pending.length || ++consecutiveFailures > 5) throw new Error(reason);
       await new Promise(r => setTimeout(r, 2000));
     }
   }

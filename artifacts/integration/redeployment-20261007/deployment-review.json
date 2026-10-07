@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-07T11:43:09.671367+00:00",
+  "network": "Monad testnet",
+  "chainId": 10143,
+  "baselineCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+  "sourceState": "Uncommitted audited workspace. Hashes identify exact reviewed bytes; baseline commit alone does not identify deployment source.",
+  "status": "Deployment, funding, canonical receipt, runtime identity and frontend selection review passed. Continuous live pricing and current public 5x trading are not established by this artifact.",
+  "reviewerActions": {
+    "readOnlyPublicRpc": true,
+    "signedTransactions": 0,
+    "broadcastTransactions": 0,
+    "processRestarts": 0,
+    "sourceChangesDuringThisReview": 0
+  },
+  "canonicalVerification": {
+    "passed": true,
+    "checkedAt": "2026-10-07T11:40:32.322Z",
+    "scope": "Read-only independent canonical receipt and runtime revalidation",
+    "chainId": 10143,
+    "receipts": 75,
+    "phases": [
+      {
+        "name": "base",
+        "receipts": 32
+      },
+      {
+        "name": "treasury-capacity",
+        "receipts": 5
+      },
+      {
+        "name": "runtime-funding",
+        "receipts": 8
+      },
+      {
+        "name": "nebraska-senate",
+        "receipts": 7
+      },
+      {
+        "name": "nebraska-senate:owner-buy-funding",
+        "receipts": 4
+      },
+      {
+        "name": "nebraska-senate:owner-sell-funding",
+        "receipts": 4
+      },
+      {
+        "name": "republican-house",
+        "receipts": 7
+      },
+      {
+        "name": "republican-house:owner-buy-funding",
+        "receipts": 4
+      },
+      {
+        "name": "republican-house:owner-sell-funding",
+        "receipts": 4
+      }
+    ],
+    "runtimeAndBindingsPassed": true,
+    "publicTransactionsSent": 0
+  },
+  "compiledBasePlan": {
+    "matchesCurrentCompiledArtifacts": true,
+    "exactSteps": 32,
+    "method": "Rebuilt pure buildBasePlan from pinned deployer/nonce/roles/infrastructure and compared exact addresses and transaction steps; no compilation or transaction execution."
+  },
+  "deployedRepair": {
+    "id": "DA-CONTRACT-01 / DA13",
+    "contract": "ResolutionOracle",
+    "address": "0xb86a48B07eE07037F1B52273B9B50f20615B61e4",
+    "repair": "Expired EarlyCheck panels cannot submit through the early path after its TTL or scheduled time.",
+    "priorTestedSourceHashesStillMatch": {
+      "oracle/src/ResolutionOracle.sol": true,
+      "oracle/test/unit/OraclePanel.t.sol": true,
+      "oracle/test/gas/OracleGas.t.sol": true
+    },
+    "abiChanged": false,
+    "freshDeploymentCompleted": true
+  },
+  "funding": {
+    "nativeTotalMON": 39,
+    "markets": 2,
+    "perMarket": {
+      "keeperMON": 14,
+      "publisherMON": 4,
+      "makerBuyMON": 0.75,
+      "makerSellMON": 0.75
+    },
+    "makers": 4,
+    "allocatedTestTokensPerMaker": 2000,
+    "assertionLedgerTargetTestTokens": 22000,
+    "perMarketLifetimeCommitmentCapTestTokens": 3336,
+    "watchdogFloatTestTokens": 100,
+    "note": "Funding amounts were verified at retained canonical blocks. They are not current available balance claims."
+  },
+  "frontend": {
+    "selectedBaseBindingsMatch": true,
+    "selectedMarketBindingsMatch": true,
+    "markets": [
+      {
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53"
+      },
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f"
+      }
+    ],
+    "archiveCount": 3,
+    "duplicateEngines": false,
+    "routingReview": "Market ID plus engine resolves each archived deployment registry/oracle; oracle reads and actions carry that target and retain owner/freshness/pre-send checks."
+  },
+  "publicConfigScan": {
+    "checkedAt": "2026-10-07T11:41:06.994Z",
+    "publicFiles": 36,
+    "knownSensitiveValuesChecked": 18,
+    "knownSensitiveValueOrCredentialURLMatches": [],
+    "changedGitFilesScanned": 129,
+    "changedGitFilesKnownSensitiveValueMatches": []
+  },
+  "operatorGuards": {
+    "durationMaximumSeconds": 3600,
+    "keeperGasDefault": 3000000,
+    "keeperGasMaximum": 8000000,
+    "runtimeFundingMaximumMON": "39.1",
+    "fundingRecipientBinding": "Exact verified market plan roles; base and market journals revalidated canonically.",
+    "publisherStartupRetryReview": "Transient preflight failure before any journal exists may retry only a fresh initialization. Partial journal sets and missing resume journals fail closed; full sets retain pending reconciliation; retry count remains bounded."
+  },
+  "verificationEvidence": {
+    "priorContractGates": {
+      "oracleDefault": 345,
+      "oracleCi": 345,
+      "oracleMonadTenIntegration": 82,
+      "riskContracts": 849,
+      "riskSdkReadModels": 6,
+      "qualification": "Prior retained audit results, not rerun in rollout review; repaired oracle source and regression test hashes match."
+    },
+    "runtimeHelperTests": {
+      "passed": 3,
+      "assertions": 33,
+      "command": "bun --no-env-file test tmp/redeploy-audit-20261007/runtime-policy.test.ts",
+      "runByThisReviewer": true
+    },
+    "publisherStartupTests": {
+      "passed": 3,
+      "assertions": 74,
+      "reportedByServicesReviewer": true,
+      "independentReadOnlyCrossReview": true
+    }
+  },
+  "limitations": [
+    "Finite source qualification does not guarantee uninterrupted authenticated source or on-chain INDEX/PERP/BASIS coverage. Source guards remain unchanged.",
+    "Earlier Nebraska vendor timestamp gap and transient request failures remain retained evidence. The shared 34-second outage was independently matched to host low-battery hibernation; stable host power is required.",
+    "House publisher initially failed safely on RPC preflight; bounded startup retry repair was reviewed. Successful restart, window maturation and current public 5x trade proof are outside this receipt review.",
+    "Current frontend browser rollout checks were still being performed independently when this artifact was written.",
+    "Watchdog float100 test tokens does not cover a full-cap dispute. Test collateral, synthetic calibration and owner-controlled UMA sandbox are not a production CRE deployment.",
+    "Old engines and user balances remain on their original deployments; archive routing does not migrate funds or positions.",
+    "Runtime funding and campaign bounds do not guarantee a full hour of operation under every gas price, RPC delay or source outage."
+  ],
+  "sourceSha256": {
+    "oracle/src/ResolutionOracle.sol": "443d3e11b8e16ef6d8149efcfdfc9f1a50b4303bb43708363f0f29611589f5a7",
+    "oracle/test/unit/OraclePanel.t.sol": "2a18d387fb16e97677ae17ac9c7492885634e9f0b4df77930b14de526b99f614",
+    "oracle/test/gas/OracleGas.t.sol": "98f8e6999e423743ac2675daffeb624334e156c50878923c15a7d788d5e8c14f",
+    "oracle/e2e/src/fresh-testnet.ts": "31d1d83a1b3657f6e1a0d34dce916a4900b697314719f45088a6029ef3b619a1",
+    "scripts/e2e/manifest-selection.ts": "fdcccacab0c9201f40e517de00f9ce1a1fdff66da92fa19fa3ae3692a9d18821",
+    "scripts/e2e/select-live-markets.ts": "bbb99d6fc5e84515dd32aea658b6b0575e50ad19324cf5600ff2e205c2c61295",
+    "scripts/e2e/service-deployment.ts": "dc78401287d685114d7c45490c07bdf2443704fce6f74e1c4067834f4b7041f5",
+    "scripts/e2e/export-market-services.ts": "9e2267231d28283c0b71e67c9dd173a55904d4c1121b373fceabe1131180ebef",
+    "scripts/e2e/market-services.ts": "05afb833623805daab0d3662fedb6580825f5fa89f6bb6e5318b3e1db3097502",
+    "scripts/e2e/pricefeed-watch.mjs": "52b5d9eef930c0700f5cfe67d4ef3c236247ba12ede1d55843125c98f1b4c4ef",
+    "scripts/e2e/publisher-restart-policy.mjs": "8d3d43ca0641d74ae5663195d6d7321607b871b0537cb9db9bc5e5fce0d4d041",
+    "scripts/e2e/publisher-restart-policy.test.ts": "e31f925cdcfa0b7d2c4801380778733a284b6c70ec3da449e65e40c69af9dfaa",
+    "frontend/src/lib/oracle-binding.ts": "7cdb356ae8dc226d8e68d6f6df0bda5f8c2af305352cf19479ffd93660d92caf",
+    "frontend/src/lib/oracle-reads.ts": "0558611af1f04a8764f28d16bd633f2cbc861acb57157dca8f3165322cfb37fc",
+    "frontend/src/lib/reads.ts": "9a7741556e7f67902d9f04214c55660009f9303620df5fe441c590d4ceb8ae27",
+    "frontend/src/components/oracle-actions.tsx": "6aee7b73848a56ae5de18c1f62136396f63012900966c5c7d0e7eb5fa48ba60c",
+    "frontend/src/components/resolution.tsx": "e2e7bdddd48d578e8aaae82ee0449bebf6f71f75dd9f47a6d850937135fdfc59",
+    "frontend/src/components/terminal.tsx": "53857e6d80162c09a23a5cd3517a5604f01229aa42593d8798318b3098a1c770",
+    "frontend/src/config/deployment.ts": "86766021208352192090b4ee1efb1f0ac14ba999b35aa52616ca3b414576356a"
+  },
+  "operatorHelperSha256": {
+    "fund-runtime.ts": "557d1084ffdad3eb959638af2b823125c581aa04088bce58cb6c1adb3ccf9541",
+    "services.mjs": "e2625a1a3b5f9907bb836b12b5864cfb6d4f826dc212aa19debebef8ec73ffa1",
+    "runtime-policy.mjs": "9d758e202da20442cfdc1fe9f0dae4e14717afc30efa5ce9b2da80288c249437",
+    "runtime-policy.test.ts": "444cf7188f3cf8c0ceafdc11bf376f9f9e7e7a99ea9ab8e7930f5b415078507c"
+  },
+  "evidenceSha256": {
+    "priorContractAudit": "f09437b966631d916eadc02ebfed667d0ff85b8113ae903c316743b08d77b16c",
+    "basePlan": "a57fced0e0fe0d8a3b89b3f148963c21732e6ae37cf235431f11d7bf0206fe51",
+    "baseJournal": "894075e5a88d367efa876af0530dc23a7841cc49de5b08d28635489f33dfd63f",
+    "baseVerification": "1f37a63c9e01d4249e608416d501e253954041edbe17e1b43e726d6d781cfa33",
+    "treasuryPlan": "32c5bce2121359d17cab04e8a9e8a6f9441a319c5d4b557ae28230ca3c3d4a99",
+    "treasuryJournal": "303bdbb660a0bcd9560a2523ebbc148129a607deaf93c36830024a63f10026e3",
+    "treasuryVerification": "021bca94e301e9a3dd9e3c7edd4e1225347daa9e9f705a8e799e71fc4a0a206d",
+    "runtimeFundingPlan": "2b548a1b4aa6420aaf1b544cccec30adbd9ca80cb5f9a8af59986ae6b184ba77",
+    "runtimeFundingJournal": "9f0cd0ab14516edb1864b236f4cfbdbbb9fe54e21a22f150148814fa8d6cdac8",
+    "runtimeFundingVerification": "fdfe9ad17211c2355b68d110e7c7d092663d1a8a724503df6109cafb50808db2",
+    "fundingComplete": "2bfcfe7ff8c62214350f8a1259c6a7bbe6d4716868a774519ef79fa54e0e0a0f",
+    "independentCanonicalReceipts": "2ebe4ba8325e52431e34cf1ec15cb87e282d1782f74870a19d8fb5f234228527",
+    "independentPublicFiles": "1da4d18068a4cf73b2dbcfcca2b50d6e367b418227481ae178b4c7a220dae79f",
+    "frontendSelectionReport": "aab6a8a88ed0a8201c0eef2004814543b97913616409b00afe711bf45a4e2a68",
+    "nebraska-senate:market-plan": "29d0e15eb5e8a6aae5bfce01694a9f01e1560295a6bc3d1b7d701b08cd92f9bb",
+    "nebraska-senate:market-broadcast-journal": "c5a31840e1e745285085c5afb1534f1d756c3d0e0ea42393128a8fbfba21d787",
+    "nebraska-senate:market-verification": "3550dfab25e6dc76c8e4e7c7d2d3187de526db0a200e2e4ab0e91b10b3e3f6ab",
+    "nebraska-senate:owner-buy-funding-plan": "b740a5b6b19b6f2afdb74041c811892c69b9db1d3b2b7d8569728a0f4ad682d4",
+    "nebraska-senate:owner-buy-funding-broadcast-journal": "3f1a5c88581332df1bb5f6fa62ef7b51ec11071f034d752aadec227e3597a50b",
+    "nebraska-senate:owner-buy-funding-verification": "bb936602f6bd23743d3966101ce1e82253ae2bfc5f92f44b650cc375788a1f12",
+    "nebraska-senate:owner-sell-funding-plan": "675c9a8eb661d9a1c25c2eb061248b2ac21c14900e4a69a04ff50907b2472666",
+    "nebraska-senate:owner-sell-funding-broadcast-journal": "1e579fac41d6cfb4c0b3f85b7c71c90fc4fa2c95b521466f7129221654b2f717",
+    "nebraska-senate:owner-sell-funding-verification": "0fd3c8788084db9b5b3f0db72a9863441263e09f1397f3ab1b634a9e791e84bc",
+    "nebraska-senate:services-prepared": "0b3ff32423aefa573734896a77f8376f7fd8954bea7968a4b2a9008b7565b712",
+    "republican-house:market-plan": "dad3f53e75676e1cca473f8df5d2057c6ec18c569bb75cc807a56aa763f08bba",
+    "republican-house:market-broadcast-journal": "201f8d6d08557dbd5a13400cae4b562881ea314110480c7ced0c7b08ea90dac5",
+    "republican-house:market-verification": "1dd06aa1ab53d11866fb41a49bf5c2b3293a314a5a3532d0148402c452295bc9",
+    "republican-house:owner-buy-funding-plan": "dc2b679f4805ab79a78fd8b30cd1a58424873d5b4410c120a1864a787ae811e6",
+    "republican-house:owner-buy-funding-broadcast-journal": "97367938ddb6b1f73a5fbae72630445445f11274a399abb6e25b0b542a7d4ad7",
+    "republican-house:owner-buy-funding-verification": "51b68512dc449495abcf1dcfdd1a221a17c3edc790c58717b440496a70660f7d",
+    "republican-house:owner-sell-funding-plan": "87cffe582815b75150e9f0a7627f66cc641e27dfc98f37055834d53ae350b3d2",
+    "republican-house:owner-sell-funding-broadcast-journal": "6f3161a9d5015551c1938d64cde6b4b99a461f7038215149f10b7a365b579e40",
+    "republican-house:owner-sell-funding-verification": "2b4b278396a0d990d51daf26bda9cd3f5158eee67d3aaa32e8d291130f565bd1",
+    "republican-house:services-prepared": "7c2e8bcf1c751b2f79195f2c27e8b7f64c018e1d396992c143126d4ee6751edd"
+  },
+  "publicFileSha256": {
+    "artifacts/deployments/monad-testnet-20261007-audited-base/base-verification.json": "1f37a63c9e01d4249e608416d501e253954041edbe17e1b43e726d6d781cfa33",
+    "artifacts/deployments/monad-testnet-20261007-audited-base/deployment-evidence.json": "222fa674e89e3be87de2b4967674961b67084719e9a8741b9975aedcbdf4ec15",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/calibration.json": "9528465c948c6c66de18284836bc6f599b38f97873e33701a9e5b6e0fd30bd06",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/frontend-selection/archived-deployments.json": "dbac4d84c9cf2e5d07b07e68fc213d49308f25b199b3961cea433298cd96d835",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/frontend-selection/market-metadata.json": "775a79a9b57c1391bf68cf3bdd287b2c9a79c77f00170914d768ac1ad1e4fa57",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/frontend-selection/previous-selection.json": "9b74e9f568db4c668a6e19add014d512ef304131878c1309c5281709d1851cb4",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/frontend-selection/public-manifest.json": "01394ddb4b581f03b244fc8ee7c7f14a6f5012c99a2f53efe9bdb08e657a0008",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/frontend-selection/report.json": "aab6a8a88ed0a8201c0eef2004814543b97913616409b00afe711bf45a4e2a68",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/frontend-selection/risk-calibrations.json": "c5148d3418a98e2d5fb9fde5ee9da3ec63b512ea9593f16dfe54ed7d0ae026bb",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/market-verification.json": "3550dfab25e6dc76c8e4e7c7d2d3187de526db0a200e2e4ab0e91b10b3e3f6ab",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/public-manifest.json": "703c834f5bbee2587bb4cd54fe4701a8077e5ef8376ad75e9fd9f4658562c204",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/engine-abi.json": "995ec14c455f1cdcfb4e39a29c44d70fdd3cb87abbcce0ecc5a5e612d9867786",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/engine-identities.json": "d6f9288d16961cff7dc9f5037c51469e8d4220d55566d1e95f01f0f286ab2150",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/market-ops-gas.json": "fb4a8cad54a91a6490d6523a0ca2346487943bebc111c5d20e27c9e6d217165c",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/market-ops.json": "058954f08f9f6e3531f9923bcc6dae09b4075a8aa8020083dbd005ed34cf78e9",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/oracle-deployments.json": "a659b4afa433d4de6608c074c242a2405db793e653ad5c4c454971991af5d003",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/pricefeed-config.json": "51bf9599568df71667f8ea7e4425dbe0704c9d21ef2f50c5a9859172fd9a1c1e",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/pricefeed-policy.json": "1e3dffbc494637ab7b36a136ab743798b189e2630027384888b47eec8def98fa",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/services/pricefeed-rules.json": "0ff07f3b37098ff0804a82d1641152865101d92b8b203ca9eba107a8d58c6663",
+    "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited/source.json": "c89dd3b47a40f41967ce5fbae69c8a84da4767d1958a440dc729c0265348dfdd",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/calibration.json": "58b8a3cc71d1960d58b079a9e739bbbe651248ad13de5cca82d5307f367e6c26",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/market-verification.json": "1dd06aa1ab53d11866fb41a49bf5c2b3293a314a5a3532d0148402c452295bc9",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/public-manifest.json": "9eac11c0dde909306c5ae7094231c9b8de48ec9a6cc4ae8e6e6e227c6eadd553",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/engine-abi.json": "995ec14c455f1cdcfb4e39a29c44d70fdd3cb87abbcce0ecc5a5e612d9867786",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/engine-identities.json": "0fda393493e8437328bbb0f488cab3fdcbb5666fa477b77fb387f88512ac1f33",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/market-ops-gas.json": "7fb1b69eb5cd7b54538859ee23979958b3929b2dd279cfa52471495b0b671021",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/market-ops.json": "05c4e0c14a0c1ab393283d7f5b66e3e68c8f65087c476a3ea4e925db4d341d2f",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/oracle-deployments.json": "a659b4afa433d4de6608c074c242a2405db793e653ad5c4c454971991af5d003",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/pricefeed-config.json": "e6eed93fe6a41974becf3edb5fb8e8f8d08ef2fddad17663ca381452cb792d2c",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/pricefeed-policy.json": "a4b358ee9717acb32bf174da09c23914932baf6cb9c3aab74b733fc96a341c9f",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/services/pricefeed-rules.json": "6817f413fbbf891a08b7b0c1c1dc9d518c7516a8bfce5b4ca58d70315eb8265d",
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited/source.json": "48514d0f5d56d152459901a48310ff101502e566ed959c4b1d6aedd10c50fc79",
+    "frontend/src/config/archived-deployments.json": "dbac4d84c9cf2e5d07b07e68fc213d49308f25b199b3961cea433298cd96d835",
+    "frontend/src/config/market-metadata.json": "775a79a9b57c1391bf68cf3bdd287b2c9a79c77f00170914d768ac1ad1e4fa57",
+    "frontend/src/config/public-manifest.json": "01394ddb4b581f03b244fc8ee7c7f14a6f5012c99a2f53efe9bdb08e657a0008",
+    "frontend/src/config/risk-calibrations.json": "c5148d3418a98e2d5fb9fde5ee9da3ec63b512ea9593f16dfe54ed7d0ae026bb"
+  }
+}

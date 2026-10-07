@@ -6,6 +6,8 @@ import { DatabaseSync } from 'node:sqlite';
 import ts from 'typescript';
 import * as viem from 'viem';
 import { engineAbi } from '../src/abi/engine.ts';
+import { PublicError, publicErrorMessage } from '../src/lib/public-error.ts';
+import { apiError } from '../src/server/privy.ts';
 import { validateIntent } from '../src/lib/delegated-intent.ts';
 import { DelegatedAttemptStore, DelegatedDeliveryError, assertAttemptBinding, confirmDelegatedAttempt, delegatedCalldata, recoverDelegatedAttempt } from '../src/lib/delegated-attempt.ts';
 import { finalizedOwnerReceipt, FinalizedOwnerRevert } from '../src/lib/finality.ts';
@@ -37,20 +39,20 @@ function fixture() {
   database.exec('CREATE TABLE requests(id TEXT PRIMARY KEY,wallet TEXT,digest TEXT,status TEXT,hash TEXT,created INTEGER)');
   const state = { broadcasts: 0, policyChecks: 0, chainId: 10143, permission: true, signingError: false, block: 100n, gate: undefined };
   const server = load('../src/server/trade.ts', {
-    viem, '@/abi/engine': { engineAbi }, '@/lib/delegated-intent': { validateIntent },
+    viem, '@/lib/public-error': { PublicError, publicErrorMessage }, '@/abi/engine': { engineAbi }, '@/lib/delegated-intent': { validateIntent },
     './policy': { delegatedEngines: [engine] }, './store': { db: () => database },
     '@/lib/deployment-check': { ensureDeployment: async () => { if (state.gate) await state.gate; } },
     '@/config/deployment': { marketByEngine: () => ({ archived: false }) },
     './privy': {
       ownedWallet: async (user, address) => { assert.equal(user, 'user'); assert.equal(address, owner); return { id: 'wallet-id', address: owner }; },
-      signingWallet: async () => { state.policyChecks++; if (!state.permission) throw Error('Permission revoked.'); return { wallet: { id: 'wallet-id', address: owner }, config: { key: 'fake-nonsecret' } }; },
+      signingWallet: async () => { state.policyChecks++; if (!state.permission) throw new PublicError('Permission revoked.'); return { wallet: { id: 'wallet-id', address: owner }, config: { key: 'fake-nonsecret' } }; },
       privy: () => ({ wallets: () => ({ ethereum: () => ({ sendTransaction: async () => {
-        state.broadcasts++; if (state.signingError) throw Error('Ambiguous signing result');
+        state.broadcasts++; if (state.signingError) throw Error(typeof state.signingError === 'string' ? state.signingError : 'Ambiguous signing result');
         return { hash: `0x${String(state.broadcasts).padStart(64, '0')}` };
       } }) }) }),
     },
     '@/lib/public-client': { client: {
-      getBlock: async () => ({ number: state.block, timestamp: BigInt(Math.floor(Date.now() / 1000)), hash: `0x${'ab'.repeat(32)}` }),
+      getBlock: async () => { if (state.transportError) throw Error(state.transportError); return { number: state.block, timestamp: BigInt(Math.floor(Date.now() / 1000)), hash: `0x${'ab'.repeat(32)}` }; },
       getChainId: async () => state.chainId,
       readContract: async ({ functionName }) => ({ participantId: 1, previewOrder: { rejection: 0, acceptedCapLots: 10000n }, maxFills: 64, previewAccount: { positionLots: 0n } })[functionName],
       call: async () => {}, estimateGas: async () => 100000n, getBalance: async () => 10n ** 18n, getGasPrice: async () => 1n,
@@ -58,7 +60,7 @@ function fixture() {
   });
   const route = load('../src/app/api/trade/route.ts', {
     '@/server/trade': server,
-    '@/server/privy': { authenticate: async () => 'user', jsonBody: request => request.json(), apiError: error => Response.json({ error: error instanceof Error && error.constructor === Error ? error.message : 'Request failed.' }, { status: 400 }) },
+    '@/server/privy': { authenticate: async () => 'user', jsonBody: request => request.json(), apiError },
   });
   const post = async input => {
     const response = await route.POST(new Request('https://app.test/api/trade', { method: 'POST', body: JSON.stringify(input) }));
@@ -147,6 +149,32 @@ test('post-signature uncertainty stays blocked and changed intent cannot overwri
     await assert.rejects(recoverDelegatedAttempt(store, original, f.post), error => error.delivery === 'pending');
     assert.equal(f.state.broadcasts, 1);
     assert.equal(store.read(`0x${'3'.repeat(40)}`), undefined);
+  } finally { f.database.close(); }
+});
+
+test('real trade route redacts transport errors without changing rejected and pending recovery semantics', async () => {
+  const f = fixture(), store = new DelegatedAttemptStore(storage(), [engine], 10143);
+  const secret = 'https://rpc.example/private-provider-token?authorization=test-private-request';
+  try {
+    f.state.transportError = secret;
+    await assert.rejects(recoverDelegatedAttempt(store, attempt(body('redacted_rejected_01')), f.post), error => {
+      assert.equal(error.delivery, 'rejected');
+      assert.doesNotMatch(error.message, /private-provider-token|test-private-request|rpc\.example/);
+      assert.match(error.message, /Check your login/);
+      return true;
+    });
+    assert.equal(store.read(owner), undefined, 'durable pre-sign rejection may clear recovery');
+    assert.equal(f.state.broadcasts, 0);
+    f.state.transportError = undefined;
+    f.state.signingError = secret;
+    await assert.rejects(recoverDelegatedAttempt(store, attempt(body('redacted_pending_001')), f.post), error => {
+      assert.equal(error.delivery, 'pending');
+      assert.doesNotMatch(error.message, /private-provider-token|test-private-request|rpc\.example/);
+      assert.match(error.message, /Recover this request/);
+      return true;
+    });
+    assert.ok(store.read(owner), 'ambiguous signing must retain the exact recovery request');
+    assert.equal(f.state.broadcasts, 1);
   } finally { f.database.close(); }
 });
 

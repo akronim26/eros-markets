@@ -1,9 +1,10 @@
+import { PublicError } from "./public-error";
 export const RULE_KINDS = ["stop_loss", "take_profit", "auto_cancel", "risk_guard", "backing_guard", "claim_delivery"] as const;
 export type RuleKind = typeof RULE_KINDS[number];
 export type ProtectionRule = { kind: RuleKind; triggerTick: number; limitTick: number; maxLots: string; long: boolean; expires: number };
 export function validateRule(x: unknown, now: number): ProtectionRule {
   const r = x as ProtectionRule;
-  if (!r || !RULE_KINDS.includes(r.kind) || !Number.isInteger(r.triggerTick) || r.triggerTick < 1 || r.triggerTick > 999 || !Number.isInteger(r.limitTick) || r.limitTick < 1 || r.limitTick > 999 || typeof r.maxLots !== "string" || !/^\d{1,20}$/.test(r.maxLots) || BigInt(r.maxLots) < 1n || BigInt(r.maxLots) >= 2n ** 64n || typeof r.long !== "boolean" || !Number.isInteger(r.expires) || r.expires <= now || r.expires > now + 604800) throw new Error("Invalid protection rule. Rules may last at most seven days.");
+  if (!r || !RULE_KINDS.includes(r.kind) || !Number.isInteger(r.triggerTick) || r.triggerTick < 1 || r.triggerTick > 999 || !Number.isInteger(r.limitTick) || r.limitTick < 1 || r.limitTick > 999 || typeof r.maxLots !== "string" || !/^\d{1,20}$/.test(r.maxLots) || BigInt(r.maxLots) < 1n || BigInt(r.maxLots) >= 2n ** 64n || typeof r.long !== "boolean" || !Number.isInteger(r.expires) || r.expires <= now || r.expires > now + 604800) throw new PublicError("Invalid protection rule. Rules may last at most seven days.");
   return { kind: r.kind, triggerTick: r.triggerTick, limitTick: r.limitTick, maxLots: r.maxLots, long: r.long, expires: r.expires };
 }
 export type ProtectionSnapshot = { now: bigint; markAvailable: boolean; markWad: bigint; lots: bigint; status: number; e0: bigint; e1: bigint; secsToT: bigint; monitorRestricted: boolean; stage: number; halted: boolean; leveraged: boolean; claimable: bigint };

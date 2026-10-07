@@ -144,6 +144,11 @@ describe('isolated local read model', () => {
     expect((await get('/events?fromBlock=-1')).status).toBe(400)
     expect((await get('/snapshot', { method: 'POST' })).status).toBe(405)
     expect((await get('/snapshot', { headers: { Origin: 'https://example.invalid' } })).status).toBe(403)
+    for (const origin of ['http://localhost:3100', 'http://127.0.0.1:3100']) {
+      const response = await get('/snapshot', { headers: { Origin: origin } })
+      expect(response.status).toBe(200)
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin)
+    }
     expect((await get('/abi/factory')).status).toBe(200)
     client.getChainId = async () => { throw new Error('https://rpc.invalid/secret') }
     const failure = await get('/snapshot')
@@ -155,12 +160,15 @@ describe('isolated local read model', () => {
     const { client, model } = fixture()
     client.getBlock = async () => ({ ...block, number: 6000n })
     const ranges: Array<{ fromBlock: bigint; toBlock: bigint }> = []
-    client.getLogs = async range => { ranges.push(range); return [] }
+    client.getLogs = async range => {
+      if (range.toBlock - range.fromBlock >= 100n) throw new Error('RPC_BLOCK_RANGE_LIMIT_100')
+      ranges.push(range); return []
+    }
     const first = await model.events(1n)
     expect(first.toBlock).toBe(5000n)
     expect(first.nextFromBlock).toBe(5001n)
-    expect(ranges).toHaveLength(20)
-    expect(ranges.every(range => range.toBlock - range.fromBlock < 250n)).toBe(true)
+    expect(ranges).toHaveLength(50)
+    expect(ranges.every(range => range.toBlock - range.fromBlock < 100n)).toBe(true)
     const second = await model.events(first.nextFromBlock!)
     expect(second.fromBlock).toBe(5001n)
     expect(second.toBlock).toBe(6000n)

@@ -4,7 +4,7 @@ import { createPublicClient, erc20Abi, http, type Address } from 'viem'
 import { RegistryBookRiskEngineAbi, CollateralVaultAbi, ResolutionOracleAbi, MarketRegistryAbi, MarketFactoryAbi } from '../../../packages/oracle-sdk/src/browser'
 import { LocalReadModel, json, readManifestSchema, type Abis, type ReadClient } from './read-model'
 
-export const defaultOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8787', 'http://127.0.0.1:8787']
+export const defaultOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3100', 'http://127.0.0.1:3100', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8787', 'http://127.0.0.1:8787']
 
 export function readHandler(model: LocalReadModel, abis: Abis, origins: readonly string[] = defaultOrigins) {
   const allowedOrigins = new Set(origins.map(value => {

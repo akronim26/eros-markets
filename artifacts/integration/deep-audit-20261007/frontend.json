@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-07",
+  "owner": "frontend_audit",
+  "status": "historical-local-audit-and-browser-passed-public-pending",
+  "baseCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+  "scope": {
+    "implementation": "Frontend components, reads, owner transaction wiring, authenticated API boundaries and protection worker; selected local E2E specification.",
+    "publicTransactionsSent": false,
+    "publicServicesStarted": false,
+    "credentialsReadOrRecorded": false,
+    "zeroBugsGuarantee": false
+  },
+  "findings": [
+    {
+      "id": "FE-01",
+      "severity": "high",
+      "status": "fixed",
+      "title": "Independently polled owner and market snapshots could keep actions disabled",
+      "reproduction": "Market and owner requests with different completion times return different block numbers while funding and trade controls require exact equality. The former independent polling did not guarantee convergence.",
+      "fix": "Use one stable bounded terminal query to publish owner and market state from the same canonical block; scope by engine and owner; preserve public prices while failing owner actions closed if account reads fail. Clear the combined query on logout.",
+      "evidence": [
+        "frontend/tests/integration/trading-snapshot.test.ts"
+      ]
+    },
+    {
+      "id": "FE-02",
+      "severity": "medium",
+      "status": "fixed",
+      "title": "Historical source observations were easily mistaken for executable INDEX",
+      "reproduction": "A cached chart observation remained visible while the header said no index or waiting for index price and the contract marked INDEX and MARK unavailable.",
+      "fix": "Display Polymarket source with live/delayed state separately from the execution 5-minute TWAP; explain missing index coverage, book/basis windows and epoch transition. Never substitute chart prices for unavailable contract prices or enable unsupported leverage.",
+      "evidence": [
+        "frontend/tests/price-readiness.test.mjs"
+      ],
+      "validationBoundary": "Restoring live public INDEX, MARK and fivefold admission still requires funded running publishers, book sampling and contract readiness."
+    },
+    {
+      "id": "FE-03",
+      "severity": "medium",
+      "status": "fixed",
+      "title": "Head-dependent order query keys could abandon slow in-flight reads",
+      "reproduction": "Changing the query key with every chain head creates another order read before a slower previous snapshot can be used.",
+      "fix": "Keep one order query per engine, owner and trader with bounded polling; returned data retains its actual block.",
+      "evidence": [
+        "Source review and final fresh browser E2E passed; see e2e.json."
+      ]
+    },
+    {
+      "id": "FE-04",
+      "severity": "medium",
+      "status": "fixed",
+      "title": "Concurrent protection-rule creation could exceed the owner limit",
+      "reproduction": "The active-rule count was checked before asynchronous chain verification. Multiple requests could observe the same capacity before inserting.",
+      "fix": "Count and insert inside an immediate SQLite transaction after preflight; include unresolved uncertain requests in the bounded limit.",
+      "evidence": [
+        "frontend/tests/integration/protection-limits.test.ts"
+      ]
+    },
+    {
+      "id": "FE-05",
+      "severity": "medium",
+      "status": "fixed",
+      "title": "Authenticated API uploads had no completion deadline",
+      "reproduction": "A small request body whose producer never closes could retain an authenticated handler indefinitely.",
+      "fix": "Apply a total five-second upload deadline and 12KB byte limit, cancel stalled readers without awaiting a stalled cancellation, and retain same-origin checks.",
+      "evidence": [
+        "frontend/tests/integration/protection-limits.test.ts"
+      ]
+    },
+    {
+      "id": "FE-06",
+      "severity": "medium",
+      "status": "fixed",
+      "title": "Future-dated chain heads passed delegated-signing freshness checks",
+      "reproduction": "The former age comparison rejected old heads but admitted a timestamp far in the future.",
+      "fix": "Reject timestamps outside the freshness interval in either direction, recheck the protection worker network, and confirm the trigger-evaluation block remains canonical before claiming the rule.",
+      "evidence": [
+        "frontend/tests/integration/delegation.test.ts"
+      ]
+    },
+    {
+      "id": "FE-07",
+      "severity": "high",
+      "status": "fixed",
+      "title": "Plain SDK errors could expose credential-bearing upstream details through API responses",
+      "reproduction": "The actual permissions GET route, with only Privy token verification stubbed to throw a plain Error containing a synthetic credential-bearing RPC URL, returned that entire URL. The new regression failed before the fix and passed afterward.",
+      "fix": "Only explicitly branded PublicError messages authored by application code may cross the API boundary. SDK/transport/plain Error messages receive a constant generic fallback. TradeDeliveryError uses the same classification while preserving its independent rejected, pending and unknown delivery state.",
+      "evidence": [
+        "frontend/tests/integration/api-error-redaction.test.ts",
+        "frontend/tests/delegated-retry.test.mjs"
+      ],
+      "workerReview": "Protection worker and wrapper failure messages were already constant; raw upstream errors are not copied into the protection failure journal."
+    },
+    {
+      "id": "FE-08",
+      "severity": "low",
+      "status": "fixed",
+      "title": "Disabled leverage and collateral-release controls lacked actionable explanations",
+      "reproduction": "A funded account without an order price saw disabled leverage controls with generic sizing guidance; stale INDEX could prevent release even for a flat account.",
+      "fix": "Explain the order-price and reduce-only prerequisites, and distinguish INDEX-dependent market release from withdrawal of existing free vault funds.",
+      "evidence": [
+        "Source review and final fresh browser E2E passed; see e2e.json."
+      ]
+    },
+    {
+      "id": "FE-09",
+      "parentFindingId": "DA19",
+      "severity": "high",
+      "status": "fixed",
+      "title": "Advancing heads starved slow exact-order previews",
+      "reproduction": "Ticket moved its QueryObserver to a different block-key every market snapshot. A preview slower than the four-second head refresh could complete only in an abandoned cache and keep the current order at Checking order indefinitely. The deterministic regression advances two heads while the original request is gated.",
+      "fix": "Keep one polling query per engine, owner, trader and exact order intent. Capture canonical block and timestamp in each result. Reject stale or future reads, account/market block drift and changed phase, profile, order epoch or price availability. Hide previews during input debounce. Keep the fresh canonical pre-send order validation and transaction simulation unchanged. A shared pinned-read helper supplies the bounded provenance checks for related panel fixes owned by other agents. Related release, reserve, operator simulations, liquidation scans, oracle actions and optional margin lens now use stable scoped polling with bounded canonical provenance. Operator and reserve actions fail closed on terminal read failures.",
+      "evidence": [
+        "frontend/tests/integration/order-preview.test.ts",
+        "frontend/tests/integration/collateral-queries.test.ts",
+        "frontend/tests/polled-actions.test.mjs"
+      ],
+      "validationBoundary": "Final combined 69 unit and 44 integration tests, typecheck, production rebuild and all six fresh browser scenarios passed, executed by root."
+    },
+    {
+      "id": "FE-10",
+      "parentFindingId": "DA20",
+      "severity": "medium",
+      "status": "fixed",
+      "title": "Bulk-cancelled orders remained in the open-orders table until book pruning",
+      "reproduction": "The full local browser flow confirmed cancelAll but retained two disabled Cancel rows. Read-only receipt verification showed canonical successful block2418, AllOrdersCancelled for trader7/accountEpoch2, and zero current reservations. The physical orders still had positive size and active flags at accountEpoch1. The read helper correctly classified them stale but included stale rows in the Open orders list.",
+      "fix": "Return only effective live orders from openOrdersAt; retain the epoch, owner, generation, expiry and reduce-version classifier for non-UI diagnostics. The open-orders table no longer displays inactive pruning nodes as open.",
+      "evidence": [
+        "frontend/tests/orders.test.mjs"
+      ],
+      "validationBoundary": "Orders tests7/7 including2new regressions and full typecheck passed. Root owns the fresh complete browser and suite rerun; no public transactions were sent."
+    }
+  ],
+  "validation": {
+    "performedByFrontendAgent": [
+      {
+        "command": "npm test",
+        "workingDirectory": "frontend",
+        "result": "passed",
+        "tests": 62,
+        "failures": 0,
+        "skipped": 0,
+        "phase": "Passed before DA19; final combined results are recorded separately below."
+      },
+      {
+        "command": "npm run test:integration",
+        "workingDirectory": "frontend",
+        "result": "passed",
+        "tests": 37,
+        "failures": 0,
+        "skipped": 0,
+        "phase": "Passed before DA19; final combined results are recorded separately below."
+      },
+      {
+        "command": "npm run typecheck",
+        "workingDirectory": "frontend",
+        "result": "passed",
+        "phase": "Passed before DA19; final combined results are recorded separately below."
+      },
+      {
+        "command": "node --check frontend/e2e/specs/leverage.spec.mjs",
+        "result": "passed",
+        "scope": "Syntax only; does not certify the scenario."
+      },
+      {
+        "command": "git diff --check -- frontend/e2e/specs/leverage.spec.mjs",
+        "result": "passed"
+      },
+      {
+        "command": "npx tsx --test tests/integration/order-preview.test.ts",
+        "workingDirectory": "frontend",
+        "result": "passed",
+        "tests": 4,
+        "failures": 0,
+        "skipped": 0,
+        "scope": "DA19 delayed-query deduplication, exact-intent cache isolation, snapshot identity/freshness, stale/future/reorganized canonical block rejection."
+      },
+      {
+        "command": "npx tsx --test tests/orders.test.mjs",
+        "workingDirectory": "frontend",
+        "result": "passed",
+        "tests": 7,
+        "failures": 0,
+        "skipped": 0,
+        "scope": "DA20 two added regressions reproduce physical stale nodes after bulk cancellation and preserve logical liveness filters."
+      },
+      {
+        "command": "npm run typecheck",
+        "workingDirectory": "frontend",
+        "result": "passed",
+        "phase": "After DA20 open-orders source fix."
+      }
+    ],
+    "reportedSeparatelyByRoot": [
+      {
+        "check": "Production frontend build",
+        "result": "reported-passed-by-root",
+        "independentlyExecutedByThisAgent": false,
+        "scope": "Final audited production sources rebuilt successfully after DA20."
+      },
+      {
+        "check": "Public Privy modal/browser smoke",
+        "result": "reported-passed-by-root",
+        "independentlyExecutedByThisAgent": false,
+        "scope": "Modal/browser behavior only; does not prove fresh wallet creation, actual signing or a public leveraged fill."
+      }
+    ],
+    "browserEndToEnd": {
+      "result": "passed-reported-by-root",
+      "passClaim": true,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "artifacts/integration/deep-audit-20261007/e2e.json",
+      "scope": "Historical exact source hashes only; disposable local fixture, synthetic pricing, injected local wallets and scripted resolution."
+    },
+    "publicIndexMarkAndFivefoldFill": {
+      "result": "not-validated-by-this-audit",
+      "reason": "Public publishers and samplers remain stopped; no public test transactions were authorized for this audit."
+    },
+    "finalCombinedRerun": {
+      "owner": "root",
+      "result": "historical-source-suites-and-browser-verified",
+      "commands": [
+        {
+          "command": "npm test",
+          "workingDirectory": "frontend",
+          "tests": 67,
+          "failures": 0,
+          "skipped": 0,
+          "phase": "Before DA20; subsequent seven order tests include two added DA20 regressions."
+        },
+        {
+          "command": "npm run test:integration",
+          "workingDirectory": "frontend",
+          "tests": 44,
+          "failures": 0,
+          "skipped": 0
+        },
+        {
+          "command": "npm run typecheck",
+          "workingDirectory": "frontend",
+          "result": "passed"
+        }
+      ],
+      "laterSourceValidation": "artifacts/integration/redeployment-20261007/frontend.json"
+    },
+    "retainedFinalLogsSha256": {
+      "deep-audit-frontend-unit-final.log": "92564aed28aef12d141e804537660b3bc37ac04aea5b7319f2bb04f84520f185",
+      "deep-audit-frontend-integration-final.log": "0446823c11d7192b104e0f1470b93fd8cd8281bcac187eb70ad52def834a25aa",
+      "deep-audit-frontend-typecheck-final.log": "3439372fbc15219f60799f7d2f3e9860924ef3b21983a5b1111aa084680870d0",
+      "deep-audit-production-build-final.log": "e048313c2805f22c45034d702558213f5db926b8e2a4efa16c97dd14fbe33e4d"
+    },
+    "diagnosticContinuation": {
+      "result": "passed",
+      "fullFreshRun": false,
+      "scope": "After DA20: cancelled-order baseline, wrong network, trade/close, second owner matching, release/withdrawal, oracle finality and exact claim payout.",
+      "browserTransactions": 11,
+      "fixtureTransactions": 11,
+      "seconds": 144.824
+    }
+  },
+  "leverageBrowserScenario": {
+    "source": "frontend/e2e/specs/leverage.spec.mjs",
+    "status": "historical-root-run-passed-actual-fivefold-full-fill-and-close",
+    "description": "Independent local fixture maker wallet 21 funds 1000 test collateral via the terminal and posts 150 claims on each existing best quote. Buyer wallet 20 funds 10, selects every integral target from one to five, and checks exact full entry/exit fills and actual leverage between 4.9 and 5.0. Both owners must finish flat, quotes unchanged, and remaining orders stay for the lifecycle scenario. Each browser owner must start with zero token, vault free balance, market cash and position; the faucet visibility and enabled checks have explicit 45-second deadlines.",
+    "walletIsolation": "Separate browser context for the maker; fixture accounts 20 and 21 avoid backend SDK owner 18 and lifecycle accounts 16 and 17. Loopback, chain, code hash, target and zero-value guards remain intact.",
+    "abiReadReview": "getLevel returns a named Book.Level tuple containing uint96 size; accessing result.size is correct.",
+    "orderingDependency": "Run leverage before lifecycle because lifecycle settles the shared market and stops its local publisher.",
+    "fixtureCorrection": "The first root browser attempt exposed actor 18 overlap with the funded backend SDK owner, which correctly hid the faucet. No browser transaction was submitted in that attempt. Replaced leveraged actors with 20/21 and added initial balance assertions."
+  },
+  "crossReview": {
+    "reviewer": "frontend_audit",
+    "mode": "read-only",
+    "result": "No concrete regression found in reviewed service changes or the guarded wallet-account extension.",
+    "reviewedFiles": [
+      "oracle/packages/oracle-sdk/src/indexer.ts",
+      "oracle/services/watchdog/src/chain.ts",
+      "oracle/services/market-ops/src/operations.ts",
+      "oracle/services/local-integration/src/main.ts",
+      "oracle/services/local-integration/src/read-model.ts",
+      "scripts/e2e/market-services.ts",
+      "scripts/e2e/sampler-request-policy.mjs",
+      "scripts/e2e/sampler-request-policy.test.ts",
+      "frontend/e2e/support/wallet.mjs",
+      "frontend/src/components/account-actions.tsx",
+      "frontend/src/components/reserve-panel.tsx",
+      "frontend/src/lib/collateral-queries.ts",
+      "frontend/src/components/operations-panel.tsx",
+      "frontend/src/components/oracle-actions.tsx",
+      "frontend/src/components/risk-panel.tsx"
+    ],
+    "notes": [
+      "Cadence skips retain sampler requests; finalized successful samples acknowledge them even when reconciliation occurs during rollover.",
+      "Reverted sampling transactions do not advance successful-sample cadence.",
+      "Indexer pagination failure keeps cursor safety and RPC fallback; only a complete scan is accepted.",
+      "Local event reads use inclusive 100-block transport ranges within bounded API pages.",
+      "Release eligibility is bounded again by the current account usableReleaseAtoms, which derives from the same engine release decision; cached preview cannot override the current balance bound.",
+      "Reserve funding retains same-block market/account checks and its fresh allocation validator; all transaction paths retain current canonical simulation.",
+      "Operator/oracle queries preserve semantic action identities in their keys and reject stale/error results; liquidation and lens displays show their source block.",
+      "Risk boundary state was already scoped to owner through a React key; strengthening it to engine-and-owner avoids state carryover if a terminal instance survives market navigation. No owner-state leak was claimed.",
+      "services_audit independently reviewed DA20 after the fix: canonical order fields and generation/owner/epoch/expiry/reduce-version filters match contract lazy cancellation semantics; no concrete regression found."
+    ]
+  },
+  "sourceHashes": {
+    "frontend/e2e/specs/leverage.spec.mjs": "3cc198da227044ea25cfd324a78861d266084f43fffde24f54cc328ac0dba15d",
+    "frontend/src/app/api/protection/route.ts": "0d182a6717a624c99d7a06a84f377f6b3c4d40fa1960e031a2d8786f17c4da75",
+    "frontend/src/components/account-actions.tsx": "734c8b4f366d3792d8eb43001a9bcf05485d61375d740f479159ccdf16dedc69",
+    "frontend/src/components/market-parts.tsx": "97356f1f619de534e964fe11e1c4781cff26487359afae52faa614407f41a2d5",
+    "frontend/src/components/open-orders.tsx": "ac84791a274fa1f581058cef90cafcadef8a7ef47753c9e4be4860dd4405b0a2",
+    "frontend/src/components/operations-panel.tsx": "113a4437296ddee767e3949552cc46860b50304850020cc4629b0407d16ab649",
+    "frontend/src/components/oracle-actions.tsx": "7a61e23857877e092cee4ec0230a731eb930aad8d330f1bb801c71cb0176e0e7",
+    "frontend/src/components/price-axis.tsx": "5ed80f9f5411dd7b4edae25f88dba900cdee1dcbc7d61795a5237fcc5fade30b",
+    "frontend/src/components/reserve-panel.tsx": "35774279ceec47566f8542f271e574d3bb82781fdae8ab13c832b053af3d2eec",
+    "frontend/src/components/risk-panel.tsx": "b352caa8407e48d84daa16c5588a3f90411a7a21bfc020f3fc898e4f71fc0774",
+    "frontend/src/components/terminal.tsx": "8f1239fabefc3a8cd5ce5b5cbe4d7798ddee1aad843fdd816dc85377c6274367",
+    "frontend/src/components/ticket.tsx": "74cb30e41d21a6057cc209587f5a2e342876693aa117aad5639e698378ade72e",
+    "frontend/src/components/wallet-picker.tsx": "65d4e7fcdd6da4a0899c3855cb5a6e64c1be12754ac34a2e46f9881b75b4b818",
+    "frontend/src/lib/collateral-queries.ts": "52ca8eb0342b1c1c99002b98473c39e851c501661fbb953fd3ba778a9b33121b",
+    "frontend/src/lib/delegated-intent.ts": "6d8ca85321abdc020c26c27125b6e5af7576e576a20cb4c0ca7d9008116de3b6",
+    "frontend/src/lib/deployment-check.ts": "99bf2b0f76e4a3e05400be8495957ba6f575c6b17b0df8a48294a5ad6e740d0b",
+    "frontend/src/lib/enums.ts": "85f955f7814f85385372d80f6b31b00a71c81ed83177e6982b09c01dade62620",
+    "frontend/src/lib/order-preview.ts": "e036347b27e710401cdf69afd639f6773c7ec4c9fafbcb70bd04bbcdda33b4da",
+    "frontend/src/lib/order-reads.ts": "a4fc0d78710d863377c293293cece45b9c8a2ddc36ec54b2afd0ed6b03d0cb9e",
+    "frontend/src/lib/orders.ts": "0debb107fc2fe0c7c9d4a78458b7b686d493da28131cc936849ee1d5bf666444",
+    "frontend/src/lib/pinned-read.ts": "e11943d421406cda224b418978e49ad432d392b4ce88164a541e0b6b8317ae72",
+    "frontend/src/lib/price-chart.ts": "15971c0f61543abfc476cb1b554af84633c1148ba4cc1f3180fc135554920a0c",
+    "frontend/src/lib/protection.ts": "ba38d61e60fa791eef25ca073488a07afc68104e0e5bfd6b076ef60a8d6a3056",
+    "frontend/src/lib/public-error.ts": "b0ccd16efc5186c103dcb46e9b4e5acde009504498d268f521a3bab172593b91",
+    "frontend/src/lib/reads.ts": "bad792f2973c38b24bb2e5cfa389e1c27dd78ca53f0ca769a7d29f1871ff15da",
+    "frontend/src/server/automation.ts": "ad3d33fb1cd7a07dbc7323cee46a8697c29d82e6c6b5e956b266e7297210c354",
+    "frontend/src/server/privy.ts": "92c4826d01a7d631bc62371eee80424740022b9a9b7aadadcb18eda1bc80cc01",
+    "frontend/src/server/protection-rule-store.ts": "8ceab825bb20b21b486156be0f54ddeafe1a3e50f119b00f1046d2051d1a7611",
+    "frontend/src/server/store.ts": "7d7e9fc6a0565ebb4f130268a716b9a2c8eb0da6b0abd5f6936e03c3bf707b1f",
+    "frontend/src/server/trade.ts": "43ceec28df9017fdd0360f2831a87f135f562f3f8c1f45deb55cc084a42167f9",
+    "frontend/tests/delegated-retry.test.mjs": "a315bd4aa0ac669d09c3d50f9931de0423889e16a523aefb362ada0c631fea37",
+    "frontend/tests/integration/api-error-redaction.test.ts": "42ef78f48ad52c82637f81321c5df4023cfc8466788d62905d8801da9fdff621",
+    "frontend/tests/integration/collateral-queries.test.ts": "b5454ee73f7b06f84ffbe94872d531bd2ba0466f8acda06bb3fe0e3cea29c348",
+    "frontend/tests/integration/delegation.test.ts": "671b6f1b966a18d4fda9e6a278d94003b386300da86768e660e85c0c9a1809dd",
+    "frontend/tests/integration/order-preview.test.ts": "b919fe2f3e54c975563acebb6b81f7d8ede4a5b3b14559d6decf458b1173b96b",
+    "frontend/tests/integration/protection-limits.test.ts": "224be00797a5be5a98c7b2010a82bae90468b7124e130cc68d7986bdbb92a196",
+    "frontend/tests/integration/trading-snapshot.test.ts": "3bea6c2e307e1e7bcc7495897cf0151d19951558360a4da3b1a7747efa467e68",
+    "frontend/tests/orders.test.mjs": "cb8417671f54e6a79f9964a6acc46713521c018a733b0dfe801bb647991c63af",
+    "frontend/tests/polled-actions.test.mjs": "b5a6f88dd12b92e21fb11b9c5107dd834177cf0d0532aa693c5d0963b5461bbf",
+    "frontend/tests/price-readiness.test.mjs": "d8e85f87d7a4f41c4ab77629b3c4cb3c48fca1b2892bde6309ff380cb75a6e1e"
+  },
+  "reviewedAbiHash": {
+    "frontend/src/abi/engine.ts": "809279676d9183fadb4eebcbebc9bde1b24966deed760c50fd44a195e3a58815"
+  },
+  "limitations": [
+    "Tests exercise the recorded source hashes and their mocked or disposable dependencies, not every possible execution state.",
+    "The local injected-wallet scenario does not replace real Privy embedded-wallet or external-wallet signing verification.",
+    "Live public feed freshness, continuous hosting, keeper funding and public fivefold fills require separate operational validation.",
+    "Complete browser and separate backend lifecycle evidence is recorded in e2e.json; public validation gates remain pending."
+  ],
+  "hashRefreshNote": "Historical hashes restored from the independently preserved deep-audit source-hashes.json; later oracle binding changes and their tests are recorded separately in redeployment-20261007/frontend.json.",
+  "reviewedFixtureHashes": {
+    "frontend/e2e/support/wallet.mjs": "2edd0d8bbbd5514908c6223ec06a3953ef8350e444b47da1a1d391e77d365dca",
+    "docs/integration/E2E_TESTING.md": "aa9e69c6bd8ae444b61e00fd3320619d758a0c54ed7f594ebf948d92b7888902"
+  },
+  "subsequentChanges": "artifacts/integration/redeployment-20261007/frontend.json"
+}

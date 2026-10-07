@@ -2,9 +2,9 @@ name: oracle
 
 on:
   push:
-    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", ".github/workflows/oracle.yml"]
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", "scripts/e2e/sampler-request-policy.*", ".github/workflows/oracle.yml"]
   pull_request:
-    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", ".github/workflows/oracle.yml"]
+    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", "scripts/e2e/sampler-request-policy.*", ".github/workflows/oracle.yml"]
 
 permissions:
   contents: read
@@ -64,7 +64,11 @@ jobs:
       - name: Build artifacts for deployment preflight tests
         env:
           FOUNDRY_PROFILE: integration
-        run: forge build --skip test --skip script
+        run: |
+          forge build --skip test --skip script
+          # The fresh deployment planner includes governance. Timelock is only
+          # imported by skipped scripts, so a clean checkout needs this target.
+          forge build lib/solady/src/accounts/Timelock.sol
       # The fresh deployment planner also loads the real UMA sandbox contracts.
       # They use a separate exact compiler and are not imported by integration src.
       - name: Build UMA artifacts for deployment planner tests
@@ -75,8 +79,8 @@ jobs:
       # the vendored libraries under lib/ (ADJ-11).
       - name: Test (packages and services)
         run: bun run --filter '*' test
-      - name: Keeper wrapper gas policy
-        run: bun test ../scripts/e2e/keeper-gas-policy.test.ts
+      - name: Keeper gas and sampler request policies
+        run: bun test ../scripts/e2e/keeper-gas-policy.test.ts ../scripts/e2e/sampler-request-policy.test.ts
       - name: Typecheck integration services
         run: |
           bun run --cwd services/keeper typecheck

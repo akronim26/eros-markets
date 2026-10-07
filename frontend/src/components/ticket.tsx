@@ -9,7 +9,7 @@ import { usePermissions } from "@/lib/privy-api";
 import { expiryBlock, type CloseIntent } from "@/lib/trade-intent";
 import { ownerTrader } from "@/lib/trader";
 import { leverageLots } from "@/lib/leverage";
-import { canonicalRead } from "@/lib/deployment-check";
+import { orderPreviewCurrent, orderPreviewOptions } from "@/lib/order-preview";
 import { qToMoney } from "@/lib/units";
 import { REJECT, ORDER_KIND } from "@/lib/enums";
 import { useTx, summarizeOrder } from "@/lib/tx";
@@ -85,18 +85,12 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
 
   const traderId = trader?.traderId ?? 0;
   const dParsed = useDebounced(parsed);
-  const preview = useQuery({
-    queryKey: ["previewOrder", engine, owner.address, traderId, side, dParsed.ok ? dParsed.tick : 0, dParsed.ok ? dParsed.lots.toString() : "", reduceOnly, market?.block.toString()],
+  const previewQuery = useQuery({
+    ...orderPreviewOptions(engine, owner.address, traderId, side, dParsed.ok ? dParsed.tick : 1, dParsed.ok ? dParsed.lots : 1n, reduceOnly, market?.block ?? 0n),
     enabled: traderId > 0 && dParsed.ok && !!market && trader?.block === market.block && !readUnavailable,
-    queryFn: () => canonicalRead(market!.block, () =>
-      client.readContract({
-        address: engine,
-        abi: engineAbi,
-        functionName: "previewOrder",
-        args: dParsed.ok ? [traderId, side === "buy" ? 0 : 1, dParsed.tick, dParsed.lots, reduceOnly] : [0, 0, 1, 1n, false],
-        blockNumber: market?.block,
-      })),
   });
+  const sameIntent = parsed.ok && dParsed.ok && parsed.tick === dParsed.tick && parsed.lots === dParsed.lots;
+  const preview = { ...previewQuery, data: sameIntent && !readUnavailable && orderPreviewCurrent(previewQuery.data, market, trader) ? previewQuery.data?.value : undefined };
 
   const cost = parsed.ok ? (side === "buy" ? buyBackedAtoms(parsed.lots, parsed.tick) : sellBackedAtoms(parsed.lots, parsed.tick)) : undefined;
   const payout = parsed.ok ? parsed.lots * 1000n : undefined; // atoms if the side wins, per lot 1,000 atoms
@@ -223,7 +217,7 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
               onClick={() => { try { const lots = leverageLots(sizingEquity, parsePriceToTick(price), side === "buy", x, market?.risk.markAvailable ? market.risk.markWad : undefined); setSize(lotsToClaims(lots)); setTargetLeverage(x); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
           </div>
           {market?.active && !market.halted && cap !== undefined && cap < market.listing.deploymentCapX && <p className="border-l-2 border-signal/60 pl-2 text-xs leading-relaxed text-fg-2">{market.risk.pricingMode === 0 ? "Bootstrap: 1× until the price windows are ready and an hourly epoch opens." : !market.risk.indexAvailable || !market.risk.markAvailable ? "Higher leverage is temporarily unavailable while the price windows recover." : "The current risk or reserve limit is below the deployment cap."}</p>}
-          <p className="text-xs leading-relaxed text-fg-3">{reservedOrders ? "Cancel open orders before sizing by leverage." : !canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
+          <p className="text-xs leading-relaxed text-fg-3">{reservedOrders ? "Cancel open orders before sizing by leverage." : reduceOnly ? "Leverage sizing is for new positions. Turn off Reduce only to size a new position." : !canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : fieldErrors.price ? "Enter a valid order price or use the best price, then choose your leverage." : "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
         </div>
 
         <label className="label flex items-center gap-2 text-fg-2">

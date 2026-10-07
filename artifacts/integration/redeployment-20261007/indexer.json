@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-07",
+  "scope": "Fresh public testnet read-only local Envio indexing; no chain transactions sent by frontend agent.",
+  "status": "running-both-market-identities-verified",
+  "chainId": 10143,
+  "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+  "graphql": "http://127.0.0.1:8083/v1/graphql",
+  "database": "eros_redeployment_20261007_ready",
+  "isolation": {
+    "newPostgresContainer": "eros-redeployment-20261007-postgres",
+    "newHasuraContainer": "eros-redeployment-20261007-hasura-ready",
+    "oldDatabasesDeleted": false,
+    "oldContainersModified": false,
+    "initialEmptyFailedDatabasePreserved": true
+  },
+  "initializationIssue": {
+    "cause": "Envio auto-loader prefixes ./ to its handler path; an absolute path registered no handlers.",
+    "resolution": "Used src/handlers relative to indexer cwd. Preserved initial empty dataset and started a new isolated database after Envio rejected a handler configuration change."
+  },
+  "browserConnectivity": {
+    "origin": "http://localhost:3100",
+    "corsPreflightStatus": 204,
+    "graphqlStatus": 200,
+    "anonymousMutationType": null
+  },
+  "validation": [
+    {
+      "command": "pnpm run test",
+      "workingDirectory": "oracle/indexer",
+      "result": "passed",
+      "tests": 40,
+      "failures": 0
+    },
+    {
+      "command": "pnpm run typecheck",
+      "workingDirectory": "oracle/indexer",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm exec envio codegen --config <fresh-generated-config>",
+      "workingDirectory": "oracle/indexer",
+      "result": "passed"
+    }
+  ],
+  "frontendSettings": {
+    "NEXT_PUBLIC_INDEXER_URL": "http://127.0.0.1:8083/v1/graphql",
+    "NEXT_PUBLIC_INDEXER_DEPLOYMENT": "10143:0x780e73ddc65113f8c9c506daa25a0404ed9f3e33"
+  },
+  "processRecord": "tmp/redeploy-audit-20261007/indexer/running.json",
+  "sourceHashes": {
+    "oracle/indexer/src/addresses.ts": "17d25b397f5a615d26622ab645a16860236b9931be634896e4087ae34935bb75",
+    "oracle/indexer/src/verified-addresses.ts": "0bed409868973dc4868a8d7bfc43bf3727416292e4e6fdb56bc1f88b6ad133ed",
+    "oracle/indexer/test/verified-addresses.test.ts": "d83d945c5ba992b25b075c523339962d3ba351139bb865d513b701a48e6b97e1"
+  },
+  "limitations": [
+    "On-chain price publication, MARK readiness and public trading require separately operated services. Indexer readiness does not establish them.",
+    "Indexing has bounded lag; the UI retains indexed progress instead of claiming history is at the latest chain head.",
+    "Endpoint is local loopback; remote deployment needs separately configured hosting."
+  ],
+  "exactIdentityProofs": [
+    {
+      "passed": true,
+      "checkedAt": "2026-10-07T11:18:52.973Z",
+      "chainId": 10143,
+      "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+      "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53",
+      "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+      "listedTx": "0x34ab2108d73354616f62bbf3e9f61bdf04baf1fa3ee33398f3f3edcab0c25c1c",
+      "listedBlock": "68955860",
+      "canonicalBlockHash": "0xabb6fe7e8d022b999f2fc21c50de3626f4c2cee2b29983b76d036115b38d198a",
+      "graphql": "http://127.0.0.1:8083/v1/graphql",
+      "meta": [
+        {
+          "chainId": 10143,
+          "progressBlock": 68956235,
+          "isReady": true
+        }
+      ],
+      "head": "68956385",
+      "recentEventKinds": [
+        "Allocation",
+        "Deposit"
+      ],
+      "scope": "Read-only exact indexed market/engine binding and canonical registry listing receipt; full market activation and price publication are separate."
+    },
+    {
+      "passed": true,
+      "checkedAt": "2026-10-07T11:27:01.899Z",
+      "chainId": 10143,
+      "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+      "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "listedTx": "0x85fcd9639d35f848636f17aa3b0364e98bdedb24d797d6900dcd0befc54ff8d3",
+      "listedBlock": "68957085",
+      "canonicalBlockHash": "0x26bc4fe9a5797875d5a40552f44c102b0bd577db43c6f70517f4ec5db6c5fc47",
+      "graphql": "http://127.0.0.1:8083/v1/graphql",
+      "meta": [
+        {
+          "chainId": 10143,
+          "progressBlock": 68957824,
+          "isReady": true
+        }
+      ],
+      "head": "68958003",
+      "scope": "Read-only exact indexed market/engine binding and canonical registry listing receipt; full market activation and price publication are separate."
+    }
+  ]
+}

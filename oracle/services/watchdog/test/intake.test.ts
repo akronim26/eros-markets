@@ -121,6 +121,22 @@ describe('watchdog intake from the indexer', () => {
     expect(r.cursor).toBe(101n)
   })
 
+  test('a repeated indexer page cannot stall intake or acknowledge the incomplete range', async () => {
+    let calls = 0
+    const client = new IndexerClient('https://indexer.invalid', 10143, (async (_url, init) => {
+      const { query } = JSON.parse(init!.body as string)
+      if (query.includes('_meta')) return Response.json({ data: { _meta: [{ chainId: 10143, progressBlock: 100, sourceBlock: 100, isReady: true }] } })
+      calls++
+      return Response.json({ data: { Proposal: [row(99, 0)], Assertion: [] } })
+    }) as typeof fetch)
+    const l = logs()
+    const r = new IntakeReader({ start: 90n, head: async () => 100n, readLogs: l.readLogs, indexer: { client, maxLagBlocks: 10n } })
+    expect((await r.events()).proposals.map(p => p.block)).toEqual([100n])
+    expect(calls).toBe(2)
+    expect(l.ranges).toEqual([[90n, 100n]])
+    expect(r.cursor).toBe(101n)
+  })
+
   test('independent pagination exhausts differently capped proposal and assertion lists', async () => {
     const proposals = [row(99, 0), row(99, 2)]
     const assertions = Array.from({ length: 5 }, (_, n) => ({ id: `0x${String(n).padStart(64, '0')}`, market_id: M }))
