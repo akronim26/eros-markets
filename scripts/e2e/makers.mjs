@@ -1,3 +1,4 @@
+import {makerReadinessDelay} from './maker-readiness-policy.mjs';
 import fs from 'node:fs'; import {parseEnv} from 'node:util'; import {createRequire} from 'node:module';
 const require=createRequire(new URL('../../frontend/package.json',import.meta.url));
 const {createPublicClient,createWalletClient,http,keccak256,encodeFunctionData,decodeEventLog}=require('viem');
@@ -43,7 +44,8 @@ log({started:true,pid:process.pid,scope:'bounded independently-funded testnet ma
 while(!stopped&&Date.now()<end){
  await reconcile();
  const block=await client.getBlock(),risk=await read('marketRiskView',[],block.number),epoch=await read('marketOrderEpoch',[],block.number);
- if(!risk.indexAvailable||risk.accountingState!==0){log({waiting:'fresh index and ready accounting',indexAvailable:risk.indexAvailable,accountingState:risk.accountingState});await new Promise(r=>setTimeout(r,15000));continue;}
+ const readinessDelay=makerReadinessDelay(risk);
+ if(readinessDelay){log({waiting:'fresh index and ready accounting',indexAvailable:risk.indexAvailable,accountingState:risk.accountingState,pendingWork:risk.pendingWork,retryAfterMs:readinessDelay});await new Promise(r=>setTimeout(r,readinessDelay));continue;}
  for(const [side,account] of owners){
   if(state.completed.some(v=>v.epoch===epoch.toString()&&v.side===side))continue;
   if((state.rejected??[]).filter(v=>v.epoch===epoch.toString()&&v.side===side).length>=3)throw new Error('Maker rejection budget exhausted');

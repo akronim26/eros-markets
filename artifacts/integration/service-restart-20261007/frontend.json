@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-07",
+  "status": "frontend-restarted-wiring-and-readonly-browser-checks-passed-live-pricing-boundaries-retained",
+  "scope": "Read-only current frontend deployment, proxy and indexer verification; no public wallet signing or changes to stored indexer data",
+  "checkedAt": "2026-10-07T16:38:03.010Z",
+  "frontend": {
+    "url": "http://localhost:3100",
+    "node": "22.23.3",
+    "buildId": "49HaY62Jz_R9_Kmd4qKoY",
+    "restarted": true,
+    "buildReusedWithUnchangedSource": true
+  },
+  "chainId": 10143,
+  "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+  "readBlock": "69019719",
+  "readBlockHash": "0x61dda624ca8ba61e1952dd2b6649fd9177c2e8eeaf3e4784a7970bdf1f9e05b0",
+  "indexer": {
+    "url": "http://127.0.0.1:8083/v1/graphql",
+    "restarted": false,
+    "meta": [
+      {
+        "chainId": 10143,
+        "progressBlock": 69019544,
+        "isReady": true
+      }
+    ],
+    "corsVerified": true,
+    "blockLag": 175
+  },
+  "identities": [
+    {
+      "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+      "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53",
+      "indexedListingTransaction": "0x34ab2108d73354616f62bbf3e9f61bdf04baf1fa3ee33398f3f3edcab0c25c1c",
+      "canonicalListingBlock": "68955860",
+      "canonicalRegistryMatches": true
+    },
+    {
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+      "indexedListingTransaction": "0x85fcd9639d35f848636f17aa3b0364e98bdedb24d797d6900dcd0befc54ff8d3",
+      "canonicalListingBlock": "68957085",
+      "canonicalRegistryMatches": true
+    }
+  ],
+  "configurationHashes": {
+    "frontend/src/config/public-manifest.json": "01394ddb4b581f03b244fc8ee7c7f14a6f5012c99a2f53efe9bdb08e657a0008",
+    "frontend/src/config/archived-deployments.json": "dbac4d84c9cf2e5d07b07e68fc213d49308f25b199b3961cea433298cd96d835",
+    "frontend/src/config/market-metadata.json": "775a79a9b57c1391bf68cf3bdd287b2c9a79c77f00170914d768ac1ad1e4fa57",
+    "frontend/src/config/risk-calibrations.json": "c5148d3418a98e2d5fb9fde5ee9da3ec63b512ea9593f16dfe54ed7d0ae026bb"
+  },
+  "addressRegisterMatches": true,
+  "evidence": {
+    "wiringReport": "tmp/service-restart-20261007/frontend-wiring.json",
+    "wiringReportSha256": "124b783469702f40fe9f9ec0b0fed9bf0b206e547ed9576c406c272d1c8f23f5",
+    "wiringScript": "tmp/service-restart-20261007/frontend-wiring-check.mjs",
+    "wiringScriptSha256": "2aaa2812701e3c5ead6d3146384a814672cfbf38d8df925b495b6e717a106e0b",
+    "houseBrowser": {
+      "report": "tmp/service-restart-20261007/browser-house/report.json",
+      "reportSha256": "9123085ff778cdeafc4fef8ba0861e962d1be1af002b493cf02819891dbf569d",
+      "script": "tmp/service-restart-20261007/browser-house-check.mjs",
+      "scriptSha256": "cc0f998708421ff4b788d32f4cc6f06eadec9bc9e13bcef302b174b1eb10a235",
+      "historyLag": "tmp/service-restart-20261007/house-history-lag.json",
+      "historyLagSha256": "1b2574f4e9deaa5ab6268c0047f8ec0f9493f4bf3652726f59d9e209088a80cc"
+    },
+    "featureBoundaries": {
+      "report": "tmp/service-restart-20261007/feature-boundaries/report.json",
+      "reportSha256": "957969d136ca1bfd063408be6fd745c5efe08d78c295bc2d95e3b80747589c90",
+      "script": "tmp/service-restart-20261007/feature-boundaries.mjs",
+      "scriptSha256": "2fd61840a57dc937e413d9f7eb8dbc259d19adbe25e4782a9a8ba32afd203c9b"
+    },
+    "bothMarketBrowser": {
+      "report": "tmp/service-restart-20261007/browser/report.json",
+      "reportSha256": "603cb6e4db48b45159f2185e7e2ba425b3d1080deee3b4dc8a6be422251cdc4f",
+      "script": "tmp/service-restart-20261007/browser-check.mjs",
+      "scriptSha256": "e6c03274b9c2c518ca92b2d1bbd63463e7f4d39507f497d0db533abebcf05e95",
+      "historyLag": "tmp/service-restart-20261007/final-history-lag.json",
+      "historyLagSha256": "5baf8716a0143db6419ec1a6f842ef212130ff31a5d8b1ffee9929638f2488df",
+      "screenshots": {
+        "tmp/service-restart-20261007/browser/market-1.png": "9efd7c7f2c2b6db32ce2b9a53ca7f60f7f0c9ac4e7ba3d3829d73d4e1af0e383",
+        "tmp/service-restart-20261007/browser/market-2.png": "39042a87ce21f48d70945c5cb741176d9a8d1431b0eb40916b883483c3cdbea9",
+        "tmp/service-restart-20261007/browser/markets.png": "95f34bff91eafe3b519e85bbe55fe5ad46ad621b7b100250073c967f72617f1f"
+      }
+    }
+  },
+  "limitations": [
+    "At the final browser snapshot16:55\u201316:56 UTC, Nebraska execution INDEX was unavailable and House INDEX was0.075. Both MARK remained warming with actual1x directional caps. Source charts retained0.285/0.075 and were explicitly delayed; exact canonical contract comparisons passed. This does not establish continuous feed availability or public5x admission.",
+    "Current indexer progress was197 blocks behind finalized at16:57 UTC, with latest indexed source ages87/82 seconds. The UI supplements history with a bounded canonical RPC log tail and labels source freshness; no history was silently promoted into an execution price.",
+    "Optional one-click order signing, background protection and automatic claim delivery are not configured. Both capability APIs explicitly return configured:false; manual owner wallet confirmations remain the enabled path. No workflow listener was started.",
+    "No owner login or signing was performed in this restart checkpoint. Privy modal controls and anonymous account guards were verified; historical owner/lifecycle evidence remains separately scoped.",
+    "Services have bounded campaign end times documented in the separate services checkpoint; keeping the frontend open does not extend those campaigns."
+  ],
+  "houseBrowserCheckpoint": {
+    "checkedAt": "2026-10-07T16:43:57.647Z",
+    "scope": "Anonymous service restart checkpoint: routes and current price/cap labels compared against exact displayed canonical block; All source history retained across feed outages; no owner operations",
+    "markets": [
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+        "title": "Will the Republican Party control the House after the 2026 Midterm elections?",
+        "url": "http://localhost:3100/m/0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "checkedAt": "2026-10-07T16:44:15.237Z",
+        "block": "69020948",
+        "mark": "warming",
+        "index": "warming",
+        "source": "0.075live",
+        "allChartPrice": "0.075",
+        "headerStatus": "Will the Republican Party control the House after the 2026 Midterm elections?Index window unavailable",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "allRangeSourcePrice": "0.075",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.075\n+0.00 pp\n\nLast observation 10:13:52 PM\n\nLIVE\n0.073\n0.074\n0.075\n0.076\n0.077\n05:10 PM\n06:26 PM\n07:42 PM\n08:58 PM\n10:14 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 69020930 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0x587a3ac138121907ec044209f5ec857dc8d5cbedb7ed648c0a484239e66a8690",
+        "onchain": {
+          "indexAvailable": false,
+          "indexWad": "0",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      }
+    ],
+    "errors": [],
+    "passed": true,
+    "finishedAt": "2026-10-07T16:44:15.386Z"
+  },
+  "indexerLagCheckpoint": {
+    "checkedAt": "2026-10-07T16:44:36.042873+00:00",
+    "chainId": 10143,
+    "headBlock": 69021029,
+    "headTimestamp": 1791391476,
+    "indexer": {
+      "progressBlock": 69020930,
+      "isReady": true
+    },
+    "latestIndexedSource": {
+      "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+      "block": 69020906,
+      "observedAt": 1791391432,
+      "sourceAgeSeconds": 44,
+      "priceWad": "75000000000000000"
+    },
+    "blockLag": 99,
+    "browserSource": "Live source0.075 observed by direct RPC tail; INDEXwarming and MARKwarming matched pinned contract; chart does not depend solely on indexer tip"
+  },
+  "featureBoundaryCheckpoint": {
+    "checkedAt": "2026-10-07T16:51:34.501Z",
+    "passed": true,
+    "applicationExceptions": [],
+    "optionalServices": {
+      "permissions": {
+        "configured": false,
+        "modes": []
+      },
+      "protection": {
+        "configured": false,
+        "rules": [],
+        "journal": [],
+        "workerOnline": false
+      }
+    },
+    "resolution": [
+      {
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53",
+        "oracleReadSucceeded": true,
+        "correctEngineLink": true
+      },
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+        "oracleReadSucceeded": true,
+        "correctEngineLink": true
+      }
+    ],
+    "publicPages": [
+      {
+        "path": "/portfolio",
+        "status": 200
+      },
+      {
+        "path": "/privacy",
+        "status": 200
+      },
+      {
+        "path": "/terms",
+        "status": 200
+      }
+    ],
+    "privy": {
+      "loginAttempted": false,
+      "transactions": 0,
+      "modalVisible": true,
+      "emailVisible": true,
+      "googleVisible": true,
+      "existingWalletVisible": true
+    },
+    "protectionAnonymousGuard": true,
+    "finishedAt": "2026-10-07T16:52:16.311Z"
+  },
+  "latestBrowserCheckpoint": {
+    "checkedAt": "2026-10-07T16:55:31.450Z",
+    "scope": "Anonymous service restart checkpoint: routes and current price/cap labels compared against exact displayed canonical block; All source history retained across feed outages; no owner operations",
+    "markets": [
+      {
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53",
+        "title": "Will an independent win the Nebraska Senate race in 2026?",
+        "url": "http://localhost:3100/m/0x171503494eF5f1A9e6705781647451A2582995bD",
+        "checkedAt": "2026-10-07T16:55:56.246Z",
+        "block": "69023251",
+        "mark": "warming",
+        "index": "unavailable",
+        "source": "0.285delayed",
+        "allChartPrice": "0.285",
+        "headerStatus": "Will an independent win the Nebraska Senate race in 2026?Index window unavailable",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "allRangeSourcePrice": "0.285",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.285\n+0.00 pp\n\nLast observation 10:25:21 PM\n\nDELAYED\n0.283\n0.284\n0.285\n0.286\n0.287\n05:04 PM\n06:24 PM\n07:45 PM\n09:05 PM\n10:25 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 69023126 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0xd60702361017dd3009a0bb3f21fdb4ca4bed0de0854f8506e1b0404e1a0404c3",
+        "onchain": {
+          "indexAvailable": false,
+          "indexWad": "0",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      },
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+        "title": "Will the Republican Party control the House after the 2026 Midterm elections?",
+        "url": "http://localhost:3100/m/0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "checkedAt": "2026-10-07T16:56:02.578Z",
+        "block": "69023265",
+        "mark": "warming",
+        "index": "0.075",
+        "source": "0.075delayed",
+        "allChartPrice": "0.075",
+        "headerStatus": "Will the Republican Party control the House after the 2026 Midterm elections?Bootstrap: fully backed",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "allRangeSourcePrice": "0.075",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.075\n+0.00 pp\n\nLast observation 10:25:27 PM\n\nDELAYED\n0.073\n0.074\n0.075\n0.076\n0.077\n05:10 PM\n06:29 PM\n07:48 PM\n09:07 PM\n10:26 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 69023126 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0x4e5d73dc19bc6b3713a27feaca2b1e17a73cf249d0ca0802bfa6c787e3717608",
+        "onchain": {
+          "indexAvailable": true,
+          "indexWad": "75000000000000000",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      }
+    ],
+    "errors": [],
+    "passed": true,
+    "finishedAt": "2026-10-07T16:56:02.693Z"
+  },
+  "latestIndexerLagCheckpoint": {
+    "checkedAt": "2026-10-07T16:57:03.116220+00:00",
+    "headBlock": 69023502,
+    "headTimestamp": 1791392222,
+    "indexer": {
+      "progressBlock": 69023305,
+      "isReady": true
+    },
+    "blockLag": 197,
+    "observations": {
+      "nebraska": {
+        "block": 69023255,
+        "observedAt": 1791392136,
+        "sourceAgeSeconds": 87,
+        "priceWad": "285000000000000000"
+      },
+      "house": {
+        "block": 69023288,
+        "observedAt": 1791392141,
+        "sourceAgeSeconds": 82,
+        "priceWad": "75000000000000000"
+      }
+    }
+  },
+  "serviceEvidence": "artifacts/integration/service-restart-20261007/services.json",
+  "applicationSourceChanges": false,
+  "frontendLogErrorLines": 0
+}

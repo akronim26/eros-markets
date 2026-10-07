@@ -6,10 +6,11 @@ import { encodeFunctionData, keccak256, parseEther, parseEventLogs, stringToHex,
 import { createTraderClient, transactionData } from '../../oracle/packages/oracle-sdk/src/trading';
 import { toPublicManifest } from '../../oracle/packages/oracle-sdk/src/trading-manifest';
 import { artifact, atomicWrite, client, executePlan, type Plan, type Step } from '../../oracle/e2e/src/fresh-testnet';
+import { isTestnetProofDirectory } from './proof-directory.mjs';
 
 const [directory, command, phase, rehearsalRpc] = process.argv.slice(2);
 const phases = ['gas', 'funding', 'buy', 'close', 'release', 'withdraw'];
-if (!directory?.startsWith('tmp/live-markets-') || !['prepare', 'rehearse', 'broadcast'].includes(command) || !phases.includes(phase)) throw Error('EXPLICIT_TESTNET_PROOF_REQUIRED');
+if (!isTestnetProofDirectory(directory) || !['prepare', 'rehearse', 'broadcast'].includes(command) || !phases.includes(phase)) throw Error('EXPLICIT_TESTNET_PROOF_REQUIRED');
 const gasFundingInput = process.env.EROS_TRADER_GAS_MON ?? '0.6';
 if (!/^[0-3](?:\.\d{1,3})?$/.test(gasFundingInput)) throw Error('INVALID_TRADER_GAS_FUNDING');
 const gasFundingWei = parseEther(gasFundingInput);

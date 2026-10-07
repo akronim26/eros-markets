@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "checkedAt": "2026-10-07T16:51:59.505Z",
+  "chainId": 10143,
+  "approvalHash": "2d20e459413f1d33209f2c530eca50d9159b02478eaf2343bb0f7801297147b8",
+  "scope": "Independent read-only exact signed-intent and finalized canonical receipt verification",
+  "transfers": [
+    {
+      "market": "nebraska-senate",
+      "from": "0xff49ad13c59592ccca53552fe09daca43cbcf190",
+      "to": "0xb559df6451763a1b82ad673f1b78947ba284ad39",
+      "nonce": 261,
+      "valueWei": "8000000000000000000",
+      "transactionHash": "0xa081c20ff0f2ac8805f0c880ae5e7230f755a5007679d312a265432c8e20d37c",
+      "block": "69022019",
+      "blockHash": "0x2699400445c501acf10254f2a0f6094abdc5203118fcdf8c9013b90e5632ee39",
+      "gasUsed": "21000",
+      "effectiveGasPriceWei": "102000000000",
+      "actualFeeWei": "2142000000000000"
+    },
+    {
+      "market": "republican-house",
+      "from": "0xff49ad13c59592ccca53552fe09daca43cbcf190",
+      "to": "0x01a0ae1fa6bfa29a9d7ff4c5a18dbb2e8f7716b8",
+      "nonce": 262,
+      "valueWei": "4000000000000000000",
+      "transactionHash": "0x31b1a67f7ddaa43e65bc4a3a4e678bb552433a6812a6fa7f1d6c5e6b29fb5bdc",
+      "block": "69022034",
+      "blockHash": "0xb1b2678be4bec022aad0335b876e33560003076d2d3e325f3e1d6663757f8046",
+      "gasUsed": "21000",
+      "effectiveGasPriceWei": "102000000000",
+      "actualFeeWei": "2142000000000000"
+    }
+  ],
+  "totalNativeWei": "12000000000000000000",
+  "totalNativeMON": "12",
+  "actualFeeWei": "4284000000000000",
+  "rootBalanceWeiAtLastTransfer": "3140462015999727000",
+  "requiredRootReserveWei": "3000000000000000000",
+  "recipientBalancesNotUsedForProof": true,
+  "evidenceSha256": {
+    "keeper-topup-plan.json": "b36335f474011819e901df5451c32ba7184d4fba1abda6b67d16ae3fab268585",
+    "keeper-topup-journal.json": "7a1b7b9f444e5a241e19cd9c1a8a659a6f3e96c50587c928f0ab06b74eb6fbc2",
+    "keeper-topup-verification.json": "f21cc3dbc09c5d7346f67bcedfed040a9178862a02d750dd6e21a3f8cc70e17a"
+  },
+  "sourceSha256": {
+    "keeper-topup.mjs": "cd201a10db66c146d94bc739dcf0fadc53d4858efe1be3cb7401233a19760803",
+    "keeper-topup-policy.mjs": "1751d77f964f07d7a0ac4c66e73431d2d36bc2b56d85a23541aeafa4b6f7c1aa",
+    "keeper-topup-policy.test.mjs": "eee7818baf210a820ffa86e17cea857ac5fd4bda7cb1c63e609dca7b87031406",
+    "verify-keeper-topup.mjs": "a91c58c57b8ae3dc74f671e06d47c6c4ea0bd4fe12d6d3ceabd488ea7bfee820"
+  },
+  "limitations": [
+    "Incoming native funding does not establish price-window readiness, continuous source delivery or leveraged trading availability.",
+    "Runtime recipients may spend funds; cumulative incoming transfers are not current balances.",
+    "No raw signed transactions, private keys or RPC credentials are included."
+  ],
+  "publicTransactionsSentByReviewer": 0
+}

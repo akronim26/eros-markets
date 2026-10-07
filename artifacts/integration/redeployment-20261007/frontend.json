@@ -250,7 +250,7 @@
   },
   "limitations": [
     "Public owner login, funding and signing were not exercised; only the login modal and read-only fresh collateral faucet simulation were checked.",
-    "At browser capture both markets retained truthful bootstrap1x caps and MARK warmup; Nebraska execution INDEX was ready, House source samples were still completing its5-minute window.",
+    "Latest handoff check at12:52 UTC: both live source charts and execution INDEX are available (Nebraska0.285, House0.075). Both MARK remain warming and contract directional caps remain1x; a normal-pricing transition and public5x admission are not proved by this browser check.",
     "Continuous public INDEX/MARK readiness, fivefold admission/fills and operator runtime monitoring require separate live service evidence.",
     "The prior complete local lifecycle proof belongs only to its preserved historical source hashes.",
     "Browser history currently uses a local loopback indexer. Public hosting remains separate."
@@ -261,5 +261,167 @@
     "log": "tmp/redeploy-audit-20261007/frontend-build.log",
     "logHash": "006cd446b0fe487a2e32e4f36fd908681fe074744fef76e328bf60f4eb4d2b1f",
     "attribution": "Root built and started localhost3100; anonymous browser checks used that running production server."
+  },
+  "latestAnonymousHandoffCheck": {
+    "passed": true,
+    "checkedAt": "2026-10-07T12:52:45.581Z",
+    "finishedAt": "2026-10-07T12:52:59.860Z",
+    "scope": "Anonymous public handoff: displayed current prices/caps compared with contract at exact UI block; source history inspected without wallet operations",
+    "applicationExceptions": [],
+    "report": "tmp/redeploy-audit-20261007/browser-final-handoff/report.json",
+    "reportHash": "f2fa3b69a65dff39e26e1a6ef9695a891ea1c633c3fb5103ea764c1940f80e6e",
+    "script": "tmp/redeploy-audit-20261007/browser-final-handoff-smoke.mjs",
+    "scriptHash": "7d6307b40ad40392d9c76e26472a1daf982624b4934debadc9f403572ffb29cb",
+    "markets": [
+      {
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53",
+        "title": "Will an independent win the Nebraska Senate race in 2026?",
+        "url": "http://localhost:3100/m/0x171503494eF5f1A9e6705781647451A2582995bD",
+        "checkedAt": "2026-10-07T12:52:56.903Z",
+        "block": "68975067",
+        "mark": "warming",
+        "index": "0.285",
+        "source": "0.285live",
+        "liveChartPrice": "0.285",
+        "headerStatus": "Will an independent win the Nebraska Senate race in 2026?Bootstrap: fully backed",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "hourlyChartPrice": "0.285",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.285\n+0.00 pp\n\nLast observation 06:22:35 PM\n\nLIVE\n0.283\n0.284\n0.285\n0.286\n0.287\n05:22 PM\n05:37 PM\n05:52 PM\n06:07 PM\n06:22 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 68974918 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0x4ff0ab59eae91ba1a9eec21aff0e3e316a4d8f3b65c1cad60a37b6b753e00b67",
+        "onchain": {
+          "indexAvailable": true,
+          "indexWad": "285000000000000000",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      },
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+        "title": "Will the Republican Party control the House after the 2026 Midterm elections?",
+        "url": "http://localhost:3100/m/0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "checkedAt": "2026-10-07T12:52:59.745Z",
+        "block": "68975067",
+        "mark": "warming",
+        "index": "0.075",
+        "source": "0.075live",
+        "liveChartPrice": "0.075",
+        "headerStatus": "Will the Republican Party control the House after the 2026 Midterm elections?Bootstrap: fully backed",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "hourlyChartPrice": "0.075",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.075\n+0.00 pp\n\nLast observation 06:22:40 PM\n\nLIVE\n0.073\n0.074\n0.075\n0.076\n0.077\n05:22 PM\n05:37 PM\n05:52 PM\n06:07 PM\n06:22 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 68974918 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0x4ff0ab59eae91ba1a9eec21aff0e3e316a4d8f3b65c1cad60a37b6b753e00b67",
+        "onchain": {
+          "indexAvailable": true,
+          "indexWad": "75000000000000000",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      }
+    ],
+    "screenshots": {
+      "tmp/redeploy-audit-20261007/browser-final-handoff/market-1.png": "5a3f8ae4370f2a88b845287d51eb87164a1a1b457be9a0d22f5dc31a26b587f4",
+      "tmp/redeploy-audit-20261007/browser-final-handoff/market-2.png": "d063b23faf2cc330c1f5505740ae34b7e1e38b834fe53a0a84da260ef838ba75",
+      "tmp/redeploy-audit-20261007/browser-final-handoff/markets.png": "5aab5073d3689169b79c87265e5c5f4242b6c35208248bfda23e240cece47015"
+    },
+    "scopeNote": "Following both publisher restarts, both execution INDEX values and live source charts are present. Nebraska0.285 and House0.075; MARK warming and directional1x caps match the contract at exact canonical displayed block68975067. No wallet operations performed. This snapshot does not establish future continuous feed availability or public5x admission."
+  },
+  "documentationReview": {
+    "addressRegisterContainsAllCurrentManifestIdentities": true,
+    "staleExclusiveAddressesInRegister": false,
+    "registerRelativeLinksResolve": true,
+    "frontendReadmeIndexerRegistryCorrected": true,
+    "readmeHash": "33a0bf0fbc42a6a858424c4ff3a6cc80f28ad0d6cbfd723ced9e0307597359f5",
+    "historicalDeploymentNotesPreserved": true
+  },
+  "previousAnonymousHandoffCheck": {
+    "passed": true,
+    "checkedAt": "2026-10-07T12:39:23.491Z",
+    "finishedAt": "2026-10-07T12:39:41.173Z",
+    "scope": "Anonymous public handoff: displayed current prices/caps compared with contract at exact UI block; source history inspected without wallet operations",
+    "applicationExceptions": [],
+    "report": "tmp/redeploy-audit-20261007/browser-handoff/report.json",
+    "reportHash": "4c0e7c2e624dd1fd9649ff41674143a69f1bf01b6ad16c10aeafb5f40946b41d",
+    "script": "tmp/redeploy-audit-20261007/browser-handoff-smoke.mjs",
+    "scriptHash": "a9a307bb268e7afe8969b8523f78edb633d4021fba85241e6d023936aefff5d8",
+    "markets": [
+      {
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "marketId": "0xe461d70fd4a29fe48c6c8ece31e25f04fad7a1a3f352dcd1665b694bf6467b53",
+        "title": "Will an independent win the Nebraska Senate race in 2026?",
+        "url": "http://localhost:3100/m/0x171503494eF5f1A9e6705781647451A2582995bD",
+        "checkedAt": "2026-10-07T12:39:38.279Z",
+        "block": "68972418",
+        "mark": "warming",
+        "index": "unavailable",
+        "source": "0.285delayed",
+        "liveChartPrice": "\u2014",
+        "headerStatus": "Will an independent win the Nebraska Senate race in 2026?Index window unavailable",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "hourlyChartPrice": "0.285",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.285\n+0.00 pp\n\nLast observation 05:42:18 PM\n\nDELAYED\n0.283\n0.284\n0.285\n0.286\n0.287\n05:09 PM\n05:24 PM\n05:39 PM\n05:54 PM\n06:09 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 68972330 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0xcfbecf186a8de6d7884817c421ffcca98a9c849e230f488b20ca216ba4ed6e2c",
+        "onchain": {
+          "indexAvailable": false,
+          "indexWad": "0",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      },
+      {
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "marketId": "0x77de3b4e292e37f9899d97c820e8a7cfdd0351a48a504d0392bf3b366aef9e0f",
+        "title": "Will the Republican Party control the House after the 2026 Midterm elections?",
+        "url": "http://localhost:3100/m/0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "checkedAt": "2026-10-07T12:39:41.092Z",
+        "block": "68972435",
+        "mark": "warming",
+        "index": "0.075",
+        "source": "0.075live",
+        "liveChartPrice": "0.075",
+        "headerStatus": "Will the Republican Party control the House after the 2026 Midterm elections?Bootstrap: fully backed",
+        "currentLimit": "Target leverageCurrent limit 1\u00d7",
+        "hourlyChartPrice": "0.075",
+        "chartStatus": "POLYMARKET SOURCE PRICE\n\n0.075\n+0.00 pp\n\nLast observation 06:09:29 PM\n\nLIVE\n0.073\n0.074\n0.075\n0.076\n0.077\n05:09 PM\n05:24 PM\n05:39 PM\n05:54 PM\n06:09 PM\nLive\n1H\n6H\n1D\nAll\n\u25cb Book\n\u25cf Current mark\n\nHistory through 68972330 \u00b7 Source observations \u00b7 execution index is the 5-minute TWAP above. Mark warming or unavailable.",
+        "canonicalBlockHash": "0xa9fb4b40adfd5eef0b2dbd2a8f407a36c65c1da22104530ee2b429b2aa02c497",
+        "onchain": {
+          "indexAvailable": true,
+          "indexWad": "75000000000000000",
+          "markAvailable": false,
+          "markWad": "0",
+          "pricingMode": 0,
+          "caps": [
+            "1",
+            "1"
+          ]
+        },
+        "displayMatchesPinnedContract": true
+      }
+    ],
+    "screenshots": {
+      "tmp/redeploy-audit-20261007/browser-handoff/markets.png": "a7d0294c7fa178b0d0a0440c2fa626d6eb913a4f49941106cce4c5bb56bfe93e",
+      "tmp/redeploy-audit-20261007/browser-handoff/market-1.png": "c7c7c781ace3c3f7ca83cbf7edd6bec2097b6176369ea39c6a5b54f87c6bcedb",
+      "tmp/redeploy-audit-20261007/browser-handoff/market-2.png": "775f7008525b2858c0e7b879a540a5187150941bfa020413a5e3d47fe2defdd2"
+    },
+    "scopeNote": "Nebraska publisher was intentionally paused for operator renewal at this check. Live15-minute range is empty; 1H source history remains0.285. This is not a claim that both publishers are running. House source and executable INDEX are live0.075. Both MARK unavailable and directional1x caps match exact pinned contract reads. No wallet operations performed."
   }
 }

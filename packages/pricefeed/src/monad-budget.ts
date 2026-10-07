@@ -144,14 +144,28 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
     const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi},now),last=deliveries.filter(r=>r.record.state==='FINALIZED').at(-1)?.packet.observation;
     if(checkpoint.engine!.sourceState.lastSequence!==(last?.sequence??0n)
       ||checkpoint.engine!.sourceState.lastObservedAt!==(last?.observedAt??0n))throw new Error('BUDGET_CHAIN_HISTORY_CHANGED');
-    await Promise.all(deliveries.map(async entry=>{
+    // A large history must not burst hundreds of RPC requests at once. Keep
+    // every receipt/canonical-block check, and drain in-flight reads before
+    // returning the first failure or releasing journal locks.
+    let receiptCursor=0,receiptFailed=false,receiptError:unknown;
+    const verifyNextReceipt=async()=>{
+      while(!receiptFailed&&receiptCursor<deliveries.length){
+        const entry=deliveries[receiptCursor++]!;
+        try{await verifyReceipt(entry);}catch(error){
+          if(!receiptFailed){receiptFailed=true;receiptError=error;}
+        }
+      }
+    };
+    const verifyReceipt=async(entry:typeof deliveries[number])=>{
       if(entry.record.state==='CANCELLED')return;
       const r=entry.record,receipt=await rpc.receipt(r.txHash as Hex);
       if(!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
       const block=await rpc.block({blockNumber:receipt.blockNumber});
       const accepted=validateReceipt(entry.packet,r.txHash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)});
       if(json(accepted)!==json(r.accepted))throw new Error('BUDGET_ACCEPTED_RECEIPT_CHANGED');
-    }));
+    };
+    await Promise.all(Array.from({length:Math.min(8,deliveries.length)},verifyNextReceipt));
+    if(receiptFailed)throw receiptError;
     for(const r of recovered){
       await verifyCancellationSigner(r);const receipt=await rpc.receipt(r.hash!);
       if(!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');

@@ -7,9 +7,10 @@ import { leverageLots } from '../../frontend/src/lib/leverage';
 import { createTraderClient, transactionData } from '../../oracle/packages/oracle-sdk/src/trading';
 import { toPublicManifest } from '../../oracle/packages/oracle-sdk/src/trading-manifest';
 import { artifact, atomicWrite, client, executePlan, type Plan } from '../../oracle/e2e/src/fresh-testnet';
+import { isTestnetProofDirectory } from './proof-directory.mjs';
 
 const [directory, command, phase] = process.argv.slice(2);
-if (!/^tmp\/live-markets-v[2-9]-[0-9]{8}\/[a-z-]+$/.test(directory ?? '') || !['prepare', 'rehearse', 'broadcast'].includes(command)
+if (!isTestnetProofDirectory(directory) || !['prepare', 'rehearse', 'broadcast'].includes(command)
   || !['open', 'close'].includes(phase)) throw Error('EXPLICIT_LEVERAGED_PROOF_REQUIRED');
 const isBuy = (process.env.EROS_LEVERAGE_SIDE ?? 'buy') === 'buy';
 if (!['buy', 'sell'].includes(process.env.EROS_LEVERAGE_SIDE ?? 'buy')) throw Error('INVALID_SIDE');

@@ -258,5 +258,401 @@
     "frontend/src/config/market-metadata.json": "775a79a9b57c1391bf68cf3bdd287b2c9a79c77f00170914d768ac1ad1e4fa57",
     "frontend/src/config/public-manifest.json": "01394ddb4b581f03b244fc8ee7c7f14a6f5012c99a2f53efe9bdb08e657a0008",
     "frontend/src/config/risk-calibrations.json": "c5148d3418a98e2d5fb9fde5ee9da3ec63b512ea9593f16dfe54ed7d0ae026bb"
+  },
+  "topupCheckpoint": {
+    "checkedAt": "2026-10-07T11:56:21.884Z",
+    "priorDeploymentReviewSha256": "18cf65856798c3d312cc1a1b4dcc7c6897f142414210016f84608e736adc73ab",
+    "initialCanonicalReceiptsPreserved": 75,
+    "additionalCanonicalFinalizedReceipts": 8,
+    "totalReviewedReceipts": 83,
+    "initialNativeFundingMON": 39,
+    "additionalNativeFundingMON": 60,
+    "cumulativeNativeFundingMON": 99,
+    "perMarketTopupMON": {
+      "publisher": 22,
+      "keeper": 7,
+      "makerBuy": 0.5,
+      "makerSell": 0.5
+    },
+    "fundingPlanCostBoundMON": "60.1",
+    "minimumPreparedDeployerReserveMON": 18,
+    "exactRoleAddressesValuesSenderChainCalldataAndNoncesVerified": true,
+    "transfers": [
+      {
+        "role": "nebraska-senate:PUBLISHER",
+        "address": "0x97A25EFD08f8727abafB5e2a1eD1a8a7D4910BB1",
+        "valueWei": "22000000000000000000",
+        "transactionHash": "0x9472c5db1f25d7722f2f2275456219d01d0473774f8b48db74f913e45ffac098",
+        "blockNumber": "68963514",
+        "blockHash": "0xbf9be1b96d2a5ed278c60ef1f84d0d59223708cff32fc3f17c8f46482324f074"
+      },
+      {
+        "role": "nebraska-senate:KEEPER",
+        "address": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "valueWei": "7000000000000000000",
+        "transactionHash": "0x4f5f3561fda748c8cf3aa42b8113cd628d2d2d9629ba1198d80a8d533f3911a9",
+        "blockNumber": "68963527",
+        "blockHash": "0xe528015ed9c5be4538628f5344551d0184a3376948a23a32bd527db469cd46bf"
+      },
+      {
+        "role": "nebraska-senate:MAKER_BUY",
+        "address": "0xd537552A20DD0d4276e33956A65A2c7eb402F435",
+        "valueWei": "500000000000000000",
+        "transactionHash": "0x69b3d8cafde78c318e8f405e6c1e8d8574a79eeb188161e5ca2e94528d27fb73",
+        "blockNumber": "68963538",
+        "blockHash": "0x3571ba610963f2f8a2ae50038edc9d543ec1dc84db5317dd47ec532646cf315e"
+      },
+      {
+        "role": "nebraska-senate:MAKER_SELL",
+        "address": "0x8594DaE1460850f0D4BF51426324c455713ee814",
+        "valueWei": "500000000000000000",
+        "transactionHash": "0xfc026c96eae9f82c98660cc9dde3a1568a45fe42c887c48f15bb90d964905250",
+        "blockNumber": "68963548",
+        "blockHash": "0x6003ca770f31a270b503ef580b888393bb1697876e110af1e794ad0d39ca595a"
+      },
+      {
+        "role": "republican-house:PUBLISHER",
+        "address": "0xd530303a6EFdAB90394e7C085BbF2501541Dfb73",
+        "valueWei": "22000000000000000000",
+        "transactionHash": "0xe42e67b6cd06b2bee3a100c74427eb86c809da1ebf37757123b5cc0f5257a3de",
+        "blockNumber": "68963559",
+        "blockHash": "0x44f6095cb934863552ce6d363f8d7b30739d2efe487f441c5d9d74609e47552c"
+      },
+      {
+        "role": "republican-house:KEEPER",
+        "address": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "valueWei": "7000000000000000000",
+        "transactionHash": "0x2e48d0a2fe022ba006851c9c15b2a5c67a3f294afee5c06bc74574f2ebfe4d18",
+        "blockNumber": "68963572",
+        "blockHash": "0xd465e4692528113eea041b59061dec69e70afc3d825da31f0fd35b0d8b16ab02"
+      },
+      {
+        "role": "republican-house:MAKER_BUY",
+        "address": "0x301a887Adf53c9C71ca9D11c36E0d4a184F6240c",
+        "valueWei": "500000000000000000",
+        "transactionHash": "0x51d4a3b183c0433131582fc4a5875f1b1cb1211f4c647446469c9971494f9028",
+        "blockNumber": "68963582",
+        "blockHash": "0x6f1d017ec84ca67e374ac7c70326a49c2996ab277050e7b0be6c02f27f6c7cee"
+      },
+      {
+        "role": "republican-house:MAKER_SELL",
+        "address": "0x66dDefB1E8E3a2F668695bD251616d5288aa856C",
+        "valueWei": "500000000000000000",
+        "transactionHash": "0xa66fe1c5334721a4acf971ea28d5dc1e67c882dbc4fb30eb2ff306c24ef33941",
+        "blockNumber": "68963593",
+        "blockHash": "0xc1445eabb43d0a439aceb17f08702ea69f04a596736db068018241ae046a7575"
+      }
+    ],
+    "recipientSpendingAllowed": true,
+    "balanceInterpretation": "These are cumulative transfers, not current available balances. Active recipients may spend before or during verification.",
+    "sourceSha256": {
+      "topup-runtime.ts": "b3299e6d1d312aa5faced048ab21d98d44208ef5e0b46090e72018477bdd53b1",
+      "topup-runtime.test.ts": "2b91f2140c886fb3d44bf4537957a14915b7d8625c406b74f992616cf09fdc47"
+    },
+    "focusedTests": {
+      "passed": 3,
+      "assertions": 27
+    },
+    "evidenceSha256": {
+      "runtime-topup-plan": "fa2589572a48c0a57e4671a361c8f8890796cd5b8594d187bd5de074efdd277a",
+      "runtime-topup-rehearsal-journal": "09d82519c8dfd939252a41e260fafd5ea1a822de5ab86336a4f2e63f1cc5b5e0",
+      "runtime-topup-broadcast-journal": "9523377014d38676e28299f3175f8515a377ac398aabff88dc090fd415f255bd",
+      "runtime-topup-verification": "cb4a55fcdecc4d1cfbbaced9fc7b755ec9a6793318ef0ad1774517ce32cada63",
+      "independent-topup-receipts": "24e4c334827e8c4cd52aa9371f2d2d131e2e9c759a0687bd2e43a477864fe47c"
+    },
+    "publicTransactionsSentByReviewer": 0,
+    "liveReadiness": "MARK and public 5x proof remain pending; incoming funding does not prove price-window or trading readiness."
+  },
+  "noonBoundaryCheckpoint": {
+    "checkedAt": "2026-10-07T12:05:20.773425+00:00",
+    "result": "Bootstrap did not transition to normal pricing at the noon rollover. This is a live readiness failure; deployment and funding receipt proofs remain valid.",
+    "sample": {
+      "transactionHash": "0x623c4c01bf3cfb15b2f7705caf7578216d0da99bc7c24c43b41e37db3dacbe30",
+      "block": 68964569,
+      "timestamp": "2026-10-07T12:00:02Z",
+      "canonicalEvent": "BookDepthCaptured with examined0 and zero fingerprint; no PERP publication event"
+    },
+    "rollover": {
+      "transactionHash": "0x987555a2e967a7ba23737df0681c626c16da62f6bf72390878a288babb81698a",
+      "block": 68964603,
+      "timestamp": "2026-10-07T12:00:12Z",
+      "canonicalEvents": "Two flat funded accounts swept; EpochOpened2 ending13:00; no PricingModeChanged"
+    },
+    "diagnosis": "Last accepted pre-boundary capture11:59:25 exhausted its original30s lifetime at11:59:55. Pending11:59:42 capture could not seal after epoch.end because virtual accounting state already blocks book sampling. _onEpochOpening reads accepted price history, not current book depth; existing normal-opening and late-bootstrap regressions cover successful transitions.",
+    "sourceEvidence": [
+      "contracts/src/engine/RiskAccountingBridge.sol:_acctAccountingState",
+      "contracts/src/engine/BookRiskEngine.sol:samplePerp",
+      "contracts/src/pricing/RiskPricing.sol:_onEpochOpening",
+      "contracts/test/integration/BookDepthSampler.t.sol:testAuditLateBootstrapRolloverUsesExistingCarryToOpenNormal"
+    ],
+    "requiredOperationalFollowup": "Capture and seal before the boundary with enough original carry to finish rollover; promptly re-quote both sides and resume accepted samples after order-epoch invalidation. Actual source/RPC timing can still prevent readiness.",
+    "evidenceSha256": "ba00d3d9a5c53e80ca8c8d4d6b6125d7bbe5970fb4e0000580d4dc3fcedd663d",
+    "contractSourceChanged": false,
+    "publicTransactionsSentByReviewer": 0
+  },
+  "boundarySchedulingRepairCheckpoint": {
+    "reviewedAt": "2026-10-07T12:09:54.897494+00:00",
+    "status": "Prepared and independently cross-reviewed; this checkpoint does not claim restarted services or successful live normal transition.",
+    "changes": [
+      "Maker readiness polling is1s during rollover with freshINDEX;15s backoff remains for missingINDEX/floor/halt work. Existing serialized orders, epoch deduplication, nonce checks and canonical receipt handling are unchanged.",
+      "Keeper uses actual canonical block-pinned epoch deadlines, accelerates final-minute cadence to at most12blocks, and refuses new sample signatures within8s of epochend. Signed pending transactions continue ordinary reconciliation."
+    ],
+    "verification": {
+      "makerNodeTests": {
+        "passed": 4,
+        "runByThisReviewer": true
+      },
+      "makerSyntaxCheck": "passed",
+      "keeperBoundaryNodeTests": {
+        "passed": 4,
+        "reportedByServicesReviewer": true
+      },
+      "keeperCoordinatorAndGraceTests": {
+        "passed": 23,
+        "reportedByServicesReviewer": true
+      },
+      "independentCrossReviews": "Maker patch reviewed by services reviewer; keeper boundary patch reviewed by protocol reviewer."
+    },
+    "sourceSha256": {
+      "scripts/e2e/makers.mjs": "60bc66cd5e8d709fce9b756053c674d8f8fc99877e7d7a54c35aac4a3afad2d6",
+      "scripts/e2e/maker-readiness-policy.mjs": "e956567c57b3751c454096e194193b96fe71b52f858d00b812588ccf76d3b0c6",
+      "scripts/e2e/maker-readiness-policy.test.mjs": "9139246bedeacab8ed94eb56fb4f50fa7f09337fdca6353d79ca450bf62f7ecd",
+      "scripts/e2e/market-services.ts": "6b4cd7ee502787c0fe73f7bf42e124646ac16667b599c2cf668504966248b388",
+      "scripts/e2e/epoch-sampling-policy.mjs": "c1c9affba39a64d8c2ca851ef99fe370ff182c35241105dfe7fafad0f18852b5",
+      "scripts/e2e/epoch-sampling-policy.d.mts": "9543b0277f1f4d813570e1a5639df3040b10c0f25263b11be604d0acf4c4b4f5",
+      "scripts/e2e/epoch-sampling-policy.test.mjs": "eeac2c037f75a9a19a8fe12433739c7ee52b42fc72b64552c43fc25a67809d6d"
+    },
+    "limits": [
+      "Block cadence is a scheduling preference; source availability and RPC/inclusion delays can still exhaust the8s reserve or30s accepted-price carry.",
+      "Both funded maker sides must be replaced after order-epoch invalidation, then captured and sealed before historical carry expires to avoid a new price-window gap.",
+      "No Solidity source changes or price freshness/provenance relaxations."
+    ]
+  },
+  "retiredGasAndTraderFundingCheckpoint": {
+    "checkedAt": "2026-10-07T12:37:51.934Z",
+    "passed": true,
+    "chainId": 10143,
+    "verification": "Read-only canonical finalized receipts, exact sender/target/calldata/value/nonce, source role and destination keeper bindings, and retired sender balances at canonical verification anchors.",
+    "additionalCanonicalReceipts": 14,
+    "retiredGasReceipts": 4,
+    "traderGasAndCustodyReceipts": 10,
+    "cumulativeIndependentlyReviewedReceipts": 97,
+    "retiredNativeRecoveryWei": "18139168770000000000",
+    "retiredNativeRecoveryMON": "18.13916877",
+    "recoveryTransfers": [
+      {
+        "phase": "recover-nebraska-publisher",
+        "source": "0x8EEEA70150C54AeD3Eeae6e6F32E24930ddA95E2",
+        "destination": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "valueWei": "2962309320000000000",
+        "hash": "0x3a431367d23a90e41647f281705207667519e46d5d2a1aea3063c29b1cc1e442",
+        "block": "68970482",
+        "reserveVerifiedWei": "501623800000000000"
+      },
+      {
+        "phase": "recover-nebraska-keeper",
+        "source": "0x39c7bdbE3e90A50Fe9729419Dd494C5776c35667",
+        "destination": "0xb559dF6451763a1b82aD673f1B78947ba284ad39",
+        "valueWei": "5595377784000000000",
+        "hash": "0xe460cb6429cc019cb44e02d030424a817e267d3ceced9dcd03034a8310197ecd",
+        "block": "68970598",
+        "reserveVerifiedWei": "501623800000000000"
+      },
+      {
+        "phase": "recover-house-publisher",
+        "source": "0xbab4C0FF8c6169813C7128cA31724B7a701B7918",
+        "destination": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "valueWei": "3338762236000000000",
+        "hash": "0x008b4d93a13ba2b3fb2c939d2a0211246b6987ba48c012e71d82a928a6d07b15",
+        "block": "68970727",
+        "reserveVerifiedWei": "501623800000000000"
+      },
+      {
+        "phase": "recover-house-keeper",
+        "source": "0x498DF93DeE8B34B27e849131B05ee77830A5c5b9",
+        "destination": "0x01a0aE1Fa6bfa29a9D7Ff4c5a18dBB2E8F7716b8",
+        "valueWei": "6242719430000000000",
+        "hash": "0xe29be06fb1b1fea90cb088f4940f233af8ebf492c6f276091da11003fad0e463",
+        "block": "68970827",
+        "reserveVerifiedWei": "501623800000000000"
+      }
+    ],
+    "traderNativeGasWei": "3000000000000000000",
+    "traderNativeGasMON": "3",
+    "traders": [
+      {
+        "slot": "nebraska-senate",
+        "owner": "0x2746a408E3bF12d5dDc4bb1C09E1635720aDB888",
+        "engine": "0x171503494eF5f1A9e6705781647451A2582995bD",
+        "nativeGasWei": "1500000000000000000",
+        "testTokenMintAtoms": "20000000",
+        "allocatedAtoms": "10000000",
+        "receiptCount": 5,
+        "hashes": [
+          "0xda601090d95a848d9a0290884079ecdfaecd6f1809e9702ac15a263cee2d7aad",
+          "0xb4fe1e7d0247c90735e6a53ed08299c8457c081eab6d2f32d8f21dda1fdac850",
+          "0xb551600e31174e23b4cf2d5835bb9d8182dd344f6e3888c7dd63ed21976cb0ac",
+          "0x03ec6157e38e6c3c059894961f351985cf96a1c576522fbafe2ffb07285227b2",
+          "0x8eb0a8ad92674a4bb8c8223eb7dd767bb12b6d463266c833586357f119c96cf1"
+        ]
+      },
+      {
+        "slot": "republican-house",
+        "owner": "0x50767BAc468c1B0fA7C8fF519ACb8BfD4115526a",
+        "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+        "nativeGasWei": "1500000000000000000",
+        "testTokenMintAtoms": "20000000",
+        "allocatedAtoms": "10000000",
+        "receiptCount": 5,
+        "hashes": [
+          "0x5519ac4f159484022f15db83b5a7ec6cd41f116384c3aaf8327c533d0eb1f4bc",
+          "0xaa3dbadef28d2558b6444d590e9ff105d62a7829bb4b50d9ed3906e845724ffe",
+          "0x044aa5df85342f31582f2f0260ecfe47a9493b881a1f1e33b17d66ac66f4c6aa",
+          "0x957abe1eb58e5cb7d938107e70e4830066fc572b28997ad8e8c46a7b335d62a1",
+          "0x853debecf0d5ae9fe7c502d2525f19b86ac040b5ee8ed3ae62e1fe09aa7c6a1c"
+        ]
+      }
+    ],
+    "cumulativeRuntimeIncomingMON": "117.13916877",
+    "cumulativeRuntimeAndTraderIncomingMON": "120.13916877",
+    "accountingScope": "Runtime totals comprise39MONinitial+60MONtopup+18.13916877MONrecovered from retired operators. Trader gas adds3MON. These are gross incoming campaign transfers, not current balances or newly minted funds; retired gas recovery moves existing native funds.",
+    "testTokenScope": "Each distinct generated owner minted20testtokens and approved/deposited/allocated10 to its exact selected engine. Funding receipts do not prove completed trading or current collateral availability.",
+    "sourceSha256": {
+      "recover-retired-gas.ts": "4386d52fa43070f735946fc622ee0138220ebd09348a5ba8826e6dbfeb25a58c",
+      "retired-gas-policy.mjs": "c7fc7e3a8f6291ca98d600c5866a0b2a7a2558f22ddd78c62668b536598601d4",
+      "retired-gas-policy.test.mjs": "d749bfb6d27cd93041f66aae8a30acf0e7c39ba8505cf2352f24d0799c04449b",
+      "independent-recovery-traders.ts": "af51678ffdb5ef26bede3272e1661f54d96adb568250208a20143cc0b87c0af7"
+    },
+    "evidenceSha256": {
+      "retired-gas-recovery/recover-nebraska-publisher-plan.json": "67fff180ba7214cb76af034938a14e2af26b366b82d586867e370077959da114",
+      "retired-gas-recovery/recover-nebraska-publisher-broadcast-journal.json": "302b690579908a41d852bbe5ceb4bfcaaaf1371b9f982c432d12f8b0fd54bc99",
+      "retired-gas-recovery/recover-nebraska-publisher-verification.json": "8d06e392e426ac7e58da4516bdbea00b3edad5ea6158e7f5e5a6eddc8a03c84e",
+      "retired-gas-recovery/recover-nebraska-publisher-rehearsal-journal.json": "bba0cd20da37bed1e8cf00423fc002aef167141630b7e53eaafdda82145ba680",
+      "retired-gas-recovery/recover-nebraska-keeper-plan.json": "6c3bd19f5f346c674ba605542c70b7eaa41c107d4a9d9ddd0b246baf242df87a",
+      "retired-gas-recovery/recover-nebraska-keeper-broadcast-journal.json": "b3b648ac5ba585e573678eca0e49ffd4d9d65651d4f60a36e0c18fe742db37be",
+      "retired-gas-recovery/recover-nebraska-keeper-verification.json": "e356dc3119ca6f0a19736dc1a4bcf973778393e98eaf1c81f0d22a8c0bad7451",
+      "retired-gas-recovery/recover-nebraska-keeper-rehearsal-journal.json": "93d49ba8173298563843817329d71c91cd803fddc4ef3c96f3a4a3ccb9288e67",
+      "retired-gas-recovery/recover-house-publisher-plan.json": "5b895a0ba8625b654977d6aa5ca46ae7bf3bf6c618c3811b8913160ee150c7e8",
+      "retired-gas-recovery/recover-house-publisher-broadcast-journal.json": "856b1ac28588f14c8e30a0b95082c929ac4cbabe86be53668e04124d8683473e",
+      "retired-gas-recovery/recover-house-publisher-verification.json": "6d0b6bad55095076f1da32a4911d8d7150713ed492d477e14c9dac5edccf4196",
+      "retired-gas-recovery/recover-house-publisher-rehearsal-journal.json": "b2ec12b475346e43c763fa5f8bc2305d5c1d4fb490255fd888d02a35239d35ef",
+      "retired-gas-recovery/recover-house-keeper-plan.json": "3ebe47065cb281451e1ab3f4a8e0a1a20978a3edb8072d734e37ed435671535f",
+      "retired-gas-recovery/recover-house-keeper-broadcast-journal.json": "5f87524f7081b0812efcc87a0ed45aab479e2a5663c92f9b53137651ae63e305",
+      "retired-gas-recovery/recover-house-keeper-verification.json": "0e8566cf95796530864a11c52d238c4f573a2470e04f53961196282e9442bc82",
+      "retired-gas-recovery/recover-house-keeper-rehearsal-journal.json": "bd469414ab605165ec41a5346f4a77f8a839029b989bfaabaa3a35c98ca7b358",
+      "retired-gas-recovery/complete.json": "02ca6e52bdd36c2474bc9e95700d8788f8a71289d00c4731dd52abb624223778",
+      "nebraska-senate/trader/gas-plan.json": "ccb627cabb4224ede3676060a959d2c3dcd41cdfd61817ccc8a1c406e89e7889",
+      "nebraska-senate/trader/gas-broadcast-journal.json": "161959ab15350e243df574caee497def112527c0c47a6a495847d628006a5109",
+      "nebraska-senate/trader/funding-plan.json": "63a69b54abd909ae3b945b9857eb559ddffaa61a91a8b43876a763f1ac53e57f",
+      "nebraska-senate/trader/funding-broadcast-journal.json": "9543c4abcaede632c2ced46a067484c83c9e699858f560a209c97ac520b29a12",
+      "nebraska-senate/trader/funding-verification.json": "af45e66f64ed79c1d25499b045731916625442306c90daff468171dcefb9d9e4",
+      "nebraska-senate/trader/gas-verification.json": "968c13a352f9d42b45254f9a997a40ec9e89e7c81ea33810580cedaa33d1c82c",
+      "republican-house/trader/gas-plan.json": "9c07da517ee38e91730504c990c455ec55e9a04cde38ad5d747c412bc5034e91",
+      "republican-house/trader/gas-broadcast-journal.json": "d6c93ff06587ed15868693655a44ca4d5ac0cceb7a3631fe597dddea2b15a3b4",
+      "republican-house/trader/funding-plan.json": "5c32bddf508b8f16d01fa2a91b1a9ec2d32daab56c67794ef8cdd24425090541",
+      "republican-house/trader/funding-broadcast-journal.json": "cd6142a96e5db74e4f895b540c42119cdcc01e34794b5b74bdd91baaed55dc57",
+      "republican-house/trader/funding-verification.json": "1ae0ca8de1f1b45f2ca6c4f3dce73c99f009a0bb098b1b5198bf9e92db8c3d31",
+      "republican-house/trader/gas-verification.json": "307901cd466c14d8addfae2a6b72558297f541c0fd9503ab16ad8cdec3408bbd",
+      "traders-ready.json": "851761038d46d4e8ad81cb7588c5d664135a57637f384415daea2aaad35c5d76",
+      "independent-recovery-traders.json": "e8e6069af4950050e79f88c25508cde245ba6a6edee5f89dc59b512cdea250ea"
+    },
+    "limits": [
+      "Public MARK availability and5x trading proof are not established by this funding checkpoint.",
+      "Active services can spend incoming funds before verification; only retired sender reserve at its pinned canonical verification block was checked.",
+      "No private keys, RPC credentials or raw signed transactions are included in this artifact."
+    ],
+    "publicTransactionsSentByReviewer": 0
+  },
+  "houseBackedOwnerFlowCheckpoint": {
+    "passed": true,
+    "checkedAt": "2026-10-07T12:55:05.957Z",
+    "chainId": 10143,
+    "owner": "0x50767BAc468c1B0fA7C8fF519ACb8BfD4115526a",
+    "engine": "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+    "canonicalReceipts": 4,
+    "phases": [
+      {
+        "phase": "buy",
+        "transactionHash": "0x9a746998fbc790a943490936b262af51aba6bb57640e889a28bb928669de0a7b",
+        "block": "68972812",
+        "positionLots": "10000",
+        "cashQ": "9150000000000000000000000",
+        "freeAtoms": "0",
+        "walletAtoms": "10000000",
+        "fillSizeLots": "10000",
+        "fillTick": 85
+      },
+      {
+        "phase": "close",
+        "transactionHash": "0xaba8b3a1c38c19bde1686e7ea3a9afb87226882e2c9acad6c3e4cb8d958eec75",
+        "block": "68973159",
+        "positionLots": "0",
+        "cashQ": "9800000000000000000000000",
+        "freeAtoms": "0",
+        "walletAtoms": "10000000",
+        "fillSizeLots": "10000",
+        "fillTick": 65
+      },
+      {
+        "phase": "release",
+        "transactionHash": "0xcf5c45389193896c33dc89dae5f04d39a5bc684103d36d1995ebac84eaf2558d",
+        "block": "68974595",
+        "positionLots": "0",
+        "cashQ": "8800000000000000000000000",
+        "freeAtoms": "1000000",
+        "walletAtoms": "10000000",
+        "fillSizeLots": "0",
+        "fillTick": null
+      },
+      {
+        "phase": "withdraw",
+        "transactionHash": "0x66ec38c7a62808124523b573c823e4c3df72ea3374f3918322aa4f40202bdb53",
+        "block": "68975155",
+        "positionLots": "0",
+        "cashQ": "8800000000000000000000000",
+        "freeAtoms": "0",
+        "walletAtoms": "11000000",
+        "fillSizeLots": "0",
+        "fillTick": null
+      }
+    ],
+    "finalCollateralTokens": "8.8",
+    "finalWalletTokens": "11",
+    "finalFreeVaultTokens": "0",
+    "roundtripSpreadLossTokens": "0.2",
+    "withdrawnTokens": "1",
+    "scope": "Generated-owner full-backed public SDK flow; no5x or Privy signing claim.",
+    "evidenceSha256": {
+      "republican-house/trader/buy-plan.json": "f17779faa1b2e1fc96de5c517d6847cc259c4f78f26731ef07c3313290ab05a3",
+      "republican-house/trader/buy-broadcast-journal.json": "b6067ab3012aee032287ff021a71dc2056db39a875348613ea3ce6a7f17b9fc0",
+      "republican-house/trader/buy-verification.json": "a17109b390318b374f4ed3c49b373cf6f804a6ab519f05dc90df6894e1320f6d",
+      "republican-house/trader/buy-rehearsal-proof.json": "a620efc13e199334db6527188b87eb6812b010e06e08b8fb2ebcf19c5d177313",
+      "republican-house/trader/rehearsals/buy-1791376835927/buy-rehearsal-journal.json": "7c09df00e437a194d24f51d899c372eb8a555994375ecfb684d1091b87523d1b",
+      "republican-house/trader/close-plan.json": "8b59900468b88403628fd1174427ba22309af83c7e0898809729213d0166b764",
+      "republican-house/trader/close-broadcast-journal.json": "9b3ea061af301e5b6ce928ab8296a2e6288fa5fd00add7536d05d0d24970f45f",
+      "republican-house/trader/close-verification.json": "5bb3598c8d2ecfc4e1b583739b5239a6ca595e7d6613b03af898632e855f7b44",
+      "republican-house/trader/close-rehearsal-proof.json": "cb29cd58438f0a18e9ac0dfc265911039bec5d3ad62c9e82194bbe8ebfa8133c",
+      "republican-house/trader/rehearsals/close-1791376956004/close-rehearsal-journal.json": "0fde84a6b17c76b74fcb9461bf965c9aa1bed63f546e2bc8088f0bcbb9875d25",
+      "republican-house/trader/release-plan.json": "aa5d252def88cb40409041e4edb44fc45da6887d46ac7edbf3c36e37a25308d7",
+      "republican-house/trader/release-broadcast-journal.json": "b3acb5b84ecb2504be10ef966a5193fd3f3a52ec9c4d139382c1b8463e6abc47",
+      "republican-house/trader/release-verification.json": "00d2581f164baa54f9d973191e1319a4004bf27abc286b8196e8a009d6006725",
+      "republican-house/trader/release-rehearsal-proof.json": "403fe0238143b0cbc92115055a2e53ae046dd3cb28e2a38fb442b9bcd4755efc",
+      "republican-house/trader/rehearsals/release-1791377058808/release-rehearsal-journal.json": "a221243a84fe945984b947d276a2a889b738e38ce3ea107a049e92826ed7fbfa",
+      "republican-house/trader/withdraw-plan.json": "363d477558c4930c1afdcf1559e3685704b807c3ef6ec814bec83e8fe55a9368",
+      "republican-house/trader/withdraw-broadcast-journal.json": "e08496cadefe6642a3089c82b48634ed2e7c40f560205a067367a9d3c94b9267",
+      "republican-house/trader/withdraw-verification.json": "5802445116dbf3d5d46fe8b08c65e70853779e0477d1a6c8290d08b56607cc77",
+      "republican-house/trader/withdraw-rehearsal-proof.json": "5186445fc502471784ba960b0696a699a50e9c26d802f6145dd25ebc94fcf4f4",
+      "republican-house/trader/rehearsals/withdraw-1791377562490/withdraw-rehearsal-journal.json": "9dc4b8f0865a3f4ace750b05cd6ce379bebf820daa8411101189dd6b490cfee4"
+    },
+    "publicTransactionsSentByReviewer": 0,
+    "cumulativeIndependentlyReviewedReceipts": 101,
+    "verification": "Each public receipt independently matched its exact plan and finalized canonical block; each plan matched a passed retained fork rehearsal. Fill events were decoded from fresh canonical receipts and required the generated owner participant,10000lots and ticks85/65. Account,free vault and token wallet states were independently reread at each canonical verification anchor.",
+    "limitations": [
+      "Backed SDK flow using a distinct generated test owner; no5x leverage proof or browser/Privy signing claim.",
+      "Failed fork estimation attempts remain retained and are not public transaction failures.",
+      "The snapshots reflect their pinned historical blocks; live source availability can subsequently change."
+    ],
+    "reviewerSourceSha256": "3a3ed969dceb13dcf7936b4ab46d1a3d035962b33e2d2736a950bc6949e0ae87",
+    "independentEvidenceSha256": "c1dd40ae70a8266424afea48fa5faf6ecf32f43dea3da1a86a6fe83820252766"
   }
 }

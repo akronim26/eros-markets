@@ -8,7 +8,35 @@ export function publisherInitializationAfterFailure(initialize, present) {
   throw new Error('TESTNET_JOURNAL_SET_INCOMPLETE');
 }
 
-export function transientPublisherFailure(reason) {
+function transientMonadReadFailure(reason) {
   return /^MONAD_(?:RPC_CHAIN|FINALIZED_BLOCK|CANONICAL_BLOCK|CODE_READ|LISTING_READ|SOURCE_READ|HALT_READ|BLOCK_READ|RECEIPT_READ|NONCE_READ|BALANCE_READ)_FAILED$/.test(reason)
-    || ['MONAD_STALE_OR_FUTURE_BLOCK', 'PIPELINE_TIMEOUT', 'RELAY_TIMEOUT'].includes(reason);
+    || reason === 'MONAD_STALE_OR_FUTURE_BLOCK';
+}
+
+export function transientPublisherFailure(reason) {
+  return transientMonadReadFailure(reason)
+    || ['MONAD_SIMULATION_FAILED', 'PIPELINE_TIMEOUT', 'RELAY_TIMEOUT'].includes(reason);
+}
+
+/** Resume the same guarded recovery after transient reads fail. The recovery
+ * implementation owns signatures, nonce/receipt reconciliation and all writes.
+ * No new intent, cancellation scope or retry bytes are manufactured here. */
+export async function recoverPublisherNonce({ recover, signal, deadline, onResult,
+  now = Date.now, pause = ms => new Promise(resolve => setTimeout(resolve, ms)) }) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (signal.aborted || now() >= deadline) return;
+    let result;
+    try {
+      result = await recover();
+    } catch (error) {
+      if (!(error instanceof Error) || !(transientMonadReadFailure(error.message)
+        || ['NONCE_RECOVERY_RPC_FAILED', 'NONCE_RECOVERY_RPC_TIMEOUT'].includes(error.message))
+        || attempt === 2) throw error;
+      await pause(2000);
+      continue;
+    }
+    onResult(result);
+    if (result.status === 'FINALIZED') return result;
+    if (attempt === 2) throw new Error('RECOVERY_STILL_PENDING');
+  }
 }

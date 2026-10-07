@@ -72,7 +72,7 @@ to use owner transaction builders; verify and update the manifest first.
 
 History remains unavailable until a matching indexer is running. Set both
 `NEXT_PUBLIC_INDEXER_URL` and
-`NEXT_PUBLIC_INDEXER_DEPLOYMENT=10143:0x9be1d595ac9b6c1109a4dcaa056ce5efdaf06f45`.
+`NEXT_PUBLIC_INDEXER_DEPLOYMENT=10143:0x780e73ddc65113f8c9c506daa25a0404ed9f3e33`.
 An old endpoint without this binding is ignored. Current state still comes from RPC.
 
 To regenerate ABIs, compile the oracle with its pinned integration profile and

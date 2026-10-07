@@ -11,11 +11,13 @@ import { readCanonicalSampleCapture } from './sample-capture.mjs';
 import { readBootstrapRolloverDeferral } from './rollover-readiness.mjs';
 import { keeperGasCeiling, boundedRolloverHelper, requireKeeperGas, runKeeperAction } from './keeper-gas-policy.mjs';
 import { sampleCadenceRemaining, isFinalizedSample } from './sampler-request-policy.mjs';
+import { readEpochSamplingPolicy, requireSampleSigningWindow, SampleEpochDeferred } from './epoch-sampling-policy.mjs';
 const require = createRequire(new URL('../../oracle/services/market-ops/package.json', import.meta.url));
 const { createPublicClient, createWalletClient, http, encodeFunctionData, keccak256 } = require('viem');
 const manifestPath = process.argv[2], journalPath = process.argv[3], evidencePath = process.argv[4];
 if (!manifestPath || !journalPath || !evidencePath) throw new Error('Usage: bun --no-env-file scripts/e2e/market-services.ts <manifest> <journal> <evidence.jsonl>');
 const manifest = manifestSchema.parse(JSON.parse(readFileSync(manifestPath, 'utf8')));
+const configuredSampleCadence = manifest.sampleEveryBlocks;
 if (manifest.chainId !== 10143) throw new Error('This campaign is only for Monad testnet');
 const maximumKeeperGas = keeperGasCeiling(process.env.EROS_KEEPER_MAX_GAS);
 manifest.rolloverHelper = boundedRolloverHelper(manifest.rolloverHelper, maximumKeeperGas);
@@ -42,6 +44,7 @@ transport.prepare = async call => {
   const request = await wallet.prepareTransactionRequest({ to: call.target, gas: call.gas, nonce: latest,
     data: encodeFunctionData({ abi: call.functionName === 'rollover' ? RolloverBatcherAbi : abi, functionName: call.functionName, args: call.args }),
     maxFeePerGas: 150_000_000_000n, maxPriorityFeePerGas: 2_000_000_000n });
+  if (call.action === 'sample') await requireSampleSigningWindow({ client, engine: manifest.engine, abi, cadence: configuredSampleCadence });
   const rawTransaction = await wallet.signTransaction(request);
   return { rawTransaction, hash: keccak256(rawTransaction) };
 };
@@ -104,6 +107,16 @@ try {
       if (action === 'sample' && !store.read().pending) {
         const block = await client.getBlock();
         const blockNumber = block.number;
+        const epochPolicy = await readEpochSamplingPolicy({ client, engine: manifest.engine, abi, cadence: configuredSampleCadence, block });
+        knownEpochEnd = epochPolicy.epochEnd;
+        manifest.sampleEveryBlocks = epochPolicy.cadence;
+        // Keep enough time for inclusion before accounting expires. A successful
+        // late sample would see an empty book and discard the pending capture.
+        if (!epochPolicy.admit) {
+          log({ waiting: 'epoch closing; prioritize rollover', ...epochPolicy });
+          if (sampleRequest) await ack(sampleRequest.id, 'epoch-closing');
+          continue;
+        }
         // Do not acknowledge a request that has not executed. Keep it outstanding
         // and avoid expensive readiness/estimation RPCs until the cadence allows it.
         if (sampleCadenceRemaining(store.read().lastSampleBlock, blockNumber, manifest.sampleEveryBlocks) > 0n) continue;
@@ -158,6 +171,15 @@ try {
       log({ requested: action, ...result, samples, rollovers });
     }
     } catch (error) {
+      // This refusal occurs before signing; any existing signed operation still
+      // follows the ordinary pending-receipt path and is never discarded here.
+      if (error instanceof SampleEpochDeferred && !store.read().pending) {
+        log({ waiting: error.message, ...error.context });
+        const current = request();
+        if (current && error.message === 'SAMPLE_EPOCH_CLOSING') await ack(current.id, 'epoch-closing');
+        await new Promise(resolve => setTimeout(resolve, 250));
+        continue;
+      }
       if ((error as Error).message === 'KEEPER_NEEDS_TEST_MON' && !store.read().pending) {
         log({ waiting: 'keeper gas wallet below policy minimum' });
         const current = request();
