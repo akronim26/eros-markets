@@ -4,6 +4,7 @@ import { parse } from 'yaml'
 import { describe, expect, it } from 'vitest'
 import { OWN } from '../src/addresses'
 import { checkCurrentConfig } from '../scripts/current-config.mjs'
+import { AFTER_REPLAY_BLOCK, fixtureAddress, simulateItems, TESTNET } from './replay'
 
 const ROOT = new URL('../../', import.meta.url).pathname
 const D = JSON.parse(readFileSync(`${ROOT}../frontend/src/config/public-manifest.json`, 'utf8'))
@@ -37,6 +38,23 @@ describe('testnet config', () => {
   it('the handlers filter on the same oracle and adapter', () => {
     expect(OWN[10143]!.oracle.toLowerCase()).toBe(D.contracts.ResolutionOracle.address.toLowerCase())
     expect(OWN[10143]!.adapter.toLowerCase()).toBe(D.contracts.UmaAdapter.address.toLowerCase())
+  })
+
+  it('recorded and synthetic fixtures route through the current deployment without relaxing source filters', () => {
+    const items = simulateItems()
+    expect(items).toHaveLength(57)
+    for (const item of items) {
+      const configured = source(item.contract)
+      expect(lower(configured.address)).toContain(item.srcAddress)
+      expect(item.block.number).toBeGreaterThanOrEqual(chain.start_block)
+      expect(item.block.number).toBeGreaterThanOrEqual(configured.start_block ?? chain.start_block)
+      expect(item.block.number).toBeLessThan(AFTER_REPLAY_BLOCK)
+    }
+    expect(TESTNET.ResolutionOracle).toBe(OWN[10143]!.oracle.toLowerCase())
+    expect(TESTNET.UmaAdapter).toBe(OWN[10143]!.adapter.toLowerCase())
+    expect(lower(source('TradingEngine').address)).toContain(TESTNET.TradingEngine)
+    expect(AFTER_REPLAY_BLOCK).toBeGreaterThanOrEqual(Math.max(chain.start_block, ...chain.contracts.map((c: { start_block?: number }) => c.start_block ?? chain.start_block)))
+    expect(() => fixtureAddress('UnconfiguredFixtureContract')).toThrow('requires a configured address')
   })
 
   it('the ABIs are the committed forge-inspect exports', () => {

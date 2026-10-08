@@ -1,11 +1,12 @@
 import { createTestIndexer } from 'envio'
 import { expect, it } from 'vitest'
-const engine='0x58c63bfd94c13acb6f1da665406cc16cf80d1b69'
+import { AFTER_REPLAY_BLOCK, fixtureAddress } from './replay'
+const engine=fixtureAddress('TradingEngine')
 const owner='0x1111111111111111111111111111111111111111'
 const hash=`0x${'ab'.repeat(32)}`
 it('persists order lifecycle with trader identity and exact accounting amounts',async()=>{
  const indexer=createTestIndexer()
- const base={contract:'TradingEngine',srcAddress:engine,block:{number:67916000,timestamp:1791111111,hash},transaction:{hash,from:owner}}
+ const base={contract:'TradingEngine',srcAddress:engine,block:{number:AFTER_REPLAY_BLOCK,timestamp:1791111111,hash},transaction:{hash,from:owner}}
  await indexer.process({chains:{10143:{simulate:[
   {...base,event:'AccountRegistered',logIndex:0,params:{owner,index:6n}},
   {...base,event:'CashAllocated',logIndex:1,params:{owner,atoms:100000000n,cashQ:100000000000000000000000000n}},
