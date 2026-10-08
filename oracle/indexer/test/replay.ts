@@ -1,22 +1,31 @@
-// Recorded local events as Envio simulate items: local addresses are replaced by testnet ones, and blocks are moved
-// past the testnet start blocks.
+// Recorded local events as Envio simulate items: local addresses and block numbers are
+// rebased onto the active indexer config, preserving event order and recorded timestamps.
 import { readFileSync } from 'node:fs'
 import { type Abi, decodeEventLog, parseAbi } from 'viem'
 import { parse } from 'yaml'
 
 const ROOT = new URL('../../', import.meta.url).pathname
 export const RECORDED = JSON.parse(readFileSync(new URL('./fixtures/recorded/events.json', import.meta.url), 'utf8'))
-const D = JSON.parse(readFileSync(`${ROOT}deployments/monad-testnet.json`, 'utf8'))
-export const BLOCK_OFFSET = 67_901_624 // the oracle's testnet deployBlock: every replayed block is at or after it
-
-export const TESTNET: Record<string, string> = {
-  ResolutionOracle: D.contracts.ResolutionOracle.address,
-  MarketRegistry: D.contracts.MarketRegistry.address,
-  BondTreasury: D.contracts.BondTreasury.address,
-  UmaAdapter: D.contracts.UmaAdapter.address,
-  OptimisticOracleV3: D.uma.oov3,
-  ErosSandboxOracle: D.uma.sandboxOracle,
-  KeystoneForwarder: D.cre.mockForwarder,
+type Source = { name: string; address: string | string[]; start_block?: number }
+const config = parse(readFileSync(new URL('../config.yaml', import.meta.url), 'utf8')) as {
+  contracts: { name: string; events: { event: string }[] }[]
+  chains: { id: number; start_block: number; contracts: Source[] }[]
+}
+const chain = config.chains.find(c => c.id === 10143)
+if (!chain) throw new Error('Fixture replay requires a Monad testnet indexer configuration')
+// Envio applies both chain and per-contract routing start blocks to simulated events.
+export const BLOCK_OFFSET = Math.max(chain.start_block, ...chain.contracts.map(c => c.start_block ?? chain.start_block))
+export const AFTER_REPLAY_BLOCK = BLOCK_OFFSET + Math.max(...RECORDED.logs.map((l: { block: { number: number } }) => l.block.number)) + 1
+export const TESTNET: Record<string, string> = Object.fromEntries(chain.contracts.map(c => {
+  // A simulated log has one emitter; use the first configured engine when there are several.
+  const address = Array.isArray(c.address) ? c.address[0] : c.address
+  if (!address) throw new Error(`Fixture replay requires a configured address for ${c.name}`)
+  return [c.name, address.toLowerCase()]
+}))
+export function fixtureAddress(contract: string): string {
+  const address = TESTNET[contract]
+  if (!address) throw new Error(`Fixture replay requires a configured address for ${contract}`)
+  return address
 }
 
 const abi = (n: string) => JSON.parse(readFileSync(`${ROOT}abi/${n}.json`, 'utf8')) as Abi
@@ -36,14 +45,14 @@ const ABIS: Record<string, Abi> = {
 
 /** The events config.yaml indexes, per contract ("Name" or a full signature "Name(...)"). */
 export const INDEXED: Record<string, string[]> = Object.fromEntries(
-  (parse(readFileSync(new URL('../config.yaml', import.meta.url), 'utf8')).contracts as { name: string; events: { event: string }[] }[]).map((c) => [
+  config.contracts.map((c) => [
     c.name,
     c.events.map((e) => e.event.split('(')[0]!),
   ]),
 )
 
 const local: Record<string, string> = Object.fromEntries(Object.entries(RECORDED.addresses as Record<string, string>).map(([k, v]) => [v.toLowerCase(), k]))
-const mapAddress = (v: unknown) => (typeof v === 'string' && local[v.toLowerCase()] ? TESTNET[local[v.toLowerCase()]!] : v)
+const mapAddress = (v: unknown) => (typeof v === 'string' && local[v.toLowerCase()] ? fixtureAddress(local[v.toLowerCase()]!) : v)
 
 /** Integers become bigint (as Envio delivers every integer); recorded contract addresses become testnet ones. */
 function convert(type: string, v: unknown): unknown {
@@ -73,7 +82,7 @@ export function simulateItems(): Item[] {
     out.push({
       contract,
       event: d.eventName,
-      srcAddress: TESTNET[contract]!,
+      srcAddress: fixtureAddress(contract),
       logIndex: l.logIndex,
       block: { ...l.block, number: l.block.number + BLOCK_OFFSET },
       transaction: { hash: l.transactionHash, from: l.from },

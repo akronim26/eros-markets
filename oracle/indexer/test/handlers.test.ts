@@ -2,12 +2,12 @@
 // scenario: market A went L1 → disputed → rejected → Review → voided; market B went Layer 2 → Review → REVIEWED → Final.
 import { createTestIndexer } from 'envio'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { RECORDED, simulateItems, TESTNET } from './replay'
+import { AFTER_REPLAY_BLOCK, RECORDED, simulateItems, TESTNET } from './replay'
 
 const A = RECORDED.markets.A.toLowerCase()
 const B = RECORDED.markets.B.toLowerCase()
 const DISPUTED = RECORDED.disputedAssertion.toLowerCase()
-const AT = { number: 67_910_000, timestamp: 1_791_100_000 } // a block after every testnet start block
+const AT = { number: AFTER_REPLAY_BLOCK, timestamp: 1_791_100_000 }
 const BOND = 11_120_000n // max(minBond 2 USDC, 11.12% of the example's OI cap of 100 claims), in USDC atoms
 let indexer: ReturnType<typeof createTestIndexer>
 
@@ -109,7 +109,8 @@ describe('TreasuryLedger, TrustSet, ReportAttempt, SandboxRequest, Watchdog', ()
   })
 
   it('the CRE report to the oracle, through the sim forwarder, accepted', async () => {
-    expect(await indexer.ReportAttempt.getAll()).toMatchObject([{ forwarder: TESTNET.KeystoneForwarder, receiver: TESTNET.ResolutionOracle, reportId: '0x0001', result: true }])
+    const reports = (await indexer.ReportAttempt.getAll()).map(report => ({ ...report, forwarder: report.forwarder.toLowerCase() }))
+    expect(reports).toMatchObject([{ forwarder: TESTNET.KeystoneForwarder, receiver: TESTNET.ResolutionOracle, reportId: '0x0001', result: true }])
   })
 
   it('the sandbox DVM’s request and the team’s answer (0: untruthful)', async () => {
