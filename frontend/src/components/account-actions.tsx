@@ -6,6 +6,7 @@ import { ownerTrader } from "@/lib/trader";
 import { deployment, marketByEngine } from "@/config/deployment";
 import { type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { amountWithinBalance, atomsToInput, canClaim, fundingPlan } from "@/lib/funds";
+import { allocationBlocker, validateAllocation } from "@/lib/allocation-guard";
 import { atomsToUsdc, parseUsdcToAtoms } from "@/lib/units";
 import { REJECT } from "@/lib/enums";
 import { releasePreviewOptions } from "@/lib/collateral-queries";
@@ -40,8 +41,10 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
   useEffect(() => {
     if (busy || tx.state.status === "error" || tx.state.status === "done") setExpanded(true);
   }, [busy, tx.state.status]);
+  const fundingBlocked = mode === "Fund" && m ? allocationBlocker(m) : undefined;
   const blocker = mode === "Fund" && fundDisabled ? "Archived market"
     : owner.wrongChain ? "Switch to Monad testnet" : readUnavailable ? "Live reads unavailable" : !readsReady ? "Reading balances…"
+    : fundingBlocked ? fundingBlocked
     : mode !== "Withdraw" && m?.halted ? "Market halted"
     : error || (!amount ? "Enter an amount" : mode === "Release" ? release.isError ? "Release preview unavailable" : !releasePreview ? "Checking release…" : !releasePreview[0] ? REJECT[releasePreview[1]] || "Release unavailable" : "" : "");
 
@@ -51,9 +54,10 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
     if (mode === "Fund") {
       const p = fundingPlan(amount, t.free, t.wallet, t.allowance);
       const calls = [];
-      if (p.approve) calls.push({ ...sdk.approve(p.approve), label: "approve collateral" });
-      if (p.deposit) calls.push({ ...sdk.deposit(p.deposit), label: "deposit collateral" });
-      calls.push({ ...sdk.allocate(p.allocate), label: "fund market" });
+      const validate = (block: bigint) => validateAllocation(engine, block);
+      if (p.approve) calls.push({ ...sdk.approve(p.approve), label: "approve collateral", validate });
+      if (p.deposit) calls.push({ ...sdk.deposit(p.deposit), label: "deposit collateral", validate });
+      calls.push({ ...sdk.allocate(p.allocate), label: "fund market", validate });
       await tx.run(owner.address, calls);
     } else await tx.run(owner.address, [{ ...(mode === "Release" ? sdk.release(amount) : sdk.withdraw(amount)), label: mode.toLowerCase() }]);
   }
@@ -68,6 +72,7 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
       {MODES.map((x) => <button key={x} disabled={busy || (x === "Fund" && fundDisabled)} aria-pressed={mode === x} className={cx("label h-9 disabled:opacity-40", x === mode ? "bg-press text-fg" : "bg-ground text-fg-3")} onClick={() => { setMode(x); setInput(""); validation.reset(); tx.reset(); }}>{x}</button>)}
     </div>
     <p className="text-xs leading-relaxed text-fg-3">{mode === "Fund" ? "Add collateral to this market. Free vault funds are used first." : mode === "Release" ? "Move excess market collateral into your free vault balance." : "Send free vault collateral back to your selected wallet."}</p>
+    {fundingBlocked && <p role="status" className="border-l-2 border-signal pl-2 text-xs leading-relaxed text-fg-2">{fundingBlocked === "Market maintenance pending" ? "Funding is paused during market maintenance." : "This market is closed to funding."} Free vault funds can still be withdrawn.</p>}
     {mode === "Release" && m && !m.halted && !m.risk.indexAvailable && <p role="status" className="border-l-2 border-signal pl-2 text-xs leading-relaxed text-fg-2">Releasing market collateral requires a fresh index, including for a flat account. Existing free vault funds can still be withdrawn.</p>}
     <label className="flex flex-col gap-1.5">
       <span className="label text-fg-3">Amount ({t?.assets.symbol ?? deployment.risk.collateralSymbol})</span>

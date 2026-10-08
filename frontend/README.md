@@ -87,6 +87,12 @@ Only one owner transaction sequence can run per wallet and chain in a browser ta
 including sequences started from different terminal panels. Failed receipt checks
 retain the submitted transaction's explorer link.
 
+Funding is blocked while the market requires accounting maintenance, with a fresh
+check before each approval, deposit and allocation. Free-vault withdrawal remains
+available independently. If a later funding step fails, feedback lists earlier
+confirmed steps with their own links; an allocation stopped before submission is
+identified separately. Existing free-vault collateral is used first on retry.
+
 Owner calls use the browser SDK transaction builders. Simulation and estimation use
 one block; dependent calls wait for the exact canonical finalized receipt. Public
 reads check chain, runtime hashes, listing identities and factory/vault/oracle bindings.
