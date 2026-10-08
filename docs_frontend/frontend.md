@@ -1,3 +1,4 @@
+
 # Eros Markets frontend: complete build guide
 
 Written 2026-10-05 against `feat/pricefeed` @ `273bc6e` (contains `integration/risk` @ `e2b48c5`).

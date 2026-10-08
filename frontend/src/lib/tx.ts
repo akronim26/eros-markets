@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useConfig } from "wagmi";
 import { getConnection, writeContract } from "wagmi/actions";
-import { BaseError, ContractFunctionRevertedError, encodeFunctionData, parseEventLogs, type Abi, type Address, type Hash } from "viem";
+import { encodeFunctionData, parseEventLogs, type Abi, type Address, type Hash } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 import { client } from "./reads";
 import { engineAbi } from "@/abi/engine";
@@ -20,23 +20,18 @@ import { lockWalletTransaction } from "./transaction-lock";
 import { markets } from "@/config/deployment";
 import { DelegatedAttemptStore, assertAttemptBinding, confirmDelegatedAttempt, delegatedCall, recoverDelegatedAttempt, type DelegatedAttempt } from "./delegated-attempt";
 import { validateIntent } from "./delegated-intent";
+import { revertMessage } from "./transaction-errors";
+export { revertMessage } from "./transaction-errors";
+
+type TxPhase = "preflight" | "signature" | "confirmation" | "post-confirmation";
+type CompletedStep = { hash: Hash; label: string };
 
 export type TxState =
   | { status: "idle" }
   | { status: "pending"; step: string }
   | { status: "sent"; hash: Hash; step: string }
   | { status: "done"; hash: Hash; summary: string; tone: "bid" | "ask" | "neutral" }
-  | { status: "error"; message: string; hash?: Hash };
-
-/** Decode a revert into the contract's own error name (frontend.md §7.2). */
-export function revertMessage(e: unknown): string {
-  if (e instanceof BaseError) {
-    const r = e.walk((x) => x instanceof ContractFunctionRevertedError);
-    if (r instanceof ContractFunctionRevertedError) return r.data?.errorName ? `Reverted: ${r.data.errorName}` : r.shortMessage;
-    return e.shortMessage;
-  }
-  return e instanceof Error ? e.message : String(e);
-}
+  | { status: "error"; message: string; hash?: Hash; step?: string; phase?: TxPhase; completed?: CompletedStep[] };
 
 type Call = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; label: string; account?: Address; chainId?: number; validate?: (block: bigint) => Promise<void> };
 const delegatedEngines = markets.map(m => m.engine.toLowerCase());
@@ -60,6 +55,10 @@ export function useTx() {
     running.current = true;
     const setState = (state: TxState) => setResult({ scope, state });
     let last: Hash | undefined;
+    let currentHash: Hash | undefined;
+    let currentCall: Call | undefined;
+    let phase: TxPhase | undefined;
+    const completed: CompletedStep[] = [];
     let stop: (() => void) | undefined;
     let unlock: (() => void) | undefined;
     let terminalState: TxState | undefined;
@@ -89,9 +88,17 @@ export function useTx() {
       await runWalletCalls(calls, {
         assertCurrent: guard.assertCurrent,
         prepare: async (c) => {
+          currentCall = c;
+          currentHash = undefined;
+          phase = "preflight";
           // The first attempt may already have filled. Its old preview must not
           // prevent retrieving the saved hash, and its body must remain exact.
-          if (delegated && attempt) return { request: {}, gas: 0n };
+          if (delegated && attempt) {
+            // A recovered request may already be on-chain, even before this run sends anything.
+            currentHash = attempt.hash;
+            phase = attempt.hash ? "confirmation" : "signature";
+            return { request: {}, gas: 0n };
+          }
           setState({ status: "pending", step: `Simulating ${c.label}` });
           if ((c.account && c.account.toLowerCase() !== account.toLowerCase()) || (c.chainId && c.chainId !== chain.id)) throw new Error("Transaction belongs to a different wallet or network.");
           if (await client.getChainId() !== chain.id) throw new Error("RPC network changed. Remaining steps were stopped.");
@@ -109,6 +116,7 @@ export function useTx() {
           return { request: (sim as { request: object }).request, gas: gasLimit };
         },
         send: async ({ request, gas }, c) => {
+          phase = delegated && attempt?.hash ? "confirmation" : "signature";
           setState({ status: "pending", step: `Confirm ${c.label} in your wallet` });
           // Explicitly bind the signer and chain instead of using whichever connector is now active.
           let hash: Hash;
@@ -125,13 +133,19 @@ export function useTx() {
             hash = await recoverDelegatedAttempt(store!, attempt, body => privyRequest<{ hash: Hash }>("/api/trade", body, guard.assertCurrent));
           } else hash = await writeContract(config, { ...request, account, connector, chainId: chain.id, gas } as never);
           last = hash;
+          currentHash = hash;
           return hash;
         },
         confirm: async (hash, c, final) => {
+          phase = "confirmation";
           setState({ status: "sent", hash, step: `${c.label}: waiting for finality` });
           const readReceipt = () => finalizedOwnerReceipt(client, hash, { owner: account, to: c.address,
             data: encodeFunctionData({ abi: c.abi, functionName: c.functionName, args: c.args ?? [] }) });
           const receipt = delegated && attempt ? await confirmDelegatedAttempt(store!, attempt, readReceipt) : await readReceipt();
+          // Keep successful calls separate from any later simulation, signing or receipt failure.
+          completed.push({ hash, label: c.label });
+          currentHash = undefined;
+          phase = "post-confirmation";
           const orders = parseEventLogs({ abi: engineAbi, eventName: "OrderPlaced", logs: receipt.logs.filter((l) => l.address.toLowerCase() === c.address.toLowerCase()) });
           rememberOrders(chain.id, c.address, account, orders.map((l) => l.args.id));
           guard.assertCurrent();
@@ -142,7 +156,9 @@ export function useTx() {
         },
       });
     } catch (e) {
-      terminalState = { status: "error", message: revertMessage(e), ...(last ? { hash: last } : {}) };
+      terminalState = { status: "error", message: revertMessage(e, { functionName: currentCall?.functionName }),
+        ...(currentHash ? { hash: currentHash } : {}), ...(currentCall ? { step: currentCall.label, phase } : {}),
+        ...(completed.length ? { completed } : {}) };
     } finally {
       stop?.();
       // Finality ends the signing sequence. Release its lock before publishing
