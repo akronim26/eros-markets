@@ -50,7 +50,7 @@ export async function delegatedTrade(user: string, input: unknown, mode: SignerM
     const market = marketByEngine(intent.engine);
     if (!market) throw new PublicError("This market is not in the verified deployment.");
     if (market.archived && intent.action === "placeOrder" && !intent.place.reduceOnly) throw new PublicError("Archived markets accept position reductions only.");
-    await ensureDeployment();
+    await ensureDeployment(intent.engine);
     const head = await client.getBlock();
     if (await client.getChainId() !== 10143 || Math.abs(Date.now() / 1000 - Number(head.timestamp)) > 30 || BigInt(intent.previewBlock) > head.number || head.number - BigInt(intent.previewBlock) > 150n) throw new PublicError("Market preview is stale. Refresh and try again.");
     const account = wallet.address as Address, engine = intent.engine as Address;

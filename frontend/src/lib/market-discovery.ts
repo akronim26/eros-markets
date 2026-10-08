@@ -1,33 +1,26 @@
-import { isAddress, parseAbi, type Address, type Hex } from "viem";
+import { isAddress, type Address, type Hex } from "viem";
 import { client } from "./public-client";
-import { engineAbi } from "@/abi/engine";
 import { marketRegistryAbi } from "@/abi/marketRegistry";
-import { deployment, marketByEngine, markets, oracleMarkets, type MarketManifest } from "@/config/deployment";
+import { deployment, manifestForEngine, marketByEngine, markets, oracleMarkets, type MarketManifest } from "@/config/deployment";
 import { INDEXER_URL, indexerQuery } from "./history";
-import { canonicalRead, ensureDeployment } from "./deployment-check";
+import { canonicalRead, deploymentCacheKey, ensureDeployment } from "./deployment-check";
 import { resolveOracleBinding } from "./oracle-binding";
+import { createCollateralMetadataReader } from "./collateral-metadata";
 
 class UnsupportedMarket extends Error {}
 
-const metadataAbi = parseAbi(["function decimals() view returns (uint8)", "function symbol() view returns (string)", "function token() view returns (address)"]);
+const readCollateralMetadata = createCollateralMetadataReader({
+  client, verify: ensureDeployment, cacheKey: deploymentCacheKey,
+  expected: engine => {
+    const manifest = manifestForEngine(engine);
+    if (!manifest) throw new UnsupportedMarket("Market is not in a verified deployment.");
+    const token = manifest.contracts.CollateralToken.address;
+    return { vault: manifest.contracts.CollateralVault.address, token, decimals: deployment.risk.collateralDecimals,
+      fallbackSymbol: token.toLowerCase() === deployment.risk.collateralToken.toLowerCase() ? deployment.risk.collateralSymbol : "Collateral" };
+  },
+});
 export async function readAssets(engine: Address, block: bigint) {
-  const [vault, listing] = await client.multicall({ blockNumber: block, allowFailure: false, contracts: [
-    { address: engine, abi: engineAbi, functionName: "collateralVault" },
-    { address: engine, abi: engineAbi, functionName: "listing" },
-  ] });
-  const [token, decimals] = await client.multicall({ blockNumber: block, allowFailure: false, contracts: [
-    { address: vault, abi: metadataAbi, functionName: "token" },
-    { address: listing.token, abi: metadataAbi, functionName: "decimals" },
-  ] });
-  if (token.toLowerCase() !== listing.token.toLowerCase() || decimals !== 6) throw new UnsupportedMarket("Unsupported collateral configuration.");
-  // ERC-20 symbol is optional. A missing display label must not hide balances
-  // or disable custody actions for an otherwise verified token and vault.
-  const [label] = await client.multicall({ blockNumber: block, allowFailure: true, contracts: [
-    { address: token, abi: metadataAbi, functionName: "symbol" },
-  ] });
-  const symbol = label.status === "success" && label.result ? label.result
-    : token.toLowerCase() === deployment.risk.collateralToken.toLowerCase() ? deployment.risk.collateralSymbol : "Collateral";
-  return { vault, token, decimals, symbol };
+  return readCollateralMetadata(engine, block);
 }
 
 /** Only the verified manifest can enable a terminal and its owner transaction builders. */
@@ -58,7 +51,9 @@ export async function discoverMarkets() {
   }
   const block = (await client.getBlock({ blockTag: "finalized" })).number;
   const records = [
-    ...markets.filter(m => m.oracleMarketId).map(m => ({ id: m.oracleMarketId!, engine: m.engine as string | undefined })),
+    // Archived identities remain discoverable from reviewed local manifests;
+    // their contracts are verified only when their market/account is opened.
+    ...markets.filter(m => !m.archived && m.oracleMarketId).map(m => ({ id: m.oracleMarketId!, engine: m.engine as string | undefined })),
     ...[...ids].filter(id => !markets.some(m => m.oracleMarketId === id)).map(id => ({ id, engine: undefined })),
   ];
   const results = await canonicalRead(block, () => Promise.all(records.map(async ({ id, engine }) => {

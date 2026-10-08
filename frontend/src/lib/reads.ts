@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type Address, type Hex } from "viem";
 import { engineAbi } from "@/abi/engine";
 import { vaultAbi } from "@/abi/vault";
@@ -10,7 +10,7 @@ import { readOracleSnapshot } from "./oracle-reads";
 
 import { client } from "./public-client";
 import { readAssets } from "./market-discovery";
-import { ensureDeployment, canonicalRead } from "./deployment-check";
+import { ensureNetwork, ensureDeployment, canonicalRead } from "./deployment-check";
 import { bookTicks } from "./book-depth";
 import { emptySeries, readLiveSeries } from "./live-series";
 export { client };
@@ -27,7 +27,7 @@ export function useHead() {
   return useSticky(useQuery({
     queryKey: ["head"],
     queryFn: async () => {
-      await ensureDeployment();
+      await ensureNetwork();
       const b = await client.getBlock({ blockTag: "finalized" });
       const age = Date.now() - Number(b.timestamp) * 1000;
       if (age < -5000 || age > 30000) throw new Error("RPC finalized head is stale or has an invalid timestamp.");
@@ -50,13 +50,21 @@ function useSticky<T extends { data: unknown }>(q: T, scope = "public"): T {
 }
 
 export function useMarket(engine: Address, block: bigint | undefined) {
-  return useSticky(useQuery({
-    queryKey: ["market", engine],
+  return useSticky(useQuery(marketOptions(engine, block)), engine.toLowerCase());
+}
+
+/** Public market data is shared across wallets and never waits for an account read. */
+export function marketOptions(engine: Address, block: bigint | undefined) {
+  return {
+    queryKey: ["market", engine.toLowerCase()],
     enabled: block !== undefined,
     refetchInterval: 4000,
     staleTime: 3500,
-    queryFn: () => canonicalRead(block!, () => readMarket(engine, block!)),
-  }), engine.toLowerCase());
+    queryFn: async () => {
+      await ensureDeployment(engine);
+      return canonicalRead(block!, async anchor => ({ ...await readMarket(engine, block!), blockHash: anchor.hash }));
+    },
+  };
 }
 
 async function readMarket(engine: Address, block: bigint) {
@@ -109,7 +117,7 @@ async function readMarket(engine: Address, block: bigint) {
         maxFills, freshness: { freshThrough: freshness[0], movementRestricted: freshness[2] },
       };
 }
-export type MarketSnapshot = NonNullable<ReturnType<typeof useMarket>["data"]>;
+export type MarketSnapshot = Awaited<ReturnType<typeof readMarket>> & { blockHash: Hex };
 
 export function useTrader(engine: Address, owner: Address | undefined, block: bigint | undefined) {
   return useSticky(useQuery({
@@ -148,30 +156,36 @@ async function readTrader(engine: Address, owner: Address, block: bigint) {
 }
 export type TraderSnapshot = NonNullable<ReturnType<typeof useTrader>["data"]>;
 
-/** Read the terminal's public and owner state as one block-pinned snapshot.
- * Independent polling can drift permanently, leaving every owner action disabled.
- * One stable query also bounds in-flight work when an RPC is slower than polling.
+/** Pair owner state with the exact block of a verified public snapshot.
+ * The public query can finish first; it stays shared across wallet changes.
+ * Never combine independently polled latest market/account values for an action.
  */
-export function tradingSnapshotOptions(engine: Address, owner: Address | undefined, block: bigint | undefined) {
+export function tradingSnapshotOptions(engine: Address, owner: Address | undefined, block: bigint | undefined,
+  readPublicMarket: () => Promise<MarketSnapshot> = marketOptions(engine, block).queryFn) {
   return {
     queryKey: ["trading-snapshot", engine.toLowerCase(), owner?.toLowerCase()],
     enabled: block !== undefined,
     refetchInterval: 4000,
     staleTime: 3500,
-    queryFn: () => canonicalRead(block!, async () => {
-      const [market, account] = await Promise.allSettled([
-        readMarket(engine, block!),
-        owner ? readTrader(engine, owner, block!) : Promise.resolve(undefined),
-      ]);
-      if (market.status === "rejected") throw market.reason;
-      return { market: market.value, trader: account.status === "fulfilled" ? account.value : undefined,
-        accountError: account.status === "rejected" };
-    }),
+    queryFn: async () => {
+      const market = await readPublicMarket();
+      if (!owner) return { market, trader: undefined, accountError: false };
+      return canonicalRead(market.block, async () => {
+        try {
+          const trader = await readTrader(engine, owner, market.block);
+          return { market, trader, accountError: false };
+        } catch {
+          return { market, trader: undefined, accountError: true };
+        }
+      }, market.blockHash);
+    },
   };
 }
 
 export function useTradingSnapshot(engine: Address, owner: Address | undefined, block: bigint | undefined) {
-  return useSticky(useQuery(tradingSnapshotOptions(engine, owner, block)),
+  const qc = useQueryClient();
+  return useSticky(useQuery(tradingSnapshotOptions(engine, owner, block,
+    () => qc.fetchQuery(marketOptions(engine, block)))),
     `${engine.toLowerCase()}:${owner?.toLowerCase() ?? "disconnected"}`);
 }
 
@@ -239,7 +253,7 @@ export function useOracleMarket(id: Hex, engine?: string) {
     queryKey: ["oracle-market", oracle.marketRegistry, oracle.resolutionOracle, id, oracle.engine],
     refetchInterval: 15000,
     queryFn: async () => {
-      await ensureDeployment();
+      await ensureDeployment(oracle.engine ?? oracle.marketRegistry);
       const head = await client.getBlock({ blockTag: "finalized" });
       return readOracleSnapshot(id, oracle, head.number, head.timestamp);
     },

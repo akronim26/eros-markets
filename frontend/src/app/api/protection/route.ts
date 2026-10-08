@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       if (!process.env.CLAIM_DELIVERY_PRIVATE_KEY) throw new PublicError("Claim delivery service is not configured.");
       await ownedWallet(user, body.wallet);
     } else await signingWallet(user, body.wallet, "protect");
-    await ensureDeployment();
+    await ensureDeployment(body.engine);
     const head = await client.getBlock({ blockTag: "finalized" });
     if (Math.abs(Date.now() - Number(head.timestamp) * 1000) > 30000) throw new PublicError("Market state is stale. Refresh and try again.");
     const position = await canonicalRead(head.number, async () => {
