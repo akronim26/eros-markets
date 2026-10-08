@@ -8,13 +8,13 @@ import { db } from "./store";
 import { delegatedTrade } from "./trade";
 import { configured, ownedWallet } from "./privy";
 import { canonicalFinalizedReceipt } from "@/lib/finality";
-import { ensureDeployment } from "@/lib/deployment-check";
+import { ensureDeployment, ensureNetwork } from "@/lib/deployment-check";
 import { marketByEngine } from "@/config/deployment";
 
 type StoredRule = { id: string; user: string; wallet: Address; engine: Address; body: string; status: string };
 export async function processProtectionBlock() {
   if (!configured("protect")) throw new Error("Protection credentials are missing or share the trade signing key.");
-  await ensureDeployment();
+  await ensureNetwork();
   const head = await client.getBlock();
   if (await client.getChainId() !== 10143 || Math.abs(Date.now() / 1000 - Number(head.timestamp)) > 30) throw new Error("Chain head is stale or on the wrong network.");
   db().prepare("INSERT INTO service VALUES ('heartbeat',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value").run(Date.now());
@@ -23,6 +23,7 @@ export async function processProtectionBlock() {
     try {
       const rule = JSON.parse(row.body) as ProtectionRule;
       if (!marketByEngine(row.engine)) throw new Error("Rule market is not in the verified deployment");
+      await ensureDeployment(row.engine);
       db().prepare("UPDATE rules SET checked=? WHERE id=?").run(Date.now(), row.id);
       const head = await client.getBlock();
       if (await client.getChainId() !== 10143 || Math.abs(Date.now() / 1000 - Number(head.timestamp)) > 30) throw new Error("Stale chain head or wrong network");

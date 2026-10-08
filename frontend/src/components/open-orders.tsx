@@ -10,19 +10,19 @@ import { LoadingPanel } from "./feedback";
 import { Button } from "./ui";
 import { TxFeedback } from "./tx-feedback";
 
-export function OpenOrders({ engine, traderId, block }: { engine: Address; traderId?: number; block?: bigint }) {
+export function OpenOrders({ engine, traderId, block, readUnavailable = false }: { engine: Address; traderId?: number; block?: bigint; readUnavailable?: boolean }) {
   const owner = useOwner();
   const q = useOrders(engine, owner.address, traderId, block);
   const tx = useTx();
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
-  const disabled = busy || owner.wrongChain || !q.data || q.isError;
-  const cancel = (id?: number) => owner.address && tx.run(owner.address, [{ ...(id === undefined ? ownerTrader(engine, owner.address).cancelAll() : ownerTrader(engine, owner.address).cancel(id)), label: id === undefined ? "cancel all orders" : `cancel order ${id}` }]);
+  const disabled = busy || owner.wrongChain || readUnavailable || block === undefined || !q.data || q.isError;
+  const cancel = (id?: number) => !disabled && owner.address && tx.run(owner.address, [{ ...(id === undefined ? ownerTrader(engine, owner.address).cancelAll() : ownerTrader(engine, owner.address).cancel(id)), label: id === undefined ? "cancel all orders" : `cancel order ${id}` }]);
 
   if (!owner.connected) return <p className="p-4 text-sm text-fg-3">Log in to see your open orders.</p>;
   return <section aria-label="Open orders" className="min-w-0 p-3">
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
       <p className="text-xs text-fg-3">{q.data ? `Orders checked at block ${q.data.block}` : "Reading your orders…"}</p>
-      <Button disabled={busy || owner.wrongChain || !traderId} onClick={() => cancel()}>Cancel all</Button>
+      <Button disabled={disabled || !traderId} onClick={() => cancel()}>Cancel all</Button>
     </div>
     {q.isError ? <p role="alert" className="text-sm text-ask">Could not read orders. <button className="underline" onClick={() => q.refetch()}>Retry</button></p>
       : !q.data ? <LoadingPanel label="Reading your open orders" />

@@ -82,7 +82,11 @@ export function useTx() {
       // Subscribe before any await so switching away and back during deployment
       // verification also permanently invalidates this sequence.
       stop = config.subscribe((s) => s, guard.observe);
-      await ensureDeployment();
+      // Custody calls can target an archived vault; allocation also names the
+      // engine in its arguments. Verify those deployments before any signature.
+      const targets = new Set(calls.flatMap(c => [c.address,
+        ...(c.functionName === "allocate" && typeof c.args?.[0] === "string" ? [c.args[0]] : [])]));
+      await Promise.all([...targets].map(target => ensureDeployment(target)));
       guard.assertCurrent();
       const connector = getConnection(config).connector!;
       await runWalletCalls(calls, {
