@@ -1,5 +1,5 @@
-# Fresh deployment. Run with ENVIO_DEPLOYMENT=monad-testnet-20261006.
-name: eros-integrated-testnet-20261006
+# Current verified frontend deployment; generated pins: node scripts/current-config.mjs --write
+name: eros-current-testnet
 description: Eros Markets resolution oracle (Layers 1-3) on Monad testnet
 field_selection:
   transaction_fields:
@@ -57,12 +57,19 @@ contracts:
       - event: VenueResolved
   - name: OptimisticOracleV3
     events:
-      - event: "AssertionMade(bytes32 indexed assertionId, bytes32 domainId, bytes claim, address indexed asserter, address callbackRecipient, address escalationManager, address caller, uint64 expirationTime, address currency, uint256 bond, bytes32 indexed identifier)"
-      - event: "AssertionDisputed(bytes32 indexed assertionId, address indexed caller, address indexed disputer)"
-      - event: "AssertionSettled(bytes32 indexed assertionId, address indexed bondRecipient, bool disputed, bool settlementResolution, address settleCaller)"
+      - event: AssertionMade(bytes32 indexed assertionId, bytes32 domainId, bytes claim,
+          address indexed asserter, address callbackRecipient, address
+          escalationManager, address caller, uint64 expirationTime, address
+          currency, uint256 bond, bytes32 indexed identifier)
+      - event: AssertionDisputed(bytes32 indexed assertionId, address indexed caller,
+          address indexed disputer)
+      - event: AssertionSettled(bytes32 indexed assertionId, address indexed
+          bondRecipient, bool disputed, bool settlementResolution, address
+          settleCaller)
   - name: KeystoneForwarder
     events:
-      - event: "ReportProcessed(address indexed receiver, bytes32 indexed workflowExecutionId, bytes2 indexed reportId, bool result)"
+      - event: ReportProcessed(address indexed receiver, bytes32 indexed
+          workflowExecutionId, bytes2 indexed reportId, bool result)
   - name: ErosSandboxOracle
     abi_file_path: ../abi/ErosSandboxOracle.json
     events:
@@ -100,44 +107,47 @@ contracts:
       - event: Released
   - name: TradingFactory
     events:
-      - event: "MarketDeployed(bytes32 indexed marketId, address indexed engine, address indexed vault, bytes32 listingHash)"
+      - event: MarketDeployed(bytes32 indexed marketId, address indexed engine, address
+          indexed vault, bytes32 listingHash)
   - name: CollateralToken
     events:
-      - event: "Transfer(address indexed from, address indexed to, uint256 value)"
+      - event: Transfer(address indexed from, address indexed to, uint256 value)
 chains:
   - id: 10143
-    start_block: 68543513
+    start_block: 68951846
     contracts:
       - name: ResolutionOracle
-        address: "0x2085DaD31c8Ee03025DD07a4EdC103401d493D87"
-        start_block: 68543789
+        address: "0xb86a48B07eE07037F1B52273B9B50f20615B61e4"
+        start_block: 68952065
       - name: MarketRegistry
-        address: "0x9bE1d595Ac9B6c1109a4dcaa056CE5eFDAF06F45"
-        start_block: 68543822
+        address: "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33"
+        start_block: 68952089
       - name: BondTreasury
-        address: "0x72eAd8F668C4a4550f54382952242e47Da6DCb8a"
-        start_block: 68543773
+        address: "0xaA55f414a446B65Fe1004A781f5DeF4B3f9d5B04"
+        start_block: 68952051
       - name: UmaAdapter
-        address: "0x1a57dA704805A07F6Dd1030Bf1a9AdBFef3B3Cf7"
-        start_block: 68543806
+        address: "0x2750c61Ae27A40875b10D8232f68f31a8e2a3385"
+        start_block: 68952077
       - name: OptimisticOracleV3
-        address: "0xa14022D918CE96B7dfFF05812Da6612C2B28448a"
-        start_block: 68543714
+        address: "0xd9B5090d4EBa69513DFE5eD6E8dE84b3D843Ba5E"
+        start_block: 68952003
       - name: KeystoneForwarder
         address: "0xB9F79d863261869B234c481D1f9A7af84AeAd192"
-        start_block: 68543789
+        start_block: 68952065
       - name: ErosSandboxOracle
-        address: "0x0E63d464b368cE0F79469D761Ae14233d6cc84F8"
-        start_block: 68543636
+        address: "0xc9AAe0A8f5D6e1Cb780661B0e20265234e768403"
+        start_block: 68951943
       - name: TradingEngine
-        address: "0xcDf0EA81497895155E2911443f46157c00F965Db"
-        start_block: 68546673
+        address:
+          - "0x171503494eF5f1A9e6705781647451A2582995bD"
+          - "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0"
+        start_block: 68955860
       - name: TradingVault
-        address: "0xB544Cc0f81E587924f819258b3061a28F4954D4B"
-        start_block: 68543887
+        address: "0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329"
+        start_block: 68952139
       - name: TradingFactory
-        address: "0xE348249c130ed49E33b024495477F81d40244F4D"
-        start_block: 68543887
+        address: "0x14a38a7732B1cf968F18401544b89B11727Ed99e"
+        start_block: 68952139
       - name: CollateralToken
-        address: "0x0e0279B152845972479c66f933835c92582E1dC4"
-        start_block: 68543513
+        address: "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB"
+        start_block: 68951846

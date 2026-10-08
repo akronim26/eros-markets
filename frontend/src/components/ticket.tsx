@@ -10,10 +10,13 @@ import { expiryBlock, type CloseIntent } from "@/lib/trade-intent";
 import { ownerTrader } from "@/lib/trader";
 import { leverageLots } from "@/lib/leverage";
 import { orderPreviewCurrent, orderPreviewOptions } from "@/lib/order-preview";
+import { canonicalTrade, displayTickForOutcome, type TradeIntent } from "@/lib/trade-view";
+import { useMaxOrder } from "@/lib/use-max-order";
+import { OrderSummary } from "./order-summary";
 import { qToMoney } from "@/lib/units";
 import { REJECT, ORDER_KIND } from "@/lib/enums";
 import { useTx, summarizeOrder } from "@/lib/tx";
-import { atomsToUsdc, buyBackedAtoms, lotsToClaims, parseClaimsToLots, parsePriceToTick, sellBackedAtoms } from "@/lib/units";
+import { lotsToClaims, parseClaimsToLots, parsePriceToTick } from "@/lib/units";
 import { FieldError, useFieldErrors, ReadError } from "./feedback";
 import { TxFeedback } from "./tx-feedback";
 import { Check } from "lucide-react";
@@ -25,8 +28,12 @@ import { Button, RegionHead, Row, cx, selectionKeys } from "./ui";
 
 import type { BookPriceIntent } from "./order-book";
 
-type Side = "buy" | "sell";
 type Parsed = { ok: true; tick: number; lots: bigint } | { ok: false; error: string };
+const TRADE_CHOICES: TradeIntent[] = [
+  { outcome: "YES", direction: "long" }, { outcome: "YES", direction: "short" },
+  { outcome: "NO", direction: "long" }, { outcome: "NO", direction: "short" },
+];
+const intentLabel = (intent: TradeIntent) => `${intent.direction === "long" ? "Long" : "Short"} ${intent.outcome}`;
 
 function useDebounced<T>(v: T, ms = 250) {
   const [d, setD] = useState(v);
@@ -42,10 +49,12 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
   const owner = useOwner();
   const loginAction = useLoginAction();
   const { switchChain, error: chainError } = useSwitchChain();
-  const [side, setSide] = useState<Side>("buy");
+  const [tradeIntent, setTradeIntent] = useState<TradeIntent>(TRADE_CHOICES[0]);
+  const side = canonicalTrade(tradeIntent, 500).side;
   const [kind, setKind] = useState(0);
   const [price, setPrice] = useState("");
   const [size, setSize] = useState("");
+  const [inputRevision, setInputRevision] = useState(0);
   const [reduceOnlyChoice, setReduceOnly] = useState(false);
   const reduceOnly = archived || reduceOnlyChoice;
   const tx = useTx();
@@ -53,11 +62,13 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
   const delegated = permissions.data?.modes.find((p) => p.mode === "trade" && p.granted && p.engines.includes(engine.toLowerCase()));
   const [oneClick, setOneClick] = useState(false);
   const [expiry, setExpiry] = useState("");
-  useEffect(() => { if (intent) { setSide(intent.side); setSize(intent.size); setPrice(intent.price); setReduceOnly(true); setKind(1); setExpiry(""); setTargetLeverage(undefined); } }, [intent]);
-  useEffect(() => { if (bookPrice) { setPrice((bookPrice.tick / 1000).toFixed(3)); setTargetLeverage(undefined); } }, [bookPrice]);
+  useEffect(() => { if (intent) { setTradeIntent({ outcome: "YES", direction: intent.side === "buy" ? "long" : "short" }); setSize(intent.size); setPrice(intent.price); setReduceOnly(true); setKind(1); setExpiry(""); setTargetLeverage(undefined); setInputRevision((n) => n + 1); } }, [intent]);
+  // A book click carries a YES price. Convert once when that new click arrives.
+  useEffect(() => { if (bookPrice) { setPrice((displayTickForOutcome(tradeIntent.outcome, bookPrice.tick) / 1000).toFixed(3)); setTargetLeverage(undefined); setInputRevision((n) => n + 1); } }, [bookPrice]);
   let expires = 0, expiryError = "";
   try { expires = expiryBlock(expiry, market?.block ?? 0n); } catch (e) { expiryError = (e as Error).message; }
   const cap = market?.leverageCaps[side === "buy" ? "long" : "short"];
+  const bestTick = (side === "buy" ? market?.bestAsk : market?.bestBid) ?? 0;
   const [targetLeverage, setTargetLeverage] = useState<number>();
   useEffect(() => { setTargetLeverage(undefined); }, [cap]);
   // For a flat account equity equals cash even before a normal mark exists.
@@ -69,14 +80,14 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
 
   const parsed = useMemo((): Parsed => {
     try {
-      const tick = parsePriceToTick(price);
+      const tick = canonicalTrade(tradeIntent, parsePriceToTick(price)).tick;
       const lots = parseClaimsToLots(size);
       if (lots === 0n) return { ok: false, error: "Enter a size" };
       return { ok: true, tick, lots };
     } catch (e) {
       return { ok: false, error: price && size ? (e as Error).message : "" };
     }
-  }, [price, size]);
+  }, [price, size, tradeIntent]);
 
   const fieldErrors = { price: "", size: "", expiry: expiryError };
   try { parsePriceToTick(price); } catch { fieldErrors.price = "Enter a price from 0.001 to 0.999 (up to 3 decimals)."; }
@@ -92,8 +103,19 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
   const sameIntent = parsed.ok && dParsed.ok && parsed.tick === dParsed.tick && parsed.lots === dParsed.lots;
   const preview = { ...previewQuery, data: sameIntent && !readUnavailable && orderPreviewCurrent(previewQuery.data, market, trader) ? previewQuery.data?.value : undefined };
 
-  const cost = parsed.ok ? (side === "buy" ? buyBackedAtoms(parsed.lots, parsed.tick) : sellBackedAtoms(parsed.lots, parsed.tick)) : undefined;
-  const payout = parsed.ok ? parsed.lots * 1000n : undefined; // atoms if the side wins, per lot 1,000 atoms
+  let priceTick: number | undefined;
+  try { priceTick = canonicalTrade(tradeIntent, parsePriceToTick(price)).tick; } catch { /* Incomplete input. */ }
+  const maximum = useMaxOrder({ engine, owner: owner.address, market, trader, tick: priceTick,
+    isBuy: side === "buy", reduceOnly, unavailable: readUnavailable, inputRevision });
+
+  function chooseIntent(next: TradeIntent) {
+    if (next.outcome !== tradeIntent.outcome) {
+      try { setPrice((displayTickForOutcome(next.outcome, canonicalTrade(tradeIntent, parsePriceToTick(price)).tick) / 1000).toFixed(3)); }
+      catch { setPrice(""); }
+    }
+    setTradeIntent(next);
+    setTargetLeverage(undefined);
+  }
 
   // The state that keeps the order from being sent, in the order the user meets it. Disabled
   // labels name a state; actions the user can take (log in, switch network) stay enabled.
@@ -145,28 +167,28 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
   return (
     <section aria-label="Order ticket" className="flex h-full flex-col">
       <RegionHead title="Order" />
-      <div className="flex flex-col gap-4 p-3">
+      <div className="flex flex-col gap-3 p-3">
         {archived && <p className="text-xs text-fg-3">This market accepts position reductions only in this interface.</p>}
-        <div className="grid grid-cols-2" role="group" aria-label="Side">
-          {(["buy", "sell"] as const).map((s) => (
+        <div className="grid grid-cols-2 gap-px" role="group" aria-label="Trade direction and outcome">
+          {TRADE_CHOICES.map((choice) => (
             <button
-              key={s}
-              aria-pressed={side === s}
-              onClick={() => { setSide(s); setTargetLeverage(undefined); }}
+              key={intentLabel(choice)}
+              type="button"
+              aria-pressed={tradeIntent.outcome === choice.outcome && tradeIntent.direction === choice.direction}
+              onClick={() => chooseIntent(choice)}
               className={cx(
-                "h-9 text-sm font-semibold transition-colors duration-150",
-                side === s
-                  ? s === "buy"
+                "h-8 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-signal",
+                tradeIntent.outcome === choice.outcome && tradeIntent.direction === choice.direction
+                  ? choice.direction === "long"
                     ? "bg-bid text-on-bid"
                     : "bg-ask text-on-ask"
                   : "text-fg-3 shadow-[inset_0_0_0_1px_var(--color-line-strong)] hover:text-fg",
               )}
             >
-              {s === "buy" ? "Buy YES" : "Sell YES"}
+              {intentLabel(choice)}
             </button>
           ))}
         </div>
-
         <div className="flex gap-px bg-line" role="radiogroup" aria-label="Order type" onKeyDown={selectionKeys}>
           {ORDER_KIND.map((k, i) => (
             <button
@@ -184,10 +206,10 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
 
         <label htmlFor={validation.props("price").id} className="flex flex-col gap-1.5">
           <span className="label flex justify-between text-fg-3">
-            <span>Price (probability)</span>
-            {market && market.bestBid + market.bestAsk > 0 && (
-              <button className="text-fg-2 hover:text-fg" onClick={() => { setPrice(`0.${String(side === "buy" ? market.bestAsk || market.bestBid : market.bestBid || market.bestAsk).padStart(3, "0")}`); setTargetLeverage(undefined); }}>
-                Use best {side === "buy" ? "ask" : "bid"}
+            <span>{tradeIntent.outcome} price</span>
+            {bestTick > 0 && (
+              <button type="button" className="text-fg-2 hover:text-fg" onClick={() => { setPrice((displayTickForOutcome(tradeIntent.outcome, bestTick) / 1000).toFixed(3)); setTargetLeverage(undefined); }}>
+                Use best {tradeIntent.direction === "long" ? "ask" : "bid"}
               </button>
             )}
           </span>
@@ -198,26 +220,32 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
         <label htmlFor={validation.props("size").id} className="flex flex-col gap-1.5">
           <span className="label flex justify-between text-fg-3">
             <span>Size (claims)</span>
-            {preview.data && preview.data.acceptedCapLots > 0n && (
-              <button className="text-fg-2 hover:text-fg" onClick={() => { setSize(lotsToClaims(preview.data!.acceptedCapLots)); setTargetLeverage(undefined); }}>
-                Max {lotsToClaims(preview.data.acceptedCapLots)}
-              </button>
-            )}
+            <button type="button" disabled={!maximum.enabled || maximum.busy} title="Search available order capacity at this price" className="text-fg-2 hover:text-fg disabled:opacity-40" onClick={() => { void maximum.search((lots) => { setSize(lotsToClaims(lots)); setTargetLeverage(undefined); }); }}>
+              {maximum.busy ? "Finding Max…" : "Max"}
+            </button>
           </span>
-          <input className={field} inputMode="decimal" placeholder="0.000" value={size} {...validation.props("size")} onChange={(e) => { setSize(e.target.value); setTargetLeverage(undefined); }} />
+          <input className={field} inputMode="decimal" placeholder="0.000" value={size} {...validation.props("size")} onChange={(e) => { setSize(e.target.value); setTargetLeverage(undefined); setInputRevision((n) => n + 1); }} />
           <FieldError id={validation.errorId("size")}>{validation.message("size")}</FieldError>
         </label>
+        {maximum.message && <p role="status" className="text-xs leading-relaxed text-fg-3">{maximum.message}</p>}
+        {maximum.error && <p role="alert" className="text-xs leading-relaxed text-ask">{maximum.error}</p>}
 
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           <p className="label flex justify-between text-fg-3"><span>Target leverage</span><span>{cap === undefined ? "Reading limit…" : `Current limit ${cap}×`}</span></p>
           <div className="grid grid-cols-5 gap-1" role="group" aria-label="Target leverage">
             {[1, 2, 3, 4, 5].map((x) => <button key={x} type="button" aria-pressed={targetLeverage === x}
               disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || (x > 1 && !market?.risk.markAvailable) || !!fieldErrors.price || readUnavailable || trader?.block !== market?.block}
-              className={cx("h-9 border text-sm tnum transition-colors disabled:cursor-not-allowed disabled:opacity-35", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong text-fg-2 hover:bg-press")}
-              onClick={() => { try { const lots = leverageLots(sizingEquity, parsePriceToTick(price), side === "buy", x, market?.risk.markAvailable ? market.risk.markWad : undefined); setSize(lotsToClaims(lots)); setTargetLeverage(x); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
+              className={cx("h-7 border text-xs tnum transition-colors disabled:cursor-not-allowed disabled:opacity-35", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong text-fg-2 hover:bg-press")}
+              onClick={() => { try { const lots = leverageLots(sizingEquity, canonicalTrade(tradeIntent, parsePriceToTick(price)).tick, side === "buy", x, market?.risk.markAvailable ? market.risk.markWad : undefined); setSize(lotsToClaims(lots)); setTargetLeverage(x); setInputRevision((n) => n + 1); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
           </div>
-          {market?.active && !market.halted && cap !== undefined && cap < market.listing.deploymentCapX && <p className="border-l-2 border-signal/60 pl-2 text-xs leading-relaxed text-fg-2">{market.risk.pricingMode === 0 ? "Bootstrap: 1× until the price windows are ready and an hourly epoch opens." : !market.risk.indexAvailable || !market.risk.markAvailable ? "Higher leverage is temporarily unavailable while the price windows recover." : "The current risk or reserve limit is below the deployment cap."}</p>}
-          <p className="text-xs leading-relaxed text-fg-3">{reservedOrders ? "Cancel open orders before sizing by leverage." : reduceOnly ? "Leverage sizing is for new positions. Turn off Reduce only to size a new position." : !canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : fieldErrors.price ? "Enter a valid order price or use the best price, then choose your leverage." : "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
+          <details className="text-xs text-fg-3">
+            <summary className="cursor-pointer py-1 hover:text-fg">Trading details</summary>
+            <div className="grid gap-2 pb-1 pt-2 leading-relaxed">
+              <p>Long YES = Short NO. Short YES = Long NO. All choices net into one position; an opposite trade can close it.</p>
+              {market?.active && !market.halted && cap !== undefined && cap < market.listing.deploymentCapX && <p className="border-l-2 border-signal/60 pl-2 text-fg-2">{market.risk.pricingMode === 0 ? "Bootstrap: 1× until the price windows are ready and an hourly epoch opens." : !market.risk.indexAvailable || !market.risk.markAvailable ? "Higher leverage is temporarily unavailable while the price windows recover." : "The current risk or reserve limit is below the deployment cap."}</p>}
+              <p>{reservedOrders ? "Cancel open orders before sizing by leverage." : reduceOnly ? "Leverage sizing is for new positions. Turn off Reduce only to size a new position." : !canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : fieldErrors.price ? "Enter a valid order price or use the best price, then choose your leverage." : "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
+            </div>
+          </details>
         </div>
 
         <label className="label flex items-center gap-2 text-fg-2">
@@ -240,19 +268,16 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
           {preview.data && <dl className="mt-2"><Row k="Required initial margin" v={preview.data.fullBackingRequired ? "Fully backed" : qToMoney(preview.data.requiredImQ).usdc} /><Row k="Equity after reservations" v={preview.data.id.markAvailable ? qToMoney(preview.data.eMinQ).usdc : "No mark"} /><Row k="Deficit if NO / YES" v={`${qToMoney(preview.data.d0AfterQ).usdc} / ${qToMoney(preview.data.d1AfterQ).usdc}`} /><Row k="Reserve coverage" v={preview.data.marketCoverageAfter ? "Covered" : "Unavailable"} /></dl>}
         </details>
 
-        <dl className="hair-b -mx-3 border-t border-line px-3 py-1">
-          <Row k="Full-backing amount" v={cost !== undefined ? `${atomsToUsdc(cost, 2)}` : "—"} hint="Buy = size × price; sell = size × (1 − price). Initial margin can be lower when leverage is available; fees are separate." />
-          <Row k={side === "buy" ? "Gross payoff if YES" : "Gross payoff if NO"} v={payout !== undefined ? atomsToUsdc(payout, 2) : "—"} />
-          <Row k="Fee reserved" v={preview.data ? atomsToUsdc(preview.data.feeCapQ / 10n ** 18n, 6) : "—"} />
-          <Row k="Max admissible" v={preview.data ? `${lotsToClaims(preview.data.acceptedCapLots)} claims` : traderId === 0 ? "fund to preview" : "—"} />
-        </dl>
+        <OrderSummary engine={engine} owner={owner.address} market={market} trader={trader} tradeIntent={tradeIntent}
+          order={parsed.ok ? { tick: parsed.tick, lots: parsed.lots, isBuy: side === "buy", reduceOnly } : undefined}
+          feeCapQ={preview.data?.rejection === 0 ? preview.data.feeCapQ : undefined} admittedLots={preview.data?.acceptedCapLots} unavailable={readUnavailable} />
 
         {delegated && <label className="flex items-start gap-2 text-xs text-fg-2"><input type="checkbox" checked={oneClick} onChange={(e) => setOneClick(e.target.checked)} />Use Privy one-click trading for this order</label>}
         {tx.recovery && <div className="border border-line p-3 text-xs text-fg-2">
           <p>A previous one-click request still needs confirmation. Recover it before starting another order.</p>
           <p className="mt-2 break-all">Wallet: {tx.recovery.body.wallet}</p>
           <p className="mt-2 break-all">Market: {tx.recovery.body.engine}</p>
-          {tx.recovery.body.action === "placeOrder" && <p className="mt-1">{tx.recovery.body.place.isBuy ? "Buy" : "Sell"} {lotsToClaims(BigInt(tx.recovery.body.place.size))} claims at {(tx.recovery.body.place.tick / 1000).toFixed(3)}</p>}
+          {tx.recovery.body.action === "placeOrder" && <p className="mt-1">{tx.recovery.body.place.isBuy ? "Buy YES" : "Sell YES"} · {lotsToClaims(BigInt(tx.recovery.body.place.size))} claims at YES {(tx.recovery.body.place.tick / 1000).toFixed(3)}</p>}
           <Button className="mt-2" disabled={owner.wrongChain || tx.state.status === "pending" || tx.state.status === "sent"} onClick={() => owner.address && tx.recover(owner.address)}>Recover previous request</Button>
         </div>}
         {!owner.connected ? (
@@ -265,7 +290,7 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
           </Button>
         ) : (
           <Button variant={side === "buy" ? "bid" : "ask"} size="lg" arrow disabled={!!blocker || tx.state.status === "pending" || tx.state.status === "sent"} onClick={submit}>
-            {blocker ?? (tx.state.status === "pending" || tx.state.status === "sent" ? tx.state.step : `${side === "buy" ? "Buy" : "Sell"} YES`)}
+            {blocker ?? (tx.state.status === "pending" || tx.state.status === "sent" ? tx.state.step : intentLabel(tradeIntent))}
           </Button>
         )}
 

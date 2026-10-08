@@ -43,6 +43,9 @@ class FakeChain implements PanelChain {
   simulated: PanelResult[] = []
   sent: { id: Hex; r: PanelResult; uri: string; sig: Hex; gas: bigint }[] = []
   revert: string | null = null
+  receipt: 'pending' | 'reverted' | 'confirmed' = 'confirmed'
+  sendError = false
+  receiptError = false
   async now() {
     return this.t
   }
@@ -79,7 +82,12 @@ class FakeChain implements PanelChain {
   }
   async send(id: Hex, r: PanelResult, uri: string, sig: Hex, gas: bigint) {
     this.sent.push({ id, r, uri, sig, gas })
+    if (this.sendError) throw new Error('broadcast timed out')
     return `0x${'ab'.repeat(32)}` as Hex
+  }
+  async submissionStatus() {
+    if (this.receiptError) throw new Error('receipt RPC unavailable')
+    return this.receipt
   }
 }
 
@@ -164,6 +172,7 @@ describe('runOnce', () => {
     chain.views.set(ID, view({ state: RState.EarlyCheck, earlyStartedAt: 1_800_000_500n }))
     expect((await runOnce(ID, deps))!.route).toBe('None')
     flags = 1
+    chain.views.set(ID, view({ state: RState.EarlyCheck, earlyStartedAt: 1_800_000_501n }))
     expect((await runOnce(ID, deps))!.route).toBe('EarlyReview')
     expect(chain.sent.map((s) => [s.r.phase, s.r.trustSetId, s.r.flags])).toEqual([[1, 3, 0], [1, 3, 1]])
   })
@@ -194,6 +203,7 @@ describe('runOnce', () => {
     expect(r.sent).toBeDefined()
     expect(chain.sent.map((x) => x.gas)).toEqual([560_000n]) // gas.json submitPanelResultAutoPropose
     const { [GAS_KEY_AUTO]: _, ...calls } = deps.gas.calls
+    chain.views.set(ID, view({ attempts: 2 }))
     const r2 = (await runOnce(ID, { ...deps, gas: { ...deps.gas, calls } }))!
     expect(r2.skipped).toBe(`no gas.json limit for ${GAS_KEY_AUTO}`)
     expect(chain.sent).toHaveLength(1)
@@ -246,6 +256,64 @@ describe('preRoute', () => {
 })
 
 describe('PanelRunner', () => {
+  test('confirmed work stays complete across restart, while a new L2 attempt gets a fresh run', async () => {
+    chain.pending.push({ id: ID, to: RState.L2Pending })
+    await new PanelRunner(deps).tick()
+    const restarted = new PanelRunner(deps)
+    await restarted.tick()
+    expect(chain.sent).toHaveLength(1)
+    expect(asked).toHaveLength(1)
+    chain.views.set(ID, view({ attempts: 2 }))
+    await restarted.tick()
+    expect(chain.sent).toHaveLength(2)
+    expect(asked).toHaveLength(2)
+  })
+
+  test('pending receipts survive restart without models or sends; completion waits for confirmation', async () => {
+    chain.receipt = 'pending'
+    chain.pending.push({ id: ID, to: RState.L2Pending })
+    let runner = new PanelRunner(deps)
+    expect((await runner.tick())[0].confirmed).toBe(false)
+    expect(chain.sent).toHaveLength(1)
+    runner = new PanelRunner(deps)
+    chain.receiptError = true
+    expect(await runner.tick()).toEqual([])
+    chain.receiptError = false
+    expect((await runner.tick())[0].confirmed).not.toBe(true)
+    chain.receipt = 'confirmed'
+    // Receipt reconciliation still runs after leaving L2Pending and after its deadline.
+    chain.views.set(ID, view({ state: RState.Review }))
+    expect((await runner.tick())[0].confirmed).toBe(true)
+    expect(await runner.tick()).toEqual([])
+    expect(chain.sent).toHaveLength(1)
+    expect(asked).toHaveLength(1)
+  })
+
+  test('a finalized revert is retried while the original panel window remains open', async () => {
+    chain.receipt = 'pending'
+    chain.pending.push({ id: ID, to: RState.L2Pending })
+    const runner = new PanelRunner(deps)
+    await runner.tick()
+    chain.receipt = 'reverted'
+    await runner.tick()
+    chain.receipt = 'confirmed'
+    // Pending reconciliation must reset the model retry delay; no 15-minute wait in a 10-minute window.
+    chain.t += 30n
+    expect((await runner.tick())[0].confirmed).toBe(true)
+    expect(chain.sent).toHaveLength(2)
+  })
+
+  test('ambiguous broadcasts fail closed across restart instead of sending a second transaction', async () => {
+    chain.sendError = true
+    chain.pending.push({ id: ID, to: RState.L2Pending })
+    await new PanelRunner(deps).tick()
+    chain.sendError = false
+    chain.t += RERUN_FIRST_SECS
+    expect(await new PanelRunner(deps).tick()).toEqual([])
+    expect(chain.sent).toHaveLength(1)
+    expect(asked).toHaveLength(1)
+  })
+
   test('triggered by StateChanged; a sent result is not sent again while the market stays', async () => {
     const runner = new PanelRunner(deps)
     expect(await runner.tick()).toEqual([]) // nothing seen yet

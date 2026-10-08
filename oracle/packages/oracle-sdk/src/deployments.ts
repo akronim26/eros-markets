@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { getAddress } from 'viem'
 import { z } from 'zod'
 import { ORACLE_ROOT } from './abi/sources'
+import { toPublicManifest } from './trading-manifest'
 
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/).transform((a) => getAddress(a))
 const bytes32 = z.string().regex(/^0x[0-9a-fA-F]{64}$/) as z.ZodType<`0x${string}`>
@@ -66,6 +67,28 @@ export const deploymentsSchema = z.object({
 })
 
 export type Deployments = z.infer<typeof deploymentsSchema>
+export type ServiceDeployment = Pick<Deployments, 'network' | 'chainId' | 'usdc' | 'contracts'> & { markets?: { marketId: `0x${string}` }[] }
+export const CURRENT_TESTNET_MANIFEST = join(ORACLE_ROOT, '..', 'frontend', 'src', 'config', 'public-manifest.json')
+
+/** Service identity defaults to the same verified manifest as the frontend. Historical records require an explicit path. */
+export function loadServiceDeployment(network: string, opts: { deploymentsFile?: string; manifestFile?: string } = {}): ServiceDeployment {
+  if (opts.deploymentsFile && opts.manifestFile) throw new DeploymentsError('Choose DEPLOYMENTS_FILE or DEPLOYMENT_MANIFEST, not both')
+  if (opts.deploymentsFile) return loadDeployments(network, { path: opts.deploymentsFile })
+  if (network !== 'monad-testnet') {
+    if (opts.manifestFile) throw new DeploymentsError('DEPLOYMENT_MANIFEST is supported only for monad-testnet')
+    return loadDeployments(network)
+  }
+  const manifest = toPublicManifest(JSON.parse(readFileSync(opts.manifestFile ?? CURRENT_TESTNET_MANIFEST, 'utf8')))
+  if (manifest.chainId !== 10143 || manifest.scope !== 'testnet-read-only' || !manifest.verifiedAt || manifest.provenance.resolution !== 'oracle') {
+    throw new DeploymentsError('Verified Monad testnet oracle manifest required')
+  }
+  for (const name of [...CORE_CONTRACTS, 'CollateralToken']) {
+    const pin = manifest.contracts[name]
+    if (!pin || /^0x0{40}$/i.test(pin.address) || /^0x0{64}$/i.test(pin.codehash)
+      || BigInt(pin.deployBlock) > BigInt(manifest.verifiedAt.blockNumber)) throw new DeploymentsError(`Invalid current deployment pin: ${name}`)
+  }
+  return { network, chainId: manifest.chainId, usdc: manifest.contracts.CollateralToken.address, contracts: manifest.contracts, markets: manifest.markets }
+}
 
 export const gasSchema = z.object({
   calls: z.record(z.string(), z.object({

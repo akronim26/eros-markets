@@ -1,4 +1,4 @@
-import { loadDeployments, loadGas, type Deployments } from '@eros-oracle/oracle-sdk'
+import { loadServiceDeployment, loadGas, type Deployments } from '@eros-oracle/oracle-sdk'
 import { readFileSync } from 'node:fs'
 import { getAddress, type Hex } from 'viem'
 import { z } from 'zod'
@@ -48,6 +48,7 @@ export const keeperEnvironmentSchema = z.object({
   KEEPER_PRIVATE_KEY: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
   ENGINE_IDENTITIES_FILE: z.string().min(1),
   DEPLOYMENTS_FILE: z.string().min(1).optional(),
+  DEPLOYMENT_MANIFEST: z.string().min(1).optional(),
   GAS_FILE: z.string().min(1).optional(),
   INDEXER_URL: z.url().optional(),
   INDEXER_MAX_LAG_BLOCKS: z.coerce.bigint().default(300n),
@@ -63,7 +64,7 @@ export function loadKeeperConfiguration(values: Record<string, string | undefine
     assertLocalKeeperRpc(env.RPC_URL)
     deployments = parseLocalKeeperDeployment(JSON.parse(readFileSync(env.DEPLOYMENTS_FILE, 'utf8')))
   } else {
-    deployments = loadDeployments(env.NETWORK, { path: env.DEPLOYMENTS_FILE })
+    deployments = loadServiceDeployment(env.NETWORK, { deploymentsFile: env.DEPLOYMENTS_FILE, manifestFile: env.DEPLOYMENT_MANIFEST })
   }
   const registry = deployments.contracts.MarketRegistry.address
   const engineIdentities = loadEngineIdentities(env.ENGINE_IDENTITIES_FILE, { chainId: deployments.chainId, registry })

@@ -8,11 +8,13 @@ import { Intake } from './intake'
 import { checkL1, type L1Deps } from './l1'
 import { type CheckModelDeps, checkWithModel } from './model'
 import { OUTCOME_NAME, type Page, Path, PATH_NAME, type Proposal, type Verdict, type WatchdogChain } from './types'
+import { assertLiveness, DISPUTE_MARGIN_SECS } from './timing'
 
 export type WatchdogDeps = {
   chain: WatchdogChain
   gas: GasTable
   page: Page
+  disputeMarginSecs?: bigint
   l1?: L1Deps
   model: CheckModelDeps
   log?: (level: 'info' | 'warn' | 'error', msg: string, data?: Record<string, unknown>) => void
@@ -48,6 +50,12 @@ export class Watchdog {
     const keep: Pending[] = []
     for (const x of this.pending) {
       try {
+        const liveness = await this.d.chain.liveness(x.p.marketId)
+        try { assertLiveness(liveness, this.d.disputeMarginSecs ?? DISPUTE_MARGIN_SECS) }
+        catch (error) {
+          await this.d.page({ kind: 'LIVENESS_INCOMPATIBLE', marketId: x.p.marketId, detail: String(error) })
+          continue
+        }
         x.verdict ??= await this.check(x.p)
         const v = x.verdict
         const what = `${PATH_NAME[x.p.path]} ${OUTCOME_NAME[x.p.outcome]} on ${x.p.marketId}`
@@ -58,7 +66,7 @@ export class Watchdog {
           await this.d.page({ kind: 'UNSURE', marketId: x.p.marketId, detail: `${what}: ${v.reason}`, data: { signals: v.signals } })
           checked.push({ proposal: x.p, verdict: v })
         } else {
-          const result = await actOnContradiction(x.p, v, this.d.chain, this.d.gas, this.d.page)
+          const result = await actOnContradiction(x.p, v, this.d.chain, this.d.gas, this.d.page, this.d.disputeMarginSecs)
           checked.push({ proposal: x.p, verdict: v, result })
           if (result.action === 'WAIT') keep.push(x)
         }

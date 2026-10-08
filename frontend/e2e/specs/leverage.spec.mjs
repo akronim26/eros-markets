@@ -18,7 +18,7 @@ test('fivefold leveraged order uses the actual terminal and fills on the local e
   }, 3000);
   const panel = p => p.getByRole('complementary', { name: 'Trade', exact: true });
   const ticket = p => panel(p).getByRole('region', { name: 'Order ticket', exact: true });
-  const orderButton = p => ticket(p).getByRole('button', { name: /^(Buy|Sell) YES/ }).and(ticket(p).locator('button:not([aria-pressed])'));
+  const orderButton = p => ticket(p).getByRole('button', { name: /^(Long|Short) YES/ }).and(ticket(p).locator('button:not([aria-pressed])'));
   async function fund(p, wallet, amount) {
     const [balance, free, account] = await Promise.all([
       client.readContract({ address: token, abi: tokenAbi, functionName: 'balanceOf', args: [wallet.address] }),
@@ -35,6 +35,9 @@ test('fivefold leveraged order uses the actual terminal and fills on the local e
     await notice.click();
     await p.locator('header').getByRole('button', { name: 'Log in', exact: true }).click();
     const funds = panel(p).getByRole('region', { name: 'Account', exact: true });
+    const collateral = funds.locator('details').filter({ hasText: 'Manage collateral' });
+    await expect(collateral).toBeVisible();
+    if (await collateral.getAttribute('open') === null) await collateral.locator('summary').click();
     const faucet = funds.getByRole('button', { name: 'Get 1,000 test tokens' });
     await expect(faucet).toBeVisible({ timeout: 45_000 });
     await expect(faucet).toBeEnabled({ timeout: 45_000 });
@@ -70,10 +73,10 @@ test('fivefold leveraged order uses the actual terminal and fills on the local e
     expect(bestAsk).toBeGreaterThan(0);
     expect(bestAsk).toBeGreaterThan(bestBid);
     const makerLots = 150_000n;
-    for (const [side, tick] of [['Buy YES', bestBid], ['Sell YES', bestAsk]]) {
-      await ticket(makerPage).getByRole('group', { name: 'Side', exact: true }).getByRole('button', { name: side, exact: true }).click();
+    for (const [side, tick] of [['Long YES', bestBid], ['Short YES', bestAsk]]) {
+      await ticket(makerPage).getByRole('group', { name: 'Trade direction and outcome', exact: true }).getByRole('button', { name: side, exact: true }).click();
       await ticket(makerPage).getByRole('radio', { name: /^Post only$/i }).click();
-      await ticket(makerPage).getByLabel(/Price \(probability\)/).fill((tick / 1000).toFixed(3));
+      await ticket(makerPage).getByLabel(/^YES price\b/).fill((tick / 1000).toFixed(3));
       await ticket(makerPage).getByLabel(/Size \(claims\)/).fill('150');
       const placed = events(await submit(makerPage, maker));
       expect(placed.filter(event => event.eventName === 'Fill')).toHaveLength(0);
@@ -81,7 +84,7 @@ test('fivefold leveraged order uses the actual terminal and fills on the local e
       expect(await read('bestBidAsk')).toEqual([bestBid, bestAsk]);
     }
     expect((await read('account', [actor(21).address])).value.lots).toBe(0n);
-    await ticket(page).getByLabel(/Price \(probability\)/).fill((bestAsk / 1000).toFixed(3));
+    await ticket(page).getByLabel(/^YES price\b/).fill((bestAsk / 1000).toFixed(3));
     let previousSize = 0, chosenSize = '';
     for (const x of [1, 2, 3, 4, 5]) {
       const control = ticket(page).getByRole('group', { name: 'Target leverage' }).getByRole('button', { name: `${x}×`, exact: true });

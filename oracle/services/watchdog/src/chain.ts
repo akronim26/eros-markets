@@ -4,7 +4,7 @@
 import {
   BondTreasuryAbi,
   contractAddress,
-  type Deployments,
+  type ServiceDeployment,
   freshProgress,
   IAssertionVenueAbi,
   type IndexerClient,
@@ -142,7 +142,7 @@ export class IntakeReader {
 
 export type WatchdogIndexer = { client: IndexerClient; maxLagBlocks: bigint; log?: (level: 'info' | 'warn', msg: string, data?: Record<string, unknown>) => void }
 
-export function viemWatchdogChain(opts: { rpcUrl: string; watchdogKey: Hex; deployments: Deployments; fromBlock?: bigint; indexer?: WatchdogIndexer }): WatchdogChain {
+export function viemWatchdogChain(opts: { rpcUrl: string; watchdogKey: Hex; deployments: ServiceDeployment; fromBlock?: bigint; indexer?: WatchdogIndexer }): WatchdogChain {
   const d = opts.deployments
   const chain = defineChain({ id: d.chainId, name: d.network, nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 }, rpcUrls: { default: { http: [opts.rpcUrl] } } })
   const pc = createPublicClient({ chain, transport: http(opts.rpcUrl) })
@@ -194,6 +194,10 @@ export function viemWatchdogChain(opts: { rpcUrl: string; watchdogKey: Hex; depl
     async market(id) {
       const [question, rules, c] = await Promise.all([reg('getQuestion', [id]), reg('getRules', [id]), reg('getMarketCore', [id])])
       return { question, rules, tau: BigInt(c.tau), hasFeed: c.hasFeed }
+    },
+    async liveness(id) {
+      const u = await reg('getUMAConfig', [id])
+      return { livenessL1: BigInt(u.livenessL1), livenessAuto: BigInt(u.livenessAuto), livenessReviewed: BigInt(u.livenessReviewed) }
     },
     async feedSpec(id) {
       const f = await reg('getFeedSpec', [id])

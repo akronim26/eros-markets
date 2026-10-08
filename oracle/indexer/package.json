@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "codegen": "envio codegen",
-    "dev": "envio dev",
-    "start": "envio start",
+    "codegen": "node scripts/run-current.mjs codegen",
+    "dev": "node scripts/run-current.mjs dev",
+    "start": "node scripts/run-current.mjs start",
     "test": "vitest run --test-timeout=20000",
     "typecheck": "tsc --noEmit",
-    "record": "bun test scripts/record.test.ts"
+    "record": "bun test scripts/record.test.ts",
+    "config:check": "node scripts/current-config.mjs",
+    "config:sync": "node scripts/current-config.mjs --write"
   },
   "devDependencies": {
     "@types/node": "24.12.2",

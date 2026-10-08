@@ -4,6 +4,7 @@ import { ownerTrader } from "@/lib/trader";
 import { useOrders } from "@/lib/order-reads";
 import { useTx } from "@/lib/tx";
 import { lotsToClaims, tickToPrice } from "@/lib/units";
+import { orderSideLabel } from "@/lib/position-label";
 import { useOwner } from "./wallet";
 import { LoadingPanel } from "./feedback";
 import { Button } from "./ui";
@@ -27,9 +28,9 @@ export function OpenOrders({ engine, traderId, block }: { engine: Address; trade
       : !q.data ? <LoadingPanel label="Reading your open orders" />
       : q.data.orders.length === 0 ? <p className="text-sm text-fg-3">{q.data.complete ? "No open orders." : "No open orders found in your saved receipts or recent activity."}</p>
       : <div className="overflow-x-auto"><table className="w-full min-w-[540px] text-left text-xs">
-        <thead className="hair-b text-fg-3"><tr>{["Order", "Side", "Price", "Remaining", "Status", ""].map((v) => <th key={v} className="py-2 pr-3 font-normal">{v}</th>)}</tr></thead>
+        <thead className="hair-b text-fg-3"><tr>{["Order", "Side", "YES price", "Remaining claims", "Status", ""].map((v) => <th key={v} className="py-2 pr-3 font-normal">{v}</th>)}</tr></thead>
         <tbody>{q.data.orders.map((o) => <tr key={o.id} className="hair-b">
-          <td className="py-2 pr-3 tnum">{o.id}</td><td className="pr-3">{o.flags & 1 ? "Buy" : "Sell"}{o.flags & 2 ? " · reduce only" : ""}</td>
+          <td className="py-2 pr-3 tnum">{o.id}</td><td className="pr-3">{orderSideLabel((o.flags & 1) !== 0)}{o.flags & 2 ? " · reduce only" : ""}</td>
           <td className="pr-3 tnum">{tickToPrice(o.tick)}</td><td className="pr-3 tnum">{lotsToClaims(o.size)}</td>
           <td className="pr-3">Resting</td>
           <td><Button size="sm" disabled={disabled} onClick={() => cancel(o.id)} aria-label={`Cancel order ${o.id}`}>Cancel</Button></td>

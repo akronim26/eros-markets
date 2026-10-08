@@ -667,7 +667,8 @@ return { block, chainId, engine, ...decode(results) };
 ```
 
 Populate the SDK's `ViewIdentity`/`ReadIdentity` from the same read (`asOfTime`, `riskVersion`,
-`profileHash`, mark availability from `previewAccount.id`). Footer "as of block N". Active market:
+`profileHash`, mark availability from `previewAccount.id`). Show block provenance in Market info's
+contract details, rather than in the primary trading workspace. Active market:
 refetch each new block (throttle ~1 s); others every 10–30 s.
 
 ### 10.2 Market header and risk dashboard
@@ -689,6 +690,10 @@ coverage slack per outcome (`coverageSlacks`, labelled "conservative slack, not 
 deficit sums, per-account deficit cap (`reserveCapBaseQ × 2%`), funding rate/budget/stopped,
 tariff, liquidation budget remaining this block, floor sweep progress.
 
+The compact terminal header shows the event and status, YES mark/index, open interest,
+current leverage limits and close time. Risk and reserve diagnostics are available through
+the Market details selector; source history and resting bid/ask prices stay in the chart and book.
+
 ### 10.3 Account panel
 
 1. `participantId(owner)` (0 = not registered; first `allocate` registers).
@@ -706,7 +711,7 @@ tariff, liquidation budget remaining this block, floor sweep progress.
 |---|---|
 | Wallet / Vault free | `balanceOf` / `freeAtoms` |
 | Cash (may be negative when leveraged) | `qToMoney(previewAccount.cashQ)` |
-| Position | `lotsToClaims(positionLots)` YES/NO |
+| Position | Long YES / Short YES with `lotsToClaims(abs(positionLots))` claims; Flat at zero |
 | Value if YES / if NO | `e1Q` / `e0Q` (negative = deficit covered by reserve) |
 | Equity at mark | `markEquityQ` (only if mark available) |
 | Leverage | `leverageBps(exposureQ(lots, markWad), markEquityQ)` (6); "—" when flat or unavailable |
@@ -721,6 +726,13 @@ tariff, liquidation budget remaining this block, floor sweep progress.
 | Claimable | `claimableAtoms` when `isClaimable()` |
 
 `previewAccount.cashQ` already includes projected funding and premium; never subtract them again.
+
+In the compact terminal, **Balances** shows wallet, free vault, market balance and releasable
+collateral, plus claimable funds when applicable. **Manage collateral** contains Fund, Release,
+Withdraw and settlement claim controls; it initially opens for an unfunded account or an
+available claim and remains open during a pending transaction. Position, equity, leverage and
+health appear in the Position table. Outcome values, margin and funding breakdowns sit under
+**Margin & funding details**; grace and liquidation warnings stay visible.
 
 ### 10.4 Order ticket reads
 
@@ -965,22 +977,32 @@ Title, status chip (13), best bid/ask, index, mark, OI, max leverage ("1x fully 
 "up to 5x"), funding rate (if enabled), time to T, participants `n/1024`, fixture/oracle badge.
 
 ### 12.3 Market page (`/m/[engine]`)
-- **Header**: question/rules, T countdown, stage/pricing/accounting chips, index, mark, max leverage,
-  funding (rate, next epoch), void/lock disclosure; final-day countdowns (T−12h30m, T−12h, T−1h).
-- **Chart** (10.10) with liquidation estimate line.
-- **Order book** + executable depth.
-- **Trade ticket**: Buy YES / Sell YES, kind, price, size or target leverage, reduce-only, expiry,
-  preview block (max size, margin required vs available, loss beyond collateral per outcome, fees,
-  resulting leverage, est. liquidation mark), submit. Disabled with the reason when not active,
-  halted, sweeping, no valid index, or unregistered.
-- **Position card** (leveraged): position, cash, equity, leverage, margin bar, health + grace
-  countdown, liquidation estimate, funding accrued + rate, premium accrued + surcharge countdown,
-  buttons: Close, Reduce, Add collateral, Release.
-- **Account strip**: wallet / vault / cash / available to release.
-- **Tabs**: open orders (with "margin used"), fills, funding & premium history, liquidation history,
-  trades tape, market info (listing, profile params + hash check, addresses, ABI digest).
-- **Settlement card** replaces the ticket after halt (11.7).
-- **Resolution card** (oracle markets).
+
+Current terminal layout (2026-10-08):
+
+- **Header**: full event title and status, YES mark/index, open interest, current leverage
+  limits and close time in a compact strip.
+- **Desktop workspace**: trading and balances on the left, the YES order book in the middle,
+  and the chart on the right, with account activity below. One ticket and one Balances panel
+  remain mounted across viewport changes; responsive layouts do not duplicate their controls.
+- **Chart** (10.10): authenticated source observations, time-range controls and optional current
+  mark reference. The book shows resting claims; admission and fills determine execution.
+- **Trade ticket**: Long YES / Short YES / Long NO / Short NO, order kind, selected-outcome price,
+  claim size, target leverage, reduce-only and submit. Rejections and the conditional position
+  effect remain visible. Trading explanations, expiry and technical admission fields use
+  disclosures. **Estimate details** contains the extended payoff, funding and release breakdown.
+- **Balances**: wallet / free vault / market balance / releasable collateral. **Manage collateral**
+  expands funding, release, withdrawal and claim controls. It initially opens for an unfunded
+  account or an available settlement claim; transaction safety checks still gate each action.
+- **Primary tabs**: Position, Open orders, History and Protection. The Position table keeps
+  signed YES exposure with positive claim quantities, equity, leverage, health and Close / Reduce
+  actions visible. **Margin & funding details** contains the accounting breakdown; grace and
+  liquidation warnings remain outside the disclosure.
+- **Market details selector**: Market info, Risk, Liquidity, Resolution and Operations. Market
+  info contains trading rules and cutoffs, with contract/profile identifiers and snapshot block
+  under a disclosure. Detailed T−12h30m, T−12h and T−1h cutoffs are under **Trading deadlines**.
+- After halt, trading remains disabled with a reason; settlement notices and available claim
+  actions remain with Balances. Oracle progress is available through Resolution.
 
 ### 12.4 Portfolio (`/portfolio`)
 Per market: position, equity, leverage, health, liquidation estimate, P&L breakdown (10.9),

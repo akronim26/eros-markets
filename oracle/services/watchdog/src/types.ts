@@ -1,5 +1,6 @@
 import type { FeedSpec } from '@eros-oracle/feedspec'
 import type { Address, Hex } from 'viem'
+import type { Liveness } from './timing'
 
 /** Values are ABI (OracleTypes.sol): never reorder. */
 export const Outcome = { NONE: 0, YES: 1, NO: 2, INVALID: 3 } as const
@@ -53,6 +54,7 @@ export type WatchdogChain = {
   events(): Promise<{ proposals: Proposal[]; asserted: { marketId: Hex; assertionId: Hex }[] }>
   resolution(id: Hex): Promise<ResolutionView>
   market(id: Hex): Promise<MarketText>
+  liveness(id: Hex): Promise<Liveness>
   feedSpec(id: Hex): Promise<FeedSpec>
   allowList(id: Hex): Promise<string[]>
   assertion(venue: Address, assertionId: Hex): Promise<AssertionStatus>

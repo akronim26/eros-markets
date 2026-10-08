@@ -1,11 +1,5 @@
-# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
-# Task O37.1: the oracle's Envio HyperIndex on Monad testnet (plan §9.3). Sources: the oracle's own contracts with the
-# ABIs `forge inspect` exported to oracle/abi (O30), UMA's OOv3 (AssertionMade, AssertionDisputed, AssertionSettled),
-# the KeystoneForwarder's ReportProcessed for reports to the oracle (the sim forwarder and the production one), and
-# the testnet-only ErosSandboxOracle (the DVM stand-in). Addresses and start blocks come from
-# deployments/monad-testnet.json (the oracle's deployBlock) and the sandbox deploy's receipts; a test checks them.
-# config.mainnet.yaml is the same indexer for chain 143.
-name: eros-oracle-indexer
+# Current verified frontend deployment; generated pins: node scripts/current-config.mjs --write
+name: eros-current-testnet
 description: Eros Markets resolution oracle (Layers 1-3) on Monad testnet
 field_selection:
   transaction_fields:
@@ -63,12 +57,19 @@ contracts:
       - event: VenueResolved
   - name: OptimisticOracleV3
     events:
-      - event: "AssertionMade(bytes32 indexed assertionId, bytes32 domainId, bytes claim, address indexed asserter, address callbackRecipient, address escalationManager, address caller, uint64 expirationTime, address currency, uint256 bond, bytes32 indexed identifier)"
-      - event: "AssertionDisputed(bytes32 indexed assertionId, address indexed caller, address indexed disputer)"
-      - event: "AssertionSettled(bytes32 indexed assertionId, address indexed bondRecipient, bool disputed, bool settlementResolution, address settleCaller)"
+      - event: AssertionMade(bytes32 indexed assertionId, bytes32 domainId, bytes claim,
+          address indexed asserter, address callbackRecipient, address
+          escalationManager, address caller, uint64 expirationTime, address
+          currency, uint256 bond, bytes32 indexed identifier)
+      - event: AssertionDisputed(bytes32 indexed assertionId, address indexed caller,
+          address indexed disputer)
+      - event: AssertionSettled(bytes32 indexed assertionId, address indexed
+          bondRecipient, bool disputed, bool settlementResolution, address
+          settleCaller)
   - name: KeystoneForwarder
     events:
-      - event: "ReportProcessed(address indexed receiver, bytes32 indexed workflowExecutionId, bytes2 indexed reportId, bool result)"
+      - event: ReportProcessed(address indexed receiver, bytes32 indexed
+          workflowExecutionId, bytes2 indexed reportId, bool result)
   - name: ErosSandboxOracle
     abi_file_path: ../abi/ErosSandboxOracle.json
     events:
@@ -106,46 +107,47 @@ contracts:
       - event: Released
   - name: TradingFactory
     events:
-      - event: "MarketDeployed(bytes32 indexed marketId, address indexed engine, address indexed vault, bytes32 listingHash)"
+      - event: MarketDeployed(bytes32 indexed marketId, address indexed engine, address
+          indexed vault, bytes32 listingHash)
   - name: CollateralToken
     events:
-      - event: "Transfer(address indexed from, address indexed to, uint256 value)"
+      - event: Transfer(address indexed from, address indexed to, uint256 value)
 chains:
-  - id: 10143 # Monad testnet (HyperSync https://monad-testnet.hypersync.xyz)
-    start_block: 67901400
+  - id: 10143
+    start_block: 68951846
     contracts:
       - name: ResolutionOracle
-        address: "0xa87D6E10a7199666ec9F2e04866201E35AAf36A6"
-        start_block: 67901624
+        address: "0xb86a48B07eE07037F1B52273B9B50f20615B61e4"
+        start_block: 68952065
       - name: MarketRegistry
-        address: "0xEC11cC8fAfd47a1a92A7c9B43EEdee86a94B3DFa"
-        start_block: 67901624
+        address: "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33"
+        start_block: 68952089
       - name: BondTreasury
-        address: "0xA1AC1491dDc4DA8E72B69c12C01653dB62eEeB2a"
-        start_block: 67901624
+        address: "0xaA55f414a446B65Fe1004A781f5DeF4B3f9d5B04"
+        start_block: 68952051
       - name: UmaAdapter
-        address: "0x1387bC4d10acd2aFB0C85b6f62a51Ad91600C3A1"
-        start_block: 67901624
+        address: "0x2750c61Ae27A40875b10D8232f68f31a8e2a3385"
+        start_block: 68952077
       - name: OptimisticOracleV3
-        address: "0xdE3B884250333652aC2Bf27fE10A6483a50B0a26"
-        start_block: 67901419
+        address: "0xd9B5090d4EBa69513DFE5eD6E8dE84b3D843Ba5E"
+        start_block: 68952003
       - name: KeystoneForwarder
-        address:
-          - "0xB9F79d863261869B234c481D1f9A7af84AeAd192" # the sim bridge's MockKeystoneForwarder
-          - "0xF8344CFd5c43616a4366C34E3EEE75af79a74482" # the production KeystoneForwarder
-        start_block: 67901624
+        address: "0xB9F79d863261869B234c481D1f9A7af84AeAd192"
+        start_block: 68952065
       - name: ErosSandboxOracle
-        address: "0x1211A79433CA94bD4cC93d69E615519790467d20"
-        start_block: 67901400
+        address: "0xc9AAe0A8f5D6e1Cb780661B0e20265234e768403"
+        start_block: 68951943
       - name: TradingEngine
-        address: "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69"
-        start_block: 67915021
+        address:
+          - "0x171503494eF5f1A9e6705781647451A2582995bD"
+          - "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0"
+        start_block: 68955860
       - name: TradingVault
-        address: "0xa8341d0343bc71b0f28e82dba2302c528608898d"
-        start_block: 67914987
+        address: "0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329"
+        start_block: 68952139
       - name: TradingFactory
-        address: []
-        start_block: 67901624
+        address: "0x14a38a7732B1cf968F18401544b89B11727Ed99e"
+        start_block: 68952139
       - name: CollateralToken
-        address: "0x99f93e9bfe3b2dd75fe27327789bd0a9236ff7b0"
-        start_block: 67914987
+        address: "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB"
+        start_block: 68951846

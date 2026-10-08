@@ -38,6 +38,36 @@ is the current MARK, not reconstructed historical marks. Order-book sizes are gr
 resting claims and may contain stale orders; exact contract previews and fill events
 determine executable orders. Clicking a book price prefills the ticket without signing.
 
+The terminal uses one ticket and one Balances panel at every viewport size. On
+desktop, trading and balances sit on the left, the order book in the middle and
+the chart on the right, with account activity below. The compact market header
+shows the event, status, YES mark/index, open interest, leverage and close time.
+Position, Open orders, History and Protection are the primary tabs. The Market
+details selector opens Market info, Risk, Liquidity, Resolution and Operations.
+
+Balances shows wallet, free vault, market balance and releasable collateral.
+Expand **Manage collateral** to fund, release or withdraw; it opens automatically
+for an unfunded account or an available settlement claim. Positions keep exposure,
+equity, leverage, health and close/reduce actions visible. Margin and funding,
+trading explanations, estimate breakdowns and contract details use disclosures;
+rejections, grace periods and liquidation warnings remain visible.
+
+The ticket offers Long YES, Short YES, Long NO and Short NO. NO prices are the
+complement of YES prices; Long YES / Short NO share positive YES exposure and
+Short YES / Long NO share negative YES exposure. All four choices use the same
+net position. The chart, book and protection triggers explicitly use YES prices.
+The ticket previews whether a fill opens, increases, reduces, closes or reverses
+that position. Max runs a bounded, block-pinned capacity search independent of
+the entered quantity; an incomplete search reports the largest verified size.
+
+Closing estimates assume the displayed quantity fills at the entered limit and
+deduct the full fee cap. Projected funding and premium are already included in
+account cash. Remaining market cash is distinct from releasable vault USDC and
+wallet funds; release and withdrawal require separate successful transactions.
+Price P&L uses weighted-average actual fill history and allocated trading fees.
+Incomplete, unresolved or stale history leaves entry-based P&L unavailable rather
+than inferring an entry price from collateral or current mark equity.
+
 Without an App ID, public market data remains available and wallet actions are disabled.
 If browser storage is blocked, public pages remain available and the wallet button
 explains how to restore login. Privy's SDK is loaded only after this check.

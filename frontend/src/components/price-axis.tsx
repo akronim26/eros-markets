@@ -25,13 +25,14 @@ export function PriceAxis(p: Props) {
   const id = useId().replace(/:/g, "");
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(286);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   const [range, setRange] = useState(0);
   const [book, setBook] = useState(false);
   const [mark, setMark] = useState(true);
   const [hoverTime, setHoverTime] = useState<number>();
   useEffect(() => {
-    const ro = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    const ro = new ResizeObserver(([entry]) => { setWidth(entry.contentRect.width); setHeight(Math.max(240, Math.floor(entry.contentRect.height))); });
     if (ref.current) ro.observe(ref.current);
     const timer = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 5000);
     return () => { ro.disconnect(); clearInterval(timer); };
@@ -49,7 +50,7 @@ export function PriceAxis(p: Props) {
     const padding = Math.max((max - min) * 0.2, 0.002);
     return { start, end, index: availableIndex, perp: availablePerp, indexSegments, perpSegments, lo: Math.max(0, min - padding), hi: Math.min(1, max + padding) };
   }, [p.index, p.perp, p.markUnit, p.indexUnit, range, now, book, mark]);
-  const height = 286, left = 14, right = Math.max(left + 1, width - 62), top = 18, bottom = height - 32;
+  const left = 14, right = Math.max(left + 1, width - 62), top = 18, bottom = height - 32;
   const x = (t: number) => left + (t - model.start) / (model.end - model.start) * (right - left);
   const y = (v: number) => bottom - (v - model.lo) / (model.hi - model.lo) * (bottom - top);
   const path = (segments: Point[][]) => segments.map(points => points.map((pt, i) => `${i === 0 ? "M" : "L"}${x(pt.t).toFixed(2)},${y(pt.v).toFixed(2)}`).join(" ")).join(" ");
@@ -63,21 +64,21 @@ export function PriceAxis(p: Props) {
     if (bounds) setHoverTime(model.start + Math.max(0, Math.min(1, (clientX - bounds.left - left) / (right - left))) * (model.end - model.start));
   };
   return (
-    <section aria-label="Index price chart" className="flex min-w-0 flex-col">
-      <div className="flex min-h-[94px] flex-wrap items-start justify-between gap-2 px-4 pb-3 pt-4">
-        <div>
-          <p className="label text-fg-3">Polymarket source price</p>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span className="tnum text-[2rem] font-medium leading-tight tracking-tight" data-testid="chart-price">{selected ? priceLabel(selected.v) : "—"}</span>
-            {!hovered && change !== undefined && <span className={cx("tnum text-xs", change >= 0 ? "text-bid" : "text-ask")}>{change >= 0 ? "+" : ""}{(change * 100).toFixed(2)} pp</span>}
-          </div>
-          <p className="mt-1 text-2xs text-fg-3">{hovered ? new Date(hovered.t * 1000).toLocaleString() : last ? `Last observation ${timeLabel(last.t, true)}` : "Waiting for a source observation"}</p>
-        </div>
-        <span className={cx("label mt-1 inline-flex items-center gap-2 border px-2 py-1", fresh ? "border-bid/25 text-bid" : "border-line text-fg-3")}><span className={cx("h-1.5 w-1.5 rounded-full", fresh ? "bg-bid motion-safe:animate-pulse" : "bg-fg-4")} aria-hidden />{p.readError ? "Reconnecting" : fresh ? "Live" : last ? "Delayed" : "Connecting"}</span>
+    <section aria-label="Index price chart" className="flex h-full min-w-0 flex-col">
+      <div className="flex min-h-9 items-center justify-between gap-3 border-b border-line px-3">
+        <h2 className="text-xs font-medium">Chart <span className="ml-2 font-normal text-fg-3">YES · Polymarket</span></h2>
+        <span className={cx("inline-flex items-center gap-1.5 text-2xs", fresh ? "text-bid" : "text-fg-3")}><span className={cx("h-1.5 w-1.5", fresh ? "bg-bid" : "bg-fg-4")} aria-hidden />{p.readError ? "Reconnecting" : fresh ? "Live" : last ? "Delayed" : "Connecting"}</span>
       </div>
-      <div ref={ref} className="relative min-w-0" style={{ height }}>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2">
+        <div className="flex items-baseline gap-2">
+          <span className="tnum text-2xl font-medium tracking-tight" data-testid="chart-price">{selected ? priceLabel(selected.v) : "—"}</span>
+          {!hovered && change !== undefined && <span className={cx("tnum text-xs", change >= 0 ? "text-bid" : "text-ask")}>{change >= 0 ? "+" : ""}{(change * 100).toFixed(2)} pp</span>}
+        </div>
+        <div role="group" aria-label="Chart time range" className="flex gap-0.5">{RANGES.map((r, i) => <button key={r.label} aria-pressed={range === i} onClick={() => { setRange(i); setHoverTime(undefined); }} className={cx("tnum min-h-9 min-w-9 px-2 text-xs transition-colors", range === i ? "bg-press text-fg" : "text-fg-3 hover:bg-panel hover:text-fg")}>{r.label}</button>)}</div>
+      </div>
+      <div ref={ref} className="relative min-h-64 min-w-0 flex-1">
         {width > 0 && <svg width={width} height={height} role="img" tabIndex={0} aria-label="Index price over time. Use left and right arrow keys to inspect observations; Escape to return to live."
-          className="touch-pan-y outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-signal"
+          className="absolute inset-0 touch-pan-y outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-signal"
           onPointerMove={e => pointer(e.clientX)} onPointerDown={e => pointer(e.clientX)} onPointerLeave={() => setHoverTime(undefined)} onBlur={() => setHoverTime(undefined)}
           onKeyDown={e => {
             if (e.key === "Escape") { setHoverTime(undefined); return; }
@@ -105,13 +106,12 @@ export function PriceAxis(p: Props) {
             {hovered && <g><line x1={x(hovered.t)} x2={x(hovered.t)} y1={top} y2={bottom} stroke="var(--color-fg-4)" strokeDasharray="3 3" /><line x1={left} x2={right} y1={y(hovered.v)} y2={y(hovered.v)} stroke="var(--color-fg-4)" strokeDasharray="3 3" /><circle cx={x(hovered.t)} cy={y(hovered.v)} r={5} fill="var(--color-signal)" stroke="var(--color-ground)" strokeWidth={2} /></g>}
           </g>
         </svg>}
-        {!last && <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6"><div className="max-w-xs border border-line bg-ground p-4"><p className="font-medium">{p.emptyTitle}</p><p className="mt-2 text-xs leading-relaxed text-fg-3">{p.emptyReason}</p></div></div>}
+        {!last && <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6"><div className="max-w-xs bg-ground/90 px-4 py-3 text-center"><p className="text-sm font-medium">{p.emptyTitle}</p><p className="mt-1 text-xs text-fg-3">{p.emptyReason}</p></div></div>}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-3">
-        <div role="group" aria-label="Chart time range" className="flex gap-1">{RANGES.map((r, i) => <button key={r.label} aria-pressed={range === i} onClick={() => { setRange(i); setHoverTime(undefined); }} className={cx("tnum min-h-9 min-w-9 px-2 text-xs transition-colors", range === i ? "bg-fg text-ground" : "text-fg-3 hover:bg-panel hover:text-fg")}>{r.label}</button>)}</div>
-        <div className="flex gap-3 text-2xs text-fg-3"><button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")}><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 border-t border-line px-3 text-2xs text-fg-3">
+        <span title={p.historyStatus}>{hovered ? new Date(hovered.t * 1000).toLocaleString() : last ? `Updated ${timeLabel(last.t, true)}` : "No observations yet"}</span>
+        <div className="flex gap-3"><button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")} title="Current mark reference, not historical marks"><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
       </div>
-      <p className="px-4 pb-3 text-2xs leading-relaxed text-fg-4" title="This chart shows signed Polymarket source observations. The execution INDEX above is their 300-second TWAP. A current mark reference is shown only when the contract makes it available. Gaps are retained when observations are more than 30 seconds apart.">{p.historyStatus} · Source observations · execution index is the 5-minute TWAP above. {p.markUnit === undefined ? "Mark warming or unavailable." : "Dashed line: current mark."}</p>
       <span className="sr-only" role="status">{hovered ? `Observation ${priceLabel(hovered.v)} at ${new Date(hovered.t * 1000).toLocaleString()}` : ""}</span>
     </section>
   );

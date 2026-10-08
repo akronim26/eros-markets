@@ -1,6 +1,6 @@
 // Runs the panel runner. Keys are testnet-only hot keys.
 //
-//   NETWORK              deployments/<NETWORK>.json (default monad-testnet)
+//   NETWORK              verified frontend manifest (default monad-testnet); DEPLOYMENTS_FILE selects an explicit historical record
 //   RPC_URL              the runner's RPC endpoint
 //   RELAYER_PRIVATE_KEY  sends submitPanelResult (pays gas, trusted for nothing)
 //   ATTESTOR_PRIVATE_KEY the trust set's runner attestor, which signs PanelResults
@@ -12,9 +12,10 @@
 //   SNAPSHOT_DIR         default ./snapshots
 //   POLL_MS              tick interval (default 30000)
 //   FROM_BLOCK           where the StateChanged scan starts (default the oracle's deploy block)
-import { loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
+import { loadServiceDeployment, loadGas } from '@eros-oracle/oracle-sdk'
 import { takeSnapshot } from '@eros-oracle/snapshotter'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { Hex } from 'viem'
 import { z } from 'zod'
 import { type CalibrationMap, placeholderMaps } from './calibration'
@@ -24,11 +25,14 @@ import { askPanel } from './models'
 import { loadPrompts } from './prompts'
 import { PanelRunner } from './runner'
 import { signerFromEnv } from './signer'
+import { SubmissionStore } from './submissions'
 
 const key = z.string().regex(/^0x[0-9a-fA-F]{64}$/)
 const env = z
   .object({
     NETWORK: z.string().default('monad-testnet'),
+    DEPLOYMENTS_FILE: z.string().min(1).optional(),
+    DEPLOYMENT_MANIFEST: z.string().min(1).optional(),
     RPC_URL: z.url(),
     RELAYER_PRIVATE_KEY: key,
     ATTESTOR_PRIVATE_KEY: key,
@@ -49,8 +53,10 @@ const maps: CalibrationMap[] = env.CALIBRATION ? JSON.parse(readFileSync(env.CAL
 // Re-read on every lookup, so pages for a new market can be added without a restart.
 const sourcesFor = (id: string): string[] =>
   env.SOURCES && existsSync(env.SOURCES) ? ((JSON.parse(readFileSync(env.SOURCES, 'utf8')) as Record<string, string[]>)[id.toLowerCase()] ?? []) : []
+const deployments = loadServiceDeployment(env.NETWORK, { deploymentsFile: env.DEPLOYMENTS_FILE, manifestFile: env.DEPLOYMENT_MANIFEST })
+const chain = viemPanelChain({ rpcUrl: env.RPC_URL, relayerKey: env.RELAYER_PRIVATE_KEY as Hex, deployments, fromBlock: env.FROM_BLOCK })
 const runner = new PanelRunner({
-  chain: viemPanelChain({ rpcUrl: env.RPC_URL, relayerKey: env.RELAYER_PRIVATE_KEY as Hex, deployments: loadDeployments(env.NETWORK), fromBlock: env.FROM_BLOCK }),
+  chain,
   signer: signerFromEnv(),
   prompts: loadPrompts(),
   models,
@@ -66,4 +72,8 @@ const runner = new PanelRunner({
 const stop = new AbortController()
 for (const sig of ['SIGINT', 'SIGTERM'] as const) process.on(sig, () => stop.abort())
 log('info', 'panel runner started', { network: env.NETWORK, models })
-await runner.run(env.POLL_MS, stop.signal)
+const lock = join(new SubmissionStore(env.SNAPSHOT_DIR, chain.chainId, chain.oracle).dir, 'runner.lock')
+mkdirSync(lock) // A stale lock requires operator verification; never start a second writer automatically.
+writeFileSync(join(lock, 'pid'), String(process.pid))
+try { await runner.run(env.POLL_MS, stop.signal) }
+finally { rmSync(lock, { recursive: true, force: true }) }

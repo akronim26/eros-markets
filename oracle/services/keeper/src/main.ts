@@ -1,6 +1,8 @@
 // Runs one keeper instance. The key comes from a secret manager (production) or deployments/testnet-keys.env.
 //
-//   NETWORK                 deployments/<NETWORK>.json (default monad-testnet)
+//   NETWORK                 current verified frontend manifest (default monad-testnet)
+//   DEPLOYMENT_MANIFEST      explicit verified manifest override
+//   DEPLOYMENTS_FILE         explicit legacy deployment record
 //   RPC_URL                 this instance's RPC endpoint
 //   KEEPER_PRIVATE_KEY      this instance's sending key
 //   INDEXER_URL             Envio GraphQL; RPC logs are read only when it is down or behind (logs only if unset)

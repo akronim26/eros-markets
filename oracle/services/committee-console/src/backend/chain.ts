@@ -1,6 +1,6 @@
 // The console's chain over viem. Logs are read in 100-block steps (Monad's RPC cap) and cached, so later calls read
 // only new blocks. submitReviewedProposal is eth_called, then sent with an explicit gas limit.
-import { contractAddress, type Deployments, MarketRegistryAbi, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
+import { contractAddress, type ServiceDeployment, MarketRegistryAbi, ResolutionOracleAbi } from '@eros-oracle/oracle-sdk'
 import { buildUrl } from '@eros-oracle/feedspec'
 import { type Address, createPublicClient, createWalletClient, defineChain, type Hex, http, parseAbi } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -15,7 +15,7 @@ type Logged = { id: Hex; block: bigint; logIndex: number }
 type StateLog = Logged & { to: number }
 type PanelLog = Logged & Omit<PanelEvent, 'at'>
 
-export function viemCaseChain(opts: { rpcUrl: string; deployments: Deployments; relayerKey?: Hex; fromBlock?: bigint }): CaseChain {
+export function viemCaseChain(opts: { rpcUrl: string; deployments: ServiceDeployment; relayerKey?: Hex; fromBlock?: bigint }): CaseChain {
   const d = opts.deployments
   const chain = defineChain({ id: d.chainId, name: d.network, nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 }, rpcUrls: { default: { http: [opts.rpcUrl] } } })
   const pc = createPublicClient({ chain, transport: http(opts.rpcUrl) })
