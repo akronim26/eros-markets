@@ -44,7 +44,16 @@ Object.assign(client, { getChainId: async () => rpcChain, getCode: async () => "
     const binding = ({ factory: deploymentContracts.MarketFactory.address, oracle: deploymentContracts.ResolutionOracle.address, registry: deploymentContracts.MarketRegistry.address, collateralVault: deploymentContracts.CollateralVault.address, token: deploymentContracts.CollateralToken.address, engineOf: market.engine } as Record<string, string>)[c.functionName];
     return binding ?? (c.functionName === "participantId" ? 1 : c.functionName === "maxFills" ? 8 : c.functionName === "previewAccount" ? { positionLots: 1000n } : c.functionName === "getOrder" ? { owner: 2 } : { rejection: 0, acceptedCapLots: 1000n });
   },
-  multicall: async () => [{ markAvailable: true, markWad: 390000000000000000n, secsToT: 80000n, monitorRestricted: false, stage: 0 }, { positionLots: 1000n, status: 1, e0Q: 1n, e1Q: 1n }, 8, 0n, { halted: false, claimsEnabled: false }, { deploymentCapX: 1n }],
+  multicall: async ({ contracts, deployless, allowFailure, blockNumber }: any) => {
+    if (deployless) {
+      // Deployment verification now batches the same binding/identity reads.
+      assert.equal(allowFailure, false);
+      assert.equal(blockNumber, 1001n);
+      return Promise.all(contracts.map((contract: any) => client.readContract({ ...contract, blockNumber })));
+    }
+    assert.deepEqual(contracts.map((contract: any) => contract.functionName), ["marketRiskView", "previewAccount", "maxFills", "claimableAtoms", "getSettlementStatus", "listing"]);
+    return [{ markAvailable: true, markWad: 390000000000000000n, secsToT: 80000n, monitorRestricted: false, stage: 0 }, { positionLots: 1000n, status: 1, e0Q: 1n, e1Q: 1n }, 8, 0n, { halted: false, claimsEnabled: false }, { deploymentCapX: 1n }];
+  },
   waitForTransactionReceipt: async ({hash}: any) => ({ transactionHash:hash, status: "success", blockNumber: 1001n, blockHash:`0x${"12".repeat(32)}`, logs: [] }),
   getTransactionReceipt: async ({hash}: any) => ({ transactionHash:hash, status: "success", blockNumber: 1001n, blockHash:`0x${"12".repeat(32)}`, logs: [] }),
 });
