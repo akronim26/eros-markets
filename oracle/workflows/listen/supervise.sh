@@ -4,7 +4,7 @@
 #
 #   oracle/workflows/listen/supervise.sh [log-dir]
 #
-#   TARGET        workflow.yaml target (default local-sim)
+#   TARGET        workflow.yaml target (default fresh-testnet)
 #   RESTART_SECS  pause before a restart (default 10)
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -23,7 +23,7 @@ trap 'stop=1; if [ -n "${child:-}" ]; then kill "$child" 2>/dev/null || true; fi
 
 while [ "$stop" -eq 0 ]; do
   run="$logs/listen-$(date -u +%Y%m%dT%H%M%SZ).log"
-  echo "$(date -u +%FT%TZ) start target=${TARGET:-local-sim} log=$run" | tee -a "$logs/supervisor.log"
+  echo "$(date -u +%FT%TZ) start target=${TARGET:-fresh-testnet} log=$run" | tee -a "$logs/supervisor.log"
   bun --env-file="$CRE_ENV_FILE" run "$here/main.ts" >"$run" 2>&1 &
   child=$!
   code=0

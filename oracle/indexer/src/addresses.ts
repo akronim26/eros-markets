@@ -1,12 +1,14 @@
 import fresh from "../../../artifacts/deployments/monad-testnet-20261006/public-manifest.json";
+import current from "../../../frontend/src/config/public-manifest.json";
 import { readFileSync } from 'node:fs'
 import { verifiedOracleAddresses } from './verified-addresses'
 // This deployment's addresses, which handlers filter on because an Envio `where` sees only its own contract's address.
 // Mainnet comes from the environment until it is deployed.
 type Addr = `0x${string}`
-if (process.env.ENVIO_DEPLOYMENT && !['historical', 'monad-testnet-20261006', 'verified-monad-testnet'].includes(process.env.ENVIO_DEPLOYMENT)) throw new Error('Unknown indexer deployment');
+if (process.env.ENVIO_DEPLOYMENT && !['current', 'historical', 'monad-testnet-20261006', 'verified-monad-testnet'].includes(process.env.ENVIO_DEPLOYMENT)) throw new Error('Unknown indexer deployment');
 const verified = process.env.ENVIO_DEPLOYMENT === 'verified-monad-testnet'
-  ? verifiedOracleAddresses(JSON.parse(readFileSync(process.env.ENVIO_VERIFIED_MANIFEST || '', 'utf8'))) : undefined
+  ? verifiedOracleAddresses(JSON.parse(readFileSync(process.env.ENVIO_VERIFIED_MANIFEST || '', 'utf8')))
+  : !process.env.ENVIO_DEPLOYMENT || process.env.ENVIO_DEPLOYMENT === 'current' ? verifiedOracleAddresses(current) : undefined
 export const OWN: Record<number, { oracle: Addr | ''; adapter: Addr | '' }> = {
   10143: verified ? { oracle: verified.oracle, adapter: verified.adapter } : process.env.ENVIO_DEPLOYMENT === 'monad-testnet-20261006'
     ? { oracle: fresh.contracts.ResolutionOracle.address as Addr, adapter: fresh.contracts.UmaAdapter.address as Addr }

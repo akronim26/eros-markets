@@ -22,7 +22,12 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
   const aside = page.getByRole('complementary', { name: 'Trade', exact: true });
   const funds = aside.getByRole('region', { name: 'Account', exact: true });
   const ticket = aside.getByRole('region', { name: 'Order ticket', exact: true });
-  const submitOrder = () => ticket.getByRole('button', { name: /^(Buy|Sell) YES/ }).and(ticket.locator('button:not([aria-pressed])'));
+  const submitOrder = () => ticket.getByRole('button', { name: /^(Long|Short) YES/ }).and(ticket.locator('button:not([aria-pressed])'));
+  async function manageCollateral(region = funds) {
+    const disclosure = region.locator('details').filter({ hasText: 'Manage collateral' });
+    await expect(disclosure).toBeVisible();
+    if (await disclosure.getAttribute('open') === null) await disclosure.locator('summary').click();
+  }
   async function confirmOrder() {
     const count = wallet.receipts.length;
     await expect(submitOrder()).toBeEnabled(); await submitOrder().click();
@@ -30,9 +35,9 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     await expect(ticket.getByRole('link', { name: 'View confirmation →', exact: true })).toHaveAttribute('href', `/thank-you?tx=${wallet.receipts.at(-1).hash}`);
   }
   async function order(side, price, size, kind = 'LIMIT') {
-    await ticket.getByRole('group', { name: 'Side', exact: true }).getByRole('button', { name: side === 'buy' ? 'Buy YES' : 'Sell YES' }).click();
+    await ticket.getByRole('group', { name: 'Trade direction and outcome', exact: true }).getByRole('button', { name: side === 'buy' ? 'Long YES' : 'Short YES' }).click();
     await ticket.getByRole('radio', { name: new RegExp(`^${kind}$`, 'i') }).click();
-    await ticket.getByLabel(/Price \(probability\)/).fill(price);
+    await ticket.getByLabel(/^YES price\b/).fill(price);
     await ticket.getByLabel(/Size \(claims\)/).fill(size);
     await confirmOrder();
     await expect(ticket.getByRole('status').filter({ hasText: /Resting|Filled|resting|filled/ })).toBeVisible();
@@ -40,6 +45,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
   await test.step('connect disposable wallet, validate form, reject faucet then retry', async () => {
     await page.locator('header').getByRole('button', { name: 'Log in', exact: true }).click();
     await expect(page.locator('header').getByRole('button', { name: `Manage wallet ${owner}` })).toBeVisible();
+    await manageCollateral();
     await expect(funds.getByRole('button', { name: 'Get 1,000 test tokens' })).toBeEnabled();
     wallet.rejectNext(); await funds.getByRole('button', { name: 'Get 1,000 test tokens' }).click();
     await expect(funds.getByRole('alert')).toContainText(/reject|denied/i); expect(await balance()).toBe(0n);
@@ -54,6 +60,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     const count = wallet.receipts.length;
     await funds.getByRole('button', { name: 'Fund collateral', exact: true }).click();
     await expect(page.locator('header').getByRole('button', { name: `Manage wallet ${actor(17).address}` })).toBeVisible();
+    await manageCollateral();
     await expect(funds.getByLabel(/Amount/)).toHaveValue('');
     const approval = await client.waitForTransactionReceipt({ hash: wallet.receipts.at(-1).hash });
     await expect.poll(async () => (await client.getBlock({ blockTag: 'finalized' })).number, { timeout: 30_000 }).toBeGreaterThanOrEqual(approval.blockNumber + 2n);
@@ -61,6 +68,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     expect((await account()).value.cashQ).toBe(0n);
     await wallet.select(16);
     await expect(page.locator('header').getByRole('button', { name: `Manage wallet ${owner}` })).toBeVisible();
+    await manageCollateral();
     await funds.getByLabel(/Amount/).fill('100');
     await funds.getByRole('button', { name: 'Fund collateral', exact: true }).click();
     await expect(funds.getByRole('status').filter({ hasText: /fund market confirmed/i })).toBeVisible();
@@ -85,6 +93,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
   });
   await test.step('wrong network disables collateral writes', async () => {
     const count = wallet.receipts.length;
+    await manageCollateral();
     await funds.getByLabel(/Amount/).fill('1'); await wallet.wrongChain();
     await expect(funds.getByRole('button', { name: 'Switch to Monad testnet', exact: true })).toBeDisabled();
     expect(wallet.receipts.length).toBe(count); await wallet.correctChain();
@@ -116,16 +125,17 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     const otherAside = otherPage.getByRole('complementary', { name: 'Trade', exact: true });
     const otherFunds = otherAside.getByRole('region', { name: 'Account', exact: true });
     const otherTicket = otherAside.getByRole('region', { name: 'Order ticket', exact: true });
+    await manageCollateral(otherFunds);
     await otherFunds.getByRole('button', { name: 'Get 1,000 test tokens', exact: true }).click();
     await expect(otherFunds.getByRole('status').filter({ hasText: /confirmed/i })).toBeVisible();
     await otherFunds.getByLabel(/Amount/).fill('100');
     await otherFunds.getByRole('button', { name: 'Fund collateral', exact: true }).click();
     await expect(otherFunds.getByRole('status').filter({ hasText: /fund market confirmed/i })).toBeVisible();
-    await otherTicket.getByRole('group', { name: 'Side', exact: true }).getByRole('button', { name: 'Sell YES' }).click();
+    await otherTicket.getByRole('group', { name: 'Trade direction and outcome', exact: true }).getByRole('button', { name: 'Short YES' }).click();
     await otherTicket.getByRole('radio', { name: /^Post only$/i }).click();
-    await otherTicket.getByLabel(/Price \(probability\)/).fill('0.500');
+    await otherTicket.getByLabel(/^YES price\b/).fill('0.500');
     await otherTicket.getByLabel(/Size \(claims\)/).fill('2');
-    await otherTicket.getByRole('button', { name: /^Sell YES/ }).and(otherTicket.locator('button:not([aria-pressed])')).click();
+    await otherTicket.getByRole('button', { name: /^Short YES/ }).and(otherTicket.locator('button:not([aria-pressed])')).click();
     await expect(otherTicket.getByRole('status').filter({ hasText: /resting/i })).toBeVisible();
     await order('buy', '0.500', '2', 'IOC');
     expect((await account()).value.lots).toBe(2000n);
@@ -134,6 +144,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
   await test.step('release excess collateral and withdraw to selected wallet', async () => {
     await page.getByRole('tab', { name: 'History', exact: true }).click();
     await expect(page.getByText('Historical data is not connected yet.', { exact: false })).toBeVisible();
+    await manageCollateral();
     await funds.getByRole('button', { name: 'Release', exact: true }).click();
     await funds.getByLabel(/Amount/).fill('10');
     await funds.getByRole('button', { name: 'Release collateral', exact: true }).click();
@@ -148,6 +159,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     await expect(funds.getByRole('button', { name: /^Claim / })).toHaveCount(0);
     await settleDemo(); await syncClock(page); await page.reload();
     await page.locator('header').getByRole('button', { name: 'Log in', exact: true }).click();
+    await manageCollateral();
     const claim = await read('claimableAtoms', [owner]);
     expect(claim).toBeGreaterThan(0n);
     const walletBeforeClaim = await balance();

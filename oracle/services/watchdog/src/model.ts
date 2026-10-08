@@ -78,7 +78,7 @@ export function parseWatchdogAnswer(text: string): WatchdogAnswer {
   return r.data
 }
 
-export type ModelDeps = { env?: Record<string, string | undefined>; fetchFn?: typeof fetch; sleep?: (ms: number) => Promise<void>; timeoutMs?: number }
+export type ModelDeps = { env?: Record<string, string | undefined>; fetchFn?: typeof fetch; sleep?: (ms: number) => Promise<void>; timeoutMs?: number; maxRetries?: number }
 export type Asked = { answer?: WatchdogAnswer; error?: string; httpStatuses: number[] }
 
 /** Retries 5xx, 429, network errors and invalid answers up to 3 times; other 4xx are final. */
@@ -89,7 +89,9 @@ export async function askWatchdogModel(model: string, call: ModelCall, deps: Mod
   const { url, init } = modelRequest(model, call, key)
   const statuses: number[] = []
   let error = ''
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  const maxRetries = deps.maxRetries ?? MAX_RETRIES
+  if (!Number.isInteger(maxRetries) || maxRetries < 0 || maxRetries > MAX_RETRIES) throw new Error('Invalid watchdog retry limit')
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     let retryAfter: string | null = null
     try {
       const res = await (deps.fetchFn ?? fetch)(url, { ...init, signal: AbortSignal.timeout(deps.timeoutMs ?? CALL_TIMEOUT_MS) })
@@ -103,7 +105,7 @@ export async function askWatchdogModel(model: string, call: ModelCall, deps: Mod
       error = e instanceof Error ? e.message : String(e)
       if (statuses.length <= attempt) statuses.push(0)
     }
-    if (attempt < MAX_RETRIES) await (deps.sleep ?? Bun.sleep)(retryDelayMs(attempt, retryAfter))
+    if (attempt < maxRetries) await (deps.sleep ?? Bun.sleep)(retryDelayMs(attempt, retryAfter))
   }
   return { error, httpStatuses: statuses }
 }

@@ -33,8 +33,13 @@ test('public routes, themes and responsive terminal remain usable', async ({ pag
         if (route.startsWith('/m/')) {
           await expect(page.getByRole('heading', { name: 'Local E2E demo event', exact: true })).toBeVisible();
           await expect(page.getByRole('link', { name: 'Back to all markets' })).toBeVisible();
-          for (const tab of ['Position', 'Market info', 'Open orders', 'History', 'Protection', 'Risk', 'Liquidity', 'Operations', 'Resolution']) {
+          await expect(page.getByRole('complementary', { name: 'Trade', exact: true })).toHaveCount(1);
+          for (const tab of ['Position', 'Open orders', 'History', 'Protection']) {
             await page.getByRole('tab', { name: tab, exact: true }).click();
+            await expect(page.getByRole('tabpanel')).toBeVisible();
+          }
+          for (const detail of ['Market info', 'Risk', 'Liquidity', 'Operations', 'Resolution']) {
+            await page.getByRole('combobox', { name: 'More market details', exact: true }).selectOption({ label: detail });
             await expect(page.getByRole('tabpanel')).toBeVisible();
           }
         }
@@ -102,12 +107,15 @@ test('RPC outage retains a labeled snapshot, blocks writes and recovers', async 
   await expect(page.getByRole('heading', { name: 'Local E2E demo event' })).toBeVisible();
   await page.locator('header').getByRole('button', { name: 'Log in', exact: true }).click();
   const funds = page.getByRole('complementary', { name: 'Trade', exact: true }).getByRole('region', { name: 'Account', exact: true });
+  const collateral = funds.locator('details').filter({ hasText: 'Manage collateral' });
+  await expect(collateral).toBeVisible();
+  if (await collateral.getAttribute('open') === null) await collateral.locator('summary').click();
   const faucet = funds.getByRole('button', { name: 'Get 1,000 test tokens' });
   await expect(faucet).toBeEnabled();
   const rpc = new URL(runtime.rpcUrl);
   const matchesRpc = url => url.hostname === rpc.hostname && url.port === rpc.port;
   await page.route(matchesRpc, route => route.abort('connectionfailed'));
-  const failure = page.getByRole('alert').filter({ hasText: 'Live reads failed' });
+  const failure = page.getByRole('alert').filter({ hasText: 'Connection interrupted' });
   await expect(failure).toBeVisible({ timeout: 60_000 });
   await expect(faucet).toBeDisabled();
   expect(wallet.receipts).toEqual([]);

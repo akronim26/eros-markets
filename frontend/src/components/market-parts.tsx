@@ -12,6 +12,7 @@ import { useOwner } from "./wallet";
 import { Button, Chip, Num, RegionHead, Row, Stat, Unavailable, cx } from "./ui";
 import type { Point } from "@/lib/reads";
 import { latestSourceObservation } from "@/lib/price-chart";
+import { positionLabel } from "@/lib/position-label";
 import terminalStyles from "./terminal.module.css";
 import { AccountActions } from "./account-actions";
 
@@ -36,37 +37,27 @@ export function chipFor(m: MarketSnapshot) {
 export function MarketHeader({ manifest, m, source = [], now = Math.floor(Date.now() / 1000), readError = false }: { manifest: MarketManifest; m?: MarketSnapshot; source?: Point[]; now?: number; readError?: boolean }) {
   const observation = latestSourceObservation(source, now, readError);
   const chip = m ? chipFor(m) : null;
-  const spread = m && m.bestBid && m.bestAsk ? m.bestAsk - m.bestBid : null;
+  const caps = m?.leverageCaps;
   return (
-    <div className="hair-b flex min-h-14 flex-wrap items-center gap-x-8 gap-y-2 px-4 py-2">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 md:flex-nowrap">
-        <h1 className="text-base leading-snug font-semibold text-fg md:truncate">{manifest.title}</h1>
-        {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
+    <div className="hair-b flex min-h-14 flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2">
+      <div className="flex min-w-0 flex-[1_1_18rem] flex-col items-start gap-1">
+        <h1 className="w-full break-words text-sm leading-snug font-semibold text-fg">{manifest.title}</h1>
+        {chip && <span className="max-w-full" title={chip.label}><Chip tone={chip.tone} className="h-auto min-h-6 max-w-full whitespace-normal py-1">{chip.label === "Paused: accounting sweep" ? "Trading paused" : chip.label}</Chip></span>}
       </div>
-      <div className="flex flex-wrap items-center gap-x-7 gap-y-2">
-        <Stat label="Mark" tone={m?.risk.markAvailable ? "signal" : undefined}>
+      <div className="flex min-w-0 flex-[2_1_28rem] flex-wrap items-center gap-x-6 gap-y-2">
+        <Stat label="YES mark" tone={m?.risk.markAvailable ? "signal" : undefined}>
           {m?.risk.markAvailable ? <Num value={wadTo3(m.risk.markWad)} /> : <Unavailable signal short={m?.risk.pricingMode === 0 ? "warming" : "unavailable"} reason="The contract requires complete index, book and basis windows and normal pricing to provide a mark." />}
         </Stat>
-        <Stat label="Index · 5m TWAP">
+        <Stat label="YES index">
           {m?.risk.indexAvailable ? <Num value={wadTo3(m.risk.indexWad)} /> : <Unavailable short={observation.fresh ? "warming" : "unavailable"} reason="The execution index requires a complete, fresh 300-second signed source window. A historical chart observation is not an executable index." />}
         </Stat>
-        <Stat label="Polymarket source">
-          {observation.point ? <span title={`Source observation at ${new Date(observation.point.t * 1000).toLocaleString()}`}><Num value={observation.point.v.toFixed(3)} /><span className={cx("ml-2 text-2xs", observation.fresh ? "text-bid" : "text-fg-3")}>{observation.fresh ? "live" : "delayed"}</span></span> : <Unavailable short="unavailable" reason="No valid source observation has been read for this market." />}
-        </Stat>
-        <Stat label="Bid / Ask">
-          {m && (m.bestBid || m.bestAsk) ? (
-            <span className="tnum">
-              <span className="text-bid">{m.bestBid ? (m.bestBid / 1000).toFixed(3) : "—"}</span>
-              <span className="text-fg-4"> / </span>
-              <span className="text-ask">{m.bestAsk ? (m.bestAsk / 1000).toFixed(3) : "—"}</span>
-            </span>
-          ) : (
-            <Unavailable short={m ? "book empty" : "reading…"} reason={m ? "No resting orders on either side" : "Waiting for market data"} />
-          )}
-        </Stat>
-        <Stat label="Spread">{spread !== null ? <Num value={(spread / 1000).toFixed(3)} /> : <span className="text-fg-3">—</span>}</Stat>
         <Stat label="Open interest">{m ? <Num value={`${lotsToClaims(m.oiLots)}`} /> : "—"}</Stat>
-        <Stat label="Traders">{m ? <Num value={`${m.participants} / ${m.listing.maxTraders}`} /> : "—"}</Stat>
+        <Stat label={caps && caps.long !== caps.short ? "Leverage · YES long / short" : "Max leverage"}>
+          {caps ? `${caps.long}×${caps.long !== caps.short ? ` / ${caps.short}×` : ""}` : "—"}
+        </Stat>
+        <Stat label={m?.halted ? "Scheduled close" : "Closes in"}>
+          {m ? <span title={fmtUtc(m.listing.scheduledT)} className="tnum">{m.halted || m.listing.scheduledT <= BigInt(now) ? fmtUtc(m.listing.scheduledT) : fmtDuration(m.listing.scheduledT - BigInt(now))}</span> : "—"}
+        </Stat>
       </div>
     </div>
   );
@@ -88,7 +79,7 @@ export function DeadlineStrip({ m, now }: { m?: MarketSnapshot; now?: bigint }) 
   // Signal only when the final-day window is live risk; before that the next deadline is an Ivory mark.
   const finalDay = now >= T - 45_000n;
   return (
-    <div className={cx(terminalStyles.deadlines, "hair-b grid min-h-[76px] grid-cols-1 items-center gap-4 px-4 py-3")}>
+    <div className="hair-b grid min-h-[76px] grid-cols-1 items-center gap-4 px-4 py-3">
       <div>
         {next ? (
           <>
@@ -126,9 +117,9 @@ export function AccountPanel({ engine, m, t, readUnavailable = false }: { engine
   if (!owner.connected) {
     return (
       <section aria-label="Account" className="flex h-full flex-col">
-        <RegionHead title="Account" />
-        <p className="p-3 text-sm leading-relaxed text-fg-3">
-          Log in to see your balances, position and what you can withdraw. Your wallet is your trading account on this market.
+        <RegionHead title="Balances" />
+        <p className="p-3 text-xs leading-relaxed text-fg-3">
+          Log in to view balances and manage collateral.
         </p>
       </section>
     );
@@ -136,20 +127,15 @@ export function AccountPanel({ engine, m, t, readUnavailable = false }: { engine
 
   const settlement = m?.settlement;
   const claimable = settlement && isClaimable(settlement as never);
-  const markOk = !!p && p.id.markAvailable;
 
   return (
     <section aria-label="Account" className="flex h-full flex-col">
-      <RegionHead title="Account">{t && <span className="tnum">block {t.block.toString()}</span>}</RegionHead>
+      <RegionHead title="Balances"><span>{t?.assets.symbol ?? deployment.risk.collateralSymbol}</span></RegionHead>
       <dl className="px-3 py-1">
-        <Row k={`Wallet (${t?.assets.symbol ?? deployment.risk.collateralSymbol})`} v={t ? atomsToUsdc(t.wallet, 2) : "—"} />
-        <Row k="Vault, free" v={t ? atomsToUsdc(t.free, 2) : "—"} />
-        <Row k="Cash in market" v={p ? qToMoney(p.cashQ).usdc.replace(/(\.\d{2})\d+$/, "$1") : t ? "not funded" : "Reading…"} hint="Includes projected funding and premium; may be negative when leveraged" />
-        <Row k="Position" v={p ? `${lotsToClaims(p.positionLots)} ${p.positionLots > 0n ? "YES" : p.positionLots < 0n ? "NO" : ""}` : "—"} />
-        <Row k="Value if YES / NO" v={p ? `${qToMoney(p.e1Q).usdc.replace(/(\.\d{2})\d+$/, "$1")} / ${qToMoney(p.e0Q).usdc.replace(/(\.\d{2})\d+$/, "$1")}` : "—"} />
-        <Row k="Equity at mark" v={p ? (markOk ? qToMoney(p.markEquityQ).usdc.replace(/(\.\d{2})\d+$/, "$1") : <Unavailable reason="No valid mark" />) : "—"} />
-        <Row k="Health" v={p ? (markOk || p.positionLots === 0n ? HEALTH[p.status] : "unavailable") : "—"} />
-        <Row k="Available to release" v={p ? atomsToUsdc(p.usableReleaseAtoms, 2) : "—"} hint="The only releasable amount: decided by the contract at this block" />
+        <Row k="Wallet" v={t ? atomsToUsdc(t.wallet, 2) : "—"} />
+        <Row k="Free vault" v={t ? atomsToUsdc(t.free, 2) : "—"} />
+        <Row k="Market balance" v={p ? usd2(p.cashQ) : t ? "Not funded" : "Reading…"} hint="Market cash includes accrued funding and premium and can be negative when leveraged." />
+        <Row k="Releasable" v={p ? atomsToUsdc(p.usableReleaseAtoms, 2) : "—"} hint="Collateral the contract currently permits you to move back to the vault." />
         {claimable && t?.account && <Row k="Claimable" v={atomsToUsdc(t.account.claimable, 2)} />}
       </dl>
       {settlement && settlement.halted && (
@@ -165,28 +151,38 @@ export function MarketInfo({ manifest, m }: { manifest: MarketManifest; m?: Mark
   if (!m) return <p role="status" className="p-4 text-sm text-fg-3">Waiting for market details…</p>;
   const l = m.listing;
   return (
-    <div className={cx(terminalStyles.details, "grid gap-x-8 px-4 py-2")}>
-      <dl>
-        <Row k="Stage" v={STAGE[m.risk.stage]} />
-        <Row k="Pricing" v={PRICING[m.risk.pricingMode]} />
-        <Row k="Accounting" v={ACCOUNTING[m.risk.accountingState]} />
-        <Row k="Scheduled halt (T)" v={fmtUtc(l.scheduledT)} />
-        <Row k="Listed" v={fmtUtc(l.listedAt)} />
-      </dl>
-      <dl>
-        <Row k="Template" v={TEMPLATE[l.template]} />
-        <Row k="Deployment ceiling" v={l.deploymentCapX === 1n ? "1x, fully backed" : `up to ${l.deploymentCapX}x`} />
-        <Row k="Funding" v={m.fundingEnabled ? "on" : "off"} />
-        <Row k="Order size" v={`${lotsToClaims(l.minOrderLots)} to ${lotsToClaims(l.maxOrderLots)} claims`} />
-        <Row k="INVALID fallback" v={l.invalidRule.fallbackListed ? `${wadTo3(l.invalidRule.fallbackPriceWad)} after ${l.invalidRule.captureGraceSecs / 60n}m` : "none"} />
-      </dl>
-      <dl>
-        <Row k="Worst-case capital lock" v={`${l.invalidRule.voidSecs / 86400n} days`} hint="Upper bound before an unresolved market voids to INVALID" />
-        <Row k="Engine" v={<a className="inline-flex items-center gap-1 underline decoration-line-strong hover:text-fg" href={explorerAddress(manifest.engine)} target="_blank" rel="noreferrer">{shortAddr(manifest.engine)}<ExternalLink size={11} strokeWidth={1.75} aria-hidden /></a>} />
-        <Row k="Resolution" v={manifest.resolution === "ORACLE" ? "Eros oracle" : "Manual test authority"} />
-        <Row k="Risk profile" v={`v${m.profile.version} · ${m.profile.profileHash.slice(0, 10)}…`} />
-        <Row k="Read at block" v={m.block.toString()} />
-      </dl>
+    <div className="px-4 py-2">
+      <div className={cx(terminalStyles.details, "grid gap-x-8")}>
+        <dl>
+          <Row k="Trading closes" v={fmtUtc(l.scheduledT)} />
+          <Row k="Trading phase" v={STAGE[m.risk.stage]} />
+          <Row k="Resolution" v={manifest.resolution === "ORACLE" ? "Eros oracle" : "Manual test authority"} />
+          <Row k="Maximum resolution wait" v={`${l.invalidRule.voidSecs / 86400n} days`} hint="Upper bound before an unresolved market voids to INVALID; collateral can remain locked until settlement." />
+        </dl>
+        <dl>
+          <Row k="Order size" v={`${lotsToClaims(l.minOrderLots)}–${lotsToClaims(l.maxOrderLots)} claims`} />
+          <Row k="Leverage ceiling" v={l.deploymentCapX === 1n ? "1×, fully backed" : `${l.deploymentCapX}×`} hint="The available limit can be lower and is shown in the order ticket." />
+          <Row k="Funding" v={m.fundingEnabled ? "Enabled" : "Disabled"} />
+          <Row k="Trading fees" v="Shown in your order preview" />
+        </dl>
+      </div>
+      <details className="mt-2 border-t border-line">
+        <summary className="cursor-pointer py-3 text-xs text-fg-2 focus-visible:outline-2 focus-visible:outline-signal">Market rules & contract details</summary>
+        <div className={cx(terminalStyles.details, "grid gap-x-8 pb-2")}>
+          <dl>
+            <Row k="Market type" v={TEMPLATE[l.template]} />
+            <Row k="Pricing" v={PRICING[m.risk.pricingMode]} />
+            <Row k="Accounting" v={ACCOUNTING[m.risk.accountingState]} />
+            <Row k="Listed" v={fmtUtc(l.listedAt)} />
+          </dl>
+          <dl>
+            <Row k="Missing-data fallback" v={l.invalidRule.fallbackListed ? `${wadTo3(l.invalidRule.fallbackPriceWad)} after ${l.invalidRule.captureGraceSecs / 60n}m` : "None listed"} />
+            <Row k="Engine" v={<a className="inline-flex items-center gap-1 underline decoration-line-strong hover:text-fg" href={explorerAddress(manifest.engine)} target="_blank" rel="noreferrer">{shortAddr(manifest.engine)}<ExternalLink size={11} strokeWidth={1.75} aria-hidden /></a>} />
+            <Row k="Risk profile" v={`v${m.profile.version} · ${m.profile.profileHash.slice(0, 10)}…`} />
+            <Row k="Snapshot block" v={m.block.toString()} />
+          </dl>
+        </div>
+      </details>
     </div>
   );
 }
@@ -197,14 +193,14 @@ const usd2 = (q: bigint) => qToMoney(q).usdc.replace(/(\.\d{2})\d+$/, "$1");
 /** Position and margin below the chart (contract FIRST VIEWPORT): contract previews only, at one block. */
 export function PositionPanel({ m, t, onReduce }: { m?: MarketSnapshot; t?: TraderSnapshot; onReduce?: (bps: number) => void }) {
   const owner = useOwner();
-  if (!owner.connected) return <p className="px-4 py-4 text-sm text-fg-3">Log in to see your position and margin.</p>;
-  if (!t) return <p className="p-4 text-sm text-fg-3">Reading your account…</p>;
+  if (!owner.connected) return <p className="px-4 py-6 text-xs text-fg-3">Log in to see your positions.</p>;
+  if (!t) return <p role="status" className="p-4 text-xs text-fg-3">Reading your account…</p>;
   const p = t.account?.preview;
   const r = t.account?.riskView;
   if (!p || !r) {
     return (
-      <p className="max-w-xl px-4 py-4 text-sm leading-relaxed text-fg-3">
-        No position on this market. Fund it from the account panel; your position, margin and open-order reservations appear here.
+      <p className="px-4 py-6 text-xs leading-relaxed text-fg-3">
+        No position yet. Open Manage collateral in Balances to fund this market.
       </p>
     );
   }
@@ -212,28 +208,48 @@ export function PositionPanel({ m, t, onReduce }: { m?: MarketSnapshot; t?: Trad
   const w = p.positionLots >= 0n ? p.id.markWad : 10n ** 18n - p.id.markWad;
   const exposureQ = (p.positionLots < 0n ? -p.positionLots : p.positionLots) * 1000n * w;
   const lev = markOk && p.markEquityQ > 0n && p.positionLots !== 0n ? (exposureQ * 100n) / p.markEquityQ : undefined;
+  const canReduce = !!m && !m.halted && t.block === m.block && !!onReduce;
   return (
-    <div className={cx(terminalStyles.details, "grid gap-x-8 px-4 py-2")}>
-      <dl>
-        <Row k="Position" v={`${lotsToClaims(p.positionLots)} ${p.positionLots > 0n ? "YES" : p.positionLots < 0n ? "NO" : ""}`} />
-        <Row k="Cash in market" v={usd2(p.cashQ)} hint="Already includes projected funding and premium; negative when leveraged" />
-        <Row k="Value if YES" v={usd2(p.e1Q)} />
-        <Row k="Value if NO" v={usd2(p.e0Q)} />
-      </dl>
-      <dl>
-        <Row k="Equity at mark" v={markOk ? usd2(p.markEquityQ) : <Unavailable short="no mark" signal reason="No valid mark" />} />
-        <Row k="Leverage" v={lev !== undefined ? `${lev / 100n}.${(lev % 100n).toString().padStart(2, "0")}x` : "—"} />
-        <Row k="Initial / maintenance" v={p.fullBackingRequired ? "fully backed" : markOk ? `${usd2(BigInt(p.imQ))} / ${usd2(BigInt(p.mmQ))}` : "—"} />
-        <Row k="Health" v={<span className={p.status >= 3 ? "text-signal-text" : undefined}>{markOk || p.positionLots === 0n ? HEALTH[p.status] : "unavailable"}{r.graceActive ? ` · grace until ${fmtUtc(r.graceEndsAt)}` : ""}</span>} />
-      </dl>
-      <dl>
-        <Row k="Open bids" v={`${lotsToClaims(BigInt(p.orders.bidLots))} claims · ${usd2(p.orders.bidValueQ)}`} hint="Reserved by resting buy orders" />
-        <Row k="Open asks" v={`${lotsToClaims(BigInt(p.orders.askLots))} claims · ${usd2(p.orders.askValueQ)}`} hint="Reserved by resting sell orders" />
-        <Row k="Funding accrued" v={usd2(p.projectedFundingQ)} hint="Estimate; positive means you pay" />
-        <Row k="Premium accrued" v={usd2(BigInt(p.projectedPremiumQ))} hint="Estimate" />
-      </dl>
-      {p.positionLots !== 0n && !m?.halted && <div className="col-span-full flex flex-wrap items-center gap-2 py-3"><Button onClick={() => onReduce?.(10000)}>Close position</Button>{(p.positionLots > 1n || p.positionLots < -1n) && <Button onClick={() => onReduce?.(5000)}>Reduce 50%</Button>}<span className="text-xs text-fg-3">Prepares a reduce-only IOC. Review its limit before signing.</span></div>}
-      {m && <p className="col-span-full pb-1 text-2xs text-fg-3 tnum">Read at block {t!.block.toString()}</p>}
+    <div>
+      {(r.graceActive || r.liquidationMode !== 0 || (markOk && p.status >= 3)) && <p role="status" className="border-b border-signal/30 bg-signal/5 px-4 py-2 text-xs text-signal-text">
+        {r.graceActive ? `Margin grace ends ${fmtUtc(r.graceEndsAt)}. Add collateral or reduce your position.`
+          : r.liquidationMode === 2 ? "Account eligible for takeover. Review your collateral immediately."
+          : "Position at risk of liquidation. Add collateral or reduce your position."}
+      </p>}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left text-xs">
+          <thead className="hair-b text-fg-3"><tr>
+            {["Position", "Equity (USDC)", "Leverage", "Health", "Actions"].map(label => <th key={label} scope="col" className="whitespace-nowrap px-4 py-2 font-normal">{label}</th>)}
+          </tr></thead>
+          <tbody><tr className="hair-b">
+            <td className="whitespace-nowrap px-4 py-3 font-medium text-fg">{positionLabel(p.positionLots)}</td>
+            <td className="px-4 py-3 tnum">{markOk ? usd2(p.markEquityQ) : <Unavailable short="No mark" signal reason="Equity is unavailable until a valid mark is available." />}</td>
+            <td className="px-4 py-3 tnum">{lev !== undefined ? `${lev / 100n}.${(lev % 100n).toString().padStart(2, "0")}×` : "—"}</td>
+            <td className={cx("whitespace-nowrap px-4 py-3", p.status >= 3 ? "text-signal-text" : "text-fg-2")}>{markOk || p.positionLots === 0n ? HEALTH[p.status] : "Unavailable"}</td>
+            <td className="px-4 py-2">{p.positionLots !== 0n && !m?.halted ? <div className="flex items-center gap-2">
+              <Button size="sm" disabled={!canReduce} onClick={() => onReduce?.(10000)} title="Prepare a reduce-only close order for review">Close position</Button>
+              {(p.positionLots > 1n || p.positionLots < -1n) && <Button size="sm" disabled={!canReduce} onClick={() => onReduce?.(5000)} title="Prepare an order to reduce your position by half">Reduce 50%</Button>}
+            </div> : <span className="text-fg-3">—</span>}</td>
+          </tr></tbody>
+        </table>
+      </div>
+      <details className="px-4">
+        <summary className="cursor-pointer py-3 text-xs text-fg-2 focus-visible:outline-2 focus-visible:outline-signal">Margin & funding details</summary>
+        <div className={cx(terminalStyles.details, "grid gap-x-8 pb-3")}>
+          <dl>
+            <Row k="Market balance" v={usd2(p.cashQ)} hint="Already includes projected funding and premium; negative when leveraged." />
+            <Row k="Value if YES / NO" v={`${usd2(p.e1Q)} / ${usd2(p.e0Q)}`} />
+            <Row k="Initial / maintenance margin" v={p.fullBackingRequired ? "Fully backed" : markOk ? `${usd2(BigInt(p.imQ))} / ${usd2(BigInt(p.mmQ))}` : "—"} />
+          </dl>
+          <dl>
+            <Row k="Open YES bids" v={`${lotsToClaims(BigInt(p.orders.bidLots))} claims · ${usd2(p.orders.bidValueQ)}`} />
+            <Row k="Open YES asks" v={`${lotsToClaims(BigInt(p.orders.askLots))} claims · ${usd2(p.orders.askValueQ)}`} />
+            <Row k="Funding accrued" v={usd2(p.projectedFundingQ)} hint="Included in market balance. Positive means you pay." />
+            <Row k="Premium accrued" v={usd2(BigInt(p.projectedPremiumQ))} hint="Included in market balance." />
+          </dl>
+        </div>
+        <p className="pb-3 text-2xs text-fg-3">Close and reduce prepare a reduce-only IOC order. Review its price before signing.</p>
+      </details>
     </div>
   );
 }

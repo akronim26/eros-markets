@@ -1,9 +1,14 @@
 import { deployment } from "@/config/deployment";
+import { historyDirections } from "./history-direction";
 export type HistoryEvent = {
   id: string; engine: string; kind: string; block: number; logIndex: number; timestamp: string;
   txHash: `0x${string}`; owner?: string; trader?: string; maker?: string; taker?: string; orderId?: string; payload: string;
 };
-export type HistorySnapshot = { events: HistoryEvent[]; prices: HistoryEvent[]; progress: number; complete: boolean };
+export type HistorySnapshot = {
+  events: HistoryEvent[]; prices: HistoryEvent[]; progress: number; complete: boolean;
+  /** Counterparty placements are evidence only, never account activity or additional fees. */
+  makerOrders?: HistoryEvent[]; directionsComplete?: boolean;
+};
 // An old testnet endpoint must not silently supply history for a fresh deployment.
 export const INDEXER_URL = process.env.NEXT_PUBLIC_INDEXER_DEPLOYMENT?.toLowerCase() === `${deployment.chainId}:${deployment.oracle.marketRegistry.toLowerCase()}`
   ? process.env.NEXT_PUBLIC_INDEXER_URL || "" : "";
@@ -60,7 +65,54 @@ export async function readHistory(chainId: number, engine: string, owner: string
   // includes vault events with an empty engine, so this binding is query-specific.
   if (prices.TradingEvent.some(e => typeof e?.engine !== "string" || e.engine.toLowerCase() !== engine.toLowerCase()
     || !["ObservationAccepted", "PerpObservationRecorded", "Fill"].includes(e.kind))) throw new Error("History returned prices for another market or event kind.");
-  return { events: validatedEvents(events, through), prices: validatedEvents(prices.TradingEvent, through), progress: through, complete: exhausted && vaultComplete && transfersComplete && !!meta._meta[0]?.isReady };
+  const accountEvents = validatedEvents(events, through);
+  const evidence = await readMakerOrders(chainId, engine, accountEvents, trader, through, signal, query);
+  return { events: accountEvents, prices: validatedEvents(prices.TradingEvent, through), progress: through,
+    complete: exhausted && vaultComplete && transfersComplete && !!meta._meta[0]?.isReady, ...evidence };
+}
+
+/** Look up only unresolved fills' maker orders; never download unrelated market activity. */
+async function readMakerOrders(chainId: number, engine: string, events: HistoryEvent[], trader: number | undefined, through: number, signal: AbortSignal | undefined, query: typeof indexerQuery) {
+  const known = historyDirections(events, trader);
+  const missing = events.filter(e => e.kind === "Fill" && !known.has(e.id));
+  const ids = [...new Set(missing.filter(e => e.engine?.toLowerCase() === engine.toLowerCase()).flatMap(e => {
+    const id = String(JSON.parse(e.payload).makerOrder);
+    return /^\d+$/.test(id) && BigInt(id) > 0n && BigInt(id) <= 0xffffffffn ? [BigInt(id).toString()] : [];
+  }))];
+  const makerOrders: HistoryEvent[] = [];
+  let fetched = 0, exhausted = true;
+  // Bound both the IN clause and total returned rows, including servers with smaller page caps.
+  for (let start = 0; start < ids.length; start += 100) {
+    if (fetched >= 20000) { exhausted = false; break; }
+    const chunk = ids.slice(start, start + 100), requested = new Set(chunk);
+    let offset = 0, chunkComplete = false;
+    while (fetched < 20000) {
+      const limit = Math.min(1000, 20000 - fetched);
+      let data: { TradingEvent: HistoryEvent[] };
+      try {
+        data = await query<{ TradingEvent: HistoryEvent[] }>(`query($chain:Int!,$engine:String!,$ids:[numeric!]!,$block:Int!,$offset:Int!,$limit:Int!){TradingEvent(where:{chainId:{_eq:$chain},engine:{_eq:$engine},kind:{_eq:"OrderPlaced"},orderId:{_in:$ids},block:{_lte:$block}},order_by:[{block:asc},{logIndex:asc}],limit:$limit,offset:$offset){${FIELDS}}}`, { chain: chainId, engine: engine.toLowerCase(), ids: chunk, block: through, offset, limit }, signal);
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        // Historical amounts remain usable when direction evidence is temporarily unavailable.
+        return { makerOrders: [], directionsComplete: false };
+      }
+      if (data.TradingEvent.length > limit) throw new Error("History exceeded the requested maker-order page size.");
+      const rows = validatedEvents(data.TradingEvent, through);
+      if (rows.some(e => e.engine?.toLowerCase() !== engine.toLowerCase() || e.kind !== "OrderPlaced"
+        || !requested.has(String(e.orderId)) || String(JSON.parse(e.payload).id) !== String(e.orderId))) {
+        throw new Error("History returned unrelated maker-order evidence.");
+      }
+      makerOrders.push(...rows);
+      fetched += data.TradingEvent.length;
+      offset += data.TradingEvent.length;
+      if (!data.TradingEvent.length) { chunkComplete = true; break; }
+    }
+    if (!chunkComplete) { exhausted = false; break; }
+  }
+  // Validate duplicate identities across account activity and supplemental evidence too.
+  validatedEvents([...events, ...makerOrders], through);
+  const resolved = historyDirections(events, trader, makerOrders);
+  return { makerOrders: validatedEvents(makerOrders, through), directionsComplete: exhausted && events.every(e => e.kind !== "Fill" || resolved.has(e.id)) };
 }
 
 /** Reject malformed indexed payloads before rendering dates, amounts, prices or totals. */

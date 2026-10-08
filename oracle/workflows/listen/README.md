@@ -25,7 +25,9 @@ Stop an existing listener before starting another against the same relayer.
 The state directory contains `checkpoint.json`, a process lock, supervisor logs
 and per-execution CRE logs. Keep this directory on persistent storage.
 
-On first start, the service scans the most recent 100 finalized blocks. For a
+On first start, the default `fresh-testnet` service scans from the current verified
+oracle's deployment block. The explicit historical `local-sim` target starts at
+the most recent 100 finalized blocks. For a
 known outage, set `START_BLOCK` to the earliest unprocessed block on the first
 start. It is ignored once a checkpoint exists. Only markets still in `L1Pending`
 are executed. Events for resolved/escalated markets are skipped. Pending requests
@@ -36,9 +38,10 @@ The wrapper does not bypass the market's escalation or finality rules.
 
 `BROADCAST=0` executes without submitting reports. Use a **separate state directory**
 for this mode. `RUN_ONCE=1` performs one bounded intake/processing pass. `CRE_BIN`
-and `CRE_ENV_FILE` override the binary and env-file locations. `local-sim` selects
-the historical deployment; `TARGET=fresh-testnet` selects the verified 2026-10-06
-deployment. Both are restricted to chain 10143. Use a separate state directory
+and `CRE_ENV_FILE` override the binary and env-file locations. `TARGET=local-sim`
+selects the historical deployment; `fresh-testnet` is the default and selects the
+current verified frontend deployment. Startup rejects a workflow config whose
+oracle differs from that manifest. Both are restricted to chain 10143. Use a separate state directory
 when changing deployment/target. The public MLB demo uses `secrets.local-sim.yaml` and
 requires no SportsData API key. For private SportsData feeds, configure that key
 and select `../secrets.yaml` in the workflow target before running.

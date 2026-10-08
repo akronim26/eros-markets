@@ -72,6 +72,10 @@ export function TopBar() {
 
 /** Testnet stand-ins are disclosed, never dressed up as production (frontend.md R11). */
 export function TestnetStrip() {
+  const terminal = usePathname().startsWith("/m/");
+  if (terminal) return <div className="flex min-h-7 flex-wrap items-center gap-x-3 px-4 py-1 text-2xs text-fg-3 md:px-6">
+    <span className="font-medium text-signal-text">Testnet</span><span>Test collateral · no monetary value</span>
+  </div>;
   return (
     <div className="label flex flex-wrap items-center gap-x-4 gap-y-0.5 px-6 py-2 text-fg-3 max-md:px-4">
       <span className="font-semibold text-signal-text">// Testnet</span>

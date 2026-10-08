@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { ownerTrader } from "@/lib/trader";
@@ -25,6 +25,7 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
   const fundDisabled = archived && !t?.account?.preview.positionLots;
   const [mode, setMode] = useState<(typeof MODES)[number]>(archived ? "Release" : "Fund");
   const [input, setInput] = useState("");
+  const [expanded, setExpanded] = useState<boolean>();
   let amount = 0n, error = "";
   const available = !t ? 0n : mode === "Fund" ? t.wallet + t.free : mode === "Withdraw" ? t.free : t.account?.preview.usableReleaseAtoms ?? 0n;
   try { if (input) { amount = parseUsdcToAtoms(input); if (!amount) throw new Error("Enter an amount greater than zero."); if (t) amount = amountWithinBalance(amount, available); } } catch (e) { error = (e as Error).message; }
@@ -36,6 +37,9 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
   });
   const releasePreview = readsReady && pinnedReadCurrent(release.data, m?.block) ? release.data?.value : undefined;
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
+  useEffect(() => {
+    if (busy || tx.state.status === "error" || tx.state.status === "done") setExpanded(true);
+  }, [busy, tx.state.status]);
   const blocker = mode === "Fund" && fundDisabled ? "Archived market"
     : owner.wrongChain ? "Switch to Monad testnet" : readUnavailable ? "Live reads unavailable" : !readsReady ? "Reading balances…"
     : mode !== "Withdraw" && m?.halted ? "Market halted"
@@ -54,7 +58,12 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
     } else await tx.run(owner.address, [{ ...(mode === "Release" ? sdk.release(amount) : sdk.withdraw(amount)), label: mode.toLowerCase() }]);
   }
   const claimable = canClaim(m?.settlement, t?.account?.claimable ?? 0n, t?.account?.claimed ?? false);
-  return <div className="mt-auto flex flex-col gap-3 border-t border-line p-3">
+  const unfunded = !archived && !m?.halted && !!t && (!t.account || (t.account.preview.positionLots === 0n && t.account.preview.cashQ <= 0n));
+  return <details className="border-t border-line" open={busy || (expanded ?? (unfunded || claimable))}
+    onToggle={event => setExpanded(event.currentTarget.open)}>
+    <summary className="cursor-pointer px-3 py-3 text-xs font-medium text-fg-2 focus-visible:outline-2 focus-visible:outline-signal"
+      onClick={event => { if (busy) event.preventDefault(); }}>Manage collateral{busy ? " · pending" : ""}</summary>
+    <div className="flex flex-col gap-3 px-3 pb-3">
     <div role="group" aria-label="Manage collateral" className="grid grid-cols-3 gap-px bg-line">
       {MODES.map((x) => <button key={x} disabled={busy || (x === "Fund" && fundDisabled)} aria-pressed={mode === x} className={cx("label h-9 disabled:opacity-40", x === mode ? "bg-press text-fg" : "bg-ground text-fg-3")} onClick={() => { setMode(x); setInput(""); validation.reset(); tx.reset(); }}>{x}</button>)}
     </div>
@@ -72,5 +81,6 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
     {t?.account?.claimed && !t.account.claimable && <p className="text-xs text-fg-3">Settlement claimed.</p>}
     {mode === "Release" && release.isError && <ReadError message="Could not check the available release amount." retry={() => { void release.refetch(); }} />}
     <TxFeedback state={tx.state} />
-  </div>;
+    </div>
+  </details>;
 }

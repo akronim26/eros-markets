@@ -1,14 +1,14 @@
 #!/usr/bin/env bun
 // `bun run console <command> …` (commands in console.ts). Keys are testnet-only hot keys.
 //
-//   NETWORK                deployments/<NETWORK>.json (default monad-testnet)
+//   NETWORK                verified frontend manifest (default monad-testnet); DEPLOYMENTS_FILE selects an explicit historical record
 //   RPC_URL                the reviewer's RPC endpoint
 //   COMMITTEE_PRIVATE_KEY  the reviewer's committee key (propose, sign)
 //   RELAYER_PRIVATE_KEY    the EOA that submits and pays gas
 //   SNAPSHOT_DIR           the store shared with the panel runner (default ./snapshots)
 //   DATA_DIR               the console's cases and proposals (default ./committee)
 //   FROM_BLOCK             where log reads start (default the oracle's deploy block)
-import { loadDeployments, loadGas } from '@eros-oracle/oracle-sdk'
+import { loadServiceDeployment, loadGas } from '@eros-oracle/oracle-sdk'
 import { takeSnapshot } from '@eros-oracle/snapshotter'
 import type { Address, Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -30,6 +30,8 @@ const key = z.string().regex(/^0x[0-9a-fA-F]{64}$/)
 const env = z
   .object({
     NETWORK: z.string().default('monad-testnet'),
+    DEPLOYMENTS_FILE: z.string().min(1).optional(),
+    DEPLOYMENT_MANIFEST: z.string().min(1).optional(),
     RPC_URL: z.url(),
     COMMITTEE_PRIVATE_KEY: key.optional(),
     RELAYER_PRIVATE_KEY: key.optional(),
@@ -41,7 +43,7 @@ const env = z
 
 const json = (v: unknown) => JSON.stringify(v, (_k, x) => (typeof x === 'bigint' ? x.toString() : x), 2)
 const con = new CommitteeConsole({
-  chain: viemCaseChain({ rpcUrl: env.RPC_URL, deployments: loadDeployments(env.NETWORK), relayerKey: env.RELAYER_PRIVATE_KEY as Hex | undefined, fromBlock: env.FROM_BLOCK }),
+  chain: viemCaseChain({ rpcUrl: env.RPC_URL, deployments: loadServiceDeployment(env.NETWORK, { deploymentsFile: env.DEPLOYMENTS_FILE, manifestFile: env.DEPLOYMENT_MANIFEST }), relayerKey: env.RELAYER_PRIVATE_KEY as Hex | undefined, fromBlock: env.FROM_BLOCK }),
   store: new EvidenceStore(env.SNAPSHOT_DIR),
   gas: loadGas(),
   takeSnapshot: (req) => takeSnapshot(req),

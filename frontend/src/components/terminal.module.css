@@ -1,54 +1,86 @@
 .terminal {
-  --text-2xs: 0.75rem;
-  --text-2xs--line-height: 1.125rem;
-  --text-xs: 0.8125rem;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
   --text-xs--line-height: 1.125rem;
-  --text-sm: 1rem;
-  --text-sm--line-height: 1.5rem;
-  --text-base: 1.125rem;
-  --text-base--line-height: 1.625rem;
-  --text-lg: 1.25rem;
-  --text-lg--line-height: 1.75rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.375rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5rem;
 }
 
 .terminal :global(.label) {
-  font-size: 0.75rem;
-  line-height: 1.125rem;
-  letter-spacing: 0.06em;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.035em;
 }
 
-.content {
-  container: terminal-content / inline-size;
+.marketBar {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-panel);
+}
+.marketBar > :last-child { flex: 1; min-width: 0; border-left: 1px solid var(--color-line); }
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "chart" "trade" "book" "activity";
+  gap: 1px;
+  border: 1px solid var(--color-line-strong);
+  border-top: 0;
+  background: var(--color-line);
+}
+.workspace > * { min-width: 0; background: var(--color-ground); }
+.trade { grid-area: trade; display: flex; flex-direction: column; }
+.trade > :first-child { height: auto; }
+.book { grid-area: book; display: flex; }
+.book > * { flex: 1; }
+.chart { grid-area: chart; display: flex; min-height: 24rem; }
+.chart > * { flex: 1; }
+.activity { grid-area: activity; }
+.activityBar { display: flex; min-width: 0; border-bottom: 1px solid var(--color-line); }
+.activityContent { min-height: 9rem; max-height: 28rem; overflow: auto; }
+
+.details { grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); }
+.deadlineList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.deadlineList :global(.tnum) { white-space: normal; }
+
+@media (max-width: 479px) {
+  .marketBar > a { padding-inline: 0.625rem; }
+  .activityBar { flex-wrap: wrap; }
+  .activityBar > :first-child { flex-basis: 100%; }
+  .activityBar > select { min-height: 2.25rem; max-width: none; width: 100%; border-left: 0; border-top: 1px solid var(--color-line); }
 }
 
-/* Details follow the available width beside the order panel. */
-.details {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
-}
-
-.deadlineList {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.deadlineList :global(.tnum) {
-  white-space: normal;
-}
-
-@container terminal-content (min-width: 42rem) {
-  .deadlineList {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+@media (min-width: 768px) {
+  .workspace {
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-areas: "chart chart" "trade book" "activity activity";
   }
+  .chart { min-height: 27rem; }
+  .deadlineList { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
-@container terminal-content (min-width: 64rem) {
-  .deadlines {
-    grid-template-columns: minmax(16rem, 1fr) 2fr;
+@media (min-width: 1024px) {
+  .workspace {
+    grid-template-columns: 284px 204px minmax(0, 1fr);
+    grid-template-areas: "trade book chart" "trade activity activity";
+    grid-template-rows: minmax(27rem, 1fr) auto;
+    min-height: calc(100dvh - 12rem);
   }
+  .chart { min-height: 0; }
+  .activityContent { min-height: 10rem; }
 }
 
-.priceWorkspace { grid-template-columns: minmax(0, 1fr); }
-.priceWorkspace > :last-child { border-top: 1px solid var(--color-line-strong); }
-@container terminal-content (min-width: 43rem) {
-  .priceWorkspace { grid-template-columns: minmax(0, 1fr) 248px; }
-  .priceWorkspace > :last-child { border-top: 0; border-left: 1px solid var(--color-line-strong); }
+@media (min-width: 1280px) {
+  .workspace { grid-template-columns: 304px 224px minmax(0, 1fr); }
+}
+
+@media (min-width: 1600px) {
+  .workspace { grid-template-columns: 320px 256px minmax(0, 1fr); }
 }

@@ -2,17 +2,16 @@
 import { closeSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createPublicClient, http, parseAbi, parseAbiItem, type Hex } from 'viem'
+import { createPublicClient, http, parseAbi, parseAbiItem } from 'viem'
 import { enqueue, nextRange, receiptIndex, validateCheckpoint, type Checkpoint, type Request } from './poller'
+import { loadListenerConfig } from './config'
 
 const workflows = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const target = process.env.TARGET ?? 'local-sim'
-if (!['local-sim', 'fresh-testnet'].includes(target)) throw new Error('This listener only supports configured testnet simulation targets')
+const target = process.env.TARGET ?? 'fresh-testnet'
 const broadcast = process.env.BROADCAST !== '0'
 const rpc = process.env.MONAD_TESTNET_RPC
 if (!rpc) throw new Error('MONAD_TESTNET_RPC is required (load workflows/.env)')
-const cfg = JSON.parse(readFileSync(join(workflows, `resolution/config.${target}.json`), 'utf8'))
-const oracle = cfg.oracle as Hex
+const { oracle, startBlock } = loadListenerConfig(target, process.env.DEPLOYMENT_MANIFEST)
 const stateDir = resolve(process.env.STATE_DIR ?? join(workflows, 'listen/logs'))
 const envFile = resolve(process.env.CRE_ENV_FILE ?? join(workflows, '.env'))
 const cre = process.env.CRE_BIN ?? 'cre'
@@ -46,7 +45,7 @@ try {
     const head = await client.getBlock({ blockTag: 'finalized' })
     const start = process.env.START_BLOCK
     if (start !== undefined && !/^\d+$/.test(start)) throw new Error('START_BLOCK must be a decimal block number')
-    state = { version: 1, ...scope, nextBlock: start ?? String(head.number > 99n ? head.number - 99n : 0n), pending: [] }
+    state = { version: 1, ...scope, nextBlock: start ?? String(startBlock ?? (head.number > 99n ? head.number - 99n : 0n)), pending: [] }
     save(state)
     log('initialized', { nextBlock: state.nextBlock, broadcast })
   }

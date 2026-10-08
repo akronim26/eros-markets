@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useHead, useMarket, useTrader } from "@/lib/reads";
 import { type MarketManifest } from "@/config/deployment";
 import { useMarketList } from "@/lib/market-list";
-import { atomsToUsdc, lotsToClaims, qToMoney } from "@/lib/units";
+import { atomsToUsdc, qToMoney } from "@/lib/units";
+import { positionLabel } from "@/lib/position-label";
 import { HEALTH } from "@/lib/enums";
 import { LoadingPanel } from "./feedback";
 import { chipFor } from "./market-parts";
@@ -22,7 +23,7 @@ function Line({ mk, owner, block }: { mk: MarketManifest; owner: `0x${string}`; 
     <tr className="hair-b">
       <td className="py-3 pr-6 pl-4"><Link href={`/m/${mk.engine}`} className="text-sm font-medium text-fg hover:underline">{mk.short}</Link>{mk.archived && <p className="label mt-1 text-fg-3">Archived</p>}</td>
       <td className="pr-6">{chip && <Chip tone={chip.tone}>{chip.label}</Chip>}{(m.isError || t.isError) && <p role="alert" className="mt-1 text-xs text-ask">Read failed. <button className="underline" onClick={() => { void m.refetch(); void t.refetch(); }}>Retry</button></p>}</td>
-      <td className="tnum pr-6 text-right text-sm">{p ? `${lotsToClaims(p.positionLots)}` : <span className="text-fg-3">{t.isError ? "unavailable" : t.data ? "not funded" : "Reading…"}</span>}</td>
+      <td className="tnum pr-6 text-right text-sm">{p ? positionLabel(p.positionLots) : <span className="text-fg-3">{t.isError ? "unavailable" : t.data ? "not funded" : "Reading…"}</span>}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? two(qToMoney(p.cashQ).usdc) : "—"}</td>
       <td className="tnum pr-6 text-right text-sm">{p ? `${two(qToMoney(p.e1Q).usdc)} / ${two(qToMoney(p.e0Q).usdc)}` : "—"}</td>
       <td className="pr-6 text-sm text-fg-2">{p ? p.id.markAvailable || p.positionLots === 0n ? HEALTH[p.status] : "unavailable" : "—"}</td>
@@ -69,7 +70,7 @@ export function PortfolioPage() {
               <tr className="hair-b text-2xs text-fg-3">
                 <th className="py-2.5 pr-6 pl-4 font-medium">Market</th>
                 <th className="pr-6 font-medium">Status</th>
-                <th className="pr-6 text-right font-medium">Position (claims)</th>
+                <th className="pr-6 text-right font-medium">Net position</th>
                 <th className="pr-6 text-right font-medium">Cash</th>
                 <th className="pr-6 text-right font-medium">Value if YES / NO</th>
                 <th className="pr-6 font-medium">Health</th>

@@ -2,8 +2,9 @@ import { getAddress } from 'viem'
 
 /** Pins a fresh indexer's event filters to a verified base, before market discovery begins. */
 export function verifiedOracleAddresses(value: unknown) {
-  const v = value as { passed?: boolean; chainId?: number; verifiedAt?: { blockNumber?: unknown; blockHash?: unknown }; contracts?: Record<string, { address?: string; codehash?: string; deployBlock?: number }> }
-  if (!v || v.passed !== true || v.chainId !== 10143 || !v.verifiedAt
+  const v = value as { passed?: boolean; manifestVersion?: number; scope?: string; provenance?: { resolution?: string }; chainId?: number; verifiedAt?: { blockNumber?: unknown; blockHash?: unknown }; contracts?: Record<string, { address?: string; codehash?: string; deployBlock?: number }> }
+  const publicManifest = v?.manifestVersion === 1 && v.scope === 'testnet-read-only' && v.provenance?.resolution === 'oracle'
+  if (!v || (v.passed !== true && !publicManifest) || v.chainId !== 10143 || !v.verifiedAt
     || !/^(0|[1-9][0-9]*)$/.test(String(v.verifiedAt.blockNumber))
     || !/^0x[0-9a-fA-F]{64}$/.test(String(v.verifiedAt.blockHash))) throw new Error('VERIFIED_INDEXER_BASE_REQUIRED')
   const contract = (name: string) => {

@@ -5,7 +5,7 @@
 //   3. scan for injection, ask the models, calibrate; keep `<evidenceHash>.panel.json` for the committee console
 //   4. pre-check the route to save gas (the contract decides): a NOT_YET majority after T is not sent and re-runs
 //      after 15 min, 30 min, 1 h, … until the L2 deadline
-//   5. sign the PanelResult, eth_call it, then send it with the measured gas limit
+//   5. sign the PanelResult, eth_call it, journal/send with the measured gas limit, and reconcile finalized acceptance
 import { gasLimit, type GasTable, type ModelCall, modelIdHash, type PanelResult } from '@eros-oracle/oracle-sdk'
 import { canonicalBytes, evidenceHash, type Item, type Snapshot, type SnapshotRequest } from '@eros-oracle/snapshotter'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -16,6 +16,7 @@ import type { Scan } from './injection'
 import type { ModelOutcome } from './models/client'
 import { buildCall, type PinnedPrompt, promptFor } from './prompts'
 import { type DigestSigner, signPanelResult } from './signer'
+import { SubmissionStore } from './submissions'
 
 export const RState = { None: 0, EarlyCheck: 1, EarlyReview: 2, L1Pending: 3, L2Pending: 4, Review: 5 } as const
 export const Phase = { EARLY: 1, POST_T: 2 } as const
@@ -55,6 +56,8 @@ export type PanelChain = {
   /** Returns the state it routes to; throws with the revert. */
   simulate(id: Hex, r: PanelResult, uri: string, sig: Hex): Promise<number>
   send(id: Hex, r: PanelResult, uri: string, sig: Hex, gas: bigint): Promise<Hex>
+  /** Only confirmed after canonical finality, successful execution and a matching acceptance event. */
+  submissionStatus(hash: Hex, id: Hex, phase: number, evidenceHash: Hex): Promise<'pending' | 'reverted' | 'confirmed'>
 }
 
 export type Route = 'EarlyReview' | 'None' | 'Review' | 'AutoPropose' | 'NotYet'
@@ -69,6 +72,7 @@ export type RunResult = {
   calibratedBps: number[]
   scan: Scan
   sent?: Hex
+  confirmed?: boolean
   skipped?: string
 }
 
@@ -118,6 +122,7 @@ export function pinnedModels(ai: AIConfig, models: readonly string[]): string[] 
 
 const unanimousKnown = (labels: number[]) => labels[0] === labels[1] && labels[1] === labels[2] && [LABEL.YES, LABEL.NO, LABEL.INVALID].includes(labels[0] as 1 | 2 | 3)
 const unanimousBinary = (labels: number[]) => labels[0] === labels[1] && labels[1] === labels[2] && (labels[0] === LABEL.YES || labels[0] === LABEL.NO)
+const watchKey = (m: MarketView) => m.state === RState.EarlyCheck ? `early:${m.earlyStartedAt}` : `l2:${m.l2StartedAt}:${m.attempts}`
 
 /** The contract's expected route, used only to save gas. */
 export function preRoute(phase: number, labels: number[], bps: number[], flags: number, ai: AIConfig, categoryValidated: boolean): Route {
@@ -130,9 +135,21 @@ export function preRoute(phase: number, labels: number[], bps: number[], flags: 
 export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null> {
   const log = d.log ?? quiet
   const c = d.chain
+  const store = new SubmissionStore(d.snapshotDir, c.chainId, c.oracle)
+  const previous = store.read(id)
+  if (previous?.status === 'broadcasting') throw new Error('Panel broadcast outcome unknown; reconcile the submission journal before retrying')
+  if (previous?.status === 'pending') {
+    const status = await c.submissionStatus(previous.result.sent!, id, previous.result.phase, previous.result.evidenceHash)
+    if (status === 'pending') return previous.result
+    store.write(id, { ...previous, status, result: { ...previous.result, confirmed: status === 'confirmed' } })
+    if (status === 'reverted') throw new Error('Panel transaction reverted; a fresh run will retry')
+    return { ...previous.result, confirmed: true }
+  }
   const m = await c.market(id)
   const phase = m.state === RState.EarlyCheck ? Phase.EARLY : m.state === RState.L2Pending ? Phase.POST_T : 0
   if (phase === 0) return null
+  const keyForEntry = watchKey(m)
+  if (previous?.status === 'confirmed' && previous.key === keyForEntry) return previous.result
   const ai = await c.aiConfig(id)
   const models = pinnedModels(ai, d.models)
   const prompt = promptFor(d.prompts, ai.categoryId, ai.promptHash)
@@ -194,9 +211,15 @@ export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null>
   }
   const { signature } = await signPanelResult(d.signer, c.chainId, c.oracle, result)
   await c.simulate(id, result, uri, signature)
+  store.write(id, { key: keyForEntry, status: 'broadcasting', result: base })
   const sent = await c.send(id, result, uri, signature, gas)
+  const pending = { ...base, sent }
+  store.write(id, { key: keyForEntry, status: 'pending', result: pending })
   log('info', 'panel result sent', { marketId: id, route, hash: sent, flags: scan.flags, labels })
-  return { ...base, sent }
+  const status = await c.submissionStatus(sent, id, phase, evHash)
+  if (status !== 'pending') store.write(id, { key: keyForEntry, status, result: { ...pending, confirmed: status === 'confirmed' } })
+  if (status === 'reverted') throw new Error('Panel transaction reverted; a fresh run will retry')
+  return { ...pending, confirmed: status === 'confirmed' }
 }
 
 type Watch = { key: string; runs: number; nextAt: bigint; done: boolean }
@@ -209,7 +232,9 @@ export class PanelRunner {
   private readonly seen = new Set<Hex>()
   private readonly watch = new Map<Hex, Watch>()
 
-  constructor(private readonly d: RunnerDeps) {}
+  constructor(private readonly d: RunnerDeps) {
+    for (const id of new SubmissionStore(d.snapshotDir, d.chain.chainId, d.chain.oracle).ids()) this.seen.add(id)
+  }
 
   async tick(): Promise<RunResult[]> {
     const log = this.d.log ?? quiet
@@ -217,7 +242,19 @@ export class PanelRunner {
     for (const s of await c.stateChanges()) this.seen.add(s.id.toLowerCase() as Hex)
     const now = await c.now()
     const out: RunResult[] = []
+    const store = new SubmissionStore(this.d.snapshotDir, c.chainId, c.oracle)
     for (const id of this.seen) {
+      // Reconcile sent work even after the market leaves the panel state or its deadline passes.
+      const submission = store.read(id)
+      if (submission?.status === 'pending' || submission?.status === 'broadcasting') {
+        try {
+          const r = await runOnce(id, this.d)
+          if (r) out.push(r)
+        } catch (error) { log('error', 'panel submission needs reconciliation', { marketId: id, error: String(error) }) }
+        // Only a finalized revert permits a fresh send; retry next poll, not the model NOT_YET backoff.
+        if (store.read(id)?.status === 'reverted') this.watch.delete(id)
+        continue
+      }
       const m = await c.market(id)
       const inEarly = m.state === RState.EarlyCheck && now < m.earlyStartedAt + m.earlyTtlSecs && now < m.tau
       const inL2 = m.state === RState.L2Pending && now < m.l2StartedAt + m.l2DeadlineSecs
@@ -226,7 +263,7 @@ export class PanelRunner {
         continue
       }
       // A market that re-enters EarlyCheck later starts over.
-      const key = inEarly ? `early:${m.earlyStartedAt}` : `l2:${m.l2StartedAt}:${m.attempts}`
+      const key = watchKey(m)
       let w = this.watch.get(id)
       if (!w || w.key !== key) {
         w = { key, runs: 0, nextAt: now, done: false }
@@ -236,7 +273,7 @@ export class PanelRunner {
       try {
         const r = await runOnce(id, this.d)
         if (r) out.push(r)
-        if (r && (r.sent || r.skipped?.startsWith('no gas.json'))) w.done = true
+        if (r && (r.confirmed || r.skipped?.startsWith('no gas.json'))) w.done = true
         else w.nextAt = now + (RERUN_FIRST_SECS << BigInt(w.runs))
       } catch (e) {
         log('error', 'panel run failed', { marketId: id, error: String(e) })

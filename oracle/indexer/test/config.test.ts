@@ -1,11 +1,12 @@
-// config.yaml and the handlers' address table must match deployments/monad-testnet.json.
+// Default runtime config and handler filters share the frontend's current verified deployment.
 import { readFileSync } from 'node:fs'
 import { parse } from 'yaml'
 import { describe, expect, it } from 'vitest'
 import { OWN } from '../src/addresses'
+import { checkCurrentConfig } from '../scripts/current-config.mjs'
 
 const ROOT = new URL('../../', import.meta.url).pathname
-const D = JSON.parse(readFileSync(`${ROOT}deployments/monad-testnet.json`, 'utf8'))
+const D = JSON.parse(readFileSync(`${ROOT}../frontend/src/config/public-manifest.json`, 'utf8'))
 const config = parse(readFileSync(new URL('../config.yaml', import.meta.url), 'utf8'))
 const chain = config.chains.find((c: { id: number }) => c.id === 10143)
 const source = (name: string) => chain.contracts.find((c: { name: string }) => c.name === name)
@@ -19,13 +20,18 @@ describe('testnet config', () => {
     }
   })
 
-  it('OOv3, the sandbox DVM and both forwarders from the deployment record', () => {
-    expect(lower(source('OptimisticOracleV3').address)).toEqual([D.uma.oov3.toLowerCase()])
-    expect(lower(source('ErosSandboxOracle').address)).toEqual([D.uma.sandboxOracle.toLowerCase()])
-    expect(lower(source('KeystoneForwarder').address)).toEqual([D.cre.mockForwarder.toLowerCase(), D.cre.keystoneForwarder.toLowerCase()])
+  it('OOv3, the sandbox DVM, current engines and shared simulation forwarder are selected', () => {
+    expect(lower(source('OptimisticOracleV3').address)).toEqual([D.contracts.OptimisticOracleV3.address.toLowerCase()])
+    expect(lower(source('ErosSandboxOracle').address)).toEqual([D.contracts.ErosSandboxOracle.address.toLowerCase()])
+    expect(lower(source('KeystoneForwarder').address)).toEqual(['0xb9f79d863261869b234c481d1f9a7af84aead192'])
+    expect(lower(source('TradingEngine').address)).toEqual(D.markets.map((m: { engine: string }) => m.engine.toLowerCase()))
     // deployed before the oracle (DeployUmaSandbox runs first); nothing is missed from the chain start block
     for (const n of ['OptimisticOracleV3', 'ErosSandboxOracle']) expect(source(n).start_block).toBeLessThan(D.contracts.ResolutionOracle.deployBlock)
     expect(chain.start_block).toBeLessThanOrEqual(Math.min(...chain.contracts.map((c: { start_block: number }) => c.start_block)))
+  })
+
+  it('both default and fresh configs pass the startup manifest consistency guard', () => {
+    expect(() => checkCurrentConfig()).not.toThrow()
   })
 
   it('the handlers filter on the same oracle and adapter', () => {

@@ -1,7 +1,7 @@
 {
   "chainSelectorName": "monad-testnet",
   "isTestnet": true,
-  "oracle": "0x2085DaD31c8Ee03025DD07a4EdC103401d493D87",
+  "oracle": "0xb86a48B07eE07037F1B52273B9B50f20615B61e4",
   "writeGasLimit": "400000",
   "httpTimeout": "8s",
   "authSecrets": []

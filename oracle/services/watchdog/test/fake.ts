@@ -54,6 +54,7 @@ export class FakeChain implements WatchdogChain {
   disputes = { open: 0, max: 20 }
   last = 0n
   simulateError: string | null = null
+  windows = { livenessL1: 3600n, livenessAuto: 3600n, livenessReviewed: 7200n }
   disputed: { id: Hex; gas: bigint }[] = []
   beats: bigint[] = []
 
@@ -82,6 +83,7 @@ export class FakeChain implements WatchdogChain {
   async market() {
     return this.text
   }
+  async liveness() { return this.windows }
   async feedSpec() {
     return this.spec
   }
