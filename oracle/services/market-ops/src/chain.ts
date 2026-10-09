@@ -6,6 +6,7 @@ import type { Call, Snapshot, Transport } from './operations'
 import { equalHex, type Manifest } from './schema'
 import { broadcastTracked } from './broadcast'
 import { BatchEstimateOpaqueRevert, BatchGasLimitExceeded, isBatchGasLimitError, isOpaqueBatchEstimateRevert, RolloverBatcherAbi, verifyRolloverHelper } from './rollover-batch'
+import { marketReadTransport } from './read-transport'
 
 const engineAbi = JSON.parse(readFileSync(new URL('../../../../artifacts/risk/book-risk-engine-abi.json', import.meta.url), 'utf8')).abi as Abi
 
@@ -22,7 +23,11 @@ type Listing = {
 
 export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: Hex): Transport {
   const chain = defineChain({ id: manifest.chainId, name: 'market-ops', nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 }, rpcUrls: { default: { http: [rpcUrl] } } })
-  const client = createPublicClient({ chain, transport: http(rpcUrl, { batch: { batchSize: 8, wait: 16 }, timeout: 5000, retryCount: 1, retryDelay: 150 }) })
+  const client = createPublicClient({ chain, transport: marketReadTransport(rpcUrl, manifest.chainId) })
+  const writer = createPublicClient({ chain, transport: http(rpcUrl, { timeout: 5000, retryCount: 0 }) })
+  const verifyWriter = async () => {
+    if (await writer.getChainId() !== manifest.chainId) throw new Error('Writer RPC chain does not match manifest')
+  }
   const runtimeHash = async (address: Address, blockNumber: bigint) => {
     // Creation eth_call returns EXTCODEHASH without downloading the large engine.
     const { data } = await client.call({ data: `0x73${address.slice(2)}3f60005260206000f3`, blockNumber })
@@ -86,14 +91,16 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       return await readEngine('observationDigest', [observation], block) as Hex
     },
     async simulate(call) {
-      const { result } = await client.simulateContract({ address: call.target, abi: callAbi(call), functionName: call.functionName, args: call.args, account: manifest.sender, gas: call.gas })
+      await verifyWriter()
+      const { result } = await writer.simulateContract({ address: call.target, abi: callAbi(call), functionName: call.functionName, args: call.args, account: manifest.sender, gas: call.gas })
       return result
     },
     async estimateGas(call, blockNumber) {
       if (call.functionName !== 'rollover' || !manifest.rolloverHelper
         || !equalHex(call.target, manifest.rolloverHelper.address)) throw new Error('Only enrolled rollover batches use dynamic gas estimation')
       try {
-        return await client.estimateContractGas({ address: call.target, abi: callAbi(call), functionName: call.functionName,
+        await verifyWriter()
+        return await writer.estimateContractGas({ address: call.target, abi: callAbi(call), functionName: call.functionName,
           args: call.args, account: manifest.sender, blockNumber, gas: BigInt(manifest.rolloverHelper.gasCeiling) })
       } catch (error) {
         // Do not turn stale epoch/identity/custom reverts or transport errors into a smaller transaction.
@@ -106,9 +113,10 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
     },
     async prepare(call) {
       if (!account) throw new Error('Broadcast requires MARKET_OPS_PRIVATE_KEY')
+      await verifyWriter()
       const [latestNonce, pendingNonce] = await Promise.all([
-        client.getTransactionCount({ address: account.address, blockTag: 'latest' }),
-        client.getTransactionCount({ address: account.address, blockTag: 'pending' }),
+        writer.getTransactionCount({ address: account.address, blockTag: 'latest' }),
+        writer.getTransactionCount({ address: account.address, blockTag: 'pending' }),
       ])
       if (latestNonce !== pendingNonce) throw new Error('Sender has an untracked pending transaction; reconcile it first')
       const wallet = createWalletClient({ account, chain, transport: http(rpcUrl) })
@@ -118,7 +126,8 @@ export function viemTransport(manifest: Manifest, rpcUrl: string, privateKey?: H
       return { rawTransaction, hash: keccak256(rawTransaction) }
     },
     async broadcast(rawTransaction) {
-      return broadcastTracked(rawTransaction, client)
+      await verifyWriter()
+      return broadcastTracked(rawTransaction, writer)
     },
     async receipt(hash) {
       try {

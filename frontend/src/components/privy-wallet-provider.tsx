@@ -18,12 +18,12 @@ export function PrivyWalletProvider({ children, queryClient }: { children: React
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
-        loginMethods: ["email", "google", "wallet"],
+        // Privy uses the app's enabled dashboard methods when this override is omitted.
         legal: { termsAndConditionsUrl: "/terms", privacyPolicyUrl: "/privacy" },
         appearance: {
           theme: resolved === "dark" ? "#101112" : "#F2F1EC", accentColor: "#FF5A36", logo: `/brand/eros-markets-lockup-on-${resolved}.svg`,
           landingHeader: "Log in to trade",
-          loginMessage: "Connect a wallet or sign in with email or Google.",
+          loginMessage: "Connect a wallet or sign in.",
           walletChainType: "ethereum-only",
           walletList: ["detected_ethereum_wallets", "metamask", "coinbase_wallet", "rainbow", "wallet_connect"],
         },

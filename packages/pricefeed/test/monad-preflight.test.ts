@@ -168,7 +168,7 @@ test('Monad read adapter requires HTTPS, hides URL parse errors and exposes no w
   assert.deepEqual(Object.keys(monadTestnetReadRpc('https://rpc.invalid/private-api-key')).sort(),['block','chainId','code','codeHash','read']);
 });
 
-test('explicit read fallback preserves the requested method and does not silently replace a successful wrong-chain response',async()=>{
+test('read pool preserves requested methods and excludes wrong-chain providers before failover',async()=>{
   const previous=process.env.MONAD_READ_FALLBACK_URLS,fetch=globalThis.fetch;
   const hosts:string[]=[];let fail=true;
   process.env.MONAD_READ_FALLBACK_URLS='https://secondary.invalid';
@@ -184,10 +184,10 @@ test('explicit read fallback preserves the requested method and does not silentl
     return new Response(JSON.stringify(Array.isArray(body)?body.map(respond):respond(body)),{headers:{'Content-Type':'application/json'}});
   };
   try{
-    assert.equal(await monadTestnetReadRpc('https://primary.invalid').chainId(),10143);
-    assert.deepEqual(hosts,['primary.invalid','primary.invalid','secondary.invalid']);hosts.length=0;fail=false;
-    await assert.rejects(preflightMonadTestnet(monadTestnetReadRpc('https://primary.invalid')),/MONAD_WRONG_CHAIN/);
-    assert.deepEqual(hosts,['primary.invalid']);
+    assert.equal(await monadTestnetReadRpc('https://primary.invalid',()=>1000100).chainId(),10143);
+    assert.ok(hosts.includes('primary.invalid')&&hosts.includes('secondary.invalid'));hosts.length=0;fail=false;
+    assert.equal(await monadTestnetReadRpc('https://primary.invalid',()=>1000100).chainId(),10143);
+    assert.ok(hosts.includes('primary.invalid')&&hosts.includes('secondary.invalid'));
   }finally{globalThis.fetch=fetch;if(previous===undefined)delete process.env.MONAD_READ_FALLBACK_URLS;else process.env.MONAD_READ_FALLBACK_URLS=previous;}
 });
 
@@ -219,10 +219,12 @@ test('Concrete Monad HTTP adapter encodes and decodes the real listing/source/ha
     return new Response(JSON.stringify(Array.isArray(body)?body.map(respond):respond(body)),{headers:{'Content-Type':'application/json'}});
   };
   try{
-    const r=await preflightMonadTestnet(monadTestnetReadRpc('https://rpc.invalid/private-api-key'),{config:f.cfg,abi:artifact},f.clock);
+    const r=await preflightMonadTestnet(monadTestnetReadRpc('https://rpc.invalid/private-api-key',()=>Number(f.clock())),{config:f.cfg,abi:artifact},f.clock);
     assert.equal(r.status,'ENGINE_PINS_VERIFIED');assert.equal(r.engine!.lifecycle.halted,true);
     assert.equal(r.engine!.sourceState.lastSequence,7n);
-    assert.deepEqual(requests.filter(q=>q.method==='eth_getBlockByNumber').map(q=>q.params[0]),['finalized','0xa']);
+    const blocks=requests.filter(q=>q.method==='eth_getBlockByNumber').map(q=>q.params[0]);
+    assert.ok(blocks.includes('finalized')&&blocks.includes('0xa'));
+    assert.ok(blocks.every(tag=>tag==='finalized'||tag==='0xa'));
     assert.equal(requests.filter(q=>q.method==='eth_call').length,4);
     assert.equal(requests.some(q=>q.method.startsWith('eth_send')),false);
   }finally{globalThis.fetch=oldFetch;}

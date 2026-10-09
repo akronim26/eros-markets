@@ -78,11 +78,21 @@ export class SampleCoordinator {
   getMinimumObservedAt(nowMs, freshCutoff = indexFreshCutoff(nowMs), deliveryReserveSecs = 8n) {
     const nowSec = BigInt(Math.floor(nowMs / 1000));
     if (deliveryReserveSecs <= 0n || deliveryReserveSecs >= 30n) throw Error('INVALID_DELIVERY_RESERVE');
-    // Prefer a sealable prefix only while the previously accepted INDEX still
-    // leaves delivery time. This is a scheduling preference, never admission.
-    if (this.stop.signal.aborted || !this.latestFinalized?.depthValid || nowSec >= this.latestFinalized.observedAt + 30n - deliveryReserveSecs) return freshCutoff;
+    if (this.stop.signal.aborted || !this.latestFinalized?.depthValid) return freshCutoff;
     const aboutToCapture = this.pending && (!this.capture || this.pending.observedAt > this.capture.observedAt);
-    const preferred = this.outstanding || aboutToCapture ? nowSec : this.capture?.observedAt;
+    const awaitingCapture = this.outstanding || aboutToCapture;
+    // A known, still-unsealed capture needs an authentic source strictly after
+    // its own time. Releasing at the older INDEX deadline can publish a prefix
+    // that rewrites its INDEX checkpoint and invalidates otherwise sound depth.
+    // An outstanding newer capture is unknown; its existing INDEX deadline must
+    // remain independent of keeper progress. Future-dated acks cannot extend it.
+    const protectedCapture = !awaitingCapture && this.capture && this.capture.observedAt <= nowSec
+      && this.latestFinalized.observedAt <= this.capture.observedAt ? this.capture : null;
+    const deadlineFrom = protectedCapture?.observedAt ?? this.latestFinalized.observedAt;
+    if (nowSec >= deadlineFrom + 30n - deliveryReserveSecs) return freshCutoff;
+    // Waiting for a genuine later source may temporarily hide INDEX. Source
+    // admission, historical carry limits and the capture's 30s life are unchanged.
+    const preferred = awaitingCapture ? nowSec : this.capture?.observedAt;
     return preferred !== undefined && preferred > freshCutoff ? preferred : freshCutoff;
   }
   async run() {

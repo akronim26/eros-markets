@@ -5,23 +5,33 @@ import { DurableObservationSigner } from './durable-observation-signer.js';
 import { DurableTransactionSigner, type RelayTransactionRequest, type TransactionReservation } from './durable-transaction-signer.js';
 import { loadTestnetKey, testnetJournalPath } from './monad-keys.js';
 import { INGRESS_ABI } from './wire.js';
+import { lstatSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+
+function activeJournal(path:string,create:boolean):string {
+  try{lstatSync(join(dirname(dirname(path)),'retired.json'));}
+  catch(error){if(error&&typeof error==='object'&&'code'in error&&error.code==='ENOENT')return testnetJournalPath(path,create);throw error;}
+  throw new Error('RETIRED_PUBLICATION_SERVICE');
+}
 
 export class MonadTestnetObservationSigner extends DurableObservationSigner {
   constructor(path:string,domain:PacketDomain,store:PacketStore,now:()=>bigint,keyPath:string,passwordPath:string){
     if(domain.chainId!==10143n)throw new Error('MONAD_TESTNET_ONLY');
-    super(testnetJournalPath(path,true),structuredClone(domain),store,now,loadTestnetKey(keyPath,passwordPath,domain.signer),10143n);
+    super(activeJournal(path,true),structuredClone(domain),store,now,loadTestnetKey(keyPath,passwordPath,domain.signer),10143n);
   }
 }
 export type TestnetTransactionLimits={gasCap:bigint;maxFeePerGas:bigint;maxCostWei:bigint};
 /** Fixed chain/receiver/call/value and gas ceilings; no arbitrary transaction signing. */
 export class MonadTestnetTransactionSigner extends DurableTransactionSigner {
   private readonly destination:NonNullable<MarketConfig['destination']>;
+  private readonly custodyJournal:string;
   constructor(path:string,config:MarketConfig,keyPath:string,passwordPath:string,sender:string,
     private readonly limits:TestnetTransactionLimits,create=false){
     if(config.enabled||config.destination?.chainId!=='10143')throw new Error('MONAD_DISABLED_TESTNET_CONFIG_REQUIRED');
     if(limits.gasCap<=0n||limits.maxFeePerGas<=0n||limits.maxCostWei<limits.gasCap*limits.maxFeePerGas)
       throw new Error('BAD_TESTNET_TRANSACTION_LIMITS');
-    super(testnetJournalPath(path,create),create,loadTestnetKey(keyPath,passwordPath,sender),10143);
+    super(activeJournal(path,create),create,loadTestnetKey(keyPath,passwordPath,sender),10143);
+    this.custodyJournal=path;
     this.limits={...limits};
     this.destination=structuredClone(config.destination);
   }
@@ -42,5 +52,5 @@ export class MonadTestnetTransactionSigner extends DurableTransactionSigner {
     for(const r of reservations)this.checked(r.request);
     await super.reconcile(reservations);
   }
-  override async sign(request:RelayTransactionRequest):Promise<Hex>{this.checked(request);return super.sign(request);}
+  override async sign(request:RelayTransactionRequest):Promise<Hex>{activeJournal(this.custodyJournal,false);this.checked(request);return super.sign(request);}
 }

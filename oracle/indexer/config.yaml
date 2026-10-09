@@ -139,15 +139,15 @@ chains:
         start_block: 68951943
       - name: TradingEngine
         address:
-          - "0x171503494eF5f1A9e6705781647451A2582995bD"
-          - "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0"
-        start_block: 68955860
+          - "0xf179f45C87667F55844aaB13E17439449AcECc29"
+          - "0x8DD02f70bDe63b1cdE949D643098f09a6267d3F4"
+        start_block: 69390148
       - name: TradingVault
-        address: "0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329"
-        start_block: 68952139
+        address: "0x733b6F737b550C08597e2de1Ba280926857dbB46"
+        start_block: 69388533
       - name: TradingFactory
-        address: "0x14a38a7732B1cf968F18401544b89B11727Ed99e"
-        start_block: 68952139
+        address: "0xd410f15d2D24D36965282801e0459F531EDfd27E"
+        start_block: 69388533
       - name: CollateralToken
         address: "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB"
         start_block: 68951846

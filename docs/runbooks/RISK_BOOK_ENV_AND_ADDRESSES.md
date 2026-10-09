@@ -6,10 +6,13 @@ The [unified workflow](../merge/UNIFIED_WORKFLOW.md) governs non-oracle engineer
 Oracle implementation/integration remains excluded. Historical review signatures are
 not prerequisites under that workflow, and technical validation is not an independent audit.
 
-**Current-source foundation deployed and verified:** use root [addresses.md](../../addresses.md)
-for the new engine, vaults, test collateral and test authority. All six deployment transactions
-succeeded; the new market is unactivated, has no minted collateral and was not traded or settled.
-The address table below is an older, terminally settled controlled fixture. Do not copy its
+**Current testnet deployment:** use root [addresses.md](../../addresses.md) for the
+October 9 replacement BTC/ETH engines, shared vault, reserves and reused oracle
+infrastructure. [Deployment progress](../integration/DEPLOYMENT_PROGRESS.md) and
+[the operating runbook](../integration/TESTNET_OPERATIONS.md) record activation and
+the pending worker setup. The fixture descriptions and receipts below retain their
+October 4 context; their manual authority is not the current resolution oracle.
+The historical address table is an older, terminally settled controlled fixture. Do not copy its
 addresses into a new active-market configuration or claim newer fixes are deployed there.
 Use the [tracker](../integration/RISK_BOOK_TRACKER.md) and
 [fix ledger](../integration/NON_ORACLE_FIXES.md) for source-bound validation status.
@@ -151,22 +154,27 @@ comparison, current-source deployment, or new broadcast.
 
 ## Current testnet and production configuration
 
-The separately authorized current-source testnet deployment is recorded in root
-[addresses.md](../../addresses.md), including receipts, runtime comparisons and immutable-oracle
-limitations. Root `.env.example` deliberately stays a blank reusable template; use the verified
-public inventory for local configuration. No production configuration has been selected.
+The current factory-backed BTC/ETH deployment is recorded in root
+[addresses.md](../../addresses.md). Root `.env.example` stays a blank reusable
+template. The private root `.env` address inventory selects the current BTC engine,
+new shared vault and BTC reserve; it is an operator reference, not an automatically
+loaded service configuration. Use the matching public manifest and service pins for
+each market. No mainnet deployment configuration has been selected.
 
-| Template field | New-current value | Required producer |
+| Template field | Current value | Required producer |
 |---|---|---|
 | `RISK_BOOK_ENGINE_ADDRESS` | See root inventory | Successful engine creation receipt and runtime verification |
 | `RISK_BOOK_COLLATERAL_ADDRESS` | See root inventory; test token | Token code/decimals/controller verification |
 | `RISK_BOOK_VAULT_ADDRESS` | See root inventory | Vault receipt, token/governor getters and registration |
 | `RISK_BOOK_RESERVE_VAULT_ADDRESS` | See root inventory | Engine getter, nested runtime and engine binding verified |
-| `RISK_BOOK_RESOLUTION_AUTHORITY_ADDRESS` | See root inventory; manual test authority | Authority and binding verified; not replaceable in this listing |
+| `RISK_BOOK_RESOLUTION_AUTHORITY_ADDRESS` | See root inventory; shared ResolutionOracle | Oracle and engine authority binding verification |
 | `RISK_BOOK_SMOKE_ADDRESS` | Not deployed | Would require separately authorized fixture setup |
 | `RISK_BOOK_BUYER_ADDRESS` / `RISK_BOOK_SELLER_ADDRESS` | Not deployed | No actor setup performed |
 
-No production deployment configuration has been selected. The controlled deployment script
+### Historical controlled fixture configuration
+
+The following describes the older controlled deployment script, not the current
+factory-backed markets. The controlled deployment script
 hardcodes fixture listing values; adding env names does not parameterize or approve them.
 Its deployer is reused for fixture roles, its registry field is an EOA stand-in rather than
 a deployed factory/registry, its data/finality hashes identify manual test inputs, and its

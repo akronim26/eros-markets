@@ -16,7 +16,9 @@ export function OperationsPanel({ engine, m, readUnavailable = false }: { engine
   const busy = tx.state.status === "pending" || tx.state.status === "sent";
   const s = m.settlement;
   const actions = [
-    { name: "beginRollover", label: "Start epoch rollover", args: [], due: m.active && !m.halted && m.risk.accountingState === 0 && m.risk.asOfTime >= m.epoch.end },
+    // Expiry already derives ROLLOVER_SWEEP before raw work changes. Simulation
+    // decides whether to begin or continue; the derived state cannot select begin.
+    { name: "beginRollover", label: "Start epoch rollover", args: [], due: m.active && !m.halted && m.risk.asOfTime >= m.epoch.end },
     { name: "rollPage", label: "Process rollover (32)", args: [32], due: m.risk.accountingState === 1 },
     { name: "finishRollover", label: "Finish epoch rollover", args: [], due: m.risk.accountingState === 1 },
     { name: "samplePerp", label: "Sample book price", args: [], due: m.active && !m.halted && m.risk.indexAvailable },
@@ -28,7 +30,11 @@ export function OperationsPanel({ engine, m, readUnavailable = false }: { engine
     { name: "finishPreparation", label: "Open claims", args: [], due: s.oracleFinalityAccepted && s.accountingComplete && !s.claimsEnabled && !s.recoveryRequired },
   ];
   const q = useQuery({ queryKey: ["operations", engine, owner.address, m.epoch.id.toString(), actions.map(a => a.due)], refetchInterval: 4000, staleTime: 3500, queryFn: () => readPinned(m.block, async () => {
-    const available = await Promise.all(actions.map(async (a) => { if (!a.due) return false; try { const simulation = await client.simulateContract({ address: engine, abi: engineAbi, functionName: a.name, args: a.args, account: owner.address, blockNumber: m.block } as never); return a.name === "samplePerp" || (simulation.result as unknown) !== false; } catch (error) { if (isContractRevert(error)) return false; throw error; } }));
+    const available = await Promise.all(actions.map(async (a) => { if (!a.due) return false; try {
+      const simulation = await client.simulateContract({ address: engine, abi: engineAbi, functionName: a.name, args: a.args, account: owner.address, blockNumber: m.block } as never);
+      // rollPage returns completion, so false still represents a useful page.
+      return a.name === "samplePerp" || a.name === "rollPage" || (simulation.result as unknown) !== false;
+    } catch (error) { if (isContractRevert(error)) return false; throw error; } }));
     const earnings = owner.address ? await client.readContract({ address: engine, abi: engineAbi, functionName: "keeperQ", args: [owner.address], blockNumber: m.block }) : 0n;
     return { available, earnings };
   })});

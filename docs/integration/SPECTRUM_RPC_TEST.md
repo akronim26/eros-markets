@@ -76,8 +76,13 @@ identity or finality checks were relaxed.
 Run with Node 22.23.3+ and the existing frontend dependencies installed:
 
 ```sh
-node scripts/e2e/rpc-pressure.mjs /path/to/private-rpc.env
+node scripts/e2e/rpc-pressure.mjs /path/to/private-rpc.env \
+  "<owner-public-address>" "<sampler-sender-public-address>"
 ```
+
+Replace both address placeholders with the intended current deployment's public
+owner and sampler sender addresses. The script no longer assumes historical
+operator identities; no private key is an argument.
 
 The private file supplies `MONAD_TESTNET_RPC`. Reports retain only its hostname and
 SHA-256 fingerprint, not the authenticated URL. The main report contains 541 RPC

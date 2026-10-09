@@ -2,6 +2,7 @@
 import './source-dns.mjs';
 import { SourceQualification, QUALIFICATION_DURATION_MS, QUALIFICATION_STARTUP_ALLOWANCE_MS } from './source-qualification.mjs';
 import fs from 'node:fs';
+import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { Journal } from '../../packages/pricefeed/dist/src/journal.js';
@@ -12,8 +13,9 @@ import { DEVELOPMENT_INVALID_POLICIES } from '../../packages/pricefeed/dist/src/
 import { PRICING_POLICY, rulesHash } from '../../packages/pricefeed/dist/src/rules.js';
 const require = createRequire(new URL('../../frontend/package.json', import.meta.url));
 const { keccak256, stringToHex } = require('viem');
-const [directory] = process.argv.slice(2);
+const [directory, publicDirectory] = process.argv.slice(2);
 if (!directory?.startsWith('tmp/')) throw Error('IGNORED_RUN_DIRECTORY_REQUIRED');
+if (!publicDirectory) throw Error('EXPLICIT_PUBLIC_DEPLOYMENT_DIRECTORY_REQUIRED');
 const read = name => JSON.parse(fs.readFileSync(`${directory}/${name}`, 'utf8'));
 const write = (name, value) => fs.writeFileSync(`${directory}/${name}`, JSON.stringify(value, (_,v)=>typeof v==='bigint'?v.toString():v, 2)+'\n', { mode:0o600 });
 const market = read('metadata.json'), event = read('event.json');
@@ -27,7 +29,7 @@ const horizon=Date.parse(market.endDate)-Date.now();
 if(horizon<25*3600000||horizon>29*86400000)throw Error('SOURCE_OUTSIDE_DEPLOYED_HORIZON');
 const labels=JSON.parse(market.outcomes),tokens=JSON.parse(market.clobTokenIds),label=selected.outcomeLabel??'Yes',yes=labels.indexOf(label);
 if(labels.length!==2||new Set(labels).size!==2||yes<0||tokens[yes]!==selected.yesTokenId)throw Error('YES_MAPPING_CHANGED');
-const config=JSON.parse(fs.readFileSync('artifacts/deployments/monad-testnet-20261006/services/pricefeed-config.json','utf8'));
+const config=JSON.parse(fs.readFileSync(join(publicDirectory,'services/pricefeed-config.json'),'utf8'));
 config.key=`live-${market.id}`;config.configVersion='monad-replacement-demo-1';config.category=selected.category;config.destination=null;
 // Multi-market sporting events can exceed 1 MB. Keep the supported 2 MB bound.
 config.poll.bodyLimitBytes=2000000;

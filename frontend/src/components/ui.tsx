@@ -86,7 +86,7 @@ type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const VARIANT = {
   primary: "bg-action text-on-action hover:bg-action-hover disabled:bg-press disabled:text-fg-4",
-  secondary: "text-fg shadow-[inset_0_0_0_1px_var(--color-line-strong)] hover:bg-hover active:bg-press disabled:text-fg-4 disabled:hover:bg-transparent",
+  secondary: "border border-line-strong bg-panel text-fg hover:bg-hover active:bg-press disabled:text-fg-4",
   ghost: "text-fg-2 hover:bg-hover hover:text-fg active:bg-press disabled:text-fg-4",
   bid: "bg-bid text-on-bid hover:brightness-110 disabled:bg-press disabled:text-fg-4",
   ask: "bg-ask text-on-ask hover:brightness-110 disabled:bg-press disabled:text-fg-4",
@@ -98,16 +98,16 @@ export function Button({ variant = "secondary", size = "md", arrow, className, c
   if (arrow) {
     const sq = { sm: "w-7", md: "w-8", lg: "w-10" }[size];
     return (
-      <button className={cx("group inline-flex items-stretch disabled:cursor-not-allowed", SIZE[size].split(" ")[0], className)} {...rest}>
+      <button data-variant={variant} className={cx("ui-button group inline-flex items-stretch disabled:cursor-not-allowed", SIZE[size].split(" ")[0], className)} {...rest}>
         <span className={cx("flex items-center justify-center bg-signal text-on-signal group-disabled:bg-press group-disabled:text-fg-4", sq)} aria-hidden>
           <ArrowRight size={14} strokeWidth={2} />
         </span>
-        <span className={cx(base, "flex-1", VARIANT[variant], SIZE[size])}>{children}</span>
+        <span className={cx(base, "ui-button-label flex-1", VARIANT[variant], SIZE[size])}>{children}</span>
       </button>
     );
   }
   return (
-    <button className={cx(base, VARIANT[variant], SIZE[size], className)} {...rest}>
+    <button data-variant={variant} className={cx("ui-button", base, VARIANT[variant], SIZE[size], className)} {...rest}>
       {children}
     </button>
   );

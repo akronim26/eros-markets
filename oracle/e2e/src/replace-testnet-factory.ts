@@ -31,7 +31,7 @@ async function verify(p:Plan, pc:ReturnType<typeof client>['public'], journal:an
  const pins:[string,Address,string,unknown][]=[['MarketRegistry',a.MarketRegistry,'factory',a.MarketFactory],['MarketFactory',a.MarketFactory,'registry',a.MarketRegistry],['MarketFactory',a.MarketFactory,'resolutionAuthority',a.ResolutionOracle],['MarketFactory',a.MarketFactory,'governance',a.Timelock],['MarketFactory',a.MarketFactory,'creationCodeHash',keccak256(engineCode)],['CollateralVault',vault,'token',a.TestUSDC],['CollateralVault',vault,'governor',a.MarketFactory]];
  for(const [contract,address,fn,expected] of pins)if(String(await readAt(contract,address,fn)).toLowerCase()!==String(expected).toLowerCase())throw Error('REPLACEMENT_BINDING_MISMATCH');
  if((await pc.getBlock({blockNumber:block.number})).hash!==block.hash)throw Error('VERIFICATION_BLOCK_REORGED');
- return {...old,passed:true,sourceCommit:p.sourceCommit,contracts,verifiedAt:{blockNumber:String(block.number),blockHash:block.hash},replacement:{previousFactory:old.contracts.MarketFactory.address,engineCreationHash:keccak256(engineCode),reason:'Verified immutable engine revision preserving authenticated capture pricing and accepted-price freshness',publicTransactions:journal.broadcast?journal.steps.length:0}};
+ return {...old,passed:true,sourceCommit:p.sourceCommit,contracts,verifiedAt:{blockNumber:String(block.number),blockHash:block.hash},replacement:{previousFactory:old.contracts.MarketFactory.address,engineCreationHash:keccak256(engineCode),reason:'Monad testnet INDEX60/PERP60/BASIS180/carry30 pricing profile; hourly promotion and risk rules preserved',publicTransactions:journal.broadcast?journal.steps.length:0}};
 }
 try{
  if(!input||!rpc)throw Error('DEPLOYMENT_INPUTS_REQUIRED');

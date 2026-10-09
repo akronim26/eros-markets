@@ -1,5 +1,160 @@
 # Fresh Monad testnet deployment
 
+## Fast pricing replacement deployed — 9 October, 00:07 UTC
+
+The replacement factory and both new market listings are deployed and canonically
+verified. Both engines return **INDEX 60 / PERP 60 / BASIS 180 / carry 30 seconds**
+from `pricingWindows()`. Other chains retain 300/60/900/30. The hourly promotion
+gate and risk parameters remain unchanged. The implementation and capture
+checkpoint received independent review; 29 focused contract checks passed before
+deployment. Artifacts were rebuilt with the pinned compiler and source hashes.
+
+| Current contract | Address | Canonical verification block |
+| --- | --- | ---: |
+| MarketFactory | `0xd410f15d2D24D36965282801e0459F531EDfd27E` | 69389554 |
+| Shared CollateralVault | `0x733b6F737b550C08597e2de1Ba280926857dbB46` | 69389554 |
+| BTC above $82,000, October 10 | `0xf179f45C87667F55844aaB13E17439449AcECc29` | 69391206 |
+| ETH above $2,400, October 11 | `0x8DD02f70bDe63b1cdE949D643098f09a6267d3F4` | 69392720 |
+
+Five replacement-factory transactions and seven transactions per market passed
+canonical receipt and binding checks. Each listing has 100,000 reserve test tokens,
+its unchanged synthetic risk calibration, and completed activation. Exact receipts
+and all current contract addresses are in [the address register](../../addresses.md).
+Public market reports are under
+`artifacts/deployments/monad-testnet-20261009-fast-btc-oct10/` and
+`artifacts/deployments/monad-testnet-20261009-fast-eth-oct11/`.
+
+The frontend now selects the replacement pair and retains **13 archived market
+routes with their original vault bindings**. Its production build, including
+TypeScript validation, passed; build `DteYCuhwMQ_NU-pxoJfr5` is listening on
+`http://localhost:3100` as detached PID 2690. This cutover did not run browser or
+trading tests. The existing indexer and `eros_redeployment_20261007_ready` database
+were retained without restart or reset. At progress block 69393475 its listing
+receipts and new-vault deposit/allocation events matched both new markets, and
+the user's prior registrations remained present. Repository default indexer
+configs were synchronized separately; the live private config was unchanged.
+
+**Overnight status: all transaction-producing workers remain stopped to avoid
+idle MON expenditure.** Fresh
+operator keys, journals and the replacement supervisor configuration are prepared.
+Operator MON funding, maker collateral seeding and prewarming remain for the next
+session. Trading tests are deferred at the user's request. Reserves do not
+replace maker funding. Consequently, continuous INDEX/MARK, normal-pricing
+promotion and leveraged fills are not claimed for this replacement deployment.
+Use the [current operating runbook](TESTNET_OPERATIONS.md); retired worker paths
+must not be restarted.
+
+The user's existing 20 TUSDC allocations in each superseded BTC/ETH market remain
+on their original engines and vault. They were not transferred, spent or replaced.
+Releasing old allocations can require restored INDEX and epoch maintenance;
+the user must fund the new markets separately before trading tomorrow.
+
+The root `.env` contract inventory now points to the new BTC engine, shared vault
+and BTC reserve. The current private supervisor pointer is byte-identical to
+`tmp/redeploy-20261009/fast-profile/supervisor.json`; its previous configuration
+was retained as `fast-profile/retired-supervisor-before-cutover.json`. These pointer
+updates did not start workers or change any credentials.
+
+Private cutover evidence is under
+`tmp/redeploy-20261009/fast-profile/public-migration/`: `migration-stage.json`,
+`addresses-proof.json`, `indexer-discovery.json`, `frontend-build.json` and
+`frontend-running.json`. Root inventory evidence is
+`tmp/redeploy-20261009/fast-profile/root-address-inventory-update.json`. The public
+[pricing profile](../../artifacts/deployments/monad-testnet-20261009-fast-btc-oct10/frontend-selection/pricing-profile.json)
+pins both engines, runtime hashes and verified windows.
+
+The follow-up address audit checked 5,189 source, configuration and documentation
+files against 56 superseded contract addresses, including the current private
+supervisor pointers and public service exports. No superseded contract address
+remained in active configuration or code. Utility scripts now require explicit
+deployment or public actor inputs instead of historical defaults; operator
+instructions use the fast-profile paths. Remaining historical addresses are
+labeled and original archived custody bindings are preserved. Only static review
+and syntax checks were performed; no workers, RPC probes or trading tests ran.
+Evidence: `tmp/redeploy-20261009/fast-profile/address-audit-final.json`.
+
+### Operator recovery before replacement
+
+The user required MON recovery before redeployment. All 70 inventoried current
+and archived contract addresses held zero native MON. Four operator groups stopped
+cleanly; four already-mined publisher tails were reconciled through the supported
+relay API without new signatures or sends. Recovery plans account for
+164.540545674 MON across 16 operator EOAs, sent only to the root deployer. Their
+full publisher histories were audited. User MON and ERC20 collateral are excluded.
+Recovery completed with 16 finalized transfers: **164.540545674 MON** returned
+to the root deployer, whose balance became **175.345194670709727 MON** before
+redeployment (nonce 298). Fees totaled 0.0540192 MON; 0.0259808 MON of fee
+allowance remained across the retired wallets. No token or user-wallet operation
+was performed. Private evidence: `operator-mon-recovery/completed.json` under
+`tmp/redeploy-20261009/`. Those operator identities are retired; retain their
+journals and retirement evidence.
+
+The replacement creates a new shared vault. Existing allocations stay on the old
+engines/vault, and archived routes preserve their identity; they do not migrate
+automatically. Old-market withdrawals can require restored INDEX and epoch
+maintenance. The persistent dynamic-discovery indexer and database must be retained.
+
+## Historical demo listings and embedded-wallet funding — 8 October, 22:45 UTC
+
+This checkpoint describes the superseded 300/60/900/30 deployment at its recorded
+time. Its four markets are now archived and its workers stopped; current addresses
+and operating state are in the replacement section above.
+
+Two additional markets are deployed and canonically verified using the existing
+factory, vault and oracle infrastructure: Bitcoin above $82,000 on October 10
+and Ethereum above $2,400 on October 11. Their addresses and listing receipts are
+in [the address register](../../addresses.md). Both have 100,000 reserve test tokens
+and two separate maker owners with 2,000 allocated test tokens each. Their risk
+calibration remains synthetic; the configured 5× ceiling is not a demonstrated
+5× admission result.
+
+The frontend and existing indexer include all four current listings and retain
+historical archives. At the user's request, active publisher/keeper/maker services
+now focus on the two new markets. Both original groups stopped cleanly; their
+contracts, balances and journals remain available, but their live price readiness
+is no longer maintained. The local supervisor has six demo workers; frontend and
+indexer remain separate. See [the operating runbook](TESTNET_OPERATIONS.md).
+
+The user completed Privy embedded-wallet funding in Brave. Independent finalized
+receipt checks confirm **20 TUSDC in each new market**, with no position or open
+orders at block 69374851. This verifies the user-reported frontend deposit and
+allocation flow; it does not establish a fill, leverage, close or withdrawal.
+Private evidence: `tmp/redeploy-20261009/frontend-user-funding-proof.json`.
+
+Copy-address controls and visible button hover/press states are implemented and
+served by the current frontend build. Focused clipboard, disabled-state,
+reduced-motion and responsive checks passed in Brave. A later screenshot refresh
+hit a strict timing assertion during an animation; computed dark-theme colors
+were correct and no product regression was identified.
+
+Runtime audits found two independent causes of broken pricing history: later
+acceptance of an older external source can invalidate a captured book checkpoint,
+and separated buy/sell quote changes can discard successive pending captures.
+Reviewed bounded coordinator and paired-maker scheduling changes are deployed.
+Thirty coordinator/capture/carry tests and eighteen maker-focused tests passed;
+both changes received independent review. All six workers stopped with exit code
+zero and resumed retained journals at 22:45:10 UTC. No pricing constants, source
+timestamps, admission rules or contract code were changed.
+
+**Leveraged frontend acceptance remains incomplete.** Genuine source gaps and
+publication timing still need sustained runtime verification. Verify actual
+normal pricing, directional ceilings and order-specific margin admission before
+asking the user to submit leveraged orders. Successful funding and running workers
+are insufficient. Canonical fills, exit value, release/withdrawal and subsequent
+rollover continuity remain outstanding. The root progress checklists were deleted
+by the user; deployment evidence continues under the private run directory.
+
+At finalized block **69378070** (22:48:27 UTC), an unsigned audit applied the
+deployed Solidity margin kernel to the current synthetic profiles, hypothetical
+normal pricing and the user's 20 TUSDC accounts. It estimated maximum effective
+leverage around 1.38× / 1.52× for BTC long/short YES, and 4.00× / 1.00× for ETH
+long/short YES. BTC used its raw book midpoint because INDEX was unavailable;
+ETH used its valid INDEX. These are conditional margin calculations, not executable
+trade quotes or measured fills. The 300-second closeout horizon, theoretical
+volatility and tail-risk parameters impose stricter limits than the listing's
+5× ceiling. A profile change has not been authorized or applied. Private evidence:
+`tmp/redeploy-20261009/demo-leverage-audit.json`.
+
 ## Recovery and detached restart — 7 October, 17:40 UTC
 
 The frontend and matching Envio indexer now run as detached local processes.
@@ -217,8 +372,8 @@ runtime hashes, listings and factory/vault bindings verified before frontend use
 
 | Identity | Address |
 | --- | --- |
-| Current MarketFactory | `0x545afe64D9C462e84107cf623E68dEd5eb4E8D3b` |
-| Current CollateralVault | `0x779D71Dd7Ac25981f36B900566F548545B5213a9` |
+| Historical v3 MarketFactory | `0x545afe64D9C462e84107cf623E68dEd5eb4E8D3b` |
+| Historical v3 CollateralVault | `0x779D71Dd7Ac25981f36B900566F548545B5213a9` |
 | Democratic Senate engine | `0x0fC0CB70C1B0bbf9dD8de0eBDF539fFa8b98533E` |
 | Republican control engine | `0xdDECC6051b1477b09B693eCD8D1b41a2769E4B87` |
 

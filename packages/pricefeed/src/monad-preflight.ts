@@ -1,4 +1,5 @@
-import { createPublicClient, fallback, http, keccak256, parseAbi, stringToHex, type Abi, type AbiParameter, type Hex } from 'viem';
+import { createPublicClient, custom, http, keccak256, parseAbi, stringToHex, type Abi, type AbiParameter, type Hex } from 'viem';
+import { createReadPool, readPoolEndpoints } from './read-pool.js';
 import { monadTestnet } from 'viem/chains';
 import { record } from './book.js';
 import { parseConfig, verifyListing, type MarketConfig } from './config.js';
@@ -29,21 +30,34 @@ async function rpcCall<T>(code:string,call:()=>Promise<T>):Promise<T> {
 }
 
 /** HTTPS only. RPC credentials are never included in returned state or errors. */
-export function monadReadTransport(rpcUrl:string){
-  const urls=[...new Set([rpcUrl,...(process.env.MONAD_READ_FALLBACK_URLS??'').split(',').filter(Boolean)])];
-  for(const value of urls){
-    let url:URL;try{url=new URL(value);}catch{throw new Error('MONAD_BAD_RPC_URL');}
-    if(url.protocol!=='https:'||url.username||url.password||url.hash)throw new Error('MONAD_HTTPS_RPC_REQUIRED');
-  }
-  // Some public Monad endpoints reject JSON-RPC arrays. Retry reads individually
-  // before moving to another explicitly configured endpoint. No write uses this.
-  const primary=http(rpcUrl,{batch:{batchSize:8,wait:8},timeout:2000,retryCount:0,fetchOptions:{redirect:'error'}});
-  const singles=urls.map(url=>http(url,{batch:false,timeout:2000,retryCount:0,fetchOptions:{redirect:'error'}}));
-  return fallback([primary,...singles],{rank:false,retryCount:0});
+const readTransports=new Map<string,ReturnType<typeof custom>>();
+export function monadReadTransport(rpcUrl:string, now:()=>number=Date.now){
+  const endpoints=readPoolEndpoints(rpcUrl,process.env.MONAD_READ_FALLBACK_URLS,process.env.MONAD_READ_RPC_CAPACITIES);
+  const key=JSON.stringify(endpoints),saved=now===Date.now?readTransports.get(key):undefined;
+  if(saved)return saved;
+  const transports=new Map(endpoints.map(({url})=>[url,http(url,{batch:{batchSize:8,wait:8},timeout:2000,retryCount:0,
+    fetchOptions:{redirect:'error'}})({chain:monadTestnet})]));
+  const singles=new Map(endpoints.map(({url})=>[url,http(url,{batch:false,timeout:2000,retryCount:0,
+    fetchOptions:{redirect:'error'}})({chain:monadTestnet})]));
+  const noBatch=new Set<string>();
+  const pool=createReadPool({endpoints,chainId:MONAD_TESTNET_CHAIN_ID,now,request:async(url,request)=>{
+    if(noBatch.has(url))return singles.get(url)!.request(request as Parameters<ReturnType<ReturnType<typeof http>>['request']>[0]);
+    try{return await transports.get(url)!.request(request as Parameters<ReturnType<ReturnType<typeof http>>['request']>[0]);}
+    catch(error){
+      // Batch-array support varies. Try the exact same read individually once.
+      const e=error as {code?:number;status?:number};
+      if(e.code!==-32600&&e.code!==-32602&&e.status!==400)throw error;
+      noBatch.add(url);return singles.get(url)!.request(request as Parameters<ReturnType<ReturnType<typeof http>>['request']>[0]);
+    }
+  }});
+  const transport=custom({request:({method,params})=>pool.request({method,params:params as readonly unknown[]})},
+    {key:'monad-read-pool',name:'Monad verified read pool',retryCount:0});
+  if(now===Date.now){readTransports.set(key,transport);if(readTransports.size>8)readTransports.delete(readTransports.keys().next().value!);}
+  return transport;
 }
-export function monadTestnetReadRpc(rpcUrl:string):MonadReadRpc {
+export function monadTestnetReadRpc(rpcUrl:string, now:()=>number=Date.now):MonadReadRpc {
   if(monadTestnet.id!==MONAD_TESTNET_CHAIN_ID)throw new Error('MONAD_CHAIN_DEFINITION_MISMATCH');
-  const client=createPublicClient({chain:monadTestnet,transport:monadReadTransport(rpcUrl)});
+  const client=createPublicClient({chain:monadTestnet,transport:monadReadTransport(rpcUrl,now)});
   return {
     chainId:()=>client.getChainId(),
     block:async(selector)=>{const b=await client.getBlock(selector);return {number:b.number,hash:b.hash,timestamp:b.timestamp};},

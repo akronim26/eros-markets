@@ -1,5 +1,13 @@
 # Running the integrated frontend locally
 
+For the current October 9 testnet deployment, use
+[the operating runbook](../docs/integration/TESTNET_OPERATIONS.md) and
+[current addresses](../addresses.md). The frontend selects the replacement BTC/ETH
+markets. The persistent testnet indexer serves GraphQL on port 8083 using
+`eros_redeployment_20261007_ready`; preserve its database and runtime configuration.
+The 8081 local integration stack and Anvil procedures below are a separate fixture
+environment, not startup instructions for the current testnet deployment.
+
 ## Frontend
 
 The existing public App ID is configured in `.env.local`. Run `npm run dev -- --port 3100`, or build and then run `npm run start -- --port 3100`. **Stop an existing production preview before rebuilding its `.next` directory**; otherwise old pages can request chunks removed by the new build and appear unstyled.
@@ -42,6 +50,11 @@ The final check uses frontend ABIs against actual local receipts/state and the d
 
 ## Live demo dependencies
 
-The configured public fixture is inactive and uses a manual authority. A funded public demo needs operator activation, test collateral, fresh signed index observations and counterpart liquidity. Oracle-backed trading needs the governance/factory deployment described in `docs/integration/REAL_FACTORY_INTEGRATION.md`. Verified leveraged profiles are intentionally absent until approved calibration is supplied.
+The replacement public markets are activated with the real factory/registry and
+shared resolution oracle. Their operator MON funding, maker seeding, continuous
+pricing and frontend trading validation remain pending. The configured 5× ceiling
+and synthetic calibration do not establish executable leverage. Follow
+[deployment progress](../docs/integration/DEPLOYMENT_PROGRESS.md) for the current
+state; the old manual-authority fixture is historical.
 
 Optional Privy server signing has separate setup in `services/automation/README.md`. Basic Privy wallet transactions do not require those optional server credentials.

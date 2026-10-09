@@ -106,6 +106,9 @@ The local test report and the real-wallet report preserve their separate boundar
 
 ## Local public-price campaign
 
+For persistent startup, RPC failover checks, hourly prewarming and recovery, use
+the [testnet operating runbook](TESTNET_OPERATIONS.md).
+
 `scripts/e2e/pricefeed-watch.mjs` resumes the existing publication journals for a
 bounded run. Pair it with `market-services.ts` using the same ignored
 `EROS_PRICE_COORDINATION_DIR`. The publisher waits for the exact book-capture
@@ -123,9 +126,22 @@ changes DNS lookup only for the two public Polymarket read hosts in that process
 It preserves HTTPS certificate verification, caches within the returned DNS TTL,
 and does not change the laptop's DNS, RPC routing, wallets, or source identity.
 
-Keep RPC URLs in ignored private configuration. Read-only RPC fallback URLs may be
-provided via `MONAD_READ_FALLBACK_URLS`; transaction broadcasts remain on the
-selected primary endpoint. Never erase a journal to restart a failed campaign.
+Keep RPC URLs in ignored private configuration. `MONAD_READ_FALLBACK_URLS` accepts
+up to seven comma-separated HTTPS alternatives to the primary. Public state and
+confirmation reads use a shared routing implementation across the publisher,
+market operations, makers and frontend. Providers must report chain 10143, a
+recent finalized head and matching explicit-height block hashes; failing or
+throttled endpoints enter a bounded cooldown. Pinned snapshots keep block affinity
+and verify the original hash before failover. Identical concurrent reads coalesce;
+JSON-RPC batching remains enabled with individual-read fallback when unsupported.
+`MONAD_READ_RPC_CAPACITIES` optionally lists concurrent request limits for the
+primary followed by each unique alternative (default eight per endpoint). These
+limits are per process, not a global provider quota. Give frontend traffic its own
+budget using `MONAD_FRONTEND_READ_FALLBACK_URLS` and
+`MONAD_FRONTEND_READ_RPC_CAPACITIES`. Pending nonce, balance checks for signing,
+simulation and broadcasts remain on the selected primary writer endpoint.
+Never erase a journal to restart a failed campaign or treat a missing receipt as
+a reverted transaction. This routing cannot repair stale Polymarket timestamps.
 
 Fund each publisher and keeper address separately; funding the deployment wallet
 does not replenish those accounts. The publisher refuses to reserve a transaction
@@ -140,6 +156,32 @@ does not extend that budget. Use `plan-monad-budget` and `apply-monad-budget` wi
 idle, reconciled journals and a funded sender to renew it; never edit the journal
 profile directly. Budget snapshots stream archive rows and preserve the original
 canonical hash, including archives too large for one JavaScript string.
+
+For supervised operation, `EROS_SERVICE_MODE=persistent` removes only the worker
+wall-clock deadline. Bounded mode remains the default. Publisher sessions rotate
+after at most one day while retaining the same journals and cumulative policy;
+transaction-budget exhaustion exits with code 78 for operator review. A persistent
+process does not replenish gas, extend a cost budget or authorize journal resets.
+
+The combined market worker schedules the existing liquidation planner before a
+due sample at most once per `EROS_LIQUIDATION_INTERVAL_MS` (default 10,000). It uses
+the same serialized sender and outbox as rollover and sampling. A measured
+`gas.liquidate` is required; `EROS_LIQUIDATION_ENABLED=true` refuses startup without
+it, while `false` explicitly disables scanning. Every productive liquidation
+also receives a fresh primary-RPC gas estimate before signing. Its 25% margin
+plus 10,000 must fit both the configured liquidation and keeper ceilings. This
+does not establish a public liquidation proof when all current accounts are healthy.
+
+The maker retains a locked, fsynced journal and resolves historical placement
+receipts to exact owned order IDs. Replenishment/repricing uses an atomic targeted
+cancel-and-place batch, never owner-wide cancellation. Defaults are 2,000,000 quote
+lots, a 4,000,000-lot directional position limit, 12 actions per owner per epoch,
+a 30-second requote cooldown and a five-tick repricing threshold. These are bounded
+operator policies, not promises of permanent depth. Optional maintenance waits for
+a newer accepted book observation, with a 15-second maximum deferral; empty or
+insufficient liquidity can be repaired immediately. Contract capture invalidation
+and freshness checks still apply. Unknown owner orders, depleted exposure capacity
+or exhausted per-epoch action limits leave an explicit waiting state.
 
 Normal pricing requires a valid 300-second index, 60-second book window, 900-second
 basis window and a completed epoch opening. Epochs end on the hour. Read the actual

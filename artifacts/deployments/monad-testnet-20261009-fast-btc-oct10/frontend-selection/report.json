@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "status": "staged",
+  "verifiedAt": {
+    "blockNumber": "69393370",
+    "blockHash": "0x093f8fdaf63a53a9dc9526f0f53f49c761005aca4921ffb720fdf1d23778ee68"
+  },
+  "deployments": [
+    "artifacts/deployments/monad-testnet-20261009-fast-btc-oct10",
+    "artifacts/deployments/monad-testnet-20261009-fast-eth-oct11"
+  ],
+  "active": [
+    "0xf179f45C87667F55844aaB13E17439449AcECc29",
+    "0x8DD02f70bDe63b1cdE949D643098f09a6267d3F4"
+  ],
+  "archived": [
+    "0x171503494eF5f1A9e6705781647451A2582995bD",
+    "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+    "0x7D634d3b0994fDE59896906C7a0388E7f815E8B9",
+    "0xe2Eb3D192f3b1F90d078082d91e3970a5E6c78c8",
+    "0x21f038E4Ab2c67d1420567401408aD093aFd5F5d",
+    "0xfDA2baf1A251b1b68a28C1db6881605c33030B62",
+    "0xcDf0EA81497895155E2911443f46157c00F965Db",
+    "0xC16a9334289dA785BAfd652360F6EA67dE3c0AfE",
+    "0x66f0e2129184c770e7BD2C1F5B89A1E9735a167B",
+    "0xE97032806ffe4009A70Af7e31a17D07459630c74",
+    "0xa832bF72adFcCCCcD52Ef055FB4c314eCb773bD8",
+    "0x0fC0CB70C1B0bbf9dD8de0eBDF539fFa8b98533E",
+    "0xdDECC6051b1477b09B693eCD8D1b41a2769E4B87"
+  ],
+  "note": "Stop the frontend before --apply; restart or rebuild after all selection files are installed."
+}

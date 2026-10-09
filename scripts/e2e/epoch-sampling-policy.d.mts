@@ -1,5 +1,8 @@
 export const EPOCH_SAMPLE_ACCELERATION_SECONDS: bigint;
 export const EPOCH_SAMPLE_ACCELERATION_BLOCKS: bigint;
+export const STEADY_SAMPLE_MAX_BLOCKS: bigint;
+export const EPOCH_SAMPLE_FINAL_SECONDS: bigint;
+export const EPOCH_SAMPLE_FINAL_BLOCKS: bigint;
 export const SAMPLE_INCLUSION_RESERVE_SECONDS: bigint;
 export type EpochSamplingPolicy = { admit: boolean; epochEnd: bigint; asOf: bigint; remaining: bigint; cadence: bigint };
 export class SampleEpochDeferred extends Error { context: Partial<EpochSamplingPolicy>; constructor(reason: string, context?: Partial<EpochSamplingPolicy>); }

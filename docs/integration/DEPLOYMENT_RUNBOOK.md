@@ -1,5 +1,11 @@
 # Integrated deployment preparation
 
+Current deployed contracts are listed in [addresses.md](../../addresses.md).
+For the October 9 replacement BTC/ETH profile and current operator paths, use
+[FAST_TESTNET_PRICING.md](FAST_TESTNET_PRICING.md) and
+[TESTNET_OPERATIONS.md](TESTNET_OPERATIONS.md). The dated October 6 rehearsal
+addresses, code hashes and unsigned bundles below remain historical evidence.
+
 The deployable composition is `MarketRegistry → MarketFactory → RegistryBookRiskEngine + CollateralVault`, with the existing `ResolutionOracle`, `BondTreasury`, and Timelock. The factory reconstructs the current engine creation code from two immutable code stores. A direct `BookRiskEngine` deployment or an oracle stub factory does not verify this composition.
 
 The commands below prepare unsigned transactions and optionally execute them on a disposable local Anvil. They never load a private key or send a public transaction. Frontend integration consumes the final deployment manifest and owner-correct SDK after this deployment path and the local lifecycle have passed.
@@ -97,4 +103,4 @@ The subsequent helper-inclusive rehearsal passed **12 local transactions** at ac
 
 Liquidation evidence has two scopes. The factory integration suite successfully liquidates an under-margined positive-equity account through the real book, enforces same-block pacing, resumes in the next block, and credits keeper fees. It also checks that missing liquidity or a stale mark cannot confiscate a position. Its NO-resolution test pays the winner the full 1,000 collateral tokens while the reserve absorbs a 480-token deficit, without recovery or reduced payouts. These are executed contract scenarios with controlled market inputs. The local service run's healthy-account liquidator performs bounded scans and sends no transaction; that verifies safe operator behavior, not a mined liquidation of an unhealthy live account. Successful reserve loss and owner payouts in the deployed deterministic closure require that run's separate receipt audit.
 
-The latest 2026-10-06 read-only inspection of the checked-in Monad manifest found the registry still using `StubMarketFactory`, active simulation trust set 1, and an adequately funded existing assertion ledger. It did not deploy the integrated engine, verify production CRE delivery, or authorize public activation. Inspect again before preparing an actual deployment because state and nonces change.
+The historical 2026-10-06 read-only inspection of the then-current Monad manifest found the registry still using `StubMarketFactory`, active simulation trust set 1, and an adequately funded existing assertion ledger. It did not deploy the integrated engine, verify production CRE delivery, or authorize public activation. Inspect again before preparing an actual deployment because state and nonces change.

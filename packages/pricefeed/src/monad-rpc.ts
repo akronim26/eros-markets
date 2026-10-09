@@ -20,17 +20,26 @@ export function monadSubmissionRpc(rpcUrl:string):MonadSubmissionRpc {
   const read=monadTestnetReadRpc(rpcUrl);
   const client=createPublicClient({chain:monadTestnet,transport:http(rpcUrl,{timeout:5000,retryCount:0,fetchOptions:{redirect:'error'}})});
   const reads=createPublicClient({chain:monadTestnet,transport:monadReadTransport(rpcUrl)});
+  let writerCheckedAt=0,writerCheck:Promise<void>|undefined;
+  const checkWriter=async()=>{
+    if(Date.now()-writerCheckedAt<5000)return;
+    writerCheck??=client.getChainId().then(chain=>{
+      if(chain!==10143)throw new Error('MONAD_WRITER_WRONG_CHAIN');writerCheckedAt=Date.now();
+    }).finally(()=>{writerCheck=undefined;});
+    await writerCheck;
+  };
   return {...read,
-    nonce:async(sender)=>BigInt(await reads.getTransactionCount({address:sender,blockTag:'pending'})),
-    balance:(sender)=>reads.getBalance({address:sender,blockTag:'pending'}),
+    nonce:async(sender)=>{await checkWriter();return BigInt(await client.getTransactionCount({address:sender,blockTag:'pending'}));},
+    balance:async(sender)=>{await checkWriter();return client.getBalance({address:sender,blockTag:'pending'});},
     simulate:async(sender,to,data,gasCap)=>{
+      await checkWriter();
       const [,estimate]=await Promise.all([
-        reads.call({account:sender,to,data,gas:gasCap,blockTag:'pending'}),
-        reads.estimateGas({account:sender,to,data,gas:gasCap,blockTag:'pending'}),
+        client.call({account:sender,to,data,gas:gasCap,blockTag:'pending'}),
+        client.estimateGas({account:sender,to,data,gas:gasCap,blockTag:'pending'}),
       ]);
       if(estimate>gasCap)throw new Error('MONAD_GAS_CAP_EXCEEDED');return estimate;
     },
-    send:(raw)=>client.sendRawTransaction({serializedTransaction:raw}),
+    send:async(raw)=>{await checkWriter();return client.sendRawTransaction({serializedTransaction:raw});},
     receipt:async(hash)=>{
       try{
         const r=await reads.getTransactionReceipt({hash});

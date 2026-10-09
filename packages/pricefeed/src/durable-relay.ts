@@ -11,6 +11,7 @@ import { sizeGas, type GasSizing } from './gas.js';
 import { relayProfileBody, verifyBudgetAudit, type RelayProfile } from './relay-policy.js';
 import { nonceRecoveries, recoveryBudget, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
 import { canonicalTransactionRequest, parseTransactionRequest, type RelayTransactionRequest, type TransactionJournal } from './local-transaction-signer.js';
+import { verifyHistoryRecoveryAudit } from './history-recovery-journal.js';
 
 export type LocalRelayTransport={
   rpcUrl:string;sender:string;finalizedHead?:true;
@@ -69,7 +70,7 @@ export class DurableRelay {
     const profileBody=this.profileBody,control=this.db.prepare('SELECT profile,reason FROM relay_control WHERE id=1').get();
     if(control&&control.profile!==profileBody){this.db.close();throw new Error('RELAY_PROFILE_CHANGED');}
     if(!control)this.db.prepare('INSERT INTO relay_control VALUES(1,?,NULL)').run(profileBody);
-    try{verifyBudgetAudit(this.db,profileBody,profile.budgetRevision??0);}
+    try{verifyBudgetAudit(this.db,profileBody,profile.budgetRevision??0);verifyHistoryRecoveryAudit(this.db,transport.sender);}
     catch(error){this.db.close();throw error;}
     const accounts=this.db.prepare('SELECT sender,initial_nonce,next_nonce FROM relay_nonce').all();
     const signerPins=this.db.prepare('SELECT sender FROM relay_signer').all();

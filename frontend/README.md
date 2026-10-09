@@ -23,6 +23,17 @@ configuration. The proxy accepts bounded read/simulation requests, strips upstre
 error messages, and refuses transaction submission and signing methods. Restart
 the server after changing the private endpoint; rebuild after changing public settings.
 
+Set server-only `MONAD_READ_FALLBACK_URLS` to comma-separated HTTPS alternatives.
+Public reads are distributed across verified, healthy providers with bounded
+concurrency and cooldowns. `MONAD_READ_RPC_CAPACITIES` optionally sets concurrent
+read limits in primary/fallback order (default eight each). Frontend-specific
+`MONAD_FRONTEND_READ_FALLBACK_URLS` and `MONAD_FRONTEND_READ_RPC_CAPACITIES` override
+those shared settings so terminal traffic can have its own provider budget.
+Pending nonce reads and simulations stay on `MONAD_RPC_URL`; automatic writer
+failover is deliberately excluded. Pinned snapshots retain their block hash
+when a read switches providers. Configuration supports at most eight endpoints;
+capacities apply per process, so budget aggregate worker traffic separately.
+
 Index and mark prices come from the verified engine. The Polymarket publisher,
 funded book makers, sampler and epoch operator must run continuously. A successful
 source fetch alone does not establish an on-chain price: INDEX needs 300 seconds

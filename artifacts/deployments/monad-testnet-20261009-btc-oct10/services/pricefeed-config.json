@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1",
+  "configVersion": "monad-integrated-demo-1",
+  "key": "live-5238640",
+  "category": "crypto",
+  "enabled": false,
+  "destination": {
+    "chainId": "10143",
+    "engineAddress": "0x7D634d3b0994fDE59896906C7a0388E7f815E8B9",
+    "engineCodeHash": "0x4ed3a9c7e2aa9ba7b12cefcd44cfcd528195ef7e8cc08e4c771038532bc75dc0",
+    "abiHash": "0x3e3af1c4b7db5ef077b170f7a63d5b89cb8558f54dc5d0c58061ae04c2aaa60a",
+    "marketId": "0x99ab7fb8f9849cf3bab8c3810b94acee3787d4fad2d11c5f4d6dbd82a26082cd",
+    "sourceId": "0xbd2accaebb3ebbf4e820df4565a79b5313c59410203b0f643553546e469af436",
+    "sourceRulesHash": "0x6511870e0e12b790917529b4df5ebf8fe456a4002a38521d927919270fbe5bf3",
+    "signerAddress": "0x194D42834EE04be783cA9f0BF19081244912EC3A",
+    "listedAt": "1791496385",
+    "scheduledT": "1791648000",
+    "invalidRule": {
+      "captureGraceSecs": "3600",
+      "voidSecs": "2592000",
+      "fallbackListed": true,
+      "fallbackPriceWad": "500000000000000000"
+    }
+  },
+  "mapping": {
+    "eventId": "1124995",
+    "externalMarketId": "5238640",
+    "conditionId": "0x30aa99282bb5ef9e9b3e1b5568400bb730760e33525022d3d699f43650baff23",
+    "outcomeTokenId": "100185403350267155386341199712915055705179878891606575463769617454294511388358",
+    "outcomeLabel": "Yes"
+  },
+  "pricing": {
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "impactMethod": "vwap"
+  },
+  "policies": {
+    "timestampPolicyId": "authentic-vendor-ms-floor-diagnostic",
+    "quantityPolicyId": "claims-floor-total-diagnostic",
+    "quotePolicyId": "before-fee-vwap-unapproved",
+    "mappingApprovalId": null,
+    "pricingApprovalId": null,
+    "timeApprovalId": null,
+    "rulesApprovalId": null,
+    "unitsApprovalId": null,
+    "invalidApprovalId": null,
+    "operatingApprovalId": null
+  },
+  "requiredFeedUntil": "1791648000",
+  "poll": {
+    "intervalMs": 1000,
+    "timeoutMs": 4000,
+    "maxRetries": 1,
+    "retryDelayMs": 200,
+    "metadataMaxAgeMs": 90000,
+    "minimumHeadroomMs": 5000,
+    "bodyLimitBytes": 2000000
+  }
+}

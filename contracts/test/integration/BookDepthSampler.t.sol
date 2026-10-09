@@ -41,6 +41,26 @@ contract DepthEligibilityHarness is BookRiskEngine {
 }
 
 contract BookDepthSamplerTest is BookRiskEngineFixture {
+    function testCaptureCheckpointUsesTheConfiguredIndexWindow() public {
+        vm.chainId(10143);
+        DepthEligibilityHarness probe = new DepthEligibilityHarness(vault, TREASURY, configuration);
+        engine = probe;
+        uint64 start = uint64(block.timestamp);
+        for (uint64 i; i <= 30; ++i) {
+            vm.warp(start + i * 10);
+            _submitNextIndex();
+        }
+        uint64 capturedAt = uint64(block.timestamp);
+        assertTrue(engine.indexTwap300(capturedAt).available);
+        assertEq(engine.indexTwap300(capturedAt).coveredSecs, 60);
+        bytes32 fastCheckpoint = probe.indexCheckpointForTest(capturedAt);
+        vm.chainId(143);
+        assertTrue(engine.indexTwap300(capturedAt).available);
+        assertEq(engine.indexTwap300(capturedAt).coveredSecs, 300);
+        assertNotEq(probe.indexCheckpointForTest(capturedAt), fastCheckpoint,
+            "capture integrity must commit to the same INDEX interval as pricing admission");
+    }
+
     function _placeDepth(address owner, bool buys, uint16 tick, uint64 lots, uint32 expiry)
         internal
         returns (uint32)

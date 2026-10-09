@@ -27,7 +27,8 @@ import { INGRESS_ABI, type Observation } from '../src/wire.js';
 import { LocalRelay, type RelayPolicy } from '../src/local-relay.js';
 import { quoteMonadGas } from '../src/monad-gas-quote.js';
 import { parseConfig } from '../src/config.js';
-import { planMonadBudget, applyMonadBudget, budgetPlanHash, budgetJournalSnapshot, openBudgetJournals } from '../src/monad-budget.js';
+import { planMonadBudget, applyMonadBudget, budgetPlanHash, budgetJournalSnapshot, openBudgetJournals,
+  planMonadHistoryRecovery, applyMonadHistoryRecovery, auditMonadPublisherRetirement } from '../src/monad-budget.js';
 import { json } from '../src/math.js';
 import { SourceSnapshotBuffer } from '../src/source-buffer.js';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -129,6 +130,91 @@ test('streamed budget snapshot preserves legacy hashes with multi-row, empty and
     }finally{db.close();}
   }finally{s.close();}
 });
+
+async function lagRecoveryFixture(){
+  const s=await setup();await s.pipeline.start();await s.pipeline.process(await s.worker.poll());
+  s.relay.quarantine('SIGNED_SOURCE_HISTORY_MISMATCH');s.pipeline.close();
+  const oldRead=s.rpc.read;
+  // The finalized acceptance is block10. Its immediately preceding canonical
+  // lifecycle snapshot at block9 genuinely had no accepted source observation.
+  s.rpc.read=async(a,b,name,sourceId,number)=>{
+    const value=await oldRead(a,b,name,sourceId,number);
+    return name==='sourceState'&&number===9n?{...value as object,lastSequence:0n,lastObservedAt:0n}:value;
+  };
+  const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir};
+  const policy=renewalPolicies(s.sender).old;
+  return {s,options,policy,plan:()=>planMonadHistoryRecovery(options,policy,randomUUID(),s.rpc,()=>1000100n)};
+}
+
+test('reviewed older-finalized-view recovery is read-only to plan, atomic to apply, preserves history and resumes',async()=>{
+  const f=await lagRecoveryFixture();try{
+    const delivery=f.s.relay.get(f.s.domain,1n),packet=f.s.packets.get(f.s.domain,1n);
+    const before=f.s.sent.length,plan=await f.plan();
+    assert.equal(plan.lagEvidence.snapshotBlock,'9');assert.equal(plan.lagEvidence.acceptedBlock,'10');
+    await assert.rejects(f.s.relay.start(),/RELAY_PERSISTENT_QUARANTINE/);
+    assert.equal(f.s.sent.length,before);
+    const result=await applyMonadHistoryRecovery(f.options,plan,plan.approvalHash,f.s.rpc,()=>1000100n);
+    assert.equal(result.alreadyApplied,false);assert.equal(result.transactionsSent,0);
+    assert.equal((await applyMonadHistoryRecovery(f.options,plan,plan.approvalHash,f.s.rpc,()=>1000100n)).alreadyApplied,true);
+    assert.deepEqual(f.s.relay.get(f.s.domain,1n),delivery);assert.deepEqual(f.s.packets.get(f.s.domain,1n),packet);
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'),{readOnly:true});try{
+      const control=db.prepare('SELECT reason,history_revision FROM relay_control').get()!;
+      assert.equal(control.reason,null);assert.equal(control.history_revision,1);
+      assert.equal(db.prepare('SELECT count(*) AS n FROM relay_history_recovery_audit').get()!.n,1);
+    }finally{db.close();}
+    f.s.restart();await f.s.pipeline.start();assert.equal(f.s.sent.length,before);
+  }finally{f.s.close();}
+});
+
+test('stale-view recovery refuses true historical contradictions, noncanonical blocks and unexpected source progress',async()=>{
+  for(const kind of ['historical-source','reorg','current-source']){
+    const f=await lagRecoveryFixture();try{
+      if(kind==='current-source')f.s.setFinalized(2n);
+      else if(kind==='historical-source'){
+        const read=f.s.rpc.read;f.s.rpc.read=async(a,b,n,s,k)=>n==='sourceState'&&k===9n?{...await read(a,b,n,s,k) as object,lastSequence:1n}:read(a,b,n,s,k);
+      }else{
+        const block=f.s.rpc.block;f.s.rpc.block=async selector=>{
+          const b=await block(selector);return 'blockNumber' in selector&&selector.blockNumber===9n?{...b,hash:('0x'+'cc'.repeat(32)) as Hex}:b;
+        };
+      }
+      await assert.rejects(f.plan(),/HISTORY_RECOVERY_HISTORICAL_VIEW_CHANGED|BUDGET_CHAIN_HISTORY_CHANGED/);
+      await assert.rejects(f.s.relay.start(),/RELAY_PERSISTENT_QUARANTINE/);assert.equal(f.s.sent.length,1);
+    }finally{f.s.close();}
+  }
+});
+
+test('stale-view recovery refuses other quarantine reasons, active writers and changed reviewed journals',async()=>{
+  const f=await lagRecoveryFixture();try{
+    f.s.relay.quarantine('SIGNER_JOURNAL_SIGNATURE_MISMATCH');await assert.rejects(f.plan(),/RELAY_PERSISTENT_QUARANTINE/);
+    f.s.relay.quarantine('SIGNED_SOURCE_HISTORY_MISMATCH');
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));try{
+      db.prepare("UPDATE relay_nonce SET until_ms='1001000'").run();await assert.rejects(f.plan(),/BUDGET_IDLE_JOURNALS_REQUIRED/);
+      db.prepare("UPDATE relay_nonce SET until_ms='0'").run();const plan=await f.plan();
+      await assert.rejects(applyMonadHistoryRecovery(f.options,{...plan,nextNonce:'99'},plan.approvalHash,f.s.rpc,()=>1000100n),/HISTORY_RECOVERY_PLAN_CHANGED/);
+      db.prepare("UPDATE relay_nonce SET fence=fence+1").run();
+      await assert.rejects(applyMonadHistoryRecovery(f.options,plan,plan.approvalHash,f.s.rpc,()=>1000100n),/HISTORY_RECOVERY_JOURNALS_CHANGED/);
+      assert.equal(db.prepare('SELECT reason FROM relay_control').get()!.reason,'SIGNED_SOURCE_HISTORY_MISMATCH');
+    }finally{db.close();}
+  }finally{f.s.close();}
+});
+
+test('publisher restart requires the complete retained recovery audit',async()=>{
+  const f=await lagRecoveryFixture();try{
+    const plan=await f.plan();await applyMonadHistoryRecovery(f.options,plan,plan.approvalHash,f.s.rpc,()=>1000100n);
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));db.exec('DELETE FROM relay_history_recovery_audit');db.close();
+    assert.throws(()=>f.s.restart(),/HISTORY_RECOVERY_AUDIT_INTEGRITY/);
+  }finally{try{f.s.close();}catch{/* The rejected constructor closed its own handle. */}}
+});
+
+test('recovery audit binds its SQL approval lookup to the checksummed review body',async()=>{
+  const f=await lagRecoveryFixture();try{
+    const plan=await f.plan();await applyMonadHistoryRecovery(f.options,plan,plan.approvalHash,f.s.rpc,()=>1000100n);
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));
+    db.prepare('UPDATE relay_history_recovery_audit SET approval_hash=?').run('ab'.repeat(32));db.close();
+    await assert.rejects(applyMonadHistoryRecovery(f.options,plan,plan.approvalHash,f.s.rpc,()=>1000100n),/HISTORY_RECOVERY_AUDIT_INTEGRITY/);
+    assert.throws(()=>f.s.restart(),/HISTORY_RECOVERY_AUDIT_INTEGRITY/);
+  }finally{try{f.s.close();}catch{/* Rejected constructor closed its own handle. */}}
+});
 test('a timed-out lifecycle reader drains before pipeline shutdown and can resume without resetting journals',async()=>{
   const s=await setup(3,{...policy,timeoutMs:50});
   try{
@@ -204,6 +290,23 @@ test('budget receipt proof bounds RPC concurrency, drains failures and retains c
     fail=false;elapsed=true;receiptCalls=0;
     await assert.rejects(planMonadBudget(options,old,next,randomUUID(),'EXPIRED_CHECKPOINT',s.rpc,()=>clock),/BUDGET_CHECKPOINT_EXPIRED/);
     assert.equal(active,0);assert.equal(snapshot(),before);assert.equal(s.sent.length,24);
+  }finally{s.close();}
+});
+test('retirement audit preserves all five journals and refuses active writers and unresolved nonce history',async()=>{
+  const s=await setup();try{
+    await s.pipeline.start();await s.pipeline.process(await s.worker.poll());
+    const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir},{old}=renewalPolicies(s.sender);
+    await assert.rejects(auditMonadPublisherRetirement(options,old,s.rpc,()=>1000100n),/IDLE_JOURNALS_REQUIRED/);
+    s.pipeline.close();
+    const snapshot=()=>{const db=openBudgetJournals(options,false);try{return budgetJournalSnapshot(db);}finally{db.close();}};
+    const before=snapshot();
+    const audited=await auditMonadPublisherRetirement(options,old,s.rpc,()=>1000100n);
+    assert.equal(audited.mode,'MONAD_TESTNET_RETIREMENT_AUDIT');
+    assert.equal(audited.nextNonce,'1');assert.equal(audited.journalHash,before);
+    assert.equal(audited.transactionsSent,0);assert.equal(snapshot(),before);
+    const nonce=s.rpc.nonce;s.rpc.nonce=async()=>2n;
+    await assert.rejects(auditMonadPublisherRetirement(options,old,s.rpc,()=>1000100n),/BUDGET_SENDER_NONCE_CHANGED/);
+    s.rpc.nonce=nonce;assert.equal(snapshot(),before);assert.equal(s.sent.length,1);
   }finally{s.close();}
 });
 test('budget plans reject live writers and changes outside finite budgets and enabling gas estimates',async()=>{

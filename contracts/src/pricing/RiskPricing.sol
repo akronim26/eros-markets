@@ -21,7 +21,7 @@ struct RiskContext {
     bool halted;
     PricingMode pricingMode;
     bool indexOk;
-    uint256 indexWad; // 300 s independent index TWAP
+    uint256 indexWad; // configured independent index TWAP; see pricingWindows()
     bool markOk;
     uint256 markWad; // normal mark; unavailable is markOk == false, never 0
     LifecycleMath.Admission admission; // NONE / BACKED_ONLY / LEVERAGED
@@ -121,8 +121,8 @@ abstract contract RiskPricing is ObservationStore {
     }
 
     function _markInputs(uint64 nowTs) internal view returns (PricingMath.MarkInputs memory m) {
-        PricingMath.Twap memory idx = _windowTwap(INDEX, nowTs, PricingMath.INDEX_WINDOW);
-        PricingMath.Twap memory bas = _windowTwap(BASIS, nowTs, PricingMath.BASIS_WINDOW);
+        PricingMath.Twap memory idx = _windowTwap(INDEX, nowTs, PricingMath.indexWindow());
+        PricingMath.Twap memory bas = _windowTwap(BASIS, nowTs, PricingMath.basisWindow());
         PricingMath.Twap memory prp = _windowTwap(PERP, nowTs, PricingMath.PERP_WINDOW);
         (bool liveOk, int256 live) = _valueAt(PERP, nowTs);
         m.indexOk = idx.available && idx.twapWad > 0;

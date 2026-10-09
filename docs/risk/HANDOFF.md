@@ -1,10 +1,15 @@
 # Risk & Clearing handoff (book, oracle and frontend teams)
 
+Current contract addresses are in [addresses.md](../../addresses.md), and the
+October 9 replacement factory and BTC/ETH status are in
+[deployment progress](../integration/DEPLOYMENT_PROGRESS.md). The integration and
+fixture addresses below are historical checkpoints, not current service inputs.
+
 **2026-10-05 integration update:** oracle code is merged on `integration/risk` at
 baseline `db11e46`. Current authorized factory/oracle/risk/book work and its validation
 are in [REAL_FACTORY_INTEGRATION.md](../integration/REAL_FACTORY_INTEGRATION.md).
 Older exclusion, deployment and review statements below are historical. Root
-`addresses.md` remains the deployment inventory; no real-factory address exists yet.
+`addresses.md` was the deployment inventory; no real-factory address existed at that checkpoint.
 Live switching needs the oracle deployment's actual operator, and INDEX needs the
 unfinished external publisher. Local real-contract tests are not live O42 completion.
 

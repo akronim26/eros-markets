@@ -4,7 +4,7 @@
   "src/engine/BookRiskEngine.sol": "BookRiskEngine"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "098d998694fd401e7178f763962147fdca9126a22bdfca39774278681fa989ef",
+ "source_sha256": "cb40842d88ccad2a31e97a2829cd365e93b0683d3ffba5579c4aadbcea86a946",
  "abi": [
   {
    "type": "constructor",
@@ -3471,6 +3471,34 @@
      "name": "",
      "type": "uint8",
      "internalType": "enum PricingMode"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "pricingWindows",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "indexWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "perpWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "basisWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "carryLimitSecs",
+     "type": "uint64",
+     "internalType": "uint64"
     }
    ],
    "stateMutability": "view"
