@@ -49,7 +49,7 @@ export function MarketHeader({ manifest, m, source = [], now = Math.floor(Date.n
           {!m && !readError ? <span role="status">Loading…</span> : m?.risk.markAvailable ? <Num value={wadTo3(m.risk.markWad)} /> : <Unavailable signal short={m?.risk.pricingMode === 0 ? "warming" : "unavailable"} reason="The contract requires complete index, book and basis windows and normal pricing to provide a mark." />}
         </Stat>
         <Stat label="YES index">
-          {!m && !readError ? <span role="status">Loading…</span> : m?.risk.indexAvailable ? <Num value={wadTo3(m.risk.indexWad)} /> : <Unavailable short={observation.fresh ? "warming" : "unavailable"} reason="The execution index requires a complete, fresh 300-second signed source window. A historical chart observation is not an executable index." />}
+          {!m && !readError ? <span role="status">Loading…</span> : m?.risk.indexAvailable ? <Num value={wadTo3(m.risk.indexWad)} /> : <Unavailable short={observation.fresh ? "warming" : "unavailable"} reason="The execution index requires complete, fresh price history. A historical chart observation is not an executable index." />}
         </Stat>
         <Stat label="Open interest">{m ? <Num value={`${lotsToClaims(m.oiLots)}`} /> : "—"}</Stat>
         <Stat label={caps && caps.long !== caps.short ? "Leverage · YES long / short" : "Max leverage"}>

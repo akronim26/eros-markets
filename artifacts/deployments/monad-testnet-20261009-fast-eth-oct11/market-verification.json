@@ -1,0 +1,187 @@
+{
+  "passed": true,
+  "publicTransactions": 7,
+  "manifest": {
+    "manifestVersion": 1,
+    "scope": "testnet-read-only",
+    "chainId": 10143,
+    "sourceCommit": "236c3f289e11c17b46162160e8b517db765fb3c6",
+    "riskScenario": "leveraged-fixture",
+    "sourceMode": "polymarket",
+    "calibrationEvidence": "0xfd71094b41a1c8987c7a6549428821bf99a8119519618c675901308f728ea7cf",
+    "provenance": {
+      "collateral": "testnet",
+      "index": "external",
+      "calibration": "synthetic",
+      "resolution": "oracle"
+    },
+    "verifiedAt": {
+      "blockNumber": "69392720",
+      "blockHash": "0xd252fb30722753eeb77cc1f9aba5c023075abf1f82698a066ae3104ac41a3573"
+    },
+    "contracts": {
+      "TestUSDC": {
+        "address": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+        "codehash": "0x33e77bc6ce947556391af4c69c994ef8b7e69b4e03bfa4280cdec814cbb9d495",
+        "deployBlock": 68951846
+      },
+      "Finder": {
+        "address": "0xE60b1e2171614FC604311415A7788E56cB25E3bb",
+        "codehash": "0x4d1727e21859bbaec3575d1fd8b8a17be93811efd4421dfab4ea07b1780cbe6a",
+        "deployBlock": 68951861
+      },
+      "Store": {
+        "address": "0x09e5bc737FeBe0f6C2D8b0D90eEc2ad0307804F1",
+        "codehash": "0x008e9ce8a6f1cf7cf816c12f0f49062839e2fb0d55a97c7cfbc45997a118e442",
+        "deployBlock": 68951873
+      },
+      "AddressWhitelist": {
+        "address": "0x78bEEF97053B06A608043ac90d2924d48D2F6606",
+        "codehash": "0x87e5f2459fea5a1ff3c5fb38da735f5f3f893a0e22aac3f6bb1b39b1d16f7676",
+        "deployBlock": 68951895
+      },
+      "IdentifierWhitelist": {
+        "address": "0x75B0CbA83149917cE287d47361Bd51795313762e",
+        "codehash": "0x64ac6705092caae19ebee0677e858c1e42e63abbcbcf29246b7f2f3c65872b19",
+        "deployBlock": 68951918
+      },
+      "ErosSandboxOracle": {
+        "address": "0xc9AAe0A8f5D6e1Cb780661B0e20265234e768403",
+        "codehash": "0x9eb025920e9d217949a64f211d65ff232f0102e4f05c08c59850f50b9d7b0150",
+        "deployBlock": 68951943
+      },
+      "OptimisticOracleV3": {
+        "address": "0xd9B5090d4EBa69513DFE5eD6E8dE84b3D843Ba5E",
+        "codehash": "0x11ea81f26aa09124c162e2ebc4f53791eddeda7233c308a1897df1f224b9ea1f",
+        "deployBlock": 68952003
+      },
+      "Timelock": {
+        "address": "0x9fe0cF0DD3d190347548c2dC71cdbb4aAAC211F5",
+        "codehash": "0x8c45c8a13630cce47e81da7a2cf99931f60d4dd321f3ef36e50c024b06eea63a",
+        "deployBlock": 68952028
+      },
+      "BondTreasury": {
+        "address": "0xaA55f414a446B65Fe1004A781f5DeF4B3f9d5B04",
+        "codehash": "0xf72c0e499d46ca7b2b2dcaa5ccb93b1cfc8a3c8199d8d418ce6361e68f2b07fd",
+        "deployBlock": 68952051
+      },
+      "ResolutionOracle": {
+        "address": "0xb86a48B07eE07037F1B52273B9B50f20615B61e4",
+        "codehash": "0xdcc2abf654b8bb35328ea2df02403db378007f9a76bdd707cd6d2615cb757dca",
+        "deployBlock": 68952065
+      },
+      "UmaAdapter": {
+        "address": "0x2750c61Ae27A40875b10D8232f68f31a8e2a3385",
+        "codehash": "0x391e32a1d2acaf213bd1e71101b5f05a627df5ada7e3a722cef13b877d6ca572",
+        "deployBlock": 68952077
+      },
+      "MarketRegistry": {
+        "address": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+        "codehash": "0x0b61520cc9d461d6b4b60e45a4a98beca08ab2c648f18b6082c1f4e087b12fb9",
+        "deployBlock": 68952089
+      },
+      "KeeperRouter": {
+        "address": "0xf9afbf482F428f26E7a093Cd9B790827c9bE5667",
+        "codehash": "0x3f2f6daaf7e2c183e46e6d8d00b307884c5770e8095818a46d6d9562d51b35cf",
+        "deployBlock": 68952100
+      },
+      "EngineCodeStore": {
+        "address": "0x005C0851a24c89305cFd4790Ad16dDceD63E66CA",
+        "codehash": "0x5a81f8c38050f202ad24597117fe52bd386ce14fa5fde11079847b5764e2ad54",
+        "deployBlock": 69388507
+      },
+      "EngineCodeStoreTail": {
+        "address": "0xFe81509185b001CB1a1c7a1984443510E9c49D2A",
+        "codehash": "0x63c8aedb52b50669316ec5486e5832b0f2c40878bca79da9e9e1b1a0c80db783",
+        "deployBlock": 69388523
+      },
+      "MarketFactory": {
+        "address": "0xd410f15d2D24D36965282801e0459F531EDfd27E",
+        "codehash": "0x1c07ad883362f3bd1b3fe6fdc4e377588804b78d5268a0302f9b812c409dfd31",
+        "deployBlock": 69388533
+      },
+      "RolloverBatcher": {
+        "address": "0x59B40464F76BBA6009116d427ADD7f85cC295436",
+        "codehash": "0x9d4c9e5216ee5b5883f983e011ffc6f6c25d0b4a8c362115eef6b478e9e0abfd",
+        "deployBlock": 68952150
+      },
+      "CollateralVault": {
+        "address": "0x733b6F737b550C08597e2de1Ba280926857dbB46",
+        "codehash": "0x36df8b94e3bd16e0028356416634b33bb1ced527578dbb940f5f724549211228",
+        "deployBlock": 69388533
+      },
+      "CollateralToken": {
+        "address": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+        "codehash": "0x33e77bc6ce947556391af4c69c994ef8b7e69b4e03bfa4280cdec814cbb9d495",
+        "deployBlock": 68951846
+      }
+    },
+    "markets": [
+      {
+        "name": "polymarket-demo",
+        "engine": "0x8DD02f70bDe63b1cdE949D643098f09a6267d3F4",
+        "marketId": "0x777ed0f7cd30671746a59ae8e9fa4cacc3482560aa5c31c3c43bd093a735bf9e",
+        "sourceId": "0xc26f6668aea62919f31c07dbff33192161f21495db6ed9cfadedb9a01fb67b22",
+        "listingHash": "0x6c2e0fdf95bd07f3aad6b46288b8f13700a95e7fb6bfb26a54f7cc734c2f0382",
+        "codehash": "0x57a4c5b90337a0a0d4b0ee8429d7f1cc1931e699aab75e11138469e94ca32530",
+        "deployBlock": 69391659,
+        "deploymentCapX": 5,
+        "template": 0,
+        "maxLiqLotsPerBlock": "100000",
+        "fundingEnabled": false
+      }
+    ],
+    "accounts": {}
+  },
+  "listing": {
+    "marketId": "0x777ed0f7cd30671746a59ae8e9fa4cacc3482560aa5c31c3c43bd093a735bf9e",
+    "token": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+    "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+    "resolutionAuthority": "0xb86a48B07eE07037F1B52273B9B50f20615B61e4",
+    "monitor": "0x2562D8fE975A28bA25149f20d075515c30B298DF",
+    "governance": "0x9fe0cF0DD3d190347548c2dC71cdbb4aAAC211F5",
+    "scheduledT": "1791734400",
+    "listedAt": "1791503812",
+    "sourceHash": "0x8011b11878ef5dc2b4b538964e8f564b34b1455ed2f82789b35a3a4b85089eb1",
+    "rulesHash": "0x44c11fc9c45cb926cad1321fc704d8f438267ccf78bd0a8e89c1f5926530fe81",
+    "invalidRule": {
+      "fallbackListed": true,
+      "captureGraceSecs": "3600",
+      "fallbackPriceWad": "500000000000000000",
+      "voidSecs": "2592000"
+    },
+    "template": 0,
+    "deploymentCapX": "5",
+    "maxTraders": 1024,
+    "indexSourceId": "0xc26f6668aea62919f31c07dbff33192161f21495db6ed9cfadedb9a01fb67b22",
+    "indexSigner": "0x23E91E4b4794F7db6aad005C629d7Ff111E164e6",
+    "indexRulesHash": "0x02e403224660458b3237a405462b3062a98113918b047134dd544022ef3b80d7",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "bootstrapBandWad": "50000000000000000",
+    "minOrderLots": "1",
+    "maxOrderLots": "4294967295",
+    "maxLiqLotsPerBlock": "100000",
+    "fundingEnabled": false
+  },
+  "caps": [
+    "1",
+    "1"
+  ],
+  "pricingWindows": {
+    "indexSeconds": 60,
+    "perpSeconds": 60,
+    "basisSeconds": 180,
+    "carryLimitSeconds": 30
+  },
+  "capacity": {
+    "oiCapLots": "10000000",
+    "depthNLots": "1000000",
+    "samplingHeadroomLots": "9000000"
+  },
+  "profileHash": "0x32359aeaa4233086056ee0696c6536c3a62a78729affdf32e58bf7b7092cef43",
+  "title": "Will the price of Ethereum be above $2,400 on October 11?",
+  "oracleDelivery": "CRE simulation; production network workflow not deployed",
+  "uma": "owner-controlled testnet sandbox",
+  "publication": "configured external source; continuous operators require service activation"
+}

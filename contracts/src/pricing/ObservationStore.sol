@@ -160,16 +160,28 @@ abstract contract ObservationStore is PriceIngress {
         return (true, cp.priceWad);
     }
 
+    /// @notice Configured windows in seconds. Monad testnet uses (60, 60, 180, 30);
+    ///         all other chains use (300, 60, 900, 30).
+    function pricingWindows()
+        external
+        view
+        returns (uint64 indexWindowSecs, uint64 perpWindowSecs, uint64 basisWindowSecs, uint64 carryLimitSecs)
+    {
+        return (PricingMath.indexWindow(), PricingMath.PERP_WINDOW, PricingMath.basisWindow(), STALE);
+    }
+
+    /// @notice Legacy ABI name: reads the configured INDEX window, which is 60 s on Monad testnet.
     function indexTwap300(uint64 end) public view returns (PricingMath.Twap memory) {
-        return _windowTwap(INDEX, end, PricingMath.INDEX_WINDOW);
+        return _windowTwap(INDEX, end, PricingMath.indexWindow());
     }
 
     function perpTwap60(uint64 end) public view returns (PricingMath.Twap memory) {
         return _windowTwap(PERP, end, PricingMath.PERP_WINDOW);
     }
 
+    /// @notice Legacy ABI name: reads the configured BASIS window, which is 180 s on Monad testnet.
     function basisTwap900(uint64 end) public view returns (PricingMath.Twap memory) {
-        return _windowTwap(BASIS, end, PricingMath.BASIS_WINDOW);
+        return _windowTwap(BASIS, end, PricingMath.basisWindow());
     }
 
     /// @notice Listed INVALID window integral from the unpruned record. Available only when the

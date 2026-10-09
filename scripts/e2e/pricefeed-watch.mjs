@@ -12,6 +12,9 @@ import { recoverableUnsentReason } from '../../packages/pricefeed/dist/src/nonce
 import { SampleCoordinator, indexFreshCutoff } from './sampler-coordination.mjs';
 import { PacketStore, packetNamespace } from '../../packages/pricefeed/dist/src/packet-store.js';
 import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce } from './publisher-restart-policy.mjs';
+import { serviceRuntime, transientServiceRead } from './service-runtime-policy.mjs';
+import { assertServiceNotRetired } from './service-retirement.mjs';
+import { monadReadTransport } from '../../packages/pricefeed/dist/src/monad-preflight.js';
 
 const [rpcFile, publicDir, privateDir, policyFile, evidenceFile, seconds = '5400', setup] = process.argv.slice(2);
 if (!evidenceFile || !/^\d+$/.test(seconds) || +seconds < 1 || +seconds > 86400 || (setup !== undefined && setup !== '--initialize'))
@@ -20,16 +23,20 @@ const read = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const rpcEnv = parseEnv(readFileSync(rpcFile, 'utf8'));
 const rpcUrl = rpcEnv.MONAD_TESTNET_RPC;
 const require = createRequire(new URL('../../packages/pricefeed/package.json', import.meta.url));
-const { createPublicClient, http } = require('viem');
-const finalityClient = createPublicClient({ transport: http(rpcUrl, { timeout: 5000, retryCount: 1 }) });
+const { createPublicClient } = require('viem');
 process.env.MONAD_READ_FALLBACK_URLS ||= rpcEnv.MONAD_READ_FALLBACK_URLS || '';
+process.env.MONAD_READ_RPC_CAPACITIES ||= rpcEnv.MONAD_READ_RPC_CAPACITIES || '';
+const finalityClient = createPublicClient({ transport: monadReadTransport(rpcUrl) });
 if (!rpcUrl) throw new Error('Private RPC env must contain MONAD_TESTNET_RPC');
 const config = read(join(publicDir, 'pricefeed-config.json'));
 const rules = read(join(publicDir, 'pricefeed-rules.json')), abi = read(join(publicDir, 'engine-abi.json'));
 const policyInput = read(policyFile), policy = parseTestnetRunPolicy(policyInput);
 const journalDirectory = resolve(privateDir, 'pricefeed-journals'), keysDirectory = resolve(privateDir, 'keys');
-if (existsSync(join(privateDir, 'retired.json'))) throw new Error('RETIRED_PUBLICATION_SERVICE');
-const end = Date.now() + +seconds * 1000, stop = new AbortController();
+assertServiceNotRetired(privateDir);
+// Persistent operation removes only the wall-clock deadline. The existing
+// cumulative transaction/cost policy and durable journals remain authoritative.
+const runtime = serviceRuntime({ ...process.env, EROS_SERVICE_DURATION_SECONDS: seconds }, seconds, Date.now(), 1);
+const end = runtime.end, stop = new AbortController();
 process.once('SIGINT', () => stop.abort()); process.once('SIGTERM', () => stop.abort());
 const log = (value) => {
   const line = JSON.stringify({ at: new Date().toISOString(), ...value }, (_, v) => typeof v === 'bigint' ? v.toString() : v);
@@ -84,13 +91,14 @@ async function restoreFinalizedObservation() {
   if (packetReader.get(domain, observation.sequence).digest !== latest.digest) throw Error('FINALIZED_PACKET_MISMATCH');
   coordinator.notify({ ...observation, depthValid: latest.accepted.depthValid === true });
 }
-log({ started: true, pid: process.pid, engine: config.destination.engineAddress, source: config.mapping.externalMarketId, durationSeconds: +seconds });
+log({ started: true, pid: process.pid, engine: config.destination.engineAddress, source: config.mapping.externalMarketId, mode: runtime.mode, durationSeconds: +seconds });
 try {
 await restoreFinalizedObservation();
 while (!stop.signal.aborted && Date.now() < end) {
   try {
+    assertServiceNotRetired(privateDir);
     const result = await runMonadTestnetService({ config, rules, abi, rpcUrl, keysDirectory, journalDirectory, policy,
-      durationSeconds: Math.max(1, Math.ceil((end - Date.now()) / 1000)), stopAfterFinalized: policy.budget.maxTransactions,
+      durationSeconds: Math.min(86400, Math.max(1, Math.ceil((end - Date.now()) / 1000))), stopAfterFinalized: policy.budget.maxTransactions,
       initialize, publicationIntervalMs: 1000, minimumObservedAt: () => {
         const now = Date.now(), freshCutoff = indexFreshCutoff(now);
         // A bounded preference helps seal pending book captures; at the source
@@ -118,7 +126,12 @@ while (!stop.signal.aborted && Date.now() < end) {
         }
       }
     });
-    log({ stopped: true, finalizedPackets: result.finalizedPackets, evidenceValid: result.evidenceValid }); break;
+    const budgetExhausted = result.finalizedPackets >= policy.budget.maxTransactions;
+    log({ stopped: true, finalizedPackets: result.finalizedPackets, evidenceValid: result.evidenceValid,
+      reason: budgetExhausted ? 'publication-budget-exhausted' : stop.signal.aborted ? 'shutdown' : 'session-ended' });
+    if (budgetExhausted && runtime.mode === 'persistent') process.exitCode = 78;
+    if (runtime.mode !== 'persistent' || stop.signal.aborted || budgetExhausted) break;
+    initialize = false;
   } catch (error) {
     // Never log a provider exception or credential-bearing endpoint.
     const reason = error instanceof Error && /^[A-Z0-9_:]+$/.test(error.message) ? error.message : 'UNCLASSIFIED_SERVICE_FAILURE';
@@ -128,6 +141,13 @@ while (!stop.signal.aborted && Date.now() < end) {
     const files = ['source.sqlite', 'packets.sqlite', 'signer.sqlite', 'transactions.sqlite', 'relay.sqlite'];
     initialize = publisherInitializationAfterFailure(initialize, files.map(name => existsSync(join(journalDirectory, name))));
     if (stop.signal.aborted || Date.now() >= end) break;
+    if (transientServiceRead(error)) {
+      // The closed service's next startup reconciles its same durable outbox.
+      // Pool failover never resets source sequence, signing state or cost limits.
+      log({ retry: 'read pool temporarily unavailable' });
+      await new Promise(r => setTimeout(r, 3000));
+      continue;
+    }
     if (initialize) {
       if (!transientPublisherFailure(reason) || ++consecutiveFailures > 5) throw new Error(reason);
       await new Promise(r => setTimeout(r, 2000));

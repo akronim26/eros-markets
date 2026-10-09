@@ -132,13 +132,17 @@ async function verify(raw: Plan, pc: ReturnType<typeof client>['public'], journa
   const p = raw as MarketPlan, m = p.market, a = p.addresses
   const block = await pc.getBlock({ blockTag: journal.broadcast ? 'finalized' : 'latest' })
   const readAt = (name: string, address: Address, functionName: string, args: unknown[] = []) => pc.readContract({ abi: artifact(name).abi, address, functionName, args, blockNumber: block.number }) as Promise<any>
-  const [listing, listingHash, vault, active, reserve, code, actualEngine, profileHash, core] = await Promise.all([
+  const [listing, listingHash, vault, active, reserve, code, actualEngine, profileHash, core, pricingWindows] = await Promise.all([
     readAt('RegistryBookRiskEngine', m.engine, 'listing'), readAt('RegistryBookRiskEngine', m.engine, 'listingHash'),
     readAt('RegistryBookRiskEngine', m.engine, 'collateralVault'), readAt('RegistryBookRiskEngine', m.engine, 'active'),
     readAt('RegistryBookRiskEngine', m.engine, 'reserve'), pc.getCode({ address: m.engine, blockNumber: block.number }),
     readAt('MarketFactory', a.MarketFactory, 'engineOf', [m.marketId]), readAt('RegistryBookRiskEngine', m.engine, 'profileHashOf', [m.riskParams]),
     readAt('MarketRegistry', a.MarketRegistry, 'getMarketCore', [m.marketId]),
+    readAt('RegistryBookRiskEngine', m.engine, 'pricingWindows'),
   ])
+  if (await pc.getChainId() !== 10143 || pricingWindows.map(String).join(',') !== '60,60,180,30') {
+    throw new Error('TESTNET_PRICING_WINDOWS_MISMATCH')
+  }
   const base = read(resolve(directory, journal.broadcast ? 'base-verification.json' : 'rehearsal-verification.json'))
   if (!active || !code || !runtimeMatches(code, artifact('RegistryBookRiskEngine').deployedBytecode)
     || actualEngine.toLowerCase() !== m.engine.toLowerCase() || vault.toLowerCase() !== base.contracts.CollateralVault.address.toLowerCase()
@@ -161,6 +165,8 @@ async function verify(raw: Plan, pc: ReturnType<typeof client>['public'], journa
     verifiedAt: { blockNumber: block.number.toString(), blockHash: block.hash }, contracts: base.contracts, markets: [identity], accounts: {} })
   if ((await pc.getBlock({ blockNumber: block.number })).hash !== block.hash) throw new Error('VERIFICATION_BLOCK_REORGED')
   return { passed: true, publicTransactions: journal.broadcast ? journal.steps.length : 0, manifest, listing, caps,
+    pricingWindows: { indexSeconds: Number(pricingWindows[0]), perpSeconds: Number(pricingWindows[1]),
+      basisSeconds: Number(pricingWindows[2]), carryLimitSeconds: Number(pricingWindows[3]) },
     capacity: { oiCapLots: core.oiCapLots, depthNLots: listing.depthNLots, samplingHeadroomLots: core.oiCapLots - listing.depthNLots },
     profileHash, title: m.title, oracleDelivery: 'CRE simulation; production network workflow not deployed', uma: 'owner-controlled testnet sandbox',
     publication: 'configured external source; continuous operators require service activation' }

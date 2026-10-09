@@ -15,6 +15,7 @@
   },
   "sampleEveryBlocks": "30",
   "gas": {
-    "samplePerp": 293195
+    "samplePerp": 293195,
+    "liquidate": 4000000
   }
 }

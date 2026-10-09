@@ -3484,6 +3484,34 @@ export const engineAbi = [
   },
   {
     "type": "function",
+    "name": "pricingWindows",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "indexWindowSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "perpWindowSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "basisWindowSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "carryLimitSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "profileHashOf",
     "inputs": [
       {

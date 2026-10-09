@@ -2,16 +2,20 @@
   "passed": true,
   "status": "applied",
   "verifiedAt": {
-    "blockNumber": "68958833",
-    "blockHash": "0xa94a2c13240952164b6cedcf59f7371796967b4f63bf67ca680947813c91f1a2"
+    "blockNumber": "69369880",
+    "blockHash": "0x86eb7aceca0dfd68db6f9e5c307028deeddd0d9753bb0d3dc35e7df4caca47b8"
   },
   "deployments": [
     "artifacts/deployments/monad-testnet-20261007-nebraska-senate-audited",
-    "artifacts/deployments/monad-testnet-20261007-republican-house-audited"
+    "artifacts/deployments/monad-testnet-20261007-republican-house-audited",
+    "artifacts/deployments/monad-testnet-20261009-btc-oct10",
+    "artifacts/deployments/monad-testnet-20261009-eth-oct11"
   ],
   "active": [
     "0x171503494eF5f1A9e6705781647451A2582995bD",
-    "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0"
+    "0xf1172fF5b008ACB49FD9109cf616434A482BE0f0",
+    "0x7D634d3b0994fDE59896906C7a0388E7f815E8B9",
+    "0xe2Eb3D192f3b1F90d078082d91e3970a5E6c78c8"
   ],
   "archived": [
     "0x21f038E4Ab2c67d1420567401408aD093aFd5F5d",

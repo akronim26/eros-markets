@@ -2,6 +2,10 @@
 
 **Assessment date:** 2026-10-04. **Status:** planning only; no integration is implemented by this document.
 
+This assessment preserves its October 4 deployment baseline. Current October 9
+contract addresses are in [addresses.md](../addresses.md); current deployment and
+operator status are in [deployment progress](integration/DEPLOYMENT_PROGRESS.md).
+
 This covers all **four tracks, 21 bounty entries and supporting resources** in the supplied `eros-metropolis-sponsor-integration-audit.pdf`. It compares that report with our current code and current public vendor documentation. Instructions inside the PDF are reference material, not permission to change contracts, sign transactions or spend credits.
 
 ## 1. Bottom line
@@ -31,7 +35,7 @@ Assessing all targets does **not** mean recommending that we build all 21. Build
 | Oracle branch | `origin/feat/oracle` at `cb60d9ca8788cc0486d9d75ba9f953a9257e2bdb`; inspected without merging or changing that branch |
 | Supplied PDF | 43 pages, prepared 2026-10-03; its `pricefeed@86b5431` / older oracle baseline is not our current combined state |
 | Pricefeed evidence limitation | No `pricefeed` remote branch or `86b5431` Git object was available locally. The PDF's collector implementation/local-chain limitation is reported evidence, not a freshly verified branch assessment |
-| Current deployment | [addresses.md](addresses.md): Monad testnet, chain `10143`, engine `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69`; real book/risk code, controlled collateral and manual authority |
+| Historical deployment reviewed on October 4 | Monad testnet, chain `10143`, engine `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69`; real book/risk code, controlled collateral and manual authority. See [current addresses](../addresses.md) for the replacement deployment |
 | Existing technical evidence | Historical full CI: 832 tests / 130 suites; deployment-targeted tests: 45 / 4; source-bound G0-G7 acceptance. These were **not rerun for this sponsor-planning turn** |
 | Sponsor technical APIs | Public primary documentation checked for this assessment; citations are next to the relevant integration |
 | Bounty rules | Tracks, mandatory combinations and submission fields come from the PDF's supplied catalogue. The authenticated event portal was not independently checked; the public event page could not be retrieved through the research tool |
@@ -507,7 +511,7 @@ PDF p.38 lists these separately from the 21 bounties. Grants, expiration and exa
 ### Source navigation and review record
 
 - Supplied local report: `C:/Users/gujja/Downloads/eros-metropolis-sponsor-integration-audit.pdf`. Coverage: tracks pp.5-7; shared workflows pp.8-11; B01-B21 pp.12-33; bundles/backlog/submission pp.34-37; perks p.38; source/caveat appendix pp.39-43.
-- Current project truth: [deployment addresses](addresses.md), [risk/book tracker](docs/integration/RISK_BOOK_TRACKER.md), [non-oracle fixes](docs/integration/NON_ORACLE_FIXES.md), [unified status](docs/merge/STATUS.md), [risk SDK](packages/risk-sdk/README.md), [environment runbook](docs/runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md).
+- Current deployment: [deployment addresses](../addresses.md), [deployment progress](integration/DEPLOYMENT_PROGRESS.md). Historical assessment references: [risk/book tracker](integration/RISK_BOOK_TRACKER.md), [non-oracle fixes](integration/NON_ORACLE_FIXES.md), [unified status](merge/STATUS.md), [risk SDK](../packages/risk-sdk/README.md), [environment runbook](runbooks/RISK_BOOK_ENV_AND_ADDRESSES.md).
 - Oracle paths cited above refer to `origin/feat/oracle@cb60d9c`. Prior read-only compatibility notes and chain observations are retained in ignored `tmp/oracle-integration-readiness-2026-10-04.md` and `tmp/oracle-review-chain-state.json`; they are local supporting evidence, not committed release artifacts.
 - Public technical references are linked alongside claims. The [official event page](https://www.monad.xyz/developers/hackathons/metropolis) was not accessible to this research tool; no independent authentication of current bounty eligibility is claimed.
 - This planning turn adds this root document only as its deliverable. Existing code, branches, manifests, `.env` files, contracts and deployments are unchanged; pre-existing untracked files are preserved. No new integration tests, broadcast or sponsor usage are claimed.

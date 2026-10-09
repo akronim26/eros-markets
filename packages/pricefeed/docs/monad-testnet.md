@@ -1,5 +1,11 @@
 # Monad testnet integration
 
+This page preserves the standalone diagnostic receiver pilot and its operating
+procedures. Its receiver and sender addresses are not the current trading market
+deployment. Use [the current address register](../../../addresses.md) and
+[testnet operating runbook](../../../docs/integration/TESTNET_OPERATIONS.md) for the
+replacement BTC/ETH engines and their market-specific publisher journals.
+
 The user selected testnet on 04 October 2026 and moved this work ahead of the
 storage/backup drills. A **standalone diagnostic receiver is now deployed**,
 alongside preflight, a durable lifecycle monitor and automated diagnostic

@@ -19,6 +19,8 @@ import { record } from './book.js';
 import { sizeGas } from './gas.js';
 import { nonceRecoveries, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
 import { testnetJournalPath } from './monad-keys.js';
+import { verifyHistoryRecoveryAudit } from './history-recovery-journal.js';
+import { workerNamespace } from './worker.js';
 
 export type BudgetOptions={config:MarketConfig;abi:unknown;rpcUrl:string;journalDirectory:string};
 const schemas=['source','packets','signer','transactions'] as const;
@@ -60,6 +62,9 @@ export function budgetJournalSnapshot(db:DatabaseSync){
   if(db.prepare("SELECT name FROM sqlite_master WHERE name='nonce_recoveries'").get()){
     queries.push({table:'main.nonce_recoveries',sql:'SELECT * FROM nonce_recoveries ORDER BY key'});
   }
+  if(db.prepare("SELECT name FROM sqlite_master WHERE name='relay_history_recovery_audit'").get()){
+    queries.push({table:'main.relay_history_recovery_audit',sql:'SELECT * FROM relay_history_recovery_audit ORDER BY revision'});
+  }
   // Preserve the exact existing pretty-JSON hash without constructing one huge
   // string. Real source archives exceed V8's maximum string length in hours.
   const hash=createHash('sha256');hash.update('[\n');
@@ -76,14 +81,16 @@ export function budgetJournalSnapshot(db:DatabaseSync){
   });
   return hash.update('\n]').digest('hex');
 }
-async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,rpc:MonadSubmissionRpc,now:()=>bigint){
+async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,rpc:MonadSubmissionRpc,now:()=>bigint,
+  expectedQuarantine?:'SIGNED_SOURCE_HISTORY_MISMATCH'){
   const cfg=validateMonadLifecycleConfig(parseConfig(structuredClone(options.config))),d=cfg.destination!;
   const abi=parseEngineReadAbi(options.abi).abi,domain:PacketDomain={chainId:10143n,engine:d.engineAddress,
     marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress},ns=packetNamespace(domain);
   const control=db.prepare('SELECT profile,reason FROM relay_control WHERE id=1').get();
   if(control?.profile!==profile(old))throw new Error('RELAY_PROFILE_CHANGED');
-  if(control.reason)throw new Error('RELAY_PERSISTENT_QUARANTINE');
+  if(expectedQuarantine?control.reason!==expectedQuarantine:!!control.reason)throw new Error('RELAY_PERSISTENT_QUARANTINE');
   verifyBudgetAudit(db,String(control.profile),old.budget.budgetRevision??0);
+  verifyHistoryRecoveryAudit(db,old.sender);
   for(const table of ['main.relay_nonce','source.writers','packets.packet_workers'])
     if(db.prepare(`SELECT until_ms FROM ${table}`).all().some(r=>BigInt(String(r.until_ms))>now()))throw new Error('BUDGET_IDLE_JOURNALS_REQUIRED');
   const accounts=db.prepare('SELECT * FROM relay_nonce').all(),meta=db.prepare('SELECT * FROM transactions.transaction_signer').all();
@@ -182,6 +189,17 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
 export function budgetPlanHash(value:unknown):string {
   const {approvalHash:_,...body}=record(value);return policyHash(json(body));
 }
+/** Read-only retirement evidence. Does not change budgets, leases, policy or history. */
+export async function auditMonadPublisherRetirement(options:BudgetOptions,rawPolicy:unknown,
+  rpc:MonadSubmissionRpc=monadSubmissionRpc(options.rpcUrl),now:()=>bigint=()=>BigInt(Date.now())){
+  const policy=parseTestnetRunPolicy(rawPolicy),db=openBudgetJournals(options,false);
+  try{
+    db.exec('BEGIN');
+    const state=await proof(db,options,policy,rpc,now);
+    return JSON.parse(json({schemaVersion:'1',mode:'MONAD_TESTNET_RETIREMENT_AUDIT',
+      sender:policy.sender,createdAtMs:now(),...state,transactionsSent:0,signaturesProduced:0}));
+  }finally{db.exec('ROLLBACK');db.close();}
+}
 /** Read-only preview; never unlocks keys, allocates a sequence/nonce or raises the budget. */
 export async function planMonadBudget(options:BudgetOptions,oldPolicy:unknown,nextPolicy:unknown,id:string,reason:string,
   rpc:MonadSubmissionRpc=monadSubmissionRpc(options.rpcUrl),now:()=>bigint=()=>BigInt(Date.now())){
@@ -240,5 +258,108 @@ export async function applyMonadBudget(options:BudgetOptions,value:unknown,expec
     return {mode:'MONAD_TESTNET_BUDGET_RENEWAL',alreadyApplied:false,revision:next.budget.budgetRevision,
       approvalHash:expectedHash,historicalReservationsWei:state.reservedWei,remainingReservationWei:remaining,
       deliveryCount:state.deliveryCount,nextNonce:state.nextNonce,transactionsSent:0,signaturesProduced:0,productionApproved:false};
+  }finally{if(!committed)db.exec('ROLLBACK');db.close();}
+}
+
+function recoveryReadRpc(rpc:MonadSubmissionRpc,timeoutMs:number):MonadSubmissionRpc {
+  const bounded=async<T>(call:()=>Promise<T>):Promise<T>=>{
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{return await Promise.race([Promise.resolve().then(call),new Promise<never>((_,reject)=>{
+      timer=setTimeout(()=>reject(Error('HISTORY_RECOVERY_RPC_UNAVAILABLE')),timeoutMs);
+    })]);}catch{throw Error('HISTORY_RECOVERY_RPC_UNAVAILABLE');}finally{if(timer)clearTimeout(timer);}
+  };
+  return {chainId:()=>bounded(()=>rpc.chainId()),block:s=>bounded(()=>rpc.block(s)),code:(a,b)=>bounded(()=>rpc.code(a,b)),
+    ...(rpc.codeHash?{codeHash:(a:Hex,b:bigint)=>bounded(()=>rpc.codeHash!(a,b))}:{}),
+    read:(a,b,n,s,k)=>bounded(()=>rpc.read(a,b,n,s,k)),nonce:a=>bounded(()=>rpc.nonce(a)),balance:a=>bounded(()=>rpc.balance(a)),
+    receipt:h=>bounded(()=>rpc.receipt(h)),simulate:async()=>{throw Error('HISTORY_RECOVERY_READ_ONLY');},send:async()=>{throw Error('HISTORY_RECOVERY_READ_ONLY');}};
+}
+
+async function laggedFinalizedViewProof(db:DatabaseSync,options:BudgetOptions,policy:TestnetRunPolicy,rpc:MonadSubmissionRpc,now:()=>bigint){
+  // Reuse the complete receipt/signature/nonce/budget proof. The sole admission
+  // difference is requiring this exact persisted reason rather than no reason.
+  const state=await proof(db,options,policy,rpc,now,'SIGNED_SOURCE_HISTORY_MISMATCH');
+  const cfg=parseConfig(structuredClone(options.config)),d=cfg.destination!;
+  const row=db.prepare('SELECT id,payload,sha256 FROM source.captures WHERE worker=? ORDER BY id DESC LIMIT 1')
+    .get(`lifecycle:${workerNamespace(cfg)}`);
+  if(!row||policyHash(String(row.payload))!==row.sha256)throw Error('HISTORY_RECOVERY_LAG_EVIDENCE_REQUIRED');
+  const view=JSON.parse(String(row.payload)),checkpoint=view.checkpoint;
+  if(view.recordType!=='LIFECYCLE'||view.schemaVersion!=='1'||view.configDigest!==state.configHash
+    ||!['COLLECTING','RECORD_ONLY'].includes(view.mode)||view.reason!==null||view.freshCheckpoint!==true
+    ||checkpoint?.canonical!==true||checkpoint.chainId!=='10143'||checkpoint.engine?.toLowerCase()!==d.engineAddress.toLowerCase()
+    ||checkpoint.marketId?.toLowerCase()!==d.marketId.toLowerCase()||checkpoint.sourceId?.toLowerCase()!==d.sourceId.toLowerCase()
+    ||checkpoint.engineCodeHash?.toLowerCase()!==d.engineCodeHash.toLowerCase()||checkpoint.rulesHash?.toLowerCase()!==d.sourceRulesHash.toLowerCase()
+    ||checkpoint.scheduledT!==d.scheduledT||!/^\d+$/.test(checkpoint.blockNumber??''))throw Error('HISTORY_RECOVERY_LAG_EVIDENCE_REQUIRED');
+  const deliveries=db.prepare('SELECT body FROM deliveries').all().map(r=>JSON.parse(String(r.body))).filter(r=>r.state==='FINALIZED');
+  const last=deliveries.reduce((a,b)=>!a||BigInt(a.sequence)<BigInt(b.sequence)?b:a,null);
+  if(!last?.accepted||BigInt(checkpoint.blockNumber)>=BigInt(last.accepted.blockNumber)
+    ||!/^\d+$/.test(checkpoint.sourceState?.lastSequence??'')||BigInt(checkpoint.sourceState.lastSequence)>=BigInt(last.sequence))
+    throw Error('HISTORY_RECOVERY_NOT_AN_OLDER_FINALIZED_VIEW');
+  const [canonical,source]=await Promise.all([
+    rpc.block({blockNumber:BigInt(checkpoint.blockNumber)}),
+    rpc.read(d.engineAddress as Hex,parseEngineReadAbi(options.abi).abi,'sourceState',d.sourceId as Hex,BigInt(checkpoint.blockNumber)),
+  ]);
+  const historical=record(source);
+  if(canonical.hash.toLowerCase()!==checkpoint.blockHash.toLowerCase()||canonical.timestamp.toString()!==checkpoint.blockTimestamp
+    ||historical.lastSequence?.toString()!==checkpoint.sourceState.lastSequence
+    ||historical.lastObservedAt?.toString()!==checkpoint.sourceState.lastObservedAt
+    ||String(historical.signer).toLowerCase()!==d.signerAddress.toLowerCase()||String(historical.rulesHash).toLowerCase()!==d.sourceRulesHash.toLowerCase()
+    ||historical.configured!==true)throw Error('HISTORY_RECOVERY_HISTORICAL_VIEW_CHANGED');
+  const finalAnchor=await rpc.block({blockNumber:state.checkpoint.block.number});
+  if(finalAnchor.hash!==state.checkpoint.block.hash||now()-state.checkpoint.checkedAtMs>30000n)throw Error('HISTORY_RECOVERY_CHECKPOINT_CHANGED_OR_EXPIRED');
+  return {...state,lagEvidence:{captureId:String(row.id),captureSha256:String(row.sha256),snapshotBlock:checkpoint.blockNumber,
+    snapshotHash:checkpoint.blockHash,snapshotSequence:checkpoint.sourceState.lastSequence,acceptedBlock:last.accepted.blockNumber,
+    acceptedHash:last.accepted.blockHash,acceptedSequence:last.sequence,transactionHash:last.txHash}};
+}
+
+/** Read-only review of a provably older RPC view. No keys, signing, nonce change or database edit. */
+export async function planMonadHistoryRecovery(options:BudgetOptions,rawPolicy:unknown,id:string,
+  rpc:MonadSubmissionRpc=monadSubmissionRpc(options.rpcUrl),now:()=>bigint=()=>BigInt(Date.now())){
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id))throw Error('BAD_HISTORY_RECOVERY_ID');
+  const policy=parseTestnetRunPolicy(rawPolicy),db=openBudgetJournals(options,false);
+  rpc=recoveryReadRpc(rpc,policy.relay.timeoutMs);
+  try{
+    db.exec('BEGIN');
+    const state=await laggedFinalizedViewProof(db,options,policy,rpc,now);
+    const body=JSON.parse(json({schemaVersion:'1',mode:'MONAD_TESTNET_FINALIZED_VIEW_RECOVERY_PLAN',id,policy:rawPolicy,
+      reason:'SIGNED_SOURCE_HISTORY_MISMATCH',createdAtMs:now(),...state,signaturesProduced:0,transactionsSent:0,productionApproved:false}));
+    return {...body,approvalHash:policyHash(json(body))};
+  }finally{db.exec('ROLLBACK');db.close();}
+}
+
+/** Atomic, review-hash-bound recovery. Preserve all history and append the precise stale-view proof. */
+export async function applyMonadHistoryRecovery(options:BudgetOptions,value:unknown,expectedHash:string,
+  rpc:MonadSubmissionRpc=monadSubmissionRpc(options.rpcUrl),now:()=>bigint=()=>BigInt(Date.now())){
+  const plan=record(structuredClone(value));
+  if(!/^[a-f0-9]{64}$/.test(expectedHash)||plan.approvalHash!==expectedHash||budgetPlanHash(plan)!==expectedHash
+    ||plan.schemaVersion!=='1'||plan.mode!=='MONAD_TESTNET_FINALIZED_VIEW_RECOVERY_PLAN'||plan.reason!=='SIGNED_SOURCE_HISTORY_MISMATCH')
+    throw Error('HISTORY_RECOVERY_PLAN_CHANGED');
+  const policy=parseTestnetRunPolicy(plan.policy),db=openBudgetJournals(options,true);
+  rpc=recoveryReadRpc(rpc,policy.relay.timeoutMs);let committed=false;
+  try{
+    db.exec('BEGIN IMMEDIATE');verifyHistoryRecoveryAudit(db,policy.sender);
+    if(db.prepare("SELECT name FROM sqlite_master WHERE name='relay_history_recovery_audit'").get()){
+      const done=db.prepare('SELECT body FROM relay_history_recovery_audit WHERE approval_hash=?').get(expectedHash);
+      if(done)return {mode:'MONAD_TESTNET_FINALIZED_VIEW_RECOVERY',alreadyApplied:true,approvalHash:expectedHash,transactionsSent:0,signaturesProduced:0};
+    }
+    if(budgetJournalSnapshot(db)!==plan.journalHash)throw Error('HISTORY_RECOVERY_JOURNALS_CHANGED');
+    const state=await laggedFinalizedViewProof(db,options,policy,rpc,now);
+    if(state.configHash!==plan.configHash||state.nextNonce.toString()!==plan.nextNonce||json(state.lagEvidence)!==json(plan.lagEvidence)
+      ||state.checkpoint.engine!.sourceState.lastSequence.toString()!==(plan.checkpoint as any).engine.sourceState.lastSequence)
+      throw Error('HISTORY_RECOVERY_EVIDENCE_CHANGED');
+    if(budgetJournalSnapshot(db)!==plan.journalHash)throw Error('HISTORY_RECOVERY_JOURNALS_CHANGED');
+    const control=db.prepare('SELECT * FROM relay_control WHERE id=1').get()!,revision=Number(control.history_revision??0)+1;
+    const previous=revision>1?db.prepare('SELECT sha256 FROM relay_history_recovery_audit WHERE revision=?').get(revision-1)!.sha256:null;
+    const body=json({mode:'MONAD_TESTNET_FINALIZED_VIEW_RECOVERY',chainId:10143,revision,id:plan.id,reason:plan.reason,sender:policy.sender,
+      profile:String(control.profile),approvalHash:expectedHash,previousHash:previous,journalHashBefore:state.journalHash,
+      lagEvidence:state.lagEvidence,checkpoint:state.checkpoint,nextNonce:state.nextNonce,historicalReservationsWei:state.reservedWei,appliedAtMs:now()});
+    if(!db.prepare('PRAGMA table_info(relay_control)').all().some(c=>c.name==='history_revision'))
+      db.exec('ALTER TABLE relay_control ADD COLUMN history_revision INTEGER NOT NULL DEFAULT 0');
+    db.exec('CREATE TABLE IF NOT EXISTS relay_history_recovery_audit(revision INTEGER PRIMARY KEY,approval_hash TEXT NOT NULL UNIQUE,body TEXT NOT NULL,sha256 TEXT NOT NULL) STRICT');
+    db.prepare('INSERT INTO relay_history_recovery_audit VALUES(?,?,?,?)').run(revision,expectedHash,body,policyHash(body));
+    if(db.prepare('UPDATE relay_control SET reason=NULL,history_revision=? WHERE id=1 AND profile=? AND reason=?')
+      .run(revision,profile(policy),'SIGNED_SOURCE_HISTORY_MISMATCH').changes!==1)throw Error('HISTORY_RECOVERY_CONTROL_CHANGED');
+    verifyHistoryRecoveryAudit(db,policy.sender);db.exec('COMMIT');committed=true;
+    return {mode:'MONAD_TESTNET_FINALIZED_VIEW_RECOVERY',alreadyApplied:false,approvalHash:expectedHash,revision,nextNonce:state.nextNonce,
+      historicalReservationsWei:state.reservedWei,transactionsSent:0,signaturesProduced:0,productionApproved:false};
   }finally{if(!committed)db.exec('ROLLBACK');db.close();}
 }

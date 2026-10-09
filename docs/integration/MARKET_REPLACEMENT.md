@@ -1,6 +1,12 @@
-# Market replacement — 6 October 2026
+# Market replacement history
 
-## Current state — October 7 update
+Current deployment: the October 9 fast-profile BTC and ETH markets are recorded in
+[addresses.md](../../addresses.md) and [deployment progress](DEPLOYMENT_PROGRESS.md).
+Use [TESTNET_OPERATIONS.md](TESTNET_OPERATIONS.md) for their prepared worker paths.
+The earlier factories, vaults, campaigns and pricing windows below are historical;
+their addresses must not be copied into current service configuration.
+
+## Historical state — October 7 update
 
 The frontend now selects two verified v3 markets: Democratic Senate control and
 Republican control, both referencing real Polymarket events on November 3. The

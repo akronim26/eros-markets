@@ -169,7 +169,7 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
       <RegionHead title="Order" />
       <div className="flex flex-col gap-3 p-3">
         {archived && <p className="text-xs text-fg-3">This market accepts position reductions only in this interface.</p>}
-        <div className="grid grid-cols-2 gap-px" role="group" aria-label="Trade direction and outcome">
+        <div className="grid grid-cols-2 gap-2" role="group" aria-label="Trade direction and outcome">
           {TRADE_CHOICES.map((choice) => (
             <button
               key={intentLabel(choice)}
@@ -177,19 +177,19 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
               aria-pressed={tradeIntent.outcome === choice.outcome && tradeIntent.direction === choice.direction}
               onClick={() => chooseIntent(choice)}
               className={cx(
-                "h-8 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-signal",
+                "ui-toggle h-8 border border-line-strong text-xs font-semibold focus-visible:outline-2 focus-visible:outline-signal",
                 tradeIntent.outcome === choice.outcome && tradeIntent.direction === choice.direction
                   ? choice.direction === "long"
                     ? "bg-bid text-on-bid"
                     : "bg-ask text-on-ask"
-                  : "text-fg-3 shadow-[inset_0_0_0_1px_var(--color-line-strong)] hover:text-fg",
+                  : "bg-panel text-fg-3 hover:text-fg",
               )}
             >
               {intentLabel(choice)}
             </button>
           ))}
         </div>
-        <div className="flex gap-px bg-line" role="radiogroup" aria-label="Order type" onKeyDown={selectionKeys}>
+        <div className="flex gap-2" role="radiogroup" aria-label="Order type" onKeyDown={selectionKeys}>
           {ORDER_KIND.map((k, i) => (
             <button
               key={k}
@@ -197,7 +197,7 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
               aria-checked={kind === i}
               tabIndex={kind === i ? 0 : -1}
               onClick={() => setKind(i)}
-              className={cx("label h-7 flex-1", kind === i ? "bg-press text-fg" : "bg-ground text-fg-3 hover:text-fg")}
+              className={cx("ui-toggle label h-7 flex-1 border border-line-strong", kind === i ? "bg-press text-fg" : "bg-panel text-fg-3 hover:text-fg")}
             >
               {k}
             </button>
@@ -235,7 +235,7 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
           <div className="grid grid-cols-5 gap-1" role="group" aria-label="Target leverage">
             {[1, 2, 3, 4, 5].map((x) => <button key={x} type="button" aria-pressed={targetLeverage === x}
               disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || (x > 1 && !market?.risk.markAvailable) || !!fieldErrors.price || readUnavailable || trader?.block !== market?.block}
-              className={cx("h-7 border text-xs tnum transition-colors disabled:cursor-not-allowed disabled:opacity-35", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong text-fg-2 hover:bg-press")}
+              className={cx("ui-toggle h-7 border text-xs tnum disabled:cursor-not-allowed", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong bg-panel text-fg-2 hover:bg-press")}
               onClick={() => { try { const lots = leverageLots(sizingEquity, canonicalTrade(tradeIntent, parsePriceToTick(price)).tick, side === "buy", x, market?.risk.markAvailable ? market.risk.markWad : undefined); setSize(lotsToClaims(lots)); setTargetLeverage(x); setInputRevision((n) => n + 1); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
           </div>
           <details className="text-xs text-fg-3">

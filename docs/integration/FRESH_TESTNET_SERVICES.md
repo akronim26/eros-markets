@@ -1,4 +1,12 @@
-# Activate services for the fresh testnet deployment
+# Historical service setup — October 6 deployment
+
+This deployment is superseded. Its addresses, budgets, private directories and
+startup commands below are retained as historical evidence. Do not use them to
+start current workers. Use [TESTNET_OPERATIONS.md](TESTNET_OPERATIONS.md) for the
+October 9 fast-profile BTC/ETH supervisor, [addresses.md](../../addresses.md) for
+current contracts, and `frontend/src/config/public-manifest.json` for the selected
+markets. The live retained indexer uses a different database and endpoint; keep
+its configuration intact.
 
 Deployment: `artifacts/deployments/monad-testnet-20261006/public-manifest.json`.
 Chain: **10143**. Frontend and backend use the same registry, factory, engine,

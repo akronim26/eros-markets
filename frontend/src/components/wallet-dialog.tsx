@@ -2,9 +2,9 @@
 
 import { WalletTools } from "./wallet-tools";
 import type { Address } from "viem";
-import type { RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { ConnectedWallet } from "@privy-io/react-auth";
-import { Check, LogOut, Wallet, X } from "lucide-react";
+import { Check, Copy, LogOut, Wallet, X } from "lucide-react";
 import { Button, cx } from "./ui";
 import { explorerAddress } from "@/config/chain";
 
@@ -23,6 +23,35 @@ type Props = {
   onSwitchChain: () => Promise<void>;
   onLogout: () => Promise<void>;
 };
+
+function WalletAddress({ address }: { address: string }) {
+  const [status, setStatus] = useState<"idle" | "copying" | "copied" | "failed">("idle");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  async function copy() {
+    if (timer.current) clearTimeout(timer.current);
+    setStatus("copying");
+    try {
+      await navigator.clipboard.writeText(address);
+      setStatus("copied");
+      timer.current = setTimeout(() => setStatus("idle"), 2000);
+    } catch { setStatus("failed"); }
+  }
+
+  return <div className="px-3 pb-3">
+    <div className="flex items-center gap-3">
+      <code className="min-w-0 flex-1 select-all break-all text-xs text-fg-3">{address}</code>
+      <Button type="button" size="sm" className="shrink-0" disabled={status === "copying"}
+        aria-label={`Copy address ${address}`} onClick={copy}>
+        {status === "copied" ? <Check size={13} aria-hidden /> : <Copy size={13} aria-hidden />}
+        {status === "copied" ? "Copied" : "Copy address"}
+      </Button>
+    </div>
+    <span role="status" className="sr-only">{status === "copied" ? "Wallet address copied." : ""}</span>
+    {status === "failed" && <p role="alert" className="mt-2 text-xs text-signal-text">Clipboard access was blocked. Select the full address above to copy it manually.</p>}
+  </div>;
+}
 
 export function WalletDialog({ dialogRef, wallets, activeAddress, hasEmbedded, busy, error, notice, wrongChain, onSelect, onCreate, onConnect, onSwitchChain, onLogout }: Props) {
   const close = () => dialogRef.current?.close();
@@ -46,18 +75,18 @@ export function WalletDialog({ dialogRef, wallets, activeAddress, hasEmbedded, b
               const active = wallet.address.toLowerCase() === activeAddress?.toLowerCase();
               const embedded = wallet.walletClientType === "privy" || wallet.walletClientType === "privy-v2";
               return (
-                <li key={`${wallet.walletClientType}:${wallet.address}`}>
+                <li key={`${wallet.walletClientType}:${wallet.address}`} className={cx("border border-line-strong", active && "bg-hover")}>
                   <button disabled={busy} onClick={() => onSelect(wallet)} aria-pressed={active}
-                    className={cx("flex w-full items-start gap-3 border border-line-strong p-3 text-left hover:bg-hover disabled:cursor-not-allowed", active && "bg-hover")}>
+                    className="flex w-full items-start gap-3 p-3 text-left hover:bg-hover disabled:cursor-not-allowed">
                     <Wallet size={18} className="mt-1 shrink-0" aria-hidden />
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-medium">{embedded ? "Privy wallet" : wallet.meta.name}</span>
-                      <span className="mt-1 block break-all text-xs text-fg-3">{wallet.address}</span>
                       <span className="label mt-2 flex items-center gap-1 text-fg-3">
                         {active && <Check size={12} aria-hidden />}{active ? "Selected for trading" : "Use this wallet"}
                       </span>
                     </span>
                   </button>
+                  <WalletAddress address={wallet.address} />
                 </li>
               );
             })}

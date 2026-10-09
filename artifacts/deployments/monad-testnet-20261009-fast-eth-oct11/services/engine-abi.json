@@ -1,0 +1,6874 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "vault",
+        "type": "address",
+        "internalType": "contract CollateralVault"
+      },
+      {
+        "name": "reserveTreasury",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "configuration",
+        "type": "tuple",
+        "internalType": "struct IMarketConfig.Listing",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "token",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "registry",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "resolutionAuthority",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "monitor",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "governance",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "scheduledT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "listedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "sourceHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "rulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "invalidRule",
+            "type": "tuple",
+            "internalType": "struct IMarketConfig.InvalidRule",
+            "components": [
+              {
+                "name": "fallbackListed",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "captureGraceSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "fallbackPriceWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "voidSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          },
+          {
+            "name": "template",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Template"
+          },
+          {
+            "name": "deploymentCapX",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxTraders",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "indexSourceId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "indexSigner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "indexRulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "depthNLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxSpreadWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bootstrapBandWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxLiqLotsPerBlock",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "fundingEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "ELIGIBLE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "FLAG_BUY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "FLAG_LIVE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "FLAG_REDUCE_ONLY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PENDING_EPOCH_OPENING",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PENDING_FLOOR_SWEEP",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PENDING_HALT_SWEEP",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PENDING_ROLLOVER_SWEEP",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PREVIEW_UNITS_VERSION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "REASON_FALLBACK_MISSING_INDEX",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "REASON_TWAP",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "R_CASH_CLAIM_STARTED",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "R_DISABLED",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "R_MODE_SELECTED",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "R_SNAPSHOT_INCOMPLETE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "R_UNDERBACKED",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "account",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct RiskStorage.Account",
+        "components": [
+          {
+            "name": "value",
+            "type": "tuple",
+            "internalType": "struct LedgerMath.Value",
+            "components": [
+              {
+                "name": "lots",
+                "type": "int128",
+                "internalType": "int128"
+              },
+              {
+                "name": "cashQ",
+                "type": "int256",
+                "internalType": "int256"
+              }
+            ]
+          },
+          {
+            "name": "orders",
+            "type": "tuple",
+            "internalType": "struct CoverageMath.Orders",
+            "components": [
+              {
+                "name": "bidLots",
+                "type": "uint128",
+                "internalType": "uint128"
+              },
+              {
+                "name": "bidValueQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "askLots",
+                "type": "uint128",
+                "internalType": "uint128"
+              },
+              {
+                "name": "askValueQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "feeCapQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              }
+            ]
+          },
+          {
+            "name": "fundingCheckpoint",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "deficit0",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deficit1",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "premiumPaid",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "segmentPosted",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "segmentCash",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "segmentStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "surchargeUntil",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "orderEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "positionVersion",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "reservationMarketEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "lastTouchedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "feeChargedVersion",
+            "type": "uint64",
+            "internalType": "uint64"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "accountRiskView",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "v",
+        "type": "tuple",
+        "internalType": "struct RiskView.AccountRiskView",
+        "components": [
+          {
+            "name": "trader",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "asOfTime",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "stage",
+            "type": "uint8",
+            "internalType": "enum Stage"
+          },
+          {
+            "name": "cashQ",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "positionLots",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "e0Q",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "e1Q",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "markAvailable",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "markEquityQ",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "mmQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "imQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Status"
+          },
+          {
+            "name": "graceActive",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "graceEndsAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "liquidationMode",
+            "type": "uint8",
+            "internalType": "enum LiquidationMath.Mode"
+          },
+          {
+            "name": "takeoverPredicate",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "orders",
+            "type": "tuple",
+            "internalType": "struct OrderAdmissionMath.OrderSums",
+            "components": [
+              {
+                "name": "bidLots",
+                "type": "uint128",
+                "internalType": "uint128"
+              },
+              {
+                "name": "bidValueQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "askLots",
+                "type": "uint128",
+                "internalType": "uint128"
+              },
+              {
+                "name": "askValueQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "feeCapQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "maxBidTick",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "minAskTick",
+                "type": "uint16",
+                "internalType": "uint16"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "accountingReady",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "accrualCutoff",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "activateMarket",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "active",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "activeProfile",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IMarketConfig.ProfileVersion",
+        "components": [
+          {
+            "name": "version",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "profileHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "effectiveAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "allTraderClaimsPaid",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "allocationCursor",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "allocationQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "anyCashClaim",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "availableTraderQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "backstopPool",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "basisTwap900",
+    "inputs": [
+      {
+        "name": "end",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PricingMath.Twap",
+        "components": [
+          {
+            "name": "available",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "twapWad",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "coveredSecs",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "integral",
+            "type": "int256",
+            "internalType": "int256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "batch",
+    "inputs": [
+      {
+        "name": "cancels",
+        "type": "uint32[]",
+        "internalType": "uint32[]"
+      },
+      {
+        "name": "places",
+        "type": "tuple[]",
+        "internalType": "struct Book.Place[]",
+        "components": [
+          {
+            "name": "kind",
+            "type": "uint8",
+            "internalType": "enum IBookRiskHooks.OrderKind"
+          },
+          {
+            "name": "isBuy",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "reduceOnly",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "tick",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "size",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxFills",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "expiryBlock",
+            "type": "uint32",
+            "internalType": "uint32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "ids",
+        "type": "uint32[]",
+        "internalType": "uint32[]"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "beginRollover",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "bestBidAsk",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "bid",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "ask",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "bookDepth",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct BookDepthSampler.BookDepthQuote",
+        "components": [
+          {
+            "name": "bidWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "askWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bidDepthLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "askDepthLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "examined",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "fingerprint",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cancel",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cancelAll",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "captureInvalidPrice",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum LifecycleMath.InvalidReadiness"
+      },
+      {
+        "name": "captured",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimMode",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum ConversionGate.ClaimMode"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claimTrader",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimableAtoms",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claimsEnabled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claimsStatus",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum LifecycleMath.ClaimsStatus"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "clearReduceOnly",
+    "inputs": [
+      {
+        "name": "reason",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "collateralVault",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract CollateralVault"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "conversionEligibility",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "coverageSlacks",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "int256"
+      },
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "currentStage",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum Stage"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cursor",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "deficitSum0",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "deficitSum1",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "economicHaltAt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "epoch",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "start",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "end",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "last",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "stop",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "rate",
+        "type": "int256",
+        "internalType": "int256"
+      },
+      {
+        "name": "stopped",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "feesReclassified",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "finalOutcome",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum MathTypes.FinalOutcome"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "finalityId",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "finishPreparation",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "claimsEnabled",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "finishRollover",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "floorProgress",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum FloorLifecycle.FloorStatus"
+      },
+      {
+        "name": "cursor",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "count",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "generation",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "takeovers",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "floorReconciled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "floorSweep",
+    "inputs": [
+      {
+        "name": "maxAccounts",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum FloorLifecycle.FloorStatus"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "freshness",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "freshThrough",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "epochFreshStop",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "movementRestricted",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "frozen",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "lots",
+        "type": "int128",
+        "internalType": "int128"
+      },
+      {
+        "name": "cashQ",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "frozenAllocationQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "frozenFeeQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "frozenReserve",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "lots",
+        "type": "int128",
+        "internalType": "int128"
+      },
+      {
+        "name": "cashQ",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fullBackingReconciled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fundingBudgetQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fundingClearingQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fundingCushionQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fundingFQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fundingFeatureEnabled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "generation",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getHaltSnapshot",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct HaltView",
+        "components": [
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "economicHaltAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "haltRecordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenAccountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenBookEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "oiHaltLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundingIndexAtHalt",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "accountingEpochAtHalt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accrualCutoff",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "premiumTariffHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getLevel",
+    "inputs": [
+      {
+        "name": "isBuy",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "tick",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct Book.Level",
+        "components": [
+          {
+            "name": "head",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "tail",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "size",
+            "type": "uint96",
+            "internalType": "uint96"
+          },
+          {
+            "name": "used",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrder",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "o",
+        "type": "tuple",
+        "internalType": "struct Book.Order",
+        "components": [
+          {
+            "name": "owner",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "size",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "next",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "prev",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "tick",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "flags",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "gen",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "reduceVersion",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "marketEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accountEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "expiryBlock",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "feeCapQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getSettlementStatus",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "v",
+        "type": "tuple",
+        "internalType": "struct SettlementView",
+        "components": [
+          {
+            "name": "phase",
+            "type": "uint8",
+            "internalType": "enum ClearingPhase"
+          },
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "finalOutcome",
+            "type": "uint8",
+            "internalType": "enum MathTypes.FinalOutcome"
+          },
+          {
+            "name": "oracleFinalityAccepted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "invalidPriceReady",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "settlementPriceE18",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotCursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "payoutCursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "totalTraderPayoutAtoms",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalDeficitQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "claimsEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "accountingComplete",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "recoveryRequired",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "graceState",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct LifecycleMath.GraceState",
+        "components": [
+          {
+            "name": "active",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "anchor",
+            "type": "uint64",
+            "internalType": "uint64"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "halt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct HaltView",
+        "components": [
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "economicHaltAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "haltRecordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenAccountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenBookEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "oiHaltLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundingIndexAtHalt",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "accountingEpochAtHalt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accrualCutoff",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "premiumTariffHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "haltRecordedAt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "halted",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "indexTwap300",
+    "inputs": [
+      {
+        "name": "end",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PricingMath.Twap",
+        "components": [
+          {
+            "name": "available",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "twapWad",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "coveredSecs",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "integral",
+            "type": "int256",
+            "internalType": "int256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "invalidPrice",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "ready",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "priceE18",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "provenance",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum LifecycleMath.InvalidReadiness"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "invalidWindow",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "start",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "end",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "haveStart",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "haveEnd",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "keeperPayableQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "keeperQ",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "leverageCaps",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "longCapX",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "shortCapX",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "liquidate",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "maxLots",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "maxExaminations",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "partner",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "r",
+        "type": "tuple",
+        "internalType": "struct RiskLiquidation.LiquidationResult",
+        "components": [
+          {
+            "name": "result",
+            "type": "uint8",
+            "internalType": "enum LiquidationMath.Result"
+          },
+          {
+            "name": "mode",
+            "type": "uint8",
+            "internalType": "enum LiquidationMath.Mode"
+          },
+          {
+            "name": "takeoverPredicate",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "pairedLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "bookLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "lotsAfter",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "cutoff",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "reason",
+            "type": "uint8",
+            "internalType": "enum RejectCode"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "liquidationBlockBudget",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "cap",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "remaining",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "listing",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IMarketConfig.Listing",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "token",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "registry",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "resolutionAuthority",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "monitor",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "governance",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "scheduledT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "listedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "sourceHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "rulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "invalidRule",
+            "type": "tuple",
+            "internalType": "struct IMarketConfig.InvalidRule",
+            "components": [
+              {
+                "name": "fallbackListed",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "captureGraceSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "fallbackPriceWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "voidSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          },
+          {
+            "name": "template",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Template"
+          },
+          {
+            "name": "deploymentCapX",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxTraders",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "indexSourceId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "indexSigner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "indexRulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "depthNLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxSpreadWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bootstrapBandWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxLiqLotsPerBlock",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "fundingEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "listingHash",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lpAtomsAllocated",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketOiCapLots",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketOrderEpoch",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketRiskView",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "v",
+        "type": "tuple",
+        "internalType": "struct RiskView.MarketRiskView",
+        "components": [
+          {
+            "name": "asOfTime",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "stage",
+            "type": "uint8",
+            "internalType": "enum Stage"
+          },
+          {
+            "name": "pricingMode",
+            "type": "uint8",
+            "internalType": "enum PricingMode"
+          },
+          {
+            "name": "accountingState",
+            "type": "uint8",
+            "internalType": "enum AccountingState"
+          },
+          {
+            "name": "indexAvailable",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "indexWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "markAvailable",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "markWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "riskVersion",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "profileHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "secsToT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "monitorRestricted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "fundingFreshThrough",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "floorStatus",
+            "type": "uint8",
+            "internalType": "enum FloorLifecycle.FloorStatus"
+          },
+          {
+            "name": "floorCursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "floorCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "liquidationCapLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "liquidationRemainingLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "pendingWork",
+            "type": "uint8",
+            "internalType": "uint8"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "materializeScheduledHalt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct HaltView",
+        "components": [
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "economicHaltAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "haltRecordedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenAccountCount",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "frozenBookEpoch",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "oiHaltLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundingIndexAtHalt",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "accountingEpochAtHalt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "accrualCutoff",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "premiumTariffHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "snapshotId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "maxBatchActions",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "maxFills",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "observationDigest",
+    "inputs": [
+      {
+        "name": "o",
+        "type": "tuple",
+        "internalType": "struct IPriceSource.Observation",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "sourceId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "sequence",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "observedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "publishedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "priceWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "impactBidWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "impactAskWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bidDepthLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "askDepthLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "sourceRulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "oiAllLots",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "oiHaltLots",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "onAllocate",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "onCashClaim",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "onReserveAllocate",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "ordinaryTraderAtoms",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "outstandingReserveAtoms",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "participantCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "participantId",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "participants",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "payoutCursor",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "payoutScanComplete",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "payoutsAllocated",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "perpTwap60",
+    "inputs": [
+      {
+        "name": "end",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PricingMath.Twap",
+        "components": [
+          {
+            "name": "available",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "twapWad",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "coveredSecs",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "integral",
+            "type": "int256",
+            "internalType": "int256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "placeOrder",
+    "inputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct Book.Place",
+        "components": [
+          {
+            "name": "kind",
+            "type": "uint8",
+            "internalType": "enum IBookRiskHooks.OrderKind"
+          },
+          {
+            "name": "isBuy",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "reduceOnly",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "tick",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "size",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxFills",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "expiryBlock",
+            "type": "uint32",
+            "internalType": "uint32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "id",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "preparePayoutChunk",
+    "inputs": [
+      {
+        "name": "maxAccounts",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct IAccountingPort.JobProgress",
+        "components": [
+          {
+            "name": "cursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "count",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "done",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "prepareSnapshotChunk",
+    "inputs": [
+      {
+        "name": "maxAccounts",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct IAccountingPort.JobProgress",
+        "components": [
+          {
+            "name": "cursor",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "count",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "done",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "previewAccount",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct TradePreview.AccountPreview",
+        "components": [
+          {
+            "name": "id",
+            "type": "tuple",
+            "internalType": "struct TradePreview.PreviewIdentity",
+            "components": [
+              {
+                "name": "asOfTime",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "riskVersion",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "profileHash",
+                "type": "bytes32",
+                "internalType": "bytes32"
+              },
+              {
+                "name": "marketOrderEpoch",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "stage",
+                "type": "uint8",
+                "internalType": "enum Stage"
+              },
+              {
+                "name": "pricingMode",
+                "type": "uint8",
+                "internalType": "enum PricingMode"
+              },
+              {
+                "name": "accountingState",
+                "type": "uint8",
+                "internalType": "enum AccountingState"
+              },
+              {
+                "name": "indexAvailable",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "indexWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "markAvailable",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "markWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              }
+            ]
+          },
+          {
+            "name": "cashQ",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "positionLots",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "projectedFundingQ",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "projectedPremiumQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "projectionsAreEstimates",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "e0Q",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "e1Q",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "markEquityQ",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "mmQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "imQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fullBackingRequired",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Status"
+          },
+          {
+            "name": "orders",
+            "type": "tuple",
+            "internalType": "struct OrderAdmissionMath.OrderSums",
+            "components": [
+              {
+                "name": "bidLots",
+                "type": "uint128",
+                "internalType": "uint128"
+              },
+              {
+                "name": "bidValueQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "askLots",
+                "type": "uint128",
+                "internalType": "uint128"
+              },
+              {
+                "name": "askValueQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "feeCapQ",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "maxBidTick",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "minAskTick",
+                "type": "uint16",
+                "internalType": "uint16"
+              }
+            ]
+          },
+          {
+            "name": "usableReleaseAtoms",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "previewOrder",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "side",
+        "type": "uint8",
+        "internalType": "enum MathTypes.Side"
+      },
+      {
+        "name": "limitTick",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "lots",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "reduceOnly",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct TradePreview.OrderPreview",
+        "components": [
+          {
+            "name": "id",
+            "type": "tuple",
+            "internalType": "struct TradePreview.PreviewIdentity",
+            "components": [
+              {
+                "name": "asOfTime",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "riskVersion",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "profileHash",
+                "type": "bytes32",
+                "internalType": "bytes32"
+              },
+              {
+                "name": "marketOrderEpoch",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "stage",
+                "type": "uint8",
+                "internalType": "enum Stage"
+              },
+              {
+                "name": "pricingMode",
+                "type": "uint8",
+                "internalType": "enum PricingMode"
+              },
+              {
+                "name": "accountingState",
+                "type": "uint8",
+                "internalType": "enum AccountingState"
+              },
+              {
+                "name": "indexAvailable",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "indexWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "markAvailable",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "markWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              }
+            ]
+          },
+          {
+            "name": "rejection",
+            "type": "uint8",
+            "internalType": "enum RejectCode"
+          },
+          {
+            "name": "acceptedCapLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "feeCapQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "mode",
+            "type": "uint8",
+            "internalType": "enum AdmissionMode"
+          },
+          {
+            "name": "fullBackingRequired",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "eMinQ",
+            "type": "int256",
+            "internalType": "int256"
+          },
+          {
+            "name": "requiredImQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "d0AfterQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "d1AfterQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "marketCoverageAfter",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "halvingSteps",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "previewRelease",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "ok",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "enum RejectCode"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "priceReady",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pricingMode",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum PricingMode"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pricingWindows",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "indexWindowSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "perpWindowSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "basisWindowSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "carryLimitSecs",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "profileHashOf",
+    "inputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct MarginMath.RiskParams",
+        "components": [
+          {
+            "name": "h0Secs",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "absorptionClaimsPerMin",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "queueSecs",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "hazard0WadPerDay",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "hazard1WadPerDay",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "epsilonWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "gammaWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "sWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "lambdaWadPerClaim",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "template",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Template"
+          },
+          {
+            "name": "calibrated",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "deploymentCapX",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "realized",
+            "type": "tuple",
+            "internalType": "struct HorizonMath.Envelope",
+            "components": [
+              {
+                "name": "hSecs",
+                "type": "uint64[]",
+                "internalType": "uint64[]"
+              },
+              {
+                "name": "sigmaWad",
+                "type": "uint256[]",
+                "internalType": "uint256[]"
+              },
+              {
+                "name": "validFrom",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "validUntil",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          },
+          {
+            "name": "templateEnv",
+            "type": "tuple",
+            "internalType": "struct HorizonMath.Envelope",
+            "components": [
+              {
+                "name": "hSecs",
+                "type": "uint64[]",
+                "internalType": "uint64[]"
+              },
+              {
+                "name": "sigmaWad",
+                "type": "uint256[]",
+                "internalType": "uint256[]"
+              },
+              {
+                "name": "validFrom",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "validUntil",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "protocolFeeQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "raiseHazards",
+    "inputs": [
+      {
+        "name": "hazard0WadPerDay",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "hazard1WadPerDay",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "rawClaimQ",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reclassifiedKeeperQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reclassifiedProtocolFeeQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "recoveryEnabled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "recoveryRequired",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "redeemReserve",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "registered",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "release",
+    "inputs": [
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "requestReduceOnly",
+    "inputs": [
+      {
+        "name": "reason",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "reservation",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "sums",
+        "type": "tuple",
+        "internalType": "struct OrderAdmissionMath.OrderSums",
+        "components": [
+          {
+            "name": "bidLots",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "bidValueQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "askLots",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "askValueQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "feeCapQ",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxBidTick",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "minAskTick",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      },
+      {
+        "name": "m",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "a",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reserve",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "lots",
+        "type": "int128",
+        "internalType": "int128"
+      },
+      {
+        "name": "cashQ",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reserveCapBaseQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reserveCursor",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reserveResidualQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reserveVault",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract ReserveVault"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "ringCount",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "riskContext",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct RiskContext",
+        "components": [
+          {
+            "name": "economicTime",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "scheduledT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "listedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "secsToT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "stage",
+            "type": "uint8",
+            "internalType": "enum Stage"
+          },
+          {
+            "name": "fullBackingByTime",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "fundingFrozen",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "legacyTakeoverWindow",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "halted",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "pricingMode",
+            "type": "uint8",
+            "internalType": "enum PricingMode"
+          },
+          {
+            "name": "indexOk",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "indexWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "markOk",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "markWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "admission",
+            "type": "uint8",
+            "internalType": "enum LifecycleMath.Admission"
+          },
+          {
+            "name": "riskVersion",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "profileHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "fundingFreshThrough",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "monitorRestricted",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "rollPage",
+    "inputs": [
+      {
+        "name": "maxAccounts",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "complete",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "samplePerp",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "published",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "scheduledT",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "selectConversionMode",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settle",
+    "inputs": [
+      {
+        "name": "Y",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "newlyAccepted",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settleInvalid",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "newlyAccepted",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settlementPriceWad",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "snapshotCashQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "snapshotComplete",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "snapshotLots",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "int256",
+        "internalType": "int256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "sourceState",
+    "inputs": [
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PriceIngress.SourceState",
+        "components": [
+          {
+            "name": "signer",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "rulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "lastSequence",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "lastObservedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "configured",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "stageRiskParams",
+    "inputs": [
+      {
+        "name": "p",
+        "type": "tuple",
+        "internalType": "struct MarginMath.RiskParams",
+        "components": [
+          {
+            "name": "h0Secs",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "absorptionClaimsPerMin",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "queueSecs",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "hazard0WadPerDay",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "hazard1WadPerDay",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "epsilonWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "gammaWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "sWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "lambdaWadPerClaim",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "template",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Template"
+          },
+          {
+            "name": "calibrated",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "deploymentCapX",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "realized",
+            "type": "tuple",
+            "internalType": "struct HorizonMath.Envelope",
+            "components": [
+              {
+                "name": "hSecs",
+                "type": "uint64[]",
+                "internalType": "uint64[]"
+              },
+              {
+                "name": "sigmaWad",
+                "type": "uint256[]",
+                "internalType": "uint256[]"
+              },
+              {
+                "name": "validFrom",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "validUntil",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          },
+          {
+            "name": "templateEnv",
+            "type": "tuple",
+            "internalType": "struct HorizonMath.Envelope",
+            "components": [
+              {
+                "name": "hSecs",
+                "type": "uint64[]",
+                "internalType": "uint64[]"
+              },
+              {
+                "name": "sigmaWad",
+                "type": "uint256[]",
+                "internalType": "uint256[]"
+              },
+              {
+                "name": "validFrom",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "validUntil",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "submitObservation",
+    "inputs": [
+      {
+        "name": "o",
+        "type": "tuple",
+        "internalType": "struct IPriceSource.Observation",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "sourceId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "sequence",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "observedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "publishedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "priceWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "impactBidWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "impactAskWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bidDepthLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "askDepthLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "sourceRulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "sweepCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "sweepCutoff",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tariff",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "hazard0WadPerDay",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "hazard1WadPerDay",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "loadWad",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalRawClaimQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalTraderAtoms",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "touch",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "bid",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "bidSize",
+        "type": "uint96",
+        "internalType": "uint96"
+      },
+      {
+        "name": "ask",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "askSize",
+        "type": "uint96",
+        "internalType": "uint96"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "traderAtoms",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "traderClaimed",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "traderIdAt",
+    "inputs": [
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "id",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "traderIdOf",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "treasury",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "treasuryQ",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "unpaidTraderClaims",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "useRecovery",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "validateListing",
+    "inputs": [
+      {
+        "name": "l",
+        "type": "tuple",
+        "internalType": "struct IMarketConfig.Listing",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "token",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "registry",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "resolutionAuthority",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "monitor",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "governance",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "scheduledT",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "listedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "sourceHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "rulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "invalidRule",
+            "type": "tuple",
+            "internalType": "struct IMarketConfig.InvalidRule",
+            "components": [
+              {
+                "name": "fallbackListed",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "captureGraceSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "fallbackPriceWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "voidSecs",
+                "type": "uint64",
+                "internalType": "uint64"
+              }
+            ]
+          },
+          {
+            "name": "template",
+            "type": "uint8",
+            "internalType": "enum MarginMath.Template"
+          },
+          {
+            "name": "deploymentCapX",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxTraders",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "indexSourceId",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "indexSigner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "indexRulesHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "depthNLots",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxSpreadWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "bootstrapBandWad",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxOrderLots",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "maxLiqLotsPerBlock",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "fundingEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "ok",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "withdrawKeeper",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawTreasury",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "work",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum AccountingState"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "AccountBalance",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "positionLots",
+        "type": "int128",
+        "indexed": false,
+        "internalType": "int128"
+      },
+      {
+        "name": "cashQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "fundingCheckpointQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AccountRegistered",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AccountSynced",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "fundingPaymentQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "premiumQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "cutoff",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AccountTakenOver",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "lots",
+        "type": "int128",
+        "indexed": false,
+        "internalType": "int128"
+      },
+      {
+        "name": "cashQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "cutoff",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AllOrdersCancelled",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "marketEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "accountEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "BookCloseAttempt",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "requestedLots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "closedLots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "worstTick",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "result",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum LiquidationMath.Result"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "BookDepthCaptured",
+    "inputs": [
+      {
+        "name": "observedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "observedBlock",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "examined",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "fingerprint",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CashAllocated",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "atoms",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "cashQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ClaimModeSelected",
+    "inputs": [
+      {
+        "name": "mode",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum ConversionGate.ClaimMode"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ClaimsEnabled",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "snapshotId",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "outcome",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum MathTypes.FinalOutcome"
+      },
+      {
+        "name": "priceE18",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalTraderPayoutAtoms",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "reserveContributionAtoms",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ClaimsPrepared",
+    "inputs": [
+      {
+        "name": "traderAtoms",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "reserveResidualQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "EconomicHalt",
+    "inputs": [
+      {
+        "name": "economicHaltAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "recordedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "accrualCutoff",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "oiHaltLots",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "EpochOpened",
+    "inputs": [
+      {
+        "name": "epoch",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "start",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "end",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "rateQPerLotSec",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "budgetQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeesReclassified",
+    "inputs": [
+      {
+        "name": "protocolFeeQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "keeperFeeQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Fill",
+    "inputs": [
+      {
+        "name": "makerOrder",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "maker",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "taker",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "tick",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "size",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "makerFeeQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "takerFeeQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FloorOrdersInvalidated",
+    "inputs": [
+      {
+        "name": "at",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "newMarketEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FloorSweepProgress",
+    "inputs": [
+      {
+        "name": "generation",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "cursor",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "count",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "takeovers",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "status",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum FloorLifecycle.FloorStatus"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FreshnessGap",
+    "inputs": [
+      {
+        "name": "gapStart",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "resumedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "epochStart",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FundingAdvanced",
+    "inputs": [
+      {
+        "name": "fundingFQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "flowQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "reservePaymentQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "cutoff",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "stopped",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "GraceCleared",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "GraceStarted",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "anchor",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "riskVersion",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HazardRaiseRequested",
+    "inputs": [
+      {
+        "name": "hazard0WadPerDay",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "hazard1WadPerDay",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "at",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InvalidPriceCaptured",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "priceE18",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "windowStart",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "windowEnd",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "provenanceHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "LiquidationOutcome",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "keeper",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "mode",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum LiquidationMath.Mode"
+      },
+      {
+        "name": "result",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum LiquidationMath.Result"
+      },
+      {
+        "name": "takeoverPredicate",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "pairedLots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "bookLots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "cutoff",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MakerPruned",
+    "inputs": [
+      {
+        "name": "maker",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "slot",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum RejectCode"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MarketBalance",
+    "inputs": [
+      {
+        "name": "allocationQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "reserveLots",
+        "type": "int128",
+        "indexed": false,
+        "internalType": "int128"
+      },
+      {
+        "name": "reserveCashQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "protocolFeeQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "keeperPayableQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "fundingClearingQ",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "fundingCushionQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "fundingBudgetQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "oiAllLots",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MarketHalted",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "snapshotId",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "economicHaltAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "haltRecordedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "oiHaltLots",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "frozenAccountCount",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "frozenBookEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MarketOrdersInvalidated",
+    "inputs": [
+      {
+        "name": "oldEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "newEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "riskVersion",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MaxFillsSet",
+    "inputs": [
+      {
+        "name": "maxFills",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MonitorRestriction",
+    "inputs": [
+      {
+        "name": "restricted",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "reason",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "at",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MovementRestriction",
+    "inputs": [
+      {
+        "name": "at",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "priceNowWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "price300sAgoWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ObservationAccepted",
+    "inputs": [
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "sequence",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "observedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "publishedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "acceptedAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "priceWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "depthValid",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "payloadDigest",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OracleFinalityAccepted",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "snapshotId",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "outcome",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum MathTypes.FinalOutcome"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderAmendedDown",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "slot",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "generation",
+        "type": "uint24",
+        "indexed": false,
+        "internalType": "uint24"
+      },
+      {
+        "name": "oldLots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "newLots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderCancelled",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "size",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum Book.CancelReason"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderPlaced",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "tick",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "size",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "flags",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "expiryBlock",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderRejected",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum RejectCode"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrdersInvalidated",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "marketEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "oldAccountEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "newAccountEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum RemovalReason"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PairReduction",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "partner",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "lots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "tick",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "feeTargetQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "feePartnerQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PairSkipped",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "partner",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "reason",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum RejectCode"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PairedPosting",
+    "inputs": [
+      {
+        "name": "buyer",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "seller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "lots",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "tick",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "feesQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PayoutPreparationProgress",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "cursor",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "accountCount",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PerpObservationRecorded",
+    "inputs": [
+      {
+        "name": "t",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "midWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "valid",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "basisWad",
+        "type": "int256",
+        "indexed": false,
+        "internalType": "int256"
+      },
+      {
+        "name": "basisValid",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PricingModeChanged",
+    "inputs": [
+      {
+        "name": "mode",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum PricingMode"
+      },
+      {
+        "name": "at",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "riskVersion",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RecoveryRequired",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "snapshotId",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ReservationChanged",
+    "inputs": [
+      {
+        "name": "trader",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "bidLots",
+        "type": "uint128",
+        "indexed": false,
+        "internalType": "uint128"
+      },
+      {
+        "name": "bidValueQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "askLots",
+        "type": "uint128",
+        "indexed": false,
+        "internalType": "uint128"
+      },
+      {
+        "name": "askValueQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "feeCapQ",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "marketEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "accountEpoch",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RiskProfileActivated",
+    "inputs": [
+      {
+        "name": "riskVersion",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "profileHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "effectiveAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SnapshotPreparationProgress",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "cursor",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "accountCount",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SweepProgress",
+    "inputs": [
+      {
+        "name": "kind",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "generation",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "cursor",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "count",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AlreadyInitialized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BackwardsObservation",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadChunk",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadExpiry",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadListing",
+    "inputs": [
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "BadMaxFills",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadOutcome",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadPrice",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadProposal",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadSignature",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadSize",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadState",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadTick",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadTimestampOrder",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadWorkBudget",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BatchActionLimit",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BatchStepLimit",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BookFull",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Bounds",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "CashClaimsClosedByConversion",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConflictingFinalOutcome",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConversionDisabled",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConversionNotEligible",
+    "inputs": [
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "Coverage",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Domain",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Domain",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Domain",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DuplicateOrOldSequence",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FloorNotActive",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ForcedReductionNotUserSelectable",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FutureTimestamp",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "HazardDecrease",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCalibratedProfile",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidDeploymentDependency",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMarketRegistration",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MarketExists",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoMarket",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NonMonotoneSample",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotHalted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotLive",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotSizeDown",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OpenInterestCapExceeded",
+    "inputs": [
+      {
+        "name": "actualLots",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "capLots",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OutcomeOrPricePending",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OutsideBootstrapBand",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PostOnlyCrosses",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PreparationIncomplete",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PriceNotInterior",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ProfileHashMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ProfileHazardBounds",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ProfileListingMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Rejected",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReservationUnderflow",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReserveSeedRequired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RestRejected",
+    "inputs": [
+      {
+        "name": "reason",
+        "type": "uint8",
+        "internalType": "enum RejectCode"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "RiskUnauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SameBlockBookSample",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ScheduledHaltNotYet",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SidecarGenerationMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SnapshotMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SourceAlreadyConfigured",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Stale",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "StaleEpochMutation",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooManySteps",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UnexpectedCoverageFailure",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "UnknownSource",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UnknownTrader",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "UnsafeInitialConfiguration",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unsorted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "WrongMarket",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroWorkBudget",
+    "inputs": []
+  }
+]

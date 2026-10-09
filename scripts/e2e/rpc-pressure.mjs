@@ -8,9 +8,17 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const require = createRequire(new URL('../../frontend/package.json', import.meta.url));
-const { encodeFunctionData, decodeFunctionResult, keccak256, createPublicClient, custom } = require('viem');
-const envFile = process.argv[2];
-if (!envFile) throw new Error('Provide the path to a private env file containing MONAD_TESTNET_RPC');
+const { encodeFunctionData, decodeFunctionResult, keccak256, createPublicClient, custom, getAddress } = require('viem');
+const [envFile, ownerInput, samplerInput, ...extraArguments] = process.argv.slice(2);
+if (!envFile || !ownerInput || !samplerInput || extraArguments.length) {
+  throw new Error('Usage: node scripts/e2e/rpc-pressure.mjs <private-rpc.env> <owner-address> <sampler-sender-address>');
+}
+const parseActor = (value, label) => {
+  if (!/^0x[0-9a-fA-F]{40}$/.test(value) || /^0x0{40}$/i.test(value)) throw new Error(`Valid nonzero ${label} address required`);
+  try { return getAddress(value); } catch { throw new Error(`Valid ${label} address checksum required`); }
+};
+const owner = parseActor(ownerInput, 'owner');
+const samplerSender = parseActor(samplerInput, 'sampler sender');
 const endpoint = parseEnv(fs.readFileSync(envFile, 'utf8')).MONAD_TESTNET_RPC;
 const url = new URL(endpoint);
 if (url.protocol !== 'https:' || url.username || url.password || url.hash) throw new Error('HTTPS endpoint required');
@@ -98,7 +106,6 @@ async function loadPhase(rps, seconds, name) {
   stage = name;
   const fresh = await rpc('eth_getBlockByNumber', ['finalized', false]);
   const block = fresh.number, fromBlock = hex(BigInt(block) - 99n);
-  const owner = '0xe6088cEd9Dd029565c368a18a6044FB3fcd463aC';
   const mix = [
     ['eth_getBlockByNumber', ['finalized', false]],
     ['eth_call', [{ to: engine, data: data('marketRiskView') }, block]],
@@ -186,6 +193,7 @@ try {
     return 'available';
   });
   await check('historical-confirmed-wallet-receipt', async () => {
+    // Fixed historical compatibility fixture; this does not select the active deployment.
     const hash = '0x3917482df745e0596cd6b6bf210e17e36161f2b86e3d3e48d49f1d79dc41b7cd';
     const receipt = await rpc('eth_getTransactionReceipt', [hash]);
     if (!receipt || receipt.transactionHash !== hash || receipt.status !== '0x1') throw new Error('known-receipt-missing');
@@ -210,7 +218,7 @@ try {
     if (!Array.isArray(logs)) throw new Error('logs-response-invalid'); return { entries: logs.length };
   });
   await check('sampler-simulation-and-gas-estimate', async () => {
-    const tx = { from: '0x498DF93DeE8B34B27e849131B05ee77830A5c5b9', to: engine, data: data('samplePerp'), gas: hex(3_000_000) };
+    const tx = { from: samplerSender, to: engine, data: data('samplePerp'), gas: hex(3_000_000) };
     await rpc('eth_call', [tx, 'pending']);
     const gas = await rpc('eth_estimateGas', [tx, 'pending']); return { gas: Number(BigInt(gas)), broadcast: false };
   });

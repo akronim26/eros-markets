@@ -6,7 +6,17 @@ The CLI defaults to simulation. `--broadcast` explicitly enables signing transac
 
 ## Setup and commands
 
-Install the existing oracle workspace dependencies, then run from `oracle/services/market-ops`. Set `RPC_URL` for the manifest chain. No environment files are opened by the package itself. Supply a JSON manifest with these fields:
+Install the existing oracle workspace dependencies, then run from `oracle/services/market-ops`. Set `RPC_URL` for the manifest chain. No environment files are opened by the package itself.
+
+For chain 10143, `MONAD_READ_FALLBACK_URLS` supplies comma-separated HTTPS read
+alternatives. The pool verifies chain/finality/block access, bounds concurrency,
+coalesces identical reads and temporarily excludes failed providers. Optional
+`MONAD_READ_RPC_CAPACITIES` lists per-process capacities in primary/fallback order
+(default eight each). Block-pinned reads retain hash consistency on failover.
+Nonce, simulation, signing and broadcast stay on `RPC_URL`; read fallback does not
+change the coordinated sender lane. Other chains retain their existing transport.
+
+Supply a JSON manifest with these fields:
 
 ```text
 chainId: numeric chain ID

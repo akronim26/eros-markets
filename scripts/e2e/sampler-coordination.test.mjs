@@ -115,17 +115,21 @@ test('5s source updates, 7s publication and 5s sampling can seal successive capt
   assert.deepEqual(h.writes.map(r => r.id), ['1', '2', '3']); await h.close();
 });
 
-test('Senate delayed-source trace yields to INDEX before old observation expires', async () => {
+test('known Senate capture does not admit an invalidating prefix at the older INDEX deadline', async () => {
   // 1000=22:25:55; capture1013=22:26:08; source1010=22:26:05.
   const h = coordinatorHarness({ time: 1007000 });
   h.coordinator.notify({ sequence: 64n, observedAt: 1000n }); await h.tick(0);
   h.setAck(ack(64, 1013)); await h.tick(6000);
   assert.equal(h.coordinator.getMinimumObservedAt(1017000), 1013n);
-  const deadline = 1022000; //22:26:17; reserve8 seconds
+  const oldDeadline = 1022000; //22:26:17; old source plus22 seconds
+  assert.equal(h.coordinator.getMinimumObservedAt(oldDeadline), 1013n);
+  assert.ok(1010n <= h.coordinator.getMinimumObservedAt(oldDeadline));
+  assert.ok(1028n > h.coordinator.getMinimumObservedAt(1028000), 'genuine source26:23 can seal capture26:08');
+  const deadline = 1035000; // actual capture plus22 seconds; never an unbounded wait
   assert.equal(h.coordinator.getMinimumObservedAt(deadline), indexFreshCutoff(deadline));
-  assert.ok(1010n > h.coordinator.getMinimumObservedAt(deadline));
-  assert.ok(1022 + 7 < 1000 + 30, 'source26:05 can finalize26:24 before expiry26:25');
-  // No need to wait for source22:26:28; packet timestamps are never changed.
+  // Inclusion can occur after old INDEX carry expires. Only authentic source
+  // timestamps determine whether its historical intervals remain continuous.
+  assert.ok(1028n - 1000n < 30n);
   await h.close();
 });
 
@@ -145,7 +149,8 @@ test('archived Republic arrivals seal successive captures with measured 4–6s i
     const h = coordinatorHarness({ previousAck: ack(109, 11), time: 14000 });
     h.coordinator.notify({ sequence: 109n, observedAt: 0n });
     assert.ok(6n <= h.coordinator.getMinimumObservedAt(18000), 'intermediate source cannot invalidate capture at the former12s-reserve deadline');
-    assert.ok(6n > h.coordinator.getMinimumObservedAt(18000, indexFreshCutoff(18000), 12n), 'old reserve reproduced the live invalidating publication');
+    assert.ok(6n <= h.coordinator.getMinimumObservedAt(18000, indexFreshCutoff(18000), 12n), 'capture time also protects the prefix with a larger delivery reserve');
+    assert.ok(6n > indexFreshCutoff(18000), 'the former INDEX-based12s-reserve deadline admitted the invalidating prefix');
     const arrivals = [{ observed: 20n, received: 21038 }, { observed: 40n, received: 41068 }];
     let previousCapture = 11, previousSource = 0;
     for (const [index, source] of arrivals.entries()) {
@@ -173,5 +178,51 @@ test('legacy receipt timestamps never become capture evidence, and invalid INDEX
   assert.deepEqual(h.writes.map(r => r.id), ['2'], 'first actual capture is allowed after legacy acknowledgement');
   h.coordinator.notify({ sequence: 3n, observedAt: 11n, depthValid: false });
   assert.equal(h.coordinator.getMinimumObservedAt(12000), indexFreshCutoff(12000));
+  await h.close();
+});
+
+for (const trace of [
+  { market: 'BTC', sequence: 44n, source: 1791498481n, capture: 1791498495n,
+    oldPrefix: 1791498487n, oldPublicationMs: 1791498503000, firstSealableSource: 1791498505n,
+    firstReceivedMs: 1791498505786, laterAcceptedSource: 1791498508n, laterAcceptedAt: 1791498514n, sampleAt: 1791498519n },
+  { market: 'ETH', sequence: 40n, source: 1791498392n, capture: 1791498411n,
+    oldPrefix: 1791498407n, oldPublicationMs: 1791498414000, firstSealableSource: 1791498420n,
+    firstReceivedMs: 1791498421584, laterAcceptedSource: 1791498420n, laterAcceptedAt: 1791498426n, sampleAt: 1791498432n },
+]) test(`${trace.market} canonical delayed REST trace preserves the capture without retimestamping`, async () => {
+  // From the public-testnet capture/observation receipts and archived REST
+  // arrivals in the October8 22:26–22:28 continuity audit. The old fallback
+  // really published oldPrefix; these assertions replay its selection decision.
+  const h = coordinatorHarness({ previousAck: ack(trace.sequence, trace.capture), time: Number(trace.capture) * 1000 });
+  h.coordinator.notify({ sequence: trace.sequence, observedAt: trace.source });
+  assert.ok(trace.oldPrefix > indexFreshCutoff(trace.oldPublicationMs), 'old fallback admitted the authentic but retroactive prefix');
+  assert.equal(h.coordinator.getMinimumObservedAt(trace.oldPublicationMs), trace.capture);
+  assert.ok(trace.oldPrefix <= h.coordinator.getMinimumObservedAt(trace.oldPublicationMs), 'never rewrite the capture-time INDEX checkpoint');
+  assert.ok(trace.firstSealableSource > h.coordinator.getMinimumObservedAt(trace.firstReceivedMs), 'admit the first genuine prefix after the capture');
+  assert.ok(trace.firstSealableSource - trace.source < 30n, 'the first source candidate can preserve historical INDEX coverage');
+  assert.ok(trace.laterAcceptedSource > trace.capture && trace.laterAcceptedSource - trace.source < 30n, 'the actually accepted later prefix also covers the original source interval');
+  assert.ok(trace.laterAcceptedAt >= trace.source + 30n, 'this trace does not promise continuously live INDEX before delivery');
+  // The real samples recorded invalid points after the old prefix had already
+  // rewritten history. Their times show a counterfactual sealing opportunity;
+  // this replay does not claim a successful on-chain seal under the new policy.
+  assert.ok(trace.sampleAt - trace.capture < 30n, 'sample opportunity remains inside the original capture lifetime');
+  const deadline = Number(trace.capture + 22n) * 1000;
+  assert.equal(h.coordinator.getMinimumObservedAt(deadline), indexFreshCutoff(deadline), 'known-capture preference still expires');
+  assert.equal(h.coordinator.getMinimumObservedAt(deadline + 60000), indexFreshCutoff(deadline + 60000), 'no keeper can extend this fixed deadline');
+  await h.close();
+});
+
+test('a newer outstanding capture retains its own independent INDEX deadline after restart', async () => {
+  const h = coordinatorHarness({ previousAck: ack(1, 100), request: { id: '2', engine, observedAt: '105' }, time: 110000 });
+  h.coordinator.notify({ sequence: 2n, observedAt: 105n });
+  assert.equal(h.coordinator.getMinimumObservedAt(122000), 122n, 'old acknowledged capture cannot release an unknown newer capture early');
+  assert.equal(h.coordinator.getMinimumObservedAt(127000), indexFreshCutoff(127000), 'hung new request cannot freeze INDEX indefinitely');
+  await h.close();
+});
+
+test('a future-dated restored acknowledgement cannot extend the accepted INDEX deadline', async () => {
+  const h = coordinatorHarness({ previousAck: ack(1, 999999), time: 1007000 });
+  h.coordinator.notify({ sequence: 1n, observedAt: 1000n });
+  assert.equal(h.coordinator.getMinimumObservedAt(1022000), indexFreshCutoff(1022000));
+  assert.equal(h.coordinator.getMinimumObservedAt(1100000), indexFreshCutoff(1100000));
   await h.close();
 });

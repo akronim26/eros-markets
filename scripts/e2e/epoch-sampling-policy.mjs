@@ -1,6 +1,9 @@
 /** Preserve a recently sealed book observation before the hourly accounting boundary. */
 export const EPOCH_SAMPLE_ACCELERATION_SECONDS = 60n;
 export const EPOCH_SAMPLE_ACCELERATION_BLOCKS = 12n;
+export const STEADY_SAMPLE_MAX_BLOCKS = 24n;
+export const EPOCH_SAMPLE_FINAL_SECONDS = 20n;
+export const EPOCH_SAMPLE_FINAL_BLOCKS = 1n;
 export const SAMPLE_INCLUSION_RESERVE_SECONDS = 8n;
 
 export class SampleEpochDeferred extends Error {
@@ -21,8 +24,12 @@ export function epochSamplingPolicy({ timestamp, epochEnd, cadence, nowMs = Date
   const asOf = timestamp > wallTime ? timestamp : wallTime;
   const remaining = epochEnd - asOf;
   const accelerated = remaining <= EPOCH_SAMPLE_ACCELERATION_SECONDS;
+  const ceiling = remaining <= EPOCH_SAMPLE_FINAL_SECONDS ? EPOCH_SAMPLE_FINAL_BLOCKS
+    : accelerated ? EPOCH_SAMPLE_ACCELERATION_BLOCKS : STEADY_SAMPLE_MAX_BLOCKS;
   return { admit: remaining > SAMPLE_INCLUSION_RESERVE_SECONDS, epochEnd, asOf, remaining,
-    cadence: accelerated && cadence > EPOCH_SAMPLE_ACCELERATION_BLOCKS ? EPOCH_SAMPLE_ACCELERATION_BLOCKS : cadence };
+    // This only makes an existing acknowledged-source request eligible sooner.
+    // It cannot create a source update, bypass a pending outbox or extend carry.
+    cadence: cadence > ceiling ? ceiling : cadence };
 }
 
 /** Fetch the actual epoch at one canonical block; a cache never admits a sample. */

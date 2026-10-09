@@ -13,7 +13,7 @@ test('cached chart prices never become executable index or live source prices', 
 });
 test('fresh source prices still require independent execution windows and an epoch opening', () => {
   assert.equal(latestSourceObservation([point(100)], 120).fresh, true);
-  assert.match(priceReadiness({ indexAvailable: false, markAvailable: false, pricingMode: 0 }, true), /complete 5-minute window/);
+  assert.match(priceReadiness({ indexAvailable: false, markAvailable: false, pricingMode: 0 }, true), /still warming up/);
   assert.match(priceReadiness({ indexAvailable: true, markAvailable: false, pricingMode: 0 }, true), /epoch opening/);
   assert.match(priceReadiness({ indexAvailable: true, markAvailable: false, pricingMode: 1 }, true), /book or basis/);
   assert.equal(priceReadiness({ indexAvailable: true, markAvailable: true, pricingMode: 1 }, true), undefined);

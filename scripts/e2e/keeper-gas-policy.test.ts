@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { Operations } from '../../oracle/services/market-ops/src/operations';
 import { binding, manifestSchema } from '../../oracle/services/market-ops/src/schema';
 import { keeperGasCeiling, boundedRolloverHelper, KeeperGasLimitExceeded, requireKeeperGas, runKeeperAction } from './keeper-gas-policy.mjs';
+import { keeperActions } from './service-runtime-policy.mjs';
 
 const require = createRequire(new URL('../../oracle/services/market-ops/package.json', import.meta.url));
 const { keccak256 } = require('viem');
@@ -34,7 +35,7 @@ function fixture(ceiling = 3_000_000n) {
   });
   return { manifest, transport, setReceipt: (value: any) => { receipt = value; },
     get journal() { return journal; }, get signed() { return signed; }, get broadcasts() { return broadcasts; }, refused,
-    run: (action: 'sample' | 'rollover') => runKeeperAction({ run: () => operations.tick({ action }, true),
+    run: (action: 'sample' | 'rollover' | 'liquidate') => runKeeperAction({ run: () => operations.tick({ action }, true),
       rolloverCeiling: manifest.rolloverHelper && BigInt(manifest.rolloverHelper.gasCeiling),
       hasPending: () => !!journal.pending, onLimit: error => { refused.push(error.gas); } }) };
 }
@@ -124,4 +125,33 @@ test('a rollover with no fitting page waits unsigned without stopping subsequent
   expect(f.refused).toEqual([undefined]);
   expect((await f.run('sample')).limited).toBe(false);
   expect(f.signed).toBe(1);
+});
+
+test('scheduled liquidation shares the existing pending journal and gives the following sample its turn', async () => {
+  const f = fixture(8_000_000n);
+  f.manifest.gas.liquidate = 400_000;
+  const original = f.transport.snapshot;
+  f.transport.snapshot = async () => ({ ...await original(),
+    liquidation: { participants: 1, accountingState: 0, capLots: 100n, remainingLots: 100n },
+    rollover: { timestamp: 1000n, scheduledT: 10000n, halted: false, epochId: 1n, epochEnd: 2000n, work: 0, cursor: 0n, count: 0n } });
+  f.transport.simulate = async (call: any) => call.action === 'liquidate'
+    ? { mode: 1, result: 1, bookLots: 10n, pairedLots: 0n, reason: 0 } : true;
+  const due = keeperActions({ liquidationEnabled: true, nextLiquidationAt: 0, now: 10_000 });
+  expect(due).toEqual(['rollover', 'liquidate', 'sample']);
+  const rollover = await f.run(due[0]);
+  expect(!rollover.limited && rollover.result.outcome).toBe('no-work');
+  const liquidation = await f.run(due[1]);
+  expect(!liquidation.limited && liquidation.result.outcome).toBe('sent');
+  expect(f.journal.pending.action).toBe('liquidate'); expect(f.signed).toBe(1);
+  // Even if a caller asks for sampling next, the shared journal reconciles the
+  // exact liquidation instead of allocating another nonce.
+  const waiting = await f.run('sample');
+  expect(!waiting.limited && waiting.result.action).toBe('liquidate'); expect(f.signed).toBe(1);
+  f.setReceipt({ status: 'success', block: 100n, finalized: true });
+  const complete = await f.run('sample');
+  expect(!complete.limited && complete.result.outcome).toBe('finalized');
+  expect(f.journal.pending).toBeUndefined();
+  expect(keeperActions({ liquidationEnabled: true, nextLiquidationAt: 20000, now: 10001 })).toEqual(['rollover', 'sample']);
+  const sample = await f.run('sample');
+  expect(!sample.limited && sample.result.action).toBe('sample'); expect(f.signed).toBe(2);
 });

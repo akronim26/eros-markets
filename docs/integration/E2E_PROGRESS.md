@@ -1,4 +1,11 @@
-# E2E progress — current checkpoint: 7 October 2026
+# E2E progress — historical checkpoints through 7 October 2026
+
+The October 9 replacement deployment is recorded in
+[DEPLOYMENT_PROGRESS.md](DEPLOYMENT_PROGRESS.md), with current addresses in
+[addresses.md](../../addresses.md). Its frontend trading tests remain deferred;
+the older checks below do not validate the replacement BTC/ETH markets. Retired
+campaign paths and their earlier readiness readings are preserved as evidence,
+not current startup instructions. Use [TESTNET_OPERATIONS.md](TESTNET_OPERATIONS.md).
 
 ## Recovery and detached restart — 7 October, 17:40 UTC
 

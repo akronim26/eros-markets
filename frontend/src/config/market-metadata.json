@@ -67,13 +67,41 @@
     "short": "Will an independent win the Nebraska Senate race in 2026?",
     "source": "Polymarket",
     "category": "Politics",
-    "archived": false
+    "archived": true
   },
   "polymarket-562803-f1172ff5": {
     "title": "Will the Republican Party control the House after the 2026 Midterm elections?",
     "short": "Will the Republican Party control the House after the 2026 Midterm elections?",
     "source": "Polymarket",
     "category": "Politics",
+    "archived": true
+  },
+  "polymarket-5238640-7d634d3b": {
+    "title": "Will the price of Bitcoin be above $82,000 on October 10?",
+    "short": "Will the price of Bitcoin be above $82,000 on October 10?",
+    "source": "Polymarket",
+    "category": "Crypto",
+    "archived": true
+  },
+  "polymarket-5286464-e2eb3d19": {
+    "title": "Will the price of Ethereum be above $2,400 on October 11?",
+    "short": "Will the price of Ethereum be above $2,400 on October 11?",
+    "source": "Polymarket",
+    "category": "Crypto",
+    "archived": true
+  },
+  "polymarket-5238640-f179f45c": {
+    "title": "Will the price of Bitcoin be above $82,000 on October 10?",
+    "short": "Will the price of Bitcoin be above $82,000 on October 10?",
+    "source": "Polymarket",
+    "category": "Crypto",
+    "archived": false
+  },
+  "polymarket-5286464-8dd02f70": {
+    "title": "Will the price of Ethereum be above $2,400 on October 11?",
+    "short": "Will the price of Ethereum be above $2,400 on October 11?",
+    "source": "Polymarket",
+    "category": "Crypto",
     "archived": false
   }
 }

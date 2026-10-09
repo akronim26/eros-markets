@@ -4,7 +4,7 @@
   "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "14891bbc1ad834bb6bd6bd0af8fdbbb0f5aafe6a810af3438f34b77c15ecabf5",
+ "source_sha256": "80a35175d617421591870071e75b8e96a5f1655c4429fa6bfd2c28515dd77926",
  "abi": [
   {
    "type": "function",
@@ -2896,6 +2896,34 @@
      "name": "",
      "type": "uint8",
      "internalType": "enum PricingMode"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "pricingWindows",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "indexWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "perpWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "basisWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "carryLimitSecs",
+     "type": "uint64",
+     "internalType": "uint64"
     }
    ],
    "stateMutability": "view"

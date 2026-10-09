@@ -1,10 +1,17 @@
 # Risk & Clearing — STATUS
 
+Current deployed addresses and operator status are recorded in
+[addresses.md](../../addresses.md) and
+[DEPLOYMENT_PROGRESS.md](../integration/DEPLOYMENT_PROGRESS.md). The October 9
+replacement BTC/ETH markets supersede the fixture and earlier integration
+deployments below. This file retains source-bound engineering history; old
+deployment addresses and authorization boundaries describe their recorded turns.
+
 - Shared branch: `integration/risk`; integration follow-up updated on 2026-10-06.
 - Unified Risk and Order Book ownership and automated validation: `CLAUDE.md` and `docs/merge/UNIFIED_WORKFLOW.md`.
 - Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
-## Current summary
+## Historical integration summary — October 6
 
 **Integrated backend follow-up, 2026-10-06:** current entrypoints and boundaries
 are documented in [INTEGRATION_READINESS.md](../integration/INTEGRATION_READINESS.md),
@@ -85,8 +92,8 @@ Historical turn-log review blockers are not current dependencies.
 
 **RB-DEPLOY complete:** source `162ac92`, Solidity unchanged at `dcb6b0e`, now deployed as engine
 `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69` on chain **10143**. Six successful transactions;
-five runtimes and vault/authority/reserve bindings verified. Root **[addresses.md](../../addresses.md)**
-is the current address/env handoff. New market is **unactivated**, with no minted collateral,
+five runtimes and vault/authority/reserve bindings verified. The [October 4 deployment report](../../artifacts/risk/monad-testnet-deployment-2026-10-04.json)
+preserves this historical fixture's address handoff. At this checkpoint the market was **unactivated**, with no minted collateral,
 trading, halt or settlement. Frontend/oracle integration and demo setup are delegated to their team.
 This fixture's immutable manual authority cannot be replaced with the real oracle in place.
 

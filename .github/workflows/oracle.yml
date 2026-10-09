@@ -2,9 +2,9 @@ name: oracle
 
 on:
   push:
-    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", "scripts/e2e/sampler-request-policy.*", "scripts/e2e/manifest-selection.*", "scripts/e2e/select-live-markets.ts", "scripts/e2e/service-deployment.ts", "scripts/e2e/export-market-services.ts", "frontend/src/config/public-manifest.json", ".github/workflows/oracle.yml"]
+    paths: ["packages/pricefeed/src/read-pool.ts", "oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", "scripts/e2e/sampler-request-policy.*", "scripts/e2e/manifest-selection.*", "scripts/e2e/select-live-markets.ts", "scripts/e2e/service-deployment.ts", "scripts/e2e/export-market-services.ts", "frontend/src/config/public-manifest.json", ".github/workflows/oracle.yml"]
   pull_request:
-    paths: ["oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", "scripts/e2e/sampler-request-policy.*", "scripts/e2e/manifest-selection.*", "scripts/e2e/select-live-markets.ts", "scripts/e2e/service-deployment.ts", "scripts/e2e/export-market-services.ts", "frontend/src/config/public-manifest.json", ".github/workflows/oracle.yml"]
+    paths: ["packages/pricefeed/src/read-pool.ts", "oracle/**", "contracts/src/**", "contracts/test/mocks/**", "scripts/e2e/market-services.ts", "scripts/e2e/keeper-gas-policy.*", "scripts/e2e/sampler-request-policy.*", "scripts/e2e/manifest-selection.*", "scripts/e2e/select-live-markets.ts", "scripts/e2e/service-deployment.ts", "scripts/e2e/export-market-services.ts", "frontend/src/config/public-manifest.json", ".github/workflows/oracle.yml"]
 
 permissions:
   contents: read

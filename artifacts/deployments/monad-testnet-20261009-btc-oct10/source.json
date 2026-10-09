@@ -1,0 +1,99 @@
+{
+  "mode": "MONAD_TESTNET_EXTERNAL_SOURCE",
+  "schemaVersion": 1,
+  "chainId": 10143,
+  "marketId": "0x99ab7fb8f9849cf3bab8c3810b94acee3787d4fad2d11c5f4d6dbd82a26082cd",
+  "sourceId": "0xbd2accaebb3ebbf4e820df4565a79b5313c59410203b0f643553546e469af436",
+  "sourceRulesHash": "0x6511870e0e12b790917529b4df5ebf8fe456a4002a38521d927919270fbe5bf3",
+  "scheduledT": "1791648000",
+  "depthNLots": "1000000",
+  "maxSpreadWad": "50000000000000000",
+  "question": "Will the price of Bitcoin be above $82,000 on October 10?",
+  "description": "This market will resolve to \"Yes\" if the Binance 1 minute candle for BTC/USDT closing at 12:00 in the ET timezone (noon) on the date specified in the title has a final \"Close\" price higher than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/BTC_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.\n\nPrice precision is determined by the number of decimal places in the source.",
+  "resolutionSource": "https://www.binance.com/en/trade/BTC_USDT",
+  "config": {
+    "schemaVersion": "1",
+    "configVersion": "monad-integrated-demo-1",
+    "key": "live-5238640",
+    "category": "crypto",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "1124995",
+      "externalMarketId": "5238640",
+      "conditionId": "0x30aa99282bb5ef9e9b3e1b5568400bb730760e33525022d3d699f43650baff23",
+      "outcomeTokenId": "100185403350267155386341199712915055705179878891606575463769617454294511388358",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "authentic-vendor-ms-floor-diagnostic",
+      "quantityPolicyId": "claims-floor-total-diagnostic",
+      "quotePolicyId": "before-fee-vwap-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": "1791648000",
+    "poll": {
+      "intervalMs": 1000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 2000000
+    }
+  },
+  "rules": {
+    "schemaVersion": "1",
+    "venue": "polymarket",
+    "eventId": "1124995",
+    "externalMarketId": "5238640",
+    "conditionId": "0x30aa99282bb5ef9e9b3e1b5568400bb730760e33525022d3d699f43650baff23",
+    "outcomeTokenId": "100185403350267155386341199712915055705179878891606575463769617454294511388358",
+    "outcomeLabel": "Yes",
+    "marketId": "0x99ab7fb8f9849cf3bab8c3810b94acee3787d4fad2d11c5f4d6dbd82a26082cd",
+    "sourceId": "0xbd2accaebb3ebbf4e820df4565a79b5313c59410203b0f643553546e469af436",
+    "erosRulesHash": "0xa75f1dbab77a4f7cebe8dd083e65765c912845b395e5a2bcf2a3654c24f2e8a0",
+    "externalRulesDigest": "0xefae4ee172006cfe83770424069f4a2d5a5f42fbe3b148494b408f6e2075ff7f",
+    "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+    "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+    "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+    "failurePolicyHash": "0x0fa1db1edbc336046ff5259520ba63997b7a0493671fbb3b9047d6dbe755ac0d",
+    "scheduledT": "1791648000",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+  },
+  "preparedAtMs": "1791495279635",
+  "productionApproved": false,
+  "calibration": "SYNTHETIC_TEST_RISK_PARAMETERS_NOT_EMPIRICAL",
+  "namedOutcomeReview": {
+    "marketId": "5238640",
+    "label": "82,000",
+    "negativeRisk": false,
+    "eventAugmented": false,
+    "scope": "Exact named binary YES-token order book and eventual finalized binary payout only; no outcome conversions, Other or placeholders.",
+    "reference": "https://docs.polymarket.com/concepts/negative-risk"
+  },
+  "deploymentRevision": "fresh-btc-oct10",
+  "operatorCandidateHash": "0x31bc74fc00d33c66877e9904038137079d77607e20964f1f814cfec3d6b9e34e",
+  "operatorQualificationSha256": "efdead64386d2077371f8cbba2282150b33d3996225a1cff508186816da2d5e3",
+  "indexSigner": "0x194D42834EE04be783cA9f0BF19081244912EC3A",
+  "erosRulesHash": "0xa75f1dbab77a4f7cebe8dd083e65765c912845b395e5a2bcf2a3654c24f2e8a0",
+  "resolution": {
+    "provider": "Polymarket Gamma",
+    "yesIndex": 0,
+    "statusRequired": "resolved",
+    "fractionalPayout": "review/invalid; no L1 binary report"
+  }
+}

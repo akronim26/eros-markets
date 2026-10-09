@@ -24,9 +24,9 @@ export function latestSourceObservation(points: Point[], now: number, readError 
 export function priceReadiness(risk: { indexAvailable: boolean; markAvailable: boolean; pricingMode: number }, sourceFresh: boolean) {
   if (risk.indexAvailable && risk.markAvailable) return undefined;
   if (!risk.indexAvailable) return sourceFresh
-    ? "Source prices are arriving. The execution index needs a complete 5-minute window; the chart shows individual source observations."
-    : "The execution index is unavailable: its 5-minute window has gaps or stale observations. Any chart price is historical. Live publishers and book sampling must resume before prices and leverage recover.";
+    ? "Source prices are arriving. The execution index is still warming up; the chart shows individual source observations."
+    : "The execution index is unavailable because recent price history has gaps or stale observations. Any chart price is historical. Live prices must recover before trading can resume.";
   return risk.pricingMode === 0
-    ? "The 5-minute index is ready. The mark needs complete book and 15-minute basis windows, then an epoch opening before leveraged trading is available."
+    ? "The index is ready. The mark is still warming up and needs a successful epoch opening before leveraged trading is available."
     : "The index is ready, but the mark's book or basis window is unavailable. Higher leverage remains restricted until those windows recover.";
 }

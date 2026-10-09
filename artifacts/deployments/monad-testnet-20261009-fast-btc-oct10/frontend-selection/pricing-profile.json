@@ -1,0 +1,39 @@
+{
+  "schema": "eros-testnet-pricing-profile/1",
+  "chainId": 10143,
+  "verifiedAt": {
+    "blockNumber": "69393360",
+    "blockHash": "0x3f8d317d16b00f163a1c5a56ae4faf7b1fb477a57d2a566469c592feac8e63c7"
+  },
+  "markets": [
+    {
+      "engine": "0xf179f45C87667F55844aaB13E17439449AcECc29",
+      "codehash": "0x9d76ca54e1c25e63a0733589a854f51b616f6ba34144c4c071f3ac660aade6ca",
+      "marketId": "0xd5631c1d935f8d6590dc59d498851e4ca7dd819550f9d82c32c4bc1dde98779e",
+      "sourceId": "0xbd2accaebb3ebbf4e820df4565a79b5313c59410203b0f643553546e469af436",
+      "listingHash": "0x6f362e52d5d1cefa5cf6f12f09e0cada73e43112a56c7ee7e023c776ad901002",
+      "pricingWindows": {
+        "indexSeconds": 60,
+        "perpSeconds": 60,
+        "basisSeconds": 180,
+        "carryLimitSeconds": 30
+      }
+    },
+    {
+      "engine": "0x8DD02f70bDe63b1cdE949D643098f09a6267d3F4",
+      "codehash": "0x57a4c5b90337a0a0d4b0ee8429d7f1cc1931e699aab75e11138469e94ca32530",
+      "marketId": "0x777ed0f7cd30671746a59ae8e9fa4cacc3482560aa5c31c3c43bd093a735bf9e",
+      "sourceId": "0xc26f6668aea62919f31c07dbff33192161f21495db6ed9cfadedb9a01fb67b22",
+      "listingHash": "0x6c2e0fdf95bd07f3aad6b46288b8f13700a95e7fb6bfb26a54f7cc734c2f0382",
+      "pricingWindows": {
+        "indexSeconds": 60,
+        "perpSeconds": 60,
+        "basisSeconds": 180,
+        "carryLimitSeconds": 30
+      }
+    }
+  ],
+  "epochPromotion": "unchanged-hourly",
+  "riskParameters": "unchanged",
+  "experimentalTestnetTiming": true
+}

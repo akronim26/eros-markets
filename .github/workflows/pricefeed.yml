@@ -2,9 +2,9 @@ name: pricefeed
 
 on:
   push:
-    paths: ["packages/pricefeed/**", "artifacts/risk/engine-abi.json", "scripts/e2e/*.mjs", ".github/workflows/pricefeed.yml"]
+    paths: ["packages/pricefeed/**", "artifacts/risk/engine-abi.json", "artifacts/risk/book-risk-engine-abi.json", "scripts/e2e/*.mjs", "scripts/ops/*.mjs", ".github/workflows/pricefeed.yml"]
   pull_request:
-    paths: ["packages/pricefeed/**", "artifacts/risk/engine-abi.json", "scripts/e2e/*.mjs", ".github/workflows/pricefeed.yml"]
+    paths: ["packages/pricefeed/**", "artifacts/risk/engine-abi.json", "artifacts/risk/book-risk-engine-abi.json", "scripts/e2e/*.mjs", "scripts/ops/*.mjs", ".github/workflows/pricefeed.yml"]
 
 permissions:
   contents: read
@@ -34,5 +34,5 @@ jobs:
       - name: Pricefeed regression suite
         working-directory: packages/pricefeed
         run: npm test
-      - name: Source qualification and sampler coordination
-        run: node --test scripts/e2e/*.test.mjs
+      - name: Source qualification, sampler coordination and supervisor
+        run: node --test scripts/e2e/*.test.mjs scripts/ops/*.test.mjs

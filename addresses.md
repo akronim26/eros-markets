@@ -1,12 +1,11 @@
 <!-- integrated-deployments:start -->
 # Deployed contract addresses
 
-Updated **2026-10-07T11:31:28.992Z**. Network: **Monad testnet**, chain ID **10143**.
+Updated **2026-10-09T00:06:15.171Z**. Network: **Monad testnet**, chain ID **10143**.
 
-## Current deployment — V1 (7 October 2026)
+## Current deployment — fast testnet profile
 
-Deployment status: **base deployed, verified and authorized by governance**.
-Each address below has a successful canonical finalized deployment receipt and verified runtime code. Historical deployment evidence is retained separately.
+The replacement factory is deployed and authorized. Both current market listings, reserves, calibration and activation have canonical verification reports. The engine windows are **INDEX60 / PERP60 / BASIS180 / carry30 seconds**; hourly promotion and existing risk rules remain unchanged.
 
 | Contract | Address | Deployment transaction | Block |
 | --- | --- | --- | ---: |
@@ -23,25 +22,22 @@ Each address below has a successful canonical finalized deployment receipt and v
 | UmaAdapter | [0x2750c61Ae27A40875b10D8232f68f31a8e2a3385](https://testnet.monadscan.com/address/0x2750c61Ae27A40875b10D8232f68f31a8e2a3385) | [0x84dd1203…41617027](https://testnet.monadscan.com/tx/0x84dd1203bde6377da7ecd2398b7585cc6b4286be422d772f93a7f1b941617027) | 68952077 |
 | MarketRegistry | [0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33](https://testnet.monadscan.com/address/0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33) | [0x4022e4f2…0bf04a82](https://testnet.monadscan.com/tx/0x4022e4f2d7e0f3796c4ffe80e0fd90974e92737ab80146fb1f6f6cd80bf04a82) | 68952089 |
 | KeeperRouter | [0xf9afbf482F428f26E7a093Cd9B790827c9bE5667](https://testnet.monadscan.com/address/0xf9afbf482F428f26E7a093Cd9B790827c9bE5667) | [0x8ea53ba8…8d79e635](https://testnet.monadscan.com/tx/0x8ea53ba87ac3f9cc6f28124c543ee2cc4a4ec8ad031e81ea4ce91e678d79e635) | 68952100 |
-| EngineCodeStore | [0xF7187fc9775D90C92bDFFe9B33A12aDE2E1628cD](https://testnet.monadscan.com/address/0xF7187fc9775D90C92bDFFe9B33A12aDE2E1628cD) | [0xdeefc8ae…ab786b03](https://testnet.monadscan.com/tx/0xdeefc8ae585f65915e10c383aecdf8f3e0dd83faa2025c370dd4810bab786b03) | 68952114 |
-| EngineCodeStoreTail | [0xce947E3325417EcfdF23A53FCa1AAD0503Dd23c3](https://testnet.monadscan.com/address/0xce947E3325417EcfdF23A53FCa1AAD0503Dd23c3) | [0x4965e884…309424d0](https://testnet.monadscan.com/tx/0x4965e884feb5334f77e6fdca88a473414f78e3bdf07075bbb78da065309424d0) | 68952127 |
-| MarketFactory | [0x14a38a7732B1cf968F18401544b89B11727Ed99e](https://testnet.monadscan.com/address/0x14a38a7732B1cf968F18401544b89B11727Ed99e) | [0x9f786f99…eafa07a6](https://testnet.monadscan.com/tx/0x9f786f996eb5d95bebe2daff25ccacdc9f2541718a66b40b279b7a31eafa07a6) | 68952139 |
-| CollateralVault (created by factory) | [0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329](https://testnet.monadscan.com/address/0x38d3FE099F2A48071D6ECc4C4a6FCcfD25c4C329) | [0x9f786f99…eafa07a6](https://testnet.monadscan.com/tx/0x9f786f996eb5d95bebe2daff25ccacdc9f2541718a66b40b279b7a31eafa07a6) | 68952139 |
+| EngineCodeStore | [0x005C0851a24c89305cFd4790Ad16dDceD63E66CA](https://testnet.monadscan.com/address/0x005C0851a24c89305cFd4790Ad16dDceD63E66CA) | [0x3deb6b46…44cf4dbe](https://testnet.monadscan.com/tx/0x3deb6b46623a1bd8aeec355659bf489dbd2133599fa1a46243c62e5044cf4dbe) | 69388507 |
+| EngineCodeStoreTail | [0xFe81509185b001CB1a1c7a1984443510E9c49D2A](https://testnet.monadscan.com/address/0xFe81509185b001CB1a1c7a1984443510E9c49D2A) | [0xbd9cfe3b…5ddee545](https://testnet.monadscan.com/tx/0xbd9cfe3b74c920221348a76e4b1e4ca7abd32c7a6e67fcb6dbadcf795ddee545) | 69388523 |
+| MarketFactory | [0xd410f15d2D24D36965282801e0459F531EDfd27E](https://testnet.monadscan.com/address/0xd410f15d2D24D36965282801e0459F531EDfd27E) | [0x13e885a2…955fe162](https://testnet.monadscan.com/tx/0x13e885a26dc9b77a55b8562cb662ec20f1b5bb443f179226d2c4072b955fe162) | 69388533 |
 | RolloverBatcher | [0x59B40464F76BBA6009116d427ADD7f85cC295436](https://testnet.monadscan.com/address/0x59B40464F76BBA6009116d427ADD7f85cC295436) | [0x73572b5d…922e2c77](https://testnet.monadscan.com/tx/0x73572b5d91a767f37f992a01e03fffdc7fc7eb1c92ae699c2907f55d922e2c77) | 68952150 |
-| Will an independent win the Nebraska Senate race in 2026? — engine | [0x171503494eF5f1A9e6705781647451A2582995bD](https://testnet.monadscan.com/address/0x171503494eF5f1A9e6705781647451A2582995bD) | [0x34ab2108…b0c25c1c](https://testnet.monadscan.com/tx/0x34ab2108d73354616f62bbf3e9f61bdf04baf1fa3ee33398f3f3edcab0c25c1c) | 68955860 |
-| Will an independent win the Nebraska Senate race in 2026? — ReserveVault | [0x2Dd2E1D9b9aa7e844c46a3794B3A7f26A1F57FE8](https://testnet.monadscan.com/address/0x2Dd2E1D9b9aa7e844c46a3794B3A7f26A1F57FE8) | [0x34ab2108…b0c25c1c](https://testnet.monadscan.com/tx/0x34ab2108d73354616f62bbf3e9f61bdf04baf1fa3ee33398f3f3edcab0c25c1c) | 68955860 |
-| Will the Republican Party control the House after the 2026 Midterm elections? — engine | [0xf1172fF5b008ACB49FD9109cf616434A482BE0f0](https://testnet.monadscan.com/address/0xf1172fF5b008ACB49FD9109cf616434A482BE0f0) | [0x85fcd963…c54ff8d3](https://testnet.monadscan.com/tx/0x85fcd9639d35f848636f17aa3b0364e98bdedb24d797d6900dcd0befc54ff8d3) | 68957085 |
-| Will the Republican Party control the House after the 2026 Midterm elections? — ReserveVault | [0xa8480126F5eD86a78aF44e12f5297610C323ED72](https://testnet.monadscan.com/address/0xa8480126F5eD86a78aF44e12f5297610C323ED72) | [0x85fcd963…c54ff8d3](https://testnet.monadscan.com/tx/0x85fcd9639d35f848636f17aa3b0364e98bdedb24d797d6900dcd0befc54ff8d3) | 68957085 |
+| CollateralVault (created by factory) | [0x733b6F737b550C08597e2de1Ba280926857dbB46](https://testnet.monadscan.com/address/0x733b6F737b550C08597e2de1Ba280926857dbB46) | [0x13e885a2…955fe162](https://testnet.monadscan.com/tx/0x13e885a26dc9b77a55b8562cb662ec20f1b5bb443f179226d2c4072b955fe162) | 69388533 |
+| Will the price of Bitcoin be above $82,000 on October 10? — engine | [0xf179f45C87667F55844aaB13E17439449AcECc29](https://testnet.monadscan.com/address/0xf179f45C87667F55844aaB13E17439449AcECc29) | [0xd8540031…dcf92eae](https://testnet.monadscan.com/tx/0xd854003126514d79bad76ea695ccafcacd7fe0973becfcea77f3d897dcf92eae) | 69390148 |
+| Will the price of Bitcoin be above $82,000 on October 10? — ReserveVault | [0xA2e8B2b5c1FfEE801464Dff4E118165F1E3c9a9F](https://testnet.monadscan.com/address/0xA2e8B2b5c1FfEE801464Dff4E118165F1E3c9a9F) | [0xd8540031…dcf92eae](https://testnet.monadscan.com/tx/0xd854003126514d79bad76ea695ccafcacd7fe0973becfcea77f3d897dcf92eae) | 69390148 |
+| Will the price of Ethereum be above $2,400 on October 11? — engine | [0x8DD02f70bDe63b1cdE949D643098f09a6267d3F4](https://testnet.monadscan.com/address/0x8DD02f70bDe63b1cdE949D643098f09a6267d3F4) | [0x4d8bf453…a6073a08](https://testnet.monadscan.com/tx/0x4d8bf453a0b7a6c8c1014b87e294b33219813c21e9eb6ca7d460d65ca6073a08) | 69391659 |
+| Will the price of Ethereum be above $2,400 on October 11? — ReserveVault | [0xffb19CA7a731f6a7b452305877Ae071053652352](https://testnet.monadscan.com/address/0xffb19CA7a731f6a7b452305877Ae071053652352) | [0x4d8bf453…a6073a08](https://testnet.monadscan.com/tx/0x4d8bf453a0b7a6c8c1014b87e294b33219813c21e9eb6ca7d460d65ca6073a08) | 69391659 |
 
-### Market and frontend status
+### Frontend and custody
 
-- **Will an independent win the Nebraska Senate race in 2026?** — Polymarket 634893; listing, reserve, calibration and activation verified.
-- **Will the Republican Party control the House after the 2026 Midterm elections?** — Polymarket 562803; listing, reserve, calibration and activation verified.
+The frontend selects the two replacement markets and their new shared collateral vault. All previous market routes and original vault bindings are retained in [archived deployments](frontend/src/config/archived-deployments.json); existing allocations do not migrate automatically. An archived flat account still needs a fresh INDEX to release allocated collateral.
 
-Deployment ceiling: **5×**. Actual admission depends on current directional caps, fresh price windows, margin, liquidity and reserve coverage.
-Collateral and calibration are test fixtures. Resolution uses the testnet oracle/UMA sandbox; a CRE network deployment is not claimed.
+Deployment ceiling: **5×**. Executable leverage depends on current prices, directional caps, margin, liquidity and reserve coverage. The shortened windows do not bypass hourly promotion. Continuous MARK and a real frontend leveraged trade on this replacement deployment remain unproven until separately recorded.
 
-The frontend selects this verified deployment.
-See [the selected manifest](frontend/src/config/public-manifest.json) and [deployment progress](docs/integration/DEPLOYMENT_PROGRESS.md).
+Collateral and calibration are test fixtures; resolution uses the existing testnet oracle/UMA sandbox. See [the selected manifest](frontend/src/config/public-manifest.json), [the pricing profile and cutover runbook](docs/integration/FAST_TESTNET_PRICING.md), and [deployment progress](docs/integration/DEPLOYMENT_PROGRESS.md).
 
 <!-- integrated-deployments:end -->

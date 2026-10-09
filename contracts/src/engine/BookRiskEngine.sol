@@ -162,14 +162,15 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         accountFingerprint = keccak256(abi.encode(projected, reservations, eligible));
     }
 
-    /// @dev Commit to exact capture-time INDEX300 inputs and the instantaneous BASIS input.
+    /// @dev Commit to exact capture-time configured INDEX inputs and the instantaneous BASIS input.
     /// A same-price refresh may replace a raw checkpoint without changing these inputs.
     /// Equal inputs do not imply an identical intermediate price path: compensating changes
     /// may cancel. Publication still requires a strictly newer source time to seal that path.
     function _indexCheckpointAt(uint64 observedAt) internal view returns (bytes32) {
-        if (observedAt < PricingMath.INDEX_WINDOW) return bytes32(0);
+        uint64 window = PricingMath.indexWindow();
+        if (observedAt < window) return bytes32(0);
         (bool startFound, int256 startIntegral, uint256 startCovered) =
-            _cumAt(INDEX, observedAt - PricingMath.INDEX_WINDOW);
+            _cumAt(INDEX, observedAt - window);
         (bool endFound, int256 endIntegral, uint256 endCovered) = _cumAt(INDEX, observedAt);
         (bool pointValid, int256 pointValue) = _valueAt(INDEX, observedAt);
         return keccak256(abi.encode(
