@@ -559,3 +559,23 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   Actual oracle/factory/INDEX services, active product demo and selected sponsor integrations remain
   future work. Branch equality and remote publication are verified after pushing; Git refs identify
   the published checkpoint without changing historical gate acceptance SHAs.
+
+### 2026-10-10 (DOC-README) — project documentation — turn complete
+
+- User requested a professional technical README with the existing logo centered at the top,
+  after explicitly switching the checkout to `main`. Baseline: `5f8e8a4`; fresh fetch retained
+  that remote main revision. This is a documentation update, not an integration-branch merge.
+- Added the root README covering architecture, execution, pricing, risk, settlement, local
+  development, interfaces, units and documentation navigation. It distinguishes the core
+  implementation on main from the integrated application/services on `feat/pricefeed` and
+  retains the concrete main engine's initial 1x configuration and original pricing windows.
+- Copied both existing static SVG logo variants byte-for-byte from `feat/pricefeed` into
+  `docs/assets/`; the centered header selects the appropriate logo for light or dark themes.
+- Documentation checks exit 0: 17 local link/image references, 14 heading anchors, balanced
+  code fences, no trailing whitespace, valid SVG XML and exact source-logo byte matches.
+  Commands and economic claims were checked against tracked source. No executable source
+  changed and no contract, service or frontend test suite was rerun for this documentation task.
+- Preserve existing untracked analysis, handoff, dependencies and caches. Commit only this
+  README, the two logos and this log entry. No deployment, branch merge or main push is included.
+  Next work: publish the documentation when requested; retain deployment-specific instructions
+  on the corresponding integration branch.
