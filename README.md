@@ -30,27 +30,11 @@ Recorded testnet integrations use test collateral and synthetic risk calibration
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    Polymarket[Polymarket order book] --> Publisher[Collector, signer and relay]
-    Publisher -->|Authenticated INDEX| Pricing[Pricing and observations]
-    App[Trading application] -->|Approve, deposit, allocate| Vault[Shared collateral vault]
-    App -->|Owner orders| Book[On-chain order book]
-
-    subgraph Engine[Isolated market engine]
-        Book -->|Funded depth samples| Pricing
-        Pricing -->|INDEX and MARK| Risk[Risk and lifecycle controls]
-        Book <-->|Admission and atomic fills| Risk
-        Risk <--> Ledger[Cash, positions and reserve coverage]
-        Ledger --> Settlement[Settlement preparation and claims]
-    end
-
-    Vault <--> Ledger
-    Oracle[Resolution oracle] -->|Halt and final outcome| Settlement
-    Settlement -->|Prepared payouts| Owner[Position owner]
-    Engine -->|Events| Indexer[Envio indexer]
-    Indexer -->|History| App
-```
+<p align="center">
+  <a href="docs/assets/eros-architecture.svg">
+    <img src="docs/assets/eros-architecture.svg" alt="Eros Markets architecture diagram" width="100%">
+  </a>
+</p>
 
 Price publication and event resolution serve separate purposes. The publisher maintains the reference used during trading. The resolution oracle supplies the final outcome used for settlement. Polymarket prices do not supply Eros liquidity: funded makers must place orders in the Eros book.
 
