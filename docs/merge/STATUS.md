@@ -1096,3 +1096,11 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Documentation only; no runtime tests, installations, deployments or live service actions.
   Existing untracked analysis and handoff remain unchanged. Commit README and this log entry
   separately from main; no public push. Working checkout remains on `feat/pricefeed`.
+
+### 2026-10-10 — DOC-ARCH-SVG: supplied architecture diagram
+
+- Replaced the technical README's Mermaid diagram with the user-provided `eros_arch1.svg`,
+  copied unchanged to `docs/assets/eros-architecture.svg`. The image links to its full-size file.
+- Verified valid SVG XML, exact source/destination byte equality, a single diagram replacement,
+  resolving image/link paths and clean diff whitespace. Documentation/assets only; no runtime tests.
+- Existing unrelated files remain untouched. Commit locally on `feat/pricefeed`; no public push.
