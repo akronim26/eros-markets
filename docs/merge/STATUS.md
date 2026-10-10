@@ -1077,3 +1077,22 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   budget, and a recommended fork rehearsal of the full worker stack. Nothing committed,
   pushed, broadcast or funded. Details:
   [FAST_MARK_STARTUP.md](../integration/FAST_MARK_STARTUP.md).
+
+### 2026-10-10 — DOC-README-SPLIT: integration-branch technical README
+
+- User requested a short project overview on main and the detailed technical README on the
+  most up-to-date implementation branch. Main overview is committed separately at `696349c`;
+  no main code or integration history was merged into this branch.
+- Fetched and fast-forwarded `feat/pricefeed` to `21cdf22` before authoring its root README.
+  The new document covers the integrated architecture, pricing, reserve policy, lifecycle,
+  SDK units, application setup, local backend proof, validation commands and documentation.
+- Explicitly separates new testnet 60/60/60 fast-start source from the deployed October 9
+  60/60/180 engines and default-chain 300/60/900 behavior. Pricing activation does not imply
+  active calibration, leveraged admission or a completed replacement deployment.
+- Reused the existing frontend logo variants with a centered, theme-aware header. Checked
+  29 local link/image references, 13 heading anchors, SVG XML, code-fence balance and trailing
+  whitespace; all checks exit 0. Main overview/branch links and both branches' logo targets
+  also pass. Setup commands and economic claims were cross-checked against current source.
+- Documentation only; no runtime tests, installations, deployments or live service actions.
+  Existing untracked analysis and handoff remain unchanged. Commit README and this log entry
+  separately from main; no public push. Working checkout remains on `feat/pricefeed`.
