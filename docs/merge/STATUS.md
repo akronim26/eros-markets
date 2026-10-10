@@ -579,3 +579,14 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   README, the two logos and this log entry. No deployment, branch merge or main push is included.
   Next work: publish the documentation when requested; retain deployment-specific instructions
   on the corresponding integration branch.
+
+### 2026-10-10 (DOC-README-SPLIT) — project overview on main
+
+- User requested replacing the detailed main README with general project information and a
+  link to `feat/pricefeed`, with the technical README maintained on that updated branch.
+- Kept the centered logo and replaced setup, architecture and policy detail with the product
+  direction, intended components and links to the feature branch and its technical README.
+- Documentation-only change. Relative logo references and whitespace were checked; no runtime
+  tests or deployment were required. Existing untracked files remain untouched.
+- Commit this main overview separately, then update `feat/pricefeed` from its fetched remote
+  and author its technical README against current source. No branch merge or public push.
