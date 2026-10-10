@@ -2,5 +2,5 @@ export function serviceRuntime(env?: Record<string, string | undefined>, default
   mode: 'bounded' | 'persistent'; durationSeconds: number; end: number;
 };
 export function liquidationPolicy(env: Record<string, string | undefined>, measuredGas?: number): { enabled: boolean; intervalMs: number };
-export function keeperActions(options: { liquidationEnabled: boolean; nextLiquidationAt: number; now?: number }): ('rollover' | 'sample' | 'liquidate')[];
+export function keeperActions(options: { liquidationEnabled: boolean; nextLiquidationAt: number; activationPending?: boolean; now?: number }): ('rollover' | 'activate' | 'sample' | 'liquidate')[];
 export function transientServiceRead(error: unknown): boolean;

@@ -4,7 +4,7 @@
   "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "80a35175d617421591870071e75b8e96a5f1655c4429fa6bfd2c28515dd77926",
+ "source_sha256": "8ee4e398724e191c2680b199f7694aea48d470c042fd1ff2f4e7ff1a2af749a5",
  "abi": [
   {
    "type": "function",
@@ -4245,6 +4245,24 @@
   },
   {
    "type": "function",
+   "name": "warmupIndex",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "available",
+     "type": "bool",
+     "internalType": "bool"
+    },
+    {
+     "name": "pointWad",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "withdrawKeeper",
    "inputs": [],
    "outputs": [
@@ -5813,6 +5831,11 @@
   {
    "type": "error",
    "name": "PriceNotInterior",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "PricingActivationUnavailable",
    "inputs": []
   },
   {

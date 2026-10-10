@@ -6,14 +6,14 @@ import { Operations, type Command } from './operations'
 import { binding, envelopeSchema, incidentSchema, manifestSchema } from './schema'
 import { FileStore } from './store'
 
-const usage = 'bun src/main.ts <sample|liquidate|rollover|early-check|relay> <manifest.json> <journal.json> [incident-or-envelope.json] [--broadcast] [--watch]'
+const usage = 'bun src/main.ts <sample|activate|liquidate|rollover|early-check|relay> <manifest.json> <journal.json> [incident-or-envelope.json] [--broadcast] [--watch]'
 
 async function main() {
   const flags = new Set(process.argv.slice(2).filter(value => value.startsWith('--')))
   if ([...flags].some(value => value !== '--broadcast' && value !== '--watch')) throw new Error(usage)
   const args = process.argv.slice(2).filter(value => !value.startsWith('--'))
   const [action, manifestPath, journalPath, inputPath] = args
-  if (!manifestPath || !journalPath || !['sample', 'liquidate', 'rollover', 'early-check', 'relay'].includes(action ?? '') || args.length !== (action === 'sample' || action === 'liquidate' || action === 'rollover' ? 3 : 4)) throw new Error(usage)
+  if (!manifestPath || !journalPath || !['sample', 'activate', 'liquidate', 'rollover', 'early-check', 'relay'].includes(action ?? '') || args.length !== (action === 'sample' || action === 'activate' || action === 'liquidate' || action === 'rollover' ? 3 : 4)) throw new Error(usage)
   const readJson = (path: string) => JSON.parse(readFileSync(resolve(path), 'utf8'))
   const manifest = manifestSchema.parse(readJson(manifestPath))
   const rpcUrl = process.env.RPC_URL
@@ -21,7 +21,7 @@ async function main() {
   const broadcast = flags.has('--broadcast')
   const privateKey = broadcast ? process.env.MARKET_OPS_PRIVATE_KEY : undefined
   if (broadcast && !/^0x[0-9a-fA-F]{64}$/.test(privateKey ?? '')) throw new Error('Broadcast requires MARKET_OPS_PRIVATE_KEY')
-  const command: Command = action === 'sample' || action === 'liquidate' || action === 'rollover'
+  const command: Command = action === 'sample' || action === 'activate' || action === 'liquidate' || action === 'rollover'
     ? { action }
     : action === 'early-check'
       ? { action, incident: incidentSchema.parse(readJson(inputPath!)) }

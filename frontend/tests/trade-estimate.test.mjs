@@ -83,3 +83,49 @@ test('an unchanged on-chain position version carries a verified basis across ind
     'equal versions cannot conceal history that omitted a position mutation');
   assert.equal(advancePositionBasis(p, historical, { ...current, block: 6n }, 1).available, false);
 });
+
+function partialCloseHistory(rounds) {
+  const fills = [{ signedLots: 10000n, tick: 400, feeQ: 0n }];
+  for (let i = 0; i < rounds; i++) {
+    const added = BigInt(101 + (i * 13) % 103);
+    fills.push({ signedLots: added, tick: 300 + (i * 7) % 500, feeQ: 0n },
+      { signedLots: -added, tick: 500, feeQ: 0n });
+  }
+  return fills;
+}
+
+test('valid partial-close history stops before rational growth freezes the terminal', () => {
+  // Position stays between 10,000 and 10,203 lots, far inside contract bounds.
+  const start = performance.now();
+  const result = basis(partialCloseHistory(2000), 10000n);
+  assert.equal(result.available, false);
+  assert.match(result.reason, /complexity limit/);
+  assert.ok(performance.now() - start < 1000, 'bounded replay must not repeat the previous ~40-second freeze');
+  const close = estimate(snapshot(10000n, 1_000_000n * Q), { lots: 10000n, basis: result });
+  assert.equal(close.available, true, 'cash estimates do not require entry-basis reconstruction');
+  assert.equal(close.positionPnl.available, false);
+  assert.equal(close.positionPnl.reason, result.reason);
+});
+
+test('the replay work budget survives resets of the rational denominator', () => {
+  assert.equal(basis(partialCloseHistory(20), 10000n).available, true,
+    'one cycle fits the operand-size limit; repeated cycles must share a total work budget');
+  const fills = [];
+  for (let group = 0; group < 400; group++) {
+    fills.push(...partialCloseHistory(20), { signedLots: -10000n, tick: 500, feeQ: 0n });
+  }
+  assert.ok(fills.length < 20000);
+  const start = performance.now(), result = basis(fills, 0n);
+  assert.equal(result.available, false);
+  assert.match(result.reason, /complexity limit/);
+  assert.ok(performance.now() - start < 1000);
+});
+
+test('oversized arithmetic inputs become unavailable without performing large cross-products', () => {
+  for (const fill of [{ signedLots: 1n << 10000n, tick: 999, feeQ: 0n },
+    { signedLots: 1000n, tick: 600, feeQ: 1n << 10000n }]) {
+    const result = basis([fill], fill.signedLots);
+    assert.equal(result.available, false);
+    assert.match(result.reason, /complexity limit/);
+  }
+});

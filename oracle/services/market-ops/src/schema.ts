@@ -27,6 +27,7 @@ export const manifestSchema = z.object({
   sampleEveryBlocks: decimal.refine(value => value > 0n).default(1n),
   gas: z.object({
     samplePerp: gas.optional(),
+    activatePricing: gas.optional(),
     requestReduceOnly: gas.optional(),
     requestEarlyCheck: gas.optional(),
     submitObservation: gas.optional(),

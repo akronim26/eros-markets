@@ -226,3 +226,17 @@ test('a future-dated restored acknowledgement cannot extend the accepted INDEX d
   assert.equal(h.coordinator.getMinimumObservedAt(1100000), indexFreshCutoff(1100000));
   await h.close();
 });
+
+test('finality notification persists its request before immediate budget shutdown and restores exact ownership', async () => {
+  const h = coordinatorHarness();
+  h.coordinator.notify({ sequence: 10n, observedAt: 100n });
+  assert.deepEqual(h.writes, [{ id: '10', engine, observedAt: '100' }], 'no background tick is required for durability');
+  const request = h.writes[0]; await h.close();
+  const restarted = coordinatorHarness({ request });
+  restarted.coordinator.notify({ sequence: 9n, observedAt: 99n });
+  restarted.coordinator.notify({ sequence: 10n, observedAt: 100n });
+  restarted.coordinator.notify({ sequence: 11n, observedAt: 101n });
+  assert.deepEqual(restarted.writes, [], 'older replay and newer finality cannot replace the outstanding request');
+  restarted.setAck(ack(10, 100)); await restarted.tick(250); await restarted.tick(250);
+  assert.deepEqual(restarted.writes.map(value => value.id), ['11']); await restarted.close();
+});

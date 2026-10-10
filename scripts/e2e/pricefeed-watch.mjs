@@ -4,17 +4,15 @@ import { readFileSync, appendFileSync, writeFileSync, renameSync, existsSync } f
 import { resolve, join } from 'node:path';
 import { parseEnv } from 'node:util';
 import { DatabaseSync } from 'node:sqlite';
-import { createRequire } from 'node:module';
-import { createHash } from 'node:crypto';
 import { runMonadTestnetService, parseTestnetRunPolicy } from '../../packages/pricefeed/dist/src/monad-service.js';
 import { recoverMonadNonce } from '../../packages/pricefeed/dist/src/monad-nonce-recovery.js';
 import { recoverableUnsentReason } from '../../packages/pricefeed/dist/src/nonce-recovery-journal.js';
 import { SampleCoordinator, indexFreshCutoff } from './sampler-coordination.mjs';
-import { PacketStore, packetNamespace } from '../../packages/pricefeed/dist/src/packet-store.js';
-import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce } from './publisher-restart-policy.mjs';
+import { PacketStore } from '../../packages/pricefeed/dist/src/packet-store.js';
+import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce, publisherBudgetExhausted } from './publisher-restart-policy.mjs';
 import { serviceRuntime, transientServiceRead } from './service-runtime-policy.mjs';
 import { assertServiceNotRetired } from './service-retirement.mjs';
-import { monadReadTransport } from '../../packages/pricefeed/dist/src/monad-preflight.js';
+import { writeNotice } from './readiness-notifier.mjs';
 
 const [rpcFile, publicDir, privateDir, policyFile, evidenceFile, seconds = '5400', setup] = process.argv.slice(2);
 if (!evidenceFile || !/^\d+$/.test(seconds) || +seconds < 1 || +seconds > 86400 || (setup !== undefined && setup !== '--initialize'))
@@ -22,11 +20,8 @@ if (!evidenceFile || !/^\d+$/.test(seconds) || +seconds < 1 || +seconds > 86400 
 const read = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const rpcEnv = parseEnv(readFileSync(rpcFile, 'utf8'));
 const rpcUrl = rpcEnv.MONAD_TESTNET_RPC;
-const require = createRequire(new URL('../../packages/pricefeed/package.json', import.meta.url));
-const { createPublicClient } = require('viem');
 process.env.MONAD_READ_FALLBACK_URLS ||= rpcEnv.MONAD_READ_FALLBACK_URLS || '';
 process.env.MONAD_READ_RPC_CAPACITIES ||= rpcEnv.MONAD_READ_RPC_CAPACITIES || '';
-const finalityClient = createPublicClient({ transport: monadReadTransport(rpcUrl) });
 if (!rpcUrl) throw new Error('Private RPC env must contain MONAD_TESTNET_RPC');
 const config = read(join(publicDir, 'pricefeed-config.json'));
 const rules = read(join(publicDir, 'pricefeed-rules.json')), abi = read(join(publicDir, 'engine-abi.json'));
@@ -69,31 +64,8 @@ const coordinator = coordination ? new SampleCoordinator({
   onError: () => log({ sample: 'COORDINATION_FAILED', independentIndex: true }),
 }) : null;
 const sample = result => coordinator?.notify({ ...finalizedObservation(result.sequence), depthValid: result.depthValid === true });
-// Restore the soft deadline from verified, canonically finalized own evidence.
-async function restoreFinalizedObservation() {
-  if (!coordinator || !existsSync(join(journalDirectory, 'relay.sqlite'))) return;
-  const db = new DatabaseSync(join(journalDirectory, 'relay.sqlite'), { readOnly: true });
-  let latest = null;
-  try {
-    for (const row of db.prepare('SELECT body,sha256 FROM deliveries WHERE ns=?').all(packetNamespace(domain))) {
-      if (createHash('sha256').update(row.body).digest('hex') !== row.sha256) throw Error('RELAY_JOURNAL_INTEGRITY');
-      const delivery = JSON.parse(row.body);
-      if (delivery.state === 'FINALIZED' && delivery.accepted && (!latest || BigInt(delivery.sequence) > BigInt(latest.sequence))) latest = delivery;
-    }
-  } finally { db.close(); }
-  if (!latest) return;
-  const [canonical, finalized] = await Promise.all([
-    finalityClient.getBlock({ blockNumber: BigInt(latest.accepted.blockNumber) }),
-    finalityClient.getBlock({ blockTag: 'finalized' }),
-  ]);
-  if (canonical.hash.toLowerCase() !== latest.accepted.blockHash.toLowerCase() || finalized.number < canonical.number) throw Error('PUBLICATION_RECEIPT_NONCANONICAL');
-  const observation = finalizedObservation(BigInt(latest.sequence));
-  if (packetReader.get(domain, observation.sequence).digest !== latest.digest) throw Error('FINALIZED_PACKET_MISMATCH');
-  coordinator.notify({ ...observation, depthValid: latest.accepted.depthValid === true });
-}
 log({ started: true, pid: process.pid, engine: config.destination.engineAddress, source: config.mapping.externalMarketId, mode: runtime.mode, durationSeconds: +seconds });
 try {
-await restoreFinalizedObservation();
 while (!stop.signal.aborted && Date.now() < end) {
   try {
     assertServiceNotRetired(privateDir);
@@ -106,27 +78,17 @@ while (!stop.signal.aborted && Date.now() < end) {
         return coordinator?.getMinimumObservedAt(now, freshCutoff) ?? freshCutoff;
       } }, stop.signal, async result => {
       log({ state: result.state, reason: result.reason, sequence: result.sequence, hash: result.transactionHash, depthValid: result.depthValid });
-      if (result.state === 'FINALIZED') { consecutiveFailures = 0; sample(result); }
-      else if (result.state === 'MINED' && result.transactionHash) {
-        // The pipeline reconciles MINED packets on its next pass without emitting
-        // a second callback. Wait for canonical finality here so those packets
-        // also trigger a book capture instead of skipping an entire interval.
-        const deadline = Date.now() + 15_000;
-        while (!stop.signal.aborted && Date.now() < deadline) {
-          const [receipt, finalized] = await Promise.all([
-            finalityClient.getTransactionReceipt({ hash: result.transactionHash }),
-            finalityClient.getBlock({ blockTag: 'finalized' }),
-          ]);
-          if (receipt.status !== 'success') throw new Error('PUBLICATION_RECEIPT_REVERTED');
-          if (finalized.number >= receipt.blockNumber) {
-            if ((await finalityClient.getBlock({ blockNumber: receipt.blockNumber })).hash !== receipt.blockHash) throw new Error('PUBLICATION_RECEIPT_NONCANONICAL');
-            sample(result); break;
-          }
-          await new Promise(r => setTimeout(r, 250));
-        }
+      if (result.state === 'FINALIZED') {
+        consecutiveFailures = 0;
+        // Wake-up hint for the maker; publication never depends on it.
+        try { writeNotice(coordination, 'index-notice.json', { engine: config.destination.engineAddress, sequence: String(result.sequence), at: Date.now() }); }
+        catch { log({ notice: 'INDEX_NOTICE_WRITE_FAILED' }); }
+        sample(result);
       }
+      // The durable pipeline emits canonical finality, including delayed receipts
+      // and replay after service restart. No bounded wait may discard that event.
     });
-    const budgetExhausted = result.finalizedPackets >= policy.budget.maxTransactions;
+    const budgetExhausted = publisherBudgetExhausted(result);
     log({ stopped: true, finalizedPackets: result.finalizedPackets, evidenceValid: result.evidenceValid,
       reason: budgetExhausted ? 'publication-budget-exhausted' : stop.signal.aborted ? 'shutdown' : 'session-ended' });
     if (budgetExhausted && runtime.mode === 'persistent') process.exitCode = 78;

@@ -192,7 +192,7 @@ test('buffered terminal pass reconciles the exact pending receipt before stoppin
       results.push(result.state);
       if(results.length===1){assert.equal(result.state,'UNKNOWN');receiptVisible=true;s.setNow(100001000n);}
     });
-    assert.deepEqual(results,['UNKNOWN','STOPPED']);assert.ok(receiptReads>=2);
+    assert.deepEqual(results,['UNKNOWN','FINALIZED','STOPPED']);assert.ok(receiptReads>=2);
     assert.equal(s.relay.get(s.domain,1n)!.state,'FINALIZED');
     assert.equal(s.sent.length,1);assert.equal(s.packets.list(s.domain).length,1);
   }finally{s.close();}

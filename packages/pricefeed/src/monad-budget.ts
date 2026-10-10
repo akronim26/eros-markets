@@ -17,7 +17,7 @@ import { submitCalldata } from './wire.js';
 import { json } from './math.js';
 import { record } from './book.js';
 import { sizeGas } from './gas.js';
-import { nonceRecoveries, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
+import { nonceRecoveries, originalWon, recoveryTerminal, cancellationCount, validateOriginalRecovery, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
 import { testnetJournalPath } from './monad-keys.js';
 import { verifyHistoryRecoveryAudit } from './history-recovery-journal.js';
 import { workerNamespace } from './worker.js';
@@ -121,7 +121,7 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
     for(const row of rows){
       const body=String(row.body);if(policyHash(body)!==row.sha256)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
       const r=JSON.parse(body),packet=bySequence.get(String(r.sequence)),request=parseTransactionRequest(r.request);
-      if(!['FINALIZED','CANCELLED'].includes(r.state)||!r.raw||r.state==='FINALIZED'&&!r.accepted||r.namespace!==ns||row.ns!==ns||row.key!==ns+':'+r.sequence
+      if(!['FINALIZED','CANCELLED','REVERTED'].includes(r.state)||r.state==='REVERTED'&&r.reason!=='NONCE_RECOVERY_ORIGINAL_REVERTED'||!r.raw||r.state==='FINALIZED'&&!r.accepted||r.namespace!==ns||row.ns!==ns||row.key!==ns+':'+r.sequence
         ||row.nonce!==r.nonce||request.nonce.toString()!==r.nonce||!packet?.signature||packet.state!=='SIGNED'
         ||r.digest!==packet.digest||request.to!==d.engineAddress.toLowerCase()||request.data!==submitCalldata(packet.packet.observation,packet.signature).toLowerCase())
         throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
@@ -146,8 +146,8 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
     const initial=BigInt(String(accounts[0]!.initial_nonce)),next=BigInt(String(accounts[0]!.next_nonce));
     if(next!==initial+BigInt(deliveries.length)||deliveries.some((r,i)=>r.nonce!==initial+BigInt(i)))throw new Error('RELAY_NONCE_JOURNAL_INTEGRITY');
     const recovered=nonceRecoveries(db);reservedWei+=recovered.reduce((s,r)=>s+BigInt(r.reservationWei),0n);
-    if(recovered.some(r=>r.state!=='FINALIZED'))throw new Error('BUDGET_UNRESOLVED_HISTORY');
-    if(reservedWei>old.budget.totalMaxCostWei||deliveries.length+recovered.length>old.budget.maxTransactions)throw new Error('BUDGET_HISTORY_EXCEEDS_POLICY');
+    if(recovered.some(r=>!recoveryTerminal(r)))throw new Error('BUDGET_UNRESOLVED_HISTORY');
+    if(reservedWei>old.budget.totalMaxCostWei||deliveries.length+cancellationCount(recovered)>old.budget.maxTransactions)throw new Error('BUDGET_HISTORY_EXCEEDS_POLICY');
     const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi},now),last=deliveries.filter(r=>r.record.state==='FINALIZED').at(-1)?.packet.observation;
     if(checkpoint.engine!.sourceState.lastSequence!==(last?.sequence??0n)
       ||checkpoint.engine!.sourceState.lastObservedAt!==(last?.observedAt??0n))throw new Error('BUDGET_CHAIN_HISTORY_CHANGED');
@@ -164,7 +164,7 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
       }
     };
     const verifyReceipt=async(entry:typeof deliveries[number])=>{
-      if(entry.record.state==='CANCELLED')return;
+      if(entry.record.state==='CANCELLED'||entry.record.state==='REVERTED')return;
       const r=entry.record,receipt=await rpc.receipt(r.txHash as Hex);
       if(!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
       const block=await rpc.block({blockNumber:receipt.blockNumber});
@@ -174,15 +174,16 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
     await Promise.all(Array.from({length:Math.min(8,deliveries.length)},verifyNextReceipt));
     if(receiptFailed)throw receiptError;
     for(const r of recovered){
-      await verifyCancellationSigner(r);const receipt=await rpc.receipt(r.hash!);
+      await verifyCancellationSigner(r);const receipt=await rpc.receipt(originalWon(r)?JSON.parse(r.originalBody).txHash:r.hash!);
       if(!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
-      validateCancellationReceipt(r,receipt);const block=await rpc.block({blockNumber:receipt.blockNumber});
+      if(!originalWon(r))validateCancellationReceipt(r,receipt);const block=await rpc.block({blockNumber:receipt.blockNumber});
       if(block.hash!==receipt.blockHash||json(receipt)!==json(r.receipt))throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      if(originalWon(r))await validateOriginalRecovery(r,receipt,block,store.get(domain,BigInt(JSON.parse(r.originalBody).sequence)));
     }
     if(await rpc.nonce(old.sender as Hex)!==next)throw new Error('BUDGET_SENDER_NONCE_CHANGED');
     const balanceWei=await rpc.balance(old.sender as Hex);
     if(now()-checkpoint.checkedAtMs>30000n)throw new Error('BUDGET_CHECKPOINT_EXPIRED');
-    return {checkpoint,reservedWei,deliveryCount:deliveries.length+recovered.length,nextNonce:next,balanceWei,configHash:policyHash(json(cfg)),journalHash:budgetJournalSnapshot(db)};
+    return {checkpoint,reservedWei,deliveryCount:deliveries.length+cancellationCount(recovered),nextNonce:next,balanceWei,configHash:policyHash(json(cfg)),journalHash:budgetJournalSnapshot(db)};
   }finally{store.close();source.close();}
 }
 

@@ -11,45 +11,62 @@ import type { HistorySnapshot } from "./history";
 import { historyPositionFills } from "./history-direction";
 import { advancePositionBasis, reconstructPositionBasis, type PositionBasis, type PositionVersionSnapshot } from "./trade-estimate";
 
+/** Historical proof is independent of the live head. Poll canonicality without
+ * abandoning a slow archive read whenever the current trader snapshot advances.
+ */
+export function positionBasisHistoryOptions(engine: Address, owner: Address | undefined, block: bigint | undefined) {
+  return {
+    queryKey: ["position-basis-history", chain.id, engine.toLowerCase(), owner?.toLowerCase(), block?.toString()],
+    staleTime: 15_000,
+    refetchInterval: 15_000,
+    retry: 1,
+    queryFn: () => canonicalRead(block!, async (anchor) => {
+      const account = await client.readContract({ address: engine, abi: engineAbi, functionName: "account", args: [owner!], blockNumber: block! });
+      return { block: block!, blockHash: anchor.hash, positionLots: account.value.lots, positionVersion: account.positionVersion };
+    }),
+  };
+}
+
 export function usePositionBasis(input: {
   engine: Address; owner?: Address; traderId: number; history?: HistorySnapshot;
-  block?: bigint; positionLots?: bigint; enabled?: boolean;
+  block?: bigint; positionLots?: bigint; positionVersion?: bigint; enabled?: boolean;
 }): PositionBasis {
-  const { engine, owner, traderId, history, block, positionLots } = input;
-  const normalized = useMemo(() => history
-    ? historyPositionFills(history.events, traderId, history.makerOrders ?? [])
-    : undefined, [history, traderId]);
-  const historyBlock = history && Number.isSafeInteger(history.progress) && history.progress >= 0 ? BigInt(history.progress) : undefined;
-  const ready = input.enabled !== false && !!owner && traderId > 0 && block !== undefined && positionLots !== undefined
-    && !!history?.complete && history.directionsComplete !== false && normalized?.allPositionChangesKnown === true && historyBlock !== undefined && historyBlock <= block;
-  const versions = useQuery({
-    queryKey: ["position-basis-versions", chain.id, engine.toLowerCase(), owner?.toLowerCase(), historyBlock?.toString(), block?.toString()],
-    enabled: ready,
-    staleTime: 0,
-    retry: 1,
-    queryFn: async () => {
-      const read = (at: bigint) => canonicalRead(at, async (): Promise<PositionVersionSnapshot> => {
-        const account = await client.readContract({ address: engine, abi: engineAbi, functionName: "account", args: [owner!], blockNumber: at });
-        return { block: at, positionLots: account.value.lots, positionVersion: account.positionVersion };
-      });
-      const [historical, current] = historyBlock === block
-        ? await read(block!).then(value => [value, value])
-        : await Promise.all([read(historyBlock!), read(block!)]);
-      return { historical, current };
-    },
-  });
-  return useMemo((): PositionBasis => {
-    if (!ready || !normalized || historyBlock === undefined || block === undefined || positionLots === undefined) {
+  const { engine, owner, traderId, history, block, positionLots, positionVersion } = input;
+  const normalized = useMemo(() => {
+    if (!history) return;
+    let lastFillBlock: bigint | undefined;
+    for (const event of history.events) {
+      if (event.kind !== "Fill") continue;
+      if (!Number.isSafeInteger(event.block) || event.block < 0) return;
+      const fillBlock = BigInt(event.block);
+      if (lastFillBlock === undefined || fillBlock > lastFillBlock) lastFillBlock = fillBlock;
+    }
+    return { ...historyPositionFills(history.events, traderId, history.makerOrders ?? []), lastFillBlock };
+  }, [history?.events, history?.makerOrders, traderId]);
+  const historyThroughBlock = history && Number.isSafeInteger(history.progress) && history.progress >= 0 ? BigInt(history.progress) : undefined;
+  // The last fill is a stable anchor even when the indexer watermark advances.
+  // Historical version == fill count, then current version equality, proves that
+  // no unrepresented posting occurred before or after this anchor.
+  const historyBlock = normalized?.lastFillBlock;
+  const ready = input.enabled !== false && !!owner && traderId > 0 && block !== undefined && positionLots !== undefined && positionVersion !== undefined
+    && !!history?.complete && history.directionsComplete !== false && normalized?.allPositionChangesKnown === true
+    && historyBlock !== undefined && historyThroughBlock !== undefined && historyBlock <= historyThroughBlock && historyThroughBlock <= block;
+  const proof = useQuery({ ...positionBasisHistoryOptions(engine, owner, historyBlock), enabled: ready });
+  // Replay only when historical evidence changes, not on every current snapshot.
+  const basis = useMemo((): PositionBasis => {
+    if (!ready || !normalized || historyBlock === undefined) {
       return { available: false, reason: "Complete, direction-resolved fill history is unavailable" };
     }
-    if (versions.isError) return { available: false, reason: "Could not verify fill history against the account" };
-    if (!versions.data || versions.data.current.block !== block || versions.data.historical.block !== historyBlock) {
+    if (proof.isError) return { available: false, reason: "Could not verify fill history against the account" };
+    if (!proof.data || proof.data.block !== historyBlock) {
       return { available: false, reason: "Verifying entry basis against the account" };
     }
-    const { historical, current } = versions.data;
-    if (current.positionLots !== positionLots) return { available: false, reason: "Position snapshot changed; refresh before estimating P&L" };
-    const basis = reconstructPositionBasis({ ...normalized, complete: true, throughBlock: historyBlock,
-      snapshotBlock: historyBlock, expectedPositionLots: historical.positionLots });
-    return advancePositionBasis(basis, historical, current, normalized.fills.length);
-  }, [ready, normalized, historyBlock, block, positionLots, versions.isError, versions.data]);
+    return reconstructPositionBasis({ ...normalized, complete: true, throughBlock: historyBlock,
+      snapshotBlock: historyBlock, expectedPositionLots: proof.data.positionLots });
+  }, [ready, normalized, historyBlock, proof.isError, proof.data]);
+  if (!basis.available || !ready || !proof.data || !normalized) return basis;
+  // This version came from the same multicall/canonical block as the displayed
+  // position. Unchanged lots alone cannot hide an intervening close/reopen.
+  const current: PositionVersionSnapshot = { block: block!, positionLots: positionLots!, positionVersion: positionVersion! };
+  return advancePositionBasis(basis, proof.data, current, normalized.fills.length);
 }

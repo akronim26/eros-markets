@@ -3,12 +3,29 @@ import { test } from 'node:test';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { parseTestnetRunPolicy, runMonadTestnetService, testnetPublicationInterval } from '../src/monad-service.js';
+import { parseTestnetRunPolicy, runMonadTestnetService, testnetPublicationInterval, testnetServiceStopReason } from '../src/monad-service.js';
+import type { DeliveryRecord } from '../src/durable-relay.js';
 import { config, reviewed } from './publication-fixture.js';
 
 const raw={schemaVersion:'1',sender:'0x'+'12'.repeat(20),relay:{gasCap:'800000',maxFeePerGas:'150000000000',
   maxPriorityFeePerGas:'2000000000',maxCostWei:'120000000000000000',headroomMs:'5000',confirmations:'1',
   leaseMs:'120000',timeoutMs:10000,maxAttempts:3},budget:{maxTransactions:3,totalMaxCostWei:'360000000000000000'}};
+test('aggregate exhaustion stops after cancellations or cost reservations, independent of accepted-price count',()=>{
+  const status={finalized:2,stopAfterFinalized:4,budgetAvailable:false,
+    deliveries:[{state:'CANCELLED',reason:'NONCE_CANCELLED'},{state:'FINALIZED',reason:null},{state:'FINALIZED',reason:null}] as const};
+  assert.equal(testnetServiceStopReason(status),'publication-budget-exhausted');
+  assert.equal(testnetServiceStopReason({...status,deliveries:status.deliveries.slice(1)}),'publication-budget-exhausted');
+  assert.equal(testnetServiceStopReason({...status,budgetAvailable:true}),null);
+  assert.equal(testnetServiceStopReason({...status,finalized:4}),'publication-budget-exhausted');
+  assert.equal(testnetServiceStopReason({...status,budgetAvailable:true,stopAfterFinalized:2}),'finalized-target-reached');
+});
+test('exhausted capacity never abandons an unresolved signed delivery to stop the worker group',()=>{
+  for(const state of ['PREPARING','READY','UNKNOWN','MINED','ORPHANED','QUARANTINED','REVERTED'] as DeliveryRecord['state'][])
+    assert.equal(testnetServiceStopReason({finalized:4,stopAfterFinalized:4,budgetAvailable:false,
+      deliveries:[{state:'FINALIZED',reason:null},{state,reason:state==='REVERTED'?'TRANSACTION_REVERTED':null}]}),null,state);
+  assert.equal(testnetServiceStopReason({finalized:0,stopAfterFinalized:4,budgetAvailable:false,
+    deliveries:[{state:'REVERTED',reason:'NONCE_RECOVERY_ORIGINAL_REVERTED'}]}),'publication-budget-exhausted');
+});
 test('testnet publication cadence is explicit and bounded without changing the default',()=>{
   assert.equal(testnetPublicationInterval(1000),20000);
   assert.equal(testnetPublicationInterval(1000,5000),5000);

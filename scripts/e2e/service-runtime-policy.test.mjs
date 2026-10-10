@@ -22,6 +22,10 @@ test('a continuously due sample cannot starve liquidation; scan cooldown leaves 
   assert.deepEqual(keeperActions({ liquidationEnabled: true, nextLiquidationAt: 10000, now: 10000 }), ['rollover', 'liquidate', 'sample']);
   assert.deepEqual(keeperActions({ liquidationEnabled: true, nextLiquidationAt: 20000, now: 10001 }), ['rollover', 'sample']);
   assert.deepEqual(keeperActions({ liquidationEnabled: false, nextLiquidationAt: 0, now: 10001 }), ['rollover', 'sample']);
+  assert.deepEqual(keeperActions({ liquidationEnabled: true, nextLiquidationAt: 0, activationPending: true, now: 10001 }),
+    ['rollover', 'activate', 'liquidate', 'sample']);
+  assert.deepEqual(keeperActions({ liquidationEnabled: false, nextLiquidationAt: 0, activationPending: true, now: 10001 }),
+    ['rollover', 'activate', 'sample']);
 });
 
 test('wrapped pool failures can retry but signing and canonical receipt failures cannot', () => {

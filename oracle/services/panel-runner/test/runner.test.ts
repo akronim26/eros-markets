@@ -289,17 +289,55 @@ describe('PanelRunner', () => {
     expect(asked).toHaveLength(1)
   })
 
-  test('a finalized revert is retried while the original panel window remains open', async () => {
-    chain.receipt = 'pending'
+  test.each(['reverted', 'pending'] as const)('a first receipt of %s retries a finalized revert on the next poll in a 600-second window', async (firstReceipt) => {
+    chain.views.set(ID, view({ l2StartedAt: chain.t, l2DeadlineSecs: 600n }))
+    chain.receipt = firstReceipt
     chain.pending.push({ id: ID, to: RState.L2Pending })
     const runner = new PanelRunner(deps)
     await runner.tick()
+    expect(chain.sent).toHaveLength(1)
+    if (firstReceipt === 'pending') {
+      chain.receipt = 'reverted'
+      await runner.tick()
+    }
+    chain.receipt = 'confirmed'
+    // Both receipt paths reset the model retry delay; no 15-minute wait in a 10-minute window.
+    chain.t += 30n
+    expect((await runner.tick())[0]?.confirmed).toBe(true)
+    expect(chain.sent).toHaveLength(2)
+    expect(asked).toHaveLength(2)
+  })
+
+  test.each(['exited', 'expired'] as const)('a finalized revert does not rerun a market that has %s before the next poll', async (reason) => {
+    chain.views.set(ID, view({ l2StartedAt: chain.t, l2DeadlineSecs: 600n }))
     chain.receipt = 'reverted'
+    chain.pending.push({ id: ID, to: RState.L2Pending })
+    const runner = new PanelRunner(deps)
     await runner.tick()
     chain.receipt = 'confirmed'
-    // Pending reconciliation must reset the model retry delay; no 15-minute wait in a 10-minute window.
+    if (reason === 'exited') chain.views.get(ID)!.state = RState.Review
+    else chain.t += 600n
+    expect(await runner.tick()).toEqual([])
+    expect(chain.sent).toHaveLength(1)
+    expect(asked).toHaveLength(1)
+  })
+
+  test('a normal failure after a finalized revert still uses the model retry schedule', async () => {
+    chain.receipt = 'reverted'
+    chain.pending.push({ id: ID, to: RState.L2Pending })
+    const runner = new PanelRunner(deps)
+    await runner.tick()
+    chain.receipt = 'confirmed'
+    chain.revert = 'temporarily failing'
     chain.t += 30n
-    expect((await runner.tick())[0].confirmed).toBe(true)
+    await runner.tick()
+    expect(asked).toHaveLength(2)
+    chain.revert = null
+    chain.t += RERUN_FIRST_SECS - 1n
+    expect(await runner.tick()).toEqual([])
+    expect(asked).toHaveLength(2)
+    chain.t += 1n
+    expect((await runner.tick())[0]?.confirmed).toBe(true)
     expect(chain.sent).toHaveLength(2)
   })
 

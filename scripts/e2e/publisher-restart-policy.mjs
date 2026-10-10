@@ -15,7 +15,13 @@ function transientMonadReadFailure(reason) {
 
 export function transientPublisherFailure(reason) {
   return transientMonadReadFailure(reason)
-    || ['MONAD_SIMULATION_FAILED', 'PIPELINE_TIMEOUT', 'RELAY_TIMEOUT'].includes(reason);
+    || ['MONAD_SIMULATION_FAILED', 'PIPELINE_TIMEOUT', 'RELAY_TIMEOUT', 'FINALIZED_RECEIPT_UNAVAILABLE'].includes(reason);
+}
+
+/** The service's aggregate reservation audit is authoritative, not its count of
+ * accepted price packets (cancellations also consume budget). */
+export function publisherBudgetExhausted(result) {
+  return result.stopReason === 'publication-budget-exhausted';
 }
 
 /** Resume the same guarded recovery after transient reads fail. The recovery
@@ -36,7 +42,7 @@ export async function recoverPublisherNonce({ recover, signal, deadline, onResul
       continue;
     }
     onResult(result);
-    if (result.status === 'FINALIZED') return result;
+    if (['FINALIZED', 'ORIGINAL_FINALIZED', 'ORIGINAL_REVERTED'].includes(result.status)) return result;
     if (attempt === 2) throw new Error('RECOVERY_STILL_PENDING');
   }
 }

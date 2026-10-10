@@ -135,8 +135,9 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         virtual
         returns (BookDepthQuote memory quote)
     {
+        (bool referenced,) = _bandReference(context);
         if (
-            !active || context.halted || !context.indexOk || context.stage == Stage.REDUCE_ONLY
+            !active || context.halted || !referenced || context.stage == Stage.REDUCE_ONLY
                 || (context.fundingFrozen && !_floorOrdersInvalidated)
                 || _acctAccountingState() != AccountingState.READY
         ) return quote;
@@ -169,13 +170,34 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
     function _indexCheckpointAt(uint64 observedAt) internal view returns (bytes32) {
         uint64 window = PricingMath.indexWindow();
         if (observedAt < window) return bytes32(0);
-        (bool startFound, int256 startIntegral, uint256 startCovered) =
-            _cumAt(INDEX, observedAt - window);
+        (bool startFound, int256 startIntegral, uint256 startCovered) = _cumAt(INDEX, observedAt - window);
         (bool endFound, int256 endIntegral, uint256 endCovered) = _cumAt(INDEX, observedAt);
         (bool pointValid, int256 pointValue) = _valueAt(INDEX, observedAt);
-        return keccak256(abi.encode(
-            startFound, startIntegral, startCovered, endFound, endIntegral, endCovered, pointValid, pointValue
-        ));
+        return keccak256(
+            abi.encode(
+                startFound,
+                startIntegral,
+                startCovered,
+                endFound,
+                endIntegral,
+                endCovered,
+                pointValid,
+                pointValue
+            )
+        );
+    }
+
+    function _referenced(RiskContext memory context) private view returns (bool ok) {
+        (ok,) = _bandReference(context);
+    }
+
+    /// @notice Permissionless one-time pricing activation on Monad testnet (see `_activatePricing`).
+    /// Needs an active market with READY accounting and every candidate window valid at this block.
+    function activatePricing() external nonReentrant {
+        if (!active || _acctAccountingState() != AccountingState.READY) {
+            revert PricingActivationUnavailable();
+        }
+        _activatePricing();
     }
 
     function samplePerp() external nonReentrant returns (bool published) {
@@ -214,8 +236,12 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
                     published ? pending.quote.askDepthLots : 0
                 );
             }
-            if (!unchanged && (context.economicTime - pending.observedAt > STALE
-                || pending.indexCheckpoint != _indexCheckpointAt(pending.observedAt) || !context.indexOk)) {
+            if (
+                !unchanged
+                    && (context.economicTime - pending.observedAt > STALE
+                        || pending.indexCheckpoint != _indexCheckpointAt(pending.observedAt)
+                        || !_referenced(context))
+            ) {
                 _recordPerp(pending.observedAt, 0, 0, 0, 0);
             }
             // A book/account/epoch change does not authenticate a historical

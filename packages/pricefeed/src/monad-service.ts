@@ -21,6 +21,7 @@ import { record } from './book.js';
 import { SourceSnapshotBuffer } from './source-buffer.js';
 import { MarketStreamHints } from './market-stream.js';
 import { testnetJournalPath } from './monad-keys.js';
+import type { DeliveryRecord } from './durable-relay.js';
 
 export type TestnetRunPolicy={sender:string;relay:RelayPolicy;budget:TestnetRelayBudget};
 export function parseTestnetRunPolicy(value:unknown):TestnetRunPolicy {
@@ -52,6 +53,15 @@ export function testnetPublicationInterval(collectionIntervalMs:number,requested
   if(!Number.isSafeInteger(interval)||interval<1000||interval<collectionIntervalMs||interval>30000)
     throw new Error('BAD_TESTNET_PUBLICATION_INTERVAL');
   return interval;
+}
+/** Capacity includes all historical reservations, including cancelled attempts.
+ * Already signed transactions still need receipt reconciliation before stopping. */
+export function testnetServiceStopReason(status:{finalized:number;stopAfterFinalized:number;budgetAvailable:boolean;
+  deliveries:readonly Pick<DeliveryRecord,'state'|'reason'>[]}):'publication-budget-exhausted'|'finalized-target-reached'|null {
+  if(status.deliveries.some(r=>!['FINALIZED','CANCELLED'].includes(r.state)
+    &&!(r.state==='REVERTED'&&r.reason==='NONCE_RECOVERY_ORIGINAL_REVERTED')))return null;
+  if(!status.budgetAvailable)return 'publication-budget-exhausted';
+  return status.finalized>=status.stopAfterFinalized?'finalized-target-reached':null;
 }
 /** Finite explicitly budgeted testnet service, with five durable journals and no production admission. */
 export async function runMonadTestnetService(options:TestnetServiceOptions,signal:AbortSignal,
@@ -105,20 +115,29 @@ export async function runMonadTestnetService(options:TestnetServiceOptions,signa
       bufferedCollection:true,
       latestSnapshot:()=>snapshots.snapshotAfter(options.minimumObservedAt?.()??null),...(stream?{sourceReady:()=>snapshots.publicationReady()}:{}),publicationIntervalMs}],packets,relay,transport,policy.relay);
     await pipeline.start();
+    // Re-deliver verified durable finality even when this restart has no capacity
+    // for another transaction. The sampler owns idempotent notification handling.
+    await pipeline.replayFinalized(onResult);
     const inventory=()=>packets.list(domain).map(p=>({packet:p.packet,digest:p.digest,signature:p.signature,state:p.state,
       delivery:relay!.get(domain,p.packet.observation.sequence)}));
     const finalized=()=>inventory().filter(p=>p.delivery?.state==='FINALIZED').length;
+    let stopReason:ReturnType<typeof testnetServiceStopReason>=null;
+    const checkStop=()=>{
+      stopReason=testnetServiceStopReason({finalized:finalized(),stopAfterFinalized:options.stopAfterFinalized,
+        budgetAvailable:relay!.budgetAvailable(),deliveries:inventory().flatMap(p=>p.delivery?[p.delivery]:[])});
+      if(stopReason)stop.abort();
+    };
     timer=setTimeout(()=>stop.abort(),options.durationSeconds*1000);
-    if(finalized()>=options.stopAfterFinalized)stop.abort();
+    checkStop();
     const coupled=(run:Promise<void>)=>run.finally(()=>stop.abort());
     const runs=[coupled(snapshots.run(stop.signal)),coupled(pipeline.run(stop.signal,async(result)=>{
-      await onResult(result);if(finalized()>=options.stopAfterFinalized)stop.abort();
+      await onResult(result);checkStop();
     }))];
     if(stream)runs.push(coupled(stream.run(stop.signal)));
     const outcomes=await Promise.allSettled(runs);
     const failed=outcomes.find(r=>r.status==='rejected');if(failed?.status==='rejected')throw failed.reason;
     return {mode:'MONAD_TESTNET_DIAGNOSTIC_PUBLICATION',completed:true,engine:d.engineAddress,
-      finalizedPackets:finalized(),stopAfterFinalized:options.stopAfterFinalized,publicationIntervalMs,collectionIntervalMs:cfg.poll.intervalMs,stream:stream?.inspect()??null,packets:inventory(),
+      finalizedPackets:finalized(),stopReason,stopAfterFinalized:options.stopAfterFinalized,publicationIntervalMs,collectionIntervalMs:cfg.poll.intervalMs,stream:stream?.inspect()??null,packets:inventory(),
       evidenceValid:source.verify()&&packets.verify(),humanGatesAccepted:false,productionApproved:false};
   }finally{
     if(timer)clearTimeout(timer);signal.removeEventListener('abort',forward);

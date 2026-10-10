@@ -160,7 +160,7 @@ abstract contract ObservationStore is PriceIngress {
         return (true, cp.priceWad);
     }
 
-    /// @notice Configured windows in seconds. Monad testnet uses (60, 60, 180, 30);
+    /// @notice Configured windows in seconds. Monad testnet uses (60, 60, 60, 30);
     ///         all other chains use (300, 60, 900, 30).
     function pricingWindows()
         external
@@ -179,7 +179,7 @@ abstract contract ObservationStore is PriceIngress {
         return _windowTwap(PERP, end, PricingMath.PERP_WINDOW);
     }
 
-    /// @notice Legacy ABI name: reads the configured BASIS window, which is 180 s on Monad testnet.
+    /// @notice Legacy ABI name: reads the configured BASIS window, which is 60 s on Monad testnet.
     function basisTwap900(uint64 end) public view returns (PricingMath.Twap memory) {
         return _windowTwap(BASIS, end, PricingMath.basisWindow());
     }

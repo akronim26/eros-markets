@@ -1,6 +1,12 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce } from './publisher-restart-policy.mjs';
+import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce, publisherBudgetExhausted } from './publisher-restart-policy.mjs';
+
+test('wrapper uses aggregate service exhaustion rather than accepted-price count', () => {
+  assert.equal(publisherBudgetExhausted({ finalizedPackets: 2, stopReason: 'publication-budget-exhausted' }), true);
+  assert.equal(publisherBudgetExhausted({ finalizedPackets: 1000, stopReason: null }), false);
+  assert.equal(publisherBudgetExhausted({ finalizedPackets: 2, stopReason: 'finalized-target-reached' }), false);
+});
 
 describe('publisher startup recovery', () => {
   test('retries an initial transient preflight failure before journals exist, then resumes created journals', () => {
@@ -66,5 +72,14 @@ test('recovery does not start another attempt after shutdown or campaign deadlin
       pause: async () => { if (abort) controller.abort(); else time = 100; }, onResult: () => assert.fail('No success expected'),
       recover: async () => { calls++; throw new Error('NONCE_RECOVERY_RPC_FAILED'); } });
     assert.equal(calls, 1);
+  }
+});
+
+test('original successful or reverted nonce winners are terminal recovery outcomes', async () => {
+  for (const status of ['ORIGINAL_FINALIZED', 'ORIGINAL_REVERTED']) {
+    let calls = 0;
+    const result = await recoverPublisherNonce({ signal: new AbortController().signal, deadline: 100, now: () => 0,
+      onResult: () => {}, recover: async () => { calls++; return { status }; } });
+    assert.equal(result.status, status); assert.equal(calls, 1);
   }
 });

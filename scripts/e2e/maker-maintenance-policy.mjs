@@ -41,6 +41,25 @@ export function makerMaintenance({ side, positionLots, reservedLots, liveLots, t
   return { action: 'quote', size, repair: empty || insufficient, reason: empty ? 'empty' : insufficient ? 'insufficient-depth' : replenish ? 'replenish' : 'reprice' };
 }
 
+/** Quote reference: the INDEX TWAP once valid, else the engine's warm-up INDEX point. */
+export function makerQuoteReference(risk, warmup) {
+  if (risk?.indexAvailable === true && risk.indexWad > 0n) return { wad: risk.indexWad, warmup: false };
+  if (warmup?.available === true && warmup.pointWad > 0n) return { wad: warmup.pointWad, warmup: true };
+  return null;
+}
+
+/**
+ * Before pricing activation, every book change discards the pending capture and restarts the
+ * PERP/BASIS windows. Keep a still-eligible quote unchanged; repair empty or thin depth at once,
+ * and reprice only when the live tick nears the edge of the exactly backed band.
+ */
+export function makerBootstrapHold({ pricingMode, decision, liveTick, referenceTick, bandTicks, marginTicks }) {
+  if (pricingMode !== 0 || decision.action !== 'quote' || decision.repair) return false;
+  if (decision.reason !== 'reprice' && decision.reason !== 'replenish') return false;
+  if (!Number.isInteger(bandTicks) || bandTicks <= 0 || !Number.isInteger(marginTicks) || marginTicks < 0) return false;
+  return Math.abs(liveTick - referenceTick) + marginTicks < bandTicks;
+}
+
 /** Every sample also captures a successor. Wait for promotion, not for no pending capture. */
 export function makerCaptureDelay({ repair, requestedAt, initialPerpAt, latestPerpAt, now = Date.now(), maxWaitMs }) {
   if (repair) return 0;

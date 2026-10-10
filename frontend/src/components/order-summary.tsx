@@ -24,7 +24,8 @@ export function OrderSummary({ engine, owner, market, trader, tradeIntent, order
   const current = !unavailable && !!market && trader?.block === market.block;
   const effect = order && account && current ? positionEffect(account.positionLots, order.isBuy, order.lots, order.reduceOnly) : undefined;
   const basis = usePositionBasis({ engine, owner, traderId: trader?.traderId ?? 0, history: history.data,
-    block: market?.block, positionLots: account?.positionLots, enabled: current && !!effect?.closingLots });
+    block: trader?.block, positionLots: account?.positionLots, positionVersion: trader?.account?.positionVersion,
+    enabled: current && !!effect?.closingLots });
   const estimate = order && current && admittedLots !== undefined && admittedLots >= order.lots
     ? estimateTrade({ trader, block: market!.block, ...order, feeCapQ, basis }) : undefined;
   const closing = !!effect?.closingLots;

@@ -108,6 +108,9 @@ export type RunnerDeps = {
 }
 
 export class RunnerConfigError extends Error {}
+class FinalizedSubmissionReverted extends Error {
+  constructor() { super('Panel transaction reverted; a fresh run will retry') }
+}
 
 const quiet = () => {}
 
@@ -142,7 +145,7 @@ export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null>
     const status = await c.submissionStatus(previous.result.sent!, id, previous.result.phase, previous.result.evidenceHash)
     if (status === 'pending') return previous.result
     store.write(id, { ...previous, status, result: { ...previous.result, confirmed: status === 'confirmed' } })
-    if (status === 'reverted') throw new Error('Panel transaction reverted; a fresh run will retry')
+    if (status === 'reverted') throw new FinalizedSubmissionReverted()
     return { ...previous.result, confirmed: true }
   }
   const m = await c.market(id)
@@ -218,7 +221,7 @@ export async function runOnce(id: Hex, d: RunnerDeps): Promise<RunResult | null>
   log('info', 'panel result sent', { marketId: id, route, hash: sent, flags: scan.flags, labels })
   const status = await c.submissionStatus(sent, id, phase, evHash)
   if (status !== 'pending') store.write(id, { key: keyForEntry, status, result: { ...pending, confirmed: status === 'confirmed' } })
-  if (status === 'reverted') throw new Error('Panel transaction reverted; a fresh run will retry')
+  if (status === 'reverted') throw new FinalizedSubmissionReverted()
   return { ...pending, confirmed: status === 'confirmed' }
 }
 
@@ -226,7 +229,7 @@ type Watch = { key: string; runs: number; nextAt: bigint; done: boolean }
 
 /**
  * Runs each market once per entry into EarlyCheck or L2Pending, then again on the NOT_YET schedule; failed runs retry
- * on the same schedule. A market leaving those states is dropped.
+ * on the same schedule except finalized transaction reverts, which retry next poll. A market leaving those states is dropped.
  */
 export class PanelRunner {
   private readonly seen = new Set<Hex>()
@@ -277,7 +280,8 @@ export class PanelRunner {
         else w.nextAt = now + (RERUN_FIRST_SECS << BigInt(w.runs))
       } catch (e) {
         log('error', 'panel run failed', { marketId: id, error: String(e) })
-        if (e instanceof RunnerConfigError) w.done = true // retrying cannot fix a configuration mismatch
+        if (e instanceof FinalizedSubmissionReverted) this.watch.delete(id)
+        else if (e instanceof RunnerConfigError) w.done = true // retrying cannot fix a configuration mismatch
         else w.nextAt = now + (RERUN_FIRST_SECS << BigInt(w.runs))
       }
       w.runs++

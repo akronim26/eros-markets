@@ -1,5 +1,49 @@
 # Fresh Monad testnet deployment
 
+## Current frontend and market workers running — 9 October, 08:38 UTC
+
+The user approved funding and starting both replacement markets. This supersedes
+the overnight stopped-worker status below. The frontend is serving
+`http://localhost:3100/markets` as PID 58192, build
+`TYzLliRIktdG9Eha7O0Zo`, from the isolated release under
+`tmp/market-start-20261009/logfix/frontend-release/frontend/`. The retained indexer
+and database remain running without reset.
+
+Eight finalized transfers funded the enrolled publisher/keeper/maker wallets with
+**92 testnet MON**, plus **0.0270096 MON** transfer fees within the approved
+0.1 MON fee cap. Both enrolled keepers completed expired-epoch rollover through
+their existing journals. Sixteen owner transactions allocated **2,000 TestUSDC to
+each of four makers**. These 26 startup transactions and their exact plans,
+rehearsals, receipts and verification reports are retained under
+`tmp/redeploy-20261009/fast-profile/` and `tmp/market-start-20261009/`.
+
+Supervisor PID **59680**, started at **08:34:53 UTC**, runs six workers: publisher,
+operations and maker for each current market. It uses
+`tmp/redeploy-20261009/fast-profile/supervisor.json`; current process state and
+redacted worker logs are under `fast-profile/supervisor/`. All six were running
+with zero restarts during startup verification. Existing funding/budget limits,
+journals, hourly promotion rules and archived custody bindings are unchanged.
+
+Independent canonical snapshot **69494274** established fresh source sequences
+**20 / 17**, accounting READY, and eligible bid/ask depth of **1,000,000 lots per
+side** for BTC/ETH. Both INDEX and PERP windows had full 60-second coverage;
+BASIS coverage was 99/180 and 95/180 seconds. The indexer then reached 69494302,
+with both maker books and new observations indexed. Browser checks confirmed
+live charts, 2,000-claim maker quotes on each side and no page/RPC errors.
+**MARK remains unavailable in BOOTSTRAP and leverage remains 1x** at this snapshot;
+normal pricing still requires complete history and a successful hourly opening.
+Startup verification does not claim a user trade or a leveraged fill.
+
+Startup also exposed configured providers that allow only ten-block log scans.
+The frontend now splits eligible bounded log reads on that same provider after
+an explicit range-limit response, preserving filters and rejecting partial
+results. Focused tests, independent review, production build and real non-empty
+log reads passed before cutover. Full reports: `frontend-start.md`,
+`frontend-post-workers.md`, `frontend-log-independent-review.md`,
+`funding-execution.md` and timestamped `engine-health-snapshots/` under
+`tmp/market-start-20261009/`. Only the two owned rehearsal processes were stopped
+afterward; frontend, indexer and live market workers remain running.
+
 ## Fast pricing replacement deployed — 9 October, 00:07 UTC
 
 The replacement factory and both new market listings are deployed and canonically

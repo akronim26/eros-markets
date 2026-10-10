@@ -142,7 +142,7 @@ async function readTrader(engine: Address, owner: Address, block: bigint) {
         ],
       });
       if (traderId === 0) return { block: block!, assets, traderId, free, wallet, allowance, account: null };
-      const [preview, riskView, claimable, claimed] = await client.multicall({
+      const [preview, riskView, claimable, claimed, stored] = await client.multicall({
         blockNumber: block,
         allowFailure: false,
         contracts: [
@@ -150,9 +150,12 @@ async function readTrader(engine: Address, owner: Address, block: bigint) {
           { address: engine, abi: engineAbi, functionName: "accountRiskView", args: [traderId] },
           { address: engine, abi: engineAbi, functionName: "claimableAtoms", args: [owner!] },
           { address: engine, abi: engineAbi, functionName: "traderClaimed", args: [owner!] },
+          { address: engine, abi: engineAbi, functionName: "account", args: [owner!] },
         ],
       });
-      return { block: block!, assets, traderId, free, wallet, allowance, account: { preview, riskView, claimable, claimed } };
+      if (stored.value.lots !== preview.positionLots) throw new Error("Account position does not match its preview.");
+      return { block: block!, assets, traderId, free, wallet, allowance,
+        account: { preview, riskView, claimable, claimed, positionVersion: stored.positionVersion } };
 }
 export type TraderSnapshot = NonNullable<ReturnType<typeof useTrader>["data"]>;
 
