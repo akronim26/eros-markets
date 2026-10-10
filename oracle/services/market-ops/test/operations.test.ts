@@ -678,3 +678,45 @@ describe('externally signed INDEX envelopes', () => {
     expect(transport.broadcasts).toHaveLength(0)
   })
 })
+
+describe('one-time pricing activation', () => {
+  const activate = { action: 'activate' } as const
+  const withGas: Manifest = { ...manifest, gas: { ...manifest.gas, activatePricing: 120000 } }
+  const unavailable = () => Object.assign(new Error('The contract function "activatePricing" reverted.'), {
+    cause: Object.assign(new Error('reverted'), { data: { errorName: 'PricingActivationUnavailable' } }),
+  })
+
+  test('an incomplete window is a no-work answer and never signs', async () => {
+    const { transport, store, operations } = setup(withGas)
+    transport.simulate = async () => { throw unavailable() }
+    expect(await operations.tick(activate, true)).toEqual({ outcome: 'no-work' })
+    expect(transport.prepared).toHaveLength(0)
+    expect(store.journal.pending).toBeUndefined()
+  })
+
+  test('ready windows journal one activation and reconcile it like any operation', async () => {
+    const { transport, store, operations } = setup(withGas)
+    const sent = await operations.tick(activate, true)
+    expect(sent).toMatchObject({ outcome: 'sent', action: 'activate' })
+    expect(transport.prepared[0]).toMatchObject({ functionName: 'activatePricing', args: [], gas: 120000n, target: engine })
+    expect(store.journal.pending?.action).toBe('activate')
+    transport.receiptValue = { status: 'success', block: 101n, finalized: true }
+    expect(await operations.tick(sample, true)).toMatchObject({ outcome: 'finalized', action: 'activate' })
+    expect(store.journal.lastSampleBlock).toBeUndefined()
+  })
+
+  test('other simulation failures still stop the operator', async () => {
+    const { transport, operations } = setup(withGas)
+    transport.failSimulation = true
+    await expect(operations.tick(activate, true)).rejects.toThrow('Simulation reverted')
+  })
+
+  test('activation needs a measured gas limit and a live market', async () => {
+    const { transport, operations } = setup()
+    await expect(operations.tick(activate, true)).rejects.toThrow('No measured gas limit for activatePricing')
+    const halted = setup(withGas)
+    halted.transport.state.halted = true
+    expect(await halted.operations.tick(activate, true)).toEqual({ outcome: 'halted' })
+    expect(transport.prepared).toHaveLength(0)
+  })
+})

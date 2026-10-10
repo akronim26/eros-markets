@@ -45,7 +45,8 @@ const scenario = {
         await ownerGates.get(owner!)?.promise;
         return [owner === firstOwner ? 1 : 2, 10_000_000n, 20_000_000n, 30_000_000n];
       }
-      case "previewAccount": return [{ positionLots: 5000n, cashQ: 100_000_000n * Q }, {}, 0n, false];
+      case "previewAccount": return [{ positionLots: 5000n, cashQ: 100_000_000n * Q }, {}, 0n, false,
+        { value: { lots: 5000n }, positionVersion: 1n }];
       case "getLevel": return contracts.map(() => ({ size: 1000n }));
       default: throw new Error(`Unexpected RPC ${kind}`);
     }

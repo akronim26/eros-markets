@@ -21,7 +21,7 @@ export type Call = {
   action: Pending['action']
   requestId: Hex
   target: Address
-  functionName: 'samplePerp' | 'requestReduceOnly' | 'requestEarlyCheck' | 'submitObservation' | 'liquidate' | 'rollover' | RolloverAction
+  functionName: 'samplePerp' | 'activatePricing' | 'requestReduceOnly' | 'requestEarlyCheck' | 'submitObservation' | 'liquidate' | 'rollover' | RolloverAction
   args: readonly unknown[]
   gas: bigint
 }
@@ -36,13 +36,24 @@ export interface Transport {
   receipt(hash: Hex): Promise<{ status: 'success' | 'reverted'; block: bigint; finalized: boolean } | null>
 }
 
-export type Command = { action: 'sample' } | { action: 'early-check'; incident: Incident } | { action: 'relay'; envelope: Envelope } | { action: 'liquidate' } | { action: 'rollover' }
+export type Command = { action: 'sample' } | { action: 'activate' } | { action: 'early-check'; incident: Incident } | { action: 'relay'; envelope: Envelope } | { action: 'liquidate' } | { action: 'rollover' }
 
 export type Result = {
   outcome: 'sent' | 'pending' | 'finalized' | 'halted' | 'cadence' | 'complete' | 'obsolete' | 'planned' | 'no-work'
   action?: Pending['action']
   hash?: Hex
   rolloverBatch?: Pending['rolloverBatch']
+}
+
+/** The engine's typed refusal when pricing activation has no work at this block. */
+function activationUnavailable(error: unknown): boolean {
+  const seen = new Set<unknown>()
+  for (let current = error as { cause?: unknown; data?: { errorName?: string } } | undefined; current && !seen.has(current);
+    current = current.cause as typeof current) {
+    seen.add(current)
+    if (current.data?.errorName === 'PricingActivationUnavailable') return true
+  }
+  return false
 }
 
 function productiveLiquidation(raw: unknown): boolean {
@@ -155,6 +166,10 @@ export class Operations {
         return { outcome: 'cadence' }
       }
       call = { action: 'sample', requestId: binding(this.manifest), target: this.manifest.engine, functionName: 'samplePerp', args: [] }
+    } else if (command.action === 'activate') {
+      // One-time BOOTSTRAP -> NORMAL_PRICING. The engine checks every window, accounting and halt.
+      if (snapshot.halted || snapshot.timestamp >= snapshot.scheduledT) return { outcome: 'halted' }
+      call = { action: 'activate', requestId: binding(this.manifest), target: this.manifest.engine, functionName: 'activatePricing', args: [] }
     } else if (command.action === 'early-check') {
       const requestId = incidentId(command.incident)
       if (journal.completed.some(value => equalHex(value, requestId))) return { outcome: 'complete' }
@@ -183,7 +198,14 @@ export class Operations {
     const limit = call.functionName === 'rollover' ? undefined : this.manifest.gas[call.functionName]
     if (measuredGas === undefined && limit === undefined) throw new Error(`No measured gas limit for ${call.functionName}`)
     const ready = { ...call, gas: measuredGas ?? BigInt(limit!) }
-    const simulated = await this.transport.simulate(ready)
+    let simulated: unknown
+    try {
+      simulated = await this.transport.simulate(ready)
+    } catch (error) {
+      // Windows not yet complete (or already active) is a normal readiness answer, not a fault.
+      if (call.action === 'activate' && activationUnavailable(error)) return { outcome: 'no-work' }
+      throw error
+    }
     if (call.action === 'liquidate' && !productiveLiquidation(simulated)) return { outcome: 'no-work' }
     if (call.action === 'rollover') {
       // A second worker may have advanced the page or finished the epoch while eth_call ran.

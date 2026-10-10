@@ -30,16 +30,20 @@ export function viemCaseChain(opts: { rpcUrl: string; deployments: ServiceDeploy
   const states: StateLog[] = []
   const panels: PanelLog[] = []
   const times = new Map<bigint, bigint>()
-  async function sync() {
+  let syncing: Promise<void> | undefined
+  async function scan() {
     const head = await pc.getBlockNumber()
-    for (; next <= head; next += STEP) {
-      const to = next + STEP - 1n < head ? next + STEP - 1n : head
-      const logs = (await pc.getLogs({ address: oracle, events: [event('StateChanged'), event('PanelResultAccepted')] as never, fromBlock: next, toBlock: to })) as any[]
+    let cursor = next
+    const newStates: StateLog[] = []
+    const newPanels: PanelLog[] = []
+    while (cursor <= head) {
+      const to = cursor + STEP - 1n < head ? cursor + STEP - 1n : head
+      const logs = (await pc.getLogs({ address: oracle, events: [event('StateChanged'), event('PanelResultAccepted')] as never, fromBlock: cursor, toBlock: to })) as any[]
       for (const l of logs) {
         const base = { id: (l.args.id as Hex).toLowerCase() as Hex, block: l.blockNumber as bigint, logIndex: l.logIndex as number }
-        if (l.eventName === 'StateChanged') states.push({ ...base, to: Number(l.args.to) })
+        if (l.eventName === 'StateChanged') newStates.push({ ...base, to: Number(l.args.to) })
         else
-          panels.push({
+          newPanels.push({
             ...base,
             phase: Number(l.args.phase),
             labels: l.args.labels.map(Number),
@@ -49,7 +53,17 @@ export function viemCaseChain(opts: { rpcUrl: string; deployments: ServiceDeploy
             routedTo: Number(l.args.routedTo),
           })
       }
+      cursor = to + 1n
     }
+    // Publish one complete scan. A failed later page leaves both the cache and cursor available for retry.
+    for (const state of newStates) states.push(state)
+    for (const panel of newPanels) panels.push(panel)
+    next = cursor
+  }
+  function sync(): Promise<void> {
+    // Evidence, entry-time and market reads can arrive together; only one scan owns the cursor.
+    if (!syncing) syncing = scan().finally(() => { syncing = undefined })
+    return syncing
   }
   async function blockTime(n: bigint) {
     if (!times.has(n)) times.set(n, (await pc.getBlock({ blockNumber: n })).timestamp)

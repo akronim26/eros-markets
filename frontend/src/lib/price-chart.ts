@@ -27,6 +27,6 @@ export function priceReadiness(risk: { indexAvailable: boolean; markAvailable: b
     ? "Source prices are arriving. The execution index is still warming up; the chart shows individual source observations."
     : "The execution index is unavailable because recent price history has gaps or stale observations. Any chart price is historical. Live prices must recover before trading can resume.";
   return risk.pricingMode === 0
-    ? "The index is ready. The mark is still warming up and needs a successful epoch opening before leveraged trading is available."
+    ? "The index is ready. The mark is still warming up; leveraged trading waits for complete book and basis windows and normal-pricing activation."
     : "The index is ready, but the mark's book or basis window is unavailable. Higher leverage remains restricted until those windows recover.";
 }

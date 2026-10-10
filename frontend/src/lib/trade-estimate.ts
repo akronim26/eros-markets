@@ -12,6 +12,48 @@ function fraction(numerator: bigint, denominator = 1n): Rational {
 const add = (a: Rational, b: Rational) => fraction(a.numerator * b.denominator + b.numerator * a.denominator, a.denominator * b.denominator);
 const subtract = (a: Rational, b: Rational) => add(a, { ...b, numerator: -b.numerator });
 const multiply = (a: Rational, n: bigint, d = 1n) => fraction(a.numerator * n, a.denominator * d);
+
+class BasisComplexityLimit extends Error {}
+/** Exact replay is optional UI work. Bound operands before multiplication/division,
+ * and charge every arithmetic step against one budget, including Euclid's loop.
+ * A row-count limit alone does not bound rational denominator growth.
+ */
+function basisArithmetic() {
+  const maxBits = 2048, limit = 1n << BigInt(maxBits);
+  let work = 1_000_000;
+  const bits = (n: bigint) => {
+    if (n <= -limit || n >= limit) throw new BasisComplexityLimit();
+    return abs(n).toString(2).length;
+  };
+  const charge = (a: bigint, b: bigint) => {
+    const aBits = bits(a), bBits = bits(b);
+    work -= Math.ceil(aBits / 64) * Math.ceil(bBits / 64);
+    if (work < 0) throw new BasisComplexityLimit();
+    return [aBits, bBits];
+  };
+  const product = (a: bigint, b: bigint) => {
+    const [aBits, bBits] = charge(a, b);
+    if (a !== 0n && b !== 0n && aBits + bBits > maxBits) throw new BasisComplexityLimit();
+    return a * b;
+  };
+  const sum = (a: bigint, b: bigint) => {
+    const [aBits, bBits] = charge(a, b);
+    if (Math.max(aBits, bBits) + 1 > maxBits) throw new BasisComplexityLimit();
+    return a + b;
+  };
+  const ratio = (numerator: bigint, denominator = 1n): Rational => {
+    if (denominator <= 0n) throw new RangeError("Invalid fraction");
+    charge(numerator, denominator);
+    let a = abs(numerator), b = denominator;
+    while (b) { charge(a, b); [a, b] = [b, a % b]; }
+    charge(numerator, a); charge(denominator, a);
+    return { numerator: numerator / a, denominator: denominator / a };
+  };
+  return { product, sum, fraction: ratio,
+    add: (a: Rational, b: Rational) => ratio(sum(product(a.numerator, b.denominator), product(b.numerator, a.denominator)), product(a.denominator, b.denominator)),
+    multiply: (a: Rational, n: bigint, d = 1n) => ratio(product(a.numerator, n), product(a.denominator, d)),
+  };
+}
 function floor(a: Rational) {
   const quotient = a.numerator / a.denominator;
   return quotient - (a.numerator < 0n && a.numerator % a.denominator !== 0n ? 1n : 0n);
@@ -36,26 +78,32 @@ export function reconstructPositionBasis(input: {
   if (!input.complete || !input.allPositionChangesKnown) return { available: false, reason: "Complete, direction-resolved fill history is unavailable" };
   if (input.throughBlock !== input.snapshotBlock) return { available: false, reason: "Fill history and account snapshot are from different blocks" };
   if (input.fills.length > 20_000) return { available: false, reason: "Fill history exceeds the reconstruction limit" };
+  const exact = basisArithmetic();
   let position = 0n, value = fraction(0n), fees = fraction(0n);
-  for (const fill of input.fills) {
-    if (fill.signedLots === 0n || !Number.isInteger(fill.tick) || fill.tick < 1 || fill.tick > 999 || fill.feeQ < 0n) return { available: false, reason: "Fill history contains invalid quantities, prices or fees" };
-    const quantity = abs(fill.signedLots);
-    const tradeValue = fraction(quantity * BigInt(fill.tick) * Q);
-    if (position === 0n || (position > 0n) === (fill.signedLots > 0n)) {
-      value = add(value, tradeValue);
-      fees = add(fees, fraction(fill.feeQ));
-    } else if (quantity < abs(position)) {
-      const remaining = abs(position) - quantity;
-      value = multiply(value, remaining, abs(position));
-      fees = multiply(fees, remaining, abs(position));
-    } else if (quantity === abs(position)) {
-      value = fraction(0n); fees = fraction(0n);
-    } else {
-      const opening = quantity - abs(position);
-      value = multiply(tradeValue, opening, quantity);
-      fees = fraction(fill.feeQ * opening, quantity);
+  try {
+    for (const fill of input.fills) {
+      if (fill.signedLots === 0n || !Number.isInteger(fill.tick) || fill.tick < 1 || fill.tick > 999 || fill.feeQ < 0n) return { available: false, reason: "Fill history contains invalid quantities, prices or fees" };
+      const quantity = abs(fill.signedLots);
+      const tradeValue = exact.fraction(exact.product(exact.product(quantity, BigInt(fill.tick)), Q));
+      if (position === 0n || (position > 0n) === (fill.signedLots > 0n)) {
+        value = exact.add(value, tradeValue);
+        fees = exact.add(fees, exact.fraction(fill.feeQ));
+      } else if (quantity < abs(position)) {
+        const remaining = abs(position) - quantity;
+        value = exact.multiply(value, remaining, abs(position));
+        fees = exact.multiply(fees, remaining, abs(position));
+      } else if (quantity === abs(position)) {
+        value = fraction(0n); fees = fraction(0n);
+      } else {
+        const opening = quantity - abs(position);
+        value = exact.multiply(tradeValue, opening, quantity);
+        fees = exact.fraction(exact.product(fill.feeQ, opening), quantity);
+      }
+      position = exact.sum(position, fill.signedLots);
     }
-    position += fill.signedLots;
+  } catch (error) {
+    if (!(error instanceof BasisComplexityLimit)) throw error;
+    return { available: false, reason: "Entry basis exceeds the exact calculation complexity limit" };
   }
   if (position !== input.expectedPositionLots) return { available: false, reason: "Actual fills do not reconcile to the current position" };
   return { available: true, positionLots: position, entryValueQ: value, entryFeesQ: fees,

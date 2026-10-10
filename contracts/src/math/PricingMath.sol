@@ -22,7 +22,7 @@ library PricingMath {
     uint64 internal constant BASIS_WINDOW = 900;
     uint256 internal constant MONAD_TESTNET_CHAIN_ID = 10143;
     uint64 internal constant TESTNET_INDEX_WINDOW = 60;
-    uint64 internal constant TESTNET_BASIS_WINDOW = 180;
+    uint64 internal constant TESTNET_BASIS_WINDOW = 60;
     uint64 internal constant INVALID_WINDOW = 86400;
     uint64 internal constant MOVE_LOOKBACK = 300;
     uint256 internal constant MOVE_THRESHOLD_WAD = 1e17;
@@ -42,6 +42,12 @@ library PricingMath {
 
     function basisWindow() internal view returns (uint64) {
         return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_BASIS_WINDOW : BASIS_WINDOW;
+    }
+
+    /// @notice Monad testnet fast startup: index-warmup quoting and one-time pricing activation
+    ///         as soon as every window is valid. Other chains keep epoch-only promotion.
+    function fastStartup() internal view returns (bool) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID;
     }
 
     struct Sample {

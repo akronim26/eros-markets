@@ -1,7 +1,10 @@
 import { makerReadinessDelay } from './maker-readiness-policy.mjs';
 import { assertServiceNotRetired } from './service-retirement.mjs';
 import { serviceRuntime, transientServiceRead } from './service-runtime-policy.mjs';
-import { makerPolicy, makerOrderIsCurrent, makerMaintenance, makerCaptureDelay, retryableMakerAdmission } from './maker-maintenance-policy.mjs';
+import { makerPolicy, makerOrderIsCurrent, makerMaintenance, makerCaptureDelay, retryableMakerAdmission,
+  makerQuoteReference, makerBootstrapHold } from './maker-maintenance-policy.mjs';
+import { ReadinessNotifier } from './readiness-notifier.mjs';
+import { readFastStartupSupport } from './pricing-activation.mjs';
 import { monadReadTransport } from '../../packages/pricefeed/dist/src/monad-preflight.js';
 import { makerReceiptOutcome } from './maker-receipt.mjs';
 import { makerPerpPromotion } from './maker-sampling.mjs';
@@ -46,9 +49,13 @@ const log = value => {
   fs.appendFileSync(logPath, line + '\n'); console.log(line);
 };
 const read = (functionName, args = [], blockNumber) => reads.readContract({ address: m.engine, abi, functionName, args, blockNumber });
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+const coordination = process.env.EROS_PRICE_COORDINATION_DIR;
+if (coordination && !coordination.startsWith('tmp/')) throw Error('COORDINATION_PATH_REQUIRED');
+// Publisher/keeper notices wake the maker early; every delay below remains an upper bound.
+const notifier = new ReadinessNotifier({ directory: coordination });
+const wait = ms => notifier.wait(ms);
 let stopped = false;
-process.on('SIGTERM', () => { stopped = true; }); process.on('SIGINT', () => { stopped = true; });
+process.on('SIGTERM', () => { stopped = true; notifier.close(); }); process.on('SIGINT', () => { stopped = true; notifier.close(); });
 const runtime = serviceRuntime(process.env, '4800'), policy = makerPolicy();
 const owners = [['buy', privateKeyToAccount(roles.MAKER_BUY_PRIVATE_KEY)], ['sell', privateKeyToAccount(roles.MAKER_SELL_PRIVATE_KEY)]];
 if (owners[0][1].address.toLowerCase() === owners[1][1].address.toLowerCase()) throw Error('SEPARATE_MAKER_OWNERS_REQUIRED');
@@ -254,10 +261,13 @@ try {
   if ((await reads.call({ data: '0x73' + m.engine.slice(2) + '3f60005260206000f3', blockTag: 'finalized' })).data !== m.engineCodeHash)
     throw Error('MAKER_ENGINE_RUNTIME_MISMATCH');
   const listing = await read('listing');
+  const fastStartup = await readFastStartupSupport({ client: reads, engine: m.engine, abi, transient: transientServiceRead });
+  const bandTicks = Number(listing.bootstrapBandWad / 10n ** 15n);
   maximumCleanupOrders = Math.min(MAKER_CLEANUP_MAX_BATCH, Number(await read('maxBatchActions')));
   if (!Number.isInteger(maximumCleanupOrders) || maximumCleanupOrders < 1) throw Error('MAKER_CLEANUP_BATCH_LIMIT_INVALID');
   if (policy.targetLots < listing.depthNLots) throw Error('MAKER_TARGET_BELOW_REQUIRED_DEPTH');
-  log({ started: true, pid: process.pid, mode: runtime.mode, durationSeconds: runtime.durationSeconds, policy });
+  log({ started: true, pid: process.pid, mode: runtime.mode, durationSeconds: runtime.durationSeconds, policy, fastStartup,
+    notifications: notifier.watching });
   while ((!stopped && Date.now() < runtime.end) || state.pending) {
     progressed = false;
     try {
@@ -268,22 +278,24 @@ try {
         try {
         // Keep account/order views at least as new as this pool's prior finalized receipt.
         const block = await reads.getBlock({ blockTag: 'finalized' });
-        const [risk, epoch, source, trader, accountState, depth] = await Promise.all([
+        const [risk, epoch, source, trader, accountState, depth, warmupPoint] = await Promise.all([
           read('marketRiskView', [], block.number), read('marketOrderEpoch', [], block.number),
           read('sourceState', [sourceId], block.number), read('participantId', [account.address], block.number),
           read('account', [account.address], block.number), read('bookDepth', [], block.number),
+          fastStartup ? read('warmupIndex', [], block.number) : Promise.resolve(null),
         ]);
+        const warmup = warmupPoint ? { available: warmupPoint[0], pointWad: warmupPoint[1] } : undefined;
         const cleanupContext = { side, account, trader, epoch, accountEpoch: accountState.orderEpoch, block };
         const sourceReady = source.configured && source.lastObservedAt <= block.timestamp && block.timestamp - source.lastObservedAt <= 18n;
         const cleanup = risk.accountingState === 0 && trader ? await cleanupOwnStale({ ...cleanupContext,
-          allowRepair: risk.indexAvailable && sourceReady }) : { ready: true };
+          allowRepair: (risk.indexAvailable || warmup?.available === true) && sourceReady }) : { ready: true };
         if (!cleanup.ready) {
           if (state.pending) break;
           continue;
         }
         const repair = cleanup.repair;
         const cancelInstead = async () => { if (repair) await submitCleanup({ ...cleanupContext, cancels: [repair.orderId] }); };
-        const readinessDelay = makerReadinessDelay(risk);
+        const readinessDelay = makerReadinessDelay(risk, warmup);
         if (readinessDelay) { log({ side, waiting: 'fresh index and ready accounting', retryAfterMs: readinessDelay }); await wait(readinessDelay); break; }
         if (!sourceReady) {
           log({ side, waiting: 'fresh source headroom' }); continue;
@@ -294,7 +306,10 @@ try {
           previous ? read('getOrder', [previous.orderId], block.number) : Promise.resolve(null), read('previewAccount', [trader], block.number),
         ]);
         const current = makerOrderIsCurrent(rawOrder, trader, side, epoch, accountState.orderEpoch, block.number) ? rawOrder : null;
-        const tick = Number(risk.indexWad / 10n ** 15n) + (side === 'buy' ? -10 : 10);
+        const reference = makerQuoteReference(risk, warmup);
+        if (!reference) { log({ side, waiting: 'quote reference' }); continue; }
+        const referenceTick = Number(reference.wad / 10n ** 15n);
+        const tick = referenceTick + (side === 'buy' ? -10 : 10);
         if (tick < 1 || tick > 999) { log({ side, waiting: 'source outside maker quote range' }); await cancelInstead(); if (state.pending) break; continue; }
         const attempts = [...state.completed, ...(state.rejected ?? [])].filter(v => v.epoch === epoch.toString() && v.side === side);
         const decision = makerMaintenance({ side, positionLots: preview.positionLots,
@@ -302,6 +317,12 @@ try {
           liveLots: current?.size ?? 0n, liveTick: current?.tick ?? 0, tick,
           depthLots: side === 'buy' ? depth.bidDepthLots : depth.askDepthLots, requiredDepthLots: listing.depthNLots,
           actions: attempts.length, lastActionAt: Math.max(0, ...attempts.map(v => v.at ?? 0)), policy });
+        if (makerBootstrapHold({ pricingMode: risk.pricingMode, decision, liveTick: current?.tick ?? 0, referenceTick,
+          bandTicks, marginTicks: policy.repriceTicks })) {
+          maintenance.delete(side);
+          log({ side, waiting: 'bootstrap quote stability', reason: decision.reason, liveTick: current?.tick, referenceTick });
+          continue;
+        }
         if (decision.action !== 'quote') {
           maintenance.delete(side);
           if (decision.action === 'wait') log({ side, waiting: decision.reason });
@@ -321,7 +342,9 @@ try {
         const place = { kind: 2, isBuy: side === 'buy', reduceOnly: false, tick, size: decision.size, maxFills: 8, expiryBlock: 0 };
         const functionName = current || repair ? 'batch' : 'placeOrder';
         const args = current || repair ? [[repair?.orderId ?? previous.orderId], [place]] : [place];
-        if (!current) {
+        // previewOrder models a taker; a warm-up quote rests only as POST_ONLY, so the
+        // simulation below is its authoritative admission check.
+        if (!current && !reference.warmup) {
           const admission = await read('previewOrder', [trader, side === 'buy' ? 0 : 1, tick, decision.size, false], block.number);
           if (admission.rejection || admission.acceptedCapLots < decision.size) {
             log({ side, waiting: 'maker admission', reason: admission.rejection }); await cancelInstead(); if (state.pending) break; continue;
@@ -385,6 +408,7 @@ try {
     }
     await wait(makerLoopDelay({ pending: !!state.pending, progressed }));
   }
+  notifier.close();
   log({ stopped: true, pending: !!state.pending });
 } catch (error) {
   const reason = error?.code === 'EEXIST' ? 'MAKER_JOURNAL_LOCKED'

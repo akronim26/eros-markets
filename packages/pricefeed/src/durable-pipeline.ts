@@ -17,7 +17,7 @@ export type PipelineWorker={worker:ScheduledWorker&{config:MarketConfig;releaseL
   /** Independent collection; consumption normally reads snapshots, while
    * bootstrap/resync may coalesce a collection. */
   bufferedCollection?:true};
-type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];quarantined:string|null;lifecycleView:LifecycleView|null};
+type Entry=PipelineWorker&{config:MarketConfig;domain:PacketDomain;fence:bigint;pending:bigint[];watch:bigint[];notified:Set<bigint>;quarantined:string|null;lifecycleView:LifecycleView|null};
 export type PipelineResult={worker:string;state:'SOURCE_UNAVAILABLE'|'QUARANTINED'|'STOPPED'|'EXPIRED'|'UNKNOWN'|'MINED'|'FINALIZED';
   reason:string|null;sequence:bigint|null;transactionHash:string|null;depthValid:boolean|null;lifecycle:LifecycleView|null};
 class LifecycleBlocked extends Error {
@@ -33,6 +33,7 @@ export class DurablePipeline {
   private started=false;
   private running=false;
   private starting=false;
+  private replayed=false;
   private closed=false;
   protected constructor(workers:readonly PipelineWorker[],private readonly packets:PacketStore,private readonly relay:DurableRelay,
     private readonly transport:LocalRelayTransport,private readonly policy:RelayPolicy,
@@ -55,7 +56,7 @@ export class DurablePipeline {
       const domain:PacketDomain={chainId:network.chainId,engine:d.engineAddress,marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress};
       const ns=packetNamespace(domain);
       if(this.entries.has(config.key)||domains.has(ns))throw new Error('DUPLICATE_PIPELINE_WORKER');domains.add(ns);
-      this.entries.set(config.key,{...input,config,rules,domain,fence:0n,pending:[],watch:[],quarantined:null,lifecycleView:null});
+      this.entries.set(config.key,{...input,config,rules,domain,fence:0n,pending:[],watch:[],notified:new Set(),quarantined:null,lifecycleView:null});
     }
   }
   private async bounded<T>(op:Promise<T>):Promise<T>{
@@ -94,8 +95,8 @@ export class DurablePipeline {
         const chain=await this.identity(e);e.signer.reconcile(this.owner,e.fence,chain);
         const history=this.packets.list(e.domain);e.pending=[];e.watch=[];
         for(const p of history){
-          if(p.state==='EXPIRED'||this.relay.get(e.domain,p.packet.observation.sequence)?.state==='CANCELLED')continue;
           const seq=p.packet.observation.sequence,r=this.relay.get(e.domain,seq);
+          if(p.state==='EXPIRED'||r?.state==='CANCELLED'||r?.state==='REVERTED'&&r.reason==='NONCE_RECOVERY_ORIGINAL_REVERTED')continue;
           if(r?.state==='QUARANTINED'||r?.state==='REVERTED'
             ||r?.state==='PREPARING'&&!this.relay.canResumePreparing(e.domain,seq))throw new Error('PIPELINE_DELIVERY_RECOVERY_REQUIRED');
           if(r?.state==='MINED'||r?.state==='FINALIZED')e.watch.push(seq);
@@ -103,10 +104,24 @@ export class DurablePipeline {
         }
         // Retain all unfinalized receipts and the newest finalized receipt for reorg checks.
         const finalized=e.watch.filter(seq=>this.relay.get(e.domain,seq)?.state==='FINALIZED');
+        e.notified=new Set(finalized);
         e.watch=e.watch.filter(seq=>!finalized.includes(seq)||seq===finalized.at(-1));
       }
       this.started=true;
     }catch(error){this.release();throw error;}finally{this.starting=false;}
+  }
+  /** Replay the newest durable finalized result before a service applies its stop
+   * limits. Each restart re-verifies canonical evidence; downstream requests
+   * deduplicate sequences and retain ownership until their exact acknowledgement. */
+  async replayFinalized(onResult:(result:PipelineResult)=>void|Promise<void>):Promise<void>{
+    if(!this.started||this.running||this.closed)throw new Error('PIPELINE_START_REQUIRED');
+    if(this.replayed)return;
+    for(const e of this.entries.values())for(const seq of e.watch){
+      const r=await this.relay.reconcile(e.config,seq,true);
+      if(r.state==='FINALIZED'){await onResult(this.result(e,'FINALIZED',r.reason,seq,r));e.notified.add(seq);}
+      else e.notified.delete(seq);
+    }
+    this.replayed=true;
   }
   renew():void {
     if(!this.started||this.closed)throw new Error('PIPELINE_START_REQUIRED');
@@ -171,7 +186,7 @@ export class DurablePipeline {
       // An unreserved stale update is a normal expiry, not a service-wide failure.
       const expired=this.expireUnsent(e,p);if(expired)return expired;
       this.relay.renew();let r=this.relay.get(e.domain,seq);
-      if(r?.txHash)r=await this.relay.reconcile(e.config,seq);
+      if(r?.txHash)r=await this.relay.reconcile(e.config,seq,true);
       if(!r||!['MINED','FINALIZED'].includes(r.state)){
         try{r=await this.relay.deliver(e.config,this.owner,e.fence,seq,e.lifecycle||e.sourceReady?async()=>{
           const blocked=await this.lifecycleGate(e);if(blocked)throw new LifecycleBlocked(blocked);
@@ -186,11 +201,12 @@ export class DurablePipeline {
           throw error;
         }
       }
-      if(r.state==='UNKNOWN')r=await this.relay.reconcile(e.config,seq);
+      if(r.state==='UNKNOWN')r=await this.relay.reconcile(e.config,seq,true);
       if(!['UNKNOWN','MINED','FINALIZED'].includes(r.state))throw new Error(`PIPELINE_DELIVERY_RECOVERY_REQUIRED:${r.state}`);
       if(r.state==='MINED'||r.state==='FINALIZED'){
         this.accepted(e,seq);
       }
+      if(r.state==='FINALIZED')e.notified.add(seq);
       return this.result(e,r.state as PipelineResult['state'],r.reason,seq,r);
     });
   }
@@ -204,17 +220,19 @@ export class DurablePipeline {
       await this.serialized(async()=>{
         this.relay.renew();
         for(const seq of [...e.watch]){
-          const r=await this.relay.reconcile(e.config,seq);
+          const r=await this.relay.reconcile(e.config,seq,true);
+          if(r.state==='FINALIZED'&&!e.notified.has(seq)&&!recovered)recovered=this.result(e,'FINALIZED',r.reason,seq,r);
           if(r.state==='ORPHANED'){e.watch=e.watch.filter(v=>v!==seq);e.pending.push(seq);e.pending.sort((a,b)=>a<b?-1:a>b?1:0);}
         }
         const seq=e.pending[0];
         if(seq!==undefined&&this.relay.get(e.domain,seq)?.txHash){
-          const r=await this.relay.reconcile(e.config,seq);
+          const r=await this.relay.reconcile(e.config,seq,true);
           if(r.state==='MINED'||r.state==='FINALIZED'){
-            this.accepted(e,seq);recovered=this.result(e,r.state,r.reason,seq,r);
+            this.accepted(e,seq);recovered??=this.result(e,r.state,r.reason,seq,r);
           }
         }
       });
+      if(recovered?.state==='FINALIZED'){e.notified.add(recovered.sequence!);return recovered;}
       if(result.inspection.status==='QUARANTINED')e.quarantined=result.inspection.reason??'SOURCE_QUARANTINED';
       if(e.quarantined&&!e.bufferedCollection)return this.result(e,'QUARANTINED',e.quarantined);
       const blocked=await this.lifecycleGate(e);if(blocked)return blocked;

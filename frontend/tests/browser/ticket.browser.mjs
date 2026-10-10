@@ -13,6 +13,7 @@ const external = {
     if(request.functionName==='participantId')return s.trader.traderId;
     if(request.functionName==='account'){
       const snapshot=s.versions[String(request.blockNumber)];
+      if(s.holdBasis)await new Promise(resolve=>s.basisGates.push(resolve));
       return {value:{lots:snapshot.lots},positionVersion:snapshot.version};
     }
     if(request.functionName!=='previewOrder')throw new Error('Unexpected RPC '+request.functionName);
@@ -37,7 +38,7 @@ const external = {
   trader: `export const ownerTrader=()=>({placeOrder:order=>({order})});`,
   feedback: `export const TxFeedback=()=>null;`,
   history: `export const useHistory=()=>({data:window.scenario.history});`,
-  canonical: `export const canonicalRead=async(_block,read)=>read();`,
+  canonical: `export const canonicalRead=async(_block,read)=>read({hash:'0x'+'ab'.repeat(32)});`,
 };
 const aliases = new Map([
   ["@/lib/reads", "client"], ["./reads", "client"], ["./public-client", "client"],
@@ -216,6 +217,7 @@ test("entry-basis hook bridges unchanged versions but refuses an unseen position
   await update(page, () => {
     const s = window.scenario;
     s.trader.account.preview.positionLots = 5000n;
+    s.trader.account.positionVersion = 1n;
     s.versions = { 90: { lots: 5000n, version: 1n }, 100: { lots: 5000n, version: 1n }, 101: { lots: 5000n, version: 3n } };
     const event = (id, kind, payload, block) => ({ id, kind, engine: "0x1111111111111111111111111111111111111111",
       block, logIndex: 0, timestamp: "1000", txHash: `0x${"12".repeat(32)}`, payload: JSON.stringify(payload) });
@@ -225,12 +227,45 @@ test("entry-basis hook bridges unchanged versions but refuses an unseen position
   });
   await choose(page, "Short YES"); await price(page).fill("0.600"); await size(page).fill("5");
   await expect(row(page, "Realized price P&L (est.)")).toHaveText("0.900000 USDC");
-  assert.deepEqual(await page.evaluate(() => window.scenario.calls.filter(c => c.functionName === "account").map(c => String(c.blockNumber)).sort()), ["100", "90"]);
-  await update(page, () => { window.scenario.market.block = 101n; window.scenario.trader.block = 101n; });
+  assert.deepEqual(await page.evaluate(() => window.scenario.calls.filter(c => c.functionName === "account").map(c => String(c.blockNumber))), ["90"]);
+  await update(page, () => { window.scenario.market.block = 101n; window.scenario.trader.block = 101n; window.scenario.trader.account.positionVersion = 3n; });
   await expect(row(page, "Realized price P&L (est.)")).toHaveText("Entry basis unavailable");
   await expect(row(page, "Realized price P&L (est.)")).toBeVisible();
   await expect(row(page, "Market cash after fill (est.)")).toBeVisible();
   await expect(row(page, "Market cash after fill (est.)")).toHaveText("82.900000 USDC");
   await disclosure(page, "Estimate details").locator("summary").click();
   await expect(summary(page).getByText("Position changed after the loaded fill history", { exact: false })).toBeVisible();
+});
+
+test("slow historical basis proof completes while live snapshots advance without duplicate account reads", async t => {
+  const page = await fixture(t);
+  await update(page, () => {
+    const s = window.scenario;
+    s.trader.account.preview.positionLots = 5000n;
+    s.trader.account.positionVersion = 1n;
+    s.holdBasis = true;
+    s.versions = { 90: { lots: 5000n, version: 1n } };
+    const event = (id, kind, payload, block) => ({ id, kind, engine: "0x1111111111111111111111111111111111111111",
+      block, logIndex: 0, timestamp: "1000", txHash: `0x${"12".repeat(32)}`, payload: JSON.stringify(payload) });
+    s.history = { progress: 90, complete: true, directionsComplete: true, prices: [],
+      events: [event("fill", "Fill", { makerOrder: 1, maker: 7, taker: 8, tick: 400, size: "5000", makerFeeQ: "0", takerFeeQ: "0" }, 90)],
+      makerOrders: [event("placement", "OrderPlaced", { id: 1, trader: 7, tick: 400, size: "5000", flags: 0 }, 80)] };
+  });
+  await choose(page, "Short YES"); await price(page).fill("0.600"); await size(page).fill("5");
+  await expect.poll(() => page.evaluate(() => window.scenario.basisGates.length)).toBe(1);
+  for (let head = 101; head <= 110; head++) {
+    await page.evaluate(head => {
+      window.scenario.market.block = BigInt(head); window.scenario.trader.block = BigInt(head);
+      window.scenario.history = { ...window.scenario.history, progress: head - 1 };
+      window.rerender();
+    }, head);
+  }
+  assert.deepEqual(await page.evaluate(() => window.scenario.calls.filter(c => c.functionName === "account").map(c => String(c.blockNumber))), ["90"]);
+  await page.evaluate(() => window.releaseBasis());
+  await expect(row(page, "Realized price P&L (est.)")).toHaveText("0.900000 USDC");
+  await update(page, () => { window.scenario.market.block = 111n; window.scenario.trader.block = 111n; });
+  await expect(row(page, "Realized price P&L (est.)")).toHaveText("0.900000 USDC");
+  await update(page, () => { window.scenario.trader.account.positionVersion = 3n; });
+  await expect(row(page, "Realized price P&L (est.)")).toHaveText("Entry basis unavailable");
+  assert.equal(await page.evaluate(() => window.scenario.calls.filter(c => c.functionName === "account").length), 1);
 });

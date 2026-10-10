@@ -1,10 +1,10 @@
 {
- "note": "Concrete initial-1x BookRiskEngine deployment and public book ABI. Composes the real Book with RiskAccountingBridge; authenticated independent INDEX and bounded book-derived PERP sampling with later-block confirmation and a sealed INDEX prefix. Fully backed bootstrap remains available before normal pricing windows are ready. Funding, recovery and conversion disabled; no test feed or failure injection.",
+ "note": "Concrete initial-1x BookRiskEngine deployment and public book ABI. Composes the real Book with RiskAccountingBridge; authenticated independent INDEX and bounded book-derived PERP sampling with later-block confirmation and a sealed INDEX prefix. Fully backed bootstrap remains available before normal pricing windows are ready. On Monad testnet, funded post-only warm-up quotes may rest before the INDEX window completes, and activatePricing() promotes once every window is valid. Funding, recovery and conversion disabled; no test feed or failure injection.",
  "source": {
   "src/engine/BookRiskEngine.sol": "BookRiskEngine"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "cb40842d88ccad2a31e97a2829cd365e93b0683d3ffba5579c4aadbcea86a946",
+ "source_sha256": "98b97ca5e6ba790cf7692ec220654971c2ee9d187afbb6362e856ebd19cdae0d",
  "abi": [
   {
    "type": "constructor",
@@ -686,6 +686,13 @@
   {
    "type": "function",
    "name": "activateMarket",
+   "inputs": [],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "activatePricing",
    "inputs": [],
    "outputs": [],
    "stateMutability": "nonpayable"
@@ -4861,6 +4868,24 @@
   },
   {
    "type": "function",
+   "name": "warmupIndex",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "available",
+     "type": "bool",
+     "internalType": "bool"
+    },
+    {
+     "name": "pointWad",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "withdrawKeeper",
    "inputs": [],
    "outputs": [
@@ -6704,6 +6729,11 @@
   {
    "type": "error",
    "name": "PriceNotInterior",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "PricingActivationUnavailable",
    "inputs": []
   },
   {

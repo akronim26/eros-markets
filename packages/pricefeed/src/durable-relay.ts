@@ -9,7 +9,7 @@ import { sourceTime } from './time.js';
 import { submitCalldata } from './wire.js';
 import { sizeGas, type GasSizing } from './gas.js';
 import { relayProfileBody, verifyBudgetAudit, type RelayProfile } from './relay-policy.js';
-import { nonceRecoveries, recoveryBudget, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
+import { nonceRecoveries, originalWon, recoveryTerminal, validateOriginalRecovery, recoveryBudget, validateCancellationReceipt, verifyCancellationSigner } from './nonce-recovery-journal.js';
 import { canonicalTransactionRequest, parseTransactionRequest, type RelayTransactionRequest, type TransactionJournal } from './local-transaction-signer.js';
 import { verifyHistoryRecoveryAudit } from './history-recovery-journal.js';
 
@@ -138,14 +138,18 @@ export class DurableRelay {
         await this.bounded(journal.reconcile(reservations));this.lease();
       }
       for(const r of nonceRecoveries(this.db)){
-        if(r.state!=='FINALIZED')throw new Error('RELAY_NONCE_RECOVERY_REQUIRED');
+        if(!recoveryTerminal(r))throw new Error('RELAY_NONCE_RECOVERY_REQUIRED');
         await verifyCancellationSigner(r);
-        const receipt=await this.bounded(this.transport.receipt(r.hash!));
+        const receipt=await this.bounded(this.transport.receipt(originalWon(r)?JSON.parse(r.originalBody).txHash:r.hash!));
         if(!receipt)throw new Error('NONCE_RECOVERY_RECEIPT_MISSING');
-        validateCancellationReceipt(r,receipt);
+        if(!originalWon(r))validateCancellationReceipt(r,receipt);
         const block=await this.bounded(this.transport.block(receipt.blockNumber));
         if(!block||block.hash!==receipt.blockHash||receipt.blockNumber>await this.bounded(this.transport.head())
           ||json(receipt)!==json(r.receipt))throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+        if(originalWon(r)){
+          const domain={...r.originalDomain!,chainId:BigInt(r.originalDomain!.chainId)};
+          await validateOriginalRecovery(r,receipt,block,this.packets.get(domain,BigInt(JSON.parse(r.originalBody).sequence)));
+        }
       }
     }catch(error){this.release();throw error;}
   }
@@ -316,16 +320,27 @@ export class DurableRelay {
       return r; // UNKNOWN until a matching receipt, even if RPC returned a hash.
     }finally{this.active=false;}
   }
-  async reconcile(cfg:MarketConfig,seq:bigint):Promise<DeliveryRecord>{
+  async reconcile(cfg:MarketConfig,seq:bigint,requireFinalityProof=false):Promise<DeliveryRecord>{
     if(this.active)throw new Error('RELAY_BUSY');this.active=true;
-    try{return await this.reconcileDelivery(cfg,seq);}finally{this.active=false;}
+    try{return await this.reconcileDelivery(cfg,seq,requireFinalityProof);}finally{this.active=false;}
   }
-  private async reconcileDelivery(cfg:MarketConfig,seq:bigint):Promise<DeliveryRecord>{
+  private async reconcileDelivery(cfg:MarketConfig,seq:bigint,requireFinalityProof=false):Promise<DeliveryRecord>{
     if(!this.ready)throw new Error('RELAY_START_REQUIRED');this.lease();
     const dest=cfg.destination;if(!dest||cfg.enabled||dest.chainId!==this.profile.chainId.toString())throw new Error('LOCAL_DISABLED_CONFIG_ONLY');
     const d:PacketDomain={chainId:this.profile.chainId,engine:dest.engineAddress,marketId:dest.marketId,sourceId:dest.sourceId,rulesHash:dest.sourceRulesHash,signer:dest.signerAddress};
     let r=this.get(d,seq);if(!r?.txHash)throw new Error('NO_SENT_TRANSACTION');
+    const recovery=nonceRecoveries(this.db).find(a=>a.key===this.key(d,seq)&&originalWon(a));
     const receipt=await this.bounded(this.transport.receipt(r.txHash));
+    if(recovery){
+      // Terminal original evidence is immutable. Public reconciliation must not
+      // demote it or rewrite the audited revert reason on transient/reorg data.
+      if(!receipt)throw new Error('NONCE_RECOVERY_RECEIPT_MISSING');
+      const [block,head]=await Promise.all([this.bounded(this.transport.block(receipt.blockNumber)),this.bounded(this.transport.head())]);
+      if(!block||receipt.blockNumber>head)throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      await verifyCancellationSigner(recovery);
+      await validateOriginalRecovery(recovery,receipt,block,this.packets.get(d,seq));
+      return r;
+    }
     if(receipt){
       if(receipt.transactionHash.toLowerCase()!==r.txHash)throw new Error('RECEIPT_IDENTITY_MISMATCH');
       // The receipt's canonical block and finalized head are independent reads.
@@ -335,7 +350,10 @@ export class DurableRelay {
         this.bounded(this.transport.block(receipt.blockNumber)),this.bounded(this.transport.head()),
       ]);
       if(blockRead.status==='rejected')throw blockRead.reason;
-      const block=blockRead.value;if(!block)return r;
+      const block=blockRead.value;if(!block){
+        if(requireFinalityProof&&r.state==='FINALIZED')throw new Error('FINALIZED_RECEIPT_UNAVAILABLE');
+        return r;
+      }
       if(block.hash.toLowerCase()!==receipt.blockHash.toLowerCase())r={...r,state:'ORPHANED',reason:'NONCANONICAL_RECEIPT',accepted:null};
       else if(receipt.status==='reverted')r={...r,state:'REVERTED',reason:'TRANSACTION_REVERTED',accepted:null};
       else{
@@ -346,6 +364,7 @@ export class DurableRelay {
         r={...r,state,accepted,reason:null};
       }
     }else if(r.accepted){
+      if(requireFinalityProof&&r.state==='FINALIZED')throw new Error('FINALIZED_RECEIPT_UNAVAILABLE');
       const [block,head]=await Promise.all([
         this.bounded(this.transport.block(r.accepted.blockNumber)),this.bounded(this.transport.head()),
       ]);

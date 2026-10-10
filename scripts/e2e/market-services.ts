@@ -10,6 +10,7 @@ import { manifestSchema, binding } from '../../oracle/services/market-ops/src/sc
 import { FileStore } from '../../oracle/services/market-ops/src/store';
 import { readCanonicalSampleCapture } from './sample-capture.mjs';
 import { readBootstrapRolloverDeferral } from './rollover-readiness.mjs';
+import { ActivationSchedule, readFastStartupSupport, readPricingActivation } from './pricing-activation.mjs';
 import { keeperGasCeiling, boundedRolloverHelper, requireKeeperGas, runKeeperAction } from './keeper-gas-policy.mjs';
 import { sampleCadenceRemaining, isFinalizedSample } from './sampler-request-policy.mjs';
 import { readEpochSamplingPolicy, requireSampleSigningWindow, SampleEpochDeferred } from './epoch-sampling-policy.mjs';
@@ -67,6 +68,11 @@ transport.prepare = async call => {
   return { rawTransaction, hash: keccak256(rawTransaction) };
 };
 const listing = await reads.readContract({ address: manifest.engine, abi, functionName: 'listing' });
+// Engines with index warm-up activate pricing once all windows are complete, mid-epoch.
+// Older engines keep the hourly-opening promotion and its bootstrap rollover deferral.
+const fastStartup = await readFastStartupSupport({ client: reads, engine: manifest.engine, abi, transient: transientServiceRead });
+const activation = new ActivationSchedule({ enabled: fastStartup });
+let activationWaiting: string | undefined;
 const coordination = process.env.EROS_PRICE_COORDINATION_DIR;
 if (coordination && !coordination.startsWith('tmp/')) throw new Error('Coordination files must stay in ignored tmp');
 // Finish fallible startup reads and configuration before acquiring the outbox lock.
@@ -75,6 +81,16 @@ const ops = new Operations(manifest, transport, store);
 const requestPath = coordination && `${coordination}/sample-request.json`;
 const ackPath = coordination && `${coordination}/sample-ack.json`;
 const statusPath = coordination && `${coordination}/sampler-status.json`;
+const noticePath = coordination && `${coordination}/pricing-notice.json`;
+// Wake-up hint for the maker after state that changes quoting readiness. Never an authorization:
+// the maker rereads and simulates everything from the chain.
+const notice = (event: 'activated' | 'rollover', hash?: string) => {
+  if (!noticePath) return;
+  try {
+    writeFileSync(noticePath + '.tmp', JSON.stringify({ engine: manifest.engine, event, hash, at: Date.now() }), { mode: 0o600 });
+    renameSync(noticePath + '.tmp', noticePath);
+  } catch { log({ notice: 'PRICING_NOTICE_WRITE_FAILED', event }); }
+};
 const heartbeat = (state: 'running' | 'stopped') => {
   if (!statusPath) return;
   writeFileSync(statusPath + '.tmp', JSON.stringify({ engine: manifest.engine, pid: process.pid, state, at: Date.now() }), { mode: 0o600 });
@@ -104,21 +120,37 @@ const log = (value: unknown) => { const line = JSON.stringify({ at: new Date().t
 try {
   heartbeat('running');
   heartbeatTimer = setInterval(() => heartbeat('running'), 2000);
-  log({ started: true, pid: process.pid, chainId: manifest.chainId, engine: manifest.engine, sender: manifest.sender, mode, durationSeconds, maximumKeeperGas, liquidation });
+  log({ started: true, pid: process.pid, chainId: manifest.chainId, engine: manifest.engine, sender: manifest.sender, mode, durationSeconds, maximumKeeperGas, liquidation, fastStartup });
   while ((!stop && Date.now() < end) || store.read().pending) {
     try {
     const sampleRequest = request();
     if (sampleRequest && (sampleRequest.engine.toLowerCase() !== manifest.engine.toLowerCase() || !/^\d+$/.test(sampleRequest.id))) throw new Error('Sampler coordination identity mismatch');
-    for (const action of keeperActions({ liquidationEnabled: liquidation.enabled, nextLiquidationAt })) {
+    for (const action of keeperActions({ liquidationEnabled: liquidation.enabled, nextLiquidationAt, activationPending: activation.due() })) {
       if ((stop || Date.now() >= end) && !store.read().pending) break;
       if (action === 'rollover' && !store.read().pending && Date.now() < rolloverCheckAfter) continue;
-      if (action === 'rollover' && !store.read().pending) {
+      if (action === 'rollover' && !store.read().pending && !fastStartup) {
         const readiness = await readBootstrapRolloverDeferral({ client: reads, engine: manifest.engine, abi,
           scheduledT: listing.scheduledT, pending: !!store.read().pending, knownEpochEnd });
         if (readiness.defer) {
           log({ waiting: 'bootstrap rollover window', ...readiness });
           continue;
         }
+      }
+      if (action === 'activate' && !store.read().pending) {
+        const block = await reads.getBlock();
+        const decision = await readPricingActivation({ client: reads, engine: manifest.engine, abi, block });
+        if (decision.done) { activation.finished(); log({ activation: 'normal-pricing', block: block.number }); continue; }
+        if (!decision.due) {
+          activation.waiting();
+          if (activationWaiting !== decision.reason) log({ waiting: 'pricing windows', ...decision });
+          activationWaiting = decision.reason;
+          continue;
+        }
+        // The engine rechecks the same windows; a revert here only means the block moved on.
+        const estimated = await client.estimateContractGas({ address: manifest.engine, abi, functionName: 'activatePricing',
+          account: manifest.sender, blockNumber: block.number }).catch(() => undefined);
+        if (estimated === undefined) { activation.waiting(); continue; }
+        manifest.gas.activatePricing = Number(estimated * 125n / 100n + 10_000n);
       }
       if (action === 'sample' && coordination && !store.read().pending) {
         if (!sampleRequest || existsSync(ackPath!) && JSON.parse(readFileSync(ackPath!, 'utf8')).id === sampleRequest.id) continue;
@@ -187,7 +219,11 @@ try {
         rolloverCheckAfter = Math.min(Date.now() + 30_000, Number(epoch[2]) * 1000);
       }
       if (sampleRequest && isFinalizedSample(result)) await ack(sampleRequest.id, result.outcome);
-      if (result.outcome === 'finalized') { if (result.action === 'sample') samples++; if (result.action === 'rollover') rollovers++; if (result.action === 'liquidate') liquidations++; }
+      if (result.outcome === 'finalized' && result.action === 'sample') activation.sampled();
+      if (result.outcome === 'finalized' && result.action === 'activate') { activation.finished(); notice('activated', result.hash); }
+      if (result.outcome === 'finalized' && result.action === 'rollover') notice('rollover', result.hash);
+      if (action === 'activate' && result.outcome === 'no-work') activation.waiting();
+      if (result.outcome === 'finalized') { if (result.action === 'activate') log({ activation: 'finalized', hash: result.hash }); if (result.action === 'sample') samples++; if (result.action === 'rollover') rollovers++; if (result.action === 'liquidate') liquidations++; }
       log({ requested: action, ...result, samples, rollovers, liquidations });
       // Never let the next action jump ahead of an unresolved signed operation.
       if (result.outcome === 'sent' || result.outcome === 'pending') break;

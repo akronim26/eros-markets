@@ -6,7 +6,7 @@ import { bytes32, equalHex } from './schema'
 
 const counter = z.string().regex(/^(0|[1-9][0-9]*)$/)
 const pendingSchema = z.object({
-  action: z.enum(['sample', 'restrict', 'early-check', 'relay', 'liquidate', 'rollover']),
+  action: z.enum(['sample', 'activate', 'restrict', 'early-check', 'relay', 'liquidate', 'rollover']),
   requestId: bytes32,
   hash: bytes32,
   rawTransaction: z.string().regex(/^0x([0-9a-fA-F]{2})+$/).transform(value => value as Hex),

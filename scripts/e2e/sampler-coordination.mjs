@@ -74,6 +74,7 @@ export class SampleCoordinator {
     if (sequence <= this.lastSequence || (this.outstanding && sequence <= BigInt(this.outstanding.id))) return;
     if (this.pending && sequence === this.pending.sequence && observedAt !== this.pending.observedAt) throw Error('FINALIZED_OBSERVATION_CONFLICT');
     if (!this.pending || sequence > this.pending.sequence) this.pending = { sequence, observedAt };
+    this.persistPending(); // notification survives an immediate service/budget shutdown
   }
   getMinimumObservedAt(nowMs, freshCutoff = indexFreshCutoff(nowMs), deliveryReserveSecs = 8n) {
     const nowSec = BigInt(Math.floor(nowMs / 1000));
@@ -95,15 +96,17 @@ export class SampleCoordinator {
     const preferred = awaitingCapture ? nowSec : this.capture?.observedAt;
     return preferred !== undefined && preferred > freshCutoff ? preferred : freshCutoff;
   }
+  persistPending() {
+    if (this.outstanding || !this.pending || (this.capture && this.pending.observedAt <= this.capture.observedAt)) return;
+    const observation = this.pending;
+    const request = { id: observation.sequence.toString(), engine: this.options.engine, observedAt: observation.observedAt.toString() };
+    this.options.writeRequest(request); // persist before accepting any newer request
+    this.outstanding = request; this.pending = null;
+  }
   async run() {
     const o = this.options;
     while (!this.stop.signal.aborted) {
-      if (!this.outstanding && this.pending && (!this.capture || this.pending.observedAt > this.capture.observedAt)) {
-        const observation = this.pending;
-        const request = { id: observation.sequence.toString(), engine: o.engine, observedAt: observation.observedAt.toString() };
-        o.writeRequest(request); // persist before accepting any newer request
-        this.outstanding = request; this.pending = null;
-      }
+      this.persistPending();
       if (this.outstanding) {
         const request = this.outstanding;
         const result = await awaitSampleAck({ ...o, id: request.id, signal: this.stop.signal });

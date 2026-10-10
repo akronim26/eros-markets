@@ -57,8 +57,11 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         vm.chainId(143);
         assertTrue(engine.indexTwap300(capturedAt).available);
         assertEq(engine.indexTwap300(capturedAt).coveredSecs, 300);
-        assertNotEq(probe.indexCheckpointForTest(capturedAt), fastCheckpoint,
-            "capture integrity must commit to the same INDEX interval as pricing admission");
+        assertNotEq(
+            probe.indexCheckpointForTest(capturedAt),
+            fastCheckpoint,
+            "capture integrity must commit to the same INDEX interval as pricing admission"
+        );
     }
 
     function _placeDepth(address owner, bool buys, uint16 tick, uint64 lots, uint32 expiry)
@@ -166,7 +169,10 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         vm.roll(block.number + 1);
         assertFalse(_sampleDepth(), "changed candidate is never promoted");
         assertEq(engine.ringCount(1), count, "rejected candidate must not overwrite sealed history");
-        assertTrue(engine.basisTwap900(uint64(block.timestamp)).available, "prior sealed price keeps only its original 30-second carry");
+        assertTrue(
+            engine.basisTwap900(uint64(block.timestamp)).available,
+            "prior sealed price keeps only its original 30-second carry"
+        );
         vm.warp(block.timestamp + 10);
         _submitNextIndex();
         vm.roll(block.number + 1);
@@ -442,7 +448,9 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         _submitIndexAt(capturedAt - 6, 51e16, true);
         _submitIndexAt(capturedAt - 4, 5e17, true);
         PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
-        assertEq(afterWindow.integral, beforeWindow.integral, "two low seconds and two high seconds cancel exactly");
+        assertEq(
+            afterWindow.integral, beforeWindow.integral, "two low seconds and two high seconds cancel exactly"
+        );
         assertEq(afterWindow.coveredSecs, beforeWindow.coveredSecs);
         assertEq(afterWindow.twapWad, beforeWindow.twapWad);
         _submitNextIndex();
@@ -490,7 +498,9 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         PricingMath.Twap memory afterWindow = engine.indexTwap300(capturedAt);
         assertEq(afterWindow.integral, beforeWindow.integral);
         assertEq(afterWindow.coveredSecs, beforeWindow.coveredSecs);
-        assertTrue(engine.riskContext().indexOk, "zero elapsed invalidity has not changed the current INDEX window");
+        assertTrue(
+            engine.riskContext().indexOk, "zero elapsed invalidity has not changed the current INDEX window"
+        );
         vm.roll(block.number + 1);
         vm.recordLogs();
         assertFalse(_sampleDepth());
@@ -522,7 +532,11 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         vm.recordLogs();
         assertTrue(_sampleDepth(), "refresh at the inclusive freshness boundary preserves prior coverage");
         _assertPerpRecord(capturedAt, true);
-        assertEq(engine.perpTwap60(capturedAt + 31).coveredSecs, 30, "PERP carry still begins at the original capture");
+        assertEq(
+            engine.perpTwap60(capturedAt + 31).coveredSecs,
+            30,
+            "PERP carry still begins at the original capture"
+        );
     }
 
     function testSamePriceBackfillRepairingStaleGapChangesPricingFingerprint() public {
@@ -536,8 +550,11 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         assertEq(engine.indexTwap300(capturedAt).coveredSecs, 30);
         _submitIndexAt(first + 20, 5e17, true);
         assertEq(engine.indexTwap300(capturedAt).coveredSecs, 40);
-        assertNotEq(probe.indexCheckpointForTest(capturedAt), beforeFingerprint,
-            "same price cannot hide a change in historical coverage");
+        assertNotEq(
+            probe.indexCheckpointForTest(capturedAt),
+            beforeFingerprint,
+            "same price cannot hide a change in historical coverage"
+        );
     }
 
     function testWindowStartCumulativeIsCommittedEvenWhenEndAndPointAreIdentical() public {
@@ -561,8 +578,11 @@ contract BookDepthSamplerTest is BookRiskEngineFixture {
         assertEq(afterWindow.integral, beforeWindow.integral - 2e18);
         assertFalse(beforeWindow.available);
         assertFalse(afterWindow.available);
-        assertNotEq(probe.indexCheckpointForTest(capturedAt), beforeFingerprint,
-            "matching the cumulative endpoint and unavailable point is insufficient");
+        assertNotEq(
+            probe.indexCheckpointForTest(capturedAt),
+            beforeFingerprint,
+            "matching the cumulative endpoint and unavailable point is insufficient"
+        );
     }
 
     function testWaitingCaptureExpiresRatherThanRenewingObservationTime() public {

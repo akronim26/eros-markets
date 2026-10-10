@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 import { makerPolicy } from '../e2e/maker-maintenance-policy.mjs';
 import { liquidationPolicy } from '../e2e/service-runtime-policy.mjs';
+import { formatRunwayRow, gasRunwayConfig, launchShortfalls, readGasRunway, roleBudgets, RunwayAlerts } from './gas-runway.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(new URL('../../packages/pricefeed/package.json', import.meta.url));
@@ -31,7 +32,7 @@ export function exitPolicy({ code, signal, text = '', restarts = 0 }) {
   }
   // Match error codes/phrases, not healthy JSON fields such as "nonce" or "budget".
   const fatalCode = /\b(?:[A-Z0-9]+_)*(?:NONCE|INTEGRITY|MISMATCH|NONCANONICAL|QUARANTINED|LOCKED|RETIRED|RECONCILIATION)(?:_[A-Z0-9]+)*\b/;
-  if (code === 78 || fatalCode.test(failure) || /publication-budget-exhausted|cost.limit.exceeded|needs.test.mon|insufficient.funds|gas.wallet.below|Untracked sender nonce|nonce too low|nonce too high|WRONG_CHAIN|EEXIST|pending nonce requires reconciliation/i.test(failure))
+  if (code === 78 || fatalCode.test(failure) || /publication-budget-exhausted|TESTNET_RELAY_BUDGET_EXHAUSTED|cost.limit.exceeded|needs.test.mon|insufficient.funds|gas.wallet.below|Untracked sender nonce|nonce too low|nonce too high|WRONG_CHAIN|EEXIST|pending nonce requires reconciliation/i.test(failure))
     return { action: 'block', reason: 'operator-review-required' };
   if (restarts >= 5) return { action: 'block', reason: 'restart-limit' };
   if (code !== 0 && !signal && /timeout|timed.out|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|HTTP_429|HTTP_5\d\d|rate.limit|fetch.failed|READ_FAILED|RPC_UNAVAILABLE|RPC_POOL_(?:UNAVAILABLE|BUSY|BLOCK_CHANGED)/i.test(failure))
@@ -70,6 +71,7 @@ export async function prepare(configPath) {
   const manifest = read(path.join(root, 'frontend/src/config/public-manifest.json'));
   if (manifest.chainId !== 10143 || manifest.scope !== 'testnet-read-only') throw Error('TESTNET_MANIFEST_REQUIRED');
   const secrets = Object.values(rpc), groups = [], allSenders = new Set(), engines = new Set(), names = new Set();
+  const runwayConfig = gasRunwayConfig(config.gasRunway ?? {}), runwayGroups = [];
   for (const item of config.markets) {
     if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(item.name) || names.has(item.name)) throw Error('UNIQUE_MARKET_NAME_REQUIRED');
     names.add(item.name);
@@ -122,7 +124,10 @@ export async function prepare(configPath) {
       if (item.maker?.[field] !== undefined) environment[variable] = String(item.maker[field]);
     }
     if (item.liquidationIntervalMs !== undefined) environment.EROS_LIQUIDATION_INTERVAL_MS = String(item.liquidationIntervalMs);
-    makerPolicy(environment); liquidationPolicy(environment, ops.gas?.liquidate);
+    const maker = makerPolicy(environment); liquidationPolicy(environment, ops.gas?.liquidate);
+    runwayGroups.push({ name: item.name, budgets: roleBudgets({ publisherRelay: policy.relay, keeperMaxGas: gas,
+      samplePerpGas: ops.gas?.samplePerp, makerMaxActionsPerEpoch: maker.maxActionsPerEpoch }),
+      addresses: Object.fromEntries(['PUBLISHER', 'KEEPER', 'MAKER_BUY', 'MAKER_SELL'].map(role => [role, prepared.roles[role]])) });
     if (config.sourceDnsServers) environment.EROS_SOURCE_DNS_SERVERS = config.sourceDnsServers;
     const node = config.nodeCommand ?? path.join(root, 'packages/pricefeed/node_modules/node/bin/node');
     const bun = config.bunCommand ?? 'bun';
@@ -148,16 +153,22 @@ export async function prepare(configPath) {
   }
   await sleep(400);
   if ((await client.getBlock({ blockNumber: anchor.number })).hash !== anchor.hash) throw Error('CANONICAL_ANCHOR_CHANGED');
-  return { stateDirectory, secrets, groups, block: String(anchor.number), blockHash: anchor.hash };
+  // Launch only with every operator wallet above its stopping threshold plus the configured runway.
+  const runway = { client, groups: runwayGroups, config: runwayConfig };
+  const report = await readGasRunway(runway);
+  const shortfalls = launchShortfalls(report);
+  if (shortfalls.length) throw Object.assign(Error('GAS_RUNWAY_INSUFFICIENT'), { details: shortfalls.map(formatRunwayRow) });
+  return { stateDirectory, secrets, groups, block: String(anchor.number), blockHash: anchor.hash, runway,
+    gasRunway: report.rows.map(formatRunwayRow) };
 }
 
 export async function supervise(prepared) {
-  const { stateDirectory, secrets, groups } = prepared;
+  const { stateDirectory, secrets, groups, runway } = prepared;
   fs.mkdirSync(stateDirectory, { recursive: true, mode: 0o700 });
   const lockPath = path.join(stateDirectory, 'supervisor.lock');
   const lock = fs.openSync(lockPath, 'wx', 0o600);
   fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }) + '\n'); fs.fsyncSync(lock);
-  let stopping = false, heartbeat;
+  let stopping = false, heartbeat, runwayTimer;
   const children = new Map(), timers = new Set();
   const state = { pid: process.pid, status: 'starting', startedAt: new Date().toISOString(), stoppedAt: null, chainId: 10143,
     scope: 'Worker process status only; contract prices, fills and health require independent verification',
@@ -213,10 +224,27 @@ export async function supervise(prepared) {
     }
     state.status = 'running'; save();
     heartbeat = setInterval(save, 5_000);
+    if (runway) {
+      // Alert while workers still have headroom; workers keep their own pre-signing stops.
+      const alerts = new RunwayAlerts();
+      let checking = false;
+      const check = async () => {
+        if (checking || stopping) return;
+        checking = true;
+        try {
+          const report = await readGasRunway(runway);
+          state.gasRunway = { block: String(report.block), rows: report.rows.map(formatRunwayRow) };
+          for (const change of alerts.changes(report)) event({ gasRunwayAlert: change.level !== 'ok', ...change });
+          save();
+        } catch { event({ gasRunwayCheck: 'READ_FAILED' }); } finally { checking = false; }
+      };
+      runwayTimer = setInterval(check, runway.config.checkIntervalMs);
+      await check();
+    }
     while (children.size || timers.size) await sleep(500);
     if (!stopping && state.groups.some(g => g.status === 'blocked')) process.exitCode = 78;
   } finally {
-    clearInterval(heartbeat); shutdown();
+    clearInterval(heartbeat); clearInterval(runwayTimer); shutdown();
     // No forced kill: workers must preserve/reconcile any signed transaction before exit.
     while (children.size) await sleep(500);
     for (const group of state.groups) if (group.status !== 'blocked') {
@@ -235,7 +263,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const [command, config] = process.argv.slice(2);
     if (!['check', 'run'].includes(command) || !config) throw Error('USAGE_CHECK_OR_RUN_PRIVATE_CONFIG');
     const prepared = await prepare(config);
-    console.log(JSON.stringify({ checked: true, block: prepared.block, markets: prepared.groups.map(g=>({name:g.name,engine:g.engine})), processes: prepared.groups.length*3 }));
+    console.log(JSON.stringify({ checked: true, block: prepared.block, markets: prepared.groups.map(g=>({name:g.name,engine:g.engine})), processes: prepared.groups.length*3, gasRunway: prepared.gasRunway }));
     if (command === 'run') await supervise(prepared);
-  } catch (error) { console.error(JSON.stringify({ failed: true, reason: /^[A-Z_]+$/.test(error.message) ? error.message : 'SUPERVISOR_FAILED_REVIEW_LOCAL_STATE' })); process.exitCode = 1; }
+  } catch (error) { console.error(JSON.stringify({ failed: true, reason: /^[A-Z_]+$/.test(error.message) ? error.message : 'SUPERVISOR_FAILED_REVIEW_LOCAL_STATE', ...(error.details ? { shortfalls: error.details } : {}) })); process.exitCode = 1; }
 }

@@ -19,9 +19,14 @@ export function liquidationPolicy(env, measuredGas) {
   return { enabled, intervalMs: Number(value) };
 }
 
-/** Due risk work takes one turn ahead of sampling, never another concurrent signer. */
-export function keeperActions({ liquidationEnabled, nextLiquidationAt, now = Date.now() }) {
-  return liquidationEnabled && now >= nextLiquidationAt ? ['rollover', 'liquidate', 'sample'] : ['rollover', 'sample'];
+/** Due risk work takes one turn ahead of sampling, never another concurrent signer.
+ * A pending one-time pricing activation follows rollover and precedes everything else. */
+export function keeperActions({ liquidationEnabled, nextLiquidationAt, activationPending = false, now = Date.now() }) {
+  const actions = ['rollover'];
+  if (activationPending) actions.push('activate');
+  if (liquidationEnabled && now >= nextLiquidationAt) actions.push('liquidate');
+  actions.push('sample');
+  return actions;
 }
 
 /** Provider wrappers retain causes; only explicit transport failures are retryable. */

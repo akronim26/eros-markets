@@ -1010,3 +1010,70 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   Real authenticated Privy contract signing is not yet validated.
 - Full progress, artifacts and remaining operational gates:
   `docs/integration/DEPLOYMENT_PROGRESS.md` and `FRESH_TESTNET_SERVICES.md`.
+
+### 2026-10-09 — AUD-01 through AUD-08: October 8 change audit and repairs
+
+- The user requested a supervised agent panel audit, a confirmed bug list,
+  delegated repairs, and independent testing. Baseline: `feat/pricefeed` at
+  `1cb19bae2671a066fe948d7781535ff45154119c`; primary audited commits:
+  `1f662666f6d5610bc97f1ab5746345ed6308ae8b` and
+  `3149bba3bf2f8c56d71a9d7cd9a23ed91af7ca39` (October 8, Asia/Kolkata).
+- All eight confirmed findings are fixed: original-winner nonce recovery,
+  panel revert retry, committee cursor/concurrency, aggregate publisher budget
+  shutdown, bounded entry-basis arithmetic, durable finality notifications,
+  slow-RPC basis verification, and discovery-independent Cancel all. Three
+  concern October 8 changes/incomplete fixes; five are adjacent existing or
+  October 9 follow-up defects. No speculative finding was promoted to a bug.
+- Independent agents verified code they did not author: **202 frontend tests**,
+  **228 oracle/compatibility tests**, and **604 runtime tests** (505 full
+  pricefeed tests on pinned Linux Node 24.21.0, 91 root-script tests, eight
+  adversarial challenges), all passing. Total **1,034 independent-phase tests**;
+  repeated owner checks are excluded. Affected TypeScript checks and an isolated
+  frontend production webpack build exit 0. The separate arithmetic reference
+  checks 1,000 generated histories. All 32 repaired source/test hashes remain
+  unchanged since verification handoff; final diff whitespace check exits 0.
+- macOS correctly rejected Linux-only deployment tests. The full suite then
+  passed in the existing cached Linux image with networking disabled and fresh
+  tmpfs fixture state; no platform guard was bypassed. The frontend build used
+  a credential-free copy and left original build/runtime paths untouched.
+  Optional wallet/Tempo dependency warnings and archive/canonical-cache limits
+  are documented; live wallet/provider behavior is not claimed validated.
+- Fix ledger, precise behavior, commands, evidence and limitations:
+  [AUDIT_20261008_FOLLOWUP.md](../integration/AUDIT_20261008_FOLLOWUP.md).
+  Detailed local reports/logs: `tmp/audit-20261008/*-verification.md` and the
+  source-bound `repair-snapshot.json`. These are automated agent reviews and
+  local fixture tests, not human gate acceptance or public-chain evidence.
+- Changes remain local and uncommitted; no push, merge, deployment, public
+  transaction, live worker/indexer operation, policy amount, credential or
+  historical approval was changed. No confirmed repair or independent check
+  remains outstanding; future live execution needs its own authorized scope.
+
+### 2026-10-10 — FM-01 through FM-08: fast MARK startup (Monad testnet)
+
+- User requested a 60–90 s genuine MARK target with funded makers and healthy feeds:
+  immediate initial MARK activation, 60 s testnet INDEX/PERP/BASIS, funded warm-up
+  quotes, parallel history, notification-driven workers, gas runway checks, startup-path
+  testing, then replacement engines. Baseline `1cb19ba` plus the uncommitted AUD repairs.
+- Contracts: testnet-only (`chainid 10143`) one-time `activatePricing()`, 60 s BASIS,
+  `POST_ONLY` exactly backed warm-up quotes around the latest authenticated INDEX point, and
+  warm-up depth sampling. Epoch, funding, calibration and admission checks are unchanged;
+  other chains keep spec §4.1. Workers: keeper activation, publisher/keeper readiness
+  notices, maker warm-up quoting with a bootstrap quote-stability hold, and a supervisor
+  gas-runway launch check with alerts.
+- Measured on the real engine: service launch -> first MARK is 84 s for most launch times
+  and up to 144 s when warm-up crosses the hourly rollover. Before, the floor was about
+  240 s plus the next opening. Failure paths are covered: gaps, cancels, late delivery,
+  READY and collateral.
+- Risk: 60 s BASIS adds no cheaper manipulation path. MARK lags genuine INDEX jumps more,
+  bounded by the 0.05 band.
+- Tests: contracts 877/877 at full CI fuzz depth (baseline 856), oracle 345/345 and
+  Monad integration 82/82, scripts 111/111, market-ops 54/54, keeper bun 14/14, reference
+  OK, frontend 119/119 and 67/67, typechecks and `forge fmt --check` exit 0. ABIs
+  regenerated.
+- Found and fixed: the first version pushed 8 KiB-claim market creation over the 29.5M
+  forwarded budget (29.54M); now 29.41M. Open: an existing hourly MARK gap of about 65 s
+  after each rollover; the October 9 operator funding is below a 2-hour runway.
+- Not done: FM-08 replacement deployment. It needs user selection of new events, a MON
+  budget, and a recommended fork rehearsal of the full worker stack. Nothing committed,
+  pushed, broadcast or funded. Details:
+  [FAST_MARK_STARTUP.md](../integration/FAST_MARK_STARTUP.md).

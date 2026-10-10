@@ -96,12 +96,13 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         }
         _checkSnap(snap);
         _touch(req.trader);
-        TakerDecision memory d = _takerDecision(
-            _actionCtx,
-            TakerInput(
-                req.trader, req.side == MathTypes.Side.BUY, req.limitTick, req.requestedLots, req.reduceOnly
-            )
+        TakerInput memory input = TakerInput(
+            req.trader, req.side == MathTypes.Side.BUY, req.limitTick, req.requestedLots, req.reduceOnly
         );
+        // Only a POST_ONLY order may use the index warm-up path: it never matches as a taker.
+        RiskContext memory c = _actionCtx;
+        TakerDecision memory d =
+            req.kind == OrderKind.POST_ONLY ? _warmupRestDecision(c, input) : _takerDecision(c, input);
         p.localPermitId = ++_permitSeq;
         p.trader = req.trader;
         p.side = req.side;
@@ -175,6 +176,10 @@ abstract contract BookRiskAdapter is OrderAdmission, IBookRiskHooks {
         _checkSnap(snap);
         if (proposedLots == 0 || proposedLots > maker.remainingLots || proposedLots > permit.remainingLots) {
             revert BadProposal();
+        }
+        // A warm-up quote never trades before the INDEX window is valid.
+        if (!_actionCtx.indexOk && permit.mode != AdmissionMode.FORCED_REDUCTION) {
+            return _stop(RejectCode.INVALID_PRICE_OR_SIZE);
         }
         _touch(maker.owner);
         if (

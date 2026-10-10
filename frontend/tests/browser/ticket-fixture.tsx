@@ -9,7 +9,7 @@ const Q = 10n ** 18n;
 const identity = { stage: 0, pricingMode: 1, accountingState: 0, profileHash: `0x${"ab".repeat(32)}`,
   marketOrderEpoch: 1n, indexAvailable: true, markAvailable: true, markWad: Q / 2n };
 const engine = "0x1111111111111111111111111111111111111111";
-const account = { preview: { positionLots: 0n, cashQ: 80_000_000n * Q,
+const account = { positionVersion: 0n, preview: { positionLots: 0n, cashQ: 80_000_000n * Q,
   projectedFundingQ: 200_000n * Q, projectedPremiumQ: 100_000n * Q,
   orders: { bidLots: 0n, askLots: 0n, bidValueQ: 0n, askValueQ: 0n }, id: identity } };
 const scenario = {
@@ -19,6 +19,8 @@ const scenario = {
   trader: { block: 100n, traderId: 8, free: 10_000_000n, account },
   bookPrice: undefined,
   holdMax: false,
+  holdBasis: false,
+  basisGates: [] as (() => void)[],
   capacity: 10_000n,
   calls: [] as any[], submitted: [] as any[], gates: [] as (() => void)[],
 };
@@ -31,5 +33,8 @@ function render() {
 Object.assign(window, { scenario, rerender: render, releaseMax() {
   scenario.holdMax = false;
   for (const release of scenario.gates.splice(0)) release();
+}, releaseBasis() {
+  scenario.holdBasis = false;
+  for (const release of scenario.basisGates.splice(0)) release();
 } });
 render();

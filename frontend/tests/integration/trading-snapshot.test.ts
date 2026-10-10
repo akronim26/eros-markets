@@ -13,7 +13,7 @@ const hash = `0x${"ab".repeat(32)}`;
 const anchor = 99_999_999n;
 let fixtureId = 0;
 
-function reader(t: TestContext, delay: () => Promise<void> = async () => {}) {
+function reader(t: TestContext, delay: () => Promise<void> = async () => {}, storedLots = 0n) {
   const blocks: bigint[] = [];
   const calls: { name: string; block: bigint; owner?: string }[] = [];
   // Real verification and metadata caches remain enabled, with independent test clients.
@@ -52,7 +52,11 @@ function reader(t: TestContext, delay: () => Promise<void> = async () => {}) {
       case "active": return [true, false, true, { indexAvailable: true, markAvailable: true }, {}, {}, [400, 410], [400, 1n, 410, 1n], {}, 0n, 1n, [1n, 0n, 3600n, 0n, 0n, 0n, false], [0n, 0n, 0n], true, {}, [0n, 0n], 0n, [0n, 0n], [0n, 0n], 10, [0n, 0n, false], [5n, 5n]];
       case "collateralVault": return [vault, { token }, token, 6, "TEST"].map(result => ({ status: "success", result }));
       case "participantId": await delay(); return [1, blockNumber, blockNumber * 2n, blockNumber * 3n];
-      case "previewAccount": return [{ positionLots: 0n, cashQ: blockNumber }, { cashQ: blockNumber * 4n }, blockNumber, false];
+      case "previewAccount":
+        assert.deepEqual(contracts.map((contract: any) => contract.functionName), ["previewAccount", "accountRiskView", "claimableAtoms", "traderClaimed", "account"]);
+        assert.ok([owner, otherOwner].includes(contracts[4].args[0]));
+        return [{ positionLots: 0n, cashQ: blockNumber }, { cashQ: blockNumber * 4n }, blockNumber, false,
+          { value: { lots: storedLots }, positionVersion: blockNumber }];
       default: throw new Error(`Unexpected call ${contracts[0].functionName}`);
     }
   });
@@ -81,6 +85,8 @@ test("slow owner reads publish the same pinned block as market data and overlapp
     const next = await qc.fetchQuery({ ...options(101n), staleTime: 0 });
     assert.equal(next.market.block, 101n);
     assert.equal(next.trader?.block, 101n);
+    assert.equal(a.trader?.account?.positionVersion, 100n);
+    assert.equal(next.trader?.account?.positionVersion, 101n, "version travels with the same pinned account snapshot");
     assert.equal(next.market.leverageCaps.long, 5n);
     assert.deepEqual([a.trader?.free, a.trader?.wallet, a.trader?.allowance, a.trader?.account?.riskView.cashQ], [100n, 200n, 300n, 400n]);
     assert.deepEqual([next.trader?.free, next.trader?.wallet, next.trader?.allowance, next.trader?.account?.riskView.cashQ], [101n, 202n, 303n, 404n]);
@@ -97,6 +103,14 @@ test("failed owner reads keep current public prices but never publish stale owne
   const snapshot = await tradingSnapshotOptions(engine, owner, 100n).queryFn();
   assert.equal(snapshot.market.risk.indexAvailable, true);
   assert.equal(snapshot.market.risk.markAvailable, true);
+  assert.equal(snapshot.accountError, true);
+  assert.equal(snapshot.trader, undefined);
+});
+
+test("stored position and preview disagreement fails the owner snapshot closed", async t => {
+  reader(t, async () => {}, 1n);
+  const snapshot = await tradingSnapshotOptions(engine, owner, 100n).queryFn();
+  assert.equal(snapshot.market.block, 100n);
   assert.equal(snapshot.accountError, true);
   assert.equal(snapshot.trader, undefined);
 });

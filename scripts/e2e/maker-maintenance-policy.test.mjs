@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makerPolicy, makerOrderIsCurrent, makerMaintenance, makerCaptureDelay, retryableMakerAdmission } from './maker-maintenance-policy.mjs';
+import { makerPolicy, makerOrderIsCurrent, makerMaintenance, makerCaptureDelay, retryableMakerAdmission, makerQuoteReference, makerBootstrapHold } from './maker-maintenance-policy.mjs';
 const policy = makerPolicy({});
 const input = { side: 'buy', positionLots: 0n, reservedLots: 2_000_000n, liveLots: 2_000_000n,
   tick: 490, liveTick: 490, depthLots: 1_000_000n, requiredDepthLots: 1_000_000n,
@@ -43,4 +43,29 @@ test('unsigned stale/index/post-only races retry without disguising owner or mal
     assert.equal(retryableMakerAdmission({ cause: { data: { errorName } } }), errorName);
   for (const errorName of ['NotOwner', 'BadTick', 'BadSize', 'UnknownTrader', 'BadSignature', 'BadState'])
     assert.equal(retryableMakerAdmission({ cause: { data: { errorName } } }), null);
+});
+
+test('the quote reference is the INDEX TWAP, else the warm-up point, never a zero price', () => {
+  const index = { indexAvailable: true, indexWad: 6n * 10n ** 17n };
+  assert.deepEqual(makerQuoteReference(index, { available: true, pointWad: 5n * 10n ** 17n }), { wad: 6n * 10n ** 17n, warmup: false });
+  assert.deepEqual(makerQuoteReference({ indexAvailable: false, indexWad: 0n }, { available: true, pointWad: 5n * 10n ** 17n }),
+    { wad: 5n * 10n ** 17n, warmup: true });
+  assert.equal(makerQuoteReference({ indexAvailable: false, indexWad: 0n }, { available: false, pointWad: 0n }), null);
+  assert.equal(makerQuoteReference({ indexAvailable: false, indexWad: 0n }, undefined), null);
+  assert.equal(makerQuoteReference({ indexAvailable: true, indexWad: 0n }, { available: true, pointWad: 0n }), null);
+});
+
+test('bootstrap keeps an eligible quote unchanged while history accumulates', () => {
+  const reprice = { action: 'quote', reason: 'reprice', repair: false, size: 2_000_000n };
+  const hold = overrides => makerBootstrapHold({ pricingMode: 0, decision: reprice, liveTick: 490, referenceTick: 506,
+    bandTicks: 50, marginTicks: 5, ...overrides });
+  assert.equal(hold({}), true, 'a 16-tick distance is well inside the 50-tick band');
+  assert.equal(hold({ referenceTick: 535 }), false, '45 + 5 reaches the band edge: reprice');
+  assert.equal(hold({ referenceTick: 534 }), true);
+  assert.equal(hold({ pricingMode: 1 }), false, 'normal pricing uses capture-promotion coordination');
+  assert.equal(hold({ decision: { ...reprice, reason: 'replenish' } }), true);
+  for (const reason of ['empty', 'insufficient-depth'])
+    assert.equal(hold({ decision: { action: 'quote', reason, repair: true } }), false, reason);
+  assert.equal(hold({ decision: { action: 'none' } }), false);
+  assert.equal(hold({ bandTicks: 0 }), false, 'an unknown band never suppresses maintenance');
 });

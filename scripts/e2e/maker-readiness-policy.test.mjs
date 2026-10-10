@@ -41,3 +41,11 @@ test('a staged risk profile does not restore the15-second rollover delay',()=>{
   assert.equal(makerReadinessDelay({indexAvailable:true,accountingState:1,pendingWork:2|8}),1000);
   assert.equal(makerReadinessDelay({indexAvailable:true,accountingState:1,pendingWork:2|1}),15000);
 });
+
+test('a warm-up INDEX point is a quote reference before the INDEX window completes',()=>{
+  assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:0,pendingWork:0},{available:true,pointWad:5n*10n**17n}),0);
+  assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:0,pendingWork:0},{available:false,pointWad:0n}),15000);
+  assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:1,pendingWork:2},{available:true}),1000);
+  assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:3,pendingWork:4},{available:true}),15000);
+  assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:0,pendingWork:0}),15000,'older engines');
+});
