@@ -21,8 +21,8 @@
       "sigmaWad": [
         "0"
       ],
-      "validFrom": "1791247060",
-      "validUntil": "1793505540"
+      "validFrom": "1791675951",
+      "validUntil": "1791907200"
     },
     "templateEnv": {
       "hSecs": [
@@ -31,9 +31,9 @@
       "sigmaWad": [
         "0"
       ],
-      "validFrom": "1791247060",
-      "validUntil": "1793505540"
+      "validFrom": "1791675951",
+      "validUntil": "1791907200"
     }
   },
-  "profileHash": "0x413bca5d67aa8f4b349c76496117205811ef5d98dbcd28f80fbb95fd2c64d70b"
+  "profileHash": "0x1abe58210a0459fa18fa73fa0d31de74324c40dfa7c1c33bfee7e82edba602ea"
 }

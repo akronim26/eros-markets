@@ -4,7 +4,7 @@
   "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "8ee4e398724e191c2680b199f7694aea48d470c042fd1ff2f4e7ff1a2af749a5",
+ "source_sha256": "bf2294ec7ef22717d391cda09efc31b4532e465b8c658b95eacb38b2af2c0076",
  "abi": [
   {
    "type": "function",

@@ -140,7 +140,7 @@ async function verify(raw: Plan, pc: ReturnType<typeof client>['public'], journa
     readAt('MarketRegistry', a.MarketRegistry, 'getMarketCore', [m.marketId]),
     readAt('RegistryBookRiskEngine', m.engine, 'pricingWindows'),
   ])
-  if (await pc.getChainId() !== 10143 || pricingWindows.map(String).join(',') !== '60,60,180,30') {
+  if (await pc.getChainId() !== 10143 || pricingWindows.map(String).join(',') !== '60,60,60,120') {
     throw new Error('TESTNET_PRICING_WINDOWS_MISMATCH')
   }
   const base = read(resolve(directory, journal.broadcast ? 'base-verification.json' : 'rehearsal-verification.json'))

@@ -22,32 +22,28 @@ Do not start the supervisor merely because its configuration and journals exist.
 | Frontend | Shared | Serve the terminal and private read-RPC proxy |
 | Supervisor | Shared | Validate service pins, run workers and report bounded restart/block decisions |
 
-For two active markets this is eight application processes plus the supervisor. Resolution
+For the one active market this is three application processes plus the supervisor. Resolution
 and optional delegated-order services have separate enrollment requirements; this
 runner does not enable them. Liquidation remains necessary for exposed accounts;
 insurance/reserves handle residual deficits and do not replace liquidation.
 
 The current local supervisor configuration is
-`tmp/redeploy-20261009/fast-profile/supervisor.json`, with status/logs under
-`tmp/redeploy-20261009/fast-profile/supervisor/` and RPC credentials in
+`tmp/redeploy-20261011/supervisor.json`, with status/logs under
+`tmp/redeploy-20261011/supervisor/` and RPC credentials in
 `tmp/redeploy-20261009/rpc-pool.env`. The configuration selects each market's
 public deployment directory and private role/journal directory. Keep these private
 directories on durable storage, excluded from Git, with restricted file access.
 Backups must include all publisher journals and operator/maker outboxes together;
 see [publisher operations](../../packages/pricefeed/docs/operations.md).
 
-The user selected two active demo markets: BTC above $82,000 on October 10
-(`monad-testnet-20261009-fast-btc-oct10`) and ETH above $2,400 on October 11
-(`monad-testnet-20261009-fast-eth-oct11`), under `artifacts/deployments/`.
-All four superseded current markets remain accessible through archived frontend
-routes, alongside older archives. Their operator MON was recovered after clean
-shutdown and their runtime identities are retired. Retain original journals,
-retirement evidence and user balances; do not restart the retired supervisor paths
-or remove retirement markers. Old-market live prices and trading readiness are
-not maintained. Existing allocations remain in their original engines/vaults and
-do not migrate to the new shared vault.
-The user's prior 20 TUSDC in each superseded BTC/ETH market remains archived;
-the new markets require separate user funding before trading.
+The active market (deployed October 11) is Polymarket 4199213, "Will Democrats win white
+women in the midterms?", resolving 7 November 2026
+(`monad-testnet-20261011-nov7-dem-white-women` under `artifacts/deployments/`). Every earlier
+deployment is retired: its operator MON was recovered to the root deployer, its
+service directories carry retirement markers, and the frontend no longer serves it.
+Do not restart retired supervisor paths or remove retirement markers. Allocations in
+retired engines stay there and do not migrate; releasing them needs a live INDEX on
+the retired engine, which is no longer maintained.
 
 The frontend manifest is `frontend/src/config/public-manifest.json`. The supervisor
 requires matching engine/runtime/listing/source identities, unique sender roles,
@@ -57,21 +53,39 @@ a listing. Restarting does not replenish gas or renew a publication budget.
 Optional read-only inspection tools require an explicit deployment directory:
 
 ```sh
-mkdir -p tmp/current-btc-keeper-observation
-bun scripts/e2e/keeper-observer.ts tmp/current-btc-keeper-observation \
-  artifacts/deployments/monad-testnet-20261009-fast-btc-oct10
+mkdir -p tmp/current-keeper-observation
+bun scripts/e2e/keeper-observer.ts tmp/current-keeper-observation \
+  artifacts/deployments/monad-testnet-20261011-nov7-dem-white-women
 node scripts/e2e/selected-source.mjs tmp/new-source-candidate \
-  artifacts/deployments/monad-testnet-20261009-fast-btc-oct10
+  artifacts/deployments/monad-testnet-20261011-nov7-dem-white-women --paced-testnet
 ```
 
 The keeper observer requires the supplied market to match the current frontend
-selection and cannot broadcast. To inspect ETH, use
-`artifacts/deployments/monad-testnet-20261009-fast-eth-oct11` and a separate evidence
-directory. The source qualifier reads a prepared candidate directory containing
+selection and cannot broadcast. The source qualifier reads a prepared candidate directory containing
 `metadata.json`, `event.json` and `selected-market.json`; the public deployment
 provides only its collector configuration template. It collects fresh source
 evidence without signing or altering a deployed market. These are manual
 inspection tools, not prerequisites to opening the frontend.
+
+## Lower-cost operation: pacing, wake-on-visit and funding
+
+- Workers publish INDEX about every 70 s (120 s testnet carry) and sample once per publish;
+  see [TESTNET_CARRY_DECISION.md](TESTNET_CARRY_DECISION.md).
+- With `wake` configured, the supervisor stops all three workers after 10 minutes without a
+  visitor heartbeat and restarts them on the next one, never while an account is leveraged.
+  Asleep, operator wallets send nothing. Wake → first MARK measured 152 s at launch.
+- Run the local supervisor under `caffeinate -is` until it moves to an always-on host: a host
+  sleep lapses the publisher's journal lease (`WRITER_FENCED`). The supervisor now restarts a
+  fenced publisher with backoff, but an expired hourly epoch still blocks trading until the
+  keeper's rollover runs.
+- Auto top-up (`autoTopUp` in the supervisor config, `scripts/ops/auto-topup.mjs`): when an
+  operator has under 90 minutes of gas, root refills it (keeper 30, publisher 15, makers 5 MON),
+  at most 200 MON per UTC day and never below a 10 MON root reserve; a market stopped only for
+  operator gas restarts after the refill. macOS notifications cover low gas, stops, failed refills
+  and a root too low to pay. The root key is read from a private `tmp/` env file.
+- Launch funding (2026-10-11): publisher 12, keeper 20, makers 6 MON each, plus 2,000
+  TestUSDC per maker. The remainder stays on the root deployer for top-ups when runway alerts
+  fire. The publisher policy cap is 20,000 transactions / 800 MON reserved.
 
 ## RPC pool and writer safety
 
@@ -125,7 +139,7 @@ read-transport evidence, not proof of a real provider outage or writer failover.
 
    ```sh
    npm --prefix packages/pricefeed run build
-   packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs check tmp/redeploy-20261009/fast-profile/supervisor.json
+   packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs check tmp/redeploy-20261011/supervisor.json
    ```
 
    `check` is read-only. A policy change requires updating its reviewed preparation
@@ -138,7 +152,7 @@ read-transport evidence, not proof of a real provider outage or writer failover.
 5. Run the supervisor under the chosen host process manager:
 
    ```sh
-   packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs run tmp/redeploy-20261009/fast-profile/supervisor.json
+   packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs run tmp/redeploy-20261011/supervisor.json
    ```
 
    This starts funded workers and can sign authorized upkeep transactions. The
@@ -153,18 +167,22 @@ read-transport evidence, not proof of a real provider outage or writer failover.
 
    Avoid a second process on an occupied port. Rebuild after changing embedded
    public configuration. Keep production and E2E manifests/builds distinct.
-7. Prewarm through an actual successful UTC-hour epoch opening. Verify canonical
+7. Wait for `PricingModeChanged` (one-time `activatePricing()`), then verify canonical
    readiness and a real round trip before admitting the demonstration wallet.
 
-The replacement engines on chain 10143 require INDEX 60 seconds, PERP 60 seconds
-and BASIS 180 seconds, with only 30 seconds of observation carry. Other chains
-retain INDEX300/PERP60/BASIS900/carry30. Verify the new engine's `pricingWindows()`;
-the legacy `indexTwap300` and `basisTwap900` ABI names read its configured windows.
-INDEX must become valid before eligible funded depth can build the later windows.
-History building therefore takes approximately four uninterrupted minutes, plus
-the wait for a successful hourly opening. Source gaps and transaction delays can
-extend that; elapsed time is never a readiness signal. See the
-[fast-profile cutover runbook](FAST_TESTNET_PRICING.md).
+The engines on chain 10143 use INDEX 60, PERP 60 and BASIS 60 seconds, with only
+30 seconds of observation carry. Other chains retain INDEX300/PERP60/BASIS900/carry30
+and epoch-only promotion. Verify the engine's `pricingWindows()`; the legacy
+`indexTwap300` and `basisTwap900` ABI names read its configured windows. Funded
+post-only maker quotes may rest around the latest authenticated INDEX point before
+the INDEX window completes (`warmupIndex()`), so all three windows build together.
+The keeper calls `activatePricing()` as soon as every window is valid; it does not
+wait for the hourly opening. Measured on October 11: INDEX after 66 s and MARK after
+95 s (BTC), 158 s and 161 s (ETH) from service launch. Source gaps and transaction
+delays can extend that; elapsed time is never a readiness signal. The supervisor
+refuses to launch without the configured gas runway and records `gasRunwayAlert`
+events before any wallet reaches its stopping threshold. See
+[fast MARK startup](FAST_MARK_STARTUP.md).
 
 Before the boundary, operations must capture and seal valid book evidence. After
 rollover, old order epochs are invalid and makers must restore current depth

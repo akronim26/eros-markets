@@ -136,8 +136,8 @@ abstract contract RiskPricing is ObservationStore {
         m.perpLiveWad = m.perpLiveOk ? uint256(live) : 0;
     }
 
-    /// @notice Monad testnet BOOTSTRAP before the first complete INDEX window: the latest fresh,
-    ///         depth-valid authenticated INDEX point. It centres resting warm-up quotes and depth
+    /// @notice Monad testnet BOOTSTRAP before the first complete INDEX window: the latest fresh
+    ///         (within the INDEX carry), depth-valid authenticated INDEX point. It centres resting warm-up quotes and depth
     ///         eligibility only; it never prices a fill, a margin or a release.
     function _warmupIndexPoint(RiskContext memory c) internal view returns (bool ok, uint256 pointWad) {
         if (c.indexOk || c.halted || c.pricingMode != PricingMode.BOOTSTRAP || !PricingMath.fastStartup()) {

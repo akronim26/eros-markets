@@ -1,8 +1,7 @@
 # Fast MARK startup on Monad testnet (FM-01 to FM-08)
 
-Date: 2026-10-10. Status: **implemented and validated locally; not deployed.** The existing
-October 9 engines are immutable and keep their old behaviour. The changes reach a market
-only through a replacement engine deployment (FM-08), which has not been performed.
+Date: 2026-10-10, deployed 2026-10-11. Status: **implemented, validated and deployed on Monad
+testnet** (FM-08 below). The October 9 engines were immutable and are retired.
 
 Baseline: `feat/pricefeed` at `1cb19bae2671a066fe948d7781535ff45154119c` plus the uncommitted
 AUD-01..AUD-08 repairs. This is unified-team technical validation, not an independent
@@ -207,14 +206,54 @@ Not validated: a live run with real workers on a Monad fork or on testnet, live 
 real wallet flows. All timings above are deterministic simulations on the real engine, not
 public-chain measurements.
 
-## FM-08: replacement deployment (not performed)
+## FM-08: replacement deployment (performed 2026-10-11)
 
-Restarting services cannot apply these changes. A replacement needs new code stores, a factory
-and vault, the registry factory switch through governance, new listings, operator roles,
-funding, service pins, manifest, indexer and frontend cutover. That follows the
-[fresh listing runbook](TESTNET_OPERATIONS.md#fresh-demo-listings-with-the-existing-infrastructure).
-The BTC October 10 listing expires today, so new events must be qualified. Decisions needed
-before broadcast:
-- which events;
-- the MON budget for deployment plus the higher operator funding;
-- whether to fork-rehearse the full worker stack first (recommended).
+- Old operator MON recovered first (38.198 MON, eight verified transfers); all project
+  contracts held 0 MON.
+- New code stores, factory `0x625e323822A74add21837046f61D4AFCAe745f96` and vault
+  `0xb251268Ce641D4FE1b1E70067FA644065fE0911E`, with the timelocked `setFactory`.
+- Markets: BTC above $82,000 on October 13 (`0x5225228DAcBa2a676a13FAe478Ba919e60869a3d`) and ETH
+  above $2,400 on October 14 (`0xe26DE3d7Fd39Bc1B89143649c595fd3dDFdc4cA7`). Every stage was
+  rehearsed on an anvil 1.8.3 fork before broadcast.
+- Real launch → first finalized MARK: **BTC 95 s** (INDEX 66 s), **ETH 161 s** (INDEX 158 s).
+  Both reached NORMAL pricing mid-epoch with 5×/5× caps. ETH's INDEX was slower
+  because the publisher waits for a newer Polymarket book update after each capture.
+- Keeper spend was higher than projected in the first hour, mainly from the bootstrap
+  rollover batch (Monad charges the full gas limit). Watch `gasRunwayAlert`.
+
+Addresses: [addresses.md](../../addresses.md). Operations: [TESTNET_OPERATIONS.md](TESTNET_OPERATIONS.md).
+
+## Lower-cost relaunch (2026-10-11): 120 s / 300 s carries, pacing, wake-on-visit
+
+User decisions of 2026-10-11 (recorded in the `docs/merge/STATUS.md` turn log). Details and the full 30 s audit:
+[TESTNET_CARRY_DECISION.md](TESTNET_CARRY_DECISION.md).
+
+- **Carries (chain 10143 only):** INDEX 30 → 120 s, book 90 → 300 s. `pricingWindows()` =
+  `(60, 60, 60, 120)`. The INVALID-window integral and the funding freshness latch now use the
+  same INDEX carry (the INVALID integral used a fixed 30 s before; reproduced and fixed).
+- **Publisher pacing** (`scripts/e2e/index-pacing.mjs`): one publish when the newest finalized
+  observation is 70 s old, taking only a source at most 6 s old until 100 s; every source update while the keeper reports `markAvailable: false`
+  (warm-up keeps launch → MARK at 84–108 s in the timing model); one early publish after a
+  book-change capture, at most one per 20 s. Holding only delays publication.
+- **Keeper:** samples while INDEX is ≤ 110 s old; reports `markAvailable` in its heartbeat;
+  writes `early-index-request.json` after a book-change capture finalizes. Book-change samples
+  are limited to one per 20 s.
+- **Supervisor** (`scripts/ops/wake-policy.mjs`): polls `GET /api/market-activity` every 15 s;
+  sleeps a market after 10 min without a visitor unless any account has `e0Q < 0` or `e1Q < 0`;
+  every read failure keeps or makes it awake; a visitor during shutdown wakes it as soon as the
+  workers stop; a fenced publisher (`WRITER_FENCED`) restarts with backoff; a sleeping market no
+  longer ends the supervisor; the gas runway projects spend from `publishIntervalSeconds`.
+- **Frontend:** visible tabs send a heartbeat every 30 s (`POST /api/market-activity`, Vercel
+  Runtime Cache, region `iad1`); a "Market waking up" row shows price → trading → full leverage;
+  chart freshness uses the 120 s carry; Release follows `previewRelease` (BAD_STAGE during
+  accounting work reads "Market is processing its hourly update"), Withdraw needs only the
+  account read.
+- **Timing model** (`FastStartupTiming.t.sol`, real engine): with warm-up then 80 s cadence and a
+  28 s source lag, MARK never lapsed over 25 min including an hourly rollover (24 publishes
+  versus about 125 at source cadence) and through a fill with or without the early publish.
+  Publishing at 80 s from launch delays first MARK to 172–252 s, which is why warm-up keeps
+  the source cadence.
+- **Source qualification:** `selected-source.mjs <dir> <public dir> --paced-testnet` bounds
+  source gaps at 30 s instead of 25 s and carries quiet, unsignable polls within that bound.
+
+Live benchmarks B1–B14 are not yet measured; they need the T5 deployment.

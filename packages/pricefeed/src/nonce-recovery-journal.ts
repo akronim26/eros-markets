@@ -17,7 +17,10 @@ export type NonceRecovery={key:string;sender:Hex;nonce:string;originalBody:strin
 // Only explicitly known pre-broadcast stops qualify. Recovery separately checks
 // expiry, zero attempts, exact signed bytes, sender nonce and canonical history.
 export function recoverableUnsentReason(reason:unknown):boolean {
-  return reason==='RELAY_HEADROOM_EXPIRED'||reason==='RESERVED_NONCE_HEADROOM_EXPIRED'
+  // PIPELINE_TIMEOUT: a bounded sign/send step outlived its timeout, so the signed request may or
+  // may not have reached the network. Recovery reads the chain first and records the original if
+  // it landed; otherwise it cancels the nonce. Without this a slow RPC stops the market.
+  return reason==='RELAY_HEADROOM_EXPIRED'||reason==='RESERVED_NONCE_HEADROOM_EXPIRED'||reason==='PIPELINE_TIMEOUT'
     ||reason==='LIFECYCLE_BLOCKED:SOURCE_UNAVAILABLE:LIFECYCLE_RPC_UNAVAILABLE';
 }
 

@@ -2,7 +2,7 @@
 
 Current deployed contracts are listed in [addresses.md](../../addresses.md).
 For the October 9 replacement BTC/ETH profile and current operator paths, use
-[FAST_TESTNET_PRICING.md](FAST_TESTNET_PRICING.md) and
+[fast MARK startup](FAST_MARK_STARTUP.md) and
 [TESTNET_OPERATIONS.md](TESTNET_OPERATIONS.md). The dated October 6 rehearsal
 addresses, code hashes and unsigned bundles below remain historical evidence.
 

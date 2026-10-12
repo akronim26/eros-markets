@@ -160,7 +160,10 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         OrderAdmissionMath.CoverageInput memory coverage =
             _acctPreviewCoverage(order.owner, reservations, 0, 0, context.economicTime);
         eligible = coverage.d0Q == 0 && coverage.d1Q == 0 && coverage.marketOk;
-        accountFingerprint = keccak256(abi.encode(projected, reservations, eligible));
+        // Only counted depth commits to its owner's account. An ineligible (not fully backed)
+        // owner's projection accrues premium every second; committing to it would discard every
+        // capture while that order rests. A change in eligibility still changes the fingerprint.
+        if (eligible) accountFingerprint = keccak256(abi.encode(projected, reservations));
     }
 
     /// @dev Commit to exact capture-time configured INDEX inputs and the instantaneous BASIS input.
@@ -212,8 +215,9 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
         BookDepthQuote memory quote = _bookDepth(context);
         if (pending.observedBlock != 0) {
             bool unchanged = pending.observedBlock < block.number
-                && context.economicTime - pending.observedAt <= STALE && pending.bookRevision == _bookRevision
-                && pending.marketEpoch == marketOrderEpoch && pending.riskVersion == context.riskVersion
+                && context.economicTime - pending.observedAt <= PricingMath.bookCarry()
+                && pending.bookRevision == _bookRevision && pending.marketEpoch == marketOrderEpoch
+                && pending.riskVersion == context.riskVersion
                 && pending.indexCheckpoint == _indexCheckpointAt(pending.observedAt)
                 && pending.quote.fingerprint == quote.fingerprint;
             if (unchanged) {
@@ -238,7 +242,7 @@ contract BookRiskEngine is RiskAccountingBridge, BookDepthSampler {
             }
             if (
                 !unchanged
-                    && (context.economicTime - pending.observedAt > STALE
+                    && (context.economicTime - pending.observedAt > PricingMath.bookCarry()
                         || pending.indexCheckpoint != _indexCheckpointAt(pending.observedAt)
                         || !_referenced(context))
             ) {

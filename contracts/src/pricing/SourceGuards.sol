@@ -5,7 +5,7 @@ import {PricingMath} from "../math/PricingMath.sol";
 import {RiskPricing} from "./RiskPricing.sol";
 
 /// @title SourceGuards
-/// @notice Continuous index freshness, the 30 s stale threshold and the 0.10 / 300 s movement
+/// @notice Continuous index freshness, the INDEX carry threshold (30 s; Monad testnet 120 s) and the 0.10 / 300 s movement
 ///         trigger (spec §4.1; B021).
 /// @dev `fundingFreshThrough` is the end of continuous valid index coverage. Once a gap opens
 ///      inside a funding epoch, that epoch's freshness stop is latched at the gap start: a late
@@ -17,7 +17,7 @@ abstract contract SourceGuards is RiskPricing {
     event FreshnessGap(uint64 gapStart, uint64 resumedAt, uint64 epochStart);
     event MovementRestriction(uint64 at, uint256 priceNowWad, uint256 price300sAgoWad);
 
-    uint64 internal _freshThrough; // continuous coverage end (observedAt + 30 of the last valid sample)
+    uint64 internal _freshThrough; // continuous coverage end (observedAt + INDEX carry of the last valid sample)
     uint64 internal _guardEpochStart; // start of the funding epoch the latch applies to
     uint64 internal _epochFreshStop; // 0 = no gap inside this epoch yet
     bool internal _movementRestricted;
@@ -42,7 +42,7 @@ abstract contract SourceGuards is RiskPricing {
             _latchGap(_freshThrough, t);
         } else {
             if (t > _freshThrough && _freshThrough != 0) _latchGap(_freshThrough, t);
-            _freshThrough = t + uint64(PricingMath.STALE_SECS);
+            _freshThrough = t + PricingMath.indexCarry();
         }
         super._onIndexObservation(t, midWad, valid);
         if (valid) _checkMovement(t);

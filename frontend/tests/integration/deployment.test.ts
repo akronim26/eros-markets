@@ -95,31 +95,6 @@ test('chain-only head verification and unknown targets never read deployment con
   await assert.rejects(ensureNetwork(), /network/);
 });
 
-test('current deployment ignores broken archives and verifies the archive only when accessed', async t => {
-  const state = fixture(t);
-  const archive = deploymentManifests[1];
-  const archivedEngine = archive.markets[0].engine.toLowerCase();
-  state.badCode.add(archivedEngine);
-  await ensureDeployment();
-  assert.deepEqual(new Set(state.codes), new Set(uniquePins(manifest).map(p => p.address.toLowerCase())));
-  assert.equal(state.multicalls.length, 1);
-  assert.equal(state.multicalls[0].length, 6 + manifest.markets.length * 4);
-  assert.equal(state.multicalls[0].filter(c => c.functionName === 'factory').length, 1);
-  const currentCodes = state.codes.length;
-  await assert.rejects(ensureDeployment(archive.markets[0].engine), /code/);
-  assert.ok(state.codes.includes(archivedEngine));
-  state.badCode.clear();
-  await ensureDeployment(archive.markets[0].engine);
-  assert.equal(state.multicalls.at(-1)!.filter(c => c.functionName === 'factory').length, 0,
-    'archived registries may point at a newer factory');
-  const afterArchive = state.codes.length;
-  await ensureDeployment(archive.contracts.CollateralVault.address);
-  assert.equal(state.codes.length, afterArchive, 'an archived vault resolves to the cached archive proof');
-  await ensureDeployment(manifest.markets[0].engine);
-  assert.equal(state.codes.length, afterArchive, 'archive failure does not invalidate the successful current proof');
-  assert.ok(afterArchive > currentCodes);
-});
-
 test('contract targets use their deployment and cache identities include reviewed pins and client identity', async t => {
   const state = fixture(t);
   const engine = manifest.markets[0].engine;
@@ -127,7 +102,6 @@ test('contract targets use their deployment and cache identities include reviewe
   const key = deploymentCacheKey(engine);
   assert.equal(deploymentCacheKey(engine.toLowerCase()), key);
   assert.equal(deploymentCacheKey(vault), key);
-  assert.notEqual(deploymentCacheKey(deploymentManifests[1].markets[0].engine), key);
   await ensureDeployment(vault);
   await ensureDeployment(engine);
   assert.equal(state.multicalls.length, 1);
@@ -196,10 +170,12 @@ test('a network failure clears cached proofs and cannot let an invalidated in-fl
   state.chain = manifest.chainId;
   await ensureDeployment();
   assert.equal(state.codes.length, initialCount * 2);
+  // Expire the cached proof so the next check is a fresh in-flight verification.
+  state.clock += 300000;
   let release!: () => void;
   state.pauseCodes = new Promise<void>(resolve => { release = resolve; });
-  const archive = ensureDeployment(deploymentManifests[1].markets[0].engine);
-  const rejected = assert.rejects(archive, /invalidated/);
+  const inFlight = ensureDeployment(manifest.markets[0].engine);
+  const rejected = assert.rejects(inFlight, /invalidated/);
   while (state.codes.length === initialCount * 2) await nextTurn();
   state.chain = 1;
   const network = assert.rejects(ensureNetwork(), /network/);
@@ -208,7 +184,7 @@ test('a network failure clears cached proofs and cannot let an invalidated in-fl
   await rejected;
   state.pauseCodes = undefined;
   state.chain = manifest.chainId;
-  await ensureDeployment(deploymentManifests[1].markets[0].engine);
+  await ensureDeployment(manifest.markets[0].engine);
 });
 
 test('reorgs during verification or a pinned read discard proof caches and reject mixed snapshots', async t => {

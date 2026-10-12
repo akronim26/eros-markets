@@ -8,7 +8,7 @@ import { type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { amountWithinBalance, atomsToInput, canClaim, fundingPlan } from "@/lib/funds";
 import { allocationBlocker, validateAllocation } from "@/lib/allocation-guard";
 import { atomsToUsdc, parseUsdcToAtoms } from "@/lib/units";
-import { REJECT } from "@/lib/enums";
+import { releaseRejection } from "@/lib/enums";
 import { releasePreviewOptions } from "@/lib/collateral-queries";
 import { pinnedReadCurrent } from "@/lib/pinned-read";
 import { useTx } from "@/lib/tx";
@@ -32,6 +32,8 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
   try { if (input) { amount = parseUsdcToAtoms(input); if (!amount) throw new Error("Enter an amount greater than zero."); if (t) amount = amountWithinBalance(amount, available); } } catch (e) { error = (e as Error).message; }
   const validation = useFieldErrors({ amount: error || (!input ? "Enter an amount greater than zero." : "") });
   const readsReady = !!t && !!m && t.block === m.block && !readUnavailable;
+  // Withdraw moves free vault funds and needs only the account read, never market readiness.
+  const withdrawReady = !!t && !readUnavailable;
   const release = useQuery({
     ...releasePreviewOptions(engine, owner.address, t?.traderId ?? 0, amount, m?.block ?? 0n),
     enabled: mode === "Release" && amount > 0n && !error && !!t?.traderId && readsReady,
@@ -43,10 +45,13 @@ export function AccountActions({ engine, m, t, readUnavailable = false }: { engi
   }, [busy, tx.state.status]);
   const fundingBlocked = mode === "Fund" && m ? allocationBlocker(m) : undefined;
   const blocker = mode === "Fund" && fundDisabled ? "Archived market"
-    : owner.wrongChain ? "Switch to Monad testnet" : readUnavailable ? "Live reads unavailable" : !readsReady ? "Reading balances…"
+    : owner.wrongChain ? "Switch to Monad testnet" : readUnavailable ? "Live reads unavailable"
+    : mode === "Withdraw" ? (!withdrawReady ? "Reading balances…" : error || (!amount ? "Enter an amount" : ""))
+    : !readsReady ? "Reading balances…"
     : fundingBlocked ? fundingBlocked
-    : mode !== "Withdraw" && m?.halted ? "Market halted"
-    : error || (!amount ? "Enter an amount" : mode === "Release" ? release.isError ? "Release preview unavailable" : !releasePreview ? "Checking release…" : !releasePreview[0] ? REJECT[releasePreview[1]] || "Release unavailable" : "" : "");
+    : mode === "Fund" && m?.halted ? "Market halted"
+    // The contract's previewRelease is authoritative for Release, including after a halt.
+    : error || (!amount ? "Enter an amount" : mode === "Release" ? release.isError ? "Release preview unavailable" : !releasePreview ? "Checking release…" : !releasePreview[0] ? releaseRejection(releasePreview[1], m?.risk.accountingState ?? 0) : "" : "");
 
   async function submit() {
     if (!owner.address || !t || blocker || busy) return;

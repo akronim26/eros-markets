@@ -28,7 +28,9 @@ export function gasRunwayConfig(input = {}) {
   const launchMinutes = value('launchMinutes', 120, 10, 1440);
   const alertMinutes = value('alertMinutes', 30, 5, 720);
   if (alertMinutes >= launchMinutes) throw Error('GAS_RUNWAY_ALERT_MUST_PRECEDE_LAUNCH_REQUIREMENT');
-  return { launchMinutes, alertMinutes, checkIntervalMs: value('checkIntervalMs', 60_000, 5_000, 600_000) };
+  // Paced testnet INDEX publishes about every 80 s, with one keeper sample per publish.
+  const publishIntervalSeconds = value('publishIntervalSeconds', Number(SOURCE_INTERVAL_SECONDS), 5, 120);
+  return { launchMinutes, alertMinutes, checkIntervalMs: value('checkIntervalMs', 60_000, 5_000, 600_000), publishIntervalSeconds };
 }
 
 /** Price paid per gas unit now: base fee plus priority, capped by the workers' max fee. */
@@ -45,12 +47,13 @@ const big = (value, name) => {
 };
 
 /** Stopping threshold and conservative hourly gas-limit consumption for each operator role. */
-export function roleBudgets({ publisherRelay, keeperMaxGas, samplePerpGas, makerMaxActionsPerEpoch }) {
+export function roleBudgets({ publisherRelay, keeperMaxGas, samplePerpGas, makerMaxActionsPerEpoch,
+  publishIntervalSeconds = SOURCE_INTERVAL_SECONDS }) {
   const publisherGas = big(publisherRelay?.gasCap, 'PUBLISHER_GAS');
   const keeperGas = big(keeperMaxGas, 'KEEPER_GAS');
   const sampleGas = big(samplePerpGas ?? keeperMaxGas, 'SAMPLE_GAS');
   const makerActions = big(makerMaxActionsPerEpoch, 'MAKER_ACTIONS');
-  const perHour = 3600n / SOURCE_INTERVAL_SECONDS;
+  const perHour = 3600n / big(publishIntervalSeconds, 'PUBLISH_INTERVAL');
   const worker = gas => gas * WORKER_MAX_FEE_WEI + WORKER_RESERVE_WEI;
   const maker = { stopWei: worker(MAKER_MAX_GAS), gasPerHour: (makerActions + MAKER_CLEANUP_BATCHES_PER_HOUR) * MAKER_MAX_GAS };
   return [

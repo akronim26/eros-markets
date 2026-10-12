@@ -37,6 +37,9 @@ export function transientServiceRead(error) {
     seen.add(current);
     if (['HttpRequestError', 'TimeoutError', 'SocketClosedError', 'WebSocketRequestError'].includes(current.name)
       || codes.some(code => typeof current.message === 'string' && current.message.includes(code))) return true;
+    // A provider-side "Internal error" on a read is the node failing, not the call: retry it.
+    // Reverts, out-of-gas and every signing or receipt error keep their own handling.
+    if (current.name === 'RpcRequestError' && typeof current.details === 'string' && /^internal error$/i.test(current.details.trim())) return true;
   }
   return false;
 }

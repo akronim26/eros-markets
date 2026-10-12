@@ -1,11 +1,12 @@
 import type { Point } from "./live-series";
-/** Invalid observations break the line even when two good points are less than 30s apart. */
+import { INDEX_CARRY_SECS } from "./index-carry";
+/** Gaps longer than the INDEX carry break the line; invalid observations always do. */
 export function priceSegments(points: Point[]): Point[][] {
   const segments: Point[][] = [];
   let segment: Point[] | undefined;
   for (const point of points) {
     if (point.valid === false || !Number.isFinite(point.v) || point.v < 0 || point.v > 1) { segment = undefined; continue; }
-    if (!segment || point.t <= segment.at(-1)!.t || point.t - segment.at(-1)!.t > 30) {
+    if (!segment || point.t <= segment.at(-1)!.t || point.t - segment.at(-1)!.t > INDEX_CARRY_SECS) {
       segment = [];
       segments.push(segment);
     }
@@ -18,7 +19,7 @@ export function priceSegments(points: Point[]): Point[][] {
 export function latestSourceObservation(points: Point[], now: number, readError = false) {
   const point = points.findLast(p => p.valid !== false && Number.isFinite(p.t) && Number.isFinite(p.v) && p.v >= 0 && p.v <= 1);
   const newest = points.at(-1);
-  return { point, fresh: !!point && point === newest && now - point.t <= 30 && point.t <= now + 2 && !readError };
+  return { point, fresh: !!point && point === newest && now - point.t <= INDEX_CARRY_SECS && point.t <= now + 2 && !readError };
 }
 
 export function priceReadiness(risk: { indexAvailable: boolean; markAvailable: boolean; pricingMode: number }, sourceFresh: boolean) {

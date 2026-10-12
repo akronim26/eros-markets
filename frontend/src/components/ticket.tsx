@@ -8,7 +8,7 @@ import { client, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { usePermissions } from "@/lib/privy-api";
 import { expiryBlock, type CloseIntent } from "@/lib/trade-intent";
 import { ownerTrader } from "@/lib/trader";
-import { leverageLots } from "@/lib/leverage";
+import { targetLeverageLots } from "@/lib/leverage";
 import { orderPreviewCurrent, orderPreviewOptions } from "@/lib/order-preview";
 import { canonicalTrade, displayTickForOutcome, type TradeIntent } from "@/lib/trade-view";
 import { useMaxOrder } from "@/lib/use-max-order";
@@ -71,11 +71,19 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
   const bestTick = (side === "buy" ? market?.bestAsk : market?.bestBid) ?? 0;
   const [targetLeverage, setTargetLeverage] = useState<number>();
   useEffect(() => { setTargetLeverage(undefined); }, [cap]);
-  // For a flat account equity equals cash even before a normal mark exists.
-  const sizingEquity = trader?.account?.preview.cashQ ?? 0n;
+  // Leverage sizing targets the whole position. Flat: equity is cash, even before a normal mark
+  // exists. Open position: mark equity and the held side's mark price, so a live mark is required.
+  const positionLots = trader?.account?.preview.positionLots ?? 0n;
+  const cashQ = trader?.account?.preview.cashQ ?? 0n;
+  const flat = positionLots === 0n;
+  const markLive = !!market?.risk.markAvailable;
+  const sizingEquity = flat ? cashQ : markLive ? trader?.account?.preview.markEquityQ ?? 0n : 0n;
   const reservedOrders = !!trader?.account && (trader.account.preview.orders.bidLots > 0n || trader.account.preview.orders.askLots > 0n);
-  const canSizeLeverage = !!trader?.account && trader.account.preview.positionLots === 0n && !reservedOrders && !reduceOnly && sizingEquity > 0n;
-  useEffect(() => { setTargetLeverage(undefined); }, [engine, owner.address, sizingEquity, reservedOrders]);
+  const canSizeLeverage = !!trader?.account && !reservedOrders && !reduceOnly && sizingEquity > 0n && (flat || markLive);
+  // An order against the held side lowers leverage, so the side's cap does not limit it.
+  const reducing = !flat && (side === "buy") !== (positionLots > 0n);
+  // Keyed on cash and position, not mark equity, so a selection survives ordinary mark updates.
+  useEffect(() => { setTargetLeverage(undefined); }, [engine, owner.address, cashQ, positionLots, reservedOrders]);
 
 
   const parsed = useMemo((): Parsed => {
@@ -105,6 +113,14 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
 
   let priceTick: number | undefined;
   try { priceTick = canonicalTrade(tradeIntent, parsePriceToTick(price)).tick; } catch { /* Incomplete input. */ }
+  // Lots per target (1x..5x); 0n means the position cannot reach that leverage with this side.
+  const leverageSizes = [1, 2, 3, 4, 5].map((x) => {
+    if (!canSizeLeverage || priceTick === undefined) return undefined;
+    try {
+      return targetLeverageLots({ equityQ: sizingEquity, positionLots, tick: priceTick, isBuy: side === "buy", leverage: x,
+        markWad: markLive ? market!.risk.markWad : undefined });
+    } catch { return undefined; }
+  });
   const maximum = useMaxOrder({ engine, owner: owner.address, market, trader, tick: priceTick,
     isBuy: side === "buy", reduceOnly, unavailable: readUnavailable, inputRevision });
 
@@ -234,16 +250,17 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
           <p className="label flex justify-between text-fg-3"><span>Target leverage</span><span>{cap === undefined ? "Reading limit…" : `Current limit ${cap}×`}</span></p>
           <div className="grid grid-cols-5 gap-1" role="group" aria-label="Target leverage">
             {[1, 2, 3, 4, 5].map((x) => <button key={x} type="button" aria-pressed={targetLeverage === x}
-              disabled={!canSizeLeverage || cap === undefined || BigInt(x) > cap || (x > 1 && !market?.risk.markAvailable) || !!fieldErrors.price || readUnavailable || trader?.block !== market?.block}
+              title={leverageSizes[x - 1] === 0n ? (reducing ? `Your position is already at or below ${x}×` : `Your position is already at or above ${x}×`) : undefined}
+              disabled={!canSizeLeverage || cap === undefined || (!reducing && BigInt(x) > cap) || (x > 1 && !markLive) || !!fieldErrors.price || readUnavailable || trader?.block !== market?.block || !leverageSizes[x - 1]}
               className={cx("ui-toggle h-7 border text-xs tnum disabled:cursor-not-allowed", targetLeverage === x ? "border-signal bg-signal/10 text-signal-text" : "border-line-strong bg-panel text-fg-2 hover:bg-press")}
-              onClick={() => { try { const lots = leverageLots(sizingEquity, canonicalTrade(tradeIntent, parsePriceToTick(price)).tick, side === "buy", x, market?.risk.markAvailable ? market.risk.markWad : undefined); setSize(lotsToClaims(lots)); setTargetLeverage(x); setInputRevision((n) => n + 1); } catch { setTargetLeverage(undefined); } }}>{x}×</button>)}
+              onClick={() => { const lots = leverageSizes[x - 1]; if (!lots) { setTargetLeverage(undefined); return; } setSize(lotsToClaims(lots)); setTargetLeverage(x); setInputRevision((n) => n + 1); }}>{x}×</button>)}
           </div>
           <details className="text-xs text-fg-3">
             <summary className="cursor-pointer py-1 hover:text-fg">Trading details</summary>
             <div className="grid gap-2 pb-1 pt-2 leading-relaxed">
               <p>Long YES = Short NO. Short YES = Long NO. All choices net into one position; an opposite trade can close it.</p>
               {market?.active && !market.halted && cap !== undefined && cap < market.listing.deploymentCapX && <p className="border-l-2 border-signal/60 pl-2 text-fg-2">{market.risk.pricingMode === 0 ? "Bootstrap: 1× until the price windows are ready and normal pricing activates." : !market.risk.indexAvailable || !market.risk.markAvailable ? "Higher leverage is temporarily unavailable while the price windows recover." : "The current risk or reserve limit is below the deployment cap."}</p>}
-              <p>{reservedOrders ? "Cancel open orders before sizing by leverage." : reduceOnly ? "Leverage sizing is for new positions. Turn off Reduce only to size a new position." : !canSizeLeverage ? "Fund this market and start from a flat position to size by leverage." : fieldErrors.price ? "Enter a valid order price or use the best price, then choose your leverage." : "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
+              <p>{reservedOrders ? "Cancel open orders before sizing by leverage." : reduceOnly ? "Turn off Reduce only to size by leverage." : !canSizeLeverage ? (flat ? "Fund this market to size by leverage." : "Sizing an open position by leverage needs a live mark.") : fieldErrors.price ? "Enter a valid order price or use the best price, then choose your leverage." : flat ? "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees." : "Sizes this order so your whole position ends at the chosen leverage against your mark equity, accounting for the spread. On the opposite side it reduces toward that leverage and never flips your position. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
             </div>
           </details>
         </div>

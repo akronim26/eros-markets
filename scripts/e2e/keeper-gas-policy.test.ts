@@ -155,3 +155,14 @@ test('scheduled liquidation shares the existing pending journal and gives the fo
   const sample = await f.run('sample');
   expect(!sample.limited && sample.result.action).toBe('sample'); expect(f.signed).toBe(2);
 });
+
+test('a pre-signing simulation that ran out of gas is recognised through the error cause chain', async () => {
+  const { simulationOutOfGas } = await import('./keeper-gas-policy.mjs');
+  const rpc = Object.assign(new Error('RPC Request failed.'), { name: 'RpcRequestError', details: 'out of gas' });
+  expect(simulationOutOfGas(Object.assign(new Error('wrapped'), { cause: rpc }))).toBe(true);
+  expect(simulationOutOfGas({ shortMessage: 'Execution reverted: out of gas' })).toBe(true);
+  expect(simulationOutOfGas(Object.assign(new Error('x'), { details: 'execution reverted' }))).toBe(false);
+  expect(simulationOutOfGas(undefined)).toBe(false);
+  const loop: any = new Error('loop'); loop.cause = loop;
+  expect(simulationOutOfGas(loop)).toBe(false);
+});

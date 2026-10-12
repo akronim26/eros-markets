@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useHead, useLadder, useMarket, useTradingSnapshot } from "@/lib/reads";
 import { usePriceSeries } from "@/lib/price-history";
+import { useMarketActivity } from "@/lib/use-market-activity";
+import { wakeProgress } from "@/lib/wake-progress";
 import type { MarketManifest } from "@/config/deployment";
 import { wadToUnit } from "@/lib/units";
 import { PriceAxis } from "./price-axis";
@@ -40,8 +42,14 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const trader = snapshot.data?.trader;
   const publicUnavailable = head.isError || market.isError;
   const readUnavailable = publicUnavailable || snapshot.isError || !!snapshot.data?.accountError;
+  // Custody actions use the trading snapshot only; display reads (market header, ladder, prices) cannot block them.
+  const custodyUnavailable = head.isError || snapshot.isError || !!snapshot.data?.accountError;
   const ladder = useLadder(manifest.engine, md?.block, md?.bestBid ?? 0, md?.bestAsk ?? 0);
   const live = usePriceSeries(manifest.engine, block);
+  useMarketActivity(manifest.engine, !manifest.archived);
+  const waking = md && !publicUnavailable ? wakeProgress({ active: md.active, halted: md.halted, archived: manifest.archived,
+    accountingState: md.risk.accountingState, indexAvailable: md.risk.indexAvailable, markAvailable: md.risk.markAvailable,
+    longCap: md.leverageCaps.long, shortCap: md.leverageCaps.short, deploymentCapX: md.listing.deploymentCapX }) : undefined;
   const [intent, setIntent] = useState<CloseIntent>();
   const [bookPrice, setBookPrice] = useState<BookPriceIntent>();
   const [tab, setTab] = useState<Tab>("Position");
@@ -72,6 +80,14 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
     {manifest.archived && <p role="status" className="border-x border-b border-line px-3 py-2 text-xs text-fg-2">Archived market. New positions are disabled; existing positions and funds remain accessible.</p>}
     {(readUnavailable || ladder.isError) && <p role="alert" className="flex flex-wrap items-center gap-2 border-x border-b border-line px-3 py-2 text-xs text-signal-text">Connection interrupted. Refresh before trading.<button className="underline" onClick={() => { void head.refetch(); void market.refetch(); void snapshot.refetch(); void ladder.refetch(); }}>Retry</button></p>}
 
+    {waking && <div role="status" aria-live="polite" className="flex flex-wrap items-center gap-x-4 gap-y-1 border-x border-b border-line px-3 py-2 text-xs text-fg-2">
+      <span className="text-fg">Market waking up</span>
+      <ol className="flex items-center gap-3" aria-label="Wake-up progress">
+        {waking.steps.map(step => <li key={step.label} className={cx("inline-flex items-center gap-1.5", step.done ? "text-bid" : "text-fg-3")}>
+          <span className={cx("h-1.5 w-1.5", step.done ? "bg-bid" : "bg-fg-4")} aria-hidden />{step.label}<span className="sr-only">{step.done ? " ready" : " pending"}</span></li>)}
+      </ol>
+      <span className="text-fg-3">{waking.detail}</span>
+    </div>}
     <div className={styles.workspace}>
       <div className={styles.chart} aria-busy={!md && !publicUnavailable}>
         <PriceAxis index={live.index} perp={live.perp}
@@ -84,7 +100,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       <aside ref={ticketRef} tabIndex={-1} className={styles.trade} aria-label="Trade">
         <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={actionMarket} trader={trader} intent={intent} bookPrice={bookPrice} readUnavailable={readUnavailable} />
         <div className="mt-auto border-t border-line">
-          <AccountPanel engine={manifest.engine} m={actionMarket} t={trader} readUnavailable={readUnavailable} />
+          <AccountPanel engine={manifest.engine} m={actionMarket} t={trader} readUnavailable={custodyUnavailable} />
         </div>
       </aside>
 

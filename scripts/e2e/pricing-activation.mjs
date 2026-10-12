@@ -1,17 +1,6 @@
 /** One-time pricing activation readiness. Reads only; the engine rechecks every condition. */
 export const ACTIVATION_RECHECK_MS = 2_000;
 
-/** Engines with index warm-up and activatePricing() answer warmupIndex(); older ones revert. */
-export async function readFastStartupSupport({ client, engine, abi, blockNumber, transient }) {
-  try {
-    await client.readContract({ address: engine, abi, functionName: 'warmupIndex', blockNumber });
-    return true;
-  } catch (error) {
-    if (transient(error)) throw error;
-    return false;
-  }
-}
-
 const ready = twap => twap?.available === true && twap.twapWad > 0n;
 
 /** BOOTSTRAP, READY accounting and all three windows complete at this block. */

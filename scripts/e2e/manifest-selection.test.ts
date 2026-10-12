@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { readFileSync } from 'node:fs'
 import { toPublicManifest } from '../../oracle/packages/oracle-sdk/src/trading-manifest'
-import { sameSharedContracts, selectDeploymentManifests } from './manifest-selection'
+import { sameSharedContracts, selectCurrentManifest } from './manifest-selection'
 import { oracleServiceDeployment } from './service-deployment'
 
 const source = JSON.parse(readFileSync(new URL('../../frontend/src/config/public-manifest.json', import.meta.url), 'utf8'))
@@ -19,34 +19,22 @@ function fixture(version: number, markets = [1]) {
   return toPublicManifest(value)
 }
 
-test('fresh base selection archives the previous active engines with their original custody contracts', () => {
-  const previous = fixture(1, [1, 2]), older = fixture(2), first = fixture(3, [1]), second = fixture(3, [2])
-  const before = JSON.stringify([previous, older, first, second])
-  const next = selectDeploymentManifests(previous, [older], [first, second])
-  assert.equal(next.selected.contracts.MarketFactory.address, first.contracts.MarketFactory.address)
-  assert.equal(next.selected.contracts.CollateralVault.address, first.contracts.CollateralVault.address)
-  assert.deepEqual(next.selected.markets.map(m => m.engine), [...first.markets, ...second.markets].map(m => m.engine))
-  assert.deepEqual(next.archives.map(m => m.contracts.CollateralVault.address), [previous.contracts.CollateralVault.address, older.contracts.CollateralVault.address])
-  assert.deepEqual(next.archives.flatMap(m => m.markets.map(v => v.engine)), [...previous.markets, ...older.markets].map(m => m.engine))
-  assert.equal(JSON.stringify([previous, older, first, second]), before, 'selection must not mutate input manifests')
+test('selection serves exactly the incoming markets on their new shared contracts', () => {
+  const first = fixture(3, [1]), second = fixture(3, [2])
+  const before = JSON.stringify([first, second])
+  const selected = selectCurrentManifest([first, second])
+  assert.equal(selected.contracts.MarketFactory.address, first.contracts.MarketFactory.address)
+  assert.equal(selected.contracts.CollateralVault.address, first.contracts.CollateralVault.address)
+  assert.deepEqual(selected.markets.map(m => m.engine), [...first.markets, ...second.markets].map(m => m.engine))
+  assert.equal(JSON.stringify([first, second]), before, 'selection must not mutate input manifests')
 });
 
-test('reselecting an existing base preserves unselected owners without duplicating active engines', () => {
-  const previous = fixture(1, [1, 2]), selected = fixture(1, [2])
-  const next = selectDeploymentManifests(previous, [], [selected])
-  assert.deepEqual(next.selected.markets.map(m => m.name), ['fixture-1-2'])
-  assert.deepEqual(next.archives.flatMap(m => m.markets.map(v => v.name)), ['fixture-1-1'])
-  assert.equal(next.archives[0].contracts.CollateralVault.address, previous.contracts.CollateralVault.address)
-});
-
-test('selection rejects mixed bases, unknown provenance, duplicate engines and identity conflicts', () => {
-  const previous = fixture(1), fresh = fixture(2)
-  assert.throws(() => selectDeploymentManifests(previous, [], [fresh, fixture(3)]), /INCOMING_SHARED_DEPLOYMENT_MISMATCH/)
-  assert.throws(() => selectDeploymentManifests(previous, [], [{ ...fresh, verifiedAt: undefined }]), /VERIFIED_SAME_CHAIN/)
-  assert.throws(() => selectDeploymentManifests(previous, [], [fresh, fresh]), /DUPLICATE_MARKET_IDENTITY/)
-  assert.throws(() => selectDeploymentManifests(previous, [previous], [fresh]), /DUPLICATE_ARCHIVED_ENGINE/)
-  const conflict = toPublicManifest({ ...fresh, markets: previous.markets })
-  assert.throws(() => selectDeploymentManifests(previous, [], [conflict]), /ENGINE_IDENTITY_CONFLICT/)
+test('selection rejects mixed bases, unknown provenance and duplicate engines', () => {
+  const fresh = fixture(2)
+  assert.throws(() => selectCurrentManifest([]), /VERIFIED_DEPLOYMENTS_REQUIRED/)
+  assert.throws(() => selectCurrentManifest([fresh, fixture(3)]), /INCOMING_SHARED_DEPLOYMENT_MISMATCH/)
+  assert.throws(() => selectCurrentManifest([{ ...fresh, verifiedAt: undefined }]), /VERIFIED_SAME_CHAIN/)
+  assert.throws(() => selectCurrentManifest([fresh, fresh]), /DUPLICATE_MARKET_IDENTITY/)
   for (const field of ['address', 'codehash', 'deployBlock']) {
     const changed = structuredClone(fresh)
     ;(changed.contracts.MarketFactory as any)[field] = field === 'address' ? address(9999) : field === 'codehash' ? hash(9999) : 1

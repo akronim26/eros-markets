@@ -123,7 +123,7 @@ funding sequences. The House owner then completed opening and closing fills,
 release and withdrawal with four canonical public receipts, ending flat with 11
 test tokens in its wallet and 8.8 allocated. This is a fully backed owner flow,
 not a 5× or Privy-signing proof. Nebraska's separate trader flow remains unexecuted.
-See [owner flow evidence](../../artifacts/integration/redeployment-20261007/owner-flow.json).
+See owner flow evidence (retired deployment record, removed).
 Local worker deadlines are 13:21:32 UTC for House and 13:46:08 UTC for Nebraska;
 frontend and indexer remain running. Prices require the workers, not just the web server.
 
@@ -405,7 +405,7 @@ rules. No new market was deployed and no contract freshness limit was changed.
 
 ## Market replacement — 6 October 2026, 17:05 UTC
 
-The user requested retiring the stale Iran blockade event and selecting a more active replacement. The frontend now archives the old event while retaining Portfolio and collateral access. Its publisher, market-ops and maker processes are stopped with journals preserved. The JD Vance 2028 election market is selected, not deployed. See [MARKET_REPLACEMENT.md](MARKET_REPLACEMENT.md) for source observations, the interrupted qualification boundary, current 5× listing versus 1× live caps, and the deployment preparer’s 29-day horizon restriction. Typecheck, 42 unit checks, 18 integration checks, production build and targeted Chrome archive checks passed. No new market transaction, commit or push was sent.
+The user requested retiring the stale Iran blockade event and selecting a more active replacement. The frontend now archives the old event while retaining Portfolio and collateral access. Its publisher, market-ops and maker processes are stopped with journals preserved. The JD Vance 2028 election market is selected, not deployed. See MARKET_REPLACEMENT.md (retired deployment record, removed) for source observations, the interrupted qualification boundary, current 5× listing versus 1× live caps, and the deployment preparer’s 29-day horizon restriction. Typecheck, 42 unit checks, 18 integration checks, production build and targeted Chrome archive checks passed. No new market transaction, commit or push was sent.
 
 ## Football CRE result tests — 6 October 2026
 

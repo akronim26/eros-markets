@@ -15,34 +15,45 @@ clear journals, recover nonces, or remove existing locks. Build the pricefeed be
 launching (`npm --prefix packages/pricefeed run build`). Node with `node:sqlite`,
 Bun, and installed project dependencies are required.
 
-The prepared configuration is
-`tmp/redeploy-20261009/fast-profile/supervisor.json`. Its public market paths and
-private journals are shown below. Both groups remain stopped pending operator
-funding and maker seeding; do not restart the retired October 7/8 groups.
+The current configuration is `tmp/redeploy-20261011/supervisor.json` (one market,
+7 November 2026). Retired groups (October 13/14 and earlier) carry retirement markers and
+must not be restarted.
 
 ```json
 {
   "schema": 1,
   "rpcEnvFile": "tmp/redeploy-20261009/rpc-pool.env",
-  "stateDirectory": "tmp/redeploy-20261009/fast-profile/supervisor",
+  "stateDirectory": "tmp/redeploy-20261011/supervisor",
+  "gasRunway": { "launchMinutes": 60, "alertMinutes": 15, "checkIntervalMs": 60000, "publishIntervalSeconds": 80 },
+  "wake": { "url": "http://127.0.0.1:3100/api/market-activity", "pollMs": 15000, "idleMs": 600000 },
   "markets": [
     {
-      "name": "btc-oct10",
-      "publicDirectory": "artifacts/deployments/monad-testnet-20261009-fast-btc-oct10",
-      "privateDirectory": "tmp/redeploy-20261009/fast-profile/btc-oct10",
-      "keeperMaxGas": 4000000,
-      "liquidationEnabled": true
-    },
-    {
-      "name": "eth-oct11",
-      "publicDirectory": "artifacts/deployments/monad-testnet-20261009-fast-eth-oct11",
-      "privateDirectory": "tmp/redeploy-20261009/fast-profile/eth-oct11",
-      "keeperMaxGas": 4000000,
-      "liquidationEnabled": true
+      "name": "nov7-dem-white-women",
+      "publicDirectory": "artifacts/deployments/monad-testnet-20261011-nov7-dem-white-women",
+      "privateDirectory": "tmp/redeploy-20261011/nov7-dem-white-women",
+      "keeperMaxGas": "4000000",
+      "liquidationEnabled": true,
+      "maker": { "cooldownMs": 90000, "repriceTicks": 8, "maxActionsPerEpoch": 8 }
     }
   ]
 }
 ```
+
+`wake` enables wake-on-visit (`wake-policy.mjs`): the supervisor polls the frontend's
+`GET /api/market-activity` and stops a market's three workers after `idleMs` without a
+visitor heartbeat, unless any account is leveraged (`e0Q < 0` or `e1Q < 0`). A visitor
+restarts them on the same journals. Every failed activity or leverage read keeps the market
+awake. The URL must be https, or loopback for a local frontend; point it at the Vercel
+deployment once one exists. Without `wake`, markets stay awake. `publishIntervalSeconds`
+makes the runway projection follow the paced publisher (default 12 s source cadence).
+
+`autoTopUp` (optional) refills operator wallets from the root deployer whose key is read from
+`rootEnvFile` (a private, ignored `tmp/` file containing only `PRIVATE_KEY`). Defaults: refill
+when under `triggerMinutes` 90 of runway, `amountsMon` keeper 30 / publisher 15 / makers 5,
+`cooldownMinutes` 30 per wallet, `dailyCapMon` 200, `rootReserveMon` 10. Refills go only to the
+configured markets' operator addresses and are logged to `<stateDirectory>/topups.jsonl`. Run
+from the command line on macOS, the supervisor also posts desktop notifications for low gas,
+stopped markets and refills that fail or that root cannot afford.
 
 This configuration enables liquidations using the enrolled `gas.liquidate` policy
 in each matching market-ops manifest. Funding and pricing readiness must still be
@@ -58,8 +69,8 @@ twelve actions per epoch, thirty seconds between replacements, five ticks of pri
 movement and fifteen seconds maximum capture wait.
 
 ```sh
-packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs check tmp/redeploy-20261009/fast-profile/supervisor.json
-packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs run tmp/redeploy-20261009/fast-profile/supervisor.json
+packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs check tmp/redeploy-20261011/supervisor.json
+packages/pricefeed/node_modules/node/bin/node scripts/ops/market-supervisor.mjs run tmp/redeploy-20261011/supervisor.json
 ```
 
 `check` performs read-only validation of testnet, deployed engine/listing identity,
@@ -83,3 +94,5 @@ host crash, inspect retained locks and signer/nonce state before manual recovery
 the supervisor never decides that an old lock is safe to delete. For a hackathon,
 prewarm long enough to cross a successful epoch opening and verify contract prices,
 caps, fresh funded depth and actual fills before declaring readiness.
+
+`gasRunway` (optional) sets the launch requirement and alert level. `check`/`run` refuse to start with `GAS_RUNWAY_INSUFFICIENT` (and per-role top-up amounts) unless every publisher, keeper and maker wallet has `launchMinutes` of conservatively projected runway above its own stopping threshold; while running, the supervisor records `gasRunwayAlert` events when a role drops below `alertMinutes`.

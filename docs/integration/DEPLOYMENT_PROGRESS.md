@@ -1,5 +1,32 @@
 # Fresh Monad testnet deployment
 
+## Current deployment — fast startup, 11 October (UTC)
+
+The user authorized recovery, replacement and cutover. All earlier deployments below
+are retired and no longer served.
+
+- **Recovery:** 38.198 MON returned from the eight October 9 operator wallets to the
+  root deployer (eight finalized transfers after exact fork rehearsals); two mined but
+  unrecorded publisher tails were reconciled first without signing. All 78 project
+  contracts held 0 MON. Retired service directories carry retirement markers.
+- **Base:** new engine code stores, `MarketFactory` `0x625e323822A74add21837046f61D4AFCAe745f96`
+  and shared `CollateralVault` `0xb251268Ce641D4FE1b1E70067FA644065fE0911E`; the timelocked
+  `setFactory` executed. Five transactions, canonically verified at block 69959297.
+- **Markets:** BTC above $82,000 on October 13 (engine
+  `0x5225228DAcBa2a676a13FAe478Ba919e60869a3d`) and ETH above $2,400 on October 14 (engine
+  `0xe26DE3d7Fd39Bc1B89143649c595fd3dDFdc4cA7`), seven verified transactions each, windows
+  60/60/60/30. Sources passed fresh 15-minute qualifications (ETH strikes with impact
+  spread above 0.05 at 1,000 claims were rejected).
+- **Operators:** publishers 30 MON, keepers 25 MON, makers 8 MON each; 2,000 TUSDC
+  allocated per maker. A keeper-only rollover restored READY accounting first.
+- **Services:** supervisor `tmp/redeploy-20261010/supervisor.json`, six workers.
+  Service launch to first finalized INDEX/MARK: BTC 66 s / 95 s, ETH 158 s / 161 s,
+  both in NORMAL pricing with 5×/5× caps. ETH INDEX was slower because the publisher
+  waits for a newer Polymarket book update after each capture.
+- **Frontend:** rebuilt and serving `http://localhost:3100` with only the two markets;
+  retired engine routes resolve to not-found. The live indexer discovers both engines.
+- Not yet shown: a user wallet trade on these markets. Evidence: `tmp/redeploy-20261010/`.
+
 ## Current frontend and market workers running — 9 October, 08:38 UTC
 
 The user approved funding and starting both replacement markets. This supersedes
@@ -104,7 +131,7 @@ Private cutover evidence is under
 `addresses-proof.json`, `indexer-discovery.json`, `frontend-build.json` and
 `frontend-running.json`. Root inventory evidence is
 `tmp/redeploy-20261009/fast-profile/root-address-inventory-update.json`. The public
-[pricing profile](../../artifacts/deployments/monad-testnet-20261009-fast-btc-oct10/frontend-selection/pricing-profile.json)
+pricing profile (retired deployment record, removed)
 pins both engines, runtime hashes and verified windows.
 
 The follow-up address audit checked 5,189 source, configuration and documentation
@@ -368,7 +395,7 @@ and withdrawal with four canonical receipts. It ended flat, with 8.8 test tokens
 allocated and 11 in its wallet after a 0.2-token spread loss. This proves fully
 backed trading and custody, not 5× or Privy wallet signing. Nebraska's separate
 public trader round trip was not executed in this checkpoint. See
-[owner flow evidence](../../artifacts/integration/redeployment-20261007/owner-flow.json).
+owner flow evidence (retired deployment record, removed).
 
 All four GitHub workflows passed on the user-pushed commit `f7e3d35`: contracts,
 oracle, pricefeed and frontend. The later local sampler/maker and bounded budget-verification repairs have focused
@@ -394,7 +421,7 @@ No private key or credential-bearing RPC URL belongs in deployment artifacts.
   This covers the three-attempt envelope of **21,016.8** across the resulting
   commitments at current cap bonds. The separate watchdog float is still 100;
   full-cap automatic dispute funding is not claimed. See the
-  [treasury evidence](../../artifacts/deployments/monad-testnet-20261007-factory-v4/treasury-funding.json).
+  treasury evidence (retired deployment record, removed).
 - [addresses.md](../../addresses.md) is refreshed after each confirmed deployment,
   with transaction links, blocks and activation status. Local fork addresses are
   excluded. The register lists only the current V1 contracts; historical evidence

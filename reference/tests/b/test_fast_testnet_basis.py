@@ -1,7 +1,8 @@
 """Risk check for the Monad testnet BASIS window change (180 s -> 60 s).
 
 Uses the exact pricing reference (`reference/b/pricing.py`); expected values are derived by hand
-in the comments. Prices are wad; samples every 10 s; carry 30 s.
+in the comments. Prices are wad; samples every 10 s; carry 30 s unless a class says otherwise
+(BookCarry and IndexCarry use the Monad testnet carries of 300 s and 120 s).
 
 Findings, all bounded by the I +/- b(t) clamp (b <= 0.05):
 * Manipulation: the median already follows the two 60-second book candidates, so a 60-second
@@ -130,6 +131,123 @@ class BookNoise(unittest.TestCase):
             steps[window] = worst_step
         self.assertGreaterEqual(steps[FAST], steps[SLOW])
         self.assertLessEqual(steps[FAST], 2 * 10**16)
+
+
+
+INDEX_CARRY, BOOK_CARRY = 120, 300   # Monad testnet only; other chains keep 30 s for both
+
+
+def index80(start, end, value_at_t=lambda t: 5 * 10**17):
+    """Authenticated INDEX observations on the lower-cost testnet cadence, one every 80 s."""
+    return [p.Sample(t, value_at_t(t)) for t in range(start, end + 1, 80)]
+
+
+def mark_testnet(now, index, perp, basis_window=FAST):
+    """MARK with the testnet carries: INDEX 120 s, sealed book samples 300 s."""
+    idx = p.twap(index, now, 60, stale_secs=INDEX_CARRY)
+    bas = p.twap(p.basis_samples(perp, index, stale_secs=INDEX_CARRY), now, basis_window,
+                 stale_secs=BOOK_CARRY)
+    prp = p.twap(perp, now, p.PERP_WINDOW, stale_secs=BOOK_CARRY)
+    live = p.value_at(perp, now, stale_secs=BOOK_CARRY)
+    if not (idx.available and bas.available and prp.available) or live is None:
+        return None
+    return p.mark(idx.twap_wad, bas.twap_wad, prp.twap_wad, live, now, T, LISTED)
+
+
+class BookCarry(unittest.TestCase):
+    """Monad testnet book samples (PERP/BASIS) carry 300 s.
+
+    A capture seals only on a later authenticated INDEX observation. With one publish and one
+    sample per 80 s cycle, sealed book samples are about two cycles (160 s) apart: 30 s and the
+    earlier 90 s lapse, 300 s does not. The longer carry only lets an unchanged, confirmed book
+    sample count longer; MARK still needs an INDEX within its carry and stays clamped to
+    I +/- b(t).
+    """
+
+    def test_two_cycle_seal_gap_lapses_at_30_and_90_and_holds_at_300(self):
+        index = index80(700, 1170)                                   # last observation 1100
+        perp = [p.Sample(t, 51 * 10**16) for t in range(700, 1171, 160)]  # last sample 1020
+        now = 1170
+        # Window [1110, 1170]: the 1020 sample covers [1020, 1050] at 30 s, [1020, 1110] at 90 s
+        # and [1020, 1320] at 300 s.
+        self.assertFalse(p.twap(perp, now, 60).available)
+        self.assertEqual(p.twap(perp, now, 60, stale_secs=90).covered_secs, 0)
+        self.assertTrue(p.twap(perp, now, 60, stale_secs=BOOK_CARRY).available)
+        self.assertIsNotNone(mark_testnet(now, index, perp))
+
+    def test_book_gap_beyond_300_seconds_lapses(self):
+        index = index80(700, 1400)
+        perp = [p.Sample(700, 51 * 10**16), p.Sample(1011, 51 * 10**16)]
+        # [1000, 1011) is uncovered: the 700 sample carries only to 1000.
+        tw = p.twap(perp, 1040, 60, stale_secs=BOOK_CARRY)
+        self.assertFalse(tw.available)
+        self.assertEqual(tw.covered_secs, 49)
+        self.assertIsNone(mark_testnet(1040, index, perp))
+
+    def test_longer_book_carry_never_survives_a_stale_index(self):
+        index = index80(700, 1020)                                   # last observation 1020
+        perp = series(700, 1020, lambda t: 51 * 10**16)
+        self.assertIsNotNone(mark_testnet(1140, index, perp))
+        self.assertIsNone(mark_testnet(1141, index, perp), "INDEX carry 120 s still gates MARK")
+
+    def test_held_book_sample_is_still_clamped_to_the_index_band(self):
+        # INDEX moves from 0.50 to 0.60 at 1020 while the last confirmed book sample (0.50) is held.
+        index = index80(700, 1340, lambda t: 5 * 10**17 if t < 1020 else 6 * 10**17)
+        perp = [p.Sample(t, 5 * 10**17) for t in range(700, 1021, 20)]
+        seen = 0
+        for now in range(1021, 1320):
+            m = mark_testnet(now, index, perp)
+            if m is None:
+                continue
+            seen += 1
+            i = p.twap(index, now, 60, stale_secs=INDEX_CARRY).twap_wad
+            self.assertLessEqual(abs(m - i), p.band_wad(now, T, LISTED))
+        self.assertGreater(seen, 0)
+
+
+class IndexCarry(unittest.TestCase):
+    """Monad testnet INDEX observations carry 120 s (other chains 30 s).
+
+    The publisher sends about every 80 s. A 120 s carry keeps the 60-second INDEX window covered
+    between observations and still turns INDEX (and so MARK) off at most 120 s after the last
+    observation. The INVALID-window integral uses the same carry, so it stays contiguous.
+    """
+
+    def test_eighty_second_cadence_is_continuous_at_120_and_not_at_30(self):
+        index = index80(700, 1340)                                   # last observation 1340
+        for now in range(760, 1461):
+            self.assertTrue(p.twap(index, now, 60, stale_secs=INDEX_CARRY).available, now)
+        # Window [760, 820] at 30 s: the 700 sample ends at 730; 780 covers [780, 810] = 30 s.
+        self.assertEqual(p.twap(index, 820, 60).covered_secs, 30)
+
+    def test_dead_source_turns_index_off_within_120_seconds(self):
+        index = index80(700, 1340)
+        self.assertIsNotNone(p.value_at(index, 1460, stale_secs=INDEX_CARRY))
+        self.assertIsNone(p.value_at(index, 1461, stale_secs=INDEX_CARRY))
+        tw = p.twap(index, 1461, 60, stale_secs=INDEX_CARRY)
+        self.assertFalse(tw.available)
+        self.assertEqual(tw.covered_secs, 59)                         # [1402, 1460]
+
+    def test_gap_of_121_seconds_breaks_the_window(self):
+        index = [p.Sample(1000, 6 * 10**17), p.Sample(1121, 6 * 10**17), p.Sample(1180, 6 * 10**17)]
+        tw = p.twap(index, 1180, 60, stale_secs=INDEX_CARRY)
+        self.assertFalse(tw.available)
+        self.assertEqual(tw.covered_secs, 59)                         # [1120, 1121) uncovered
+        exact = [p.Sample(1000, 6 * 10**17), p.Sample(1120, 6 * 10**17), p.Sample(1180, 6 * 10**17)]
+        self.assertTrue(p.twap(exact, 1180, 60, stale_secs=INDEX_CARRY).available)
+
+    def test_invalid_window_is_contiguous_and_exact_at_eighty_seconds(self):
+        end = 200_000
+        start = end - p.INVALID_WINDOW
+        # 0.40 for observations before start + 43,200, then 0.70. The change lands on an
+        # observation (start - 3,600 + 80 * 585 = start + 43,200), so the integral is exact:
+        # (0.40 * 43,200 + 0.70 * 43,200) / 86,400 = 0.55.
+        index = [p.Sample(t, 4 * 10**17 if t < start + 43_200 else 7 * 10**17)
+                 for t in range(start - 3_600, end + 601, 80)]
+        tw = p.twap(index, end, p.INVALID_WINDOW, stale_secs=INDEX_CARRY)
+        self.assertTrue(tw.available)
+        self.assertEqual(tw.twap_wad, 55 * 10**16)
+        self.assertFalse(p.twap(index, end, p.INVALID_WINDOW).available, "30 s carry has gaps")
 
 
 if __name__ == "__main__":

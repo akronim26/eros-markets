@@ -1,17 +1,17 @@
-/** Stage a verified frontend selection; --apply installs it with rollback backups. */
+/** Stage a verified frontend selection of exactly these deployments; --apply installs it with rollback backups. */
 import { readFileSync, mkdirSync } from 'node:fs'
 import { keccak256, stringToHex, type Address } from '../../frontend/node_modules/viem'
 import { atomicWrite, artifact, client } from '../../oracle/e2e/src/fresh-testnet'
 import { toPublicManifest } from '../../oracle/packages/oracle-sdk/src/trading-manifest'
-import { selectDeploymentManifests } from './manifest-selection'
+import { selectCurrentManifest } from './manifest-selection'
 const args = process.argv.slice(2), apply = args.includes('--apply')
 const dirs = args.filter(arg => arg !== '--apply')
 if (!dirs.length || dirs.some(d => !d.startsWith('artifacts/deployments/') || d.includes('..'))) throw Error('VERIFIED_DEPLOYMENT_DIRECTORIES_REQUIRED')
 const read = (p: string) => JSON.parse(readFileSync(p, 'utf8'))
-const old = toPublicManifest(read('frontend/src/config/public-manifest.json'))
-const oldArchives = read('frontend/src/config/archived-deployments.json').map(toPublicManifest)
-const metadata = read('frontend/src/config/market-metadata.json')
-const calibrations = read('frontend/src/config/risk-calibrations.json') as any[]
+// Retired deployments are not served: metadata and calibrations come only from the incoming markets.
+const metadata: Record<string, unknown> = {}
+const baseCalibration = read('frontend/src/config/risk-calibration.json')
+const calibrations: any[] = []
 const pc = client(process.env.MONAD_TESTNET_RPC!).public
 if (await pc.getChainId() !== 10143) throw Error('WRONG_CHAIN')
 const anchor = await pc.getBlock({ blockTag: 'finalized' })
@@ -28,14 +28,10 @@ for (const d of dirs) {
   incoming.push(toPublicManifest({ ...manifest, markets: [market] }))
   metadata[market.name] = { title: report.title, short: report.title, source: 'Polymarket',
     category: source.config.category === 'politics' ? 'Politics' : source.config.category === 'sports' ? 'Sports' : 'Crypto', archived: false }
-  if (!calibrations.some(c => c.profileHash === calibration.profileHash)) calibrations.push(calibration)
+  if (calibration.profileHash !== baseCalibration.profileHash && !calibrations.some(c => c.profileHash === calibration.profileHash))
+    calibrations.push({ kind: calibration.kind, description: calibration.description, riskParams: calibration.riskParams, profileHash: calibration.profileHash })
 }
-const selection = selectDeploymentManifests(old, oldArchives, incoming)
-for (const archived of selection.archives) for (const market of archived.markets) {
-  if (!metadata[market.name]) throw Error('PREVIOUS_MARKET_METADATA_MISSING')
-  metadata[market.name] = { ...metadata[market.name], archived: true }
-}
-const selected = selection.selected, c = selected.contracts
+const selected = selectCurrentManifest(incoming), c = selected.contracts
 const unique = new Map([...Object.values(c), ...selected.markets.map(m => ({ address: m.engine, codehash: m.codehash }))].map(v => [v.address.toLowerCase(), v]))
 for (const v of unique.values()) {
   const r = await pc.call({ data: `0x73${v.address.slice(2)}3f60005260206000f3`, blockNumber: anchor.number })
@@ -67,13 +63,13 @@ for (const m of selected.markets) {
 }
 if ((await pc.getBlock({ blockNumber: anchor.number })).hash !== anchor.hash) throw Error('VERIFICATION_REORGED')
 const manifest = toPublicManifest({ ...selected, verifiedAt: { blockNumber: anchor.number.toString(), blockHash: anchor.hash },
-  calibrationEvidence: keccak256(stringToHex(JSON.stringify([read('frontend/src/config/risk-calibration.json'), ...calibrations]))) })
-const output = dirs[0] + '/frontend-selection'
+  calibrationEvidence: keccak256(stringToHex(JSON.stringify([baseCalibration, ...calibrations]))) })
+// Staging, report and rollback copies are operator state, kept out of the published deployment.
+const output = 'tmp/frontend-selection'
 mkdirSync(output, { recursive: true })
-const files = { 'market-metadata.json': metadata, 'risk-calibrations.json': calibrations,
-  'archived-deployments.json': selection.archives, 'public-manifest.json': manifest }
+const files = { 'market-metadata.json': metadata, 'risk-calibrations.json': calibrations, 'public-manifest.json': manifest }
 const report = { passed: true, status: 'staged', verifiedAt: manifest.verifiedAt, deployments: dirs,
-  active: manifest.markets.map(m => m.engine), archived: selection.archives.flatMap(m => m.markets.map(v => v.engine)),
+  active: manifest.markets.map(m => m.engine),
   note: 'Stop the frontend before --apply; restart or rebuild after all selection files are installed.' }
 for (const [name, value] of Object.entries(files)) atomicWrite(output + '/' + name, value)
 atomicWrite(output + '/report.json', report)

@@ -23,6 +23,12 @@ export const REJECT: Record<number, string> = {
   12: "Order became stale (epoch changed or expired).",
 };
 
+/** previewRelease reason for a Release button; BAD_STAGE during accounting work names the cause. */
+export function releaseRejection(code: number, accountingState: number): string {
+  if (code === 2 && accountingState !== 0) return "Market is processing its hourly update. Try again shortly.";
+  return REJECT[code] || "Release unavailable";
+}
+
 export const CANCEL_REASON = ["Cancelled", "Self-trade", "Failed re-check", "Clipped (reduce-only)", "Expired"] as const;
 
 export const ORACLE_STATE = [

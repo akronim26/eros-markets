@@ -40,3 +40,17 @@ export async function runKeeperAction({ run, hasPending, onLimit, rolloverCeilin
     return { limited: true };
   }
 }
+
+/**
+ * A pre-signing simulation that ran out of gas: the state moved between the gas estimate and the
+ * simulation (for example a new INDEX made the sample seal its pending capture). Nothing was
+ * signed, so the keeper re-estimates on its next pass instead of exiting.
+ */
+export function simulationOutOfGas(error) {
+  const seen = new Set();
+  for (let current = error; current && typeof current === 'object' && !seen.has(current); current = current.cause) {
+    seen.add(current);
+    if (current.details === 'out of gas' || /\bout of gas\b/i.test(current.shortMessage ?? '')) return true;
+  }
+  return false;
+}

@@ -71,3 +71,13 @@ test('network failures, wallet rejection, ordinary errors and text retain their 
   assert.equal(revertMessage('No transaction was sent'), 'No transaction was sent');
   assert.equal(revertMessage(new BaseError('RPC reply mentioned 0x8523b62a')), 'RPC reply mentioned 0x8523b62a');
 });
+
+test('a crossing Post only order gets a plain explanation, decoded or raw', () => {
+  const book = parseAbi(['error PostOnlyCrosses()']);
+  const raw = encodeErrorResult({ abi: book, errorName: 'PostOnlyCrosses' });
+  for (const error of [reverted(raw, book, 'placeOrder'), reverted(raw, vaultErrors, 'placeOrder')]) {
+    const message = revertMessage(nested(error));
+    assert.match(message, /Post only order must rest in the book/);
+    assert.match(message, /Choose Limit or IOC/);
+  }
+});

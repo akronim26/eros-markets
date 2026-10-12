@@ -317,7 +317,7 @@ contract LeveragedFactoryTest is RealMarketFixture {
         _start(true);
         _normal();
         _position();
-        vm.warp(block.timestamp + 31);
+        vm.warp(block.timestamp + 121); // past the 120 s Monad testnet INDEX carry
         (uint256 cap,) = engine.leverageCaps();
         assertEq(cap, 1);
         RiskLiquidation.LiquidationResult memory r = engine.liquidate(engine.participantId(buyer), 100_000, 8, 0);
