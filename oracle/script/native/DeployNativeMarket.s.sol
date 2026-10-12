@@ -2,6 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {VmSafe} from "forge-std/Vm.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {NativeOutcomeVault} from "@eros/native/NativeOutcomeVault.sol";
 
@@ -48,8 +49,11 @@ contract DeployNativeMarket is Script {
 
     function run() external returns (Out memory o) {
         string memory p = vm.readFile(vm.envString("NATIVE_PARAMS"));
-        string memory outPath = p.readString(".out");
-        require(!vm.exists(outPath), "NATIVE_DEPLOYMENT_EXISTS");
+        // Only a real broadcast writes `out`; a simulation writes `<out>.dryrun.json` so it can never
+        // block (or be mistaken for) the real deployment record.
+        bool broadcasting = vm.isContext(VmSafe.ForgeContext.ScriptBroadcast);
+        string memory outPath = broadcasting ? p.readString(".out") : string.concat(p.readString(".out"), ".dryrun.json");
+        require(!broadcasting || !vm.exists(outPath), "NATIVE_DEPLOYMENT_EXISTS");
         bytes32 rulesHash = keccak256(bytes(p.readString(".rules")));
         address collateral = p.readAddress(".collateral");
         IKuruRouter router = IKuruRouter(p.readAddress(".kuruRouter"));
