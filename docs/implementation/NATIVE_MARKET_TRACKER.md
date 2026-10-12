@@ -97,12 +97,12 @@ Statuses: `TODO`, `READY`, `ACTIVE`, `VERIFY`, `BLOCKED`, `DONE`, `DEFERRED`, `I
 | --- | --- | --- | --- | --- | ---: |
 | A | Frozen event, policies, budget and baseline | Integration | Unassigned | READY | 0 / 5 core |
 | B | Kuru compatibility proof | Integration | Unassigned | VERIFY (fork PASS) | 0 / 5 core |
-| C | Backed YES/NO issuance and redemption contracts | Contracts | Unassigned | VERIFY | 8 / 8 core |
+| C | Backed YES/NO issuance and redemption contracts | Contracts | Unassigned | DONE (local) | 8 / 8 core |
 | D | Bound native market and verified deployment | Integration + contracts | Unassigned | TODO | 0 / 6 core |
 | E | Spot trading, maker liquidity and arbitrage demonstration | Venue integration | Unassigned | TODO | 0 / 4 core |
-| F | Native observer and durable signed publication | Pricefeed | Unassigned | TODO | 4 / 8 core |
+| F | Native observer and durable signed publication | Pricefeed | Unassigned | ACTIVE | 4 / 8 core |
 | G | Native INDEX/MARK and real Eros perp execution | Perp integration | Unassigned | TODO | 0 / 4 core |
-| H | Resolution, native redemption and perp claims | Contracts + oracle integration | Unassigned | TODO | 1 / 4 core |
+| H | Resolution, native redemption and perp claims | Contracts + oracle integration | Unassigned | ACTIVE | 1 / 4 core |
 | I | Minimum usable native-market UI | Frontend | Unassigned | IF-TIME | 0 / 0 core |
 | J | Operations, regression checks and demo handoff | Integration | Unassigned | TODO | 0 / 4 core |
 | **Core total** | **10-hour hackathon release** | Integration | Unassigned | **IN PROGRESS** (contracts, observer, local settlement done) | **13 / 48 core** (+26 IF-TIME) |
