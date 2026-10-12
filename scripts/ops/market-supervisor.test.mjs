@@ -123,8 +123,11 @@ test('a fenced publisher restarts with backoff; the restart budget still applies
 function wakeFixture(name, exitDelayMs = 50) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), `eros-supervisor-${name}-`));
   const fixture = path.join(directory, 'worker.mjs'), starts = path.join(directory, 'starts');
-  fs.writeFileSync(fixture, `import fs from 'node:fs'; fs.appendFileSync(${JSON.stringify(starts)}, 'x');
-setInterval(() => {}, 1000); process.once('SIGTERM', () => setTimeout(() => process.exit(0), ${exitDelayMs}));\n`);
+  // The SIGTERM handler is installed before the start is recorded, so a counted worker always
+  // honours its shutdown delay (Linux delivers an early SIGTERM before module end otherwise).
+  fs.writeFileSync(fixture, `import fs from 'node:fs';
+process.once('SIGTERM', () => setTimeout(() => process.exit(0), ${exitDelayMs})); setInterval(() => {}, 1000);
+fs.appendFileSync(${JSON.stringify(starts)}, 'x');\n`);
   const group = { name: 'fixture', engine: '0xE1', coordination: path.relative(process.cwd(), directory), environment: {},
     children: [{ role: 'publisher', command: process.execPath, args: [fixture] }, { role: 'operations', command: process.execPath, args: [fixture] }] };
   return { directory, group, starts: () => fs.existsSync(starts) ? fs.readFileSync(starts, 'utf8').length : 0,
@@ -144,10 +147,11 @@ async function stop(finishing) { process.emit('SIGTERM'); await finishing; }
 
 test('idle market sleeps with no workers and no exit, then a visitor wakes it on the same journals', async () => {
   const f = wakeFixture('wake');
-  let seen = null, leverageReads = 0;
+  // An open tab heartbeats continuously: report a fresh visit on every poll while visiting.
+  let visiting = false, leverageReads = 0;
   const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [f.group],
     wake: { url: 'https://x/api', pollMs: 40, idleMs: 1000 },
-    readActivityImpl: async () => ({ '0xe1': seen }), anyLeveragedImpl: async () => { leverageReads++; return false; } });
+    readActivityImpl: async () => ({ '0xe1': visiting ? Date.now() : null }), anyLeveragedImpl: async () => { leverageReads++; return false; } });
   try {
     await until(() => f.status().groups[0].status === 'asleep');
     assert.equal(f.starts(), 2);
@@ -155,7 +159,7 @@ test('idle market sleeps with no workers and no exit, then a visitor wakes it on
     assert.deepEqual(f.status().groups[0].children.map(c => c.status), ['asleep', 'asleep']);
     await pause(200);
     assert.equal(f.status().groups[0].status, 'asleep', 'a sleeping market does not end the supervisor');
-    seen = Date.now();
+    visiting = true;
     await until(() => f.status().groups[0].status === 'running' && f.starts() === 4);
     assert.ok(f.events().some(e => e.waking && e.reason === 'visitor'));
     await stop(finishing);
@@ -196,13 +200,16 @@ test('an unreadable activity route keeps an awake market awake and wakes a sleep
 test('a visitor arriving during shutdown wakes the market as soon as the workers have stopped', async () => {
   // Workers take 800 ms to exit, so the sleeping state is observable on any machine.
   const f = wakeFixture('during', 800);
-  let seen = null;
+  // Visit until both workers are up, then leave so the market idles into its shutdown.
+  let visiting = true;
   const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [f.group],
     wake: { url: 'https://x/api', pollMs: 20, idleMs: 1000 },
-    readActivityImpl: async () => ({ '0xe1': seen }), anyLeveragedImpl: async () => false });
+    readActivityImpl: async () => ({ '0xe1': visiting ? Date.now() : null }), anyLeveragedImpl: async () => false });
   try {
+    await until(() => f.starts() === 2);
+    visiting = false;
     await until(() => f.status().groups[0].status === 'sleeping');
-    seen = Date.now();
+    visiting = true;
     await until(() => f.events().some(e => e.waking && e.reason === 'visitor-during-shutdown'));
     await until(() => f.status().groups[0].status === 'running' && f.starts() === 4);
   } finally { await stop(finishing); fs.rmSync(f.directory, { recursive: true, force: true }); }
