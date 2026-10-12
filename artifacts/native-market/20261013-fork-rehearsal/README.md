@@ -18,3 +18,16 @@
 | Same-second guard | publish while anvil mined no blocks | `SOURCE_SECOND_NOT_ADVANCED`: withheld instead of re-timestamping old data |
 
 Not covered here: perp sampling, pricing activation or a perp fill (NM-G02–G04), and public-chain receipts.
+
+## Native-priced perp on the same fork (NM-G01–G04 rehearsal)
+
+| Step | Command | Result |
+| --- | --- | --- |
+| Fund perp accounts | `CollateralVault.deposit` + `allocate(engine, 500 tUSDC)` for maker and taker | Engine is registered in the real CollateralVault `0x5E53…05e4`. One allocate reverted during a concurrent publisher tx (stale gas estimate); the retry succeeded |
+| Perp maker quotes | `perp.sh quote 600 620 150000` (post-only, fully backed) | Rested around the native INDEX of 0.61 |
+| Keeper | `samplePerp()` each block while `native-publish.js` keeps INDEX fresh | Capture then later-block seal; PERP TWAP available 0.61 after ~17 samples; `activatePricing()` succeeded → `pricingMode = 1` |
+| 1× perp fill | taker IOC buy 50,000 lots at 620 | Taker long 50 claims, cash 500 → 469 (50 × 0.62 = 31); maker short 50, cash 531; taker E1 = 469 + 50 = 519 |
+| Close | `perp.sh close 600 50000 sell` (reduce-only IOC) | Taker flat, cash 499 (−1 = 50 × 0.02 spread) |
+| Release + withdraw | `perp.sh release 499000000`; `CollateralVault.withdraw` | Wallet +499 tUSDC |
+
+Native INDEX came only from the Kuru YES book. The perp PERP/BASIS came from sealed Eros book samples. Pricing used the testnet windows of chain 10143.
