@@ -31,3 +31,12 @@ Not covered here: perp sampling, pricing activation or a perp fill (NM-G02–G04
 | Release + withdraw | `perp.sh release 499000000`; `CollateralVault.withdraw` | Wallet +499 tUSDC |
 
 Native INDEX came only from the Kuru YES book. The perp PERP/BASIS came from sealed Eros book samples. Pricing used the testnet windows of chain 10143.
+
+## Second market: real Timelock activation path (fork)
+
+- A second rehearsal market went through `DeployNativeMarket` → `native-rules` → `ListNativeMarket` in one pass: engine `0x90E5…A84c`, vault bound.
+- `ENGINE=… forge script script/native/ActivateNativeMarket.s.sol` simulated `activateMarket()` as the Timelock and printed `propose`/`execute` calldata.
+- `propose` was sent from the lister wallet, which holds the Timelock PROPOSER, EXECUTOR and CANCELLER roles on public testnet (`minDelay` 300 s): success.
+- An early `execute` reverted while the operation was still pending.
+- After +301 s, `execute` succeeded and `engine.active() == true`.
+- On the public chain, listing **and** activation therefore need only the lister key.
