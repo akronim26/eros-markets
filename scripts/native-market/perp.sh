@@ -8,7 +8,10 @@ CV=${CV:-0x5E53c88eB3dA4C8640BC7AF51F0C5f8CC11205e4}
 ME=$(cast wallet address "$KEY")
 PLACE='placeOrder((uint8,bool,bool,uint16,uint64,uint8,uint32))'
 VIEW='accountRiskView(uint32)((uint32,uint64,uint8,int256,int256,int256,int256,bool,int256,uint256,uint256,uint8,bool,uint64,uint8,uint8,(uint256,uint256,uint256,uint256)))'
-tx() { cast send --rpc-url "$R" --private-key "$KEY" "$@" | awk '/^status/{s=$2} /^transactionHash/{h=$2} END{print "  tx", h, s; if (s!=1) exit 1}'; }
+# Estimate, then send with a +30% gas-limit margin: keepers/publishers change engine state between
+# estimate and inclusion, and an exact estimate can run out of gas (seen as ReentrancySentryOOG).
+tx() { local g; g=$(cast estimate --rpc-url "$R" --from "$ME" "$@") || { echo "  estimate failed: $*" >&2; return 1; }
+  cast send --rpc-url "$R" --private-key "$KEY" --gas-limit $((g * 13 / 10)) "$@" | awk '/^status/{s=$2} /^transactionHash/{h=$2} END{print "  tx", h, s; if (s!=1) exit 1}'; }
 
 cmd=${1:-status}; shift || true
 case "$cmd" in
@@ -24,17 +27,24 @@ case "$cmd" in
   release)  tx "$ENG" 'release(uint256)' "$1";;  # release <atoms> from this market back to free vault balance
   keeper)   # keeper <maxIterations> <sleepSecs>: samplePerp each block until activatePricing succeeds
     for i in $(seq 1 "$1"); do
-      cast send "$ENG" 'samplePerp()' --private-key "$KEY" --rpc-url "$R" >/dev/null 2>&1 || true
+      tx "$ENG" 'samplePerp()' >/dev/null 2>&1 || true
       if cast call "$ENG" 'activatePricing()' --from "$ME" --rpc-url "$R" >/dev/null 2>&1; then
         echo "  pricing activatable after $i samples"; tx "$ENG" 'activatePricing()'; break; fi
       sleep "$2"
     done
     echo "  pricingMode=$(cast call "$ENG" 'pricingMode()(uint8)' --rpc-url "$R")";;
+  rollover) # rollover: hourly accounting sweep (beginRollover -> rollPage(32)... -> finishRollover). Requote afterwards.
+    tx "$ENG" 'beginRollover()'
+    for i in $(seq 1 64); do
+      done_=$(cast call "$ENG" 'rollPage(uint8)(bool)' 32 --from "$ME" --rpc-url "$R"); tx "$ENG" 'rollPage(uint8)' 32
+      [ "$done_" = true ] && break
+    done
+    tx "$ENG" 'finishRollover()';;
   status)
     id=$(cast call "$ENG" 'traderIdOf(address)(uint32)' "$ME" --rpc-url "$R")
     v=$(cast call "$ENG" "$VIEW" "$id" --rpc-url "$R" | tr -d '()' | sed 's/ \[[^]]*\]//g')
     echo "account $ME id=$id"
     echo "$v" | awk -F', ' '{printf "  cashQ=%s positionLots=%s e0Q=%s e1Q=%s markAvailable=%s\n", $4, $5, $6, $7, $8}'
     echo "  pricingMode=$(cast call "$ENG" 'pricingMode()(uint8)' --rpc-url "$R")";;
-  *) echo "usage: perp.sh fund|quote|buy|sell|close|release|keeper|status ..." >&2; exit 2;;
+  *) echo "usage: perp.sh fund|quote|buy|sell|close|release|keeper|rollover|status ..." >&2; exit 2;;
 esac

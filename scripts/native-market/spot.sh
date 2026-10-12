@@ -9,7 +9,10 @@ MA=${KURU_MARGIN:-0xd029C2D98ff85D8F64799017fE00a59B1159CE02}
 j() { jq -r ".$1" "$D"; }
 V=$(j outcomeVault); YES=$(j yesToken); NO=$(j noToken); C=$(j collateral); YB=$(j yesBook); NB=$(j noBook)
 ME=$(cast wallet address "$KEY")
-tx() { cast send --rpc-url "$R" --private-key "$KEY" "$@" | awk '/^status/{s=$2} /^transactionHash/{h=$2} END{print "  tx", h, s; if (s!=1) exit 1}'; }
+# Estimate, then send with a +30% gas-limit margin: keepers/publishers change engine state between
+# estimate and inclusion, and an exact estimate can run out of gas (seen as ReentrancySentryOOG).
+tx() { local g; g=$(cast estimate --rpc-url "$R" --from "$ME" "$@") || { echo "  estimate failed: $*" >&2; return 1; }
+  cast send --rpc-url "$R" --private-key "$KEY" --gas-limit $((g * 13 / 10)) "$@" | awk '/^status/{s=$2} /^transactionHash/{h=$2} END{print "  tx", h, s; if (s!=1) exit 1}'; }
 book() { case "$1" in yes) echo "$YB";; no) echo "$NB";; *) echo "bad side $1" >&2; exit 2;; esac; }
 bal() { cast call "$1" 'balanceOf(address)(uint256)' "$2" --rpc-url "$R" | awk '{print $1}'; }
 mbal() { cast call "$MA" 'getBalance(address,address)(uint256)' "$1" "$2" --rpc-url "$R" | awk '{print $1}'; }
