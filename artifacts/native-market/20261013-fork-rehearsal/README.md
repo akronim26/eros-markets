@@ -40,3 +40,11 @@ Native INDEX came only from the Kuru YES book. The perp PERP/BASIS came from sea
 - An early `execute` reverted while the operation was still pending.
 - After +301 s, `execute` succeeded and `engine.active() == true`.
 - On the public chain, listing **and** activation therefore need only the lister key.
+
+## Hourly rollover and recovery (fork; NM-G07 is IF-TIME, rehearsed anyway)
+
+- `beginRollover()` before the hour boundary reverted. After time was advanced past the hour, `perp.sh rollover` (`beginRollover` → `rollPage(32)` → `finishRollover`) succeeded.
+- **Finding 1:** right after the 36-minute time jump, INDEX was stale and the maker's sell quote and the taker's buy failed. That is correct: no new risk without a fresh price.
+- **Finding 2:** a second publisher started while the first was still running and failed with `DuplicateOrOldSequence`. The duplicate writer was rejected and nothing conflicting was signed.
+- **Finding 3 (fixed):** `ReentrancySentryOOG`. Plain `cast send` gas estimates went stale while the publisher and keeper changed engine state, so `placeOrder`, `samplePerp` and once `allocate` ran out of gas. `spot.sh` and `perp.sh` now estimate and send with a +30% gas limit.
+- After the fix, the maker re-quoted, the keeper re-sealed (PERP valid after 16 samples), and the taker bought 20 claims at 0.62: cash 100 → 87.6 (20 × 0.62 = 12.4), E1 = 107.6, MARK available.
