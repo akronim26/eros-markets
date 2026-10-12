@@ -120,11 +120,11 @@ test('a fenced publisher restarts with backoff; the restart budget still applies
   assert.deepEqual(exitPolicy({ code: 1, text: 'Error: WRITER_FENCED', restarts: 5 }), { action: 'block', reason: 'restart-limit' });
 });
 
-function wakeFixture(name) {
+function wakeFixture(name, exitDelayMs = 50) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), `eros-supervisor-${name}-`));
   const fixture = path.join(directory, 'worker.mjs'), starts = path.join(directory, 'starts');
   fs.writeFileSync(fixture, `import fs from 'node:fs'; fs.appendFileSync(${JSON.stringify(starts)}, 'x');
-setInterval(() => {}, 1000); process.once('SIGTERM', () => setTimeout(() => process.exit(0), 50));\n`);
+setInterval(() => {}, 1000); process.once('SIGTERM', () => setTimeout(() => process.exit(0), ${exitDelayMs}));\n`);
   const group = { name: 'fixture', engine: '0xE1', coordination: path.relative(process.cwd(), directory), environment: {},
     children: [{ role: 'publisher', command: process.execPath, args: [fixture] }, { role: 'operations', command: process.execPath, args: [fixture] }] };
   return { directory, group, starts: () => fs.existsSync(starts) ? fs.readFileSync(starts, 'utf8').length : 0,
@@ -132,11 +132,15 @@ setInterval(() => {}, 1000); process.once('SIGTERM', () => setTimeout(() => proc
     events: () => fs.readFileSync(path.join(directory, 'supervisor.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l)) };
 }
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
-async function until(check, ms = 3000) {
+// Generous limits: CI machines are slower than a laptop and these tests spawn real processes.
+async function until(check, ms = 10_000) {
   const end = Date.now() + ms;
   while (Date.now() < end) { if (check()) return; await pause(20); }
   assert.fail('condition not reached');
 }
+// Always stop the supervisor, pass or fail: a leaked supervisor keeps its workers and the test
+// runner's output pipe alive.
+async function stop(finishing) { process.emit('SIGTERM'); await finishing; }
 
 test('idle market sleeps with no workers and no exit, then a visitor wakes it on the same journals', async () => {
   const f = wakeFixture('wake');
@@ -154,10 +158,9 @@ test('idle market sleeps with no workers and no exit, then a visitor wakes it on
     seen = Date.now();
     await until(() => f.status().groups[0].status === 'running' && f.starts() === 4);
     assert.ok(f.events().some(e => e.waking && e.reason === 'visitor'));
-    process.emit('SIGTERM');
-    await finishing;
+    await stop(finishing);
     assert.equal(f.status().status, 'stopped');
-  } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+  } finally { await stop(finishing); fs.rmSync(f.directory, { recursive: true, force: true }); }
 });
 
 test('a leveraged account or a failed leverage read keeps workers running', async () => {
@@ -170,8 +173,7 @@ test('a leveraged account or a failed leverage read keeps workers running', asyn
       assert.equal(f.status().groups[0].status, 'running');
       assert.equal(f.starts(), 2);
       assert.ok(f.events().some(e => e.awake && /leverage/.test(e.reason)));
-      process.emit('SIGTERM'); await finishing;
-    } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+    } finally { await stop(finishing); fs.rmSync(f.directory, { recursive: true, force: true }); }
   }
 });
 
@@ -188,23 +190,22 @@ test('an unreadable activity route keeps an awake market awake and wakes a sleep
     assert.ok(f.events().some(e => e.waking && e.reason === 'activity-read-failed'));
     await pause(200);
     assert.equal(f.starts(), 4, 'stays awake while reads fail');
-    process.emit('SIGTERM'); await finishing;
-  } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+  } finally { await stop(finishing); fs.rmSync(f.directory, { recursive: true, force: true }); }
 });
 
 test('a visitor arriving during shutdown wakes the market as soon as the workers have stopped', async () => {
-  const f = wakeFixture('during');
+  // Workers take 800 ms to exit, so the sleeping state is observable on any machine.
+  const f = wakeFixture('during', 800);
   let seen = null;
   const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [f.group],
     wake: { url: 'https://x/api', pollMs: 20, idleMs: 1000 },
     readActivityImpl: async () => ({ '0xe1': seen }), anyLeveragedImpl: async () => false });
   try {
-    await until(() => f.status().groups[0].status === 'sleeping', 3000);
+    await until(() => f.status().groups[0].status === 'sleeping');
     seen = Date.now();
     await until(() => f.events().some(e => e.waking && e.reason === 'visitor-during-shutdown'));
     await until(() => f.status().groups[0].status === 'running' && f.starts() === 4);
-    process.emit('SIGTERM'); await finishing;
-  } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+  } finally { await stop(finishing); fs.rmSync(f.directory, { recursive: true, force: true }); }
 });
 
 test('a fenced worker is restarted instead of blocking its market', async () => {
@@ -223,8 +224,7 @@ setInterval(() => {}, 1000); process.once('SIGTERM', () => process.exit(0));\n`)
     const status = () => JSON.parse(fs.readFileSync(path.join(directory, 'status.json'), 'utf8'));
     await until(() => status().groups[0].children[0].restarts === 1 && status().groups[0].children[0].status === 'running');
     assert.equal(status().groups[0].status, 'running');
-    process.emit('SIGTERM'); await finishing;
-  } finally { globalThis.setTimeout = original; fs.rmSync(directory, { recursive: true, force: true }); }
+  } finally { await stop(finishing); globalThis.setTimeout = original; fs.rmSync(directory, { recursive: true, force: true }); }
 });
 
 test('a worker that exits on an RPC provider internal error restarts; other RPC failures still block', () => {
