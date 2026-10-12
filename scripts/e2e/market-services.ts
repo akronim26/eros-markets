@@ -9,16 +9,17 @@ import { Operations } from '../../oracle/services/market-ops/src/operations';
 import { manifestSchema, binding } from '../../oracle/services/market-ops/src/schema';
 import { FileStore } from '../../oracle/services/market-ops/src/store';
 import { readCanonicalSampleCapture } from './sample-capture.mjs';
-import { readBootstrapRolloverDeferral } from './rollover-readiness.mjs';
-import { ActivationSchedule, readFastStartupSupport, readPricingActivation } from './pricing-activation.mjs';
-import { keeperGasCeiling, boundedRolloverHelper, requireKeeperGas, runKeeperAction } from './keeper-gas-policy.mjs';
+import { ActivationSchedule, readPricingActivation } from './pricing-activation.mjs';
+import { BookChangeWatch } from './book-change-sampling.mjs';
+import { KEEPER_INDEX_MAX_AGE_SECS } from './index-pacing.mjs';
+import { keeperGasCeiling, boundedRolloverHelper, requireKeeperGas, runKeeperAction, simulationOutOfGas } from './keeper-gas-policy.mjs';
 import { sampleCadenceRemaining, isFinalizedSample } from './sampler-request-policy.mjs';
 import { readEpochSamplingPolicy, requireSampleSigningWindow, SampleEpochDeferred } from './epoch-sampling-policy.mjs';
 import { serviceRuntime, liquidationPolicy, keeperActions, transientServiceRead } from './service-runtime-policy.mjs';
 import { assertServiceNotRetired } from './service-retirement.mjs';
 import { dirname } from 'node:path';
 const require = createRequire(new URL('../../oracle/services/market-ops/package.json', import.meta.url));
-const { createPublicClient, createWalletClient, http, encodeFunctionData, keccak256 } = require('viem');
+const { createPublicClient, createWalletClient, http, encodeFunctionData, keccak256, decodeEventLog } = require('viem');
 const manifestPath = process.argv[2], journalPath = process.argv[3], evidencePath = process.argv[4];
 if (!manifestPath || !journalPath || !evidencePath) throw new Error('Usage: bun --no-env-file scripts/e2e/market-services.ts <manifest> <journal> <evidence.jsonl>');
 assertServiceNotRetired(dirname(journalPath));
@@ -68,11 +69,15 @@ transport.prepare = async call => {
   return { rawTransaction, hash: keccak256(rawTransaction) };
 };
 const listing = await reads.readContract({ address: manifest.engine, abi, functionName: 'listing' });
-// Engines with index warm-up activate pricing once all windows are complete, mid-epoch.
-// Older engines keep the hourly-opening promotion and its bootstrap rollover deferral.
-const fastStartup = await readFastStartupSupport({ client: reads, engine: manifest.engine, abi, transient: transientServiceRead });
-const activation = new ActivationSchedule({ enabled: fastStartup });
+// One-time pricing activation once all windows are complete, without waiting for the epoch opening.
+const activation = new ActivationSchedule({ enabled: true });
 let activationWaiting: string | undefined;
+// Capture the new book as soon as an engine action discards the pending capture.
+const bookChanges = new BookChangeWatch({ client: reads, engine: manifest.engine, decode: (log: { data: `0x${string}`; topics: `0x${string}`[] }) => {
+  try { return decodeEventLog({ abi, data: log.data, topics: log.topics as [`0x${string}`, ...`0x${string}`[]] }).eventName as string; } catch { return undefined; }
+} });
+const BOOK_CHANGE_SAMPLE_BLOCKS = 3n;
+let pendingBookSample = false;
 const coordination = process.env.EROS_PRICE_COORDINATION_DIR;
 if (coordination && !coordination.startsWith('tmp/')) throw new Error('Coordination files must stay in ignored tmp');
 // Finish fallible startup reads and configuration before acquiring the outbox lock.
@@ -82,6 +87,9 @@ const requestPath = coordination && `${coordination}/sample-request.json`;
 const ackPath = coordination && `${coordination}/sample-ack.json`;
 const statusPath = coordination && `${coordination}/sampler-status.json`;
 const noticePath = coordination && `${coordination}/pricing-notice.json`;
+const earlyIndexPath = coordination && `${coordination}/early-index-request.json`;
+// Last MARK availability read before a sample; the publisher paces INDEX on it.
+let markAvailable: boolean | undefined;
 // Wake-up hint for the maker after state that changes quoting readiness. Never an authorization:
 // the maker rereads and simulates everything from the chain.
 const notice = (event: 'activated' | 'rollover', hash?: string) => {
@@ -93,10 +101,19 @@ const notice = (event: 'activated' | 'rollover', hash?: string) => {
 };
 const heartbeat = (state: 'running' | 'stopped') => {
   if (!statusPath) return;
-  writeFileSync(statusPath + '.tmp', JSON.stringify({ engine: manifest.engine, pid: process.pid, state, at: Date.now() }), { mode: 0o600 });
+  writeFileSync(statusPath + '.tmp', JSON.stringify({ engine: manifest.engine, pid: process.pid, state, at: Date.now(), markAvailable }), { mode: 0o600 });
   renameSync(statusPath + '.tmp', statusPath);
 };
 let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
+// A book-change capture seals only on a later INDEX; ask the paced publisher for one early.
+const requestEarlyIndex = async (sampledBlock: string | undefined) => {
+  if (!earlyIndexPath || sampledBlock === undefined) return;
+  try {
+    const block = await reads.getBlock({ blockNumber: BigInt(sampledBlock) });
+    writeFileSync(earlyIndexPath + '.tmp', JSON.stringify({ engine: manifest.engine, capturedAt: String(block.timestamp), at: Date.now() }), { mode: 0o600 });
+    renameSync(earlyIndexPath + '.tmp', earlyIndexPath);
+  } catch { log({ notice: 'EARLY_INDEX_REQUEST_FAILED' }); }
+};
 const request = () => requestPath && existsSync(requestPath) ? JSON.parse(readFileSync(requestPath, 'utf8')) : null;
 let captureCache: { block: string; value: Awaited<ReturnType<typeof readCanonicalSampleCapture>> } | undefined;
 const ack = async (id: string, outcome: string) => {
@@ -112,15 +129,15 @@ const ack = async (id: string, outcome: string) => {
   renameSync(ackPath + '.tmp', ackPath);
 };
 let rolloverCheckAfter = 0;
-let knownEpochEnd: bigint | undefined;
 let stop = false, samples = 0, rollovers = 0, liquidations = 0;
 process.on('SIGTERM', () => { stop = true; }); process.on('SIGINT', () => { stop = true; });
 let nextLiquidationAt = 0;
 const log = (value: unknown) => { const line = JSON.stringify({ at: new Date().toISOString(), ...value as object }, (_, v) => typeof v === 'bigint' ? v.toString() : v); appendFileSync(evidencePath, line + '\n'); console.log(line); };
 try {
   heartbeat('running');
+  { const sampledBlock = store.read().lastSampleBlock; if (sampledBlock !== undefined) bookChanges.captured(BigInt(sampledBlock)); }
   heartbeatTimer = setInterval(() => heartbeat('running'), 2000);
-  log({ started: true, pid: process.pid, chainId: manifest.chainId, engine: manifest.engine, sender: manifest.sender, mode, durationSeconds, maximumKeeperGas, liquidation, fastStartup });
+  log({ started: true, pid: process.pid, chainId: manifest.chainId, engine: manifest.engine, sender: manifest.sender, mode, durationSeconds, maximumKeeperGas, liquidation });
   while ((!stop && Date.now() < end) || store.read().pending) {
     try {
     const sampleRequest = request();
@@ -128,14 +145,6 @@ try {
     for (const action of keeperActions({ liquidationEnabled: liquidation.enabled, nextLiquidationAt, activationPending: activation.due() })) {
       if ((stop || Date.now() >= end) && !store.read().pending) break;
       if (action === 'rollover' && !store.read().pending && Date.now() < rolloverCheckAfter) continue;
-      if (action === 'rollover' && !store.read().pending && !fastStartup) {
-        const readiness = await readBootstrapRolloverDeferral({ client: reads, engine: manifest.engine, abi,
-          scheduledT: listing.scheduledT, pending: !!store.read().pending, knownEpochEnd });
-        if (readiness.defer) {
-          log({ waiting: 'bootstrap rollover window', ...readiness });
-          continue;
-        }
-      }
       if (action === 'activate' && !store.read().pending) {
         const block = await reads.getBlock();
         const decision = await readPricingActivation({ client: reads, engine: manifest.engine, abi, block });
@@ -152,25 +161,33 @@ try {
         if (estimated === undefined) { activation.waiting(); continue; }
         manifest.gas.activatePricing = Number(estimated * 125n / 100n + 10_000n);
       }
+      let activeRequest = sampleRequest, bookTriggered = false;
       if (action === 'sample' && coordination && !store.read().pending) {
-        if (!sampleRequest || existsSync(ackPath!) && JSON.parse(readFileSync(ackPath!, 'utf8')).id === sampleRequest.id) continue;
+        const outstanding = !!sampleRequest && !(existsSync(ackPath!) && JSON.parse(readFileSync(ackPath!, 'utf8')).id === sampleRequest.id);
+        if (!outstanding) {
+          activeRequest = null;
+          await bookChanges.scan(() => reads.getBlockNumber());
+          // Only an engine action after the capture makes this sample useful; no request is acknowledged.
+          bookTriggered = bookChanges.due();
+          if (!bookTriggered) continue;
+          bookChanges.triggered();
+        }
       }
       if (action === 'sample' && !store.read().pending) {
         const block = await reads.getBlock();
         const blockNumber = block.number;
         const epochPolicy = await readEpochSamplingPolicy({ client: reads, engine: manifest.engine, abi, cadence: configuredSampleCadence, block });
-        knownEpochEnd = epochPolicy.epochEnd;
         manifest.sampleEveryBlocks = epochPolicy.cadence;
         // Keep enough time for inclusion before accounting expires. A successful
         // late sample would see an empty book and discard the pending capture.
         if (!epochPolicy.admit) {
           log({ waiting: 'epoch closing; prioritize rollover', ...epochPolicy });
-          if (sampleRequest) await ack(sampleRequest.id, 'epoch-closing');
+          if (activeRequest) await ack(activeRequest.id, 'epoch-closing');
           continue;
         }
         // Do not acknowledge a request that has not executed. Keep it outstanding
         // and avoid expensive readiness/estimation RPCs until the cadence allows it.
-        if (sampleCadenceRemaining(store.read().lastSampleBlock, blockNumber, manifest.sampleEveryBlocks) > 0n) continue;
+        if (sampleCadenceRemaining(store.read().lastSampleBlock, blockNumber, bookTriggered ? BOOK_CHANGE_SAMPLE_BLOCKS : manifest.sampleEveryBlocks) > 0n) continue;
         // Estimate against the same block while readiness reads are in flight.
         // An estimate never grants readiness; its error is considered only after
         // the source, accounting and funded-depth gates below have passed.
@@ -181,19 +198,22 @@ try {
           client.estimateContractGas({ address: manifest.engine, abi, functionName: 'samplePerp', account: manifest.sender, blockNumber })
             .then((gas: bigint) => ({ gas, error: undefined }), (error: unknown) => ({ gas: undefined, error })),
         ]);
+        markAvailable = risk.markAvailable;
         // This instantaneous source freshness check is an additional gate.
-        // The contract's bookDepth also requires a complete INDEX300 window;
+        // The contract's bookDepth also requires a complete INDEX window;
         // sampling resumes only after that window and funded depth recover.
-        const sourceFresh = source.configured && source.lastObservedAt <= block.timestamp && block.timestamp - source.lastObservedAt <= 25n;
+        // INDEX carries 120 s on testnet and is published about every 80 s.
+        const sourceFresh = source.configured && source.lastObservedAt <= block.timestamp
+          && block.timestamp - source.lastObservedAt <= KEEPER_INDEX_MAX_AGE_SECS;
         if (!sourceFresh || risk.accountingState !== 0) {
           log({ waiting: 'source/accounting readiness', sourceFresh, accountingState: risk.accountingState });
-          if (sampleRequest) await ack(sampleRequest.id, 'not-ready');
+          if (activeRequest) await ack(activeRequest.id, 'not-ready');
           continue;
         }
         if (depth.bidDepthLots < listing.depthNLots || depth.askDepthLots < listing.depthNLots || depth.bidWad === 0n
           || depth.askWad < depth.bidWad || depth.askWad - depth.bidWad > listing.maxSpreadWad) {
           log({ waiting: 'funded two-sided book depth' });
-          if (sampleRequest) await ack(sampleRequest.id, 'book-not-ready');
+          if (activeRequest) await ack(activeRequest.id, 'book-not-ready');
           continue;
         }
         if (estimated.gas === undefined) throw estimated.error;
@@ -209,17 +229,26 @@ try {
             estimatedGasWithMargin: error.gas, maximumKeeperGas: error.ceiling,
             remediation: 'Review measured gas, operator funding and EROS_KEEPER_MAX_GAS before restarting.' });
           if (action === 'rollover') rolloverCheckAfter = Date.now() + 30_000;
-          if (action === 'sample' && sampleRequest) await ack(sampleRequest.id, 'gas-limit-exceeded');
+          if (action === 'sample' && activeRequest) await ack(activeRequest.id, 'gas-limit-exceeded');
         } });
       if (attempted.limited) continue;
       const result = attempted.result;
       if (action === 'rollover' && result.outcome === 'no-work') {
         const epoch = await reads.readContract({ address: manifest.engine, abi, functionName: 'epoch' });
-        knownEpochEnd = epoch[2];
         rolloverCheckAfter = Math.min(Date.now() + 30_000, Number(epoch[2]) * 1000);
       }
-      if (sampleRequest && isFinalizedSample(result)) await ack(sampleRequest.id, result.outcome);
-      if (result.outcome === 'finalized' && result.action === 'sample') activation.sampled();
+      // A book-change sample is not a publisher request; only the request that drove a sample is acknowledged.
+      if (isFinalizedSample(result)) {
+        if (activeRequest && !bookTriggered && !pendingBookSample) await ack(activeRequest.id, result.outcome);
+        if ((bookTriggered || pendingBookSample) && result.outcome === 'finalized') await requestEarlyIndex(store.read().lastSampleBlock);
+        pendingBookSample = false;
+      }
+      if (result.outcome === 'finalized' && result.action === 'sample') {
+        activation.sampled();
+        const sampledBlock = store.read().lastSampleBlock;
+        if (sampledBlock !== undefined) bookChanges.captured(BigInt(sampledBlock));
+      }
+      if (bookTriggered && result.outcome === 'sent') { pendingBookSample = true; log({ bookChangeSample: true, hash: result.hash }); }
       if (result.outcome === 'finalized' && result.action === 'activate') { activation.finished(); notice('activated', result.hash); }
       if (result.outcome === 'finalized' && result.action === 'rollover') notice('rollover', result.hash);
       if (action === 'activate' && result.outcome === 'no-work') activation.waiting();
@@ -243,6 +272,12 @@ try {
         const current = request();
         if (current) await ack(current.id, 'keeper-unfunded');
         await new Promise(resolve => setTimeout(resolve, 5000));
+        continue;
+      }
+      if (simulationOutOfGas(error) && !store.read().pending) {
+        // Pre-signing simulation only: re-estimate against the newer state on the next pass.
+        log({ waiting: 'simulation out of gas; re-estimating' });
+        await new Promise(resolve => setTimeout(resolve, 2000));
         continue;
       }
       if (!transientServiceRead(error)) throw error;

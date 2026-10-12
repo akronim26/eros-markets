@@ -189,7 +189,8 @@ contract RolloverBatcherTest is LeveragedFactoryTest {
     function testBatchStaleWindowCompletesAccountingButRetainsSafeBootstrap() public {
         _start(true);
         (,, uint64 end,,,,) = engine.epoch();
-        _walk(end - 40, 6e17);
+        // Book samples stop for longer than the 300-second testnet book carry.
+        _walk(end - 310, 6e17);
         _due();
         _observe(6e17);
         assertFalse(engine.basisTwap900(uint64(block.timestamp)).available);

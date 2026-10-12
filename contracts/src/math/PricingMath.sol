@@ -23,6 +23,8 @@ library PricingMath {
     uint256 internal constant MONAD_TESTNET_CHAIN_ID = 10143;
     uint64 internal constant TESTNET_INDEX_WINDOW = 60;
     uint64 internal constant TESTNET_BASIS_WINDOW = 60;
+    uint64 internal constant TESTNET_INDEX_CARRY = 120;
+    uint64 internal constant TESTNET_BOOK_CARRY = 300;
     uint64 internal constant INVALID_WINDOW = 86400;
     uint64 internal constant MOVE_LOOKBACK = 300;
     uint256 internal constant MOVE_THRESHOLD_WAD = 1e17;
@@ -42,6 +44,19 @@ library PricingMath {
 
     function basisWindow() internal view returns (uint64) {
         return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_BASIS_WINDOW : BASIS_WINDOW;
+    }
+
+    /// @notice Carry of an authenticated INDEX observation. Monad testnet publishes about every
+    ///         80 s to cut gas, so a sample carries 120 s there; other chains keep 30 s.
+    function indexCarry() internal view returns (uint64) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_INDEX_CARRY : STALE_SECS;
+    }
+
+    /// @notice Carry of a sealed book-derived PERP/BASIS sample. A capture is sealed only by a later
+    ///         authenticated INDEX observation, so coverage must outlast about two publish cycles
+    ///         on Monad testnet (300 s); other chains keep 30 s.
+    function bookCarry() internal view returns (uint64) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_BOOK_CARRY : STALE_SECS;
     }
 
     /// @notice Monad testnet fast startup: index-warmup quoting and one-time pricing activation

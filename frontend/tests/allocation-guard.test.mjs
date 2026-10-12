@@ -6,6 +6,7 @@ import { allocationBlocker, validateAllocation } from "../src/lib/allocation-gua
 import { amountWithinBalance, atomsToInput, canClaim, fundingPlan } from "../src/lib/funds.ts";
 import { atomsToUsdc, parseUsdcToAtoms } from "../src/lib/units.ts";
 import { client } from "../src/lib/public-client.ts";
+import { releaseRejection } from "../src/lib/enums.ts";
 
 const engine = `0x${"1".repeat(40)}`, owner = `0x${"2".repeat(40)}`;
 const ready = { active: true, halted: false, work: 0, risk: { accountingState: 0, stage: 0, pendingWork: 0, indexAvailable: false, markAvailable: false } };
@@ -47,7 +48,7 @@ test("latest allocation validation pins every read to the requested simulation b
 });
 
 // Invoke the production component with providers replaced, preserving its guard and call construction.
-function actions({ mode = "Fund", market = ready, read = async () => ready, free = 0n, wallet = 2_000_000n, allowance = 0n } = {}) {
+function actions({ mode = "Fund", market = ready, read = async () => ready, free = 0n, wallet = 2_000_000n, allowance = 0n, releasePreview, withoutMarket = false, readUnavailable = false } = {}) {
   const source = readFileSync(new URL("../src/components/account-actions.tsx", import.meta.url), "utf8");
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const state = [mode, "1", true], calls = [];
@@ -56,15 +57,15 @@ function actions({ mode = "Fund", market = ready, read = async () => ready, free
   const deps = {
     react: { useState: () => [state[stateIndex++], () => {}], useEffect() {} },
     "react/jsx-runtime": { jsx, jsxs: jsx },
-    "@tanstack/react-query": { useQuery: () => ({}) },
+    "@tanstack/react-query": { useQuery: () => (releasePreview ? { data: { value: releasePreview } } : {}) },
     "@/lib/trader": { ownerTrader: () => Object.fromEntries(["approve", "deposit", "allocate", "withdraw", "release"].map(functionName => [functionName, amount => ({ address: engine, functionName, args: [amount] })])) },
     "@/config/deployment": { deployment: { risk: { collateralSymbol: "USDC" } }, marketByEngine: () => ({ archived: false }) },
     "@/lib/funds": { amountWithinBalance, atomsToInput, canClaim, fundingPlan },
     "@/lib/allocation-guard": { allocationBlocker, validateAllocation: (address, block) => validateAllocation(address, block, read) },
     "@/lib/units": { atomsToUsdc, parseUsdcToAtoms },
-    "@/lib/enums": { REJECT: {} },
+    "@/lib/enums": { releaseRejection },
     "@/lib/collateral-queries": { releasePreviewOptions: () => ({}) },
-    "@/lib/pinned-read": { pinnedReadCurrent: () => false },
+    "@/lib/pinned-read": { pinnedReadCurrent: () => !!releasePreview },
     "@/lib/tx": { useTx: () => ({ state: { status: "idle" }, run: async (_owner, value) => { calls.push(...value); } }) },
     "./wallet": { useOwner: () => ({ address: owner, wrongChain: false }) },
     "./ui": { Button: "button", cx: (...values) => values.filter(Boolean).join(" ") },
@@ -72,7 +73,7 @@ function actions({ mode = "Fund", market = ready, read = async () => ready, free
   };
   const module = { exports: {} };
   new Function("require", "module", "exports", code)(key => deps[key] ?? {}, module, module.exports);
-  const tree = module.exports.AccountActions({ engine, m: { block: 100n, ...market },
+  const tree = module.exports.AccountActions({ engine, readUnavailable, m: withoutMarket ? undefined : { block: 100n, ...market },
     t: { block: 100n, traderId: 1, free, wallet, allowance, assets: { symbol: "USDC" }, account: { preview: { cashQ: 1n, positionLots: 0n, usableReleaseAtoms: 1_000_000n }, claimable: 0n } } });
   const nodes = value => !value || typeof value !== "object" ? [] : Array.isArray(value) ? value.flatMap(nodes) : [value, ...nodes(value.props?.children)];
   const submit = nodes(tree).find(node => node.type === "button" && node.props.variant === "primary");
@@ -119,4 +120,23 @@ test("every funding step rechecks readiness instead of trusting the UI snapshot"
   await onlyAllocate.submit.onClick();
   assert.deepEqual(onlyAllocate.calls.map(call => call.functionName), ["allocate"]);
   assert.equal(typeof onlyAllocate.calls[0].validate, "function");
+});
+
+test("Release follows previewRelease, names the hourly update, and Withdraw needs only the account read", async () => {
+  const sweep = { ...ready, risk: { ...ready.risk, accountingState: 1 } };
+  const badStage = actions({ mode: "Release", market: sweep, releasePreview: [false, 2] });
+  assert.equal(badStage.submit.disabled, true);
+  assert.equal(badStage.submit.children, "Market is processing its hourly update. Try again shortly.");
+  const halted = actions({ mode: "Release", market: { ...ready, halted: true }, releasePreview: [true, 0] });
+  assert.equal(halted.submit.disabled, false, "the contract, not a UI halt gate, decides Release");
+  await halted.submit.onClick();
+  assert.equal(halted.calls[0].functionName, "release");
+  const ok = actions({ mode: "Release", releasePreview: [true, 0] });
+  assert.equal(ok.submit.disabled, false);
+  const noMarket = actions({ mode: "Withdraw", withoutMarket: true, free: 1_000_000n });
+  assert.equal(noMarket.submit.disabled, false, "a failed market read never blocks Withdraw");
+  await noMarket.submit.onClick();
+  assert.equal(noMarket.calls[0].functionName, "withdraw");
+  assert.equal(actions({ mode: "Withdraw", free: 1_000_000n, readUnavailable: true }).submit.disabled, true, "an account read failure still blocks");
+  assert.equal(actions({ market: { ...ready, halted: true } }).submit.children, "Market halted", "Fund keeps its halt gate");
 });

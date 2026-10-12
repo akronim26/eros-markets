@@ -8,6 +8,7 @@ import { runMonadTestnetService, parseTestnetRunPolicy } from '../../packages/pr
 import { recoverMonadNonce } from '../../packages/pricefeed/dist/src/monad-nonce-recovery.js';
 import { recoverableUnsentReason } from '../../packages/pricefeed/dist/src/nonce-recovery-journal.js';
 import { SampleCoordinator, indexFreshCutoff } from './sampler-coordination.mjs';
+import { IndexPacing } from './index-pacing.mjs';
 import { PacketStore } from '../../packages/pricefeed/dist/src/packet-store.js';
 import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce, publisherBudgetExhausted } from './publisher-restart-policy.mjs';
 import { serviceRuntime, transientServiceRead } from './service-runtime-policy.mjs';
@@ -63,7 +64,15 @@ const coordinator = coordination ? new SampleCoordinator({
   onResult: result => log({ sample: result.outcome, sequence: result.sequence, sampledAt: result.capture?.observedAt ?? null }),
   onError: () => log({ sample: 'COORDINATION_FAILED', independentIndex: true }),
 }) : null;
-const sample = result => coordinator?.notify({ ...finalizedObservation(result.sequence), depthValid: result.depthValid === true });
+const readOptional = name => coordination && existsSync(join(coordination, name)) ? read(join(coordination, name)) : null;
+// One publish per cycle on the 120 s testnet INDEX carry; source updates only while MARK warms up.
+const pacing = new IndexPacing({ engine: config.destination.engineAddress,
+  readKeeperStatus: () => readOptional('sampler-status.json'), readEarlyRequest: () => readOptional('early-index-request.json') });
+const sample = result => {
+  const finalized = finalizedObservation(result.sequence);
+  pacing.finalized(finalized.observedAt);
+  coordinator?.notify({ ...finalized, depthValid: result.depthValid === true });
+};
 log({ started: true, pid: process.pid, engine: config.destination.engineAddress, source: config.mapping.externalMarketId, mode: runtime.mode, durationSeconds: +seconds });
 try {
 while (!stop.signal.aborted && Date.now() < end) {
@@ -75,7 +84,9 @@ while (!stop.signal.aborted && Date.now() < end) {
         const now = Date.now(), freshCutoff = indexFreshCutoff(now);
         // A bounded preference helps seal pending book captures; at the source
         // deadline INDEX immediately regains priority, even with a hung keeper.
-        return coordinator?.getMinimumObservedAt(now, freshCutoff) ?? freshCutoff;
+        const coordinated = coordinator?.getMinimumObservedAt(now, freshCutoff) ?? freshCutoff;
+        const paced = pacing.minimumObservedAt(now, freshCutoff);
+        return paced > coordinated ? paced : coordinated;
       } }, stop.signal, async result => {
       log({ state: result.state, reason: result.reason, sequence: result.sequence, hash: result.transactionHash, depthValid: result.depthValid });
       if (result.state === 'FINALIZED') {

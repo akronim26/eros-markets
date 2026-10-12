@@ -112,3 +112,125 @@ test('gas runway alerts are recorded before a worker reaches its stopping thresh
     assert.equal(status.groups[0].status, 'stopped', 'an alert never stops workers by itself');
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 });
+
+test('a fenced publisher restarts with backoff; the restart budget still applies', () => {
+  assert.deepEqual(exitPolicy({ code: 1, text: 'Error: WRITER_FENCED\n    at worker.mjs:144' }),
+    { action: 'restart', delayMs: 5_000, reason: 'writer-fenced' });
+  assert.equal(exitPolicy({ code: 1, text: 'Error: PACKET_WRITER_FENCED', restarts: 2 }).delayMs, 20_000);
+  assert.deepEqual(exitPolicy({ code: 1, text: 'Error: WRITER_FENCED', restarts: 5 }), { action: 'block', reason: 'restart-limit' });
+});
+
+function wakeFixture(name) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), `eros-supervisor-${name}-`));
+  const fixture = path.join(directory, 'worker.mjs'), starts = path.join(directory, 'starts');
+  fs.writeFileSync(fixture, `import fs from 'node:fs'; fs.appendFileSync(${JSON.stringify(starts)}, 'x');
+setInterval(() => {}, 1000); process.once('SIGTERM', () => setTimeout(() => process.exit(0), 50));\n`);
+  const group = { name: 'fixture', engine: '0xE1', coordination: path.relative(process.cwd(), directory), environment: {},
+    children: [{ role: 'publisher', command: process.execPath, args: [fixture] }, { role: 'operations', command: process.execPath, args: [fixture] }] };
+  return { directory, group, starts: () => fs.existsSync(starts) ? fs.readFileSync(starts, 'utf8').length : 0,
+    status: () => JSON.parse(fs.readFileSync(path.join(directory, 'status.json'), 'utf8')),
+    events: () => fs.readFileSync(path.join(directory, 'supervisor.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l)) };
+}
+const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function until(check, ms = 3000) {
+  const end = Date.now() + ms;
+  while (Date.now() < end) { if (check()) return; await pause(20); }
+  assert.fail('condition not reached');
+}
+
+test('idle market sleeps with no workers and no exit, then a visitor wakes it on the same journals', async () => {
+  const f = wakeFixture('wake');
+  let seen = null, leverageReads = 0;
+  const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [f.group],
+    wake: { url: 'https://x/api', pollMs: 40, idleMs: 1000 },
+    readActivityImpl: async () => ({ '0xe1': seen }), anyLeveragedImpl: async () => { leverageReads++; return false; } });
+  try {
+    await until(() => f.status().groups[0].status === 'asleep');
+    assert.equal(f.starts(), 2);
+    assert.ok(leverageReads >= 1, 'leverage checked before sleeping');
+    assert.deepEqual(f.status().groups[0].children.map(c => c.status), ['asleep', 'asleep']);
+    await pause(200);
+    assert.equal(f.status().groups[0].status, 'asleep', 'a sleeping market does not end the supervisor');
+    seen = Date.now();
+    await until(() => f.status().groups[0].status === 'running' && f.starts() === 4);
+    assert.ok(f.events().some(e => e.waking && e.reason === 'visitor'));
+    process.emit('SIGTERM');
+    await finishing;
+    assert.equal(f.status().status, 'stopped');
+  } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+});
+
+test('a leveraged account or a failed leverage read keeps workers running', async () => {
+  for (const leveraged of [async () => true, async () => { throw Error('RPC'); }]) {
+    const f = wakeFixture('leveraged');
+    const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [f.group],
+      wake: { url: 'https://x/api', pollMs: 30, idleMs: 1000 }, readActivityImpl: async () => ({ '0xe1': null }), anyLeveragedImpl: leveraged });
+    try {
+      await pause(300);
+      assert.equal(f.status().groups[0].status, 'running');
+      assert.equal(f.starts(), 2);
+      assert.ok(f.events().some(e => e.awake && /leverage/.test(e.reason)));
+      process.emit('SIGTERM'); await finishing;
+    } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+  }
+});
+
+test('an unreadable activity route keeps an awake market awake and wakes a sleeping one', async () => {
+  const f = wakeFixture('readfail');
+  let fail = false;
+  const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [f.group],
+    wake: { url: 'https://x/api', pollMs: 30, idleMs: 1000 },
+    readActivityImpl: async () => { if (fail) throw Error('ACTIVITY_READ_FAILED'); return { '0xe1': null }; }, anyLeveragedImpl: async () => false });
+  try {
+    await until(() => f.status().groups[0].status === 'asleep');
+    fail = true;
+    await until(() => f.status().groups[0].status === 'running' && f.starts() === 4);
+    assert.ok(f.events().some(e => e.waking && e.reason === 'activity-read-failed'));
+    await pause(200);
+    assert.equal(f.starts(), 4, 'stays awake while reads fail');
+    process.emit('SIGTERM'); await finishing;
+  } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+});
+
+test('a visitor arriving during shutdown wakes the market as soon as the workers have stopped', async () => {
+  const f = wakeFixture('during');
+  let seen = null;
+  const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [f.group],
+    wake: { url: 'https://x/api', pollMs: 20, idleMs: 1000 },
+    readActivityImpl: async () => ({ '0xe1': seen }), anyLeveragedImpl: async () => false });
+  try {
+    await until(() => f.status().groups[0].status === 'sleeping', 3000);
+    seen = Date.now();
+    await until(() => f.events().some(e => e.waking && e.reason === 'visitor-during-shutdown'));
+    await until(() => f.status().groups[0].status === 'running' && f.starts() === 4);
+    process.emit('SIGTERM'); await finishing;
+  } finally { fs.rmSync(f.directory, { recursive: true, force: true }); }
+});
+
+test('a fenced worker is restarted instead of blocking its market', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'eros-supervisor-fenced-'));
+  const fixture = path.join(directory, 'worker.mjs'), marker = path.join(directory, 'fenced');
+  fs.writeFileSync(fixture, `import fs from 'node:fs';
+if (!fs.existsSync(${JSON.stringify(marker)})) { fs.writeFileSync(${JSON.stringify(marker)}, '1'); console.error('Error: WRITER_FENCED'); process.exit(1); }
+setInterval(() => {}, 1000); process.once('SIGTERM', () => process.exit(0));\n`);
+  const original = setTimeout;
+  // Shorten only the 5 s fenced backoff so the test runs quickly.
+  globalThis.setTimeout = (fn, ms, ...rest) => original(fn, ms === 5000 ? 10 : ms, ...rest);
+  const finishing = supervise({ stateDirectory: directory, secrets: [], groups: [{ name: 'fixture', engine: '0x1111',
+    coordination: path.relative(process.cwd(), directory), environment: {},
+    children: [{ role: 'publisher', command: process.execPath, args: [fixture] }] }] });
+  try {
+    const status = () => JSON.parse(fs.readFileSync(path.join(directory, 'status.json'), 'utf8'));
+    await until(() => status().groups[0].children[0].restarts === 1 && status().groups[0].children[0].status === 'running');
+    assert.equal(status().groups[0].status, 'running');
+    process.emit('SIGTERM'); await finishing;
+  } finally { globalThis.setTimeout = original; fs.rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('a worker that exits on an RPC provider internal error restarts; other RPC failures still block', () => {
+  const internal = 'RpcRequestError: RPC Request failed.\n\nDetails: Internal error\n    details: "Internal error",\n   at x';
+  assert.deepEqual(exitPolicy({ code: 1, text: internal }), { action: 'restart', delayMs: 2_000, reason: 'transient-read-failure' });
+  assert.equal(exitPolicy({ code: 1, text: internal, restarts: 5 }).action, 'block');
+  assert.equal(exitPolicy({ code: 1, text: 'RpcRequestError: RPC Request failed.\n    details: "execution reverted",' }).action, 'block');
+  assert.equal(exitPolicy({ code: 1, text: 'Error: RELAY_JOURNAL_INTEGRITY\n details: "Internal error",' }).action, 'block');
+});

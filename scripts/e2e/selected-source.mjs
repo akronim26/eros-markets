@@ -13,7 +13,8 @@ import { DEVELOPMENT_INVALID_POLICIES } from '../../packages/pricefeed/dist/src/
 import { PRICING_POLICY, rulesHash } from '../../packages/pricefeed/dist/src/rules.js';
 const require = createRequire(new URL('../../frontend/package.json', import.meta.url));
 const { keccak256, stringToHex } = require('viem');
-const [directory, publicDirectory] = process.argv.slice(2);
+const [directory, publicDirectory, mode] = process.argv.slice(2);
+if (mode !== undefined && mode !== '--paced-testnet') throw Error('UNKNOWN_QUALIFICATION_MODE');
 if (!directory?.startsWith('tmp/')) throw Error('IGNORED_RUN_DIRECTORY_REQUIRED');
 if (!publicDirectory) throw Error('EXPLICIT_PUBLIC_DEPLOYMENT_DIRECTORY_REQUIRED');
 const read = name => JSON.parse(fs.readFileSync(`${directory}/${name}`, 'utf8'));
@@ -53,7 +54,8 @@ if(fs.existsSync(journalPath))throw Error('QUALIFICATION_ALREADY_EXISTS');
 const journal=new Journal(journalPath),worker=new Worker(config,new PublicPolymarket(config.poll,new RequestLimiter(100,200)),journal,randomUUID());
 const start = Date.now();
 const qualification = new SourceQualification({ startedAtMs: start,
-  externalRulesDigest: source.rules.externalRulesDigest, minimumHeadroomMs: config.poll.minimumHeadroomMs });
+  externalRulesDigest: source.rules.externalRulesDigest, minimumHeadroomMs: config.poll.minimumHeadroomMs,
+  pacedTestnet: mode === '--paced-testnet' });
 const deadline = start + QUALIFICATION_DURATION_MS + QUALIFICATION_STARTUP_ALLOWANCE_MS;
 const save = complete => {
   const result = { ...qualification.snapshot(complete, Date.now()), sourceId: source.sourceId,

@@ -34,3 +34,11 @@ test('wrapped pool failures can retry but signing and canonical receipt failures
   for (const reason of ['MAKER_UNTRACKED_NONCE', 'MAKER_RECEIPT_NONCANONICAL', 'MAKER_PENDING_IDENTITY_MISMATCH'])
     assert.equal(transientServiceRead(new Error(reason)), false);
 });
+
+test('a provider internal error on a read retries; reverts and out-of-gas do not', () => {
+  const rpc = details => Object.assign(new Error('RPC Request failed.'), { name: 'RpcRequestError', details, code: -32000 });
+  assert.equal(transientServiceRead(Object.assign(new Error('wrapped'), { cause: rpc('Internal error') })), true);
+  assert.equal(transientServiceRead(rpc('out of gas')), false);
+  assert.equal(transientServiceRead(rpc('execution reverted')), false);
+  assert.equal(transientServiceRead(Object.assign(new Error('x'), { name: 'ContractFunctionRevertedError', details: 'Internal error' })), false);
+});

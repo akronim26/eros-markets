@@ -12,3 +12,4 @@ export function runKeeperAction<T>(input: {
   hasPending: () => boolean;
   onLimit: (error: KeeperGasLimitExceeded) => Promise<void> | void;
 }): Promise<{ limited: false; result: T } | { limited: true }>;
+export function simulationOutOfGas(error: unknown): boolean;

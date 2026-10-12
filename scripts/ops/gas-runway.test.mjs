@@ -41,7 +41,7 @@ test('runway levels: stopped below threshold, alert before it, low below the lau
 test('configuration requires the alert to precede the launch requirement', () => {
   assert.throws(() => gasRunwayConfig({ launchMinutes: 30, alertMinutes: 30 }), /ALERT_MUST_PRECEDE/);
   assert.throws(() => gasRunwayConfig({ launchMinutes: 5 }), /LAUNCHMINUTES/);
-  assert.deepEqual(gasRunwayConfig({ launchMinutes: 60, alertMinutes: 15 }), { launchMinutes: 60, alertMinutes: 15, checkIntervalMs: 60_000 });
+  assert.deepEqual(gasRunwayConfig({ launchMinutes: 60, alertMinutes: 15 }), { launchMinutes: 60, alertMinutes: 15, checkIntervalMs: 60_000, publishIntervalSeconds: 12 });
   assert.throws(() => roleBudgets({ publisherRelay: relay, keeperMaxGas: 0, makerMaxActionsPerEpoch: 12 }), /KEEPER_GAS/);
 });
 
@@ -71,4 +71,17 @@ test('alerts fire on entering alert/stopped and on recovery, not on every check'
   assert.equal(alerts.changes(row('alert')).length, 0);
   assert.equal(alerts.changes(row('stopped'))[0].previous, 'alert');
   assert.equal(alerts.changes(row('ok'))[0].level, 'ok');
+});
+
+test('paced publishing projects hourly spend from the configured publish interval', () => {
+  const relay = { gasCap: '300000', maxCostWei: '45000000000000000' };
+  const fast = roleBudgets({ publisherRelay: relay, keeperMaxGas: 3_000_000, samplePerpGas: 1_000_000, makerMaxActionsPerEpoch: 6 });
+  const paced = roleBudgets({ publisherRelay: relay, keeperMaxGas: 3_000_000, samplePerpGas: 1_000_000, makerMaxActionsPerEpoch: 6,
+    publishIntervalSeconds: 80n });
+  assert.equal(fast[0].gasPerHour, 300n * 300_000n);
+  assert.equal(paced[0].gasPerHour, 45n * 300_000n);
+  assert.equal(paced[1].gasPerHour, 45n * 1_000_000n + 4n * 3_000_000n);
+  assert.equal(gasRunwayConfig({ publishIntervalSeconds: 80 }).publishIntervalSeconds, 80);
+  assert.equal(gasRunwayConfig().publishIntervalSeconds, 12);
+  assert.throws(() => gasRunwayConfig({ publishIntervalSeconds: 200 }), /INVALID_GAS_RUNWAY_PUBLISHINTERVALSECONDS/);
 });

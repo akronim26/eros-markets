@@ -686,6 +686,13 @@ export const engineAbi = [
   },
   {
     "type": "function",
+    "name": "activatePricing",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "active",
     "inputs": [],
     "outputs": [
@@ -4868,6 +4875,24 @@ export const engineAbi = [
   },
   {
     "type": "function",
+    "name": "warmupIndex",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "available",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "pointWad",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "withdrawKeeper",
     "inputs": [],
     "outputs": [
@@ -6732,6 +6757,11 @@ export const engineAbi = [
   {
     "type": "error",
     "name": "PriceNotInterior",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PricingActivationUnavailable",
     "inputs": []
   },
   {

@@ -4,7 +4,6 @@ import { serviceRuntime, transientServiceRead } from './service-runtime-policy.m
 import { makerPolicy, makerOrderIsCurrent, makerMaintenance, makerCaptureDelay, retryableMakerAdmission,
   makerQuoteReference, makerBootstrapHold } from './maker-maintenance-policy.mjs';
 import { ReadinessNotifier } from './readiness-notifier.mjs';
-import { readFastStartupSupport } from './pricing-activation.mjs';
 import { monadReadTransport } from '../../packages/pricefeed/dist/src/monad-preflight.js';
 import { makerReceiptOutcome } from './maker-receipt.mjs';
 import { makerPerpPromotion } from './maker-sampling.mjs';
@@ -261,12 +260,11 @@ try {
   if ((await reads.call({ data: '0x73' + m.engine.slice(2) + '3f60005260206000f3', blockTag: 'finalized' })).data !== m.engineCodeHash)
     throw Error('MAKER_ENGINE_RUNTIME_MISMATCH');
   const listing = await read('listing');
-  const fastStartup = await readFastStartupSupport({ client: reads, engine: m.engine, abi, transient: transientServiceRead });
   const bandTicks = Number(listing.bootstrapBandWad / 10n ** 15n);
   maximumCleanupOrders = Math.min(MAKER_CLEANUP_MAX_BATCH, Number(await read('maxBatchActions')));
   if (!Number.isInteger(maximumCleanupOrders) || maximumCleanupOrders < 1) throw Error('MAKER_CLEANUP_BATCH_LIMIT_INVALID');
   if (policy.targetLots < listing.depthNLots) throw Error('MAKER_TARGET_BELOW_REQUIRED_DEPTH');
-  log({ started: true, pid: process.pid, mode: runtime.mode, durationSeconds: runtime.durationSeconds, policy, fastStartup,
+  log({ started: true, pid: process.pid, mode: runtime.mode, durationSeconds: runtime.durationSeconds, policy,
     notifications: notifier.watching });
   while ((!stopped && Date.now() < runtime.end) || state.pending) {
     progressed = false;
@@ -282,9 +280,9 @@ try {
           read('marketRiskView', [], block.number), read('marketOrderEpoch', [], block.number),
           read('sourceState', [sourceId], block.number), read('participantId', [account.address], block.number),
           read('account', [account.address], block.number), read('bookDepth', [], block.number),
-          fastStartup ? read('warmupIndex', [], block.number) : Promise.resolve(null),
+          read('warmupIndex', [], block.number),
         ]);
-        const warmup = warmupPoint ? { available: warmupPoint[0], pointWad: warmupPoint[1] } : undefined;
+        const warmup = { available: warmupPoint[0], pointWad: warmupPoint[1] };
         const cleanupContext = { side, account, trader, epoch, accountEpoch: accountState.orderEpoch, block };
         const sourceReady = source.configured && source.lastObservedAt <= block.timestamp && block.timestamp - source.lastObservedAt <= 18n;
         const cleanup = risk.accountingState === 0 && trader ? await cleanupOwnStale({ ...cleanupContext,

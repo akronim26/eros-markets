@@ -1104,3 +1104,129 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Verified valid SVG XML, exact source/destination byte equality, a single diagram replacement,
   resolving image/link paths and clean diff whitespace. Documentation/assets only; no runtime tests.
 - Existing unrelated files remain untouched. Commit locally on `feat/pricefeed`; no public push.
+
+### 2026-10-11 — FM-08: recovery, replacement deployment and cutover
+
+- User authorized operator-fund recovery, deployment of the fast-startup engines,
+  address updates everywhere, a connected frontend, three services per market, and
+  removal of old-deployment code.
+- Recovered 38.198 MON from eight October 9 operator wallets after reconciling two
+  mined publisher tails without signing; 78 project contracts held 0 MON. Retirement
+  markers block old workers.
+- Deployed base (5 tx) and two markets (7 tx each), each rehearsed on an anvil 1.8.3
+  fork first: factory `0x625e…5f96`, vault `0xb251…911E`, BTC > $82k Oct 13
+  `0x5225…9a3d`, ETH > $2.4k Oct 14 `0xe26D…4cA7`. Funded operators (142 MON) and
+  makers (2,000 TUSDC each); keeper-only rollover restored READY accounting.
+- Supervisor runs 6 workers. Launch → MARK: BTC 95 s, ETH 161 s; 5×/5× caps live.
+  Frontend rebuilt on :3100 with only these markets; indexer serves both engines.
+- Updated `addresses.md`, frontend manifest/metadata/calibrations/ABI, indexer config,
+  `oracle/deployments/monad-testnet.json`, root `.env` inventory, SDK ABI snapshot,
+  operations docs. Removed frontend archives, archive selection, Oct 9 migration
+  scripts, legacy-engine worker branches and indexer historical branches.
+- Tests: scripts 100/100, keeper bun 13/13, market-ops 54/54, SDK 70/70, indexer 42/42,
+  frontend 119/119 and 65/65, preflight OK, e2e deployment 5/5, typechecks exit 0.
+- With user permission, deleted the 20 retired `artifacts/deployments/*` directories,
+  13 dated `artifacts/integration/` files carrying retired addresses and three retired
+  runbooks; links fixed. Only the progress logs' historical sections still name retired
+  addresses. Re-ran affected tests: all pass. Keeper gas
+  burn is higher than projected; top-ups expected within about 1.5 h. No user wallet
+  trade yet. Nothing committed or pushed.
+
+### 2026-10-11 — Lower-cost relaunch: T1–T8 preparation (one November market)
+
+- Plan (user decisions of 2026-10-11): write off old ETH funds, 120 s/300 s testnet
+  carries, paced workers, wake-on-visit, Render + Vercel, one market resolving 6–8 Nov.
+- **T1 (partial):** reconciled the ETH publisher's `UNKNOWN` tail (nonce 261,
+  `0x1200…c65d`, block 69978646) to `FINALIZED` with no signatures; expired one signed but never
+  sent BTC packet (seq 265) through `PacketStore.expire`. Recovery plans for 8 operator wallets
+  (81.606 MON to root, plan set `0x50f0…a9e`) prepared and **rehearsed on an anvil 1.8.3 fork
+  (8/8)**. **Broadcast not done:** the session's permission layer refused it; needs the user.
+- **T2:** Gamma candidates, 1,000-claim spreads, paced qualification (see below). Selected
+  **4199213 "Will Democrats win white women in the midterms?"**, `endDate`/`scheduledT`
+  2026-11-07 04:59 UTC (CNN exit poll, 6 Nov). 4927096 also passed. Oracle resolution operator
+  not confirmed: `docs/requests/ORACLE-nov-market-resolution.md`.
+- **T3:** INDEX carry 120 s, book carry 300 s (chain 10143 only); INVALID-window integral and
+  funding freshness latch now use the INDEX carry (INVALID integral bug reproduced, then fixed).
+  Decision note: `docs/integration/TESTNET_CARRY_DECISION.md`. FactoryGas 8 KiB creation
+  29,448,268 (≤ 29.5M); engine runtime 123,530 B. ABI entries unchanged.
+- **T4/T5 (partial):** factory replacement prepared and rehearsed on the fork (5 steps; planned
+  factory `0x33Bf…2600`, vault `0x5E53…05e4`). Market slot `nov7-dem-white-women` staged. Market
+  prepare needs the factory on chain, so T4 fork gas measurements, market listing and services
+  wait for broadcast authorization.
+- **T6:** publisher pacing (`scripts/e2e/index-pacing.mjs`), keeper MARK status, 110 s sample gate,
+  early-INDEX request after book-change captures, book-change limit 20 s.
+- **T7:** wake/sleep with leverage guard and fail-open reads (`scripts/ops/wake-policy.mjs`),
+  `WRITER_FENCED` restart with backoff, supervisor no longer exits while markets sleep, runway
+  uses `publishIntervalSeconds`. Keeper rollover alone restored READY on 2026-10-11 (bootstrap
+  ran the same keeper); B8 still needs a live check.
+- **T8:** `/api/market-activity` (Runtime Cache, `iad1`), 30 s visible-tab heartbeat, "Market
+  waking up" progress, 120 s chart freshness, Release follows `previewRelease` with the hourly
+  update reason, Withdraw needs only the account read. Added `@vercel/functions@3.9.11`.
+- Paced source qualification (`--paced-testnet`, 30 s gap) with quiet-book carry; 4199213:
+  900,027 ms coverage, 862 valid, 0 failures, max carry 20,109 ms.
+- Tests (exit codes): contracts CI 895/895 (0); oracle CI 345/345 (0); oracle Monad integration
+  82/82 (0); oracle workspace incl. SDK 70, market-ops 54, keeper 102 (0); keeper policy bun
+  13/13 (0); scripts 131/131 (0); frontend `tsc` (0), unit 127/127 (0);
+  reference b `test_fast_testnet_basis` 15/15; reference a+b 236/237 (exit 1: `test_a002`
+  compares `/private/var` with `/var` temp paths, unrelated); reference integration 7/7 (0);
+  reference audit 7/8 (exit 1: `numpy` not installed). Not run: frontend integration tests,
+  `next build`, Playwright.
+- Open: broadcast authorization (T1 recovery, T5 factory and market); oracle resolution
+  operator; four-week publisher budget (policy cap 40 MON ≈ 1,000 publishes; raise in T5);
+  Render/T10, B1–B14, T9 not started. Fork proxy and anvil left running on :18569/:18568
+  (PIDs in `tmp/redeploy-20261011/*.pid`). Nothing committed or pushed.
+
+### 2026-10-11/12 — Lower-cost relaunch: deployment, live benchmarks and hardening
+
+- User authorized all broadcasts (T1 recovery, T5 factory, market, funding). Recovered
+  **81.606 MON** from 8 retired operator wallets (22 project contracts hold 0 MON). Factory
+  `0x33Bf4bba245253377f2875C77a6647a76ef42600`, vault `0x5E53c88eB3dA4C8640BC7AF51F0C5f8CC11205e4`,
+  market engine **`0xA3955B47E943CCC6A23E3A66CFd60068de518068`** (Polymarket 4199213, resolves
+  2026-11-07 04:59 UTC; `pricingWindows` 60/60/60/120), each rehearsed on an anvil 1.8.3 fork
+  first. Operators funded 44 MON, makers 2,000 TestUSDC each; publisher policy cap 20,000 tx /
+  800 MON. Frontend, indexer config, `addresses.md`, `oracle/deployments/monad-testnet.json`, root
+  `.env`, ops docs updated. Retired `artifacts/deployments/*-btc-oct13|eth-oct14` kept pending
+  the user's permission to delete.
+- Live benchmarks: B3 launch → MARK 152 s; B1 100% over 30 min and 43 min across the 15:00
+  rollover (max INDEX age 80 s); B2 5×/5× whenever MARK on; B12 < 120 s; B10 4.75 MON/h awake
+  (publisher 1.08, keeper 3.67); B14 INDEX off at the 120 s carry; B7 fenced publisher restarted,
+  first INDEX 14 s after resume; B4 `previewRelease` passes for flat accounts; B6 the user's
+  leveraged account kept the market awake. Not run: B5/B8 (blocked while the user's account is
+  leveraged), B9 live cutover (Render not created; refusal tests pass), B11 (no test fill), B13
+  covered by FactoryGas.
+- Incidents found live and fixed:
+  1. 13:02 INDEX lapsed 81 s: a 15 s old source expired during a slow send. Pacing now publishes
+     70 s after the last observation and takes only sources ≤ 6 s old until 100 s.
+  2. 13:28–14:18 market stopped: an unsent delivery quarantined by `PIPELINE_TIMEOUT` was not
+     recoverable. `recoverableUnsentReason` now includes it (chain-checked nonce cancel).
+  3. 14:22 keeper exited when its pre-sign simulation ran out of gas after a new INDEX changed
+     the seal path; it now re-estimates (`simulationOutOfGas`).
+  4. 17:34 keeper out of MON (runway alerts only in a log). Added capped auto top-up from root
+     (keeper 30, publisher 15, makers 5 MON; trigger 90 min; 200 MON/day; 10 MON reserve) that
+     restarts a gas-stopped market, and macOS notifications for low gas, stops, failed or
+     unaffordable refills.
+  5. 21:14 keeper exited on an RPC provider "Internal error"; reads now retry and the supervisor
+     restarts such exits with backoff.
+  6. Supervisor bug: restarting a group while its previous worker was still exiting could leave
+     an untracked worker; restarts now wait for all workers to exit and cleanup is per child.
+- T4: execution gas cannot be observed (Monad reports gasUsed = limit; tracing needs a paid RPC
+  tier); margins unchanged. T10: Docker image builds and idles without a hand-off; Render
+  service not yet created (user). Dropped by user decision: T9 off-chain price line, cheaper
+  keeper sampling, leverage-sizing buttons with an open position.
+- Tests (exit 0): contracts 895/895, oracle 345/345, Monad integration 82/82, oracle workspace,
+  market-ops 54/54, keeper policy 14/14, scripts 147/147 (5 consecutive full runs clean),
+  frontend tsc, unit 127/127, integration 65/65, `next build`. Pricefeed package 498/506 with a
+  non-symlinked TMPDIR; the 8 deployment/process-supervision failures also fail without these
+  changes on macOS (CI is Linux).
+- Open: root holds about 80 MON (about 15 awake hours); the user's account is leveraged
+  (cash −314 USDC), so the market cannot sleep until it is fully backed (fund about 330
+  TestUSDC); alerts are macOS-only (Render needs a remote channel); oracle resolution operator
+  for 7 Nov unconfirmed (`docs/requests/ORACLE-nov-market-resolution.md`); Vercel frontend not
+  deployed (wake URL is the local frontend).
+- Frontend after user testing: the 1×–5× buttons now also size an open position so the whole
+  position ends at the chosen leverage (`targetLeverageLots`; adding rounds down, reducing rounds
+  up and never flips; flat accounts unchanged), and a crossing Post only order shows a plain
+  message instead of `PostOnlyCrosses`. Limit, IOC and Post only verified by simulation from the
+  user's address. Frontend unit 134/134, integration 65/65, `next build` exit 0.
+- Removed with the user's permission: retired `artifacts/deployments/monad-testnet-20261011-btc-oct13`
+  and `-eth-oct14`, and the working plan `followup.md` (its decisions are recorded here).

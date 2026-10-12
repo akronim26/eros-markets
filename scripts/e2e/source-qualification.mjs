@@ -2,18 +2,25 @@
 export const QUALIFICATION_DURATION_MS = 900_000;
 export const QUALIFICATION_STARTUP_ALLOWANCE_MS = 30_000;
 const TTL_MS = 30_000;
+// Paced Monad testnet INDEX (120 s carry, publish due 80 s after the last observation): a source
+// that advances at least every 30 s yields a publishable update by about due + 12 s, so the
+// observation lands about 25 s before the carry ends. See index-pacing.mjs.
+export const PACED_TESTNET_SOURCE_GAP_MS = 30_000;
 const digest = value => typeof value === 'string' && /^(?:0x)?[a-f\d]{64}$/i.test(value)
   ? value.replace(/^0x/i, '').toLowerCase() : null;
 
 export class SourceQualification {
-  constructor({ startedAtMs, externalRulesDigest, minimumHeadroomMs }) {
+  constructor({ startedAtMs, externalRulesDigest, minimumHeadroomMs, pacedTestnet = false }) {
     if (!Number.isSafeInteger(startedAtMs) || startedAtMs < 0 || !digest(externalRulesDigest)
-      || !Number.isSafeInteger(minimumHeadroomMs) || minimumHeadroomMs < 0 || minimumHeadroomMs >= TTL_MS)
+      || !Number.isSafeInteger(minimumHeadroomMs) || minimumHeadroomMs < 0 || minimumHeadroomMs >= TTL_MS
+      || typeof pacedTestnet !== 'boolean')
       throw Error('INVALID_SOURCE_QUALIFICATION_CONFIG');
     this.startedAtMs = startedAtMs;
     this.expectedDigest = digest(externalRulesDigest);
-    this.maxSourceGapMs = TTL_MS - minimumHeadroomMs;
-    this.count = this.validPolls = this.rejectedFuturePolls = this.failures = 0;
+    // Default: every source gap must fit the 30 s TTL minus signing headroom.
+    this.maxSourceGapMs = pacedTestnet ? PACED_TESTNET_SOURCE_GAP_MS : TTL_MS - minimumHeadroomMs;
+    this.pacedTestnet = pacedTestnet;
+    this.count = this.validPolls = this.rejectedFuturePolls = this.unsignablePolls = this.failures = 0;
     this.maxAgeMs = this.maxCarryMs = this.maxCaptureGapMs = this.maxAdvanceGapMs = 0;
     this.firstValidAtMs = this.lastAtMs = this.lastSourceMs = undefined;
     this.lastClockMs = startedAtMs;
@@ -54,6 +61,17 @@ export class SourceQualification {
           throw Error('NO_CONTINUOUS_VALID_SOURCE_COVERAGE');
         return; // Never advance the accepted timestamp with rejected future evidence.
       }
+      // Paced testnet: a quiet book older than the signing headroom is not publishable, but the
+      // publisher only needs a later update within the source-gap bound; carry is still checked.
+      const unsignable = this.pacedTestnet && inspection.status === 'DEGRADED' && inspection.reason === 'INSUFFICIENT_HEADROOM'
+        && time.fresh === true && time.sourceAgeMs >= 0n && time.monotone === true && inspection.summary?.valid === true
+        && this.lastSourceMs !== undefined && Number(time.sourceMs) === this.lastSourceMs;
+      if (unsignable) {
+        this.unsignablePolls++;
+        this.carryThrough(nowMs);
+        if (this.maxCarryMs >= this.maxSourceGapMs) throw Error('NO_CONTINUOUS_VALID_SOURCE_COVERAGE');
+        return;
+      }
       if (inspection.status !== 'COLLECTING' || inspection.summary?.valid !== true
         || time.monotone !== true || time.sourceAgeMs < 0n) throw Error('SOURCE_NOT_QUALIFIED');
       const stamp = Number(time.sourceMs);
@@ -83,9 +101,10 @@ export class SourceQualification {
       startedAt: new Date(this.startedAtMs).toISOString(),
       firstValidAt: this.firstValidAtMs === undefined ? null : new Date(this.firstValidAtMs).toISOString(),
       checkedAt: new Date(nowMs).toISOString(), durationMs: nowMs - this.startedAtMs, coverageDurationMs,
-      count: this.count, validPolls: this.validPolls, rejectedFuturePolls: this.rejectedFuturePolls, failures: this.failures,
+      count: this.count, validPolls: this.validPolls, rejectedFuturePolls: this.rejectedFuturePolls,
+      unsignablePolls: this.unsignablePolls, failures: this.failures,
       maxAgeMs: this.maxAgeMs, maxCarryMs: this.maxCarryMs, maxCaptureGapMs: this.maxCaptureGapMs,
-      maxAdvanceGapMs: this.maxAdvanceGapMs, maxSourceGapMs: this.maxSourceGapMs,
+      maxAdvanceGapMs: this.maxAdvanceGapMs, maxSourceGapMs: this.maxSourceGapMs, pacedTestnet: this.pacedTestnet,
     };
   }
 }

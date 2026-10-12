@@ -69,13 +69,6 @@ test("server sends only from the authenticated owner's wallet, with exact order,
   await assert.rejects(delegatedTrade("alice", { ...input, place: { ...input.place, tick: 379 } }), /different order/);
   await assert.rejects(delegatedTrade("alice", { ...intent(), action: "cancel", place: undefined, orderId: 9 }), /Unexpected request field/);
 });
-test("archived markets cannot add exposure through the delegated API", async () => {
-  const archived = markets.find(m => m.archived);
-  assert.ok(archived, "the migration fixture retains archived markets");
-  const before = sends, input = intent();
-  await assert.rejects(delegatedTrade("alice", { ...input, engine: archived.engine.toLowerCase(), place: { ...input.place, reduceOnly: false } }), /Archived markets/);
-  assert.equal(sends, before);
-});
 test("revoked grants, widened policies, stale previews and reversed protection never sign", async () => {
   const before = sends;
   rpcChain = 31337;

@@ -47,5 +47,5 @@ test('a warm-up INDEX point is a quote reference before the INDEX window complet
   assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:0,pendingWork:0},{available:false,pointWad:0n}),15000);
   assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:1,pendingWork:2},{available:true}),1000);
   assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:3,pendingWork:4},{available:true}),15000);
-  assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:0,pendingWork:0}),15000,'older engines');
+  assert.equal(makerReadinessDelay({indexAvailable:false,accountingState:0,pendingWork:0}),15000,'no warm-up reading');
 });

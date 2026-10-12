@@ -218,8 +218,9 @@ contract FastStartupTest is BookRiskEngineFixture {
             vm.warp(block.timestamp + 10);
             _index();
         }
-        // Publisher and keeper stop for 45 seconds; quotes stay resting.
-        vm.warp(block.timestamp + 45);
+        // Publisher and keeper stop for 125 seconds (past the 120 s testnet INDEX carry); quotes
+        // stay resting.
+        vm.warp(block.timestamp + 125);
         assertFalse(engine.riskContext().indexOk);
         (bool warm,) = engine.warmupIndex();
         assertFalse(warm, "no fresh reference while the publisher is down");
@@ -235,7 +236,7 @@ contract FastStartupTest is BookRiskEngineFixture {
             _index();
         }
         assertEq(activatedAt - restart, 60, "history after the gap is rebuilt, never manufactured");
-        assertGt(restart - launch, 45);
+        assertGt(restart - launch, 125);
     }
 
     function testDelayedObservationsKeepTheirOwnTimestamps() public {

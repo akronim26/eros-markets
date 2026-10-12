@@ -24,3 +24,7 @@ test('invalid latest observation, future timestamp and read failures cannot adve
   assert.equal(latestSourceObservation([point(100)], 100, true).fresh, false);
   assert.equal(latestSourceObservation([point(100, NaN)], 100).point, undefined);
 });
+test('a source observation stays live for the 120 s testnet INDEX carry', () => {
+  assert.equal(latestSourceObservation([point(100)], 220).fresh, true);
+  assert.equal(latestSourceObservation([point(100)], 221).fresh, false);
+});

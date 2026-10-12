@@ -1,0 +1,13 @@
+# Private state, secrets and build output never enter the image.
+tmp
+.env
+.env.*
+**/.env.local
+**/node_modules
+**/.next
+.git
+oracle/out
+oracle/cache
+contracts/out
+contracts/cache
+artifacts/deployments/*/services/keys

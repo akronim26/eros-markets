@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { activationDecision, ActivationSchedule, readFastStartupSupport, readPricingActivation } from './pricing-activation.mjs';
+import { activationDecision, ActivationSchedule, readPricingActivation } from './pricing-activation.mjs';
 
 const twap = (available, covered = 60n, wad = 5n * 10n ** 17n) => ({ available, twapWad: available ? wad : 0n, coveredSecs: covered });
 const risk = (overrides = {}) => ({ pricingMode: 0, accountingState: 0, indexAvailable: true, ...overrides });
@@ -32,16 +32,6 @@ test('readiness reads every window at the same block and timestamp', async () =>
   assert.equal(calls.length, 4);
   for (const call of calls) assert.equal(call.blockNumber, 7n);
   for (const call of calls.filter(c => c.functionName !== 'marketRiskView')) assert.deepEqual(call.args, [1000n]);
-});
-
-test('older engines without warm-up support keep their epoch-only path', async () => {
-  const transient = error => error.name === 'HttpRequestError';
-  const supported = { readContract: async () => [false, 0n] };
-  assert.equal(await readFastStartupSupport({ client: supported, engine: '0xE', abi: [], blockNumber: 1n, transient }), true);
-  const legacy = { readContract: async () => { throw Object.assign(new Error('reverted'), { name: 'ContractFunctionExecutionError' }); } };
-  assert.equal(await readFastStartupSupport({ client: legacy, engine: '0xE', abi: [], blockNumber: 1n, transient }), false);
-  const offline = { readContract: async () => { throw Object.assign(new Error('down'), { name: 'HttpRequestError' }); } };
-  await assert.rejects(readFastStartupSupport({ client: offline, engine: '0xE', abi: [], blockNumber: 1n, transient }), /down/);
 });
 
 test('a finalized sample triggers an immediate recheck; otherwise rechecks are spaced', () => {

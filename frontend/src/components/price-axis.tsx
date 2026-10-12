@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Point } from "@/lib/reads";
 import { priceSegments } from "@/lib/price-chart";
+import { INDEX_CARRY_SECS } from "@/lib/index-carry";
 import { cx } from "./ui";
 
 const RANGES = [{ label: "Live", seconds: 900 }, { label: "1H", seconds: 3600 }, { label: "6H", seconds: 21600 }, { label: "1D", seconds: 86400 }, { label: "All", seconds: Infinity }] as const;
@@ -55,7 +56,7 @@ export function PriceAxis(p: Props) {
   const y = (v: number) => bottom - (v - model.lo) / (model.hi - model.lo) * (bottom - top);
   const path = (segments: Point[][]) => segments.map(points => points.map((pt, i) => `${i === 0 ? "M" : "L"}${x(pt.t).toFixed(2)},${y(pt.v).toFixed(2)}`).join(" ")).join(" ");
   const last = model.index.at(-1);
-  const fresh = !!last && now - last.t <= 30 && last.t <= now + 2 && p.index.at(-1)?.valid !== false && !p.readError;
+  const fresh = !!last && now - last.t <= INDEX_CARRY_SECS && last.t <= now + 2 && p.index.at(-1)?.valid !== false && !p.readError;
   const hovered = hoverTime === undefined ? undefined : model.index.reduce<Point | undefined>((a, b) => !a || Math.abs(b.t - hoverTime) < Math.abs(a.t - hoverTime) ? b : a, undefined);
   const selected = hovered ?? last;
   const change = last && model.index.length > 1 ? last.v - model.index[0].v : undefined;

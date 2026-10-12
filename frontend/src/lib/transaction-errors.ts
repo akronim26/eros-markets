@@ -14,6 +14,7 @@ const errorAbi = parseAbi([
   "error Stale()",
   "error TransferFailed()",
   "error Reentrant()",
+  "error PostOnlyCrosses()", // Book.sol
 ]);
 
 function knownMessage(name: string, context?: TransactionErrorContext): string | undefined {
@@ -34,6 +35,8 @@ function knownMessage(name: string, context?: TransactionErrorContext): string |
       return "The market state changed or is no longer current. Refresh and review the action again.";
     case "TransferFailed":
       return "The collateral transfer failed. Check your token balance and spending approval before retrying.";
+    case "PostOnlyCrosses":
+      return "A Post only order must rest in the book, but this price would trade immediately. Choose Limit or IOC to trade now, or a price that does not cross the best opposite order.";
     case "Reentrant":
       return "The contract's transaction safety check blocked this action. Refresh before retrying.";
   }
