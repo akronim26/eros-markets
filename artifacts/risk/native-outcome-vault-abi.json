@@ -1,0 +1,595 @@
+{
+ "note": "NativeOutcomeVault ABI (NM-C09): one native binary event's fully backed complete-set custody. split/merge, permissionless one-time bindMarket() to the registry-selected engine, syncResolution() copying the engine's final payout value, and redeem. Separate from CollateralVault, perp reserves, venue margin and oracle bonds.",
+ "source": {
+  "src/native/NativeOutcomeVault.sol": "NativeOutcomeVault"
+ },
+ "compiler": "0.8.30+commit.73712a01",
+ "source_sha256": "d337d05b87892281454ca5e12888f5120584fef3949b08c94b8af44befcab463",
+ "abi": [
+  {
+   "type": "constructor",
+   "inputs": [
+    {
+     "name": "registry_",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "marketId_",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    },
+    {
+     "name": "collateral_",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "rulesHash_",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    },
+    {
+     "name": "scheduledT_",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "issuanceCap_",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "yesSymbol",
+     "type": "string",
+     "internalType": "string"
+    },
+    {
+     "name": "noSymbol",
+     "type": "string",
+     "internalType": "string"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "bindMarket",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "engine_",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "collateral",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "engine",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "finalOutcome",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "enum MathTypes.FinalOutcome"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "issuanceCap",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "issuanceOpen",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "marketId",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "merge",
+   "inputs": [
+    {
+     "name": "atoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "receiver",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "no",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "contract OutcomeToken"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "outstandingSets",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "payoutYesWad",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "redeem",
+   "inputs": [
+    {
+     "name": "yesAtoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "noAtoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "receiver",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "paid",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "redeemValue",
+   "inputs": [
+    {
+     "name": "yesAtoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "noAtoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "registry",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "resolved",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "rulesHash",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "scheduledT",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint64",
+     "internalType": "uint64"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "split",
+   "inputs": [
+    {
+     "name": "atoms",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "receiver",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "syncResolution",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "type": "function",
+   "name": "totalRedeemedAtoms",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
+   "name": "yes",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "contract OutcomeToken"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "event",
+   "name": "Bound",
+   "inputs": [
+    {
+     "name": "engine",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "resolutionAuthority",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "listingHash",
+     "type": "bytes32",
+     "indexed": false,
+     "internalType": "bytes32"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "Merged",
+   "inputs": [
+    {
+     "name": "owner",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "receiver",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "atoms",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "Redeemed",
+   "inputs": [
+    {
+     "name": "owner",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "receiver",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "yesAtoms",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "noAtoms",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "paid",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "ResolutionSynced",
+   "inputs": [
+    {
+     "name": "outcome",
+     "type": "uint8",
+     "indexed": false,
+     "internalType": "enum MathTypes.FinalOutcome"
+    },
+    {
+     "name": "payoutYesWad",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "snapshotId",
+     "type": "bytes32",
+     "indexed": false,
+     "internalType": "bytes32"
+    },
+    {
+     "name": "outstandingSets",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "event",
+   "name": "Split",
+   "inputs": [
+    {
+     "name": "payer",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "receiver",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "atoms",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "type": "error",
+   "name": "AlreadyBound",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "BadConfig",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "BadSettlementPrice",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "BindingMismatch",
+   "inputs": [
+    {
+     "name": "field",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ]
+  },
+  {
+   "type": "error",
+   "name": "CapExceeded",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "FinalityNotAccepted",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "InvalidPricePending",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "IssuanceClosed",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "NotBound",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "NotListed",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "NotResolved",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "Reentrancy",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "Resolved",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "ShortTransfer",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "ZeroAmount",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "ZeroReceiver",
+   "inputs": []
+  }
+ ]
+}
