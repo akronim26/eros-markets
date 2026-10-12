@@ -32,6 +32,10 @@ case "$cmd" in
     tx "$MA" 'withdraw(uint256,address)' "$2" "$t";;
   quote)    # quote <yes|no> <bidTick> <askTick> <lots>: post-only two-sided resting quote (margin funded)
     b=$(book "$1"); tx "$b" 'addBuyOrder(uint32,uint96,bool)' "$2" "$4" true; tx "$b" 'addSellOrder(uint32,uint96,bool)' "$3" "$4" true;;
+  bid)      # bid <yes|no> <tick> <lots>: single post-only bid
+    tx "$(book "$1")" 'addBuyOrder(uint32,uint96,bool)' "$2" "$3" true;;
+  ask)      # ask <yes|no> <tick> <lots>: single post-only ask
+    tx "$(book "$1")" 'addSellOrder(uint32,uint96,bool)' "$2" "$3" true;;
   buy)      # buy <yes|no> <quoteAtoms/1000 units> <minOutLots>: margin-funded market buy
     tx "$(book "$1")" 'placeAndExecuteMarketBuy(uint96,uint256,bool,bool)' "$2" "$3" true false;;
   sell)     # sell <yes|no> <lots> <minOutUnits>
@@ -44,5 +48,5 @@ case "$cmd" in
     echo "  kuru    usdc=$(mbal "$ME" "$C") yes=$(mbal "$ME" "$YES") no=$(mbal "$ME" "$NO")"
     echo "  vault   sets=$(cast call "$V" 'outstandingSets()(uint256)' --rpc-url "$R" | awk '{print $1}') issuanceOpen=$(cast call "$V" 'issuanceOpen()(bool)' --rpc-url "$R") resolved=$(cast call "$V" 'resolved()(bool)' --rpc-url "$R")"
     for s in yes no; do echo "  $s book bestBidAsk: $(cast call "$(book $s)" 'bestBidAsk()(uint256,uint256)' --rpc-url "$R" | awk '{print $1}' | tr '\n' ' ')"; done;;
-  *) echo "usage: spot.sh split|merge|redeem|sync|deposit|withdraw|quote|buy|sell|cancel|status ..." >&2; exit 2;;
+  *) echo "usage: spot.sh split|merge|redeem|sync|deposit|withdraw|quote|bid|ask|buy|sell|cancel|status ..." >&2; exit 2;;
 esac
