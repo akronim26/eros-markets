@@ -48,10 +48,23 @@ async function main() {
     sourceRulesHash: nativeRulesHash(rules), signerAddress: account.address, scheduledT: rules.scheduledT };
   verifyNativeListing(dest, rules, listing); // refuses unless the engine pins this source, signer and rules
   const rounds = Number(roundsArg), interval = Number(intervalArg);
+  let readFailures = 0;
   for (let i = 0; i < rounds; i++) {
     const state = await pub.readContract({ address: engine, abi: ENGINE_ABI, functionName: 'sourceState', args: [rules.sourceId as Hex] });
     if (!state.configured || getAddress(state.signer) !== account.address) throw new Error('SOURCE_NOT_CONFIGURED_FOR_SIGNER');
-    const snap = await readKuruSnapshot(pub as unknown as KuruReadClient, getAddress(rules.kuruOrderBook), tag);
+    let snap;
+    try {
+      snap = await readKuruSnapshot(pub as unknown as KuruReadClient, getAddress(rules.kuruOrderBook), tag);
+      readFailures = 0;
+    } catch (error) {
+      // An inconsistent or failed read (replaced block, L2 block mismatch, RPC error) is never signed:
+      // withhold this round and retry; stop after repeated failures so the outage is visible.
+      const reason = error instanceof Error ? error.message : String(error);
+      console.log(json({ round: i, withheld: `READ_FAILED:${reason.slice(0, 120)}` }));
+      if (++readFailures >= MAX_READ_FAILURES) throw new Error(`REPEATED_READ_FAILURES:${reason.slice(0, 120)}`);
+      await sleep(interval);
+      continue;
+    }
     const nowMs = BigInt((await pub.getBlock({ blockTag: 'latest' })).timestamp) * 1000n; // chain clock, never ahead of block.timestamp
     let packet;
     try {
@@ -82,6 +95,7 @@ async function main() {
   }
 }
 
+const MAX_READ_FAILURES = 5;
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 function toTuple(o: ReturnType<typeof prepareNativeObservation>['observation']) {
   return { ...o, marketId: o.marketId as Hex, sourceId: o.sourceId as Hex, sourceRulesHash: o.sourceRulesHash as Hex };
