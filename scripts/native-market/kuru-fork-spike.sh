@@ -47,6 +47,8 @@ echo "   bestBidAsk: $(cast call $OB 'bestBidAsk()(uint256,uint256)' --rpc-url $
 echo "   maker margin after resting: YES=$(bal $MKA $YES) tUSDC=$(bal $MKA $Q)"
 echo "   L2 bytes: $(cast call $OB 'getL2Book()(bytes)' --rpc-url $R | head -c 200)..."
 
+if [ "${KEEP_BOOK:-0}" = 1 ]; then echo "KEEP_BOOK=1: leaving maker quotes resting; market=$OB yes=$YES"; exit 0; fi
+
 echo "5. taker deposits 100 tUSDC, market-buys YES with margin"
 s $TK $Q  'approve(address,uint256)' $MA 1000000000
 s $TK $MA 'deposit(address,address,uint256)' $TKA $Q 100000000
