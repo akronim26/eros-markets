@@ -1,0 +1,37 @@
+{
+  "round": 0,
+  "sequence": "1",
+  "observedAt": "1791845371",
+  "valid": true,
+  "mid": "0.5",
+  "bid": "0.48",
+  "ask": "0.52",
+  "tx": "0xc61a02d458cdf1583961045eab466d06519dca222cc2170d63d27d285d82014c",
+  "index": {
+    "available": false,
+    "twap": null,
+    "coveredSecs": "3"
+  }
+}
+{
+  "round": 1,
+  "sequence": "2",
+  "observedAt": "1791845408",
+  "valid": true,
+  "mid": "0.5",
+  "bid": "0.48",
+  "ask": "0.52",
+  "tx": "0x82d5865d1599ebffa1e4737790d76c0c8cfa010bf8ac6dd4753e9863f5e70baa",
+  "index": {
+    "available": false,
+    "twap": null,
+    "coveredSecs": "40"
+  }
+}
+{
+  "round": 2,
+  "sequence": "3",
+  "observedAt": "1791845445",
+  "valid": true,
+  "mid": "0.5",
+  "bid": "0.4
