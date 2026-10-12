@@ -97,7 +97,7 @@ Statuses: `TODO`, `READY`, `ACTIVE`, `VERIFY`, `BLOCKED`, `DONE`, `DEFERRED`, `I
 | --- | --- | --- | --- | --- | ---: |
 | A | Frozen event, policies, budget and baseline | Integration | Unassigned | READY | 0 / 5 core |
 | B | Kuru compatibility proof | Integration | Unassigned | VERIFY (fork PASS) | 0 / 5 core |
-| C | Backed YES/NO issuance and redemption contracts | Contracts | Unassigned | TODO | 0 / 8 core |
+| C | Backed YES/NO issuance and redemption contracts | Contracts | Unassigned | VERIFY | 7 / 8 core |
 | D | Bound native market and verified deployment | Integration + contracts | Unassigned | TODO | 0 / 6 core |
 | E | Spot trading, maker liquidity and arbitrage demonstration | Venue integration | Unassigned | TODO | 0 / 4 core |
 | F | Native observer and durable signed publication | Pricefeed | Unassigned | TODO | 0 / 8 core |
@@ -202,15 +202,15 @@ All rows in this section inherit P0 and their workstream's owner. `—` under ev
 
 | Task | Status | Depends on | Work and completion check | Evidence |
 | --- | --- | --- | --- | --- |
-| NM-C01 | TODO | NM-A03 | Implement standard six-decimal YES/NO ERC-20s with immutable market/side/vault identity and vault-only issuance/burning. Test balances, transfers, allowances and rejection of unauthorized mint/burn. | — |
-| NM-C02 | TODO | NM-C01 | Implement vault constructor and one-time permissionless market binding from the pinned registry. Check event, engine, collateral, oracle, rules and T. Reject arbitrary caller-supplied binding and operation while unbound. | — |
-| NM-C03 | TODO | NM-C02 | Implement split: receive exact collateral, enforce outstanding-issuance cap and economic halt, mint equal YES/NO amounts. Enforce scheduled T even before a keeper materializes halt. No admin mint or issuance from donations. | — |
-| NM-C04 | TODO | NM-C03 | Implement merge: burn caller-owned equal amounts and return identical collateral atoms; allow backed complete-set exit after halt while resolution is pending, disable after native finalization. Test mixed owners/recipients and reverts. | — |
-| NM-C05 | TODO | NM-C02 | Implement resolution sync using bound engine finality/status. Translate enums explicitly; wait for INVALID price readiness. Latch one payout value/provenance; repeated identical sync is safe and conflicting values cannot replace it. | — |
-| NM-C06 | TODO | NM-C04, NM-C05 | Implement redemption with combined integer rounding for YES/NO amounts, exact complementary payout weights and caller-owned burns. Full sets redeem exactly; zero-payout losing tokens can be burned; retained dust cannot be swept by an admin. | — |
+| NM-C01 | DONE | NM-A03 | Implement standard six-decimal YES/NO ERC-20s with immutable market/side/vault identity and vault-only issuance/burning. Test balances, transfers, allowances and rejection of unauthorized mint/burn. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) |
+| NM-C02 | VERIFY | NM-C01 | Implement vault constructor and one-time permissionless market binding from the pinned registry. Check event, engine, collateral, oracle, rules and T. Reject arbitrary caller-supplied binding and operation while unbound. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) Mock registry/engine only; real `getMarketCore` ABI layout to be pinned by NM-H02. |
+| NM-C03 | DONE | NM-C02 | Implement split: receive exact collateral, enforce outstanding-issuance cap and economic halt, mint equal YES/NO amounts. Enforce scheduled T even before a keeper materializes halt. No admin mint or issuance from donations. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) |
+| NM-C04 | DONE | NM-C03 | Implement merge: burn caller-owned equal amounts and return identical collateral atoms; allow backed complete-set exit after halt while resolution is pending, disable after native finalization. Test mixed owners/recipients and reverts. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) |
+| NM-C05 | DONE | NM-C02 | Implement resolution sync using bound engine finality/status. Translate enums explicitly; wait for INVALID price readiness. Latch one payout value/provenance; repeated identical sync is safe and conflicting values cannot replace it. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) |
+| NM-C06 | DONE | NM-C04, NM-C05 | Implement redemption with combined integer rounding for YES/NO amounts, exact complementary payout weights and caller-owned burns. Full sets redeem exactly; zero-payout losing tokens can be burned; retained dust cannot be swept by an admin. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) |
 | NM-C07 | IF-TIME | NM-C03, NM-C04, NM-C06 | Test reentrancy, failed/short transfers, unsupported collateral behavior, zero/oversized values, arithmetic limits, wrong token/market, receiver handling and rollback. Check transfers/withdrawals are not disabled at resolution. | — |
-| NM-C08 | TODO | NM-C07 | Add conservation fuzz/invariant checks across split, transfer, merge, sync and fragmented redemption. Track donations and dust separately. Before finalization both supplies equal outstanding sets; total payouts never exceed backing. | — |
-| NM-C09 | TODO | NM-C08 | Compile with pinned settings, export ABI and run native contract tests/invariants. Record code/ABI identities, privileges and event/API documentation. Full-set round-trip and arbitrary INVALID payout examples pass locally. | — |
+| NM-C08 | DONE | NM-C07 | Add conservation fuzz/invariant checks across split, transfer, merge, sync and fragmented redemption. Track donations and dust separately. Before finalization both supplies equal outstanding sets; total payouts never exceed backing. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) |
+| NM-C09 | DONE | NM-C08 | Compile with pinned settings, export ABI and run native contract tests/invariants. Record code/ABI identities, privileges and event/API documentation. Full-set round-trip and arbitrary INVALID payout examples pass locally. | `FOUNDRY_PROFILE=ci forge test --match-path 'test/native/*.t.sol'` 35/35 pass, exit 0 (`260745b`) ABIs: `artifacts/risk/native-outcome-vault-abi.json`, `outcome-token-abi.json` (`2deb124`, export `--check` exit 0). |
 
 **Mocks:** local registry/engine finality fixtures are appropriate here. They exercise token/vault invariants early; real oracle and venue custody tests remain in H and E. Build no upgrade system or native factory for the first event.
 
@@ -510,6 +510,7 @@ Signing keys, authenticated RPC endpoints, full private runtime configs and sign
 | --- | --- | --- | --- | --- |
 | 2026-10-13 | Created tracker from native plan and requirements; implementation not started | All task rows initialized | Documentation consistency checks only; no native tests or transactions run | Start NM-A01 and NM-A02, then Kuru compatibility spike |
 | 2026-10-13 | Cut scope to 10 hours (section 0): 26 rows moved to IF-TIME with pickup order. Ran the Kuru compatibility spike on a local anvil fork of Monad testnet: TestUSDC accepted as quote; permissionless `deployProxy`; deposit/post/fill/cancel/withdraw OK; units 1:1 with Eros lots and ticks | NM-B01–B04 → VERIFY; NM-B06 rewired to B03/B04; IF-TIME rows | `bash scripts/native-market/kuru-fork-spike.sh` exit 0 on fork block 70491754 ([evidence](../../artifacts/native-market/20261013-kuru-fork-spike/kuru-compatibility.md)); no public transactions | NM-B06 public smoke with funded keys; NM-A01–A06; start NM-C01 |
+| 2026-10-13 | NM-C01–C09: OutcomeToken + NativeOutcomeVault (split/merge/bind/sync/redeem), unit/fuzz/invariant tests, ABI exports | C01, C03–C06, C08, C09 DONE; C02 VERIFY | CI-profile native suite 35/35 exit 0; ABI export check exit 0; commits `260745b`, `2deb124` | Pin real registry layout in NM-H02; next offline work: NM-E01 units, NM-F03–F06 observer |
 
 Use this handoff at the end of an implementation session:
 
