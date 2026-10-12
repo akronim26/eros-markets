@@ -52,3 +52,12 @@
 - **Budget:** these are funded from the `NATIVE_*` keys in `secrets.md`. The keeper uses about 2.5 MON/h.
 
 Settlement happens after T and is not shown here. The local real-stack proof is `oracle/test/integration/NativeSettlement.t.sol`.
+
+## First hourly rollover (unattended)
+
+At 23:00:21Z the keeper loop:
+1. detected that `beginRollover` was open;
+2. ran `beginRollover` → `rollPage` → `finishRollover`;
+3. re-posted the perp maker's 0.490/0.510 quotes (`0x5ab3ba06…`, `0xdec2adc9…`).
+
+Sampling resumed at 23:00:34Z with PERP and INDEX available and `pricingMode = 1`. The publisher had 25 observations accepted by 23:04Z. Keeper spend was 40 → 39.14 MON in about 10 minutes, including the rollover.

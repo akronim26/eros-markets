@@ -101,11 +101,11 @@ Statuses: `TODO`, `READY`, `ACTIVE`, `VERIFY`, `BLOCKED`, `DONE`, `DEFERRED`, `I
 | D | Bound native market and verified deployment | Integration + contracts | Unassigned | ACTIVE (public) | 4 / 6 core |
 | E | Spot trading, maker liquidity and arbitrage demonstration | Venue integration | Unassigned | ACTIVE (public) | 2 / 5 core |
 | F | Native observer and durable signed publication | Pricefeed | Unassigned | ACTIVE (public) | 7 / 8 core |
-| G | Native INDEX/MARK and real Eros perp execution | Perp integration | Unassigned | ACTIVE (public) | 3 / 6 core |
+| G | Native INDEX/MARK and real Eros perp execution | Perp integration | Unassigned | ACTIVE (public) | 4 / 6 core |
 | H | Resolution, native redemption and perp claims | Contracts + oracle integration | Unassigned | ACTIVE | 1 / 4 core |
 | I | Minimum usable native-market UI | Frontend | Unassigned | IF-TIME | 0 / 0 core |
 | J | Operations, regression checks and demo handoff | Integration | Unassigned | ACTIVE | 0 / 5 core |
-| **Core total** | **10-hour hackathon release** | Integration | Unassigned | **LIVE ON TESTNET** (native market listed; spot, native INDEX and 1x perp trading) | **34 / 52 core** (+26 IF-TIME) |
+| **Core total** | **10-hour hackathon release** | Integration | Unassigned | **LIVE ON TESTNET** (native market listed; spot, native INDEX and 1x perp trading) | **35 / 52 core** (+26 IF-TIME) |
 
 The 74 rows divide implementation and its acceptance checks into trackable pieces; they are not 74 separate features or services. Use them in coherent batches. The architecture plan's **8–12 engineering-day estimate** remains a rough core effort estimate, conditional on existing tools/test funds and a successful Kuru spike. Dates and people have not been assumed. Re-estimate after B and the first working publisher integration.
 
@@ -284,7 +284,7 @@ All rows in this section inherit P0 and their workstream's owner. `—` under ev
 | NM-G04 | VERIFY | NM-G03 | Execute a real 1× perp fill against funded Eros liquidity. Reconcile order/fill/positions/cash and demonstrate close/reduce plus eligible release/withdrawal. Native tokens are not perp margin. | Public 1x fill (long 20 @ 0.51, balances reconciled); public close/release pending (done on fork). [public run](../../artifacts/native-market/public-20261012-btc-82500/README.md) |
 | NM-G05 | VERIFY | NM-G04, NM-F06 | Remove native liquidity or stop source publication; verify carry expiry, explicit unavailable state and restricted new risk. Missing MARK alone cannot justify normal liquidation. Recover by authentic new data and complete windows. | IF-TIME item rehearsed on fork: quote removal → invalid-depth checkpoints → INDEX unavailable → recovery. |
 | NM-G06 | IF-TIME | NM-G04, NM-E04 | Change only perp orders and prove native observer evidence still comes from Kuru. Remove team spot depth and verify failed source eligibility; retain team-liquidity provenance. No claim that multiple team wallets establish independent pricing. | — |
-| NM-G07 | VERIFY | NM-G05, NM-G06 | Cross one hourly rollover, complete account sweep/reopen, restore maker quotes and sealed history, then repeat a valid fill. Record any MARK interruption and actual recovery; preserve an existing external-market regression case. | IF-TIME item rehearsed anyway on fork: rollover + stale-INDEX block + recovery fill ([fork rehearsal](../../artifacts/native-market/20261013-fork-rehearsal/README.md)). |
+| NM-G07 | DONE | NM-G05, NM-G06 | Cross one hourly rollover, complete account sweep/reopen, restore maker quotes and sealed history, then repeat a valid fill. Record any MARK interruption and actual recovery; preserve an existing external-market regression case. | Public: first hourly rollover handled unattended by keeper-daemon at 23:00:21Z (rollover + perp re-quote, PERP/INDEX stayed available). [public run](../../artifacts/native-market/public-20261012-btc-82500/README.md) |
 
 **Mocks:** local controlled clock/chain fixtures may accelerate lifecycle tests; label them. Public evidence uses actual timestamps and deployed windows. Native leverage >1× belongs only to the optional gated task.
 
