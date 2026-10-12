@@ -61,3 +61,13 @@ At 23:00:21Z the keeper loop:
 3. re-posted the perp maker's 0.490/0.510 quotes (`0x5ab3ba06…`, `0xdec2adc9…`).
 
 Sampling resumed at 23:00:34Z with PERP and INDEX available and `pricingMode = 1`. The publisher had 25 observations accepted by 23:04Z. Keeper spend was 40 → 39.14 MON in about 10 minutes, including the rollover.
+
+## Remaining lifecycle actions (public, 23:05–23:08Z)
+
+| Action | Result | Tx |
+| --- | --- | --- |
+| Kuru cancel | Extra 1-claim YES bid (order 3) cancelled; live depth untouched | `0x1f2f54e1240281a214168c3db2d564aa80cf62aec527e712a03f0ea6f638b013` |
+| NO trade | Trader bought 20 NO for 10.4 tUSDC (Kuru tUSDC 64 → 53.6) | `0xbc32f075aea4a041a7a1e6d9d7a5297f3fc653aa343da1d391e70ae52b444e16` |
+| Merge | Withdrew 20 YES + 20 NO from Kuru, merged 20 sets; wallet tUSDC 810 → 830; vault sets 500 → 480 | `0x3bc40b15ee715051209f225d29c953ccbb9b2633dc6f95331ce912ad0d5c2e3f` |
+| Perp close | Reduce-only sell of 20 at 0.49; cash 89.8 → 99.6, flat | `0x08ccd25345fa6aed5122fc8f09cb6b90b41e08353e39322bfb0c14f20f2fcb92` |
+| Release + withdraw | 99.6 tUSDC back to the wallet (929.6) | `0xb2a3d4f2…a867`, `0x94ab18c5…ad5a` |
