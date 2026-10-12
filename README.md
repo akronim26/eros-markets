@@ -31,8 +31,8 @@ Recorded testnet integrations use test collateral and synthetic risk calibration
 ## Architecture
 
 <p align="center">
-  <a href="docs/assets/eros-architecture.svg">
-    <img src="docs/assets/eros-architecture.svg" alt="Eros Markets architecture diagram" width="100%">
+  <a href="docs/assets/architecture/01-system.svg">
+    <img src="docs/assets/architecture/01-system.svg" alt="Eros Markets architecture diagram" width="100%">
   </a>
 </p>
 
@@ -51,6 +51,14 @@ Price publication and event resolution serve separate purposes. The publisher ma
 The market factory reconstructs approved engine creation code from **two immutable code stores** and registers each engine with the shared collateral vault. Each engine has its own market ledger and reserve. Book and risk hooks execute within the same contract transaction, so accepted fills and their accounting updates are atomic.
 
 New engine bytecode requires a replacement deployment. Existing engines, positions and vault allocations retain their original bindings; balances do not migrate automatically.
+
+### CLOB: order execution
+
+The order book matches eligible orders by price, then arrival time. Risk hooks run during admission and matching; an accepted fill updates both accounts within the same transaction.
+
+![CLOB order admission and matching](docs/assets/architecture/02-clob.svg)
+
+Failed admission produces no order. A crossing post-only order reverts when submitted individually and is skipped in a batch. Pruning a maker continues matching within the remaining execution budget; stopping the taker leaves the maker in place. A limit remainder that still crosses after the execution budget is exhausted is dropped rather than rested. Matching also respects price limits and reduce-only constraints. See [order book engineering](contracts/README.md) for the detailed matching and risk-hook interfaces.
 
 ## Pricing and market readiness
 
@@ -75,6 +83,18 @@ On the new testnet path, exactly backed, non-crossing **post-only warm-up quotes
 
 The latest startup record includes an unresolved MARK-availability gap around hourly rollover. Its timing measurements are local simulations, not public-chain latency guarantees. See [fast MARK startup](docs/integration/FAST_MARK_STARTUP.md) for the implementation, evidence and remaining work.
 
+### Pricefeed: external observations to INDEX
+
+The publisher validates source evidence before preparing an observation. Durable journals preserve packet, signing and transaction history across retries and restarts; the engine independently checks submitted observations.
+
+![Pricefeed publication, INDEX and MARK formation](docs/assets/architecture/04-pricefeed.svg)
+
+Where explicitly configured, trustworthy invalid-depth evidence can produce an invalid-depth checkpoint. Missing or stale source evidence cannot be assigned a new timestamp to manufacture coverage.
+
+INDEX is one input to MARK. As shown above, funded Eros book observations supply the other candidates.
+
+Normal MARK requires every candidate to be available and the engine to be in NORMAL_PRICING. The latest PERP input is a recorded observation subject to freshness checks, not an unsampled current-book quote. Initial pricing activation obeys the accounting-readiness checks described above. Calibration activates separately at an eligible completed accounting epoch and governs leveraged admission; an uncalibrated market can activate pricing while remaining at 1×.
+
 ### Operating a market
 
 A usable market requires continuous operation of the publisher, sampling/epoch keeper and funded makers. A running frontend or a successful Polymarket fetch alone does not establish executable prices.
@@ -90,6 +110,14 @@ The selected integration uses reserve capital to preserve full winning entitleme
 Scheduled markets require full backing for new commitments from **T−12h30m**, enter the backing-floor stage at **T−12h**, and become reduce-only at **T−1h**. Trading halts at the scheduled time or an authenticated earlier halt. Select demonstration markets with enough remaining trading time for the intended lifecycle.
 
 During the backing-floor sweep, a legacy account with a terminal-outcome deficit may have its cash and position transferred to the reserve even if its current MARK equity is positive. This lifecycle rule is separate from ordinary margin liquidation.
+
+### Risk engine: admission and account controls
+
+The engine evaluates proposed actions against account state and market-wide constraints. Margin and reserve coverage are checked together, while lifecycle and pricing readiness determine which actions are permitted.
+
+![Risk engine admission and account controls](docs/assets/architecture/03-risk-engine.svg)
+
+This is a dependency view, not a sequence of separate transactions. Risk checks are integrated into execution. Unavailable MARK does not count as evidence for ordinary MARK-based liquidation, and reserve capital does not replace a trader's collateral or a maker's orders.
 
 The owner flow is:
 
@@ -115,6 +143,16 @@ Closing a position, releasing collateral and withdrawing to a wallet are separat
 At tick `t`, `n` lots transfer `n × t × 10^18` Q units. Use integer arithmetic and explicit rounding. Contract previews and finalized receipts determine executable actions and balances; SDK projections are estimates. Missing prices remain unavailable rather than becoming zero.
 
 The [versioned frontend interface](oracle/packages/oracle-sdk/FRONTEND_HANDOFF.md) documents manifests, states, pagination, errors, units and transaction sequences. The SDK's browser entry exposes credential-free manifests, concrete engine/factory/vault ABIs and transaction builders. Optional [delegated trading and protection](services/automation/README.md) use separate authorization and are not required for normal wallet signing.
+
+## Oracle: event resolution and settlement
+
+Price publication supports trading risk calculations; the resolution oracle determines the final event outcome. Proposal routes include structured feed reports, panel evidence, committee review and a permissionless path, subject to the configured state, timing and trust-set checks.
+
+![Oracle resolution and settlement](docs/assets/architecture/05-oracle.svg)
+
+Proposed outcomes enter the bonded assertion and adjudication process; a proposal alone does not establish finality. Successful finalization records the outcome and settles the engine atomically. Snapshot and payout preparation must still complete before owner claims become available. Rejected assertions and configured void conditions follow their own retry or INVALID settlement paths.
+
+The recorded testnet setup uses CRE simulation and owner-controlled sandbox adjudication; these are not evidence of production oracle operation.
 
 ## Local development
 
