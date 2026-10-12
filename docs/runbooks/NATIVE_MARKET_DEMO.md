@@ -1,6 +1,6 @@
 # Native market demo runbook (Monad testnet)
 
-Tracker: [NATIVE_MARKET_TRACKER.md](../implementation/NATIVE_MARKET_TRACKER.md). Every step below was rehearsed on a local fork of Monad testnet with the real registry, factory, oracle, TestUSDC and Kuru state. See the [fork rehearsal](../../artifacts/native-market/20261013-fork-rehearsal/README.md). **The public run has not been performed yet.**
+Tracker: [NATIVE_MARKET_TRACKER.md](../implementation/NATIVE_MARKET_TRACKER.md). Every step below was rehearsed on a fork and then **run publicly on 2026-10-12** for the BTC > $82,500 market: see the [public run record](../../artifacts/native-market/public-20261012-btc-82500/README.md) for addresses and transactions.
 
 The demo uses test collateral (tUSDC), a 1× perp, funding off, team-controlled liquidity, a single trusted observer key and sandbox adjudication. Say so on stage.
 
@@ -64,7 +64,8 @@ N = 100 claims with a 0.05 spread. Both native YES depth and Eros perp depth mus
 
 ```bash
 cd oracle && NATIVE_DEPLOYMENT=deployments/native/<name>.json NATIVE_LISTING=deployments/native/<name>.listing.json \
-  $F script script/native/ListNativeMarket.s.sol --skip UmaImports --skip 'test/**' --rpc-url $RPC --broadcast --private-key $LISTER_KEY
+  $F script script/native/ListNativeMarket.s.sol --skip UmaImports --skip 'test/**' --rpc-url $RPC --broadcast --slow \
+  --gas-estimate-multiplier 105 --private-key $LISTER_KEY   # createMarket ~27.9M gas; Monad's 30M tx cap rejects forge's default 1.3x
 # prints `engine <addr>`; export ENGINE=<addr>
 ENGINE=$ENGINE $F script script/native/ActivateNativeMarket.s.sol --skip UmaImports --skip 'test/**' --rpc-url $RPC
 cast send $TIMELOCK <printed propose calldata> --rpc-url $RPC --private-key $LISTER_KEY
@@ -115,6 +116,17 @@ KEY=$TRADER_KEY     bash scripts/native-market/perp.sh close 600 20000 sell
 
 - **Every hour:** run `KEY=$KEEPER_KEY perp.sh rollover`, then re-quote the perp maker and run `perp.sh keeper` until PERP is valid again. Old perp orders do not survive a rollover. Avoid demoing across xx:00.
 - **Gas:** the CLIs add a 30% gas-limit margin, because exact estimates go stale while the keeper and publisher are running.
+
+### Keep it running
+
+```bash
+R=$RPC ENG=$ENGINE KEEPER_KEY=$KEEPER_KEY PERP_MAKER_KEY=$PERP_MAKER_KEY \
+  setsid nohup bash scripts/native-market/keeper-daemon.sh > tmp/native-public/keeper.log 2>&1 &
+```
+
+- The keeper loop samples every 90 s (about 0.063 MON per sample, so about 2.5 MON/h).
+- When the hourly rollover opens, it runs the rollover and re-posts the perp maker's quotes.
+- It stops itself when the keeper balance drops below 2 MON.
 
 ## 7. Settlement (NM-H)
 
