@@ -1,0 +1,8 @@
+{"registry":"0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+ "marketId":"0x7ef798bb10d8de6fb2f3aa2ea68e64e23322b36eb7d64a01432a6ded60820cfe",
+ "collateral":"0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+ "rules":"FORK REHEARSAL ONLY. YES if the test condition holds at T; NO otherwise.",
+ "scheduledT":1792010842,"issuanceCap":10000000000,"yesSymbol":"eYES-R","noSymbol":"eNO-R",
+ "kuruRouter":"0x7EFbE105Ca7415dE98F96622173458ac1c054630",
+ "kuru":{"pricePrecision":1000,"sizePrecision":1000,"tickSize":1,"minSize":1,"maxSize":1000000000,"takerFeeBps":0,"makerFeeBps":0,"ammSpread":100},
+ "out":"deployments/native/fork-rehearsal.json"}
