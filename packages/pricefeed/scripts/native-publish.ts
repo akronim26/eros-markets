@@ -69,7 +69,9 @@ async function main() {
     const onchain = await pub.readContract({ address: engine, abi: ENGINE_ABI, functionName: 'observationDigest', args: [toTuple(o)] });
     if (onchain !== digest) throw new Error('DIGEST_MISMATCH');
     const signature = await account.sign({ hash: digest });
-    const hash = await wallet.writeContract({ address: engine, abi: ENGINE_ABI, functionName: 'submitObservation', args: [toTuple(o), signature] });
+    // +30% gas margin: keeper/maker transactions change engine state between estimate and inclusion.
+    const gas = await pub.estimateContractGas({ address: engine, abi: ENGINE_ABI, functionName: 'submitObservation', args: [toTuple(o), signature], account });
+    const hash = await wallet.writeContract({ address: engine, abi: ENGINE_ABI, functionName: 'submitObservation', args: [toTuple(o), signature], gas: gas * 13n / 10n });
     const receipt = await pub.waitForTransactionReceipt({ hash });
     if (receipt.status !== 'success') throw new Error(`SUBMIT_REVERTED:${hash}`);
     const twap = await pub.readContract({ address: engine, abi: ENGINE_ABI, functionName: 'indexTwap300', args: [BigInt(receipt.blockNumber === undefined ? 0 : (await pub.getBlock({ blockNumber: receipt.blockNumber })).timestamp)] });
