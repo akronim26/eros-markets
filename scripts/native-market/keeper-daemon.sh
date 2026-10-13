@@ -14,9 +14,15 @@ while true; do
   if awk "BEGIN{exit !($bal < $MIN_MON)}"; then echo "$(ts) keeper balance $bal MON < $MIN_MON: stopping"; exit 3; fi
   if cast call "$ENG" 'beginRollover()' --from "$KA" --rpc-url "$R" >/dev/null 2>&1; then
     echo "$(ts) rollover due"
-    KEY=$KEEPER_KEY $PP rollover && echo "$(ts) rollover done; re-quoting perp maker: $QUOTE"
+    KEY=$KEEPER_KEY $PP rollover && echo "$(ts) rollover done"
+  fi
+  # Re-quote only when the perp book is missing a side (bestBidAsk returns 0 for an empty side);
+  # resting quotes that survive the rollover are kept, so depth does not stack every hour.
+  read -r bid ask < <(cast call "$ENG" 'bestBidAsk()(uint16,uint16)' --rpc-url "$R" 2>/dev/null | tr '\n' ' ')
+  if [ "${bid:-0}" = 0 ] || [ "${ask:-0}" = 0 ]; then
+    echo "$(ts) perp book side empty (bid=${bid:-?} ask=${ask:-?}); quoting: $QUOTE"
     # shellcheck disable=SC2086
-    KEY=$PERP_MAKER_KEY $PP quote $QUOTE || echo "$(ts) re-quote failed (INDEX may be stale; retry next loop)"
+    KEY=$PERP_MAKER_KEY $PP quote $QUOTE || echo "$(ts) quote failed (INDEX may be stale; retry next loop)"
   fi
   if KEY=$KEEPER_KEY ENG=$ENG R=$R bash -c ". <(sed -n '1,14p' '$HERE/perp.sh'); tx \"\$ENG\" 'samplePerp()'" >/dev/null 2>&1; then s=ok; else s=fail; fi
   now=$(cast block latest -f timestamp --rpc-url "$R" 2>/dev/null)
