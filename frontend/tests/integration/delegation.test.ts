@@ -10,6 +10,7 @@ import { delegatedTrade, TradeDeliveryError } from "../../src/server/trade";
 import { processProtectionBlock } from "../../src/server/automation";
 import { client } from "../../src/lib/public-client";
 import { reconcileRequest } from "../../src/server/reconcile";
+import { isSpotOnly, SPOT_MARKET_FACTORY } from "../../src/config/native";
 import { db } from "../../src/server/store";
 import { publicManifest as manifest, deploymentManifests, markets } from "../../src/config/deployment";
 import { keccak256 } from "viem";
@@ -41,7 +42,7 @@ Object.assign(client, { getChainId: async () => rpcChain, getCode: async () => "
     const market = selected.markets.find((m) => m.engine.toLowerCase() === c.address?.toLowerCase() || m.marketId.toLowerCase() === c.args?.[0]?.toLowerCase?.()) ?? manifest.markets[0];
     if (c.functionName === "listing") return { marketId: market.marketId, indexSourceId: market.sourceId, token: deploymentContracts.CollateralToken.address, registry: deploymentContracts.MarketRegistry.address, resolutionAuthority: deploymentContracts.ResolutionOracle.address };
     if (c.functionName === "listingHash") return market.listingHash;
-    const binding = ({ factory: deploymentContracts.MarketFactory.address, oracle: deploymentContracts.ResolutionOracle.address, registry: deploymentContracts.MarketRegistry.address, collateralVault: deploymentContracts.CollateralVault.address, token: deploymentContracts.CollateralToken.address, engineOf: market.engine } as Record<string, string>)[c.functionName];
+    const binding = ({ factory: isSpotOnly(c.address) ? SPOT_MARKET_FACTORY : deploymentContracts.MarketFactory.address, oracle: deploymentContracts.ResolutionOracle.address, registry: deploymentContracts.MarketRegistry.address, collateralVault: deploymentContracts.CollateralVault.address, token: deploymentContracts.CollateralToken.address, engineOf: market.engine, anchorOf: market.engine } as Record<string, string>)[c.functionName];
     return binding ?? (c.functionName === "participantId" ? 1 : c.functionName === "maxFills" ? 8 : c.functionName === "previewAccount" ? { positionLots: 1000n } : c.functionName === "getOrder" ? { owner: 2 } : { rejection: 0, acceptedCapLots: 1000n });
   },
   multicall: async ({ contracts, deployless, allowFailure, blockNumber }: any) => {
