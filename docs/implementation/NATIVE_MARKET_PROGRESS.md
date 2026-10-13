@@ -5,7 +5,7 @@ Plan: [NATIVE_MARKET_PLAN.md](NATIVE_MARKET_PLAN.md) · Tracker: [NATIVE_MARKET_
 
 ## Summary
 
-**Status: implemented and running on public Monad testnet (chain 10143).**
+**Status: core complete (52/52 core tracker tasks) and running on public Monad testnet (chain 10143).**
 
 | Requirement | Status |
 | --- | --- |
@@ -16,7 +16,7 @@ Plan: [NATIVE_MARKET_PLAN.md](NATIVE_MARKET_PLAN.md) · Tracker: [NATIVE_MARKET_
 | Oracle resolution and redemption | ✅, including one public early YES settlement |
 
 - **30 commits**, all local; nothing pushed.
-- **Tracker:** 43 of 52 core tasks DONE, 6 VERIFY, 3 TODO; 22 optional ("if time") tasks deferred.
+- **Tracker:** all 52 core tasks DONE (frontend-only items excluded from scope); 22 optional ("if time") tasks deferred.
 - **What remains** is operations and paperwork, not features. See "Open items" at the end.
 
 Trust and scope labels for everything below:
@@ -144,3 +144,18 @@ Trust and scope labels for everything below:
 | J07 demo freeze | Final runbook, evidence bundle, limitations |
 | Native perp maker | Perp quotes (0.49/0.51) don't follow native INDEX (~0.50 now, 0.30–0.37 earlier), so PERP becomes unavailable when INDEX moves away |
 | Funding | Spot maker ~0.66 MON, observer ~5 MON (~1.5 h), keeper ~31 MON |
+
+## Phase 8: Closing the remaining core tasks (frontend excluded)
+
+| Commit | Tasks | What changed | Validation |
+| --- | --- | --- | --- |
+| `5a028e3` | NM-D01, NM-D06 | Strict native deployment manifest (schema v1) and the read-only `native-verify` chain verifier | Manifest tests 2/2; both public deployments pass 19/19 checks |
+| `bf00b1e` | NM-G04, NM-G05 | Keeper keeps perp quotes centred on native INDEX; the simulator rate-limits its moves | **Finding:** the BTC engine is `REDUCE_ONLY`, because simulation run 1 tripped the 0.10/300 s movement guard by design. Only the monitor can clear it. |
+| `0477906` | NM-J01, NM-J02 | `ops.sh` check/start/stop/status: verification-gated start, bounded restart supervisors, flock single writer, mode-600 config, no secrets in argv; publisher reads its RPC URL from the environment | Live migration with INDEX uninterrupted (0.497); `ps` shows no keys or tokens; a second start is refused |
+| `8089f7c` | NM-E07, G05, F10 | Evidence: public arbitrage, source-loss and movement guard; pricefeed regression | Arbitrage: buy-merge and split-sell each realized exactly +0.200 tUSDC on testnet. Pricefeed 527/527 (Node 24.21) |
+| `951fd3a` | NM-J07 | Demo freeze in runbook §9 (identities, sequence, procedures, limitations) | — |
+| this commit | NM-J05 | Final regression record | Contracts 928/928; pricefeed 527/527; oracle 122/124 (the 2 failures exist on the baseline); ABI 5/5 |
+
+**Operational follow-ups (not code):**
+- **Clear the movement latch:** the monitor calls `clearReduceOnly` on the BTC engine to re-enable perp trading.
+- **Top up the observer:** about 1 h of runway at 60 s publishing.
