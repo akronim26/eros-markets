@@ -21,7 +21,7 @@ export type SpotSnapshot = {
 };
 
 /** Recent order ids scanned per book for the viewer's resting orders (Kuru exposes no per-owner index). */
-const ORDER_SCAN = 300;
+const ORDER_SCAN = 200;
 
 export async function readSpot(engine: Address, owner: Address | undefined, block: bigint): Promise<SpotSnapshot | undefined> {
   const b = nativeBinding(engine);
@@ -67,5 +67,5 @@ export async function readSpot(engine: Address, owner: Address | undefined, bloc
 
 export function useSpot(engine: Address, owner: Address | undefined, block: bigint | undefined) {
   return useQuery({ queryKey: ["spot", engine.toLowerCase(), owner?.toLowerCase()], enabled: !!nativeBinding(engine) && block !== undefined,
-    queryFn: () => readSpot(engine, owner, block!), refetchInterval: 6000 });
+    queryFn: () => readSpot(engine, owner, block!), refetchInterval: 8000 });
 }
