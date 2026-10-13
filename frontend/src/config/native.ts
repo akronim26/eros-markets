@@ -9,3 +9,9 @@ export type NativeBinding = {
 const byEngine = new Map(Object.entries(bindings as Record<string, NativeBinding>).map(([engine, b]) => [engine.toLowerCase(), { ...b, engine: engine as Address }]));
 export const nativeBinding = (engine: string) => byEngine.get(engine.toLowerCase());
 export const nativeBindingForVault = (vault: string) => [...byEngine.values()].find((b) => b.vault.toLowerCase() === vault.toLowerCase());
+
+/** Native contract a wallet call may target: the vault, its YES/NO tokens or their Kuru books. */
+export const nativeBindingForTarget = (target: string) => {
+  const t = target.toLowerCase();
+  return [...byEngine.values()].find((b) => [b.vault, b.yesToken, b.noToken, b.yesBook, b.noBook].some((a) => a.toLowerCase() === t));
+};
