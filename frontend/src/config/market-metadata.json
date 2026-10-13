@@ -29,7 +29,14 @@
   },
   "native-nba-gsw-mia-perp-cac9ac9f": {
     "title": "Will the Golden State Warriors beat the Miami Heat on 5 Nov 2026?",
-    "short": "Warriors vs Heat · 5 Nov (perp)",
+    "short": "Warriors vs Heat · 5 Nov (1x perp, retired)",
+    "source": "Eros native (Kuru YES index)",
+    "category": "Sports",
+    "archived": true
+  },
+  "native-nba-gsw-mia-perp5x-0ff5eae6": {
+    "title": "Will the Golden State Warriors beat the Miami Heat on 5 Nov 2026?",
+    "short": "Warriors vs Heat · 5 Nov (perp, up to 5x)",
     "source": "Eros native (Kuru YES index)",
     "category": "Sports",
     "archived": false
