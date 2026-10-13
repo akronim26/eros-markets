@@ -195,4 +195,21 @@ export function SpotPanel({ engine, block, halted }: { engine: Address; block?: 
   </section>;
 }
 
+/** Prominent venue switch under the market header: perp on Eros, or the YES/NO tokens on Kuru. */
+export function VenueBar({ engine, block, venue, onChange }: { engine: Address; block?: bigint; venue: "perp" | "spot"; onChange: (v: "perp" | "spot") => void }) {
+  const spot = useSpot(engine, undefined, block);
+  const b = nativeBinding(engine)!;
+  const q = (o: Outcome) => { const l = spot.data?.books[o]; return l ? `${l.bids[0] ? tickToPrice(l.bids[0].tick) : "—"} / ${l.asks[0] ? tickToPrice(l.asks[0].tick) : "—"}` : "…"; };
+  return <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-x border-b border-line bg-panel px-3 py-2 text-xs">
+    <span className="text-fg-2">Trade this event as</span>
+    <div role="tablist" aria-label="Trading venue" className="flex gap-2" onKeyDown={selectionKeys}>
+      {(["perp", "spot"] as const).map((v) => <button key={v} type="button" role="tab" aria-selected={venue === v} tabIndex={venue === v ? 0 : -1} onClick={() => onChange(v)}
+        className={cx("min-h-9 border px-3 font-semibold", venue === v ? "border-signal bg-signal text-on-signal" : "border-line-strong bg-ground text-fg hover:bg-hover")}>
+        {v === "perp" ? "Perp on Eros (long / short)" : "YES/NO tokens on Kuru"}
+      </button>)}
+    </div>
+    <span className="tnum text-fg-3">Kuru {b.yesSymbol} {q("yes")} · {b.noSymbol} {q("no")}</span>
+  </div>;
+}
+
 export type { SpotSnapshot };
