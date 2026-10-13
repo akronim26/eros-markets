@@ -47,7 +47,8 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   // Each view polls only what it shows: the shared read proxy admits a few requests at a time.
   const spot = useSpot(manifest.engine, spotView ? owner.address : undefined, native ? block : undefined);
   const kuruTrades = useKuruTrades(manifest.engine, native);
-  const market = useMarket(manifest.engine, block);
+  // A spot-only market's engine is a resolution anchor: none of the perp reads below apply to it.
+  const market = useMarket(manifest.engine, spotOnly ? undefined : block);
   const snapshot = useTradingSnapshot(manifest.engine, owner.address, spotView ? undefined : block);
   const md = market.data;
   const actionMarket = snapshot.data?.market;
@@ -57,8 +58,8 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   // Custody actions use the trading snapshot only; display reads (market header, ladder, prices) cannot block them.
   const custodyUnavailable = head.isError || snapshot.isError || !!snapshot.data?.accountError;
   const ladder = useLadder(manifest.engine, spotView ? undefined : md?.block, md?.bestBid ?? 0, md?.bestAsk ?? 0);
-  const live = usePriceSeries(manifest.engine, block);
-  useMarketActivity(manifest.engine, !manifest.archived);
+  const live = usePriceSeries(manifest.engine, spotOnly ? undefined : block);
+  useMarketActivity(manifest.engine, !manifest.archived && !spotOnly);
   const waking = md && !publicUnavailable ? wakeProgress({ active: md.active, halted: md.halted, archived: manifest.archived,
     accountingState: md.risk.accountingState, indexAvailable: md.risk.indexAvailable, markAvailable: md.risk.markAvailable,
     longCap: md.leverageCaps.long, shortCap: md.leverageCaps.short, deploymentCapX: md.listing.deploymentCapX }) : undefined;
@@ -116,7 +117,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       </ol>
       <span className="text-fg-3">{waking.detail}</span>
     </div>}
-    {spotView ? <SpotWorkspace manifest={manifest} halted={!!md?.halted} spot={spot} trades={kuruTrades} live={live} /> : <div className={styles.workspace}>
+    {spotView ? <SpotWorkspace manifest={manifest} halted={spotOnly ? !!spot.data?.resolved : !!md?.halted} spot={spot} trades={kuruTrades} live={live} /> : <div className={styles.workspace}>
       <div className={styles.chart} aria-busy={!md && !publicUnavailable}>
         <PriceAxis index={live.index} perp={live.perp}
           markUnit={md?.risk.markAvailable ? wadToUnit(md.risk.markWad) : undefined}

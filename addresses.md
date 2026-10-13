@@ -32,4 +32,18 @@ One market resolving **7 November 2026** runs on a replacement factory, shared c
 
 Deployment ceiling: **5×**, with synthetic test calibration. Executable leverage still depends on live prices, margin, liquidity and reserve coverage, and ends 12.5 hours before each market's scheduled time. Collateral is test USDC; resolution uses the testnet oracle/UMA sandbox. Earlier deployments are retired: their operator gas was recovered and they are no longer served by the frontend. See [the selected manifest](frontend/src/config/public-manifest.json) and [fast MARK startup](docs/integration/FAST_MARK_STARTUP.md).
 
+## Native spot market — Warriors vs Heat (2026-10-13)
+
+Normal prediction market: YES/NO on Kuru, resolved by the Eros oracle from API-Sports basketball game 519655 (market id `0x8504d173055ab1bce57f6a4f4ac80340157e3cbe7fedf0ac06bfa515e818964c`). INVALID pays 0.50 per token. The previous perp-linked NBA native market (engine `0x263dBdC3…aEcE`) is archived.
+
+| Contract | Address | Deployment transaction | Block |
+| --- | --- | --- | ---: |
+| SpotMarketFactory | [0xC2b9C39F38a7B7783816AfaB4E7Ff7EEf1C1AEdE](https://testnet.monadscan.com/address/0xC2b9C39F38a7B7783816AfaB4E7Ff7EEf1C1AEdE) | [0xec0c8ea8…78d47140](https://testnet.monadscan.com/tx/0xec0c8ea83e61898d70ddfb98fa5277d824fe3e4f8392bb908b34d45778d47140) | 70666762 |
+| Warriors vs Heat (spot) — NativeOutcomeVault | [0xB025e5AD6f36235654F1Ea3177933b0F2b787804](https://testnet.monadscan.com/address/0xB025e5AD6f36235654F1Ea3177933b0F2b787804) | [0xb25b68af…908ffb41](https://testnet.monadscan.com/tx/0xb25b68af6d1b2444c87fa93351192e4d609f98887b6a371351accf50908ffb41) | 70669459 |
+| Warriors vs Heat (spot) — YES token eGSW-YES2 | [0x57924E7ee6177a650E4381786Ea5aa9D56Dd1a41](https://testnet.monadscan.com/address/0x57924E7ee6177a650E4381786Ea5aa9D56Dd1a41) | [0xb25b68af…908ffb41](https://testnet.monadscan.com/tx/0xb25b68af6d1b2444c87fa93351192e4d609f98887b6a371351accf50908ffb41) | 70669459 |
+| Warriors vs Heat (spot) — NO token eGSW-NO2 | [0x72EC8B27D2be9e34609f99a701Ddc45D566a4d9e](https://testnet.monadscan.com/address/0x72EC8B27D2be9e34609f99a701Ddc45D566a4d9e) | [0xb25b68af…908ffb41](https://testnet.monadscan.com/tx/0xb25b68af6d1b2444c87fa93351192e4d609f98887b6a371351accf50908ffb41) | 70669459 |
+| Warriors vs Heat (spot) — Kuru YES book | [0xcEF53BfC40931AB46580aA29E650180b36BC24b6](https://testnet.monadscan.com/address/0xcEF53BfC40931AB46580aA29E650180b36BC24b6) | [0xa9d2a964…b73f1eba](https://testnet.monadscan.com/tx/0xa9d2a964115501d3a663d16ef5ae9edb1ff1db70c9b3ff5572b0b917b73f1eba) | 70669464 |
+| Warriors vs Heat (spot) — Kuru NO book | [0x5bAc5b91C392066BE96A964b5215371327c191E0](https://testnet.monadscan.com/address/0x5bAc5b91C392066BE96A964b5215371327c191E0) | [0x168c65b2…3aca1a05](https://testnet.monadscan.com/tx/0x168c65b2a4bb40e38c35f3b8e6126c68929d2797abdc22228411fe243aca1a05) | 70669469 |
+| Warriors vs Heat (spot) — SpotResolutionAnchor | [0x9161F16BD0753352214A98F3e6e86b8275D023C3](https://testnet.monadscan.com/address/0x9161F16BD0753352214A98F3e6e86b8275D023C3) | [0xa4805f21…5869fb4f](https://testnet.monadscan.com/tx/0xa4805f21f88b5aeb5b88e64ece8003a7189ce9816c5560d86df575255869fb4f) | 70669714 |
+
 <!-- integrated-deployments:end -->

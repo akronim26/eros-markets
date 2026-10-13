@@ -14,6 +14,9 @@ LISTING=listings/native/$SLUG/listing.json PARAMS=deployments/native/$SLUG.param
 SFJ=deployments/native/spot-market-factory.json
 TL=$(jq -r .roles.timelock deployments/monad-testnet.json); REG=$(jq -r .contracts.MarketRegistry.address deployments/monad-testnet.json)
 FS=(--rpc-url "$RPC" --private-key "$LISTER_KEY" --skip UmaImports --skip 'test/**')
+# Reads retry: the public RPC drops connections, and an empty read must never be taken as chain state.
+c() { local out i; for i in 1 2 3 4 5 6; do out=$(cast "$@" --rpc-url "$RPC" 2>/dev/null) && [ -n "$out" ] && { echo "$out"; return 0; }; sleep 4; done
+  echo "RPC read failed after retries: cast $*" >&2; exit 1; }
 
 timelock() { # op-name env...: simulate, propose, wait the delay, execute
   local log; log=$(env "$@" forge script script/native/SpotMarketGovernance.s.sol --rpc-url "$RPC" --skip UmaImports --skip 'test/**' 2>&1) || { echo "$log"; exit 1; }
@@ -27,22 +30,25 @@ timelock() { # op-name env...: simulate, propose, wait the delay, execute
 }
 
 echo "1/5 SpotMarketFactory"
+if [ -f "$SFJ" ] && [ "$(c codesize "$(jq -r .spotMarketFactory "$SFJ")")" = 0 ]; then rm -f "$SFJ"; fi
 [ -f "$SFJ" ] || forge script script/native/DeploySpotMarketFactory.s.sol "${FS[@]}" --broadcast >/dev/null
 SF=$(jq -r .spotMarketFactory "$SFJ"); echo "  $SF"
 
 echo "2/5 Timelock: enable spot listing"
-if [ "$(cast call "$REG" 'factory()(address)' --rpc-url "$RPC")" != "$SF" ]; then timelock OP=enable SPOT_FACTORY="$SF" SPOT_LISTING="$LISTING"; else echo "  already enabled"; fi
+if [ "$(c call "$REG" 'factory()(address)')" != "$SF" ]; then timelock OP=enable SPOT_FACTORY="$SF" SPOT_LISTING="$LISTING"; else echo "  already enabled"; fi
 
 echo "3/5 vault + Kuru books"
+# forge writes $OUT while simulating, before broadcasting: trust it only if the vault has code.
+if [ -f "$OUT" ] && [ "$(c codesize "$(jq -r .outcomeVault "$OUT")")" = 0 ]; then echo "  stale record (no code): removing"; rm -f "$OUT"; fi
 [ -f "$OUT" ] || NATIVE_PARAMS=$PARAMS forge script script/native/DeployNativeMarket.s.sol "${FS[@]}" --broadcast --gas-estimate-multiplier 105 >/dev/null
 jq -c '{outcomeVault, yesBook, noBook}' "$OUT"
 
 echo "4/5 list + bind"
 MID=$(jq -r .marketId "$OUT")
-if [ "$(cast call "$REG" 'isListed(bytes32)(bool)' "$MID" --rpc-url "$RPC")" != true ]; then
+if [ "$(c call "$REG" 'isListed(bytes32)(bool)' "$MID")" != true ]; then
   NATIVE_DEPLOYMENT=$OUT SPOT_LISTING=$LISTING forge script script/native/ListNativeSpotMarket.s.sol "${FS[@]}" --broadcast --gas-estimate-multiplier 105 | grep -E "spot anchor|vault bound"
 else echo "  already listed"; fi
 
 echo "5/5 Timelock: restore perp factory"
-[ "$(cast call "$REG" 'factory()(address)' --rpc-url "$RPC")" = "$SF" ] && timelock OP=restore || echo "  already restored"
-echo "done: anchor $(cast call "$(jq -r .outcomeVault "$OUT")" 'engine()(address)' --rpc-url "$RPC")"
+[ "$(c call "$REG" 'factory()(address)')" = "$SF" ] && timelock OP=restore || echo "  already restored"
+echo "done: anchor $(c call "$(jq -r .outcomeVault "$OUT")" 'engine()(address)')"
