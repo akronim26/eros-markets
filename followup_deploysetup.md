@@ -2,7 +2,7 @@
 
 State as of 2026-10-14. Nothing below is committed. Work stopped mid-way at the user's request.
 
-## 1. Do this first: migrate the supervisor config (restart is broken until then)
+## 1. Done 2026-10-14 ~02:50 IST: supervisor config migrated
 
 The live supervisor (pid 20361, restarted 20:12 UTC by someone else; `tmp/redeploy-20261011/supervisor.pid`
 is stale) runs fine on code loaded before the change below. The current code requires every native market
@@ -44,14 +44,22 @@ to have a `privateDirectory`. `check` on the current config fails with `IGNORED_
 ## 3. Remaining work
 
 ### Render (services)
-1. Smoke-test the image: `docker run --rm eros-supervisor:local cast --version`, and run the entrypoint with an
-   empty disk to see it wait for the hand-off.
-2. Build for Render's architecture: `docker build --platform linux/amd64 .` (or let Render build it).
-3. Commit what Render builds from git: the native perp rules
-   `oracle/deployments/native/nba-gsw-mia-20261105-spot-perp.rules.json`, `oracle/listings/native/nba-gsw-mia-20261105-spot-perp/`,
-   `oracle/script/native/ListNativeSpotPerp.s.sol`, and all code changes from this session.
+1. **Done 2026-10-14:** image smoke-tested (arm64, Colima).
+   - node 24.21.0, bun 1.3.13, cast 1.8.3 present; no Python needed; `/app/tmp` empty in the image.
+   - The entrypoint on an empty disk logs `waiting: runner hand-off not accepted` and starts nothing.
+   - Inside the image: `node --test scripts/ops/*.test.mjs scripts/native-market/liquidation.test.mjs` → 55/55
+     (run with `env -u EROS_CONTAINER_MODE`; with it set, the hand-off guard correctly refuses to start).
+     All native worker imports resolve (`bun build` of maker, daily-trader, lifecycle).
+   - **Fixed a secret leak:** `.dockerignore` matched `.env` only at the repo root, so a local build baked in
+     `oracle/workflows/.env` (relayer key), `oracle/deployments/testnet-keys.env` and `oracle/indexer/.env`.
+     Now excluded at any depth (plus `*.key`, `oracle/workflows/secrets*.yaml`); a scan of the rebuilt image
+     finds no env files or private keys. Those files are untracked, so git-based Render builds were not affected.
+2. amd64: the local cross-build fails in Docker's legacy builder (`failed to get destination image`; no `buildx`
+   here). All three base images publish amd64, and Render builds natively on amd64; the first Render build is
+   the real check.
+3. Commit what Render builds from git: all uncommitted changes, including `.dockerignore` and `Dockerfile`.
 4. Update `docs/integration/RENDER_WORKER.md`: native secret files `native-nba-gsw-mia-spot.env` and
-   `native-nba-gsw-mia-perp.env` (contents of each `ops.env`), and `wake.url` → the Vercel domain.
+   `native-nba-gsw-mia-perp5x.env` (contents of each market's `ops.env`), and `wake.url` → the Vercel domain.
 5. Hand-off: stop the local supervisor, `runner-handoff.mjs pack`, upload, `accept` on Render (steps in
    `RENDER_WORKER.md`). The white-women perp will stay blocked on Render too; that is harmless.
 
@@ -69,6 +77,11 @@ to have a `privateDirectory`. `check` on the current config fails with `IGNORED_
   somewhere before the first tip-off (6 Nov). It now signs with the authorized relayer `0x709E…61fB` (5 MON).
 
 ### Known, accepted
+- Retired 1x perp `0xCAc9…6325`: the perp maker's `cancelAll()` (tx `0x33e6b28d…7d5f5`) moved its account epoch
+  to 11, so all 12 resting orders (epochs ≤ 9) are dead; `bestBidAsk` still shows 0.518 / 0.526 until a taker
+  walk prunes them, but nothing can fill. Its 2,000 tUSDC (and the other participant's collateral) stays locked:
+  `release` reverts `BadState` because the engine has no live INDEX, and serving one would reuse the 5x perp's
+  signer and keeper keys (nonce collisions). Test collateral; left as is.
 - The Polymarket perp (white women) has no index: Polymarket's book fails the 1,000-share / 0.05 depth rule
   (verified independently). It stays listed and blocked by decision.
 - `packages/pricefeed/test/deployment.test.js` has 8 failing process tests; they fail identically on clean
