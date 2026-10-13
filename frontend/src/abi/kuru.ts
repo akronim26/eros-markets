@@ -11,6 +11,7 @@ export const kuruBookAbi = parseAbi([
   "function batchCancelOrders(uint40[] orderIds)",
   "function placeAndExecuteMarketBuy(uint96 quoteSize, uint256 minAmountOut, bool isMargin, bool isFillOrKill) returns (uint256)",
   "function placeAndExecuteMarketSell(uint96 size, uint256 minAmountOut, bool isMargin, bool isFillOrKill) returns (uint256)",
+  "error OrderAlreadyFilledOrCancelled()",
 ]);
 
 /** Kuru MarginAccount: balances that back resting (limit) orders. */

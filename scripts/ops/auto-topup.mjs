@@ -9,6 +9,9 @@
  */
 import { execFile } from 'node:child_process';
 import { MON } from './gas-runway.mjs';
+import { NATIVE_ROLES } from './market-kinds.mjs';
+
+const OPERATOR_ROLES = ['KEEPER', 'PUBLISHER', 'MAKER_BUY', 'MAKER_SELL'];
 
 const mon = value => {
   if (!Number.isFinite(value) || value < 0) throw Error('INVALID_TOPUP_AMOUNT');
@@ -25,7 +28,7 @@ export function topUpConfig(input) {
   if (typeof input.rootEnvFile !== 'string') throw Error('TOPUP_ROOT_ENV_FILE_REQUIRED');
   const amounts = input.amountsMon ?? { KEEPER: 30, PUBLISHER: 15, MAKER_BUY: 5, MAKER_SELL: 5 };
   for (const [role, v] of Object.entries(amounts))
-    if (!['KEEPER', 'PUBLISHER', 'MAKER_BUY', 'MAKER_SELL'].includes(role) || !(v > 0 && v <= 200)) throw Error('INVALID_TOPUP_AMOUNTS');
+    if (![...OPERATOR_ROLES, ...NATIVE_ROLES].includes(role) || !(v > 0 && v <= 200)) throw Error('INVALID_TOPUP_AMOUNTS');
   return {
     rootEnvFile: input.rootEnvFile,
     triggerMinutes: num('triggerMinutes', 90, 10, 1440),

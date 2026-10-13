@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { createPublicClient, createWalletClient, defineChain, fallback, getAddress, http, type Hex } from 'viem';
+import { createPublicClient, createWalletClient, defineChain, fallback, getAddress, http, parseAbi, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { decimalWad, json } from '../src/math.js';
 import { readKuruSnapshot, type KuruReadClient } from '../src/native/kuru.js';
@@ -55,7 +55,19 @@ async function main() {
     outputs: [{ type: 'tuple', components: LISTING_COMPONENTS }] }] as const, functionName: 'listing' }) as unknown as Record<string, unknown>;
   const dest: NativeDestination = { chainId: rules.chainId, engineAddress: engine, marketId: rules.marketId, sourceId: rules.sourceId,
     sourceRulesHash: nativeRulesHash(rules), signerAddress: account.address, scheduledT: rules.scheduledT };
-  verifyNativeListing(dest, rules, listing); // refuses unless the engine pins this source, signer and rules
+  // A perp listed under its own market id may price from another market's YES book: the source still
+  // binds that market's vault and event rules, and the perp's own rules hash is the registry's for its id.
+  let listingRulesHash: string | undefined;
+  const vaultMarketId = await pub.readContract({ address: getAddress(rules.outcomeVault), abi: VAULT_ABI, functionName: 'marketId' });
+  if (vaultMarketId.toLowerCase() !== rules.marketId) {
+    const vaultRules = await pub.readContract({ address: getAddress(rules.outcomeVault), abi: VAULT_ABI, functionName: 'rulesHash' });
+    if (vaultRules.toLowerCase() !== rules.erosRulesHash) throw new Error('INDEX_VAULT_RULES_MISMATCH');
+    const core = await pub.readContract({ address: getAddress(String(listing.registry)), abi: REGISTRY_ABI, functionName: 'getMarketCore',
+      args: [rules.marketId as Hex] });
+    if (getAddress(core.engine) !== engine) throw new Error('PERP_NOT_LISTED_IN_REGISTRY');
+    listingRulesHash = core.rulesHash;
+  }
+  verifyNativeListing(dest, rules, listing, listingRulesHash); // refuses unless the engine pins this source, signer and rules
   const rounds = Number(roundsArg), interval = Number(intervalArg);
   let readFailures = 0;
   for (let i = 0; i < rounds; i++) {
@@ -117,6 +129,9 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 function toTuple(o: ReturnType<typeof prepareNativeObservation>['observation']) {
   return { ...o, marketId: o.marketId as Hex, sourceId: o.sourceId as Hex, sourceRulesHash: o.sourceRulesHash as Hex };
 }
+const VAULT_ABI = parseAbi(['function marketId() view returns (bytes32)', 'function rulesHash() view returns (bytes32)']);
+const REGISTRY_ABI = parseAbi(['function getMarketCore(bytes32) view returns ((address engine, address questionPtr, address rulesPtr, uint64 listedAt, uint64 windowStart, uint64 windowEnd, uint64 tau, bytes32 groupId, bool groupExclusive, bool hasFeed, uint32 l2DeadlineSecs, uint32 voidSecs, uint32 retryWindowSecs, uint32 earlyTtlSecs, address monitor, uint256 oiCapLots, bytes32 rulesHash, bytes32 specHash, bytes32 gateHash))']);
+
 const LISTING_COMPONENTS = [
   { name: 'marketId', type: 'bytes32' }, { name: 'token', type: 'address' }, { name: 'registry', type: 'address' },
   { name: 'resolutionAuthority', type: 'address' }, { name: 'monitor', type: 'address' }, { name: 'governance', type: 'address' },

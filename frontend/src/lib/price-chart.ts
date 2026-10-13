@@ -27,9 +27,9 @@ export function priceSegments(points: Point[]): Point[][] {
 }
 
 /**
- * Dotted "no valid price" connectors between consecutive valid readings more than the INDEX carry apart
- * (a publisher outage or a long invalid stretch), of any length. They keep the chart visually continuous
- * but are never price: the solid line still breaks, and malformed or reversed history drops the left end.
+ * "No valid price" connectors between consecutive valid readings more than the INDEX carry apart
+ * (a publisher outage or a long invalid stretch), of any length. Drawn like the line so the chart reads
+ * as continuous, but never price: hover and readings skip them, and malformed or reversed history drops the left end.
  */
 export function priceBridges(points: Point[]): [Point, Point][] {
   const bridges: [Point, Point][] = [];

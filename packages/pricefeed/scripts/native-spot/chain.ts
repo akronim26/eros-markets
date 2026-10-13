@@ -1,7 +1,7 @@
 /** Shared chain access for the native spot market services (NM-S07..S09): one Monad testnet client,
  *  a +30% gas-margin sender, the Kuru book / margin-account ABIs and the deployment record. */
 import { readFileSync, writeFileSync, renameSync, existsSync } from 'node:fs';
-import { createPublicClient, createWalletClient, decodeEventLog, defineChain, getAddress, http, parseAbi, type Address, type Hex } from 'viem';
+import { BaseError, ContractFunctionRevertedError, createPublicClient, createWalletClient, decodeEventLog, defineChain, getAddress, http, parseAbi, type Address, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
 export const env = (k: string, d?: string) => { const v = process.env[k] ?? d; if (v === undefined || v === '') throw new Error(`MISSING_${k}`); return v; };
@@ -20,6 +20,7 @@ export const BOOK = parseAbi([
   'event OrderCreated(uint40 orderId, address owner, uint96 size, uint32 price, bool isBuy)',
   'function s_orderIdCounter() view returns (uint40)',
   'function s_orders(uint40) view returns (address ownerAddress, uint96 size, uint40 prev, uint40 next, uint40 flippedId, uint32 price, uint32 flippedPrice, bool isBuy)',
+  'error OrderAlreadyFilledOrCancelled()',
 ]);
 export const ERC20 = parseAbi(['function approve(address,uint256) returns (bool)', 'function balanceOf(address) view returns (uint256)', 'function mint(address,uint256)']);
 export const MA = parseAbi(['function deposit(address,address,uint256)', 'function withdraw(uint256,address)', 'function getBalance(address,address) view returns (uint256)']);
@@ -79,7 +80,13 @@ export async function openOrders(book: Address, me: Address, scan = 400n): Promi
   const lo = counter > scan ? counter - scan : 1n, open: bigint[] = [];
   for (let id = counter; id >= lo; id -= 1n) {
     const o = await read(book, BOOK, 's_orders', [Number(id)]);
-    if (getAddress(o[0]) === me && BigInt(o[1]) > 0n) open.push(id);
+    if (getAddress(o[0]) !== me || BigInt(o[1]) === 0n) continue;
+    // Kuru keeps a filled order's last size in s_orders, so only the book can say it is still live.
+    try { await pub.simulateContract({ address: book, abi: BOOK, functionName: 'batchCancelOrders', args: [[Number(id)]], account: me }); open.push(id); }
+    catch (e) {
+      const filled = e instanceof BaseError && e.walk(x => x instanceof ContractFunctionRevertedError && x.data?.errorName === 'OrderAlreadyFilledOrCancelled');
+      if (!filled) throw e;
+    }
   }
   return open;
 }

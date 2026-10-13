@@ -117,7 +117,7 @@ export function PriceAxis(p: Props) {
           <g clipPath={`url(#${id}-plot)`}>
             {mark && p.markUnit !== undefined && <line x1={left} x2={right} y1={y(p.markUnit)} y2={y(p.markUnit)} stroke="var(--color-fg-3)" strokeDasharray="5 5"><title>Current mark {priceLabel(p.markUnit)}; this is not historical mark data.</title></line>}
             <path d={path(model.perpSegments)} fill="none" stroke="var(--color-fg-3)" strokeWidth={1.5} />
-            {model.indexBridges.length > 0 && <path d={path(model.indexBridges)} fill="none" stroke="var(--color-signal)" strokeOpacity={0.45} strokeWidth={1.5} strokeDasharray="0.5 4" strokeLinecap="round">
+            {model.indexBridges.length > 0 && <path d={path(model.indexBridges)} fill="none" stroke="var(--color-signal)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round">
               <title>No valid price: the source order book was too thin. Not a tradable price.</title>
             </path>}
             <path d={path(model.indexSegments)} fill="none" stroke="var(--color-signal)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
@@ -130,9 +130,7 @@ export function PriceAxis(p: Props) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 border-t border-line px-3 text-2xs text-fg-3">
         <span title={p.historyStatus}>{hovered ? new Date(hovered.t * 1000).toLocaleString() : last ? `Updated ${timeLabel(last.t, true)}` : "No observations yet"}</span>
-        <div className="flex gap-3">{model.indexBridges.length > 0 && <span className="inline-flex min-h-9 items-center gap-1.5" title="Dotted stretches had no valid source price; they are not tradable prices.">
-          <svg width="16" height="2" aria-hidden><line x1="1" x2="15" y1="1" y2="1" stroke="var(--color-signal)" strokeOpacity={0.6} strokeWidth={1.5} strokeDasharray="0.5 4" strokeLinecap="round" /></svg>No valid price</span>}
-          <button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")} title="Current mark reference, not historical marks"><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
+        <div className="flex gap-3"><button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")} title="Current mark reference, not historical marks"><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
       </div>
       <span className="sr-only" role="status">{hovered ? `Observation ${priceLabel(hovered.v)} at ${new Date(hovered.t * 1000).toLocaleString()}` : ""}</span>
     </section>

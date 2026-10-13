@@ -16,7 +16,7 @@ import { askLockAtoms, bidLockAtoms, minOut, previewBuy, previewSell, QUOTE_UNIT
 import { useTx } from "@/lib/tx";
 import { atomsToUsdc, fmtDuration, fmtUtc, parseClaimsToLots, parsePriceToTick, parseUsdcToAtoms, tickToPrice } from "@/lib/units";
 import type { KuruTrade } from "@/server/kuru-trades";
-import { PriceAxis } from "./price-axis";
+import { OutcomeChart } from "./outcome-chart";
 import { TxFeedback } from "./tx-feedback";
 import { Button, Chip, cx, selectionKeys, Stat } from "./ui";
 import { useOwner } from "./wallet";
@@ -33,6 +33,8 @@ type Call = { address: Address; abi: Abi; functionName: string; args: readonly u
 const claims = (atoms: bigint) => atomsToUsdc(atoms, 3);
 const lotsText = (lots: bigint) => atomsToUsdc(lots * 1000n, 3);
 const SLIPPAGE = [50, 100, 200] as const;
+/** Kuru tick (0.001) as cents, e.g. 563 -> "56.3¢". */
+const cents = (tick?: number) => tick === undefined ? "—" : `${tick % 10 ? (tick / 10).toFixed(1) : tick / 10}¢`;
 
 function useKuruTrades(engine: Address, enabled = true) {
   return useQuery({ queryKey: ["kuru-trades", engine.toLowerCase()], refetchInterval: 8000, retry: 2, enabled,
@@ -41,15 +43,6 @@ function useKuruTrades(engine: Address, enabled = true) {
       if (!r.ok) throw new Error("Kuru trades unavailable.");
       return (await r.json()) as { through: number; spanSeconds: number; trades: KuruTrade[] };
     } });
-}
-
-function Seg<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: readonly { v: T; text: string; tone?: "bid" | "ask" }[]; onChange: (v: T) => void }) {
-  return <div role="radiogroup" aria-label={label} className={cx("grid gap-2", options.length === 2 ? "grid-cols-2" : "grid-cols-3")} onKeyDown={selectionKeys}>
-    {options.map((o) => <button key={o.v} type="button" role="radio" aria-checked={value === o.v} tabIndex={value === o.v ? 0 : -1} onClick={() => onChange(o.v)}
-      className={cx("ui-toggle h-10 border text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal",
-        value === o.v ? o.tone === "bid" ? "border-bid bg-bid text-on-bid" : o.tone === "ask" ? "border-ask bg-ask text-on-ask" : "border-fg bg-fg text-ground"
-          : o.tone === "bid" ? "border-bid/60 bg-panel text-bid hover:bg-bid/10" : o.tone === "ask" ? "border-ask/60 bg-panel text-ask hover:bg-ask/10" : "border-line-strong bg-panel text-fg-2 hover:bg-press hover:text-fg")}>{o.text}</button>)}
-  </div>;
 }
 
 function Field({ id, label, value, onChange, hint, suffix }: { id: string; label: string; value: string; onChange: (v: string) => void; hint?: React.ReactNode; suffix?: string }) {
@@ -206,29 +199,64 @@ function SpotTicket({ engine, s, outcome, onOutcome, preset, halted, refetch }: 
   try { if (setAmt) { setAtoms = parseUsdcToAtoms(setAmt); if (!setAtoms) throw new Error("Enter an amount greater than zero."); } } catch (e) { setError = (e as Error).message; }
   const blocked = !owner.address ? "Log in to trade" : owner.wrongChain ? "Switch to Monad testnet" : !s ? "Reading Kuru…" : "";
 
-  return <section aria-label="Spot order" className="flex flex-col gap-3 p-3">
-    <Seg label="Ticket" value={mode} onChange={setMode} options={[{ v: "trade", text: "Buy / sell" }, { v: "split", text: "Mint / redeem pairs" }]} />
+  // Buying takes the best ask, selling the best bid: the price each outcome button shows.
+  const quoteTick = (o: Outcome) => { const l = s?.books[o]; return side === "buy" ? l?.asks[0]?.tick : l?.bids[0]?.tick; };
+  const unitsIn = kind === "market" && side === "buy" ? sym : tokenSym;
+  const held = side === "sell" && s?.wallet ? s.wallet[outcome] : undefined;
+  const bump = (step: number) => setAmount((a) => { const n = Number(a) || 0; return String(Math.round((n + step) * 1000) / 1000); });
+
+  return <section aria-label="Spot order" className="flex flex-col gap-4 p-4">
     {mode === "trade" ? <>
-      <Seg label="Token" value={outcome} onChange={onOutcome} options={[{ v: "yes", text: b.yesSymbol }, { v: "no", text: b.noSymbol }]} />
-      <Seg label="Side" value={side} onChange={(v) => { setSide(v); setAmount(""); }} options={[{ v: "buy", text: "Buy", tone: "bid" }, { v: "sell", text: "Sell", tone: "ask" }]} />
-      <div className="flex gap-4 text-xs" role="radiogroup" aria-label="Order type" onKeyDown={selectionKeys}>
-        {(["market", "limit"] as const).map((k) => <button key={k} type="button" role="radio" aria-checked={kind === k} tabIndex={kind === k ? 0 : -1} onClick={() => setKind(k)}
-          className={cx("relative min-h-8 font-semibold", kind === k ? "text-fg" : "text-fg-3 hover:text-fg")}>{k === "market" ? "Market" : "Limit"}{kind === k && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-signal" aria-hidden />}</button>)}
+      <div className="flex items-end justify-between border-b border-line">
+        <div role="tablist" aria-label="Side" className="flex gap-5" onKeyDown={selectionKeys}>
+          {(["buy", "sell"] as const).map((v) => <button key={v} type="button" role="tab" aria-selected={side === v} tabIndex={side === v ? 0 : -1} onClick={() => { setSide(v); setAmount(""); }}
+            className={cx("relative min-h-10 text-base font-semibold", side === v ? "text-fg" : "text-fg-3 hover:text-fg")}>{v === "buy" ? "Buy" : "Sell"}{side === v && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-fg" aria-hidden />}</button>)}
+        </div>
+        <label className="mb-2 flex items-center gap-1 text-sm font-medium text-fg-2">
+          <span className="sr-only">Order type</span>
+          <select value={kind} onChange={(e) => setKind(e.target.value as "market" | "limit")} className="cursor-pointer bg-transparent pr-1 text-right outline-none focus-visible:outline-2 focus-visible:outline-signal">
+            <option value="market">Market</option><option value="limit">Limit</option>
+          </select>
+        </label>
       </div>
-      {kind === "limit" && <Field id="spot-price" label="Price" value={price} onChange={setPrice} suffix={sym} />}
-      <Field id="spot-amount" label={kind === "market" && side === "buy" ? "Amount to spend" : "Amount"} value={amount} onChange={setAmount}
-        suffix={kind === "market" && side === "buy" ? sym : tokenSym}
-        hint={s?.wallet && <>Available: {side === "buy" ? `${atomsToUsdc(s.wallet.usdc)} ${sym}` : `${claims(s.wallet[outcome])} ${tokenSym}`}</>} />
+      <div role="radiogroup" aria-label="Outcome" className="grid grid-cols-2 gap-2" onKeyDown={selectionKeys}>
+        {(["yes", "no"] as const).map((o) => { const tick = quoteTick(o), on = outcome === o; return <button key={o} type="button" role="radio" aria-checked={on} tabIndex={on ? 0 : -1} onClick={() => onOutcome(o)}
+          className={cx("flex h-12 items-center justify-center gap-2 rounded-[var(--radius-control)] text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal",
+            on ? o === "yes" ? "bg-yes text-on-yes" : "bg-no text-on-no" : "bg-panel text-fg-3 hover:bg-hover hover:text-fg")}>
+          <span>{o === "yes" ? b.yesSymbol : b.noSymbol}</span><span className="tnum">{cents(tick)}</span></button>; })}
+      </div>
+      {kind === "limit" && <Field id="spot-price" label="Limit price" value={price} onChange={setPrice} suffix={sym} />}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-0.5 pt-1">
+          <label htmlFor="spot-amount" className="text-base font-semibold text-fg">{unitsIn === sym ? "Amount" : "Tokens"}</label>
+          <span className="tnum text-xs text-fg-3">{s?.wallet ? side === "buy" ? `${atomsToUsdc(s.wallet.usdc)} ${sym}` : `${claims(s.wallet[outcome])} ${tokenSym}` : "\u00a0"}</span>
+        </div>
+        <div className="flex min-w-0 items-baseline justify-end gap-1.5">
+          <input id="spot-amount" inputMode="decimal" autoComplete="off" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0"
+            className="tnum w-full min-w-0 bg-transparent text-right text-4xl font-semibold text-fg outline-none placeholder:text-fg-4" />
+          <span className="shrink-0 text-xs text-fg-3">{unitsIn}</span>
+        </div>
+      </div>
+      <div className="flex justify-end gap-1.5">
+        {held !== undefined && kind === "market"
+          ? ([["25%", 4n], ["50%", 2n], ["Max", 1n]] as const).map(([label, div]) => <button key={label} type="button" onClick={() => setAmount(claims(held / div / 1000n * 1000n))}
+            className="ui-toggle min-h-8 rounded-[var(--radius-control)] bg-panel px-3 text-xs font-semibold text-fg-2 hover:bg-hover">{label}</button>)
+          : (unitsIn === sym ? [1, 5, 10, 100] : [1, 10, 100]).map((v) => <button key={v} type="button" onClick={() => bump(v)}
+            className="ui-toggle tnum min-h-8 rounded-[var(--radius-control)] bg-panel px-3 text-xs font-semibold text-fg-2 hover:bg-hover">+{v}</button>)}
+      </div>
       {kind === "market" && <div className="flex items-center justify-between text-2xs text-fg-3"><span>Slippage</span>
-        <span className="flex gap-1">{SLIPPAGE.map((v) => <button key={v} type="button" aria-pressed={slip === v} onClick={() => setSlip(v)} className={cx("min-h-7 border px-2", slip === v ? "border-fg text-fg" : "border-line text-fg-3")}>{v / 100}%</button>)}</span></div>}
+        <span className="flex gap-1">{SLIPPAGE.map((v) => <button key={v} type="button" aria-pressed={slip === v} onClick={() => setSlip(v)} className={cx("min-h-7 rounded-[var(--radius-control)] border px-2", slip === v ? "border-fg text-fg" : "border-line text-fg-3")}>{v / 100}%</button>)}</span></div>}
       {preview && <p className="text-xs leading-relaxed text-fg-2">{preview}</p>}
       {error && <p role="alert" className="text-xs text-ask">{error}</p>}
       {halted && <p className="text-xs text-fg-3">The event has halted: new orders are closed here. Cancel, withdraw and redeem stay available.</p>}
-      <Button variant={side === "buy" ? "bid" : "ask"} size="lg" disabled={!!blocked || halted || busy || !calls.length} onClick={() => run(calls)}>
+      <Button variant={outcome} size="lg" className="h-12 w-full rounded-[var(--radius-control)] text-base" disabled={!!blocked || halted || busy || !calls.length} onClick={() => run(calls)}>
         {blocked || `${side === "buy" ? "Buy" : "Sell"} ${tokenSym}`}
       </Button>
       {calls.length > 1 && <p className="text-2xs text-fg-3">Your wallet will ask for {calls.length} confirmations ({calls.map((c) => c.label).join(", ")}).</p>}
+      <button type="button" onClick={() => setMode("split")} className="self-center text-xs text-fg-3 underline decoration-line-strong hover:text-fg">Mint or redeem {b.yesSymbol} + {b.noSymbol} pairs</button>
     </> : <>
+      <div className="flex items-center justify-between border-b border-line pb-2"><span className="text-base font-semibold text-fg">Mint / redeem pairs</span>
+        <button type="button" onClick={() => setMode("trade")} className="text-xs text-fg-3 underline decoration-line-strong hover:text-fg">Back to trading</button></div>
       <p className="text-xs leading-relaxed text-fg-2">Mint: 1 {sym} → 1 {b.yesSymbol} + 1 {b.noSymbol}. Redeem a pair: 1 of each → 1 {sym}, any time before the outcome. The collateral stays in the vault, so every pair is fully backed.</p>
       <Field id="spot-set" label="Pairs" value={setAmt} onChange={setSetAmt} suffix={sym}
         hint={s?.wallet && <>Wallet: {atomsToUsdc(s.wallet.usdc)} {sym} · {claims(s.wallet.yes)} YES · {claims(s.wallet.no)} NO</>} />
@@ -318,16 +346,17 @@ export function SpotWorkspace({ manifest, halted, spot, trades, live }: { manife
   const [preset, setPreset] = useState<{ tick: number; nonce: number }>();
   const s = spot.data;
   const refetch = spot.refetch as unknown as () => void;
-  const yesMid = s?.books.yes.bids[0] && s.books.yes.asks[0] ? (s.books.yes.bids[0].tick + s.books.yes.asks[0].tick) / 2000 : undefined;
   // A spot-only market has no published INDEX: chart the YES price of its Kuru fills (a NO fill at p is YES at 1 − p).
   const fills = useMemo(() => b.spotOnly ? (trades.data?.trades ?? []).map((t) => ({ t: t.timestamp, v: (t.outcome === "yes" ? t.tick : 1000 - t.tick) / 1000, block: BigInt(t.block), valid: true }))
     .sort((x, y) => x.t - y.t) : [], [b.spotOnly, trades.data]);
   const index = b.spotOnly ? fills : live.index;
-  return <div className={styles.workspace}>
+  // 24h traded value in collateral: one lot at tick p costs p atoms.
+  const volume = useMemo(() => trades.data ? `${atomsToUsdc((trades.data.trades).reduce((sum, t) => sum + BigInt(t.lots) * BigInt(t.tick), 0n))} ${deployment.risk.collateralSymbol}` : undefined, [trades.data]);
+  return <div className={cx(styles.workspace, styles.spot)}>
     <div className={styles.chart}>
-      <PriceAxis index={index} perp={[]} indexUnit={yesMid} emptyTitle="Waiting for price"
-        emptyReason={b.spotOnly ? "The chart shows YES prices of Kuru fills; it starts with the first trade." : "The YES price is published from the Kuru book every minute."}
-        historyStatus={b.spotOnly ? "Kuru fills" : live.historyStatus} readError={b.spotOnly ? trades.isError : !!live.error} source={`${b.yesSymbol} on Kuru`} />
+      <OutcomeChart yes={index} yesLabel={b.yesSymbol} noLabel={b.noSymbol} volume={volume} emptyTitle="Waiting for price"
+        emptyReason={b.spotOnly ? "The chart shows prices of Kuru fills; it starts with the first trade." : "The YES price is published from the Kuru book every minute."}
+        readError={b.spotOnly ? trades.isError : !!live.error} holdLast={b.spotOnly} />
     </div>
     <aside className={styles.trade} aria-label="Spot order">
       <SpotTicket engine={manifest.engine} s={s} outcome={outcome} onOutcome={setOutcome} preset={preset} halted={halted} refetch={refetch} />

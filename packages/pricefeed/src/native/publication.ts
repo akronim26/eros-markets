@@ -15,13 +15,16 @@ export type NativeDestination = Pick<Destination, 'chainId' | 'engineAddress' | 
  * Pin a native destination and rules against the engine's immutable listing before publishing
  * (NM-F02/F07). The listing must carry this native source id, signer and rules hash, the same
  * depth rule, T and collateral, and the event rules hash the native manifest committed to.
+ * `listingRulesHash` replaces that last pin for a perp listed under its own market id and rules whose
+ * INDEX is another market's YES book; the caller derives it from the registry after checking the vault.
  */
-export function verifyNativeListing(dest: NativeDestination, rulesValue: NativeRulesManifest, listing: Record<string, unknown>): void {
+export function verifyNativeListing(dest: NativeDestination, rulesValue: NativeRulesManifest, listing: Record<string, unknown>,
+  listingRulesHash?: string): void {
   const rules = parseNativeRules(rulesValue);
   checkBinding(dest, rules);
   const pins: Record<string, string> = { marketId: dest.marketId, indexSourceId: dest.sourceId, indexSigner: dest.signerAddress,
     indexRulesHash: dest.sourceRulesHash, depthNLots: rules.depthNLots, maxSpreadWad: rules.maxSpreadWad,
-    scheduledT: dest.scheduledT, token: rules.collateral, rulesHash: rules.erosRulesHash };
+    scheduledT: dest.scheduledT, token: rules.collateral, rulesHash: listingRulesHash ?? rules.erosRulesHash };
   for (const [key, value] of Object.entries(pins))
     if (String(record(listing)[key]).toLowerCase() !== value.toLowerCase()) throw new Error(`LISTING_PIN_MISMATCH_${key}`);
   if (record(listing).fundingEnabled !== false) throw new Error('LISTING_PIN_MISMATCH_fundingEnabled');

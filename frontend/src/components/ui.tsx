@@ -78,7 +78,7 @@ export function SectionRule({ name, index }: { name: string; index: number }) {
 }
 
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "ghost" | "bid" | "ask";
+  variant?: "primary" | "secondary" | "ghost" | "bid" | "ask" | "yes" | "no";
   size?: "sm" | "md" | "lg";
   /** Prefix the label with the Signal arrow square (primary actions). */
   arrow?: boolean;
@@ -90,6 +90,8 @@ const VARIANT = {
   ghost: "text-fg-2 hover:bg-hover hover:text-fg active:bg-press disabled:text-fg-4",
   bid: "bg-bid text-on-bid hover:brightness-110 disabled:bg-press disabled:text-fg-4",
   ask: "bg-ask text-on-ask hover:brightness-110 disabled:bg-press disabled:text-fg-4",
+  yes: "bg-yes text-on-yes hover:brightness-110 disabled:bg-press disabled:text-fg-4",
+  no: "bg-no text-on-no hover:brightness-110 disabled:bg-press disabled:text-fg-4",
 };
 const SIZE = { sm: "h-7 px-2.5", md: "h-8 px-3", lg: "h-10 px-4" };
 

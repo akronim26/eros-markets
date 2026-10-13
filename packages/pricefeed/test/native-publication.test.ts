@@ -80,3 +80,13 @@ test('engine listing must pin the native source, signer, rules, depth rule, T, c
   for (const [k, v] of Object.entries({ indexSigner: A('dead'), indexRulesHash: H('9'), depthNLots: 1n, token: A('dead'), rulesHash: H('9'), fundingEnabled: true }))
     assert.throws(() => verifyNativeListing(dest, rules, { ...listing, [k]: v }), new RegExp(`LISTING_PIN_MISMATCH_${k}`), k);
 });
+
+test('a perp on another market\'s YES book pins its own registry rules hash instead of the event rules', () => {
+  const listing = { marketId: H('a'), indexSourceId: H('b'), indexSigner: account.address, indexRulesHash: nativeRulesHash(rules),
+    depthNLots: 100000n, maxSpreadWad: 250000000000000000n, scheduledT: rules.scheduledT, token: USDC, rulesHash: H('7'), fundingEnabled: false };
+  assert.throws(() => verifyNativeListing(dest, rules, listing), /LISTING_PIN_MISMATCH_rulesHash/);
+  verifyNativeListing(dest, rules, listing, H('7'));
+  assert.throws(() => verifyNativeListing(dest, rules, listing, H('8')), /LISTING_PIN_MISMATCH_rulesHash/);
+  for (const [k, v] of Object.entries({ indexSigner: A('dead'), indexRulesHash: H('9'), depthNLots: 1n, token: A('dead') }))
+    assert.throws(() => verifyNativeListing(dest, rules, { ...listing, [k]: v }, H('7')), new RegExp(`LISTING_PIN_MISMATCH_${k}`), k);
+});

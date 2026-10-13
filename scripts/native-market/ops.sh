@@ -15,6 +15,8 @@
 # and keeper never have two concurrent writers. Runs on Linux and macOS (bash 3.2, BSD stat, no setsid).
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"
+# The market supervisor (scripts/ops/market-supervisor.mjs) runs these workers; never start a second writer.
+SUPERVISOR_LOCK=${SUPERVISOR_LOCK:-tmp/redeploy-20261011/supervisor/supervisor.lock}
 RUN=${NATIVE_RUN:-tmp/native-public}; mkdir -p "$RUN"; chmod 700 "$RUN"   # one run dir per market (locks, logs, env)
 ENVF=${NATIVE_OPS_ENV:-$RUN/ops.env}
 [ -f "$ENVF" ] || { echo "missing private config $ENVF (see header)"; exit 2; }
@@ -35,7 +37,7 @@ runway() { python3 -c "b=float('$1'); r=float('$2'); print(f'{b:.2f} MON, ~{b/r:
 
 check() {
   echo "== deployment verification (read-only)"
-  (cd packages/pricefeed && node dist/scripts/native-verify.js "$R" "$ROOT/$NATIVE_DEPLOYMENT" "$ROOT/$NATIVE_RULES") | grep -E "FAIL|\"failed\"" ; echo "   (any FAIL above blocks start)"
+  (cd packages/pricefeed && node dist/scripts/native-verify.js "$R" "$ROOT/$NATIVE_DEPLOYMENT" "$ROOT/$NATIVE_RULES" "$ENG") | grep -E "FAIL|\"failed\"" ; echo "   (any FAIL above blocks start)"
   echo "== roles and gas runway"
   local pub_rate; pub_rate=$(python3 -c "print(round(3.1*30000/$PUBLISH_MS,2))")
   echo "   observer   $(addr "$NATIVE_OBSERVER_PRIVATE_KEY")  $(runway "$(cast balance "$(addr "$NATIVE_OBSERVER_PRIVATE_KEY")" --rpc-url "$R" --ether)" "$pub_rate")"
@@ -108,6 +110,7 @@ supervise() {
 }
 
 start() {
+  [ -f "$SUPERVISOR_LOCK" ] && { echo "managed by the market supervisor ($SUPERVISOR_LOCK); not starting a second writer"; exit 3; }
   local report; report=$(check)   # capture first: `check | grep -q` + pipefail fails on SIGPIPE
   grep -q '"failed": 0' <<<"$report" || { echo "$report"; echo "verification failed; not starting"; exit 4; }
   for svc in publisher keeper; do

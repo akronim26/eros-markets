@@ -5,6 +5,7 @@
  *   rpc-pool.env                   -> config.rpcEnvFile
  *   <market>.roles.env             -> <privateDirectory>/roles.env
  *   <market>.keys.tgz.b64          -> <privateDirectory>/services/keys/ (base64 tar.gz)
+ *   <market>.env  (native markets) -> <privateDirectory>/ops.env (keys, RPC and settings)
  * Until `runner-handoff.mjs accept` has run on this disk, it waits instead of starting.
  */
 import fs from 'node:fs';
@@ -26,6 +27,10 @@ export function installSecrets({ repository = root, config, secrets = '/etc/secr
   place(path.join(secrets, 'rpc-pool.env'), containerPrivatePath(config.rpcEnvFile, repository));
   for (const market of config.markets) {
     const dir = containerPrivatePath(market.privateDirectory, repository);
+    if ((market.kind ?? 'polymarket-perp') !== 'polymarket-perp') {
+      place(path.join(secrets, `${market.name}.env`), containerPrivatePath(market.envFile ?? `${market.privateDirectory}/ops.env`, repository));
+      continue;
+    }
     place(path.join(secrets, `${market.name}.roles.env`), path.join(dir, 'roles.env'));
     const keys = path.join(dir, 'services', 'keys'), archive = path.join(secrets, `${market.name}.keys.tgz.b64`);
     if (!fs.existsSync(archive)) throw Error('SECRET_FILE_MISSING:' + path.basename(archive));

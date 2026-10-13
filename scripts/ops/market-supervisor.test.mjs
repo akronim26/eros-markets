@@ -267,3 +267,24 @@ test('publisher RPC read failures always restart with capped backoff, even after
   assert.equal(exitPolicy({ code: 1, text: 'Error: MONAD_NONCE_CONFLICT' }).action, 'block', 'nonce conflicts still stop');
   assert.equal(exitPolicy({ code: 1, text: 'Error: MONAD_SIMULATION_FAILED' }).action, 'block', 'a failed simulation is not a read');
 });
+
+test('an always-awake native market never sleeps, gets its per-worker environment, and a finished worker is not restarted', async () => {
+  const f = wakeFixture('native');
+  const envFile = path.join(f.directory, 'env'), done = path.join(f.directory, 'done.mjs');
+  fs.writeFileSync(done, `import fs from 'node:fs'; fs.writeFileSync(${JSON.stringify(envFile)}, process.env.ROLE_SECRET ?? 'none');\n`);
+  const { nativeExitPolicy } = await import('./market-kinds.mjs');
+  const { coordination: _none, ...base } = f.group; // native markets have no coordination directory
+  const group = { ...base, alwaysAwake: true, exitPolicy: nativeExitPolicy,
+    children: [f.group.children[0], { role: 'lifecycle', command: process.execPath, args: [done], environment: { ROLE_SECRET: 'only-lifecycle' } }] };
+  const finishing = supervise({ stateDirectory: f.directory, secrets: [], groups: [group],
+    wake: { url: 'https://x/api', pollMs: 30, idleMs: 1 }, readActivityImpl: async () => ({ '0xe1': null }), anyLeveragedImpl: async () => false });
+  try {
+    await until(() => f.status().groups[0].children[1].status === 'finished');
+    assert.equal(fs.readFileSync(envFile, 'utf8'), 'only-lifecycle');
+    await pause(300);
+    assert.equal(f.status().groups[0].status, 'running', 'idle market with alwaysAwake does not sleep');
+    assert.equal(f.status().groups[0].children[0].status, 'running');
+    assert.equal(f.starts(), 1, 'no restarts');
+    assert.ok(f.events().some(e => e.finished && e.role === 'lifecycle'));
+  } finally { await stop(finishing); fs.rmSync(f.directory, { recursive: true, force: true }); }
+});

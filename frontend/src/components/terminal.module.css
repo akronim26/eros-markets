@@ -97,3 +97,23 @@
 @media (min-width: 1600px) {
   .workspace { grid-template-columns: 340px minmax(0, 1fr) 340px; }
 }
+
+/* Spot (YES/NO tokens): outcome chart beside the order ticket, then book, trades and balances. */
+@media (min-width: 768px) {
+  .workspace.spot { grid-template-areas: "chart chart" "trade trade" "book trades" "account account" "activity activity"; }
+}
+@media (min-width: 1024px) {
+  .workspace.spot {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas: "chart trade" "book trade" "trades account" "activity activity";
+    grid-template-rows: minmax(28rem, auto) auto auto auto;
+  }
+  .workspace.spot .book { max-height: 26rem; }
+}
+@media (min-width: 1280px) {
+  .workspace.spot {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 360px;
+    grid-template-areas: "chart chart trade" "book trades account" "activity activity activity";
+    grid-template-rows: minmax(30rem, auto) minmax(0, 24rem) auto;
+  }
+}

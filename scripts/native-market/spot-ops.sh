@@ -7,6 +7,8 @@
 # The CRE listener (oracle/workflows/listen/supervise.sh) runs separately; it needs the CRE CLI.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"
+# The market supervisor (scripts/ops/market-supervisor.mjs) runs these workers; never start a second writer.
+SUPERVISOR_LOCK=${SUPERVISOR_LOCK:-tmp/redeploy-20261011/supervisor/supervisor.lock}
 SLUG=${SPOT_SLUG:-nba-gsw-mia-20261105-spot}
 RUN=tmp/native-spot/$SLUG; mkdir -p "$RUN"; chmod 700 "$RUN"
 ENVF=${SPOT_OPS_ENV:-$RUN/ops.env}
@@ -20,6 +22,7 @@ start_one() { # name script [args]
 }
 case "${1:-status}" in
   start)
+    [ -f "$SUPERVISOR_LOCK" ] && { echo "managed by the market supervisor ($SUPERVISOR_LOCK); not starting a second writer"; exit 3; }
     [ -f "$ENVF" ] || { echo "missing private config $ENVF (see header)"; exit 2; }
     [ "$(mode "$ENVF")" = 600 ] || { echo "$ENVF must be mode 600"; exit 2; }
     start_one maker maker.ts; start_one trader daily-trader.ts; start_one lifecycle lifecycle.ts;;

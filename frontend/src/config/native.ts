@@ -8,6 +8,8 @@ export type NativeBinding = {
   /** A normal prediction market: Kuru spot only, its registry "engine" is a SpotResolutionAnchor (no perp). */
   spotOnly?: boolean;
 };
+/** SpotMarketFactory (oracle/deployments/native/spot-market-factory.json): deploys each spot market's anchor. */
+export const SPOT_MARKET_FACTORY: Address = "0xC2b9C39F38a7B7783816AfaB4E7Ff7EEf1C1AEdE";
 const byEngine = new Map(Object.entries(bindings as Record<string, NativeBinding>).map(([engine, b]) => [engine.toLowerCase(), { ...b, engine: engine as Address }]));
 export const nativeBinding = (engine: string) => byEngine.get(engine.toLowerCase());
 /** A Kuru spot-only prediction market: its engine is a SpotResolutionAnchor, so no perp reads apply. */

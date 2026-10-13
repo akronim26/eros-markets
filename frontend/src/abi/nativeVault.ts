@@ -1,6 +1,6 @@
 import { parseAbi } from "viem";
 
-/** NativeOutcomeVault (contracts/src/native/NativeOutcomeVault.sol): complete-set issuance and redemption. */
+/** NativeOutcomeVault (contracts/src/native/NativeOutcomeVault.sol): complete-set issuance (split), merge and redemption. */
 export const nativeVaultAbi = parseAbi([
   "function engine() view returns (address)",
   "function yes() view returns (address)",
@@ -15,10 +15,20 @@ export const nativeVaultAbi = parseAbi([
   "function totalRedeemedAtoms() view returns (uint256)",
   "function issuanceOpen() view returns (bool)",
   "function redeemValue(uint256 yesAtoms, uint256 noAtoms) view returns (uint256)",
+  "function issuanceCap() view returns (uint256)",
+  "function split(uint256 atoms, address receiver)",
+  "function merge(uint256 atoms, address receiver)",
   "function syncResolution() returns (uint256)",
   "function redeem(uint256 yesAtoms, uint256 noAtoms, address receiver) returns (uint256 paid)",
+  "event Split(address indexed payer, address indexed receiver, uint256 atoms)",
+  "event Merged(address indexed owner, address indexed receiver, uint256 atoms)",
   "event ResolutionSynced(uint8 outcome, uint256 payoutYesWad, bytes32 snapshotId, uint256 outstandingSets)",
   "event Redeemed(address indexed owner, address indexed receiver, uint256 yesAtoms, uint256 noAtoms, uint256 paid)",
+  "error NotBound()",
+  "error IssuanceClosed()",
+  "error CapExceeded()",
+  "error ShortTransfer()",
+  "error Resolved()",
   "error NotResolved()",
   "error FinalityNotAccepted()",
   "error InvalidPricePending()",
