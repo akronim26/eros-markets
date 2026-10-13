@@ -15,6 +15,8 @@ import { createWalletGuard, runWalletCalls } from "./wallet-safety";
 import { privyRequest } from "./privy-api";
 import { rememberOrders } from "./orders";
 import { ensureDeployment } from "./deployment-check";
+import { ensureNativeVault } from "./native";
+import { nativeBindingForVault } from "@/config/native";
 import { finalizedOwnerReceipt } from "./finality";
 import { lockWalletTransaction } from "./transaction-lock";
 import { markets } from "@/config/deployment";
@@ -86,7 +88,8 @@ export function useTx() {
       // engine in its arguments. Verify those deployments before any signature.
       const targets = new Set(calls.flatMap(c => [c.address,
         ...(c.functionName === "allocate" && typeof c.args?.[0] === "string" ? [c.args[0]] : [])]));
-      await Promise.all([...targets].map(target => ensureDeployment(target)));
+      // Native outcome vaults are verified against their own reviewed binding (lib/native.ts).
+      await Promise.all([...targets].map(target => nativeBindingForVault(target) ? ensureNativeVault(target as Address) : ensureDeployment(target)));
       guard.assertCurrent();
       const connector = getConnection(config).connector!;
       await runWalletCalls(calls, {

@@ -24,6 +24,7 @@ import { RiskPanel } from "./risk-panel";
 import { ReservePanel } from "./reserve-panel";
 import { OperationsPanel } from "./operations-panel";
 import { OracleMarket } from "./resolution";
+import { ResolutionBanner, ResolutionStory } from "./resolution-story";
 import { AccountHistory } from "./account-history";
 
 const TABS = ["Position", "Open orders", "History", "Protection"] as const;
@@ -54,6 +55,11 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const [intent, setIntent] = useState<CloseIntent>();
   const [bookPrice, setBookPrice] = useState<BookPriceIntent>();
   const [tab, setTab] = useState<Tab>("Position");
+  const activityRef = useRef<HTMLElement>(null);
+  // A halted market's main story is its resolution: open that tab once, unless the viewer already chose one.
+  const chosen = useRef(false);
+  useEffect(() => { if (md?.halted && !chosen.current) { chosen.current = true; setTab("Resolution"); } }, [md?.halted]);
+  const openResolution = () => { setTab("Resolution"); activityRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
   useEffect(() => setIntent(undefined), [owner.address]);
   const primaryIndex = TABS.findIndex(value => value === tab);
   // The book's centre price: the latest public fill, else the mark. Moves compare against the fill before it.
@@ -85,7 +91,8 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       </Link>
       <MarketHeader manifest={manifest} m={md} source={live.index} readError={!!live.error || publicUnavailable} />
     </div>
-    {manifest.archived && <p role="status" className="border-x border-b border-line px-3 py-2 text-xs text-fg-2">Archived market. New positions are disabled; existing positions and funds remain accessible.</p>}
+    <ResolutionBanner manifest={manifest} m={md} onOpen={openResolution} />
+    {manifest.archived && !md?.halted && <p role="status" className="border-x border-b border-line px-3 py-2 text-xs text-fg-2">Archived market. New positions are disabled; existing positions and funds remain accessible.</p>}
     {(readUnavailable || ladder.isError) && <p role="alert" className="flex flex-wrap items-center gap-2 border-x border-b border-line px-3 py-2 text-xs text-signal-text">Connection interrupted. Refresh before trading.<button className="underline" onClick={() => { void head.refetch(); void market.refetch(); void snapshot.refetch(); void ladder.refetch(); }}>Retry</button></p>}
 
     {waking && <div role="status" aria-live="polite" className="flex flex-wrap items-center gap-x-4 gap-y-1 border-x border-b border-line px-3 py-2 text-xs text-fg-2">
@@ -125,18 +132,18 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
           onPrice={tick => setBookPrice({ tick, nonce: Date.now() })} />
       </div>
 
-      <section className={styles.activity} aria-label="Your trading activity">
+      <section ref={activityRef} className={styles.activity} aria-label="Your trading activity">
         <div className={styles.activityBar}>
           <div className="flex min-w-0 flex-1 overflow-x-auto" role="tablist" aria-label="Trading activity" onKeyDown={selectionKeys}>
             {TABS.map((value, index) => <button key={value} role="tab" id={`${tabsId}-${index}`} aria-controls={`${tabsId}-panel`}
               tabIndex={tab === value || (primaryIndex < 0 && index === 0) ? 0 : -1} aria-selected={tab === value}
-              onClick={() => setTab(value)} className={cx("relative min-h-11 shrink-0 px-3 text-xs transition-colors", tab === value ? "text-fg" : "text-fg-3 hover:text-fg")}>
+              onClick={() => { chosen.current = true; setTab(value); }} className={cx("relative min-h-11 shrink-0 px-3 text-xs transition-colors", tab === value ? "text-fg" : "text-fg-3 hover:text-fg")}>
               {value}{tab === value && <span className="absolute inset-x-3 bottom-0 h-0.5 bg-signal" aria-hidden />}
             </button>)}
           </div>
           <select id={`${tabsId}-details`} aria-label="More market details" value={primaryIndex < 0 ? tab : ""}
             className="min-h-11 max-w-36 cursor-pointer border-l border-line bg-ground px-2 text-xs text-fg-3 focus:text-fg"
-            onChange={event => { if (event.target.value) setTab(event.target.value as Tab); }}>
+            onChange={event => { if (event.target.value) { chosen.current = true; setTab(event.target.value as Tab); } }}>
             <option value="" disabled>Market details</option>
             {DETAILS.map(value => <option key={value} value={value}>{value}</option>)}
           </select>
@@ -152,7 +159,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
             : tab === "Risk" ? (actionMarket ? <RiskPanel key={`${manifest.engine}:${owner.address ?? "disconnected"}`} m={actionMarket} t={trader} /> : <p className="p-4 text-xs text-fg-3">Loading risk…</p>)
             : tab === "Liquidity" ? (actionMarket ? <ReservePanel engine={manifest.engine} m={actionMarket} t={trader} readUnavailable={readUnavailable} /> : <p className="p-4 text-xs text-fg-3">Loading liquidity…</p>)
             : tab === "Operations" ? (actionMarket ? <OperationsPanel engine={manifest.engine} m={actionMarket} readUnavailable={readUnavailable} /> : <p className="p-4 text-xs text-fg-3">Loading operations…</p>)
-            : manifest.oracleMarketId ? <OracleMarket id={manifest.oracleMarketId} engine={manifest.engine} /> : <p className="p-4 text-xs text-fg-3">This test market uses manual settlement.</p>}
+            : manifest.oracleMarketId ? <><ResolutionStory manifest={manifest} m={md} /><details className="border-t border-line"><summary className="cursor-pointer px-4 py-3 text-xs text-fg-3">Oracle record</summary><OracleMarket id={manifest.oracleMarketId} engine={manifest.engine} /></details></> : <p className="p-4 text-xs text-fg-3">This test market uses manual settlement.</p>}
         </div>
       </section>
     </div>

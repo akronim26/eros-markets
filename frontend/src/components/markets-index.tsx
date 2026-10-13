@@ -86,6 +86,7 @@ export function MarketsIndex() {
   const head = useHead();
   const discovery = useMarketList();
   const markets = discovery.markets.filter((market) => !market.archived);
+  const resolved = discovery.markets.filter((market) => market.archived);
   const search = useSearchParams().get("q") ?? "";
   const setSearch = (value: string) => {
     const url = new URL(window.location.href);
@@ -169,6 +170,18 @@ export function MarketsIndex() {
       </div>
       </>}
       </div>
+      {resolved.length > 0 && <section aria-label="Resolved markets" className="mt-12">
+        <SectionRule name="RESOLVED" index={2} />
+        <p className="mt-3 max-w-2xl text-xs leading-relaxed text-fg-3">Halted and resolved markets. Trading is closed; open one to see how it resolved and to claim or redeem.</p>
+        <ul className="mt-4 flex flex-col gap-3 md:hidden">
+          {resolved.map((mk) => <MarketCard key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />)}
+        </ul>
+        <div className="mt-4 hidden overflow-x-auto md:block">
+          <table className="relative w-full min-w-[860px] frame text-left">
+            <tbody>{resolved.map((mk) => <MarketRow key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />)}</tbody>
+          </table>
+        </div>
+      </section>}
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
         {discovery.isError ? "Registry discovery is unavailable. Showing the last verified markets." : discovery.isPending ? "Checking the verified markets against the registry…" : "Showing markets in the verified deployment. New listings become tradable after their deployment manifest is verified and updated."}
         {discovery.isError && <> <button className="underline" onClick={() => discovery.refetch()}>Retry discovery</button></>}
