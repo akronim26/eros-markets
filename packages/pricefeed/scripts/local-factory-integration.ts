@@ -98,7 +98,7 @@ async function main() {
   }
   const policy: RelayPolicy = { gasCap: 2000000n, maxFeePerGas: 2000000000n, maxPriorityFeePerGas: 1000000000n,
     maxCostWei: 4000000000000000n, headroomMs: 1000n, confirmations: 1n, timeoutMs: 5000, maxAttempts: 3, leaseMs: 60000n };
-  const source = await startFixtureSource(now);
+  const source = await startFixtureSource(now, join(directory, 'index-mid'));
   const results: PipelineResult[] = [];
   const report: Record<string, unknown> = { schemaVersion: 1, mode: 'LOCAL_HTTP_FIXTURE_REAL_FACTORY_ENGINE', operation: mode,
     chainId: 31337, fullEconomicEngine: true, externalChainTransactions: 0, paidApiCalls: 0, productionApproved: false,
@@ -214,7 +214,7 @@ async function main() {
       const stop = () => { stopped = true; };
       process.once('SIGINT', stop); process.once('SIGTERM', stop);
       report.running = true; save();
-      console.log('LOCAL CONTROLLED FIXTURE ONLY: publishing synthetic 0.5 INDEX to unhalted fixture engines, no public data or credentials.');
+      console.log('LOCAL CONTROLLED FIXTURE ONLY: publishing synthetic INDEX (0.5 unless pricefeed/index-mid says otherwise) to unhalted fixture engines, no public data or credentials.');
       try {
         while (!stopped && !existsSync(join(directory, 'stop-watcher'))) {
           await withLocalSamplingLock(samplingLock, async () => {
@@ -225,7 +225,12 @@ async function main() {
             pipeline!.renew(); assertDelivered(await processAll());
             report.lastPublishedAt = clock; save();
           });
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          // Poll every 5 s, or as soon as a test advances the local chain clock by one 10 s sample step.
+          const published = clock / 1000n;
+          for (let waited = 0; waited < 5000; waited += 250) {
+            if ((await client.getBlock()).timestamp >= published + 10n) break;
+            await new Promise(resolve => setTimeout(resolve, 250));
+          }
         }
       } finally {
         process.removeListener('SIGINT', stop); process.removeListener('SIGTERM', stop); report.running = false;

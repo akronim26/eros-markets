@@ -54,6 +54,11 @@ export function exitPolicy({ code, signal, text = '', restarts = 0 }) {
   // no restart limit, so a provider outage pauses the market instead of stopping it for good.
   if (code !== 0 && !signal && /^(?:MONAD_(?:FINALIZED_BLOCK|CANONICAL_BLOCK|CODE_READ|LISTING_READ|SOURCE_READ|HALT_READ|BLOCK_READ|RECEIPT_READ|NONCE_READ|BALANCE_READ)_FAILED|MONAD_STALE_OR_FUTURE_BLOCK|PIPELINE_TIMEOUT|RELAY_TIMEOUT)$/.test(failure))
     return { action: 'restart', delayMs: Math.min(60_000, 2_000 * 2 ** Math.min(restarts, 5)), reason: 'transient-rpc-read' };
+  // A reserved publication outlived its relay headroom (a thin source keeps the packet from being
+  // sent in time). The restarted publisher recovers that unsent nonce before signing anything new,
+  // so restart quickly and indefinitely: the market resumes as soon as its source is valid again.
+  if (code !== 0 && !signal && failure === 'RELAY_HEADROOM_EXPIRED')
+    return { action: 'restart', delayMs: 5_000, reason: 'relay-headroom-expired' };
   // Match error codes/phrases, not healthy JSON fields such as "nonce" or "budget".
   const fatalCode = /\b(?:[A-Z0-9]+_)*(?:NONCE|INTEGRITY|MISMATCH|NONCANONICAL|QUARANTINED|LOCKED|RETIRED|RECONCILIATION)(?:_[A-Z0-9]+)*\b/;
   if (code === 78 || fatalCode.test(failure) || /publication-budget-exhausted|TESTNET_RELAY_BUDGET_EXHAUSTED|cost.limit.exceeded|needs.test.mon|insufficient.funds|gas.wallet.below|Untracked sender nonce|nonce too low|nonce too high|WRONG_CHAIN|EEXIST|pending nonce requires reconciliation/i.test(failure))

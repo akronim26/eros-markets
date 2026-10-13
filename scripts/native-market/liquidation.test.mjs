@@ -1,4 +1,4 @@
-// Native keeper liquidation scan (followup_deployment step 5): decision, cursor and send behaviour of
+// Native keeper liquidation scan: decision, cursor and send behaviour of
 // scripts/native-market/liquidation.sh with `cast`, `rd` and `keeper_tx` replaced by scripted doubles.
 // Expected values are written by hand from the selection rule in oracle/services/market-ops/src/operations.ts.
 import test from 'node:test';

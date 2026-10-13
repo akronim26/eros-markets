@@ -8,6 +8,7 @@ import { client, type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { usePermissions } from "@/lib/privy-api";
 import { expiryBlock, type CloseIntent } from "@/lib/trade-intent";
 import { ownerTrader } from "@/lib/trader";
+import { closeToWalletCalls } from "@/lib/close-to-wallet";
 import { targetLeverageLots } from "@/lib/leverage";
 import { orderPreviewCurrent, orderPreviewOptions } from "@/lib/order-preview";
 import { canonicalTrade, displayTickForOutcome, type TradeIntent } from "@/lib/trade-view";
@@ -155,9 +156,27 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
                   : preview.data.acceptedCapLots < parsed.lots ? "Reduce size to the admissible limit"
                   : null;
 
+  // Close position, submitted as prepared: once it fills completely, the remaining collateral goes back to
+  // the wallet (release, then withdraw), like a spot sale. Any edit to the order turns it into a plain reduce.
+  // A leverage target sizes from equity alone; the engine's margin grows with size, so confirm the size is
+  // admissible and shrink it to the largest admissible one when it is not.
+  const [clampNote, setClampNote] = useState<string>();
+  useEffect(() => {
+    setClampNote(undefined);
+    if (targetLeverage === undefined || reducing || !maximum.enabled || !parsed.ok) return;
+    const want = parsed.lots, x = targetLeverage;
+    void maximum.search((max) => {
+      if (max >= want) return;
+      setSize(lotsToClaims(max));
+      setClampNote(`${x}× would be ${lotsToClaims(want)} claims; the engine admits up to ${lotsToClaims(max)} at this price (margin rises with size).`);
+    });
+  }, [targetLeverage, inputRevision]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const closing = !!intent?.full && reduceOnly && size === intent.size && price === intent.price && side === intent.side;
+
   async function submit() {
     if (!owner.address || !market || !parsed.ok || blocker || owner.wrongChain) return;
-    await tx.run(
+    const filled = await tx.run(
       owner.address,
       [
         {
@@ -174,6 +193,11 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
       summarizeOrder,
       oneClick && delegated ? { previewBlock: market.block } : undefined,
     );
+    if (!filled || !closing) return;
+    let sweep: Awaited<ReturnType<typeof closeToWalletCalls>>;
+    try { sweep = await closeToWalletCalls(engine, owner.address); } catch { return; } // Funds stay releasable in Manage collateral.
+    if (sweep.calls.length) await tx.run(owner.address, sweep.calls,
+      () => ({ summary: "Position closed. Funds returned to your wallet.", tone: "neutral" }));
   }
 
   const field = "h-9 w-full bg-ground px-3 text-sm tnum text-fg shadow-[inset_0_0_0_1px_var(--color-line-strong)] placeholder:text-fg-4 focus:shadow-[inset_0_0_0_2px_var(--color-signal)] focus:outline-none";
@@ -234,7 +258,7 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
               </button>
             )}
           </span>
-          <input className={field} inputMode="decimal" placeholder="0.000" value={price} {...validation.props("price")} onChange={(e) => { setPrice(e.target.value); setTargetLeverage(undefined); }} />
+          <input className={field} inputMode="decimal" placeholder="0.000" value={price} aria-label={`${tradeIntent.outcome} price`} {...validation.props("price")} onChange={(e) => { setPrice(e.target.value); setTargetLeverage(undefined); }} />
           <FieldError id={validation.errorId("price")}>{validation.message("price")}</FieldError>
         </label>
 
@@ -245,10 +269,11 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
               {maximum.busy ? "Finding Max…" : "Max"}
             </button>
           </span>
-          <input className={field} inputMode="decimal" placeholder="0.000" value={size} {...validation.props("size")} onChange={(e) => { setSize(e.target.value); setTargetLeverage(undefined); setInputRevision((n) => n + 1); }} />
+          <input className={field} inputMode="decimal" placeholder="0.000" value={size} aria-label="Size (claims)" {...validation.props("size")} onChange={(e) => { setSize(e.target.value); setTargetLeverage(undefined); setInputRevision((n) => n + 1); }} />
           <FieldError id={validation.errorId("size")}>{validation.message("size")}</FieldError>
         </label>
-        {maximum.message && <p role="status" className="text-xs leading-relaxed text-fg-3">{maximum.message}</p>}
+        {clampNote ? <p role="status" className="text-xs leading-relaxed text-signal-text">{clampNote}</p>
+          : maximum.message && <p role="status" className="text-xs leading-relaxed text-fg-3">{maximum.message}</p>}
         {maximum.error && <p role="alert" className="text-xs leading-relaxed text-ask">{maximum.error}</p>}
         </div>
         <div className="flex flex-col gap-3">
@@ -316,9 +341,12 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
           </Button>
         ) : (
           <Button variant={side === "buy" ? "bid" : "ask"} size="lg" arrow disabled={!!blocker || tx.state.status === "pending" || tx.state.status === "sent"} onClick={submit}>
-            {blocker ?? (tx.state.status === "pending" || tx.state.status === "sent" ? tx.state.step : intentLabel(tradeIntent))}
+            {blocker ?? (tx.state.status === "pending" || tx.state.status === "sent" ? tx.state.step : closing ? "Close position" : intentLabel(tradeIntent))}
           </Button>
         )}
+        {closing && owner.address && !owner.wrongChain && <p className="text-xs leading-relaxed text-fg-3">
+          When the close fills completely, your remaining collateral is returned to your wallet (two more confirmations). A partial fill keeps the rest of the position open.
+        </p>}
 
         {preview.isError && <ReadError message="Order preview unavailable. Check your connection and retry." retry={() => { void preview.refetch(); }} />}
         {owner.wrongChain && chainError && <p role="alert" className="text-xs text-ask">Network switch was not completed. Unlock your wallet and try again.</p>}

@@ -19,5 +19,6 @@ export type MarketManifest = { engine: Address; marketId: Hex; listingHash: Hex;
 export const markets: MarketManifest[] = parsed.markets.map(m => ({ engine: m.engine, marketId: m.marketId, listingHash: m.listingHash,
   deployBlock: BigInt(m.deployBlock), title: `Local E2E ${m.name} event`, short: m.name, oracleMarketId: m.marketId, resolution: "ORACLE", fixture: true,
   role: m.name === "terminal" ? "terminal-test" : "demo" }));
+export const isNativeMarket = (m: Pick<MarketManifest, "source">) => m.source?.startsWith("Eros native") ?? false;
 export const oracleMarkets = markets.map(m => ({ id: m.marketId, note: "Disposable local E2E fixture: synthetic prices, test tokens and scripted resolution." }));
 export const marketByEngine = (address: string) => markets.find(m => m.engine.toLowerCase() === address.toLowerCase());

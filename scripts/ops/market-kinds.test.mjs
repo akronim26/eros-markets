@@ -31,3 +31,11 @@ test('auto top-up refills native operator roles and still rejects unknown roles'
   assert.deepEqual(Object.keys(config.amountsWei).sort(), [...NATIVE_ROLES].sort());
   assert.throws(() => topUpConfig({ rootEnvFile: 'tmp/root.env', amountsMon: { USER_WALLET: 5 } }), /INVALID_TOPUP_AMOUNTS/);
 });
+
+test('a publisher stopped by an expired relay reservation restarts after 5 s, without a restart limit', () => {
+  const text = '{"at":"2026-10-13T21:38:19.971Z","stoppedFor":"RELAY_HEADROOM_EXPIRED"}';
+  for (const restarts of [0, 1, 5, 50]) assert.deepEqual(exitPolicy({ code: 1, text, restarts }), { action: 'restart', delayMs: 5_000, reason: 'relay-headroom-expired' });
+  // Only that exact stop: a quarantined reservation or nonce failure still needs an operator.
+  assert.equal(exitPolicy({ code: 1, text: '{"stoppedFor":"RESERVED_NONCE_HEADROOM_EXPIRED"}' }).action, 'block');
+  assert.equal(exitPolicy({ code: 1, text: 'Error: RELAY_HEADROOM_EXPIRED_NONCE_TOO_LOW' }).action, 'block');
+});

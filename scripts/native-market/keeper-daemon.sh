@@ -6,7 +6,8 @@
 # Stops on low keeper balance. Never touches the INDEX publisher or spot maker.
 # Env: R, ENG, KEEPER_KEY, PERP_MAKER_KEY; optional HALF=10 (ticks), LOTS=150000, FOLLOW=8 (ticks),
 #      EVERY=90 (s), MIN_MON=2, RF (comma-separated read fallbacks, tried in order when R fails),
-#      LIQUIDATE=1 (0 disables the liquidation scan), LIQ_SCAN=32 (trader ids simulated per loop).
+#      LIQUIDATE=1 (0 disables the liquidation scan), LIQ_SCAN=32 (trader ids simulated per loop),
+#      MONITOR_KEY (optional: clears the movement breaker once INDEX is stable; see breaker.sh).
 # Transactions and the rollover simulation (an eth_call from the keeper) always use R.
 set -uo pipefail
 : "${R:?rpc}" "${ENG:?engine}" "${KEEPER_KEY:?keeper key}" "${PERP_MAKER_KEY:?perp maker key}"
@@ -20,6 +21,10 @@ keeper_tx() { KEY=$KEEPER_KEY ENG=$ENG R=$R bash -c "eval \"\$(sed -n '1,14p' '$
 # Forced-book liquidation (LIQUIDATE=1, the default): the scan stops after one read when the listing has
 # no liquidation budget (maxLiqLotsPerBlock 0), so a 1x market costs a single eth_call per loop.
 . "$HERE/liquidation.sh"
+# Perp maker re-quotes cancel the maker's own orders by id in one batch (see quotes.sh).
+. "$HERE/quotes.sh"
+# Movement breaker: report the reduce-only latch; with MONITOR_KEY, clear it once INDEX is stable (breaker.sh).
+. "$HERE/breaker.sh"
 # Orders rest in a market epoch: after a rollover (or on start) the maker's old quotes no longer count as
 # depth, so no book sample is valid and the MARK stays unavailable. Re-quote whenever the epoch moved.
 quoted_epoch=""
@@ -38,9 +43,10 @@ while true; do
   fi
   # Liquidation runs before re-quoting: an unhealthy account is closed against the book as it stands.
   [ "${LIQUIDATE:-1}" = 0 ] || liquidation_scan
+  breaker_check
   # perp.sh's tx() is loaded with eval, not `. <(...)`: bash 3.2 (macOS) sources nothing from a process substitution.
   # Perp maker follows the native INDEX: re-quote at INDEX +/- HALF ticks when a side is empty or the
-  # perp mid is >= FOLLOW ticks away from INDEX. Uses cancelAll (perp maker's own orders) then quote.
+  # perp mid is >= FOLLOW ticks away from INDEX, in one batch that cancels the maker's own orders by id.
   now=$(rd block latest -f timestamp)
   idx=$(rd call "$ENG" 'indexTwap300(uint64)((bool,int256,uint256,int256))' "$now" | tr -d '()' | awk -F', ' '$1=="true"{print $2}' | awk '{print $1}')
   read -r bid ask < <(rd call "$ENG" 'bestBidAsk()(uint16,uint16)' | tr '\n' ' ')
@@ -51,8 +57,7 @@ while true; do
     pb=$((target - HALF)); pa=$((target + HALF))
     if [ -n "$epoch" ] && [ "$epoch" != "$quoted_epoch" ] || [ "${bid:-0}" = 0 ] || [ "${ask:-0}" = 0 ] || [ $(( (bid + ask) / 2 - target )) -ge "$FOLLOW" ] || [ $(( target - (bid + ask) / 2 )) -ge "$FOLLOW" ]; then
       echo "$(ts) perp quotes ${bid:-?}/${ask:-?} (epoch ${epoch:-?}, quoted ${quoted_epoch:-none}) vs INDEX tick $target: re-quoting $pb/$pa x $LOTS lots"
-      KEY=$PERP_MAKER_KEY ENG=$ENG R=$R bash -c "eval \"\$(sed -n '1,14p' '$HERE/perp.sh')\"; tx \"\$ENG\" 'cancelAll()'" >/dev/null 2>&1 || true
-      if KEY=$PERP_MAKER_KEY $PP quote $pb $pa "$LOTS" >/dev/null; then quoted_epoch=$epoch; else echo "$(ts) perp quote failed (retry next loop)"; fi
+      if requote "$pb" "$pa" "$LOTS"; then quoted_epoch=$epoch; else echo "$(ts) perp quote failed (retry next loop)"; fi
     fi
   fi
   if KEY=$KEEPER_KEY ENG=$ENG R=$R bash -c "eval \"\$(sed -n '1,14p' '$HERE/perp.sh')\"; tx \"\$ENG\" 'samplePerp()'" >/dev/null 2>&1; then s=ok; else s=fail; fi
