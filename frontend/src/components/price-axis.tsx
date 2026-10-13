@@ -7,6 +7,8 @@ import { INDEX_CARRY_SECS } from "@/lib/index-carry";
 import { cx } from "./ui";
 
 const RANGES = [{ label: "Live", seconds: 900 }, { label: "1H", seconds: 3600 }, { label: "6H", seconds: 21600 }, { label: "1D", seconds: 86400 }, { label: "All", seconds: Infinity }] as const;
+/** 0.005 = five price ticks: smaller wiggles read as a flat line. */
+const MOVE_THRESHOLD = 0.005;
 const timeLabel = (t: number, long = false) => new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", ...(long ? { second: "2-digit" } : {}) });
 const priceLabel = (p: number) => p.toFixed(3);
 
@@ -30,7 +32,19 @@ export function PriceAxis(p: Props) {
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(286);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
-  const [range, setRange] = useState(0);
+  // Until the viewer picks a range, open on the shortest one in which the price actually moves.
+  const [picked, setRange] = useState<number>();
+  const autoRange = useMemo(() => {
+    const end = Math.max(now, p.index.at(-1)?.t ?? 0);
+    const valid = p.index.filter(v => v.valid !== false);
+    for (let i = 0; i < RANGES.length - 1; i++) {
+      const values = valid.filter(v => v.t >= end - RANGES[i].seconds).map(v => v.v);
+      if (values.length > 1 && Math.max(...values) - Math.min(...values) >= MOVE_THRESHOLD) return i;
+    }
+    // Flat everywhere: show the whole stored span rather than a short flat window.
+    return valid.length > 1 && valid[0].t < end - RANGES[0].seconds ? RANGES.length - 1 : 0;
+  }, [p.index, now]);
+  const range = picked ?? autoRange;
   const [book, setBook] = useState(false);
   const [mark, setMark] = useState(true);
   const [hoverTime, setHoverTime] = useState<number>();
