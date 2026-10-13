@@ -2,7 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { erc20Abi, type Address } from "viem";
 import { nativeVaultAbi } from "@/abi/nativeVault";
-import { nativeBinding, nativeBindingForVault, type NativeBinding } from "@/config/native";
+import { nativeBinding, nativeBindingForTarget, nativeBindingForVault, type NativeBinding } from "@/config/native";
+import { KURU_MARGIN, kuruBookAbi } from "@/abi/kuru";
 import { client } from "./public-client";
 import { ensureDeployment } from "./deployment-check";
 import { PublicError } from "./public-error";
@@ -34,6 +35,36 @@ export function ensureNativeVault(vault: Address): Promise<void> {
     })();
     check.catch(() => verified.delete(key));
     verified.set(key, check);
+  }
+  return check;
+}
+
+/**
+ * Verify a native call target before signing: the vault and its tokens by the reviewed vault binding,
+ * each Kuru book by its on-chain market parameters (YES or NO base, the reviewed collateral as quote,
+ * the 1000/1000 precisions and 6 decimals the UI's integer units assume), and Kuru's margin account by
+ * its documented address having code.
+ */
+const books = new Map<string, Promise<void>>();
+export async function ensureNativeTarget(target: Address): Promise<void> {
+  if (target.toLowerCase() === KURU_MARGIN.toLowerCase()) {
+    if (!(await client.getCode({ address: KURU_MARGIN }))) throw new PublicError("Kuru margin account is not deployed on this network.");
+    return;
+  }
+  const b = nativeBindingForTarget(target);
+  if (!b) throw new PublicError("Contract is not part of a reviewed deployment.");
+  await ensureNativeVault(b.vault);
+  const side = target.toLowerCase() === b.yesBook.toLowerCase() ? b.yesToken : target.toLowerCase() === b.noBook.toLowerCase() ? b.noToken : undefined;
+  if (!side) return;
+  const key = target.toLowerCase();
+  let check = books.get(key);
+  if (!check) {
+    check = client.readContract({ address: target, abi: kuruBookAbi, functionName: "getMarketParams" }).then((p) => {
+      if (p[2].toLowerCase() !== side.toLowerCase() || p[4].toLowerCase() !== b.collateral.toLowerCase() || p[0] !== 1000 || p[1] !== 1000n
+        || p[3] !== 6n || p[5] !== 6n) throw new PublicError("Kuru book does not match the reviewed outcome token and units.");
+    });
+    check.catch(() => books.delete(key));
+    books.set(key, check);
   }
   return check;
 }
