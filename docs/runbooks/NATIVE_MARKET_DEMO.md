@@ -117,16 +117,48 @@ KEY=$TRADER_KEY     bash scripts/native-market/perp.sh close 600 20000 sell
 - **Every hour:** run `KEY=$KEEPER_KEY perp.sh rollover`, then re-quote the perp maker and run `perp.sh keeper` until PERP is valid again. Old perp orders do not survive a rollover. Avoid demoing across xx:00.
 - **Gas:** the CLIs add a 30% gas-limit margin, because exact estimates go stale while the keeper and publisher are running.
 
-### Keep it running
+### Keep it running: `ops.sh` (NM-J01/J02)
+
+Run the publisher and keeper loop through the operator runtime, not by hand.
+
+**Private config:** create `tmp/native-public/ops.env`. It must be mode 600 (the runner enforces this) and is gitignored. It contains:
+- `MONAD_RPC_URL`;
+- `NATIVE_OBSERVER_PRIVATE_KEY`, `NATIVE_KEEPER_PRIVATE_KEY`, `NATIVE_PERP_MAKER_PRIVATE_KEY`;
+- `NATIVE_DEPLOYMENT`, `NATIVE_RULES`, `NATIVE_ENGINE`;
+- optionally `PUBLISH_MS` (60000) and `KEEPER_EVERY` (90).
 
 ```bash
-R=$RPC ENG=$ENGINE KEEPER_KEY=$KEEPER_KEY PERP_MAKER_KEY=$PERP_MAKER_KEY \
-  setsid nohup bash scripts/native-market/keeper-daemon.sh > tmp/native-public/keeper.log 2>&1 &
+bash scripts/native-market/ops.sh check    # read-only: 19 on-chain checks, role runway, engine stage
+bash scripts/native-market/ops.sh start    # refuses unless verification passes; one writer per service (flock)
+bash scripts/native-market/ops.sh status   # supervisors, last log lines, INDEX availability
+bash scripts/native-market/ops.sh stop
 ```
 
-- The keeper loop samples every 90 s (about 0.063 MON per sample, so about 2.5 MON/h).
-- When the hourly rollover opens, it runs the rollover and re-posts the perp maker's quotes.
-- It stops itself when the keeper balance drops below 2 MON.
+How the services behave:
+- **Restarts:** each service restarts with backoff (10 s up to 300 s) and stops for operator review after `MAX_RESTARTS`.
+- **Secrets:** keys and the RPC URL reach the processes only through the environment, never through command-line arguments.
+- **Keeper loop:** samples every 90 s (≈0.063 MON per sample), runs the hourly rollover, and keeps the perp maker's quotes centred on native INDEX. The perp book has to stay near INDEX or PERP becomes unavailable.
+- **Publisher at a 60 s cadence:** ≈1.5 MON/h, still inside the 120 s INDEX carry.
+
+**Verify any deployment, read-only:** `node packages/pricefeed/dist/scripts/native-verify.js <rpc> <deployment.json> <rules.json>`
+
+### Movement guard (important for demos)
+
+If native INDEX moves more than **0.10 within 300 s**, the engine latches `movementRestricted` and the market goes **REDUCE_ONLY**: new perp risk is rejected with `OrderRejected(BAD_STAGE)`. Only the monitor (the listing's monitor key) can lift it, with `clearReduceOnly(reason)`, after a human decides the move is understood. Keep simulated or staged moves gradual; the simulator caps each re-quote at `MAX_STEP_TICKS` (6).
+
+### Simulated activity (demo only)
+
+```bash
+RPC=… D=<deployment.json> MAKER_KEY=<spot maker> TAKER_KEYS=<k1,k2,k3> STRIKE=82500 DURATION_MIN=10 \
+  node packages/pricefeed/dist/scripts/native-sim.js
+```
+
+- **Maker:** quotes around a fair value from outside Eros (Kraken BTC model), skewed by its inventory; rate-limited; posts new quotes before cancelling old ones; cancels its own leftover orders at startup.
+- **Takers:** noise, momentum and contrarian bots.
+- **Cost:** about 0.1–0.2 MON per maker re-quote and 0.03 MON per taker trade.
+- **Label:** everything it produces is controlled team activity.
+
+**Arbitrage demo:** `KEY=<trader> bash scripts/native-market/arb.sh split-sell|buy-merge <claims>`, run after staging a mispricing with `spot.sh bid|ask`.
 
 ## 7. Settlement (NM-H)
 
@@ -140,9 +172,53 @@ It covers YES, NO, a rejected proposal, INVALID at the 0.5 fallback, and INVALID
 
 The live market later follows `spot.sh sync` → `spot.sh redeem <yes> <no>`. Cancel and withdraw Kuru-held tokens first.
 
+### Early YES resolution (public, proven 2026-10-12)
+
+For an "X happens before T" event that has really happened:
+
+```bash
+cd oracle && REGISTRY=0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33 MARKET_ID=<id> PAYER_KEY=<lister> \
+  MONITOR_KEY=<monitor> ATTESTOR_KEY=<runner attestor> COMMITTEE_A_KEY=<c1> COMMITTEE_B_KEY=<c2> \
+  EVIDENCE_URI=<url> EVIDENCE_HASH=<hash> STAGE=propose $F script script/native/ResolveNativeEarly.s.sol \
+  --skip UmaImports --skip 'test/**' --rpc-url $RPC --broadcast --slow
+# after the 300 s liveness:
+STAGE=finalize ... (same command)
+# then: spot.sh sync; holders withdraw from Kuru and spot.sh redeem <yes> <no>
+```
+
+Limits:
+- **YES only:** NO and at-T conditions wait for T.
+- **Time window:** the early check expires after `earlyTtlSecs` (600 s).
+- **Not decentralized:** every role key and the sandbox venue are team-controlled.
+
 ## 8. Shutdown
 
 - Cancel maker orders: `spot.sh cancel yes|no <ids>`; perp orders are cancelled through the engine.
 - Withdraw Kuru margin with `spot.sh withdraw`.
 - Stop the publisher.
 - Record remaining positions and who keeps rollover and resolution running until settlement.
+
+## 9. Demo freeze: live state and known limitations (NM-J07, 2026-10-13)
+
+**Frozen public identities.**
+- **BTC > $82,500 market:** [record](../../artifacts/native-market/public-20261012-btc-82500/README.md). Engine `0xE7C1…D606`, vault `0x17f4…706a`, Kuru YES `0x91e1…30F9` / NO `0x6A40…7AAb`.
+- **Block-height market (resolved YES):** [record](../../artifacts/native-market/public-20261012-block-70528000/README.md).
+- **Verification:** both pass `native-verify` 19/19.
+
+**Demo sequence (about 10 minutes):**
+1. `ops.sh check` (live identities, runway, stage).
+2. Kuru books via `spot.sh status`: about 900+ claims per side, 4 levels.
+3. Split and merge a complete set.
+4. A trade on Kuru, then the INDEX update on the frontend chart.
+5. Optional simulator run for price movement.
+6. The arbitrage demo.
+7. The block-market settlement evidence: oracle → engine → vault → 20 YES redeemed for 20 tUSDC.
+
+**Known limitations (state these on stage):**
+- **Controlled activity:** all native liquidity and trading is team-controlled or simulated; native INDEX is not independent price discovery.
+- **Trusted parties:** one INDEX signer key; resolution through committee and sandbox-UMA keys held by the team. Test collateral only.
+- **1× only:** funding off; no calibration; no leverage on native-priced markets.
+- **Movement guard:** a > 0.10 INDEX move within 300 s latches reduce-only until the monitor clears it.
+- **Single host:** the bots run on one laptop under `ops.sh`; they stop if it sleeps. There is no redundancy, and the Polymarket supervisor integration was not done.
+- **Kuru availability:** Kuru-held tokens must be withdrawn before redemption. Third-party trading on Kuru cannot be halted by Eros.
+- **Not built:** the frontend Spot tab (split, merge, redeem, Kuru ticket) and the indexer (chart history beyond the RPC's ~30 s window). Both are tracked as optional.
