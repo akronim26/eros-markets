@@ -71,3 +71,19 @@ Sampling resumed at 23:00:34Z with PERP and INDEX available and `pricingMode = 1
 | Merge | Withdrew 20 YES + 20 NO from Kuru, merged 20 sets; wallet tUSDC 810 → 830; vault sets 500 → 480 | `0x3bc40b15ee715051209f225d29c953ccbb9b2633dc6f95331ce912ad0d5c2e3f` |
 | Perp close | Reduce-only sell of 20 at 0.49; cash 89.8 → 99.6, flat | `0x08ccd25345fa6aed5122fc8f09cb6b90b41e08353e39322bfb0c14f20f2fcb92` |
 | Release + withdraw | 99.6 tUSDC back to the wallet (929.6) | `0xb2a3d4f2…a867`, `0x94ab18c5…ad5a` |
+
+## Public complete-set arbitrage (NM-E07, ~03:20 UTC)
+
+The spot maker staged 20-claim mispricings; this is controlled activity, not organic demand. The trader ran `scripts/native-market/arb.sh`. Profit is measured from the trader's wallet + Kuru collateral before and after.
+
+| Direction | Staged | Predicted | Realized |
+| --- | --- | --- | --- |
+| buy-merge | asks YES 0.490 + NO 0.500 = 0.990 (`0x920ee989…`, `0x62377f92…`) | +0.200 | +0.200 (982.2 → 982.4 tUSDC) |
+| split-sell | bids YES 0.505 + NO 0.505 = 1.010 (`0x600ffbaa…`, `0xb6fe702f…`) | +0.200 | +0.200 (982.4 → 982.6 tUSDC) |
+
+The staged orders were fully consumed. Afterwards both books were back at YES 0.487/0.507 and NO 0.495/0.513.
+
+## Source-loss and movement-guard behavior (NM-G05)
+
+- **Invalid-depth readings during simulation run 1** (00:52:35, 00:58:38, 01:03:22): the maker briefly left the YES book empty, the publisher signed invalid-depth checkpoints, the engine reported INDEX unavailable, and INDEX recovered once 60 s of valid data accrued. No price was invented.
+- **Movement guard:** simulation run 1 moved INDEX 0.50 → ~0.30 within minutes, more than 0.10 in 300 s. `SourceGuards` latched `movementRestricted = true` and the market went to `REDUCE_ONLY`. New perp quotes are now rejected with `OrderRejected(BAD_STAGE)`, and only the monitor's `clearReduceOnly` lifts it. The simulator now rate-limits its moves (`bf00b1e`).
