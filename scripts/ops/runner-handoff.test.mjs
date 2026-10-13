@@ -122,3 +122,52 @@ test('entrypoint installs secret files as private regular files, never links', a
     assert.throws(() => installSecrets({ repository: repo, config, secrets }), /SECRET_FILE_MISSING:m1.roles.env/);
   } finally { fs.rmSync(repo, { recursive: true, force: true }); }
 });
+
+test('a native market bundles only its maker/trader state; its env file and logs stay behind; native workers block a hand-off', () => {
+  const h = host();
+  try {
+    const spot = 'tmp/native/spot';
+    fs.mkdirSync(path.join(h.root, spot), { recursive: true });
+    h.write(spot + '/ops.env', 'MAKER_KEY=0xsecret\nRPC=https://secret.example/key');
+    h.write(spot + '/maker-state.json', '{"fair":524}');
+    h.write(spot + '/trader-state.json', '{"trades":[]}');
+    h.write(spot + '/maker.log', 'https://secret.example/key');
+    h.write('tmp/run/supervisor.json', JSON.stringify({ stateDirectory: h.state, markets: [{ name: 'm1', privateDirectory: h.market },
+      { name: 'spot', kind: 'native-spot', privateDirectory: spot }, { name: 'perp', kind: 'native-spot-perp', privateDirectory: 'tmp/native/missing' }] }));
+    const config = JSON.parse(fs.readFileSync(path.join(h.root, 'tmp/run/supervisor.json'), 'utf8'));
+    for (const line of ['7 bun --no-env-file packages/pricefeed/scripts/native-spot/maker.ts', '8 node packages/pricefeed/dist/scripts/native-publish.js env r e',
+      '9 bash scripts/native-market/keeper-daemon.sh'])
+      assert.throws(() => assertStopped({ root: h.root, config, processes: () => line }), /WORKER_PROCESS_PRESENT/, line);
+    const result = pack({ root: h.root, configPath: 'tmp/run/supervisor.json', bundlePath: bundleOf(h), processes: h.none });
+    const listed = execFileSync('tar', ['-tzf', bundleOf(h)], { encoding: 'utf8' }).split('\n');
+    assert.ok(listed.includes(spot + '/maker-state.json') && listed.includes(spot + '/trader-state.json'));
+    assert.ok(!listed.some(f => /ops\.env|maker\.log/.test(f)), 'no native secrets or logs in the bundle');
+    assert.equal(result.files, 6);
+    // The new host verifies the native state exactly like journals.
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), 'eros-handoff-new-'));
+    try {
+      execFileSync('tar', ['-xzf', bundleOf(h), '-C', target]);
+      fs.writeFileSync(path.join(target, spot, 'maker-state.json'), '{"fair":1}');
+      assert.throws(() => accept({ root: target, manifestRel: result.manifestRel }), /HANDOFF_FILE_CHANGED/);
+      fs.writeFileSync(path.join(target, spot, 'maker-state.json'), '{"fair":524}');
+      assert.equal(accept({ root: target, manifestRel: result.manifestRel }).files, 6);
+    } finally { fs.rmSync(target, { recursive: true, force: true }); }
+  } finally { fs.rmSync(h.root, { recursive: true, force: true }); }
+});
+
+test('entrypoint installs a native market env file from <market>.env', async () => {
+  const { installSecrets } = await import('./render-entrypoint.mjs');
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'eros-entry-native-')), secrets = path.join(repo, 'secrets');
+  try {
+    fs.writeFileSync(path.join(repo, '.gitignore'), '/tmp/\n');
+    fs.mkdirSync(secrets);
+    fs.writeFileSync(path.join(secrets, 'rpc-pool.env'), 'MONAD_TESTNET_RPC=x\n');
+    fs.writeFileSync(path.join(secrets, 'spot.env'), 'MAKER_KEY=0x1\n');
+    const config = { rpcEnvFile: 'tmp/rpc/rpc-pool.env', markets: [{ name: 'spot', kind: 'native-spot', privateDirectory: 'tmp/native/spot' }] };
+    installSecrets({ repository: repo, config, secrets });
+    const stat = fs.lstatSync(path.join(repo, 'tmp/native/spot/ops.env'));
+    assert.ok(stat.isFile() && !stat.isSymbolicLink() && (stat.mode & 0o077) === 0);
+    fs.rmSync(path.join(secrets, 'spot.env'));
+    assert.throws(() => installSecrets({ repository: repo, config, secrets }), /SECRET_FILE_MISSING:spot.env/);
+  } finally { fs.rmSync(repo, { recursive: true, force: true }); }
+});

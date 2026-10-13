@@ -2,12 +2,14 @@ import { PublicError } from "./public-error";
 import { keccak256, parseAbi, toBytes, type Abi, type Address, type Hash } from "viem";
 import { publicManifest as currentManifest, deploymentManifests } from "@/config/deployment";
 import { engineAbi } from "@/abi/engine";
+import { isSpotOnly, SPOT_MARKET_FACTORY } from "@/config/native";
 import { client } from "./public-client";
 
 const bindings = parseAbi([
   "function registry() view returns(address)", "function factory() view returns(address)",
   "function oracle() view returns(address)", "function collateralVault() view returns(address)",
   "function token() view returns(address)", "function engineOf(bytes32) view returns(address)",
+  "function anchorOf(bytes32) view returns(address)",
 ]);
 type Manifest = (typeof deploymentManifests)[number];
 type Verification = { promise: Promise<void>; expiresAt: number };
@@ -134,14 +136,21 @@ async function verify(manifest: Manifest) {
     [c.MarketFactory.address, "registry", c.MarketRegistry.address],
     [c.MarketFactory.address, "collateralVault", c.CollateralVault.address],
     [c.CollateralVault.address, "token", c.CollateralToken.address],
+    // A spot-only market's engine is a SpotResolutionAnchor deployed by the SpotMarketFactory.
+    ...(manifest.markets.some((m) => isSpotOnly(m.engine)) ? [[SPOT_MARKET_FACTORY, "registry", c.MarketRegistry.address] as const] : []),
   ] as const;
   const identityContracts: Array<{ address: Address; abi: Abi; functionName: string; args?: readonly unknown[] }> =
     checks.map(([address, functionName]) => ({ address, abi: bindings, functionName }));
   for (const m of manifest.markets) identityContracts.push(
     { address: m.engine, abi: engineAbi, functionName: "listing" },
     { address: m.engine, abi: engineAbi, functionName: "listingHash" },
-    { address: c.MarketFactory.address, abi: bindings, functionName: "engineOf", args: [m.marketId] },
-    { address: m.engine, abi: engineAbi, functionName: "collateralVault" },
+    ...(isSpotOnly(m.engine) ? [
+      { address: SPOT_MARKET_FACTORY, abi: bindings, functionName: "anchorOf", args: [m.marketId] },
+      { address: m.engine, abi: bindings, functionName: "factory" },
+    ] : [
+      { address: c.MarketFactory.address, abi: bindings, functionName: "engineOf", args: [m.marketId] },
+      { address: m.engine, abi: engineAbi, functionName: "collateralVault" },
+    ]),
   );
   const identityChecks = limited(async () => {
     const results = await client.multicall({
@@ -153,15 +162,17 @@ async function verify(manifest: Manifest) {
     }
     for (const [i, m] of manifest.markets.entries()) {
       const offset = checks.length + i * 4;
-      const [listing, listingHash, engine, vault] = results.slice(offset, offset + 4) as [
+      const [listing, listingHash, engine, parent] = results.slice(offset, offset + 4) as [
         { marketId: string; indexSourceId: string; token: Address; registry: Address; resolutionAuthority: Address },
         string, Address, Address,
       ];
+      // Perp engines hold the shared collateral vault; spot anchors point back to their factory.
+      const expectedParent = isSpotOnly(m.engine) ? SPOT_MARKET_FACTORY : c.CollateralVault.address;
       if (listingHash !== m.listingHash || listing.marketId !== m.marketId || listing.indexSourceId !== m.sourceId
         || engine.toLowerCase() !== m.engine.toLowerCase() || listing.token.toLowerCase() !== c.CollateralToken.address.toLowerCase()
         || listing.registry.toLowerCase() !== c.MarketRegistry.address.toLowerCase()
         || listing.resolutionAuthority.toLowerCase() !== c.ResolutionOracle.address.toLowerCase()
-        || vault.toLowerCase() !== c.CollateralVault.address.toLowerCase()) throw new PublicError("Market identity does not match the deployment.");
+        || parent.toLowerCase() !== expectedParent.toLowerCase()) throw new PublicError("Market identity does not match the deployment.");
     }
   });
   const codeChecks = unique.map((v) => limited(async () => {

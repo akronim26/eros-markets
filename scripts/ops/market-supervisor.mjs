@@ -12,6 +12,7 @@ import { formatRunwayRow, gasRunwayConfig, launchShortfalls, readGasRunway, role
 import { wakeConfig, wakeDecision, needsLeverageRead, readActivity, anyLeveraged } from './wake-policy.mjs';
 import { assertRunnerAllowed } from './runner-handoff.mjs';
 import { topUpConfig, planTopUps, sendTopUps, macNotifier, NoticeOnce } from './auto-topup.mjs';
+import { prepareNativeMarket } from './market-kinds.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(new URL('../../packages/pricefeed/package.json', import.meta.url));
@@ -58,6 +59,11 @@ export function exitPolicy({ code, signal, text = '', restarts = 0 }) {
   if (code === 78 || fatalCode.test(failure) || /publication-budget-exhausted|TESTNET_RELAY_BUDGET_EXHAUSTED|cost.limit.exceeded|needs.test.mon|insufficient.funds|gas.wallet.below|Untracked sender nonce|nonce too low|nonce too high|WRONG_CHAIN|EEXIST|pending nonce requires reconciliation/i.test(failure))
     return { action: 'block', reason: 'operator-review-required' };
   if (restarts >= 5) return { action: 'block', reason: 'restart-limit' };
+  // A keeper transaction that was mined but reverted (e.g. a sample priced under a moved base fee):
+  // the worker cleared it from its journal before exiting and its nonce is spent, so a restart is
+  // safe. Repeated reverts still reach the restart limit and block.
+  if (code !== 0 && !signal && /^(?:error: )?Transaction reverted: 0x[0-9a-fA-F]{64}; no next operation sent$/.test(failure))
+    return { action: 'restart', delayMs: Math.min(60_000, 5_000 * 2 ** restarts), reason: 'mined-revert' };
   // The RPC provider failed a read ("Internal error"): the node, not the call. Retry with backoff.
   if (code !== 0 && !signal && /^RPC Request failed\.?$/.test(failure) && /details: "Internal error"/.test(text.slice(-4096)))
     return { action: 'restart', delayMs: Math.min(60_000, 2_000 * 2 ** restarts), reason: 'transient-read-failure' };
@@ -109,9 +115,19 @@ export async function prepare(configPath) {
   if (manifest.chainId !== 10143 || manifest.scope !== 'testnet-read-only') throw Error('TESTNET_MANIFEST_REQUIRED');
   const secrets = Object.values(rpc), groups = [], allSenders = new Set(), engines = new Set(), names = new Set();
   const runwayConfig = gasRunwayConfig(config.gasRunway ?? {}), runwayGroups = [];
+  const node = config.nodeCommand ?? path.join(root, 'packages/pricefeed/node_modules/node/bin/node');
+  const bun = config.bunCommand ?? 'bun';
   for (const item of config.markets) {
     if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(item.name) || names.has(item.name)) throw Error('UNIQUE_MARKET_NAME_REQUIRED');
     names.add(item.name);
+    // Every market kind runs under this one supervisor; the default kind is the Polymarket-priced perp.
+    if ((item.kind ?? 'polymarket-perp') !== 'polymarket-perp') {
+      const native = prepareNativeMarket(item, { root, manifest, ignored, privateKeyToAccount, node, bun, allSenders });
+      if (engines.has(native.group.engine.toLowerCase())) throw Error('DEPLOYMENT_IDENTITY_MISMATCH');
+      engines.add(native.group.engine.toLowerCase());
+      secrets.push(...native.secrets); groups.push(native.group); runwayGroups.push(native.runwayGroup);
+      continue;
+    }
     if (typeof item.publicDirectory !== 'string' || !item.publicDirectory.startsWith('artifacts/deployments/') || item.publicDirectory.split('/').includes('..')) throw Error('PUBLIC_DEPLOYMENT_PATH_REQUIRED');
     ignored(item.privateDirectory);
     const services = `${item.publicDirectory}/services`, privateServices = `${item.privateDirectory}/services`;
@@ -167,8 +183,6 @@ export async function prepare(configPath) {
       publishIntervalSeconds: BigInt(runwayConfig.publishIntervalSeconds) }),
       addresses: Object.fromEntries(['PUBLISHER', 'KEEPER', 'MAKER_BUY', 'MAKER_SELL'].map(role => [role, prepared.roles[role]])) });
     if (config.sourceDnsServers) environment.EROS_SOURCE_DNS_SERVERS = config.sourceDnsServers;
-    const node = config.nodeCommand ?? path.join(root, 'packages/pricefeed/node_modules/node/bin/node');
-    const bun = config.bunCommand ?? 'bun';
     groups.push({ name: item.name, engine: market.engine, codehash: market.codehash, listingHash: market.listingHash,
       coordination: environment.EROS_PRICE_COORDINATION_DIR, environment, children: [
         { role: 'operations', command: bun, args: ['--no-env-file', 'scripts/e2e/market-services.ts', `${services}/market-ops.json`, `${privateServices}/market-ops-journal.json`, `${item.privateDirectory}/operations.jsonl`] },
@@ -277,7 +291,7 @@ export async function supervise(prepared) {
     const key = `${group.name}:${definition.role}`;
     const env = Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'LANG'].filter(k => process.env[k]).map(k => [k, process.env[k]]));
     const source = groups.find(g => g.name === group.name);
-    const child = spawn(definition.command, definition.args, { cwd: root, env: { ...env, ...source.environment }, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(definition.command, definition.args, { cwd: root, env: { ...env, ...source.environment, ...definition.environment }, stdio: ['ignore', 'pipe', 'pipe'] });
     children.set(key, child); childState.pid = child.pid ?? null; childState.status = 'running'; group.status = 'running';
     const startedAt = now();
     let tail = '', pending = '';
@@ -285,7 +299,7 @@ export async function supervise(prepared) {
       const clean = redact(raw, secrets).slice(0, 16_384); tail = (tail + '\n' + clean).slice(-32_768);
       fs.appendFileSync(path.join(stateDirectory, `${group.name}-${definition.role}.log`), clean + '\n', { mode: 0o600 });
       // Low operator gas can be refilled (auto top-up restarts the group); an exhausted policy budget cannot.
-      if (/MONAD_SENDER_NEEDS_TEST_MON|KEEPER_NEEDS_TEST_MON|gas wallet below policy minimum/i.test(clean)) stopGroup(group, 'operator-gas-low');
+      if (/MONAD_SENDER_NEEDS_TEST_MON|KEEPER_NEEDS_TEST_MON|gas wallet below policy minimum/i.test(clean) || source.gasLow?.test(clean)) stopGroup(group, 'operator-gas-low');
       else if (/publication-budget-exhausted/i.test(clean)) stopGroup(group, 'worker-budget-or-funding-blocked');
     };
     const output = buffer => { pending += buffer.toString(); let next; while ((next = pending.indexOf('\n')) >= 0) { line(pending.slice(0,next)); pending = pending.slice(next+1); } if (pending.length > 65_536) { line(pending); pending = ''; } };
@@ -296,7 +310,9 @@ export async function supervise(prepared) {
       if (stopping || group.status === 'blocked') { childState.status = 'stopped'; save(); return; }
       if (group.wake !== 'awake') { childState.status = 'asleep'; save(); settleSleep(group); return; }
       if (now() - startedAt >= STABLE_RUN_MS) childState.restarts = 0;
-      const decision = exitPolicy({ code, signal, text: tail, restarts: childState.restarts });
+      const decision = (source.exitPolicy ?? exitPolicy)({ code, signal, text: tail, restarts: childState.restarts });
+      // A worker whose job is over (a maker past tip-off, a lifecycle after the final outcome) stays stopped.
+      if (decision.action === 'done') { childState.status = 'finished'; event({ market: group.name, role: definition.role, finished: true }); return; }
       if (decision.action === 'block') { childState.status = 'blocked'; stopGroup(group, decision.reason); return; }
       childState.restarts++; childState.status = 'backoff';
       event({ market: group.name, role: definition.role, restart: childState.restarts, delayMs: decision.delayMs });
@@ -308,7 +324,8 @@ export async function supervise(prepared) {
   try {
     for (const group of state.groups) {
       const source = groups.find(g => g.name === group.name);
-      fs.mkdirSync(path.join(root, source.coordination), { recursive: true, mode: 0o700 });
+      // Only Polymarket-priced markets coordinate publisher and keeper samples through a directory.
+      if (source.coordination) fs.mkdirSync(path.join(root, source.coordination), { recursive: true, mode: 0o700 });
       startGroup(group);
     }
     state.status = 'running'; save();
@@ -323,7 +340,7 @@ export async function supervise(prepared) {
           try { seen = await readActivityImpl({ url: wake.url, engines: state.groups.map(g => g.engine), nowMs: now() }); }
           catch { seen = undefined; }
           for (const group of state.groups) {
-            if (group.status === 'blocked' || stopping) continue;
+            if (group.status === 'blocked' || stopping || groups.find(g => g.name === group.name)?.alwaysAwake) continue;
             const input = { state: group.wake, nowMs: now(), lastSeenMs: seen === undefined ? undefined : seen[group.engine.toLowerCase()], idleMs: wake.idleMs };
             if (group.wake === 'sleeping' && (input.lastSeenMs === undefined || (input.lastSeenMs !== null && input.nowMs - input.lastSeenMs < wake.idleMs))) group.wakeRequested = true;
             let leveraged;
@@ -426,7 +443,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const [command, config] = process.argv.slice(2);
     if (!['check', 'run'].includes(command) || !config) throw Error('USAGE_CHECK_OR_RUN_PRIVATE_CONFIG');
     const prepared = await prepare(config);
-    console.log(JSON.stringify({ checked: true, block: prepared.block, markets: prepared.groups.map(g=>({name:g.name,engine:g.engine})), processes: prepared.groups.length*3, gasRunway: prepared.gasRunway }));
+    console.log(JSON.stringify({ checked: true, block: prepared.block, markets: prepared.groups.map(g=>({name:g.name,engine:g.engine})), processes: prepared.groups.reduce((n, g) => n + g.children.length, 0), gasRunway: prepared.gasRunway }));
     // Desktop notifications on macOS for the operator; a no-op elsewhere.
     if (command === 'run') await supervise({ ...prepared, notify: macNotifier() });
   } catch (error) { console.error(JSON.stringify({ failed: true, reason: /^[A-Z_]+$/.test(error.message) ? error.message : 'SUPERVISOR_FAILED_REVIEW_LOCAL_STATE', ...(error.details ? { shortfalls: error.details } : {}) })); process.exitCode = 1; }

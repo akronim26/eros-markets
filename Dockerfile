@@ -2,10 +2,13 @@
 # The persistent disk is mounted at /app/tmp. Secrets come from Render secret files at runtime;
 # see docs/integration/RENDER_WORKER.md. Never bake keys, RPC URLs or journals into the image.
 FROM oven/bun:1.3.13-debian AS bun
+# `cast` for the native perp keeper (scripts/native-market); same Foundry release the repo pins.
+FROM ghcr.io/foundry-rs/foundry:v1.8.3 AS foundry
 
 FROM node:24.21.0-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates tar && rm -rf /var/lib/apt/lists/*
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=foundry /usr/local/bin/cast /usr/local/bin/cast
 WORKDIR /app
 
 # Dependencies first for layer caching: pricefeed (Node 24, node:sqlite), oracle workspace

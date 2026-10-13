@@ -18,34 +18,6 @@ function NativeChip() {
   return <Chip tone="signal" className="h-5 px-1.5 text-2xs">Native · Kuru</Chip>;
 }
 
-function PerpMarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
-  const m = useMarket(mk.engine, block);
-  const d = m.data;
-  const chip = d ? chipFor(d) : null;
-  const toT = d && now !== undefined ? d.listing.scheduledT - now : undefined;
-  return (
-    <tr className="hair-b group relative cursor-pointer hover:bg-hover focus-within:bg-hover">
-      <td className="py-4 pr-6 pl-4">
-        <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} trading terminal`} className="flex flex-col gap-1 after:absolute after:inset-0">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-fg">{mk.title}</span>
-            {isNativeMarket(mk) && <NativeChip />}
-          </span>
-          <span className="text-2xs text-fg-3">{mk.short} · {isNativeMarket(mk) ? "Eros native market · priced from Kuru" : mk.source ? `${mk.source} price` : "External price"} · {mk.resolution === "ORACLE" ? "Eros oracle" : "Manual test authority"}</span>
-        </Link>
-      </td>
-      <td className="pr-6">{chip ? <Chip tone={chip.tone}>{chip.label}</Chip> : <span className="text-fg-4">{m.isError ? "Unavailable" : "reading…"}</span>}{m.isError && <p role="alert" className="relative z-10 mt-1 text-xs text-ask">Read failed. <button className="underline" onClick={() => m.refetch()}>Retry</button></p>}</td>
-      <td className="tnum pr-6 text-right text-sm">{d?.risk.markAvailable ? <span className="text-signal-text"><Num value={wadTo3(d.risk.markWad)} /></span> : <span className="text-fg-3">unavailable</span>}</td>
-      <td className="tnum pr-6 text-right text-sm">{d?.risk.indexAvailable ? <Num value={wadTo3(d.risk.indexWad)} /> : <span className="text-fg-3">unavailable</span>}</td>
-      <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? lotsToClaims(d.oiLots) : "—"}</td>
-      <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? `${d.leverageCaps.long}× / ${d.leverageCaps.short}×` : "—"}</td>
-      <td className="tnum pr-6 text-right text-sm text-fg">{toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"}</td>
-      <td className="pr-4 text-right"><span className="ui-arrow inline-flex h-7 w-7 items-center justify-center rounded-md bg-signal text-on-signal" aria-hidden><ArrowRight size={14} strokeWidth={2} /></span></td>
-    </tr>
-  );
-}
-
-/** Below md each market is a stacked framed block: no clipped table on a phone. */
 function PerpMarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
   const m = useMarket(mk.engine, block);
   const d = m.data;
@@ -97,28 +69,6 @@ function useSpotSummary(mk: MarketManifest, block?: bigint) {
 }
 const tick3 = (t?: number) => t === undefined ? undefined : (t / 1000).toFixed(3);
 
-function SpotMarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
-  const { s, chip, bid, ask, mid, scheduledT } = useSpotSummary(mk, block);
-  const toT = now !== undefined ? scheduledT - now : undefined;
-  return (
-    <tr className="hair-b group relative cursor-pointer hover:bg-hover focus-within:bg-hover">
-      <td className="py-4 pr-6 pl-4">
-        <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} market`} className="flex flex-col gap-1 after:absolute after:inset-0">
-          <span className="flex flex-wrap items-center gap-2"><span className="text-sm font-semibold text-fg">{mk.title}</span><NativeChip /></span>
-          <span className="text-2xs text-fg-3">{mk.short} · Prediction market · YES/NO on Kuru · Eros oracle</span>
-        </Link>
-      </td>
-      <td className="pr-6">{chip ? <Chip tone={chip.tone}>{chip.label}</Chip> : <span className="text-fg-4">{s.isError ? "Unavailable" : "reading…"}</span>}</td>
-      <td className="tnum pr-6 text-right text-sm">{mid !== undefined ? <span className="text-signal-text"><Num value={tick3(mid)!} /></span> : <span className="text-fg-3">no quotes</span>}</td>
-      <td className="tnum pr-6 text-right text-sm">{bid !== undefined || ask !== undefined ? `${tick3(bid) ?? "—"} / ${tick3(ask) ?? "—"}` : <span className="text-fg-3">—</span>}</td>
-      <td className="tnum pr-6 text-right text-sm text-fg-2">—</td>
-      <td className="tnum pr-6 text-right text-sm text-fg-2">Spot</td>
-      <td className="tnum pr-6 text-right text-sm text-fg">{toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"}</td>
-      <td className="pr-4 text-right"><span className="ui-arrow inline-flex h-7 w-7 items-center justify-center rounded-md bg-signal text-on-signal" aria-hidden><ArrowRight size={14} strokeWidth={2} /></span></td>
-    </tr>
-  );
-}
-
 function SpotMarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
   const { s, chip, bid, ask, mid, scheduledT } = useSpotSummary(mk, block);
   const toT = now !== undefined ? scheduledT - now : undefined;
@@ -150,14 +100,30 @@ function SpotMarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint
 }
 
 type RowProps = { mk: MarketManifest; block?: bigint; now?: bigint };
-const MarketRow = (p: RowProps) => isSpotOnly(p.mk.engine) ? <SpotMarketRow {...p} /> : <PerpMarketRow {...p} />;
 const MarketCard = (p: RowProps) => isSpotOnly(p.mk.engine) ? <SpotMarketCard {...p} /> : <PerpMarketCard {...p} />;
+
+/** One side of the listed split: a titled column of market cards. */
+function MarketColumn({ id, title, blurb, markets, empty, block, now }: {
+  id: string; title: string; blurb: string; markets: MarketManifest[]; empty: string; block?: bigint; now?: bigint;
+}) {
+  return (
+    <section aria-labelledby={id} className="flex min-w-0 flex-col">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id={id} className="label text-fg">{title}</h2>
+        <span className="tnum text-xs text-fg-3">{markets.length} {markets.length === 1 ? "market" : "markets"}</span>
+      </div>
+      <p className="mt-1.5 text-xs leading-relaxed text-fg-3">{blurb}</p>
+      {markets.length === 0
+        ? <p className="frame mt-4 bg-panel px-4 py-6 text-sm text-fg-2">{empty}</p>
+        : <ul className="mt-4 flex flex-col gap-3">{markets.map((mk) => <MarketCard key={mk.engine} mk={mk} block={block} now={now} />)}</ul>}
+    </section>
+  );
+}
 
 export function MarketsIndex() {
   const head = useHead();
   const discovery = useMarketList();
   const markets = discovery.markets.filter((market) => !market.archived);
-  const resolved = discovery.markets.filter((market) => market.archived);
   const search = useSearchParams().get("q") ?? "";
   const setSearch = (value: string) => {
     const url = new URL(window.location.href);
@@ -178,8 +144,8 @@ export function MarketsIndex() {
         <div className="max-w-2xl">
           <h1 className="display text-5xl leading-none text-fg uppercase">Markets</h1>
           <p className="mt-3 text-sm leading-relaxed text-fg-2">
-            Each market is a YES/NO question that resolves at a scheduled time. Trade the probability as a perpetual on a fully
-            on-chain order book. One claim pays 1 if the outcome is YES.
+            Each market is a YES/NO question that resolves at a scheduled time. Trade native YES/NO tokens on Kuru, or trade the
+            probability as a perpetual on a fully on-chain order book. One claim pays 1 if the outcome is YES.
           </p>
         </div>
         {head.data && <p className="tnum text-xs text-fg-3">Read at block {head.data.number.toString()}</p>}
@@ -212,47 +178,18 @@ export function MarketsIndex() {
         <h2 className="text-lg font-semibold text-fg">No matching markets</h2>
         <p className="mt-2 text-sm text-fg-2">Try another event, team, or topic.</p>
         <button type="button" onClick={clearSearch} className="label mt-5 inline-flex min-h-11 items-center gap-2 bg-signal px-4 text-on-signal">Show all markets <ArrowRight size={14} aria-hidden /></button>
-      </div> : <>
-      <ul className="mt-4 flex flex-col gap-3 md:hidden">
-        {filtered.map((mk) => (
-          <MarketCard key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />
-        ))}
-      </ul>
-      <div className="mt-4 hidden overflow-x-auto md:block">
-        <table className="relative w-full min-w-[860px] frame text-left">
-          <thead>
-            <tr className="hair-b text-2xs text-fg-3">
-              <th className="py-2.5 pr-6 pl-4 font-medium">Market</th>
-              <th className="pr-6 font-medium">Status</th>
-              <th className="pr-6 text-right font-medium">Mark</th>
-              <th className="pr-6 text-right font-medium">Index</th>
-              <th className="pr-6 text-right font-medium">Open interest</th>
-              <th className="pr-6 text-right font-medium">Long / short limit</th>
-              <th className="pr-6 text-right font-medium">To halt</th>
-              <th className="pr-4" aria-label="Open" />
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((mk) => (
-              <MarketRow key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />
-            ))}
-          </tbody>
-        </table>
+      </div> : (
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] lg:gap-10">
+        <MarketColumn id="native-markets" title="Native markets" markets={filtered.filter((mk) => isSpotOnly(mk.engine))}
+          blurb="Prediction markets: buy and sell YES/NO tokens on Kuru spot books. Fully backed, no leverage."
+          empty={terms.length ? "No native markets match." : "No native markets listed."} block={head.data?.number} now={head.data?.timestamp} />
+        <div role="separator" aria-orientation="vertical" className="h-px bg-line-strong lg:h-auto lg:w-px" />
+        <MarketColumn id="perp-markets" title="Event perps" markets={filtered.filter((mk) => !isSpotOnly(mk.engine))}
+          blurb="Perpetual futures on event probabilities, traded on Eros on-chain order books with margin."
+          empty={terms.length ? "No event perps match." : "No event perps listed."} block={head.data?.number} now={head.data?.timestamp} />
       </div>
-      </>}
+      )}
       </div>
-      {resolved.length > 0 && <section aria-label="Resolved markets" className="mt-12">
-        <SectionRule name="RESOLVED" index={2} />
-        <p className="mt-3 max-w-2xl text-xs leading-relaxed text-fg-3">Halted and resolved markets. Trading is closed; open one to see how it resolved and to claim or redeem.</p>
-        <ul className="mt-4 flex flex-col gap-3 md:hidden">
-          {resolved.map((mk) => <MarketCard key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />)}
-        </ul>
-        <div className="mt-4 hidden overflow-x-auto md:block">
-          <table className="relative w-full min-w-[860px] frame text-left">
-            <tbody>{resolved.map((mk) => <MarketRow key={mk.engine} mk={mk} block={head.data?.number} now={head.data?.timestamp} />)}</tbody>
-          </table>
-        </div>
-      </section>}
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
         {discovery.isError ? "Registry discovery is unavailable. Showing the last verified markets." : discovery.isPending ? "Checking the verified markets against the registry…" : "Showing markets in the verified deployment. New listings become tradable after their deployment manifest is verified and updated."}
         {discovery.isError && <> <button className="underline" onClick={() => discovery.refetch()}>Retry discovery</button></>}

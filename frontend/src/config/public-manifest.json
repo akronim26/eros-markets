@@ -161,6 +161,19 @@
       "listingHash": "0x0fa6f4a202c534b1560d28e81d39261daf334b7b0f17a3f394ef4b1e248e41ab",
       "codehash": "0xa814fb1e66f413d9b7d3b9c93b935f811fe95c2227b7e5e7dfb1acaf9b7d28be",
       "deployBlock": 70669714
+    },
+    {
+      "name": "native-nba-gsw-mia-perp-cac9ac9f",
+      "engine": "0xCAc9AC9F5720b0b07D3B78925c33906429e16325",
+      "marketId": "0xdd09f174b8cfd68a2572264e02fd3cfc14a93bc9ae299624cc950bb9a5deaf56",
+      "sourceId": "0x349a0cc4910e2efff5b01a38ada48a6e06db8a050a33d9da21094bbb28a74da1",
+      "listingHash": "0xaf1003097eb2c6f0bed3d0aa812016afb77a20f89e80b0ef57582ca6182c9938",
+      "codehash": "0x451b86380b528913beb2c51c82f649636ccd21c3544c275d404ddf1735997bac",
+      "deployBlock": 70743946,
+      "deploymentCapX": 1,
+      "template": 0,
+      "maxLiqLotsPerBlock": "0",
+      "fundingEnabled": false
     }
   ],
   "accounts": {}

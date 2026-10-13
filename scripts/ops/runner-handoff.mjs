@@ -8,13 +8,15 @@
  *   accept  (new host)  refuses unless every bundled file is present with its exact hash and no
  *                       different journal already exists; writes `handoff-accepted.json`.
  *
- * Secrets never enter the bundle: `roles.env`, `services/keys/` and the RPC env file come from
- * the new host's secret store. Read-only with respect to the chain.
+ * Secrets never enter the bundle: `roles.env`, `services/keys/`, native `ops.env` files and the RPC
+ * env file come from the new host's secret store. A native market (`kind` native-*) contributes only
+ * its maker/trader state files. Read-only with respect to the chain.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { NATIVE_STATE_FILE } from './market-kinds.mjs';
 
 export const HANDED_OFF = 'handed-off.json';
 export const ACCEPTED = 'handoff-accepted.json';
@@ -37,6 +39,12 @@ function walk(root, rel, out = []) {
   return out;
 }
 
+const native = market => (market.kind ?? 'polymarket-perp') !== 'polymarket-perp';
+/** Files a market carries to the new host: a Polymarket perp's journals, or a native market's state. */
+const marketFiles = (root, market) => native(market)
+  ? (fs.existsSync(path.resolve(root, market.privateDirectory)) ? walk(root, market.privateDirectory).filter(rel => NATIVE_STATE_FILE.test(rel)) : [])
+  : walk(root, market.privateDirectory);
+
 const defaultProcesses = () => execFileSync('ps', ['-axo', 'pid=,command='], { encoding: 'utf8' });
 
 /** Throws unless the supervisor described by `config` is cleanly stopped on this host. */
@@ -53,8 +61,10 @@ export function assertStopped({ root, config, processes = defaultProcesses }) {
   for (const line of processes().split('\n')) {
     if (/scripts\/(e2e\/(pricefeed-watch\.mjs|market-services\.ts|makers\.mjs)|ops\/market-supervisor\.mjs)/.test(line)
       && (line.includes('market-supervisor.mjs') || dirs.some(d => line.includes(d)))) throw Error('WORKER_PROCESS_PRESENT');
+    // Native workers carry no market directory on their command line: any live one blocks a hand-off.
+    if (/native-spot\/(maker|daily-trader|lifecycle)\.ts|native-publish\.js|native-market\/keeper-daemon\.sh/.test(line)) throw Error('WORKER_PROCESS_PRESENT');
   }
-  for (const dir of dirs) for (const rel of walk(root, dir)) if (rel.endsWith('.lock')) throw Error('JOURNAL_LOCK_PRESENT');
+  for (const m of config.markets) if (!native(m)) for (const rel of walk(root, m.privateDirectory)) if (rel.endsWith('.lock')) throw Error('JOURNAL_LOCK_PRESENT');
 }
 
 export function pack({ root, configPath, bundlePath, processes, now = () => new Date().toISOString() }) {
@@ -62,7 +72,7 @@ export function pack({ root, configPath, bundlePath, processes, now = () => new 
   const state = under(root, config.stateDirectory);
   if (fs.existsSync(path.join(state, HANDED_OFF))) throw Error('ALREADY_HANDED_OFF');
   assertStopped({ root, config, processes });
-  const files = [configPath, ...config.markets.flatMap(m => walk(root, m.privateDirectory))];
+  const files = [configPath, ...config.markets.flatMap(m => marketFiles(root, m))];
   for (const rel of files) if (SECRET(rel)) throw Error('SECRET_IN_BUNDLE');
   const manifest = { schema: 'eros-runner-handoff/1', packedAt: now(), configPath,
     files: Object.fromEntries(files.map(rel => [rel, sha(path.resolve(root, rel))])) };
@@ -88,8 +98,8 @@ export function accept({ root, manifestRel, now = () => new Date().toISOString()
   const config = JSON.parse(fs.readFileSync(under(root, manifest.configPath), 'utf8'));
   // A journal written on this host after an earlier hand-off must never be overwritten silently.
   const known = new Set(Object.keys(manifest.files));
-  for (const m of config.markets) for (const rel of walk(root, m.privateDirectory))
-    if (/journal|\.sqlite/.test(rel) && !known.has(rel)) throw Error('UNEXPECTED_JOURNAL_ON_NEW_HOST');
+  for (const m of config.markets) for (const rel of marketFiles(root, m))
+    if ((native(m) || /journal|\.sqlite/.test(rel)) && !known.has(rel)) throw Error('UNEXPECTED_JOURNAL_ON_NEW_HOST');
   const state = under(root, config.stateDirectory);
   fs.mkdirSync(state, { recursive: true, mode: 0o700 });
   if (fs.existsSync(path.join(state, HANDED_OFF))) throw Error('HANDED_OFF_STATE_COPIED');

@@ -36,6 +36,35 @@ directories on durable storage, excluded from Git, with restricted file access.
 Backups must include all publisher journals and operator/maker outboxes together;
 see [publisher operations](../../packages/pricefeed/docs/operations.md).
 
+### One supervisor for every market
+
+Every market runs under this one supervisor and config. Each market entry has a `kind`
+(`scripts/ops/market-kinds.mjs`):
+
+| Kind | Workers | Private config |
+| --- | --- | --- |
+| `polymarket-perp` (default) | operations, publisher, maker | `privateDirectory` + `publicDirectory` |
+| `native-spot` | Kuru maker, daily trader, oracle lifecycle (also resolves `linkedMarketIds`) | `envFile` (mode 600) |
+| `native-spot-perp` | INDEX publisher (another market's Kuru YES book), keeper/perp maker | `envFile` (mode 600) |
+
+Restart policy, the gas runway check, auto top-up from root and status are shared. Native
+workers take every nonce from the chain, so they restart with backoff (capped at 5 minutes) and
+never give up; a configuration/identity failure or low gas blocks them, and a top-up restarts a
+gas-blocked market. Native markets never sleep (their makers keep the Kuru book). Before
+launch, `check` verifies each native market against the frontend manifest and runs
+`native-verify` for the perp. `scripts/native-market/spot-ops.sh` and `ops.sh` refuse to
+start while the supervisor holds its lock, so a market never has two writers.
+
+```sh
+node scripts/ops/market-supervisor.mjs check tmp/redeploy-20261011/supervisor.json
+nohup node scripts/ops/market-supervisor.mjs run tmp/redeploy-20261011/supervisor.json \
+  >> tmp/redeploy-20261011/supervisor-console.log 2>&1 &
+```
+
+Stop with SIGTERM and wait for `supervisor/status.json` to read `stopped`. The native
+markets' env files and maker/trader state (`oracle/deployments/native/*-state.json`) are not
+yet part of the Render hand-off bundle.
+
 The active market (deployed October 11) is Polymarket 4199213, "Will Democrats win white
 women in the midterms?", resolving 7 November 2026
 (`monad-testnet-20261011-nov7-dem-white-women` under `artifacts/deployments/`). Every earlier

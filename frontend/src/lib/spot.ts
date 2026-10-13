@@ -1,6 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { erc20Abi, type Address } from "viem";
+import { BaseError, ContractFunctionRevertedError, erc20Abi, type Address } from "viem";
 import { KURU_MARGIN, kuruBookAbi, kuruMarginAbi } from "@/abi/kuru";
 import { nativeVaultAbi } from "@/abi/nativeVault";
 import { nativeBinding } from "@/config/native";
@@ -55,13 +55,21 @@ export async function readSpot(engine: Address, owner: Address | undefined, bloc
   const ids = (counter: number) => Array.from({ length: Math.min(ORDER_SCAN, counter) }, (_, i) => counter - i);
   const scans = ([["yes", b.yesBook, yesCounter], ["no", b.noBook, noCounter]] as const).map(([outcome, book, counter]) => ({ outcome, book, ids: ids(Number(counter)) }));
   const rows = await client.multicall({ ...at, contracts: scans.flatMap((s) => s.ids.map((id) => ({ address: s.book, abi: kuruBookAbi, functionName: "s_orders", args: [id] }) as const)) });
-  const orders: SpotOrder[] = [];
+  const candidates: Array<SpotOrder & { book: Address }> = [];
   let k = 0;
   for (const s of scans) for (const id of s.ids) {
     const o = rows[k++] as readonly [Address, bigint, number, number, number, number, number, boolean];
-    if (o[0].toLowerCase() === owner.toLowerCase() && o[1] > 0n) orders.push({ id, outcome: s.outcome, isBuy: o[7], tick: o[5], lots: o[1] });
+    if (o[0].toLowerCase() === owner.toLowerCase() && o[1] > 0n) candidates.push({ id, outcome: s.outcome, isBuy: o[7], tick: o[5], lots: o[1], book: s.book });
   }
-  snap.orders = orders;
+  // Kuru keeps a filled order's last size in s_orders, so only a simulated cancel shows it is still live.
+  const live = await Promise.all(candidates.map(async (c) => {
+    try { await client.simulateContract({ address: c.book, abi: kuruBookAbi, functionName: "batchCancelOrders", args: [[c.id]], account: owner, blockNumber: block }); return true; }
+    catch (e) {
+      if (e instanceof BaseError && e.walk((x) => x instanceof ContractFunctionRevertedError && x.data?.errorName === "OrderAlreadyFilledOrCancelled")) return false;
+      throw e;
+    }
+  }));
+  snap.orders = candidates.filter((_, i) => live[i]).map(({ book: _book, ...o }) => o);
   return snap;
 }
 

@@ -1,0 +1,19 @@
+{
+  "marketId": "0xdd09f174b8cfd68a2572264e02fd3cfc14a93bc9ae299624cc950bb9a5deaf56",
+  "question": "Will the Golden State Warriors beat the Miami Heat at Chase Center on 5 November 2026 (NBA regular season)?",
+  "rules": "Eros native perpetual on Monad testnet (test collateral tUSDC). Event: Miami Heat (away) at Golden State Warriors (home), NBA 2026-27 regular season, Chase Center, San Francisco, scheduled tip-off 2026-11-06T03:00:00Z (7:00 p.m. PT on 5 November 2026; API-Sports basketball game 519655). The perpetual settles at 1 tUSDC per claim if the Golden State Warriors win the game, including any overtime, and at 0 if the Miami Heat win. INDEX: the price of the eGSW-YES2 token on its Kuru order book (0xcEF53BfC40931AB46580aA29E650180b36BC24b6), the YES token of the Eros native spot market 0x8504d173055ab1bce57f6a4f4ac80340157e3cbe7fedf0ac06bfa515e818964c on the same event, read from resting Kuru orders at a pinned block and published by the Eros INDEX signer; a thin, crossed or wide book is withheld, never published. Fully backed (1x), funding off, no forced-book liquidation. Trading halts at the scheduled tip-off. Resolution: the Eros oracle reads API-Sports basketball game 519655 (v1.basketball.api-sports.io) from two hours after the scheduled tip-off; only the final statuses FT and AOT resolve automatically, and the reported result is subject to the oracle's assertion liveness. If no automatic result is reported within six hours of the scheduled tip-off, the Eros oracle's review route resolves the market from the official NBA final score (nba.com). If the game is postponed, cancelled, abandoned or otherwise not completed by 2026-11-08T03:00:00Z, the market resolves INVALID and settles at 0.50 tUSDC per claim.",
+  "templateMarketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+  "feed": "listings/native/nba-gsw-mia-20261105-spot/feed.json",
+  "evidenceHosts": [
+    "v1.basketball.api-sports.io",
+    "www.nba.com",
+    "www.espn.com"
+  ],
+  "voidSecs": 2592000,
+  "oiCapLots": 1000000,
+  "indexSourceId": "0x349a0cc4910e2efff5b01a38ada48a6e06db8a050a33d9da21094bbb28a74da1",
+  "indexSigner": "0x5aE3c3f1622c7360B032ADb135f51F97aD3d8Dd9",
+  "indexRulesHash": "0xf1a2dd221206a1b47a457a67e911af146f68d15208a7e39daa7f0192aac6a653",
+  "depthNLots": 20000,
+  "maxSpreadWad": 100000000000000000
+}

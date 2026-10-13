@@ -33,6 +33,10 @@
   --color-on-action: #000000;
   --color-on-bid: #000000;
   --color-on-ask: #000000;
+  --color-yes: #5fd394; /* Green: YES outcome token */
+  --color-no: #ff5c6c; /* Red: NO outcome token only (user-requested exception to the four-colour rule), 6.4:1 on black */
+  --color-on-yes: #000000;
+  --color-on-no: #000000;
 
   --font-sans: var(--font-geist-mono), ui-monospace, monospace;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
