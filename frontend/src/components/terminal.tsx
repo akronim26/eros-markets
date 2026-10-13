@@ -88,7 +88,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
 
   function reduce(bps: number) {
     if (readUnavailable || !actionMarket || trader?.block !== actionMarket.block || !trader?.account?.preview.positionLots) return;
-    setIntent(closeIntent(trader.account.preview.positionLots, actionMarket.bestBid, actionMarket.bestAsk, bps));
+    setIntent(closeIntent(trader.account.preview.positionLots, actionMarket.bestBid, actionMarket.bestAsk, bps, ladder.data ?? []));
     ticketRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest" });
     ticketRef.current?.focus({ preventScroll: true });
   }

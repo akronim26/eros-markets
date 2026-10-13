@@ -53,8 +53,8 @@ export function useTx() {
   let recovery: DelegatedAttempt | undefined;
   try { if (current.address && typeof window !== "undefined") recovery = attempts().read(current.address); } catch { /* run() fails closed on an unreadable saved request. */ }
 
-  async function run(account: Address, calls: Call[], summarize?: (logs: readonly unknown[]) => { summary: string; tone: "bid" | "ask" | "neutral" }, delegated?: { previewBlock: bigint }, recoverSaved = false) {
-    if (running.current) return;
+  async function run(account: Address, calls: Call[], summarize?: (logs: readonly unknown[]) => { summary: string; tone: "bid" | "ask" | "neutral" }, delegated?: { previewBlock: bigint }, recoverSaved = false): Promise<boolean> {
+    if (running.current) return false;
     running.current = true;
     const setState = (state: TxState) => setResult({ scope, state });
     let last: Hash | undefined;
@@ -179,6 +179,7 @@ export function useTx() {
       // Read failures are surfaced by the queries; they must not retain a signing lock.
       if (last) void qc.invalidateQueries().catch(() => {});
     }
+    return terminalState?.status === "done";
   }
 
   async function recover(account: Address) {

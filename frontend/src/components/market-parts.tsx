@@ -232,7 +232,7 @@ export function PositionPanel({ m, t, onReduce }: { m?: MarketSnapshot; t?: Trad
             <td className="px-4 py-3 tnum">{lev !== undefined ? `${lev / 100n}.${(lev % 100n).toString().padStart(2, "0")}×` : "—"}</td>
             <td className={cx("whitespace-nowrap px-4 py-3", p.status >= 3 ? "text-signal-text" : "text-fg-2")}>{markOk || p.positionLots === 0n ? HEALTH[p.status] : "Unavailable"}</td>
             <td className="px-4 py-2">{p.positionLots !== 0n && !m?.halted ? <div className="flex items-center gap-2">
-              <Button size="sm" disabled={!canReduce} onClick={() => onReduce?.(10000)} title="Prepare a reduce-only close order for review">Close position</Button>
+              <Button size="sm" disabled={!canReduce} onClick={() => onReduce?.(10000)} title="Prepare a close order; once it fills, the remaining collateral returns to your wallet">Close position</Button>
               {(p.positionLots > 1n || p.positionLots < -1n) && <Button size="sm" disabled={!canReduce} onClick={() => onReduce?.(5000)} title="Prepare an order to reduce your position by half">Reduce 50%</Button>}
             </div> : <span className="text-fg-3">—</span>}</td>
           </tr></tbody>

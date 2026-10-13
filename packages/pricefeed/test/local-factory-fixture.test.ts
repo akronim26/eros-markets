@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { Journal } from '../src/journal.js';
 import { Worker } from '../src/worker.js';
 import { rulesHash } from '../src/rules.js';
-import { localFactoryFixture, localSourceConfig, requireLoopback, startFixtureSource } from '../scripts/local-factory-fixture.js';
+import { fixtureMid, localFactoryFixture, localSourceConfig, requireLoopback, startFixtureSource } from '../scripts/local-factory-fixture.js';
 
 test('local factory rules bind each market and halt while remaining disabled fixtures', () => {
   const fixture = localFactoryFixture(1800000000n);
@@ -52,6 +52,30 @@ test('actual collector consumes localhost source and fails closed on stale, abse
     worker.releaseLease(); journal.close(); await source.close();
     assert.equal(dirname(resolve(directory)), resolve(tmpdir()));
     assert.ok(basename(directory).startsWith('eros-local-source-'));
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('a local control file moves the synthetic book mid and a malformed mid fails the poll', async () => {
+  let clock = 1800000000000n;
+  const directory = mkdtempSync(join(tmpdir(), 'eros-local-mid-'));
+  const control = join(directory, 'index-mid');
+  assert.equal(fixtureMid(control), 0.5);
+  const source = await startFixtureSource(() => clock, control);
+  const journal = new Journal(join(directory, 'source.sqlite'));
+  const worker = new Worker(localSourceConfig('demo'), source.provider('demo'), journal, 'test-owner', () => clock);
+  try {
+    assert.equal((await worker.poll()).inspection.summary?.priceWad, 500000000000000000n);
+    writeFileSync(control, '0.60\n'); clock += 1000n;
+    assert.equal((await worker.poll()).inspection.summary?.priceWad, 600000000000000000n);
+    for (const bad of ['0.6', '0.99', '1.00', 'abc']) {
+      writeFileSync(control, bad);
+      assert.throws(() => fixtureMid(control), /BAD_LOCAL_FIXTURE_MID/);
+    }
+    clock += 1000n;
+    assert.equal((await worker.poll()).inspection.reason, 'FIXTURE_HTTP_500');
+  } finally {
+    worker.releaseLease(); journal.close(); await source.close();
     rmSync(directory, { recursive: true, force: true });
   }
 });

@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { keccak256, stringToHex } from 'viem';
@@ -69,7 +70,16 @@ export function localFactoryFixture(scheduledT: bigint) {
     indexSigner: LOCAL_INDEX_SIGNER, productionApproved: false, markets };
 }
 
-export async function startFixtureSource(now: () => bigint) {
+/** Synthetic book mid; a local test may move it by writing e.g. `0.60` to the control file. */
+export function fixtureMid(controlFile?: string): number {
+  if (!controlFile || !existsSync(controlFile)) return 0.5;
+  const text = readFileSync(controlFile, 'utf8').trim();
+  const mid = Number(text);
+  if (!/^0\.\d{2}$/.test(text) || mid < 0.02 || mid > 0.98) throw new Error('BAD_LOCAL_FIXTURE_MID');
+  return mid;
+}
+
+export async function startFixtureSource(now: () => bigint, controlFile?: string) {
   const modes: Record<LocalMarket, FixtureMode> = { demo: 'valid', terminal: 'valid' };
   const frozenTimes: Partial<Record<LocalMarket, bigint>> = {};
   let requests = 0;
@@ -83,12 +93,14 @@ export async function startFixtureSource(now: () => bigint) {
     }
     if (modes[market] === 'outage') { response.writeHead(503); response.end('fixture outage'); return; }
     const config = localSourceConfig(market);
+    let mid: number;
+    try { mid = fixtureMid(controlFile); } catch { response.writeHead(500); response.end('bad fixture mid'); return; }
     const payload = resource === 'event' ? fixtureEvent(config) : resource === 'metadata' ? fixtureMetadata(config) : {
       market: config.mapping.conditionId, asset_id: config.mapping.outcomeTokenId,
       ...(modes[market] === 'missing-time' ? {} : { timestamp: String(frozenTimes[market] ?? now()) }),
       hash: `local-fixture-${market}-${now()}`, tick_size: '0.01', min_order_size: '0.001',
-      bids: [{ price: '0.49', size: modes[market] === 'thin' ? '0.001' : '10000' }],
-      asks: [{ price: '0.51', size: '10000' }],
+      bids: [{ price: (mid - 0.01).toFixed(2), size: modes[market] === 'thin' ? '0.001' : '10000' }],
+      asks: [{ price: (mid + 0.01).toFixed(2), size: '10000' }],
     };
     response.writeHead(200, { 'content-type': 'application/json' }); response.end(JSON.stringify(payload));
   });

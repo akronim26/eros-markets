@@ -10,7 +10,8 @@ export default defineConfig({
   projects: [
     { name: 'application', testMatch: '**/application.spec.mjs' },
     { name: 'leverage', testMatch: '**/leverage.spec.mjs', dependencies: ['application'] },
-    { name: 'lifecycle', testMatch: '**/lifecycle.spec.mjs', dependencies: ['leverage'] },
+    { name: 'profit', testMatch: '**/profit.spec.mjs', dependencies: ['leverage'] },
+    { name: 'lifecycle', testMatch: '**/lifecycle.spec.mjs', dependencies: ['profit'] },
   ],
   timeout: 300_000, expect: { timeout: 45_000 },
   outputDir: path.join(directory, 'browser-results'),

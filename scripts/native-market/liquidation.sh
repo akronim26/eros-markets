@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Forced-book liquidation scan for a native-priced engine (followup_deployment step 5). Sourced by
+# Forced-book liquidation scan for a native-priced engine. Sourced by
 # keeper-daemon.sh so liquidation shares the keeper's single signer and loop (one nonce sequence).
 # Same selection as the operations worker (oracle/services/market-ops/src/operations.ts): skip unless
 # accounting is open and the per-block liquidation budget is non-zero, then walk trader ids 1..N from a

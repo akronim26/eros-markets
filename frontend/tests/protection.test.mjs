@@ -36,7 +36,12 @@ test('delegated request refuses transfers, arbitrary calldata, unknown engines, 
  for(const patch of [{reduceOnly:false},{kind:0},{size:'18446744073709551616'},{tick:1000},{isBuy:1},{maxFills:256}]) assert.throws(()=>validateIntent({...intent,place:{...intent.place,...patch}},[engine],true));
 });
 test('close prefill uses the opposite side and exact lots; expiry never rounds',()=>{
- assert.deepEqual({...closeIntent(12345n,400,600,5000),nonce:0},{nonce:0,side:'sell',size:'6.172',price:'0.400'});
+ assert.deepEqual({...closeIntent(12345n,400,600,5000),nonce:0},{nonce:0,side:'sell',size:'6.172',price:'0.400',full:false});
+  assert.equal(closeIntent(12345n,400,600).full,true);
+  const lv = [{tick:500,bidLots:2000n,askLots:0n},{tick:498,bidLots:2000n,askLots:0n},{tick:495,bidLots:5000n,askLots:0n},{tick:510,bidLots:0n,askLots:9000n}];
+  assert.equal(closeIntent(5000n,500,510,10000,lv).price,'0.495');
+  assert.equal(closeIntent(50000n,500,510,10000,lv).price,'0.480');
+  assert.equal(closeIntent(-5000n,500,510,10000,lv).price,'0.510');
  assert.equal(closeIntent(-1000n,400,600).side,'buy');
  assert.equal(closeIntent(-1000n,0,0).price,'');
  assert.equal(expiryBlock('',100n),0);

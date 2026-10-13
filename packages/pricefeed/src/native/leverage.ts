@@ -1,6 +1,5 @@
 /**
- * Leverage rule a native-priced perp engine must satisfy before its workers start (followup_deployment
- * step 4). Mirrors `ListNativeSpotPerp.s.sol`: funding is off, and a ceiling above 1x is accepted only
+ * Leverage rule a native-priced perp engine must satisfy before its workers start. Mirrors `ListNativeSpotPerp.s.sol`: funding is off, and a ceiling above 1x is accepted only
  * with forced-book liquidation on (`maxLiqLotsPerBlock > 0`) and a risk profile staged by the activation
  * Timelock operation (a non-zero active profile hash). A 1x engine needs neither.
  */

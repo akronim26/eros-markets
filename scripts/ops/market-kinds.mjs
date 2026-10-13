@@ -135,6 +135,10 @@ export function prepareNativeMarket(item, { root, manifest, ignored, privateKeyT
   claim('INDEX_SIGNER', env.NATIVE_OBSERVER_PRIVATE_KEY, 'NATIVE_OBSERVER_PRIVATE_KEY');
   claim('KEEPER', env.NATIVE_KEEPER_PRIVATE_KEY, 'NATIVE_KEEPER_PRIVATE_KEY');
   claim('PERP_MAKER', env.NATIVE_PERP_MAKER_PRIVATE_KEY, 'NATIVE_PERP_MAKER_PRIVATE_KEY');
+  // Optional: the engine's listed monitor key lets the keeper clear the INDEX movement breaker
+  // (scripts/native-market/breaker.sh). One sender per key, so it cannot also run another market's worker.
+  const monitorKey = env.NATIVE_MONITOR_PRIVATE_KEY;
+  if (monitorKey) claim('MONITOR', monitorKey, 'NATIVE_MONITOR_PRIVATE_KEY');
   const publishMs = Number(env.PUBLISH_MS ?? 60_000), every = Number(env.KEEPER_EVERY ?? 90);
   if (!Number.isInteger(publishMs) || publishMs < 5_000 || !Number.isInteger(every) || every < 10) throw Error('INVALID_NATIVE_CADENCE');
   const fallbacks = env.MONAD_READ_FALLBACK_URLS ?? '';
@@ -147,7 +151,7 @@ export function prepareNativeMarket(item, { root, manifest, ignored, privateKeyT
           environment: { NATIVE_OBSERVER_KEY: env.NATIVE_OBSERVER_PRIVATE_KEY, NATIVE_RPC: rpc, NATIVE_RPC_FALLBACKS: fallbacks } },
         { role: 'keeper', command: 'bash', args: ['scripts/native-market/keeper-daemon.sh'],
           environment: { R: rpc, RF: fallbacks, ENG: engine, KEEPER_KEY: env.NATIVE_KEEPER_PRIVATE_KEY,
-            PERP_MAKER_KEY: env.NATIVE_PERP_MAKER_PRIVATE_KEY, EVERY: String(every) } },
+            PERP_MAKER_KEY: env.NATIVE_PERP_MAKER_PRIVATE_KEY, EVERY: String(every), ...(monitorKey ? { MONITOR_KEY: monitorKey } : {}) } },
       ] },
     runwayGroup: { name: item.name, addresses: roles, budgets: [
       // Measured on Monad testnet: ~250k gas per INDEX publish, ~750k per keeper loop (sample + upkeep).
