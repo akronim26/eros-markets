@@ -102,9 +102,10 @@ async function maker() {
     }
     quoted[side] = [bid, ask];
   }
-  const startYes = await bal(YES);
-  // Cancel the static demo quotes (order ids 1 and 2 on each fresh book) if they still rest.
+  // Cancel the static demo quotes (order ids 1 and 2 on each fresh book) if they still rest, then
+  // measure the starting inventory, so freed ask inventory is not mistaken for taker flow.
   for (const book of [YB, NB]) await m.send(book, BOOK, 'batchCancelOrders', [[1n, 2n]]).catch(() => {});
+  const startYes = await bal(YES);
   await ensureInventory();
   while (Date.now() < END) {
     try {
