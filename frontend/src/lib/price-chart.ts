@@ -1,36 +1,44 @@
 import type { Point } from "./live-series";
 import { INDEX_CARRY_SECS } from "./index-carry";
-/** Gaps longer than the INDEX carry break the line; invalid observations always do. */
+/**
+ * Solid-line segments. An invalid reading within the INDEX carry of the last valid one holds that price
+ * (display only: the engine still rejects it); past the carry, a stale gap or malformed or reversed
+ * history breaks the line.
+ */
 export function priceSegments(points: Point[]): Point[][] {
   const segments: Point[][] = [];
   let segment: Point[] | undefined;
+  let lastValid: Point | undefined;
   for (const point of points) {
-    if (point.valid === false || !Number.isFinite(point.v) || point.v < 0 || point.v > 1) { segment = undefined; continue; }
-    if (!segment || point.t <= segment.at(-1)!.t || point.t - segment.at(-1)!.t > INDEX_CARRY_SECS) {
+    if (point.valid === false) {
+      if (segment && lastValid && point.t > segment.at(-1)!.t && point.t - lastValid.t <= INDEX_CARRY_SECS) segment.push({ ...point, valid: true, v: lastValid.v });
+      else segment = undefined;
+      continue;
+    }
+    if (!Number.isFinite(point.v) || point.v < 0 || point.v > 1) { segment = undefined; continue; }
+    if (!segment || !lastValid || point.t <= segment.at(-1)!.t || point.t - lastValid.t > INDEX_CARRY_SECS) {
       segment = [];
       segments.push(segment);
     }
     segment.push(point);
+    lastValid = point;
   }
   return segments;
 }
 
 /**
- * Dotted "no valid price" connectors between consecutive valid readings that the solid line does not join:
- * across invalid readings, or across a gap longer than the INDEX carry (a publisher outage), of any length.
- * They keep the chart visually continuous but are never price: the solid line still breaks, and malformed
- * or reversed history still drops the left end.
+ * Dotted "no valid price" connectors between consecutive valid readings more than the INDEX carry apart
+ * (a publisher outage or a long invalid stretch), of any length. They keep the chart visually continuous
+ * but are never price: the solid line still breaks, and malformed or reversed history drops the left end.
  */
 export function priceBridges(points: Point[]): [Point, Point][] {
   const bridges: [Point, Point][] = [];
   let previous: Point | undefined;
-  let invalidSince = false;
   for (const point of points) {
-    if (point.valid === false) { invalidSince = true; continue; }
-    if (!Number.isFinite(point.t) || !Number.isFinite(point.v) || point.v < 0 || point.v > 1) { previous = undefined; invalidSince = false; continue; }
-    if (previous && point.t > previous.t && (invalidSince || point.t - previous.t > INDEX_CARRY_SECS)) bridges.push([previous, point]);
+    if (point.valid === false) continue;
+    if (!Number.isFinite(point.t) || !Number.isFinite(point.v) || point.v < 0 || point.v > 1) { previous = undefined; continue; }
+    if (previous && point.t > previous.t && point.t - previous.t > INDEX_CARRY_SECS) bridges.push([previous, point]);
     previous = point;
-    invalidSince = false;
   }
   return bridges;
 }
