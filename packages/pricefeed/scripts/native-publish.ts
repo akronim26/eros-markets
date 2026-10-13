@@ -26,10 +26,13 @@ const ENGINE_ABI = [
  * come from the engine's own sourceState each round, so a restarted or duplicated process can only
  * fail with DuplicateOrOldSequence; it never signs two different packets for one accepted sequence.
  * Stops (non-zero) on quarantine; withholds on stale/same-second data.
- *   NATIVE_OBSERVER_KEY=0x.. node dist/scripts/native-publish.js <rpc> <rules.json> <engine> <rounds> <intervalMs> [finalized|latest]
+ *   NATIVE_OBSERVER_KEY=0x.. node dist/scripts/native-publish.js <rpc|env> <rules.json> <engine> <rounds> <intervalMs> [finalized|latest]
+ *   (`env`: read the RPC URL from NATIVE_RPC so a credential-bearing URL never appears in argv)
  */
 async function main() {
-  const [rpc, rulesPath, engineArg, roundsArg, intervalArg, tag = 'finalized', ...extra] = process.argv.slice(2);
+  const [rpcArg, rulesPath, engineArg, roundsArg, intervalArg, tag = 'finalized', ...extra] = process.argv.slice(2);
+  // `env` reads the RPC URL from NATIVE_RPC, keeping credential-bearing URLs out of argv.
+  const rpc = rpcArg === 'env' ? process.env.NATIVE_RPC : rpcArg;
   const key = process.env.NATIVE_OBSERVER_KEY as Hex | undefined;
   if (!rpc || !rulesPath || !engineArg || !roundsArg || !intervalArg || extra.length || !key || (tag !== 'finalized' && tag !== 'latest'))
     throw new Error('BAD_ARGUMENTS');
