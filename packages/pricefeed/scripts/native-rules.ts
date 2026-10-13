@@ -3,6 +3,7 @@ import { getAddress, keccak256, stringToHex } from 'viem';
 import { record } from '../src/book.js';
 import { json, uint } from '../src/math.js';
 import { PRICING_POLICY } from '../src/rules.js';
+import { parseNativeDeployment } from '../src/native/manifest.js';
 import { NATIVE_DEPTH_POLICY, NATIVE_FAILURE_POLICY, NATIVE_TIMESTAMP_POLICY, nativeRulesHash, parseNativeRules } from '../src/native/rules.js';
 
 /**
@@ -15,6 +16,7 @@ function main() {
   const [deploymentPath, signer, depthNLots, maxSpreadWad, outPath, ...extra] = process.argv.slice(2);
   if (!deploymentPath || !signer || !depthNLots || !maxSpreadWad || !outPath || extra.length) throw new Error('BAD_ARGUMENTS');
   if (existsSync(outPath)) throw new Error('RULES_OUTPUT_EXISTS');
+  parseNativeDeployment(JSON.parse(readFileSync(deploymentPath, 'utf8'))); // strict schema check first
   const d = record(JSON.parse(readFileSync(deploymentPath, 'utf8')));
   const str = (k: string) => { const v = d[k]; if (typeof v !== 'string' && typeof v !== 'number') throw new Error(`MISSING_${k}`); return String(v); };
   const chainId = str('chainId'); uint(chainId, 256);
