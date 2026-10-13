@@ -1,0 +1,29 @@
+[
+ {
+  "function": null,
+  "contractName": "NativeOutcomeVault",
+  "contractAddress": "0xb80e0cee9be3f24d7685c11dc1c14846942913af",
+  "hash": "0xa012a454fbdc07dbd27b5beb59959620162fb3564b77e5bdfd36bb90d6255755",
+  "block": 70642989,
+  "status": "0x1",
+  "gasUsed": 3810254
+ },
+ {
+  "function": "deployProxy(uint8,address,address,uint96,uint32,uint32,uint96,uint96,uint256,uint256,uint96)",
+  "contractName": null,
+  "contractAddress": "0x7efbe105ca7415de98f96622173458ac1c054630",
+  "hash": "0x12818778f20d6c7e85d17b5efd5bc6f7a7af7ca6cb5a16f15f8d69dfe8c9407c",
+  "block": 70642999,
+  "status": "0x1",
+  "gasUsed": 1568404
+ },
+ {
+  "function": "deployProxy(uint8,address,address,uint96,uint32,uint32,uint96,uint96,uint256,uint256,uint96)",
+  "contractName": null,
+  "contractAddress": "0x7efbe105ca7415de98f96622173458ac1c054630",
+  "hash": "0xc7ac5183788551c60135f9a3753c02d822e4ad7cb4ccee903227149c3bd66c8f",
+  "block": 70643013,
+  "status": "0x1",
+  "gasUsed": 1568404
+ }
+]
