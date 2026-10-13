@@ -19,6 +19,12 @@ while true; do
     echo "$(ts) rollover due"
     KEY=$KEEPER_KEY $PP rollover && echo "$(ts) rollover done"
   fi
+  # A fresh engine starts in bootstrap pricing (mode 0); switch to normal pricing as soon as the
+  # engine accepts it (complete INDEX/book windows). Permissionless; simulated before sending.
+  if [ "$(cast call "$ENG" 'pricingMode()(uint8)' --rpc-url "$R" 2>/dev/null)" = 0 ] \
+     && cast call "$ENG" 'activatePricing()' --from "$KA" --rpc-url "$R" >/dev/null 2>&1; then
+    KEY=$KEEPER_KEY $PP activate && echo "$(ts) pricing activated"
+  fi
   # Perp maker follows the native INDEX: re-quote at INDEX +/- HALF ticks when a side is empty or the
   # perp mid is >= FOLLOW ticks away from INDEX. Uses cancelAll (perp maker's own orders) then quote.
   now=$(cast block latest -f timestamp --rpc-url "$R" 2>/dev/null)

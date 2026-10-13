@@ -16,7 +16,8 @@ import { privateKeyToAccount } from 'viem/accounts';
  * Env: RPC, D (DeployNativeMarket JSON), MAKER_KEY, TAKER_KEYS (comma-separated), STRIKE (USD),
  *      SIM_FAIR (kraken|walk), SIM_VOL (default 0.5), HALF_SPREAD_TICKS (10), QUOTE_LOTS (150000),
  *      SKEW_TICKS_PER_100 (6), MAKER_EVERY_MS (30000), DURATION_MIN (60), CANCEL_ON_EXIT (0: keep last quotes),
- *      MAX_STEP_TICKS (6: per re-quote; keeps INDEX moves under the engine's 0.10-per-300 s movement guard).
+ *      MAX_STEP_TICKS (6: per re-quote; keeps INDEX moves under the engine's 0.10-per-300 s movement guard),
+ *      SIM_WALK_START (0.5) and SIM_WALK_STEP (0.03) for SIM_FAIR=walk, TAKER_MIN_MS/TAKER_MAX_MS (20000/90000).
  * Every amount is an integer in Kuru units: price units = ticks (1/1000), size units = lots (1/1000 claim).
  */
 const MARGIN = getAddress('0xd029C2D98ff85D8F64799017fE00a59B1159CE02');
@@ -66,9 +67,10 @@ function wallet(key: Hex) {
 
 // ---------------------------------------------------------------- fair value (outside Eros)
 const erf = (x: number) => { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
-let walk = 0.5;
+let walk = Number(env('SIM_WALK_START', '0.5'));
+const WALK_STEP = Number(env('SIM_WALK_STEP', '0.03'));
 async function fair(): Promise<{ p: number; why: string }> {
-  if (env('SIM_FAIR', 'kraken') === 'walk') { walk = Math.min(0.95, Math.max(0.05, walk + (Math.random() - 0.5) * 0.03)); return { p: walk, why: 'walk' }; }
+  if (env('SIM_FAIR', 'kraken') === 'walk') { walk = Math.min(0.95, Math.max(0.05, walk + (Math.random() - 0.5) * WALK_STEP)); return { p: walk, why: 'walk' }; }
   const r = await fetch('https://api.kraken.com/0/public/Ticker?pair=XBTUSD', { signal: AbortSignal.timeout(8000) });
   const s = Number((await r.json()).result.XXBTZUSD.c[0]);
   const tau = Math.max(T - Date.now() / 1000, 60) / (365 * 86400);
@@ -187,7 +189,8 @@ async function taker(key: Hex, n: number) {
   log(name, `ready (${style})`);
   let last = 0;
   while (Date.now() < END) {
-    await sleep(20_000 + Math.random() * 70_000);
+    const lo = Number(env('TAKER_MIN_MS', '20000')), hi = Number(env('TAKER_MAX_MS', '90000'));
+    await sleep(lo + Math.random() * Math.max(0, hi - lo));
     try {
       const [bid, ask] = await pub.readContract({ address: YB, abi: BOOK, functionName: 'bestBidAsk' });
       if (ask === 0n || bid >= 10n ** 30n) continue; // empty side
