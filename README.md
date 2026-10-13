@@ -39,7 +39,7 @@ We use **Polymarket as an outside price reference**. Trades don't go to Polymark
 
 ### The EventPerp Model
 
-#### Core Mathematical Concepts
+#### The core Mathematical Concepts
 
 **1. Event prices get more volatile near the end**
 
