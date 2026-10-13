@@ -35,6 +35,8 @@ export type DeliveryRecord={namespace:string;sequence:bigint;digest:Hex;nonce:bi
   gasSizing?:GasSizing;
   state:DeliveryState;attempts:number;accepted:AcceptedReceipt|null;reason:string|null};
 const checksum=(body:string)=>createHash('sha256').update(body).digest('hex');
+/** Provider reads that can fail inside transaction preparation without any signing effect. */
+export const TRANSIENT_PREPARE_FAILURE=/^(?:MONAD_(?:RPC_CHAIN|FINALIZED_BLOCK|CANONICAL_BLOCK|CODE_READ|BLOCK_READ|NONCE_READ|BALANCE_READ)_FAILED|MONAD_RPC_TIMEOUT|PIPELINE_TIMEOUT|RELAY_TIMEOUT)$/;
 /** Shared durable relay mechanics. Fixed-network wrappers determine endpoint and finality admission. */
 export class DurableRelay {
   private readonly db:DatabaseSync;
@@ -295,7 +297,13 @@ export class DurableRelay {
             ||tx.gas*tx.maxFeePerGas>this.policy.maxCostWei
             ||(await recoverTransactionAddress({serializedTransaction:raw as TransactionSerialized})).toLowerCase()!==this.transport.sender.toLowerCase())throw new Error('SIGNED_TRANSACTION_MISMATCH');
           r={...r,raw,txHash:keccak256(raw),state:'READY'};this.save(d,r);
-        }catch(error){this.save(d,{...r,state:'QUARANTINED',reason:error instanceof Error?error.message:String(error)});throw error;}
+        }catch(error){
+          const reason=error instanceof Error?error.message:String(error);
+          // A provider read failing before signing completes leaves the delivery resumable: the
+          // signer journal returns the same bytes for this nonce on resume, and an expired price
+          // is still signed first and then quarantined for the chain-checked nonce cancel.
+          this.save(d,{...r,state:TRANSIENT_PREPARE_FAILURE.test(reason)?'PREPARING':'QUARANTINED',reason});throw error;
+        }
       }
       this.packets.assertWriter(d,owner,fence,this.now());
       if(!this.fresh(packet)){this.save(d,{...r,state:'QUARANTINED',reason:'RESERVED_NONCE_HEADROOM_EXPIRED'});throw new Error('RELAY_HEADROOM_EXPIRED');}

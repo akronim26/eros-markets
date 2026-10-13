@@ -7,13 +7,11 @@ import { http } from "wagmi";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { chain, PRIVY_APP_ID, RPC_URL } from "@/config/chain";
 import { WalletPickerProvider } from "./wallet-picker";
-import { useTheme } from "./theme-provider";
 
 const config = createConfig({ chains: [chain], transports: { [chain.id]: http(RPC_URL) } });
 
 /** Loaded only after browser storage has been checked; the SDK reads it at import time. */
 export function PrivyWalletProvider({ children, queryClient }: { children: ReactNode; queryClient: QueryClient }) {
-  const { resolved } = useTheme();
   return (
     <PrivyProvider
       appId={PRIVY_APP_ID}
@@ -21,7 +19,7 @@ export function PrivyWalletProvider({ children, queryClient }: { children: React
         // Privy uses the app's enabled dashboard methods when this override is omitted.
         legal: { termsAndConditionsUrl: "/terms", privacyPolicyUrl: "/privacy" },
         appearance: {
-          theme: resolved === "dark" ? "#101112" : "#F2F1EC", accentColor: "#FF5A36", logo: `/brand/eros-markets-lockup-on-${resolved}.svg`,
+          theme: "#000000", accentColor: "#FF5A36", logo: "/brand/eros-markets-lockup-on-dark.svg",
           landingHeader: "Log in to trade",
           loginMessage: "Connect a wallet or sign in.",
           walletChainType: "ethereum-only",

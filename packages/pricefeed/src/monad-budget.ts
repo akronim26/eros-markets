@@ -22,6 +22,9 @@ import { testnetJournalPath } from './monad-keys.js';
 import { verifyHistoryRecoveryAudit } from './history-recovery-journal.js';
 import { workerNamespace } from './worker.js';
 
+const unsignedCancelled=(r:Record<string,any>):boolean=>
+  r.state==='CANCELLED'&&r.reason==='NONCE_CANCELLED'&&r.raw===null&&r.txHash===null&&r.attempts===0&&r.accepted===null;
+
 export type BudgetOptions={config:MarketConfig;abi:unknown;rpcUrl:string;journalDirectory:string};
 const schemas=['source','packets','signer','transactions'] as const;
 function profile(p:TestnetRunPolicy):string{return relayProfileBody({chainId:10143n,...p.budget},p.relay);}
@@ -121,14 +124,17 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
     for(const row of rows){
       const body=String(row.body);if(policyHash(body)!==row.sha256)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
       const r=JSON.parse(body),packet=bySequence.get(String(r.sequence)),request=parseTransactionRequest(r.request);
-      if(!['FINALIZED','CANCELLED','REVERTED'].includes(r.state)||r.state==='REVERTED'&&r.reason!=='NONCE_RECOVERY_ORIGINAL_REVERTED'||!r.raw||r.state==='FINALIZED'&&!r.accepted||r.namespace!==ns||row.ns!==ns||row.key!==ns+':'+r.sequence
+      if(!['FINALIZED','CANCELLED','REVERTED'].includes(r.state)||r.state==='REVERTED'&&r.reason!=='NONCE_RECOVERY_ORIGINAL_REVERTED'||!r.raw&&!unsignedCancelled(r)||r.state==='FINALIZED'&&!r.accepted||r.namespace!==ns||row.ns!==ns||row.key!==ns+':'+r.sequence
         ||row.nonce!==r.nonce||request.nonce.toString()!==r.nonce||!packet?.signature||packet.state!=='SIGNED'
         ||r.digest!==packet.digest||request.to!==d.engineAddress.toLowerCase()||request.data!==submitCalldata(packet.packet.observation,packet.signature).toLowerCase())
         throw new Error('BUDGET_FINALIZED_HISTORY_REQUIRED');
-      const tx=parseTransaction(r.raw as Hex),signed=transactionRows.find(t=>t.nonce===r.nonce);
+      const signed=transactionRows.find(t=>t.nonce===r.nonce);
       if(r.gasSizing&&(BigInt(r.gasSizing.gasLimit)!==request.gas
         ||sizeGas(BigInt(r.gasSizing.estimatedGas),request.gas,BigInt(r.gasSizing.marginBps)).gasLimit!==request.gas
         ||old.relay.gasSafetyMarginBps!==BigInt(r.gasSizing.marginBps)))throw new Error('DELIVERY_JOURNAL_INTEGRITY');
+      // A cancelled never-signed reservation has no bytes; its FINALIZED nonce recovery is checked below.
+      if(!r.raw){if(signed)throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');}
+      else{const tx=parseTransaction(r.raw as Hex);
       if(tx.chainId!==10143||tx.type!=='eip1559'||tx.nonce!==Number(request.nonce)||tx.to?.toLowerCase()!==request.to
         ||tx.data!==request.data||(tx.value??0n)!==0n||tx.gas!==request.gas||tx.maxFeePerGas!==request.maxFeePerGas
         ||tx.maxPriorityFeePerGas!==request.maxPriorityFeePerGas||keccak256(r.raw)!==r.txHash
@@ -137,10 +143,10 @@ async function proof(db:DatabaseSync,options:BudgetOptions,old:TestnetRunPolicy,
         ||!signed||signed.request!==json(request)||signed.raw!==r.raw||signed.tx_hash!==r.txHash
         ||policyHash(`${signed.request}:${signed.raw}:${signed.tx_hash}`)!==signed.sha256
         ||(await recoverTransactionAddress({serializedTransaction:r.raw as TransactionSerialized})).toLowerCase()!==old.sender.toLowerCase())
-        throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');
+        throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');}
       reservedWei+=request.gas*request.maxFeePerGas;deliveries.push({record:r,packet:packet.packet,nonce:request.nonce});
     }
-    if(transactionRows.length!==deliveries.length||packets.some(p=>p.state!=='EXPIRED'&&!deliveries.some(r=>r.record.sequence===p.packet.observation.sequence.toString())))
+    if(transactionRows.length!==deliveries.filter(r=>r.record.raw).length||packets.some(p=>p.state!=='EXPIRED'&&!deliveries.some(r=>r.record.sequence===p.packet.observation.sequence.toString())))
       throw new Error('BUDGET_UNRESOLVED_HISTORY');
     deliveries.sort((a,b)=>a.nonce<b.nonce?-1:1);
     const initial=BigInt(String(accounts[0]!.initial_nonce)),next=BigInt(String(accounts[0]!.next_nonce));

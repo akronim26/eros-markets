@@ -6,7 +6,6 @@ import { useHead } from "@/lib/reads";
 import { WalletButton } from "./wallet";
 import { cx } from "./ui";
 import { BrandImage } from "./brand-image";
-import { ThemeSwitcher } from "./theme-switcher";
 
 const NAV = [
   { href: "/markets", label: "Markets", match: "/m/" },
@@ -37,7 +36,7 @@ export function TopBar() {
   const path = usePathname();
   return (
     <header className="sticky top-0 z-30 bg-ground px-3 pt-3 max-md:px-2 max-md:pt-2">
-      <div className="frame grid h-12 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-4 bg-ground px-4 max-md:h-auto max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-2 max-md:px-3 max-md:pt-1">
+      <div className="frame frame-open grid h-12 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-4 bg-ground px-4 max-md:h-auto max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-2 max-md:px-3 max-md:pt-1">
         <Link href="/" className="flex w-full min-w-0 max-w-[120px] items-center justify-self-start" aria-label="Eros Markets home">
           <BrandImage className="w-full" />
         </Link>
@@ -62,7 +61,6 @@ export function TopBar() {
         </nav>
         <div className="relative flex items-center justify-self-end gap-2 max-md:col-start-2 max-md:row-start-1 lg:gap-3">
           <HeadIndicator />
-          <ThemeSwitcher />
           <WalletButton />
         </div>
       </div>

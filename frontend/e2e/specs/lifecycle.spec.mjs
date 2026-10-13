@@ -20,7 +20,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
   await page.goto(`/m/${demo.engine}`);
   await expect(page.getByText(/LOCAL E2E FIXTURE/)).toBeVisible();
   const aside = page.getByRole('complementary', { name: 'Trade', exact: true });
-  const funds = aside.getByRole('region', { name: 'Account', exact: true });
+  const funds = page.getByRole('main', { name: 'Trading terminal' }).getByRole('region', { name: 'Account', exact: true });
   const ticket = aside.getByRole('region', { name: 'Order ticket', exact: true });
   const submitOrder = () => ticket.getByRole('button', { name: /^(Long|Short) YES/ }).and(ticket.locator('button:not([aria-pressed])'));
   async function manageCollateral(region = funds) {
@@ -123,7 +123,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     await syncClock(otherPage); await otherPage.goto(`/m/${demo.engine}`);
     await otherPage.locator('header').getByRole('button', { name: 'Log in', exact: true }).click();
     const otherAside = otherPage.getByRole('complementary', { name: 'Trade', exact: true });
-    const otherFunds = otherAside.getByRole('region', { name: 'Account', exact: true });
+    const otherFunds = otherPage.getByRole('main', { name: 'Trading terminal' }).getByRole('region', { name: 'Account', exact: true });
     const otherTicket = otherAside.getByRole('region', { name: 'Order ticket', exact: true });
     await manageCollateral(otherFunds);
     await otherFunds.getByRole('button', { name: 'Get 1,000 test tokens', exact: true }).click();

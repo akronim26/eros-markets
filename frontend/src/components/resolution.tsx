@@ -72,7 +72,7 @@ export function ResolutionPage() {
   ];
   return (
     <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
-      <h1 className="pixel text-5xl leading-none text-fg uppercase">Resolution</h1>
+      <h1 className="display text-5xl leading-none text-fg uppercase">Resolution</h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-fg-2">
         How each market&apos;s outcome is being decided: a data feed first, then a model panel and a human committee, with any
         proposal open to dispute before it becomes final. Payouts open only after the market&apos;s own settlement is prepared.

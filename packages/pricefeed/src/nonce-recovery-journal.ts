@@ -24,6 +24,13 @@ export function recoverableUnsentReason(reason:unknown):boolean {
     ||reason==='LIFECYCLE_BLOCKED:SOURCE_UNAVAILABLE:LIFECYCLE_RPC_UNAVAILABLE';
 }
 
+/** A reserved nonce whose price request was never signed, so it can never be broadcast. Only the
+ * expired-headroom stop qualifies; recovery separately proves the signer journal holds no
+ * reservation for this nonce and that the sender nonce is still unused. */
+export function unsignedExpiredReservation(r:{raw?:unknown;txHash?:unknown;attempts?:unknown;accepted?:unknown;reason?:unknown}):boolean {
+  return r.raw===null&&r.txHash===null&&r.attempts===0&&r.accepted===null&&r.reason==='RESERVED_NONCE_HEADROOM_EXPIRED';
+}
+
 /** Separate cancellation evidence; the original immutable price request stays intact. */
 export function nonceRecoveries(db:DatabaseSync):NonceRecovery[] {
   const exists=db.prepare("SELECT name FROM sqlite_master WHERE name='nonce_recoveries'").get();
@@ -51,7 +58,7 @@ export function nonceRecoveries(db:DatabaseSync):NonceRecovery[] {
         ||!/^\d+$/.test(r.expiryCheckpoint.number)||!/^0x[\da-fA-F]{64}$/.test(r.expiryCheckpoint.hash)
         ||!/^\d+$/.test(r.expiryCheckpoint.timestamp)||!/^\d+$/.test(r.expiryCheckpoint.observedAt)
         ||BigInt(r.expiryCheckpoint.timestamp)<=BigInt(r.expiryCheckpoint.observedAt)+30n)
-      ||old.nonce!==r.nonce||!old.raw||old.accepted!==null
+      ||old.nonce!==r.nonce||!old.raw&&(!unsignedExpiredReservation(old)||r.attemptedOriginal||originalWon(r))||old.accepted!==null
       ||!recoverableUnsentReason(old.reason)
       ||json({...delivery,state:old.state,reason:old.reason,accepted:originalWon(r)?old.accepted:delivery.accepted})!==r.originalBody
       ||delivery.state!==(r.state==='FINALIZED'?'CANCELLED':r.state==='ORIGINAL_FINALIZED'?'FINALIZED':r.state==='ORIGINAL_REVERTED'?'REVERTED':'QUARANTINED')

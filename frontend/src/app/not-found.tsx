@@ -32,12 +32,12 @@ export default function NotFound() {
               We couldn’t find this page. Your next market is a click away.
             </p>
             <div className={styles.actions}>
-              <Link href="/markets" className={styles.primary}>
-                <span className={styles.arrow} aria-hidden><ArrowRight size={18} /></span>
-                <span>Explore markets</span>
+              <Link href="/markets" className={`ui-button group ${styles.primary}`}>
+                <span className={`ui-arrow ${styles.arrow}`} aria-hidden><ArrowRight size={18} /></span>
+                <span className="ui-button-label ui-sweep">Explore markets</span>
               </Link>
               <Link href="/" className={styles.home}>
-                Back to home <ArrowUpRight size={16} aria-hidden />
+                Back to home <ArrowUpRight size={16} className="ui-nudge ui-nudge-up" aria-hidden />
               </Link>
             </div>
           </div>

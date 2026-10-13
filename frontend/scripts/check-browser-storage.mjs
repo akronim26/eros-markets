@@ -58,14 +58,11 @@ try {
   await until(`!!document.querySelector('#cookie-title')`, "cookie notice must still mount");
   await evaluate(`Array.from(document.querySelectorAll('aside button')).find(x=>x.textContent==='Got it').click()`);
   await until(`!document.querySelector('#cookie-title')`, "cookie notice dismisses without storage");
-  await evaluate(`document.querySelector('button[aria-label^="Theme:"]').click()`);
-  await evaluate(`Array.from(document.querySelectorAll('[role=menuitemradio]')).find(x=>x.textContent.trim()==='Dark').click()`);
-  await until(`document.documentElement.dataset.theme === 'dark'`, "theme remains interactive without storage");
   await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: injection.identifier });
   await send("Page.reload");
   await until(`document.querySelector('header button[aria-haspopup="dialog"]')?.disabled === false`, "login recovers after restoring storage");
   assert.deepEqual(errors, [], "No browser runtime exceptions");
-  console.log("PASS: blocked storage preserves public UI, notice dismissal and theme controls; wallet login recovers after reload.");
+  console.log("PASS: blocked storage preserves public UI and notice dismissal; wallet login recovers after reload.");
 } finally {
   socket.close();
   for (const call of pending.values()) clearTimeout(call.timer);

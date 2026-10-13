@@ -50,7 +50,7 @@ const TONE: Record<Tone, string> = {
 
 export function Chip({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
   return (
-    <span className={cx("label inline-flex h-6 items-center gap-1.5 px-2 whitespace-nowrap", TONE[tone], className)}>
+    <span className={cx("label inline-flex h-6 items-center gap-1.5 rounded-md px-2 whitespace-nowrap", TONE[tone], className)}>
       {children}
     </span>
   );
@@ -99,10 +99,10 @@ export function Button({ variant = "secondary", size = "md", arrow, className, c
     const sq = { sm: "w-7", md: "w-8", lg: "w-10" }[size];
     return (
       <button data-variant={variant} className={cx("ui-button group inline-flex items-stretch disabled:cursor-not-allowed", SIZE[size].split(" ")[0], className)} {...rest}>
-        <span className={cx("flex items-center justify-center bg-signal text-on-signal group-disabled:bg-press group-disabled:text-fg-4", sq)} aria-hidden>
+        <span className={cx("ui-arrow flex items-center justify-center bg-signal text-on-signal group-disabled:bg-press group-disabled:text-fg-4", sq)} aria-hidden>
           <ArrowRight size={14} strokeWidth={2} />
         </span>
-        <span className={cx(base, "ui-button-label flex-1", VARIANT[variant], SIZE[size])}>{children}</span>
+        <span className={cx(base, "ui-button-label ui-sweep flex-1", VARIANT[variant], SIZE[size])}>{children}</span>
       </button>
     );
   }

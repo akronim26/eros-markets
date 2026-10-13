@@ -15,6 +15,24 @@ export function priceSegments(points: Point[]): Point[][] {
   return segments;
 }
 
+/**
+ * Valid readings separated only by invalid ones, with the valid ends no further apart than the INDEX
+ * carry. The chart draws these as a faint dotted bridge, never as price: long or malformed gaps stay gaps.
+ */
+export function priceBridges(points: Point[]): [Point, Point][] {
+  const bridges: [Point, Point][] = [];
+  let previous: Point | undefined;
+  let invalidSince = false;
+  for (const point of points) {
+    if (point.valid === false) { invalidSince = true; continue; }
+    if (!Number.isFinite(point.t) || !Number.isFinite(point.v) || point.v < 0 || point.v > 1) { previous = undefined; invalidSince = false; continue; }
+    if (previous && invalidSince && point.t > previous.t && point.t - previous.t <= INDEX_CARRY_SECS) bridges.push([previous, point]);
+    previous = point;
+    invalidSince = false;
+  }
+  return bridges;
+}
+
 /** A chart retains historical observations even while execution prices are unavailable. */
 export function latestSourceObservation(points: Point[], now: number, readError = false) {
   const point = points.findLast(p => p.valid !== false && Number.isFinite(p.t) && Number.isFinite(p.v) && p.v >= 0 && p.v <= 1);

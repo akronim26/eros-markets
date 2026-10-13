@@ -64,10 +64,12 @@ async function main():Promise<void> {
     const name=need('--rpc-env');if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))throw new Error('MONAD_BAD_RPC_ENV_NAME');
     const rpcUrl=process.env[name];if(!rpcUrl)throw new Error('MONAD_RPC_ENV_MISSING');
     const integer=(key:string)=>{const v=need(key);if(!/^(0|[1-9]\d*)$/.test(v))throw new Error('BAD_NONCE_RECOVERY_LIMIT');return BigInt(v);};
-    const originalHash=need('--original-hash');if(!/^0x[\da-fA-F]{64}$/.test(originalHash))throw new Error('BAD_NONCE_RECOVERY_LIMIT');
+    // `unsigned` names a reservation whose price request was never signed.
+    const hashArg=need('--original-hash'),originalHash=hashArg==='unsigned'?null:hashArg;
+    if(originalHash!==null&&!/^0x[\da-fA-F]{64}$/.test(originalHash))throw new Error('BAD_NONCE_RECOVERY_LIMIT');
     const result=await recoverMonadNonce({rpcUrl,config:parseConfig(read(need('--config'))),abi:read(need('--abi')),
       journalDirectory:need('--journal-dir'),keysDirectory:need('--keys-dir'),policy:read(need('--policy')),
-      nonce:integer('--nonce'),originalHash:originalHash as `0x${string}`,maxCostWei:integer('--max-cost-wei'),waitMs:Number(integer('--wait-ms')),allowAttempted:attempted==='true'});
+      nonce:integer('--nonce'),originalHash:originalHash as `0x${string}`|null,maxCostWei:integer('--max-cost-wei'),waitMs:Number(integer('--wait-ms')),allowAttempted:attempted==='true'});
     console.log(json(result));if(result.status!=='FINALIZED')process.exitCode=2;return;
   }
   if(command==='plan-monad-budget'||command==='apply-monad-budget'){

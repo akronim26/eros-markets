@@ -34,7 +34,7 @@ test('fivefold leveraged order uses the actual terminal and fills on the local e
     await expect(notice).toBeVisible();
     await notice.click();
     await p.locator('header').getByRole('button', { name: 'Log in', exact: true }).click();
-    const funds = panel(p).getByRole('region', { name: 'Account', exact: true });
+    const funds = p.getByRole('main', { name: 'Trading terminal' }).getByRole('region', { name: 'Account', exact: true });
     const collateral = funds.locator('details').filter({ hasText: 'Manage collateral' });
     await expect(collateral).toBeVisible();
     if (await collateral.getAttribute('open') === null) await collateral.locator('summary').click();

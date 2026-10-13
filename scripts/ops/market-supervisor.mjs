@@ -38,10 +38,21 @@ export function exitPolicy({ code, signal, text = '', restarts = 0 }) {
   // A lapsed journal lease (host sleep, long pause) fences the old writer. The supervisor lock
   // guarantees one writer; a restarted publisher re-acquires the lease and reconciles its journal
   // before it signs anything, so a backed-off restart is safe.
-  if (/\b(?:PACKET_)?WRITER_FENCED\b/.test(failure)) {
+  if (/\b(?:[A-Z]+_)?WRITER_FENCED\b/.test(failure)) {
     if (restarts >= 5) return { action: 'block', reason: 'restart-limit' };
     return { action: 'restart', delayMs: Math.min(60_000, 5_000 * 2 ** restarts), reason: 'writer-fenced' };
   }
+  // Out of memory aborts the worker mid-loop; journals are durable and reconciled before any new
+  // signature, so a backed-off restart is safe (the restart budget still applies).
+  if (/JavaScript heap out of memory|Allocation failed - JavaScript heap/.test(text.slice(-65_536))) {
+    if (restarts >= 5) return { action: 'block', reason: 'restart-limit' };
+    return { action: 'restart', delayMs: Math.min(60_000, 5_000 * 2 ** restarts), reason: 'out-of-memory' };
+  }
+  // The publisher's own transient RPC read codes (publisher-restart-policy.mjs): a slow or failing
+  // provider, never a signing, nonce-conflict or money failure. Retry with backoff capped at 60 s and
+  // no restart limit, so a provider outage pauses the market instead of stopping it for good.
+  if (code !== 0 && !signal && /^(?:MONAD_(?:FINALIZED_BLOCK|CANONICAL_BLOCK|CODE_READ|LISTING_READ|SOURCE_READ|HALT_READ|BLOCK_READ|RECEIPT_READ|NONCE_READ|BALANCE_READ)_FAILED|MONAD_STALE_OR_FUTURE_BLOCK|PIPELINE_TIMEOUT|RELAY_TIMEOUT)$/.test(failure))
+    return { action: 'restart', delayMs: Math.min(60_000, 2_000 * 2 ** Math.min(restarts, 5)), reason: 'transient-rpc-read' };
   // Match error codes/phrases, not healthy JSON fields such as "nonce" or "budget".
   const fatalCode = /\b(?:[A-Z0-9]+_)*(?:NONCE|INTEGRITY|MISMATCH|NONCANONICAL|QUARANTINED|LOCKED|RETIRED|RECONCILIATION)(?:_[A-Z0-9]+)*\b/;
   if (code === 78 || fatalCode.test(failure) || /publication-budget-exhausted|TESTNET_RELAY_BUDGET_EXHAUSTED|cost.limit.exceeded|needs.test.mon|insufficient.funds|gas.wallet.below|Untracked sender nonce|nonce too low|nonce too high|WRONG_CHAIN|EEXIST|pending nonce requires reconciliation/i.test(failure))
@@ -50,7 +61,7 @@ export function exitPolicy({ code, signal, text = '', restarts = 0 }) {
   // The RPC provider failed a read ("Internal error"): the node, not the call. Retry with backoff.
   if (code !== 0 && !signal && /^RPC Request failed\.?$/.test(failure) && /details: "Internal error"/.test(text.slice(-4096)))
     return { action: 'restart', delayMs: Math.min(60_000, 2_000 * 2 ** restarts), reason: 'transient-read-failure' };
-  if (code !== 0 && !signal && /timeout|timed.out|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|HTTP_429|HTTP_5\d\d|rate.limit|fetch.failed|READ_FAILED|RPC_UNAVAILABLE|RPC_POOL_(?:UNAVAILABLE|BUSY|BLOCK_CHANGED)/i.test(failure))
+  if (code !== 0 && !signal && /timeout|timed.out|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|HTTP_429|HTTP_5\d\d|rate.limit|fetch.failed|READ_FAILED|RPC_UNAVAILABLE|RPC_POOL_(?:UNAVAILABLE|BUSY|BLOCK_CHANGED)|^MONAD_RPC_(?:CHAIN_FAILED|TIMEOUT)$/i.test(failure))
     return { action: 'restart', delayMs: Math.min(60_000, 2_000 * 2 ** restarts), reason: 'transient-read-failure' };
   return { action: 'block', reason: 'unexpected-worker-exit' };
 }

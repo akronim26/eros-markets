@@ -3,7 +3,7 @@ import { setTimeout as pause } from 'node:timers/promises';
 import { keccak256, parseTransaction, recoverAddress, recoverTransactionAddress, type Hex, type TransactionSerialized } from 'viem';
 import type { PrivateKeyAccount } from 'viem/accounts';
 import { openBudgetJournals, type BudgetOptions } from './monad-budget.js';
-import { nonceRecoveries, originalWon, recoveryTerminal, cancellationCount, validateOriginalRecovery, recoverableUnsentReason, saveRecovery, validateCancellationReceipt, verifyCancellationSigner, type NonceRecovery } from './nonce-recovery-journal.js';
+import { nonceRecoveries, unsignedExpiredReservation, originalWon, recoveryTerminal, cancellationCount, validateOriginalRecovery, recoverableUnsentReason, saveRecovery, validateCancellationReceipt, verifyCancellationSigner, type NonceRecovery } from './nonce-recovery-journal.js';
 import { parseTestnetRunPolicy } from './monad-service.js';
 import { policyHash, relayProfileBody, verifyBudgetAudit } from './relay-policy.js';
 import { preflightMonadTestnet } from './monad-preflight.js';
@@ -15,7 +15,8 @@ import { json } from './math.js';
 import { validateReceipt } from './receipts.js';
 import { submitCalldata } from './wire.js';
 
-type RecoveryOptions=BudgetOptions&{keysDirectory:string;policy:unknown;nonce:bigint;originalHash:Hex;maxCostWei:bigint;waitMs:number;allowAttempted?:boolean};
+/** `originalHash` is null only for a reservation whose price request was never signed. */
+type RecoveryOptions=BudgetOptions&{keysDirectory:string;policy:unknown;nonce:bigint;originalHash:Hex|null;maxCostWei:bigint;waitMs:number;allowAttempted?:boolean};
 /** Bound provider calls even when an injected transport ignores its own timeout.
  * A late send remains uncertain; this wrapper never declares it unsuccessful.
  */
@@ -35,7 +36,7 @@ function boundedRpc(provider:MonadSubmissionRpc,timeoutMs:number):MonadSubmissio
     nonce:a=>call(()=>provider.nonce(a)),balance:a=>call(()=>provider.balance(a)),
     simulate:(s,t,d,g)=>call(()=>provider.simulate(s,t,d,g)),send:r=>call(()=>provider.send(r)),receipt:h=>call(()=>provider.receipt(h))};
 }
-/** Cancels a known signed reservation after its carry window expires. Expiry
+/** Cancels a known signed, or provably never-signed, reservation after its carry window expires. Expiry
  * does not prevent delayed onchain acceptance: an original can still win this
  * nonce. Prove either finalized winner, retaining uncertainty until then.
  * Zero-value, empty-data, 21,000-gas self transaction; no arbitrary signing path.
@@ -43,7 +44,7 @@ function boundedRpc(provider:MonadSubmissionRpc,timeoutMs:number):MonadSubmissio
  */
 export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmissionRpc=monadSubmissionRpc(options.rpcUrl),
   now:()=>bigint=()=>BigInt(Date.now()),testAccount?:PrivateKeyAccount){
-  if(!/^0x[\da-fA-F]{64}$/.test(options.originalHash)||options.nonce<0n||options.nonce>BigInt(Number.MAX_SAFE_INTEGER)
+  if(options.originalHash!==null&&!/^0x[\da-fA-F]{64}$/.test(options.originalHash)||options.nonce<0n||options.nonce>BigInt(Number.MAX_SAFE_INTEGER)
     ||options.maxCostWei<=0n||!Number.isSafeInteger(options.waitMs)||options.waitMs<1||options.waitMs>120000)
     throw new Error('BAD_NONCE_RECOVERY_LIMIT');
   const p=parseTestnetRunPolicy(options.policy),cfg=options.config,d=cfg.destination!;
@@ -77,7 +78,8 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
     const record=JSON.parse(String(target.body)),recoveries=nonceRecoveries(db),existing=recoveries.find(r=>r.key===target.key);
     const attempted=options.allowAttempted===true&&Number.isSafeInteger(record.attempts)&&record.attempts>0
       &&record.attempts<=p.relay.maxAttempts&&(existing?.attemptedOriginal||record.reason==='RESERVED_NONCE_HEADROOM_EXPIRED');
-    if(record.txHash!==options.originalHash||record.namespace!==ns||!record.raw||record.accepted!==null&&!existing||record.attempts!==0&&!attempted
+    const unsigned=options.originalHash===null&&unsignedExpiredReservation(existing?JSON.parse(existing.originalBody):record);
+    if(record.txHash!==options.originalHash||record.namespace!==ns||!record.raw&&!unsigned||record.accepted!==null&&!existing||record.attempts!==0&&!attempted
       ||!existing&&(record.state!=='QUARANTINED'||!recoverableUnsentReason(record.reason))
       ||existing&&(existing.profile!==profile||existing.signerJournalId!==meta[0]!.id||existing.sender.toLowerCase()!==p.sender.toLowerCase()
         ||json(existing.request)!==json(request)||existing.reservationWei!==(existing.cancellationReserved===false?'0':reservationWei.toString())))throw new Error('NONCE_RECOVERY_SCOPE');
@@ -99,14 +101,20 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
       if((await recoverAddress({hash:packet.digest,signature:packet.signature})).toLowerCase()!==d.signerAddress.toLowerCase())
         throw new Error('NONCE_RECOVERY_IDENTITY_MISMATCH');
       const signed=db.prepare('SELECT * FROM transactions.transaction_reservations WHERE nonce=?').get(options.nonce.toString());
-      const original=parseTransaction(state.record.raw);
-      if(!signed||signed.raw!==state.record.raw||signed.tx_hash!==options.originalHash||signed.request!==json(state.record.request)
-        ||signed.sha256!==policyHash(`${signed.request}:${signed.raw}:${signed.tx_hash}`)||keccak256(state.record.raw)!==options.originalHash
-        ||original.chainId!==10143||original.type!=='eip1559'||original.nonce!==Number(options.nonce)||original.to?.toLowerCase()!==d.engineAddress.toLowerCase()
-        ||original.data!==state.record.request.data||(original.value??0n)!==0n||original.gas!==BigInt(state.record.request.gas)
-        ||original.maxFeePerGas!==BigInt(state.record.request.maxFeePerGas)||original.maxPriorityFeePerGas!==BigInt(state.record.request.maxPriorityFeePerGas)
-        ||(await recoverTransactionAddress({serializedTransaction:state.record.raw as TransactionSerialized})).toLowerCase()!==p.sender.toLowerCase())
-        throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');
+      if(state.record.raw===null){
+        // Never signed: the signer journal must not hold even a reservation for this nonce, since
+        // its signing step may have completed after the relay stopped recording.
+        if(signed||options.originalHash!==null)throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');
+      }else{
+        const original=parseTransaction(state.record.raw);
+        if(!signed||signed.raw!==state.record.raw||signed.tx_hash!==options.originalHash||signed.request!==json(state.record.request)
+          ||signed.sha256!==policyHash(`${signed.request}:${signed.raw}:${signed.tx_hash}`)||keccak256(state.record.raw)!==options.originalHash
+          ||original.chainId!==10143||original.type!=='eip1559'||original.nonce!==Number(options.nonce)||original.to?.toLowerCase()!==d.engineAddress.toLowerCase()
+          ||original.data!==state.record.request.data||(original.value??0n)!==0n||original.gas!==BigInt(state.record.request.gas)
+          ||original.maxFeePerGas!==BigInt(state.record.request.maxFeePerGas)||original.maxPriorityFeePerGas!==BigInt(state.record.request.maxPriorityFeePerGas)
+          ||(await recoverTransactionAddress({serializedTransaction:state.record.raw as TransactionSerialized})).toLowerCase()!==p.sender.toLowerCase())
+          throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');
+      }
       if(state.existing)await verifyCancellationSigner(state.existing);
       const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi:options.abi},now);
       if(checkpoint.block.timestamp<=packet.packet.observation.observedAt+30n)throw new Error('NONCE_RECOVERY_NOT_CANONICALLY_EXPIRED');
@@ -116,7 +124,8 @@ export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmiss
         if(block.hash!==expiry.hash||block.timestamp!==BigInt(expiry.timestamp)
           ||expiry.observedAt!==packet.packet.observation.observedAt.toString())throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
       }
-      const oldReceipt=await rpc.receipt(options.originalHash);
+      // Unsigned bytes cannot have been broadcast, so only the signed form has an original receipt.
+      const oldReceipt=options.originalHash?await rpc.receipt(options.originalHash):null;
       let originalAccepted=null;
       if(oldReceipt){
         const block=await rpc.block({blockNumber:oldReceipt.blockNumber});

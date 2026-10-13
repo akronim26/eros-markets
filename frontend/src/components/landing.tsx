@@ -7,29 +7,15 @@ import { useHead, useMarket } from "@/lib/reads";
 import { markets } from "@/config/deployment";
 import { PRICING, STAGE } from "@/lib/enums";
 import { fmtDuration, lotsToClaims } from "@/lib/units";
-import { SectionRule, cx } from "./ui";
+import { SectionRule } from "./ui";
 import { EventPerpDemo } from "./event-perp-demo";
 import { MarketLifecycle } from "./market-lifecycle";
 import { OracleLayers } from "./oracle-layers";
-import { TerminalSys } from "./terminal-sys";
 
 const ACTIVE_MARKET = markets.find((market) => !market.archived);
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ------------------------------------------------------------------ interactions */
-
-/** Keep server and initial client markup identical; read motion preferences after mount. */
-function useReducedMotion() {
-  const [reduceMotion, setReduceMotion] = useState(true);
-  useEffect(() => {
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduceMotion(preference.matches);
-    update();
-    preference.addEventListener("change", update);
-    return () => preference.removeEventListener("change", update);
-  }, []);
-  return reduceMotion;
-}
 
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=<>/";
 
@@ -86,7 +72,7 @@ function Hero() {
         <span className="h-2 w-2 bg-signal" aria-hidden />
         Built on Monad · Public testnet
       </p>
-      <h1 className="pixel leading-[1.05] text-fg">
+      <h1 className="display leading-[1.05] text-fg">
         <span className="block text-[clamp(1.5rem,6.3vw,5.5rem)]"><Scramble text="PERPETUAL FUTURES" /></span>
         <span className="mt-2 block text-[clamp(2.75rem,10vw,8rem)] text-signal-text"><Scramble text="ON EVENTS." /></span>
       </h1>
@@ -96,13 +82,13 @@ function Hero() {
         powered by a fully on-chain order book.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Link href="/markets" className="group inline-flex min-h-11 items-stretch">
-          <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
+        <Link href="/markets" className="ui-button group inline-flex min-h-11 items-stretch">
+          <span className="ui-arrow flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
             <ArrowRight size={15} strokeWidth={2} />
           </span>
-          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Explore markets</span>
+          <span className="ui-button-label ui-sweep label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Explore markets</span>
         </Link>
-        <Link href="#how-it-works" className="label frame inline-flex min-h-11 items-center px-5 text-fg hover:bg-hover">
+        <Link href="#how-it-works" className="ui-button label frame inline-flex min-h-11 items-center px-5 text-fg hover:bg-hover">
           How event perps work
         </Link>
       </div>
@@ -141,96 +127,13 @@ function EventMarkets() {
   );
 }
 
-/* ------------------------------------------------------------------ live market bento */
-
-function PanelHead({ left, right, dark }: { left: string; right?: React.ReactNode; dark?: boolean }) {
-  return (
-    <div className={cx("label flex h-8 items-center justify-between px-3", dark ? "text-ivory-3 shadow-[inset_0_-1px_0_#2a2a2c]" : "text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]")}>
-      <span>{left}</span>
-      {right}
-    </div>
-  );
-}
-
-/** The Eros mark rendered as a dot matrix: the depth ladder, with the Signal bar as the mark price. */
-function MarkDither() {
-  const reduceMotion = useReducedMotion();
-  const bars = [
-    { y: 0, w: 76 },
-    { y: 11, w: 64 },
-    { y: 22, w: 22 },
-    { y: 47, w: 22 },
-    { y: 58, w: 64 },
-    { y: 69, w: 76 },
-  ];
-  const cell = 2.25;
-  const dots: { x: number; y: number; s: boolean; d: number }[] = [];
-  const add = (x0: number, y0: number, w: number, h: number, s: boolean) => {
-    for (let y = y0; y < y0 + h; y += cell)
-      for (let x = x0; x < x0 + w; x += cell) dots.push({ x, y, s, d: (x * 7 + y * 13) % 100 });
-  };
-  bars.forEach((b) => add(0, b.y, b.w, 7, false));
-  add(0, 33.5, 50, 9, true);
-  return (
-    <svg viewBox="-3 -3 82 82" className="h-full w-full" role="img" aria-label="The Eros Markets mark drawn as a dot matrix depth ladder">
-      {dots.map((d, i) => (
-        <rect key={i} x={d.x} y={d.y} width={cell * 0.62} height={cell * 0.62} fill={d.s ? "var(--color-signal)" : "var(--color-fg)"} opacity={d.s ? 1 : 0.35 + (d.d % 50) / 80}>
-          {!reduceMotion && d.s && <animate attributeName="opacity" values="1;0.4;1" dur="3s" begin={`${(d.d % 30) / 10}s`} repeatCount="indefinite" />}
-        </rect>
-      ))}
-    </svg>
-  );
-}
-
-function LiveMarket() {
-  return ACTIVE_MARKET ? <ActiveLiveMarket engine={ACTIVE_MARKET.engine} /> : (
-    <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
-      <SectionRule name="TESTNET_STATUS" index={4} />
-      <div className="frame mt-6 bg-panel p-6">
-        <h2 className="text-2xl font-semibold text-fg">The next event perp is on the way</h2>
-        <p className="mt-3 text-sm text-fg-2">We’re preparing a new market. You can still manage previous demo balances from your portfolio.</p>
-        <Link href="/portfolio" className="label mt-4 inline-flex min-h-11 items-center bg-signal px-4 text-on-signal">View portfolio</Link>
-      </div>
-    </section>
-  );
-}
-
-function ActiveLiveMarket({ engine }: { engine: (typeof markets)[number]["engine"] }) {
-  const head = useHead();
-  const market = useMarket(engine, head.data?.number);
-  const m = market.data;
-  return (
-    <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
-      <SectionRule name="TESTNET_STATUS" index={4} />
-      <h2 className="mt-6 text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Explore the testnet build</h2>
-      <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-fg-2">
-        Inspect the order book, connect a wallet, and follow the market lifecycle on Monad.
-        Explore a real Polymarket event with test collateral. Leverage depends on live prices and risk limits.
-      </p>
-      <div className="frame mt-6 grid grid-cols-1 bg-ground md:grid-cols-2">
-        <TerminalSys engine={engine} market={m} readError={head.isError || market.isError} />
-        {/* mark */}
-        <div className="flex min-h-[300px] flex-col shadow-[inset_0_1px_0_var(--color-line-strong)] md:shadow-none">
-          <PanelHead left="MARK.DITHER" right={<span className="tnum">76×76</span>} />
-          <div className="flex flex-1 items-center justify-center p-4">
-            <div className="aspect-square w-full max-w-[420px]">
-              <MarkDither />
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-  );
-}
-
 /* ------------------------------------------------------------------ mechanism */
 
 function Mechanism() {
   return (
     <section id="how-it-works" className="mx-auto max-w-[1280px] scroll-mt-36 px-4 pb-24 md:px-8">
       <SectionRule name="HOW_EVENT_PERPS_WORK" index={2} />
-      <h2 className="pixel mt-6 text-[clamp(2rem,4vw,3.5rem)] leading-tight text-fg uppercase">
+      <h2 className="display mt-6 text-[clamp(2rem,4vw,3.5rem)] leading-tight text-fg uppercase">
         Move the odds.
       </h2>
       <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-fg-2">
@@ -249,7 +152,7 @@ function Resolution() {
       <SectionRule name="RESOLUTION" index={3} />
       <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="pixel text-[clamp(2rem,4vw,3.5rem)] leading-tight text-fg uppercase">An oracle of its own.</h2>
+          <h2 className="display text-[clamp(2rem,4vw,3.5rem)] leading-tight text-fg uppercase">An oracle of its own.</h2>
           <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-fg-2">
             From evidence to outcome. Explore the layers that decide how your market settles.
           </p>
@@ -289,7 +192,7 @@ function ActiveLiveTicker({ engine }: { engine: (typeof markets)[number]["engine
   const row = [...items, ...items];
   return (
     <section className="mx-auto max-w-[1280px] px-4 pb-24 md:px-8">
-      <SectionRule name="EXPLORE_EROS" index={5} />
+      <SectionRule name="EXPLORE_EROS" index={4} />
       <div className="mt-6 flex flex-wrap items-center justify-between gap-6">
         <div className="max-w-[65ch]">
           <h2 className="text-2xl font-semibold tracking-[-0.02em] text-fg uppercase">Your next market is an event.</h2>
@@ -297,9 +200,9 @@ function ActiveLiveTicker({ engine }: { engine: (typeof markets)[number]["engine
             Explore event perpetual futures on Monad testnet. Connect your wallet, or sign in with email to create one.
           </p>
         </div>
-        <Link href="/markets" className="group inline-flex min-h-11 items-stretch">
-          <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={15} strokeWidth={2} /></span>
-          <span className="label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Browse all markets</span>
+        <Link href="/markets" className="ui-button group inline-flex min-h-11 items-stretch">
+          <span className="ui-arrow flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={15} strokeWidth={2} /></span>
+          <span className="ui-button-label ui-sweep label flex items-center bg-action px-5 text-on-action group-hover:bg-action-hover">Browse all markets</span>
         </Link>
       </div>
       <div className="frame mt-6 overflow-hidden">
@@ -324,7 +227,6 @@ export function Landing() {
       <EventMarkets />
       <Mechanism />
       <Resolution />
-      <LiveMarket />
       <LiveTicker />
     </main>
   );

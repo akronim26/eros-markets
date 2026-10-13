@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Point } from "@/lib/reads";
-import { priceSegments } from "@/lib/price-chart";
+import { priceBridges, priceSegments } from "@/lib/price-chart";
 import { INDEX_CARRY_SECS } from "@/lib/index-carry";
 import { cx } from "./ui";
 
@@ -43,13 +43,13 @@ export function PriceAxis(p: Props) {
     const start = range === 4 ? Math.min(p.index[0]?.t ?? end - 900, ...(book && p.perp.length ? [p.perp[0].t] : []), end - 60) : end - RANGES[range].seconds;
     const index = p.index.filter(v => v.t >= start && v.t <= end);
     const perp = book ? p.perp.filter(v => v.t >= start && v.t <= end) : [];
-    const indexSegments = priceSegments(index), perpSegments = priceSegments(perp);
+    const indexSegments = priceSegments(index), perpSegments = priceSegments(perp), indexBridges = priceBridges(index);
     const availableIndex = index.filter(v => v.valid !== false), availablePerp = perp.filter(v => v.valid !== false);
     const values = [...availableIndex.map(v => v.v), ...availablePerp.map(v => v.v), ...(mark && p.markUnit !== undefined ? [p.markUnit] : [])];
     const min = values.length ? Math.min(...values) : Math.max(0, (p.indexUnit ?? 0.5) - 0.05);
     const max = values.length ? Math.max(...values) : Math.min(1, (p.indexUnit ?? 0.5) + 0.05);
     const padding = Math.max((max - min) * 0.2, 0.002);
-    return { start, end, index: availableIndex, perp: availablePerp, indexSegments, perpSegments, lo: Math.max(0, min - padding), hi: Math.min(1, max + padding) };
+    return { start, end, index: availableIndex, perp: availablePerp, indexSegments, perpSegments, indexBridges, lo: Math.max(0, min - padding), hi: Math.min(1, max + padding) };
   }, [p.index, p.perp, p.markUnit, p.indexUnit, range, now, book, mark]);
   const left = 14, right = Math.max(left + 1, width - 62), top = 18, bottom = height - 32;
   const x = (t: number) => left + (t - model.start) / (model.end - model.start) * (right - left);
@@ -101,6 +101,9 @@ export function PriceAxis(p: Props) {
           <g clipPath={`url(#${id}-plot)`}>
             {mark && p.markUnit !== undefined && <line x1={left} x2={right} y1={y(p.markUnit)} y2={y(p.markUnit)} stroke="var(--color-fg-3)" strokeDasharray="5 5"><title>Current mark {priceLabel(p.markUnit)}; this is not historical mark data.</title></line>}
             <path d={path(model.perpSegments)} fill="none" stroke="var(--color-fg-3)" strokeWidth={1.5} />
+            {model.indexBridges.length > 0 && <path d={path(model.indexBridges)} fill="none" stroke="var(--color-signal)" strokeOpacity={0.45} strokeWidth={1.5} strokeDasharray="0.5 4" strokeLinecap="round">
+              <title>No valid price: the source order book was too thin. Not a tradable price.</title>
+            </path>}
             <path d={path(model.indexSegments)} fill="none" stroke="var(--color-signal)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
             {model.indexSegments.map(segment => segment[0]).map(pt => <circle key={`${pt.t}-${pt.block}`} cx={x(pt.t)} cy={y(pt.v)} r={2} fill="var(--color-signal)" />)}
             {last && <g><circle cx={x(last.t)} cy={y(last.v)} r={fresh ? 7 : 4} fill="var(--color-signal)" opacity={0.15} className={fresh ? "motion-safe:animate-pulse" : ""} /><circle cx={x(last.t)} cy={y(last.v)} r={3} fill="var(--color-signal)" /></g>}
@@ -111,7 +114,9 @@ export function PriceAxis(p: Props) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 border-t border-line px-3 text-2xs text-fg-3">
         <span title={p.historyStatus}>{hovered ? new Date(hovered.t * 1000).toLocaleString() : last ? `Updated ${timeLabel(last.t, true)}` : "No observations yet"}</span>
-        <div className="flex gap-3"><button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")} title="Current mark reference, not historical marks"><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
+        <div className="flex gap-3">{model.indexBridges.length > 0 && <span className="inline-flex min-h-9 items-center gap-1.5" title="Dotted stretches had no valid source price; they are not tradable prices.">
+          <svg width="16" height="2" aria-hidden><line x1="1" x2="15" y1="1" y2="1" stroke="var(--color-signal)" strokeOpacity={0.6} strokeWidth={1.5} strokeDasharray="0.5 4" strokeLinecap="round" /></svg>No valid price</span>}
+          <button aria-pressed={book} onClick={() => setBook(!book)} className={cx("min-h-9", book && "text-fg")}><span aria-hidden>{book ? "●" : "○"}</span> Book</button><button aria-pressed={mark} onClick={() => setMark(!mark)} className={cx("min-h-9", mark && "text-fg")} title="Current mark reference, not historical marks"><span aria-hidden>{mark ? "●" : "○"}</span> Current mark</button></div>
       </div>
       <span className="sr-only" role="status">{hovered ? `Observation ${priceLabel(hovered.v)} at ${new Date(hovered.t * 1000).toLocaleString()}` : ""}</span>
     </section>

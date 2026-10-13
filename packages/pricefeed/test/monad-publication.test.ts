@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chmodSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, keccak256, parseAbiParameters,
@@ -556,7 +556,7 @@ test('unfunded testnet simulation reserves no nonce and broadcasts nothing',asyn
   }finally{s.close();}
 });
 
-async function recoveryFixture(timeoutMs=policy.timeoutMs,historyCount=0,maxTransactions=4+historyCount){
+async function recoveryFixture(timeoutMs=policy.timeoutMs,historyCount=0,maxTransactions=4+historyCount,unsigned=false){
   const runPolicy={...policy,timeoutMs};
   const expiredAt=1032000n+BigInt(historyCount)*1000n;
   const s=await setup(maxTransactions,runPolicy),prepare=s.transport.prepare;
@@ -566,9 +566,17 @@ async function recoveryFixture(timeoutMs=policy.timeoutMs,historyCount=0,maxTran
     assert.equal((await s.pipeline.process(await s.worker.poll())).state,'FINALIZED');
   }
   if(historyCount)s.setNow(1000100n+BigInt(historyCount)*1000n);
-  s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(expiredAt);s.advanceBlock();return raw;};
+  if(unsigned){
+    // Production path: a provider read fails inside preparation before signing, leaving the
+    // reserved nonce resumable; the restart then finds the price past its carry window.
+    s.transport.prepare=async()=>{s.setNow(expiredAt);s.advanceBlock();throw new Error('MONAD_NONCE_READ_FAILED');};
+    await assert.rejects(s.pipeline.process(await s.worker.poll()),/MONAD_NONCE_READ_FAILED/);
+    assert.equal(s.relay.get(s.domain,BigInt(historyCount)+1n)!.state,'PREPARING');
+    s.restart();await s.pipeline.start();
+  }else s.transport.prepare=async request=>{const raw=await prepare(request);s.setNow(expiredAt);s.advanceBlock();return raw;};
   await assert.rejects(s.pipeline.process(await s.worker.poll()),/RELAY_HEADROOM_EXPIRED/);s.pipeline.close();
   const old=s.relay.get(s.domain,BigInt(historyCount)+1n)!;
+  if(unsigned){assert.equal(old.raw,null);assert.equal(old.reason,'RESERVED_NONCE_HEADROOM_EXPIRED');}
   assert.equal(old.state,'QUARANTINED');assert.equal(old.attempts,0);assert.equal(s.sent.length,historyCount);
   const code=s.rpc.code;s.rpc.code=async(address,block)=>address.toLowerCase()===s.sender.toLowerCase()?'0x':code(address,block);
   s.rpc.simulate=async()=>21000n;
@@ -584,7 +592,7 @@ async function recoveryFixture(timeoutMs=policy.timeoutMs,historyCount=0,maxTran
   };
   const options={config:s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:s.dir,keysDirectory:s.dir,
     policy:{schemaVersion:'1',sender:s.sender,relay:JSON.parse(json(runPolicy)),budget:{maxTransactions,totalMaxCostWei:(BigInt(maxTransactions)*policy.maxCostWei).toString()}},
-    nonce:BigInt(historyCount),originalHash:old.txHash!,maxCostWei:3150000000000000n,waitMs:600};
+    nonce:BigInt(historyCount),originalHash:unsigned?null:old.txHash!,maxCostWei:3150000000000000n,waitMs:600};
   const account=loadTestnetKey(join(s.dir,'tx-key'),join(s.dir,'tx-password'),s.sender);
   return {s,old,options,account,cancelSends,setFail:(v:boolean)=>{fail=v;},run:()=>recoverMonadNonce(options,s.rpc,()=>expiredAt,account)};
 }
@@ -634,6 +642,61 @@ test('never-broadcast nonce cancellation preserves original signed history and r
     const deliveries=f.s.packets.list(f.s.domain).map(p=>f.s.relay.get(f.s.domain,p.packet.observation.sequence)!).filter(Boolean);
     assert.equal(testnetServiceStopReason({finalized:2,stopAfterFinalized:4,budgetAvailable:f.s.relay.budgetAvailable(),deliveries}),'publication-budget-exhausted');
     assert.equal(testnetServiceStopReason({finalized:2,stopAfterFinalized:4,budgetAvailable:false,deliveries:[...deliveries,{state:'MINED',reason:null}]}),null);
+  }finally{f.s.close();}
+});
+test('never-signed expired reservation is cancelled and publication resumes on the next nonce',async()=>{
+  const f=await recoveryFixture(policy.timeoutMs,0,4,true);try{
+    f.s.restart();
+    await assert.rejects(f.s.pipeline.start(),/PIPELINE_DELIVERY_RECOVERY_REQUIRED/);f.s.pipeline.close();
+    const packet=f.s.packets.get(f.s.domain,1n),result=await f.run();assert.equal(result.status,'FINALIZED');
+    assert.equal(f.cancelSends.length,1);const tx=parseTransaction(f.cancelSends[0]!);
+    assert.equal(tx.to!.toLowerCase(),f.s.sender.toLowerCase());assert.equal(tx.value??0n,0n);assert.equal(tx.gas,21000n);
+    assert.equal(tx.nonce,0);assert.equal(tx.chainId,10143);assert.equal(tx.data??'0x','0x');
+    assert.deepEqual(f.s.packets.get(f.s.domain,1n),packet);
+    const cancelled=f.s.relay.get(f.s.domain,1n)!;
+    assert.equal(cancelled.state,'CANCELLED');assert.equal(cancelled.raw,null);assert.deepEqual(cancelled.request,f.old.request);
+    assert.equal((await f.run()).status,'FINALIZED');assert.equal(f.cancelSends.length,1);
+    f.s.restart();f.s.setNow(1040000n);f.s.advanceBlock();await f.s.pipeline.start();
+    const next=await f.s.pipeline.process(await f.s.worker.poll());assert.equal(next.state,'FINALIZED');
+    assert.equal(next.sequence,2n);assert.equal(parseTransaction(f.s.sent[0]!).nonce,1);
+    f.s.pipeline.close();
+    // A later budget renewal audits the cancelled unsigned reservation without signed bytes.
+    const old=f.options.policy,renewed={...old,relay:{...old.relay,gasSafetyMarginBps:'1000'},budget:{maxTransactions:5,totalMaxCostWei:(5n*policy.maxCostWei).toString(),budgetRevision:1}};
+    const plan=await planMonadBudget({config:f.s.cfg,abi,rpcUrl:'https://fixture.invalid',journalDirectory:f.s.dir},old,renewed,randomUUID(),'UNSIGNED_CANCEL',f.s.rpc,()=>1040000n);
+    assert.equal(plan.deliveryCount,3,'two deliveries plus the cancellation');assert.equal(plan.nextNonce,'2');
+  }finally{f.s.close();}
+});
+test('never-signed recovery refuses a signer reservation, a moved chain nonce or a supplied hash',async()=>{
+  const f=await recoveryFixture(policy.timeoutMs,0,4,true);try{
+    const run=(change:Record<string,unknown>={})=>recoverMonadNonce({...f.options,...change},f.s.rpc,()=>1032000n,f.account);
+    await assert.rejects(run({originalHash:('0x'+'ab'.repeat(32)) as Hex}),/NONCE_RECOVERY_SCOPE/);
+    const nonce=f.s.rpc.nonce;f.s.rpc.nonce=async()=>1n;
+    await assert.rejects(run(),/NONCE_RECOVERY_CHAIN_NONCE_CHANGED/);f.s.rpc.nonce=nonce;
+    const tx=new DatabaseSync(join(f.s.dir,'transactions.sqlite'));
+    try{
+      const body=json(f.old.request);
+      tx.prepare('INSERT INTO transaction_reservations VALUES(?,?,NULL,NULL,?)').run('0',body,createHash('sha256').update(`${body}::`).digest('hex'));
+      await assert.rejects(run(),/TRANSACTION_SIGNER_RELAY_MISMATCH/);
+      tx.prepare('DELETE FROM transaction_reservations WHERE nonce=?').run('0');
+    }finally{tx.close();}
+    const db=new DatabaseSync(join(f.s.dir,'relay.sqlite'));
+    try{
+      const row=db.prepare('SELECT key,body FROM deliveries').get()!,original=String(row.body);
+      for(const change of [{reason:'SIGNED_TRANSACTION_MISMATCH'},{reason:'RELAY_HEADROOM_EXPIRED'},{attempts:1}]){
+        const body=json({...JSON.parse(original),...change});
+        db.prepare('UPDATE deliveries SET body=?,sha256=? WHERE key=?').run(body,policyHash(body),row.key!);
+        await assert.rejects(run(change.attempts?{allowAttempted:true}:{}),/NONCE_RECOVERY_SCOPE/);
+      }
+      db.prepare('UPDATE deliveries SET body=?,sha256=? WHERE key=?').run(original,policyHash(original),row.key!);
+    }finally{db.close();}
+    assert.equal(f.cancelSends.length,0);
+    assert.equal((await run()).status,'FINALIZED');assert.equal(f.cancelSends.length,1);
+  }finally{f.s.close();}
+});
+test('signed quarantine cannot be recovered as never-signed',async()=>{
+  const f=await recoveryFixture();try{
+    await assert.rejects(recoverMonadNonce({...f.options,originalHash:null},f.s.rpc,()=>1032000n,f.account),/NONCE_RECOVERY_SCOPE/);
+    assert.equal(f.cancelSends.length,0);
   }finally{f.s.close();}
 });
 test('unknown cancellation send is durable and retries only identical bytes',async()=>{

@@ -241,3 +241,29 @@ test('a worker that exits on an RPC provider internal error restarts; other RPC 
   assert.equal(exitPolicy({ code: 1, text: 'RpcRequestError: RPC Request failed.\n    details: "execution reverted",' }).action, 'block');
   assert.equal(exitPolicy({ code: 1, text: 'Error: RELAY_JOURNAL_INTEGRITY\n details: "Internal error",' }).action, 'block');
 });
+
+test('a publisher that exits on a failed RPC chain check or RPC timeout restarts; a wrong chain still blocks', () => {
+  for (const text of ['{"stoppedFor":"MONAD_RPC_CHAIN_FAILED"}\nError: MONAD_RPC_CHAIN_FAILED', 'Error: MONAD_RPC_TIMEOUT'])
+    assert.deepEqual(exitPolicy({ code: 1, text }), { action: 'restart', delayMs: 2_000, reason: 'transient-read-failure' });
+  assert.equal(exitPolicy({ code: 1, text: 'Error: MONAD_WRONG_CHAIN' }).action, 'block');
+  assert.equal(exitPolicy({ code: 1, text: 'Error: MONAD_RPC_ENV_MISSING' }).action, 'block');
+});
+
+test('every fenced writer variant and an out-of-memory abort restart with backoff', () => {
+  for (const name of ['WRITER_FENCED', 'PACKET_WRITER_FENCED', 'RELAY_WRITER_FENCED'])
+    assert.equal(exitPolicy({ code: 1, text: `Error: ${name}` }).reason, 'writer-fenced', name);
+  const oom = '<--- Last few GCs --->\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n 1: 0x1 node::Abort()';
+  assert.deepEqual(exitPolicy({ code: null, signal: 'SIGABRT', text: oom }), { action: 'restart', delayMs: 5_000, reason: 'out-of-memory' });
+  assert.equal(exitPolicy({ code: null, signal: 'SIGABRT', text: oom, restarts: 5 }).action, 'block');
+  assert.equal(exitPolicy({ code: 1, text: 'Error: RELAY_JOURNAL_INTEGRITY' }).action, 'block', 'integrity failures still stop');
+});
+
+test('publisher RPC read failures always restart with capped backoff, even after many restarts', () => {
+  for (const name of ['MONAD_FINALIZED_BLOCK_FAILED', 'MONAD_NONCE_READ_FAILED', 'MONAD_RECEIPT_READ_FAILED', 'PIPELINE_TIMEOUT']) {
+    assert.deepEqual(exitPolicy({ code: 1, text: `{"stoppedFor":"${name}"}\nError: ${name}\n    at x` }),
+      { action: 'restart', delayMs: 2_000, reason: 'transient-rpc-read' }, name);
+    assert.equal(exitPolicy({ code: 1, text: `Error: ${name}`, restarts: 40 }).delayMs, 60_000, 'no restart limit, backoff capped');
+  }
+  assert.equal(exitPolicy({ code: 1, text: 'Error: MONAD_NONCE_CONFLICT' }).action, 'block', 'nonce conflicts still stop');
+  assert.equal(exitPolicy({ code: 1, text: 'Error: MONAD_SIMULATION_FAILED' }).action, 'block', 'a failed simulation is not a read');
+});

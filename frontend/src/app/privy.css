@@ -26,19 +26,19 @@
   --privy-color-icon-muted: var(--color-fg-3);
   --privy-color-icon-subtle: var(--color-fg-4);
   --privy-color-icon-interactive: var(--color-signal-text);
-  --privy-border-radius-xs: 0;
-  --privy-border-radius-sm: 0;
-  --privy-border-radius-md: 0;
-  --privy-border-radius-mdlg: 0;
-  --privy-border-radius-lg: 0;
-  --privy-border-radius-full: 0;
+  --privy-border-radius-xs: var(--radius-sm);
+  --privy-border-radius-sm: var(--radius-md);
+  --privy-border-radius-md: var(--radius-control);
+  --privy-border-radius-mdlg: 10px;
+  --privy-border-radius-lg: var(--radius-box);
+  --privy-border-radius-full: 9999px;
   --privy-shadow-modal: 6px 6px 0 var(--color-line-strong);
   --privy-shadow-sheet: 0 -4px 0 var(--color-line-strong);
   --privy-shadow-focus-ring: 0 0 0 2px var(--color-signal);
 }
 
 #privy-dialog-backdrop {
-  background: rgb(10 10 11 / 40%);
+  background: rgb(0 0 0 / 40%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -55,11 +55,11 @@
 }
 
 #privy-modal-content :is(h1, h2, h3, #privy-dialog-title) {
-  font-family: var(--font-pixel);
+  font-family: var(--font-display);
   font-size: 1.5rem;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
   color: var(--color-fg);
 }
