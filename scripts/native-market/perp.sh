@@ -33,6 +33,8 @@ case "$cmd" in
       sleep "$2"
     done
     echo "  pricingMode=$(cast call "$ENG" 'pricingMode()(uint8)' --rpc-url "$R")";;
+  activate) # activate: activatePricing() once the engine accepts it (bootstrap -> normal pricing)
+    tx "$ENG" 'activatePricing()'; echo "  pricingMode=$(cast call "$ENG" 'pricingMode()(uint8)' --rpc-url "$R")";;
   rollover) # rollover: hourly accounting sweep (beginRollover -> rollPage(32)... -> finishRollover). Requote afterwards.
     tx "$ENG" 'beginRollover()'
     for i in $(seq 1 64); do
@@ -46,5 +48,5 @@ case "$cmd" in
     echo "account $ME id=$id"
     echo "$v" | awk -F', ' '{printf "  cashQ=%s positionLots=%s e0Q=%s e1Q=%s markAvailable=%s\n", $4, $5, $6, $7, $8}'
     echo "  pricingMode=$(cast call "$ENG" 'pricingMode()(uint8)' --rpc-url "$R")";;
-  *) echo "usage: perp.sh fund|quote|buy|sell|close|release|keeper|rollover|status ..." >&2; exit 2;;
+  *) echo "usage: perp.sh fund|quote|buy|sell|close|release|keeper|activate|rollover|status ..." >&2; exit 2;;
 esac

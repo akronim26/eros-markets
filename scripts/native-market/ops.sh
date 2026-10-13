@@ -5,7 +5,7 @@
 #   ops.sh stop    stop both (supervisor first, then its child)
 #   ops.sh status  pids, restarts, last log lines, INDEX/MARK availability
 #
-# Private config: $NATIVE_OPS_ENV (default tmp/native-public/ops.env, mode 600, never committed) with
+# Private config: $NATIVE_OPS_ENV (default $NATIVE_RUN/ops.env; NATIVE_RUN defaults to tmp/native-public; mode 600, never committed) with
 #   MONAD_RPC_URL, NATIVE_OBSERVER_PRIVATE_KEY, NATIVE_KEEPER_PRIVATE_KEY, NATIVE_PERP_MAKER_PRIVATE_KEY,
 #   NATIVE_DEPLOYMENT (DeployNativeMarket JSON), NATIVE_RULES (rules JSON), NATIVE_ENGINE.
 # Optional: PUBLISH_MS (60000), KEEPER_EVERY (90), MAX_RESTARTS (5), MIN_GAS_MON (0.5), LOW_GAS_MON (3).
@@ -14,7 +14,7 @@
 # and keeper never have two concurrent writers. Runs on Linux and macOS (bash 3.2, BSD stat, no setsid).
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"
-RUN=tmp/native-public; mkdir -p "$RUN"; chmod 700 "$RUN"
+RUN=${NATIVE_RUN:-tmp/native-public}; mkdir -p "$RUN"; chmod 700 "$RUN"   # one run dir per market (locks, logs, env)
 ENVF=${NATIVE_OPS_ENV:-$RUN/ops.env}
 [ -f "$ENVF" ] || { echo "missing private config $ENVF (see header)"; exit 2; }
 mode() { stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1"; }
