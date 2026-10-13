@@ -6,6 +6,7 @@ import { formatEther, type Address } from "viem";
 import { client } from "@/lib/public-client";
 import { usePermissions } from "@/lib/privy-api";
 import { PendingState } from "./feedback";
+import { TestUsdcFaucet } from "./test-usdc-faucet";
 import { Button } from "./ui";
 
 export function WalletTools({ address, embedded, close, reopen }: { address: Address; embedded: boolean; close: () => void; reopen: () => void }) {
@@ -24,6 +25,7 @@ export function WalletTools({ address, embedded, close, reopen }: { address: Add
   return <section className="mt-4 border-t border-line pt-4" aria-label="Wallet tools">
     <div className="flex items-center justify-between gap-3"><span className="text-xs">Gas: {balance.data !== undefined ? `${formatEther(balance.data)} MON` : balance.isPending ? "Reading…" : "unavailable"}</span><a className="text-xs text-signal-text underline" href="https://faucet.monad.xyz/" target="_blank" rel="noreferrer">Get test MON ↗</a></div>
     <p className="mt-2 break-all text-xs text-fg-3">Send testnet MON to this selected address. Mainnet MON cannot pay testnet gas.</p>
+    <TestUsdcFaucet address={address} gasAtoms={balance.data} close={close} reopen={reopen} />
     {embedded && <>
       <Button className="mt-3 w-full" disabled={busy} onClick={() => action(() => exportWallet({ address }))}>Export Privy wallet</Button>
       <details className="mt-4"><summary className="label cursor-pointer text-fg-2">Trading permissions</summary>
