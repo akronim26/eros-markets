@@ -4,6 +4,7 @@ import { keccak256, type Hex } from 'viem';
 import { publicManifest as manifest, deploymentManifests } from '../../src/config/deployment';
 import { client } from '../../src/lib/public-client';
 import { ensureDeployment, ensureNetwork, deploymentCacheKey, canonicalRead } from '../../src/lib/deployment-check';
+import { isSpotOnly, SPOT_MARKET_FACTORY } from '../../src/config/native';
 
 type Manifest = (typeof deploymentManifests)[number];
 type ContractRead = { address: string; functionName: string; args?: readonly unknown[] };
@@ -36,11 +37,13 @@ function fixture(t: TestContext) {
   }
   function contract({ address, functionName, args }: ContractRead) {
     const selected = deploymentManifests.find(m => m.markets.some(market => market.engine.toLowerCase() === address.toLowerCase() || market.marketId === args?.[0]))
-      ?? deploymentManifests.find(m => Object.values(m.contracts).some(c => c.address.toLowerCase() === address.toLowerCase()));
+      ?? deploymentManifests.find(m => Object.values(m.contracts).some(c => c.address.toLowerCase() === address.toLowerCase()))
+      ?? (address.toLowerCase() === SPOT_MARKET_FACTORY.toLowerCase() ? deploymentManifests.find(m => m.markets.some(market => isSpotOnly(market.engine))) : undefined);
     assert.ok(selected, 'only reviewed contracts are queried');
     const c = selected.contracts;
     const market = selected.markets.find(m => m.engine.toLowerCase() === address.toLowerCase() || m.marketId === args?.[0]);
-    if (functionName === 'engineOf') return state.badListing ? zeroAddress : market!.engine;
+    if (functionName === 'engineOf' || functionName === 'anchorOf') return state.badListing ? zeroAddress : market!.engine;
+    if (functionName === 'factory' && isSpotOnly(address)) return state.badBinding ? zeroAddress : SPOT_MARKET_FACTORY;
     if (functionName === 'listing') return {
       marketId: market!.marketId, indexSourceId: market!.sourceId, token: c.CollateralToken.address,
       registry: c.MarketRegistry.address, resolutionAuthority: c.ResolutionOracle.address,

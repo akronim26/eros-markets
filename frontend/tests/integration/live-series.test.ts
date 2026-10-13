@@ -14,10 +14,11 @@ test("invalid-depth observations never render a fabricated zero index; overlappi
   ] : []);
   const first = await readLiveSeries(engine, 100n, emptySeries());
   assert.equal(first.index.length,2); assert.equal(first.index[1].valid,false);
-  assert.deepEqual(priceSegments(first.index).flat().map(p => p.v),[0.5]);
+  // The invalid reading 1 s later is within the INDEX carry: it holds 0.5, never a zero.
+  assert.deepEqual(priceSegments(first.index).flat().map(p => p.v),[0.5,0.5]);
   const second = await readLiveSeries(engine,101n,{...first,error:"old failure"});
   assert.equal(second.index.length,2); assert.equal(second.error,undefined);
-  assert.deepEqual(priceSegments(second.index).flat().map(p => p.v),[0.5]);
+  assert.deepEqual(priceSegments(second.index).flat().map(p => p.v),[0.5,0.5]);
 });
 test("reorganized chart reads are rejected, and a replaced cursor discards old history",async(t)=>{
   let reads=0;

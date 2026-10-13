@@ -3,6 +3,7 @@ import { test, type TestContext } from "node:test";
 import { QueryClient } from "@tanstack/react-query";
 import { client, marketOptions, tradingSnapshotOptions } from "../../src/lib/reads";
 import { publicManifest as manifest } from "../../src/config/deployment";
+import { isSpotOnly, SPOT_MARKET_FACTORY } from "../../src/config/native";
 
 const engine = manifest.markets[0].engine;
 const owner = "0x2222222222222222222222222222222222222222";
@@ -41,7 +42,8 @@ function reader(t: TestContext, delay: () => Promise<void> = async () => {}, sto
         if (functionName === "listing") return { marketId: market!.marketId, indexSourceId: market!.sourceId,
           token, registry: manifest.contracts.MarketRegistry.address, resolutionAuthority: manifest.contracts.ResolutionOracle.address };
         if (functionName === "listingHash") return market!.listingHash;
-        if (functionName === "engineOf") return market!.engine;
+        if (functionName === "engineOf" || functionName === "anchorOf") return market!.engine;
+        if (functionName === "factory" && isSpotOnly(address)) return SPOT_MARKET_FACTORY;
         return ({ factory: manifest.contracts.MarketFactory.address, oracle: manifest.contracts.ResolutionOracle.address,
           registry: manifest.contracts.MarketRegistry.address, collateralVault: vault, token } as Record<string, string>)[functionName];
       });
