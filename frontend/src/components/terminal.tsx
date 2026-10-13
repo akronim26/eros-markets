@@ -102,7 +102,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
           markUnit={md?.risk.markAvailable ? wadToUnit(md.risk.markWad) : undefined}
           indexUnit={md?.risk.indexAvailable ? wadToUnit(md.risk.indexWad) : undefined}
           emptyTitle={!md ? "Loading market" : manifest.archived ? "Market archived" : !md.active ? "Trading has not opened" : "Waiting for price"}
-          emptyReason={emptyReason} historyStatus={live.historyStatus} readError={!!live.error || publicUnavailable} />
+          emptyReason={emptyReason} historyStatus={live.historyStatus} readError={!!live.error || publicUnavailable} source={manifest.source} />
       </div>
 
       <aside ref={ticketRef} tabIndex={-1} className={styles.trade} aria-label="Trade">

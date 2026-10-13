@@ -6,7 +6,7 @@ import { isClaimable, decodeSettlementStatus, STATUS_TEXT } from "@eros/risk-sdk
 import { type MarketSnapshot, type TraderSnapshot } from "@/lib/reads";
 import { ACCOUNTING, HEALTH, PRICING, STAGE, TEMPLATE, marketChip } from "@/lib/enums";
 import { atomsToUsdc, fmtDuration, fmtUtc, lotsToClaims, qToMoney, shortAddr, wadTo3 } from "@/lib/units";
-import { deployment, type MarketManifest } from "@/config/deployment";
+import { deployment, isNativeMarket, type MarketManifest } from "@/config/deployment";
 import { explorerAddress } from "@/config/chain";
 import { useOwner } from "./wallet";
 import { Button, Chip, Num, RegionHead, Row, Stat, Unavailable, cx } from "./ui";
@@ -42,6 +42,7 @@ export function MarketHeader({ manifest, m, source = [], now = Math.floor(Date.n
     <div className="flex min-h-16 flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3">
       <div className="flex min-w-0 flex-[1_1_16rem] flex-col items-start gap-1.5">
         <h1 className="w-full break-words text-sm leading-snug font-semibold text-fg">{manifest.title}</h1>
+        {isNativeMarket(manifest) && <Chip tone="signal" className="h-5 px-1.5 text-2xs">Native market · priced from Kuru</Chip>}
         {chip && <span className="max-w-full" title={chip.label}><Chip tone={chip.tone} className="h-auto min-h-6 max-w-full whitespace-normal py-1">{chip.label === "Paused: accounting sweep" ? "Trading paused" : chip.label}</Chip></span>}
       </div>
       {/* The headline price, set at scale like an exchange pair header; the stat below carries its label. */}
