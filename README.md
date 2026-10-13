@@ -85,12 +85,22 @@ Internally, one unit of cash (`Q`) is one USDC atom times 10¹⁸. One lot is 0.
 
 ## Contract Addresses
 
-Everything is on Monad testnet (chain ID 10143). The order book and the risk engine are the same contract, `BookRiskEngine`, so there's no separate address for the book.
+Monad testnet (chain ID 10143), deployed 11 October 2026. Each market gets one engine contract that holds both its order book and its risk engine, so there's no separate address for the book.
 
-- **What's deployed from this branch**: [`addresses.md`](addresses.md)
-- **The newest deployment records**: [`feat/pricefeed/addresses.md`](https://github.com/akronim26/eros-markets/blob/feat/pricefeed/addresses.md)
+- **Market engine (order book + risk), "Will Democrats win white women in the midterms?"**: [`0xA3955B47E943CCC6A23E3A66CFd60068de518068`](https://testnet.monadscan.com/address/0xA3955B47E943CCC6A23E3A66CFd60068de518068)
+- **ReserveVault (for that market)**: [`0x2B52E9796d86c04465c9a7d673f5060d280586e2`](https://testnet.monadscan.com/address/0x2B52E9796d86c04465c9a7d673f5060d280586e2)
+- **CollateralVault**: [`0x5E53c88eB3dA4C8640BC7AF51F0C5f8CC11205e4`](https://testnet.monadscan.com/address/0x5E53c88eB3dA4C8640BC7AF51F0C5f8CC11205e4)
+- **MarketFactory**: [`0x33Bf4bba245253377f2875C77a6647a76ef42600`](https://testnet.monadscan.com/address/0x33Bf4bba245253377f2875C77a6647a76ef42600)
+- **MarketRegistry**: [`0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33`](https://testnet.monadscan.com/address/0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33)
+- **EngineCodeStore**: [`0x009d425581A3cD59f78BB5198C52b2452bD93491`](https://testnet.monadscan.com/address/0x009d425581A3cD59f78BB5198C52b2452bD93491)
+- **EngineCodeStoreTail**: [`0x4231E897b07F6b6728569663Dfa73C88cc8FB0C7`](https://testnet.monadscan.com/address/0x4231E897b07F6b6728569663Dfa73C88cc8FB0C7)
+- **KeeperRouter**: [`0xf9afbf482F428f26E7a093Cd9B790827c9bE5667`](https://testnet.monadscan.com/address/0xf9afbf482F428f26E7a093Cd9B790827c9bE5667)
+- **RolloverBatcher**: [`0x59B40464F76BBA6009116d427ADD7f85cC295436`](https://testnet.monadscan.com/address/0x59B40464F76BBA6009116d427ADD7f85cC295436)
+- **ResolutionOracle**: [`0xb86a48B07eE07037F1B52273B9B50f20615B61e4`](https://testnet.monadscan.com/address/0xb86a48B07eE07037F1B52273B9B50f20615B61e4)
+- **UmaAdapter**: [`0x2750c61Ae27A40875b10D8232f68f31a8e2a3385`](https://testnet.monadscan.com/address/0x2750c61Ae27A40875b10D8232f68f31a8e2a3385)
+- **TestUSDC**: [`0x82C7236A14B635AFB6dC825115570aFE4C23c1DB`](https://testnet.monadscan.com/address/0x82C7236A14B635AFB6dC825115570aFE4C23c1DB)
 
-These are test setups, not real collateral or a production oracle.
+These run on test USDC with made-up risk calibration, and resolution goes through a testnet oracle sandbox. Nothing here is production collateral.
 
 ## Architecture & User Flow
 
@@ -173,7 +183,7 @@ npm run dev --prefix frontend
 
 Then open the URL Next.js prints, usually `http://localhost:3000`. The app talks to our Monad testnet deployment. To log in with a wallet, set `NEXT_PUBLIC_PRIVY_APP_ID` in `frontend/.env.local` and allow your local URL in Privy. Without it you can still browse, you just can't sign anything. Keep RPC URLs that contain keys in the server-only `MONAD_RPC_URL`.
 
-The frontend on its own won't start the price publishers, makers, keepers or indexer, and without them there's no market data. If you want a throwaway local backend with test collateral and a full settlement run, follow the [integrated backend setup](https://github.com/akronim26/eros-markets/blob/feat/pricefeed/README.md#exercise-the-integrated-backend-locally).
+The frontend on its own won't start the price publishers, makers, keepers or indexer, and without them there's no market data.
 
 ### Development Team
 
