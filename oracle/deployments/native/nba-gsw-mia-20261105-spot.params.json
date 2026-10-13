@@ -1,0 +1,22 @@
+{
+  "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+  "marketId": "0x8504d173055ab1bce57f6a4f4ac80340157e3cbe7fedf0ac06bfa515e818964c",
+  "collateral": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+  "rules": "Eros native prediction market on Monad testnet (test collateral tUSDC). Event: Miami Heat (away) at Golden State Warriors (home), NBA 2026-27 regular season, Chase Center, San Francisco, scheduled tip-off 2026-11-06T03:00:00Z (7:00 p.m. PT on 5 November 2026; API-Sports basketball game 519655). Resolves YES if the Golden State Warriors win the game, including any overtime, and NO if the Miami Heat win. One YES plus one NO token is a complete set backed by 1 tUSDC in the Eros outcome vault; YES and NO trade on Kuru order books. New complete sets cannot be issued from the scheduled tip-off; existing tokens remain transferable and tradable, and complete sets can be merged back into tUSDC until resolution. Resolution: the Eros oracle reads API-Sports basketball game 519655 (v1.basketball.api-sports.io) from two hours after the scheduled tip-off; only the final statuses FT and AOT resolve automatically, and the reported result is subject to the oracle's assertion liveness. If no automatic result is reported within six hours of the scheduled tip-off, the Eros oracle's review route resolves the market from the official NBA final score (nba.com). If the game is postponed, cancelled, abandoned or otherwise not completed by 2026-11-08T03:00:00Z, the market resolves INVALID. If the market resolves INVALID, or is still unresolved at its void deadline, each YES and each NO token redeems for 0.50 tUSDC.",
+  "scheduledT": 1793934000,
+  "issuanceCap": 10000000000,
+  "yesSymbol": "eGSW-YES2",
+  "noSymbol": "eGSW-NO2",
+  "kuruRouter": "0x7EFbE105Ca7415dE98F96622173458ac1c054630",
+  "kuru": {
+    "pricePrecision": 1000,
+    "sizePrecision": 1000,
+    "tickSize": 1,
+    "minSize": 1,
+    "maxSize": 1000000000,
+    "takerFeeBps": 0,
+    "makerFeeBps": 0,
+    "ammSpread": 100
+  },
+  "out": "deployments/native/nba-gsw-mia-20261105-spot.json"
+}

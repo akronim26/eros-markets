@@ -1261,3 +1261,22 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   tests or deployment were required. Existing untracked files remain untouched.
 - Commit this main overview separately, then update `feat/pricefeed` from its fetched remote
   and author its technical README against current source. No branch merge or public push.
+
+### 2026-10-13 (NM-S01..S12) — native NBA market as a normal spot prediction market — turn complete (not deployed)
+
+- User decision: the NBA native market is a normal prediction market (Kuru spot only, no perp),
+  resolved by the Eros oracle from API-Sports basketball (`v1.basketball.api-sports.io`, game
+  519655, verified by id with the user's key on 2026-10-13). INVALID pays 0.5 per token. One Eros
+  maker bot and one daily trader bot; no simulated takers. Perps to be built separately later.
+- Added `SpotResolutionAnchor` + `SpotMarketFactory` (oracle/src/native), basketball adapter in
+  `feedspec` (FT/AOT only; postponed/cancelled stay NOT_READY), canonical feed generator, listing,
+  governance (Timelock op: providers, authRef, feed-timing maxima, factory swap/restore) and go-live
+  scripts, maker / daily-trader / lifecycle / retire services (`packages/pricefeed/scripts/native-spot`),
+  listener auth config, frontend `spotOnly` venue lock, runbook `docs/runbooks/NATIVE_SPOT_MARKET.md`.
+- Tests (exit 0 unless noted): feedspec `bun test` 162/162; `NativeSpotMarket.t.sol` 9/9;
+  `NativeSpotFork.t.sol` 1/1 on live testnet state; workflows/resolution 15/15; workflows/listen 7/7;
+  frontend `tsc --noEmit`; full oracle `forge test` 335 pass / 3 fail (exit 1) — pre-existing, the
+  UMA suites need the separate 0.8.16 artifact build (`out/Finder.sol` missing).
+- Not done: no broadcast (the agent could not read keys); CRE CLI not installed locally; old market
+  workers still running; frontend manifest entry needs deployed addresses. Next: user runs
+  `scripts/native-market/spot-golive.sh`, retires the old market, starts listener and `spot-ops.sh`.

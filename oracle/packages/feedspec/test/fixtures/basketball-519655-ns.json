@@ -1,0 +1,71 @@
+{
+  "provenance": "API-Sports authenticated capture 2026-10-13 (v1.basketball games?id=519655, Heat at Warriors, not started)",
+  "response": {
+    "get": "games",
+    "parameters": {
+      "id": "519655"
+    },
+    "errors": [],
+    "results": 1,
+    "response": [
+      {
+        "id": 519655,
+        "date": "2026-11-06T03:00:00+00:00",
+        "time": "03:00",
+        "timestamp": 1793934000,
+        "timezone": "UTC",
+        "stage": null,
+        "week": null,
+        "venue": "Chase Center",
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "timer": null
+        },
+        "league": {
+          "id": 12,
+          "name": "NBA",
+          "type": "League",
+          "season": "2026-2027",
+          "logo": "https://media.api-sports.io/basketball/leagues/12.png"
+        },
+        "country": {
+          "id": 5,
+          "name": "USA",
+          "code": "US",
+          "flag": "https://media.api-sports.io/flags/us.svg"
+        },
+        "teams": {
+          "home": {
+            "id": 141,
+            "name": "Golden State Warriors",
+            "logo": "https://media.api-sports.io/basketball/teams/141.png"
+          },
+          "away": {
+            "id": 147,
+            "name": "Miami Heat",
+            "logo": "https://media.api-sports.io/basketball/teams/147.png"
+          }
+        },
+        "scores": {
+          "home": {
+            "quarter_1": null,
+            "quarter_2": null,
+            "quarter_3": null,
+            "quarter_4": null,
+            "over_time": null,
+            "total": null
+          },
+          "away": {
+            "quarter_1": null,
+            "quarter_2": null,
+            "quarter_3": null,
+            "quarter_4": null,
+            "over_time": null,
+            "total": null
+          }
+        }
+      }
+    ]
+  }
+}

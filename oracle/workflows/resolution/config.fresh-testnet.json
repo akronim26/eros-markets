@@ -4,5 +4,12 @@
   "oracle": "0xb86a48B07eE07037F1B52273B9B50f20615B61e4",
   "writeGasLimit": "400000",
   "httpTimeout": "8s",
-  "authSecrets": []
+  "authSecrets": [
+    {
+      "authRef": "0x4ce8349b839798cd24ec79199b6378b21a7d0d651c3ad2a89d42f8133407e25a",
+      "secretId": "SPORTSDATA_API_KEY",
+      "header": "x-apisports-key",
+      "prefix": ""
+    }
+  ]
 }
