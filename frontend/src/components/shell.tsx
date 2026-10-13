@@ -79,7 +79,7 @@ export function TestnetStrip() {
       <span className="font-semibold text-signal-text">// Testnet</span>
       <span>Collateral is a test token, not USDC</span>
       <span aria-hidden className="text-line max-md:hidden">/</span>
-      <span>External Polymarket prices · testnet oracle sandbox</span>
+      <span>Polymarket + Eros native (Kuru) prices · testnet oracle sandbox</span>
       <span aria-hidden className="text-line max-md:hidden">/</span>
       <span>Synthetic risk calibration · dynamic leverage up to 5×</span>
     </div>

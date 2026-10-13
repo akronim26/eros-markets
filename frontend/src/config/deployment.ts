@@ -45,6 +45,10 @@ export const markets: MarketManifest[] = deploymentManifests.flatMap((manifest) 
   oracleMarketId: m.marketId, resolution: "ORACLE", fixture: false, role: "demo",
 })));
 if (new Set(markets.map(m => m.engine.toLowerCase())).size !== markets.length) throw new Error("Duplicate market deployment.");
+/** Eros native market: YES/NO tokens trade on Kuru and the INDEX comes from the Kuru YES book. */
+export const isNativeMarket = (m: Pick<MarketManifest, "source">) => m.source?.startsWith("Eros native") ?? false;
 export const oracleMarkets = markets.map((m) => ({ id: m.marketId,
-  note: "External Polymarket event. Synthetic risk calibration; test collateral and owner-controlled UMA sandbox. CRE simulation mode." }));
+  note: isNativeMarket(m)
+    ? "Eros native event: YES/NO tokens trade on Kuru; INDEX from the Kuru YES book. 1x, test collateral and owner-controlled UMA sandbox."
+    : "External Polymarket event. Synthetic risk calibration; test collateral and owner-controlled UMA sandbox. CRE simulation mode." }));
 export const marketByEngine = (engine: string) => markets.find((m) => m.engine.toLowerCase() === engine.toLowerCase());

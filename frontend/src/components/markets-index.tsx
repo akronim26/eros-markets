@@ -5,11 +5,16 @@ import { useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Search, X } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
-import { type MarketManifest } from "@/config/deployment";
+import { isNativeMarket, type MarketManifest } from "@/config/deployment";
 import { useMarketList } from "@/lib/market-list";
 import { fmtDuration, lotsToClaims, wadTo3 } from "@/lib/units";
 import { chipFor } from "./market-parts";
 import { Chip, Num, SectionRule } from "./ui";
+
+/** Marks an Eros native market (own YES/NO tokens on Kuru) apart from external-price markets. */
+function NativeChip() {
+  return <Chip tone="signal" className="h-5 px-1.5 text-2xs">Native · Kuru</Chip>;
+}
 
 function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
   const m = useMarket(mk.engine, block);
@@ -20,8 +25,11 @@ function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now
     <tr className="hair-b group relative cursor-pointer hover:bg-hover focus-within:bg-hover">
       <td className="py-4 pr-6 pl-4">
         <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} trading terminal`} className="flex flex-col gap-1 after:absolute after:inset-0">
-          <span className="text-sm font-semibold text-fg">{mk.title}</span>
-          <span className="text-2xs text-fg-3">{mk.short} · {mk.resolution === "ORACLE" ? "Eros oracle" : "Manual test authority"}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-fg">{mk.title}</span>
+            {isNativeMarket(mk) && <NativeChip />}
+          </span>
+          <span className="text-2xs text-fg-3">{mk.short} · {isNativeMarket(mk) ? "Eros native market · priced from Kuru" : mk.source ? `${mk.source} price` : "External price"} · {mk.resolution === "ORACLE" ? "Eros oracle" : "Manual test authority"}</span>
         </Link>
       </td>
       <td className="pr-6">{chip ? <Chip tone={chip.tone}>{chip.label}</Chip> : <span className="text-fg-4">{m.isError ? "Unavailable" : "reading…"}</span>}{m.isError && <p role="alert" className="relative z-10 mt-1 text-xs text-ask">Read failed. <button className="underline" onClick={() => m.refetch()}>Retry</button></p>}</td>
@@ -51,7 +59,7 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
   return (
     <li className="frame relative bg-ground hover:bg-hover focus-within:bg-hover">
       <div className="label flex items-center justify-between px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">
-        <span>{mk.short}</span>
+        <span className="flex items-center gap-2">{mk.short}{isNativeMarket(mk) && <NativeChip />}</span>
         {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
       </div>
       <p className="px-3 pt-3 text-sm font-semibold leading-snug text-fg">{mk.title}</p>

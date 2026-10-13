@@ -19,6 +19,8 @@ type Props = {
   emptyReason: string;
   historyStatus: string;
   readError?: boolean;
+  /** Price source label, e.g. "Polymarket" or "Eros native (Kuru)". */
+  source?: string;
 };
 
 /** Historical points are authenticated source observations, not reconstructed mark prices. */
@@ -67,7 +69,7 @@ export function PriceAxis(p: Props) {
   return (
     <section aria-label="Index price chart" className="flex h-full min-w-0 flex-col">
       <div className="flex min-h-9 items-center justify-between gap-3 border-b border-line px-3">
-        <h2 className="text-xs font-medium">Chart <span className="ml-2 font-normal text-fg-3">YES · Polymarket</span></h2>
+        <h2 className="text-xs font-medium">Chart <span className="ml-2 font-normal text-fg-3">YES · {p.source ?? "Polymarket"}</span></h2>
         <span className={cx("inline-flex items-center gap-1.5 text-2xs", fresh ? "text-bid" : "text-fg-3")}><span className={cx("h-1.5 w-1.5", fresh ? "bg-bid" : "bg-fg-4")} aria-hidden />{p.readError ? "Reconnecting" : fresh ? "Live" : last ? "Delayed" : "Connecting"}</span>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2">
