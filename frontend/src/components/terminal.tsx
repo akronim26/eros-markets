@@ -25,7 +25,7 @@ import { ReservePanel } from "./reserve-panel";
 import { OperationsPanel } from "./operations-panel";
 import { OracleMarket } from "./resolution";
 import { ResolutionBanner, ResolutionStory } from "./resolution-story";
-import { SpotPanel } from "./spot-panel";
+import { SpotPanel, VenueBar } from "./spot-panel";
 import { nativeBinding } from "@/config/native";
 import { AccountHistory } from "./account-history";
 
@@ -96,6 +96,10 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       <MarketHeader manifest={manifest} m={md} source={live.index} readError={!!live.error || publicUnavailable} />
     </div>
     <ResolutionBanner manifest={manifest} m={md} onOpen={openResolution} />
+    {native && <VenueBar engine={manifest.engine} block={head.data?.number} venue={venue} onChange={(v) => {
+      setVenue(v);
+      ticketRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest" });
+    }} />}
     {manifest.archived && !md?.halted && <p role="status" className="border-x border-b border-line px-3 py-2 text-xs text-fg-2">Archived market. New positions are disabled; existing positions and funds remain accessible.</p>}
     {(readUnavailable || ladder.isError) && <p role="alert" className="flex flex-wrap items-center gap-2 border-x border-b border-line px-3 py-2 text-xs text-signal-text">Connection interrupted. Refresh before trading.<button className="underline" onClick={() => { void head.refetch(); void market.refetch(); void snapshot.refetch(); void ladder.refetch(); }}>Retry</button></p>}
 
