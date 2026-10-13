@@ -8,7 +8,7 @@
 # Private config: $NATIVE_OPS_ENV (default tmp/native-public/ops.env, mode 600, never committed) with
 #   MONAD_RPC_URL, NATIVE_OBSERVER_PRIVATE_KEY, NATIVE_KEEPER_PRIVATE_KEY, NATIVE_PERP_MAKER_PRIVATE_KEY,
 #   NATIVE_DEPLOYMENT (DeployNativeMarket JSON), NATIVE_RULES (rules JSON), NATIVE_ENGINE.
-# Optional: PUBLISH_MS (60000), KEEPER_EVERY (90), MAX_RESTARTS (5).
+# Optional: PUBLISH_MS (60000), KEEPER_EVERY (90), MAX_RESTARTS (5), MIN_GAS_MON (0.5), LOW_GAS_MON (3).
 # Keys are only read from that file (never argv). Each service holds an flock, so a second copy of the
 # same service cannot start: the INDEX signer and keeper never have two concurrent writers.
 set -uo pipefail
@@ -21,6 +21,7 @@ set -a; . "$ENVF"; set +a
 : "${MONAD_RPC_URL:?}" "${NATIVE_OBSERVER_PRIVATE_KEY:?}" "${NATIVE_KEEPER_PRIVATE_KEY:?}" "${NATIVE_PERP_MAKER_PRIVATE_KEY:?}"
 : "${NATIVE_DEPLOYMENT:?}" "${NATIVE_RULES:?}" "${NATIVE_ENGINE:?}"
 PUBLISH_MS=${PUBLISH_MS:-60000}; KEEPER_EVERY=${KEEPER_EVERY:-90}; MAX_RESTARTS=${MAX_RESTARTS:-5}
+MIN_GAS_MON=${MIN_GAS_MON:-0.5}; LOW_GAS_MON=${LOW_GAS_MON:-3}
 R=$MONAD_RPC_URL; ENG=$NATIVE_ENGINE
 ts() { date -u +%FT%TZ; }
 addr() { cast wallet address "$1"; }
@@ -41,23 +42,48 @@ check() {
 }
 
 # Bounded restart supervisor: restarts on exit with backoff 10, 20, 40... s (cap 300), at most MAX_RESTARTS
-# times, then stops and records why. Holds an flock for the service's lifetime (exclusive writer).
+# consecutive failures, then stops and records why. Holds an flock for the service's lifetime (exclusive writer).
+# An empty signer wallet is not a crash: the supervisor waits (polling every 60 s) until the wallet holds
+# MIN_GAS_MON, without spending restarts, and logs a FUND alert. A run that stayed up 10 minutes resets the count.
+gas_mon() { cast balance "$1" --rpc-url "$R" --ether 2>/dev/null || echo -1; }
+below() { python3 -c "import sys; sys.exit(0 if float('$1') < float('$2') else 1)"; }
+wait_for_gas() {
+  local name=$1 who=$2 since=0 bal
+  while :; do
+    [ -f "$RUN/$name.stop" ] && return 1
+    bal=$(gas_mon "$who")
+    # -1 means the balance read failed; let the service start and surface the RPC error itself.
+    if [ "$bal" = -1 ] || ! below "$bal" "$MIN_GAS_MON"; then
+      below "$bal" "$LOW_GAS_MON" && [ "$bal" != -1 ] && echo "$(ts) supervisor: LOW GAS $name signer $who has $bal MON (< $LOW_GAS_MON); fund soon" >> "$RUN/$name.log"
+      return 0
+    fi
+    [ $(( $(date +%s) - since )) -ge 600 ] && { echo "$(ts) supervisor: FUND $name signer $who: $bal MON < $MIN_GAS_MON; waiting for funds" >> "$RUN/$name.log"; since=$(date +%s); }
+    sleep 60
+  done
+}
 supervise() {
   local name=$1; shift
   # Secrets reach children only through the environment (never argv, which `ps` shows).
+  local who
   case $name in
-    publisher) export NATIVE_OBSERVER_KEY="$NATIVE_OBSERVER_PRIVATE_KEY" NATIVE_RPC="$R" ;;
-    keeper) export R ENG KEEPER_KEY="$NATIVE_KEEPER_PRIVATE_KEY" PERP_MAKER_KEY="$NATIVE_PERP_MAKER_PRIVATE_KEY" EVERY="$KEEPER_EVERY" ;;
+    publisher) export NATIVE_OBSERVER_KEY="$NATIVE_OBSERVER_PRIVATE_KEY" NATIVE_RPC="$R"; who=$(addr "$NATIVE_OBSERVER_PRIVATE_KEY") ;;
+    keeper) export R ENG KEEPER_KEY="$NATIVE_KEEPER_PRIVATE_KEY" PERP_MAKER_KEY="$NATIVE_PERP_MAKER_PRIVATE_KEY" EVERY="$KEEPER_EVERY"; who=$(addr "$NATIVE_KEEPER_PRIVATE_KEY") ;;
   esac
   exec 9>"$RUN/$name.lock"
   flock -n 9 || { echo "$(ts) $name already running (lock held); not starting a second writer"; exit 3; }
   echo $$ > "$RUN/$name.supervisor.pid"
   local n=0
   while :; do
+    wait_for_gas "$name" "$who" || { rm -f "$RUN/$name.stop"; echo "$(ts) supervisor: stop requested" >> "$RUN/$name.log"; break; }
     echo "$(ts) supervisor: starting $name (restart $n)" >> "$RUN/$name.log"
+    local began; began=$(date +%s)
     "$@" >> "$RUN/$name.log" 2>&1 & echo $! > "$RUN/$name.pid"; wait $!; local code=$?
     echo "$(ts) supervisor: $name exited code $code" >> "$RUN/$name.log"
     [ -f "$RUN/$name.stop" ] && { rm -f "$RUN/$name.stop"; echo "$(ts) supervisor: stop requested" >> "$RUN/$name.log"; break; }
+    [ $(( $(date +%s) - began )) -ge 600 ] && n=0
+    # Out of gas: wait for funding at the top of the loop instead of burning restarts.
+    local bal; bal=$(gas_mon "$who")
+    if [ "$bal" != -1 ] && below "$bal" "$MIN_GAS_MON"; then continue; fi
     n=$((n + 1)); [ "$n" -gt "$MAX_RESTARTS" ] && { echo "$(ts) supervisor: $name exceeded $MAX_RESTARTS restarts; operator review required" >> "$RUN/$name.log"; break; }
     local wait_s=$((10 * (1 << (n - 1)))); [ "$wait_s" -gt 300 ] && wait_s=300; sleep "$wait_s"
   done

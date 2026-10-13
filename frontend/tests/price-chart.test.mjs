@@ -23,15 +23,20 @@ test('short invalid stretches are bridged between their valid neighbours, never 
  // The solid line still breaks at every invalid reading.
  assert.deepEqual(priceSegments(points).map(s=>s.map(p=>p.t)),[[1,11],[20],[40]]);
 });
-test('bridges skip plain time gaps, long outages, malformed readings and reversed history',()=>{
- // 1 -> 141: 140 s with no invalid reading is a stale gap, not a bridge.
- assert.deepEqual(priceBridges([point(1),point(141)]),[]);
- // 10 -> 131: an invalid reading inside a 121 s span stays a gap.
- assert.deepEqual(priceBridges([point(10),point(50,0,false),point(131)]),[]);
+test('bridges span outages of any length but never malformed or reversed history',()=>{
+ // 1 -> 141: a 140 s stale gap (publisher outage) is bridged; the solid line still breaks there.
+ assert.deepEqual(priceBridges([point(1),point(141)]).map(([a,b])=>[a.t,b.t]),[[1,141]]);
+ assert.deepEqual(priceSegments([point(1),point(141)]).map(s=>s.map(p=>p.t)),[[1],[141]]);
+ // A 52-minute outage is bridged too.
+ assert.deepEqual(priceBridges([point(0),point(3120)]).map(([a,b])=>[a.t,b.t]),[[0,3120]]);
+ // 10 -> 131 across an invalid reading is bridged.
+ assert.deepEqual(priceBridges([point(10),point(50,0,false),point(131)]).map(([a,b])=>[a.t,b.t]),[[10,131]]);
+ // Readings inside the carry are already joined by the solid line: no bridge.
+ assert.deepEqual(priceBridges([point(0),point(60),point(120)]),[]);
  // A malformed reading after the invalid one forgets the left end.
  assert.deepEqual(priceBridges([point(1),point(2,0,false),point(3,NaN),point(4)]),[]);
  // The right end must be later than the left end.
  assert.deepEqual(priceBridges([point(10),point(11,0,false),point(9)]),[]);
- // Exactly the 120 s carry still bridges.
+ // Exactly the 120 s carry still bridges across an invalid reading.
  assert.deepEqual(priceBridges([point(0),point(60,0,false),point(120)]).map(([a,b])=>[a.t,b.t]),[[0,120]]);
 });

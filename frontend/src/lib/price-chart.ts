@@ -16,8 +16,10 @@ export function priceSegments(points: Point[]): Point[][] {
 }
 
 /**
- * Valid readings separated only by invalid ones, with the valid ends no further apart than the INDEX
- * carry. The chart draws these as a faint dotted bridge, never as price: long or malformed gaps stay gaps.
+ * Dotted "no valid price" connectors between consecutive valid readings that the solid line does not join:
+ * across invalid readings, or across a gap longer than the INDEX carry (a publisher outage), of any length.
+ * They keep the chart visually continuous but are never price: the solid line still breaks, and malformed
+ * or reversed history still drops the left end.
  */
 export function priceBridges(points: Point[]): [Point, Point][] {
   const bridges: [Point, Point][] = [];
@@ -26,7 +28,7 @@ export function priceBridges(points: Point[]): [Point, Point][] {
   for (const point of points) {
     if (point.valid === false) { invalidSince = true; continue; }
     if (!Number.isFinite(point.t) || !Number.isFinite(point.v) || point.v < 0 || point.v > 1) { previous = undefined; invalidSince = false; continue; }
-    if (previous && invalidSince && point.t > previous.t && point.t - previous.t <= INDEX_CARRY_SECS) bridges.push([previous, point]);
+    if (previous && point.t > previous.t && (invalidSince || point.t - previous.t > INDEX_CARRY_SECS)) bridges.push([previous, point]);
     previous = point;
     invalidSince = false;
   }
