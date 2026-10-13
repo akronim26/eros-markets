@@ -14,3 +14,7 @@ services/automation/var/
 
 # macOS metadata
 .DS_Store
+secrets.md
+
+# Runtime journal archives (multi-hundred-MB; never commit)
+*.tgz

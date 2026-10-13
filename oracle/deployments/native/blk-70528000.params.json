@@ -1,0 +1,22 @@
+{
+  "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+  "marketId": "0x22cb2264312f272ba210a723ab35fc40321138150472de502e8135b80df7c9ff",
+  "collateral": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+  "rules": "Eros native demo market on Monad testnet (test collateral). Resolves YES if Monad testnet (chain id 10143) produces block number 70528000 at or before 2026-10-14T01:00:00Z, as shown by eth_getBlockByNumber(70528000) on https://testnet-rpc.monad.xyz or https://testnet.monadscan.com/block/70528000 (block timestamp at or before T). YES may be resolved early as soon as that block exists. Resolves NO if that block does not exist by T. INVALID if the chain is reset or block data is unavailable from both sources by T plus 24 hours. Resolution uses the existing review/committee route with sandbox adjudication.",
+  "scheduledT": 1791939600,
+  "issuanceCap": 10000000000,
+  "yesSymbol": "eBLK-YES",
+  "noSymbol": "eBLK-NO",
+  "kuruRouter": "0x7EFbE105Ca7415dE98F96622173458ac1c054630",
+  "kuru": {
+    "pricePrecision": 1000,
+    "sizePrecision": 1000,
+    "tickSize": 1,
+    "minSize": 1,
+    "maxSize": 1000000000,
+    "takerFeeBps": 0,
+    "makerFeeBps": 0,
+    "ammSpread": 100
+  },
+  "out": "deployments/native/blk-70528000.json"
+}

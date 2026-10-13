@@ -1,0 +1,11 @@
+{
+  "question": "Will BTC/USD close above $82,500 on Kraken at 23:00 UTC on 14 October 2026?",
+  "rules": "Eros native demo market on Monad testnet (test collateral). Resolves YES if the close price of the Kraken XBT/USD 1-minute OHLC candle that opens at 2026-10-14T22:59:00Z is strictly greater than 82500.0 USD, and NO if it is less than or equal to 82500.0 USD. Source: https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=1 . If Kraken publishes no candle for that minute by 2026-10-15T23:00:00Z, the market resolves INVALID. Resolution uses the existing review/committee route with sandbox adjudication.",
+  "templateMarketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+  "oiCapLots": 1000000,
+  "indexSourceId": "0x0ac25ed0cbddd65b8cc88c82d2427117b42a4500d127f0354b259a7a115140d6",
+  "indexSigner": "0x5aE3c3f1622c7360B032ADb135f51F97aD3d8Dd9",
+  "indexRulesHash": "0xe8f7bb1c386499fb04dab45f4c43daeee8639405adbeb056fc452bcded86ef75",
+  "depthNLots": 100000,
+  "maxSpreadWad": 50000000000000000
+}

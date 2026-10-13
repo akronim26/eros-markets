@@ -1,0 +1,13 @@
+{
+  "rules": "../../oracle/deployments/native/nba-mia-gsw-20261105.rules.json",
+  "engineListing": {
+    "indexSourceId": "0x88c1ef279a930f6a8c251450e9b61046e73e09e05d1588cb4da84125271acf81",
+    "indexSigner": "0x2174Ef0C7c96E908A06A4DB51AB235A35756b105",
+    "indexRulesHash": "0xc55f83213472f44070ec0ab166b692091deef41e4a4ce3d77a504a2d92d46ee3",
+    "depthNLots": "100000",
+    "maxSpreadWad": "50000000000000000",
+    "scheduledT": "1793934000",
+    "token": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB"
+  },
+  "note": "Use these exact values in the ListMarket pack; the publisher refuses a listing that does not pin them."
+}

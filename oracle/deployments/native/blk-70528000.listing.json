@@ -1,0 +1,11 @@
+{
+  "question": "Will Monad testnet reach block 70,528,000 before 01:00 UTC on 14 October 2026?",
+  "rules": "Eros native demo market on Monad testnet (test collateral). Resolves YES if Monad testnet (chain id 10143) produces block number 70528000 at or before 2026-10-14T01:00:00Z, as shown by eth_getBlockByNumber(70528000) on https://testnet-rpc.monad.xyz or https://testnet.monadscan.com/block/70528000 (block timestamp at or before T). YES may be resolved early as soon as that block exists. Resolves NO if that block does not exist by T. INVALID if the chain is reset or block data is unavailable from both sources by T plus 24 hours. Resolution uses the existing review/committee route with sandbox adjudication.",
+  "templateMarketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+  "oiCapLots": 1000000,
+  "indexSourceId": "0x155aa6dbc2b909f018af174db1c1ca41802e40053b5c40dde846544de472ebd5",
+  "indexSigner": "0x5aE3c3f1622c7360B032ADb135f51F97aD3d8Dd9",
+  "indexRulesHash": "0x566c5ced8e8f9deae51217aae78972806848be350182058174b8d79c20e9274a",
+  "depthNLots": 100000,
+  "maxSpreadWad": 50000000000000000
+}
