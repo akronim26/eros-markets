@@ -1,6 +1,66 @@
 # Follow-up deployment: 5x Warriors vs Heat native perp
 
-Status as of 2026-10-14 ~01:50 IST. Monad testnet only. Nothing below is committed yet.
+Status as of 2026-10-14 ~02:35 IST. Monad testnet only. Steps 1–3, 5 and 6 and the maker funding in
+step 4 are done (see "Progress"). What is left runs on the operator machine that hosts the supervisor.
+
+## Progress (2026-10-14, cloud session)
+
+On chain (Monad testnet, all `status 1`):
+
+| Step | What | Evidence |
+|---|---|---|
+| 1 | 5x perp listed, `--gas-estimate-multiplier 104` (29,710,546 gas) | tx `0x62f51351…433c2b`, block 70779079. Engine **`0x0ff5EAE643CB7E303f1726A92C03686674D445C0`** (as predicted at lister nonce 433). `listingHash` `0xcc35d5b3c55ccb74edcd6e6ddf2af1a6eb283ed220518599d2874b1ccb6a67b2`, EXTCODEHASH `0x1b15eb5d5ea820fc0863a803db681bbec991197f112c7d2f85a3518dfc701b4a` |
+| 2 | Reserve 100,000 tUSDC: mint, approve, deposit, `allocate(ENG, 1e11, true)` | `0x61ec0bad…5fc78`, `0x8126804e…f8207`, `0x590faeb2…30fc4`, `0x30fa1b5d…12a78`; `marketAtoms(ENG)` = 1e11 before step 4 |
+| 3 | Timelock op `0xce82ccac…21b29b`: `stageRiskParams(perp5x calibration)` + `activateMarket()` | propose `0x8b869342…1d9745` (block 70779536), execute `0xb514fc94…4d0c5bf` (block 70780669). `activeProfile()` = version 2, hash `0x1a4bd2261318f3ccfe131d252b39cc284ff6625d8b06cf207968a345a1fc302f` |
+| 4 (part) | Perp maker `0x1A54…bbEd` funded on the new engine: mint 2,000 tUSDC, `perp.sh fund 2000000000` | `0xf6dbda12…0236`, `0x307f2b07…f7f6`, `0xdb1de4ee…83d9`; `participantCount` = 1, `marketAtoms(ENG)` = 1.02e11 |
+
+`native-verify.js` against the new engine and the 5x rules: 20/20 PASS (it was 19/20 before the
+leverage check below was relaxed). `marketRiskView`: `liquidationCapLots` = `liquidationRemainingLots` = 100000.
+
+Code (uncommitted at the time of writing):
+
+- **Step 5 done:** `scripts/native-market/liquidation.sh`, sourced by `keeper-daemon.sh`. Each keeper loop,
+  before re-quoting: if accounting is open and the per-block liquidation budget is non-zero, walk trader ids
+  1..`participantCount()` from a rotating cursor (`LIQ_SCAN`, default 32 per loop), `eth_call`
+  `liquidate(id, liquidationCapLots, 8, 0)` from the keeper, and send only a productive result (reason 0 and
+  book/paired lots > 0 or TAKEOVER authorized), the same rule as the `polymarket-perp` operations worker.
+  Same key and loop as sampling and rollover, so one nonce sequence. `LIQUIDATE=0` disables it; on a 1x engine
+  (`maxLiqLotsPerBlock` 0) it is two reads per loop. Tests: `node --test scripts/native-market/liquidation.test.mjs`
+  (6/6, two mutations each caught); live read-only decode against all three perps; one daemon run on an anvil
+  fork of testnet (`liquidate(1, 100000, 8, 0)` simulated, not productive, nothing sent).
+- **Supervisor check unblocked:** `native-verify.ts` required 1x (`FAIL engine 1x, funding off`), which would
+  have stopped `market-supervisor check` with `NATIVE_VERIFICATION_FAILED`. It now accepts funding off and
+  either 1x, or above 1x with `maxLiqLotsPerBlock > 0` and a non-zero `activeProfile().profileHash`
+  (`packages/pricefeed/src/native/leverage.ts`, test `native-leverage.test.ts`, 3/3).
+- **Step 6 done (config):** `public-manifest.json` has `native-nba-gsw-mia-perp5x-0ff5eae6` (values above,
+  `deploymentCapX: 5`, `maxLiqLotsPerBlock: "100000"`, `fundingEnabled: false`); `market-metadata.json` has its
+  title and marks `native-nba-gsw-mia-perp-cac9ac9f` archived.
+
+## Remaining (operator machine, in this order)
+
+1. `cp tmp/native-spot-perp/ops.env tmp/native-spot-perp5x/ops.env` (mode 600); set
+   `NATIVE_ENGINE=0x0ff5EAE643CB7E303f1726A92C03686674D445C0` and
+   `NATIVE_RULES=oracle/deployments/native/nba-gsw-mia-20261105-spot-perp5x.rules.json`. Same three keys (the
+   INDEX source id and signer are the same as the 1x perp).
+2. Rebuild the pricefeed (`cd packages/pricefeed && npm run build`) so the supervisor runs the new `native-verify`.
+3. In `tmp/redeploy-20261011/supervisor.json`: replace the `native-nba-gsw-mia-perp` group with
+   `{ "name": "native-nba-gsw-mia-perp5x", "kind": "native-spot-perp", "privateDirectory": "tmp/native-spot-perp5x" }`
+   (do `followup_deploysetup.md` §1 first if it is still open), and add
+   `0x16923600608b07715ea532a2b05bb1f4881c8fff4dae9f2a140e282682d2afeb` to the spot group's `linkedMarketIds`
+   (the old 1x id may stay there so the old market still resolves).
+4. Restart the supervisor (SIGTERM, wait for `stopped`, `check`, `run`). Only one keeper may run per key: the 1x
+   group must be gone before the 5x group starts, because both use the same keeper and perp maker keys.
+5. Retire the 1x perp (its workers are stopped by step 4). With `KEY=<perp maker> ENG=0xCAc9AC9F5720b0b07D3B78925c33906429e16325 R=$R`
+   exported: `bash -c "eval \"\$(sed -n '1,14p' scripts/native-market/perp.sh)\"; tx \"\$ENG\" 'cancelAll()'"`, then
+   `bash scripts/native-market/perp.sh release 2000000000` (its cash was 2,000 tUSDC; check `perp.sh status` first).
+   It has two participants; leave it listed so they can close.
+6. Verify: `/m/0x0ff5EAE643CB7E303f1726A92C03686674D445C0` loads; INDEX and MARK become available within a few
+   keeper cycles (`pricingMode` 0 → 1 via `activatePricing`); `leverageCaps()` returns `(5, 5)` once MARK is up.
+7. Deploy the frontend with the manifest/metadata change.
+
+The original plan follows for reference.
+
+## Historical: plan as written before the cloud session
 
 ## Goal
 
