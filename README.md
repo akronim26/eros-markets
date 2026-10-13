@@ -119,19 +119,6 @@ Here's what happens over one market's life, from depositing to claiming your pay
 
 <img src="docs/assets/architecture.png" width="800" alt="EventPerp call sequence" />
 
-You can edit this diagram in Excalidraw: open [`docs/assets/architecture.excalidraw`](docs/assets/architecture.excalidraw) at [excalidraw.com](https://excalidraw.com). Or change the steps in `docs/assets/gen_architecture.py` and run `python3 docs/assets/gen_architecture.py` to rebuild it.
-
-Where things live in the contracts:
-
-| Module | Where | Looks after |
-|---|---|---|
-| Order book | `contracts/src/Book.sol` | order ids, price levels, matching, cancels |
-| Risk & Clearing | `contracts/src/risk`, `contracts/src/math` | cash, positions, margin, funding, premiums, reserve coverage, liquidation, market stages |
-| Pricing | `contracts/src/pricing` | signed price updates, the 5-minute index average, the mark price |
-| Vaults | `contracts/src/vaults` | USDC custody (`CollateralVault`), reserve shares (`ReserveVault`), `BackstopPool` |
-| Settlement | `contracts/src/settlement` | the halt snapshot, the INVALID price, preparing payouts, claims |
-| Resolution oracle | another team | evidence, voting and disputes. It can only call `halt`, `settle` and `settleInvalid` |
-
 ## 🚀 Quick Start
 
 ### Prerequisites
