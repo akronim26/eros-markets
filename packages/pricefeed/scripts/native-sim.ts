@@ -15,7 +15,8 @@ import { privateKeyToAccount } from 'viem/accounts';
  *
  * Env: RPC, D (DeployNativeMarket JSON), MAKER_KEY, TAKER_KEYS (comma-separated), STRIKE (USD),
  *      SIM_FAIR (kraken|walk), SIM_VOL (default 0.5), HALF_SPREAD_TICKS (10), QUOTE_LOTS (150000),
- *      SKEW_TICKS_PER_100 (6), MAKER_EVERY_MS (30000), DURATION_MIN (60), CANCEL_ON_EXIT (0: keep last quotes).
+ *      SKEW_TICKS_PER_100 (6), MAKER_EVERY_MS (30000), DURATION_MIN (60), CANCEL_ON_EXIT (0: keep last quotes),
+ *      MAX_STEP_TICKS (6: per re-quote; keeps INDEX moves under the engine's 0.10-per-300 s movement guard).
  * Every amount is an integer in Kuru units: price units = ticks (1/1000), size units = lots (1/1000 claim).
  */
 const MARGIN = getAddress('0xd029C2D98ff85D8F64799017fE00a59B1159CE02');
@@ -119,6 +120,9 @@ async function maker() {
     ids[side] = fresh;
     quoted[side] = [bid, ask];
   }
+  // Start the rate limiter from the live YES book mid (read BEFORE the startup cleanup cancels our own quotes), so the first re-quote cannot jump.
+  const [b0, a0] = await pub.readContract({ address: YB, abi: BOOK, functionName: 'bestBidAsk' }) as [bigint, bigint];
+  const bookMid = a0 > 0n && b0 < 10n ** 30n ? Number((b0 + a0) / 2n / 10n ** 15n) : null;
   // Startup cleanup: cancel every order this maker still has open on either book. Leftover quotes
   // (e.g. the last quotes a previous run left resting) would make new post-only quotes cross.
   // Kuru's s_orders(id) gives owner + remaining size; walk the most recent SCAN_ORDERS ids.
@@ -143,7 +147,12 @@ async function maker() {
       // Inventory skew: if takers bought YES from us (our margin YES fell), raise YES quotes.
       const sold = Number(startYes + depositedYes - await bal(YES)) / 1e6; // claims of YES net sold to takers (deposits excluded)
       const skew = Math.round((sold / 100) * SKEW);
-      const mid = Math.round(f.p * 1000) + skew;
+      // Rate-limit the quoted mid: at most MAX_STEP_TICKS per re-quote, so INDEX never moves more than
+      // the engine's movement guard (0.10 within 300 s), which would latch the market reduce-only.
+      const target = Math.round(f.p * 1000) + skew;
+      const prev = quoted.yes ? (quoted.yes[0] + quoted.yes[1]) / 2 : bookMid ?? target;
+      const step = Number(env('MAX_STEP_TICKS', '6'));
+      const mid = Math.round(prev + Math.max(-step, Math.min(step, target - prev)));
       const yb = Math.max(1, Math.min(998 - 2 * HALF, mid - HALF)), ya = yb + 2 * HALF;
       const nb = Math.max(1, 1000 - ya), na = Math.min(999, 1000 - yb);
       const moved = (q: [number, number] | null | undefined, b: number) => !q || Math.abs(q[0] - b) >= 1;
