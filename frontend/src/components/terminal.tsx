@@ -25,7 +25,8 @@ import { ReservePanel } from "./reserve-panel";
 import { OperationsPanel } from "./operations-panel";
 import { OracleMarket } from "./resolution";
 import { ResolutionBanner, ResolutionStory } from "./resolution-story";
-import { SpotPanel, VenueBar } from "./spot-panel";
+import { SpotHeader, SpotWorkspace, VenueBar, useKuruTrades } from "./spot-terminal";
+import { useSpot } from "@/lib/spot";
 import { nativeBinding } from "@/config/native";
 import { AccountHistory } from "./account-history";
 
@@ -39,8 +40,14 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const head = useHead();
   const block = head.data?.number;
   const owner = useOwner();
+  const native = !!nativeBinding(manifest.engine);
+  const [venue, setVenue] = useState<"perp" | "spot">("perp");
+  const spotView = native && venue === "spot";
+  // Each view polls only what it shows: the shared read proxy admits a few requests at a time.
+  const spot = useSpot(manifest.engine, spotView ? owner.address : undefined, native ? block : undefined);
+  const kuruTrades = useKuruTrades(manifest.engine, native);
   const market = useMarket(manifest.engine, block);
-  const snapshot = useTradingSnapshot(manifest.engine, owner.address, block);
+  const snapshot = useTradingSnapshot(manifest.engine, owner.address, spotView ? undefined : block);
   const md = market.data;
   const actionMarket = snapshot.data?.market;
   const trader = snapshot.data?.trader;
@@ -48,7 +55,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const readUnavailable = publicUnavailable || snapshot.isError || !!snapshot.data?.accountError;
   // Custody actions use the trading snapshot only; display reads (market header, ladder, prices) cannot block them.
   const custodyUnavailable = head.isError || snapshot.isError || !!snapshot.data?.accountError;
-  const ladder = useLadder(manifest.engine, md?.block, md?.bestBid ?? 0, md?.bestAsk ?? 0);
+  const ladder = useLadder(manifest.engine, spotView ? undefined : md?.block, md?.bestBid ?? 0, md?.bestAsk ?? 0);
   const live = usePriceSeries(manifest.engine, block);
   useMarketActivity(manifest.engine, !manifest.archived);
   const waking = md && !publicUnavailable ? wakeProgress({ active: md.active, halted: md.halted, archived: manifest.archived,
@@ -57,8 +64,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const [intent, setIntent] = useState<CloseIntent>();
   const [bookPrice, setBookPrice] = useState<BookPriceIntent>();
   const [tab, setTab] = useState<Tab>("Position");
-  const native = !!nativeBinding(manifest.engine);
-  const [venue, setVenue] = useState<"perp" | "spot">("perp");
+
   const activityRef = useRef<HTMLElement>(null);
   // A halted market's main story is its resolution: open that tab once, unless the viewer already chose one.
   const chosen = useRef(false);
@@ -93,17 +99,15 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       <Link href="/markets" aria-label="Back to all markets" className="flex min-h-11 shrink-0 items-center gap-2 px-3 text-xs text-fg-2 hover:bg-hover hover:text-fg">
         <ArrowLeft size={15} aria-hidden /><span className="hidden sm:inline">Markets</span>
       </Link>
-      <MarketHeader manifest={manifest} m={md} source={live.index} readError={!!live.error || publicUnavailable} />
+      {spotView ? <SpotHeader manifest={manifest} s={spot.data} trades={kuruTrades.data?.trades} now={Number(head.data?.timestamp ?? BigInt(Math.floor(Date.now() / 1000)))} />
+        : <MarketHeader manifest={manifest} m={md} source={live.index} readError={!!live.error || publicUnavailable} />}
     </div>
     <ResolutionBanner manifest={manifest} m={md} onOpen={openResolution} />
-    {native && <VenueBar engine={manifest.engine} block={head.data?.number} venue={venue} onChange={(v) => {
-      setVenue(v);
-      ticketRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest" });
-    }} />}
-    {manifest.archived && !md?.halted && <p role="status" className="border-x border-b border-line px-3 py-2 text-xs text-fg-2">Archived market. New positions are disabled; existing positions and funds remain accessible.</p>}
-    {(readUnavailable || ladder.isError) && <p role="alert" className="flex flex-wrap items-center gap-2 border-x border-b border-line px-3 py-2 text-xs text-signal-text">Connection interrupted. Refresh before trading.<button className="underline" onClick={() => { void head.refetch(); void market.refetch(); void snapshot.refetch(); void ladder.refetch(); }}>Retry</button></p>}
+    {native && <VenueBar s={spot.data} engine={manifest.engine} venue={venue} onChange={setVenue} />}
+    {!spotView && manifest.archived && !md?.halted && <p role="status" className="border-x border-b border-line px-3 py-2 text-xs text-fg-2">Archived market. New positions are disabled; existing positions and funds remain accessible.</p>}
+    {!spotView && (readUnavailable || ladder.isError) && <p role="alert" className="flex flex-wrap items-center gap-2 border-x border-b border-line px-3 py-2 text-xs text-signal-text">Connection interrupted. Refresh before trading.<button className="underline" onClick={() => { void head.refetch(); void market.refetch(); void snapshot.refetch(); void ladder.refetch(); }}>Retry</button></p>}
 
-    {waking && <div role="status" aria-live="polite" className="flex flex-wrap items-center gap-x-4 gap-y-1 border-x border-b border-line px-3 py-2 text-xs text-fg-2">
+    {!spotView && waking && <div role="status" aria-live="polite" className="flex flex-wrap items-center gap-x-4 gap-y-1 border-x border-b border-line px-3 py-2 text-xs text-fg-2">
       <span className="text-fg">Market waking up</span>
       <ol className="flex items-center gap-3" aria-label="Wake-up progress">
         {waking.steps.map(step => <li key={step.label} className={cx("inline-flex items-center gap-1.5", step.done ? "text-bid" : "text-fg-3")}>
@@ -111,7 +115,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       </ol>
       <span className="text-fg-3">{waking.detail}</span>
     </div>}
-    <div className={styles.workspace}>
+    {spotView ? <SpotWorkspace manifest={manifest} halted={!!md?.halted} spot={spot} trades={kuruTrades} live={live} /> : <div className={styles.workspace}>
       <div className={styles.chart} aria-busy={!md && !publicUnavailable}>
         <PriceAxis index={live.index} perp={live.perp}
           markUnit={md?.risk.markAvailable ? wadToUnit(md.risk.markWad) : undefined}
@@ -121,15 +125,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       </div>
 
       <aside ref={ticketRef} tabIndex={-1} className={styles.trade} aria-label="Trade">
-        {native && <div role="tablist" aria-label="Venue" className="grid grid-cols-2 border-b border-line" onKeyDown={selectionKeys}>
-          {(["perp", "spot"] as const).map((v) => <button key={v} type="button" role="tab" aria-selected={venue === v} tabIndex={venue === v ? 0 : -1} onClick={() => setVenue(v)}
-            className={cx("relative min-h-11 text-xs font-semibold", venue === v ? "text-fg" : "text-fg-3 hover:text-fg")}>
-            {v === "perp" ? "Perp · Eros" : "Spot · Kuru"}{venue === v && <span className="absolute inset-x-3 bottom-0 h-0.5 bg-signal" aria-hidden />}
-          </button>)}
-        </div>}
-        {native && venue === "spot"
-          ? <SpotPanel key={owner.address ?? "disconnected"} engine={manifest.engine} block={head.data?.number} halted={!!md?.halted} />
-          : <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={actionMarket} trader={trader} intent={intent} bookPrice={bookPrice} readUnavailable={readUnavailable} />}
+        <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={actionMarket} trader={trader} intent={intent} bookPrice={bookPrice} readUnavailable={readUnavailable} />
       </aside>
 
       <div className={styles.trades}>
@@ -178,6 +174,6 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
             : manifest.oracleMarketId ? <><ResolutionStory manifest={manifest} m={md} /><details className="border-t border-line"><summary className="cursor-pointer px-4 py-3 text-xs text-fg-3">Oracle record</summary><OracleMarket id={manifest.oracleMarketId} engine={manifest.engine} /></details></> : <p className="p-4 text-xs text-fg-3">This test market uses manual settlement.</p>}
         </div>
       </section>
-    </div>
+    </div>}
   </main>;
 }
