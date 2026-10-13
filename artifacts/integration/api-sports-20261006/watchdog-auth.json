@@ -1,0 +1,42 @@
+{
+  "0x89845a896b85faa4a04eb539e6f4f6a5dc9adef6d80173a6fbfab33485dd9023": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0xb604e7317061345160834db331f7c4185a6f428ef63b803a22274f2223a4a8e6": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0x0e628622cd2161fe0d4017e233afc3e39e3ecbf3b6427f59ab20e22146b6acd6": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0x4fdfefbfe1f3115c6a04bcf16141b57c0000c5b2cc56108decfc0a2452207748": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0x052cc779b20655251ddf6db42893edd51e5a048f35c40162c8e83dbf786bacb6": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0xec9335e3e8efadae0de39d96f7a151309c096342e2b78cff93390d4fa7674782": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0xec99a18fcc9e91bbc56226a229a8e73a35044f44f8949ca2b06f1a86445d044d": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0xfa526fb0775cc1cbb48f5e30d107090873a6c44c8bc2141d49c4179bfd48f632": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0xee84b697964bc21dd1185d036cc28f884dd02775579ea2dc6ad5a069c87bf4cf": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  },
+  "0x3526a8a012a0e33ef42f66f4feece600ce6ef0b98891850677ad7e1d93808ec0": {
+    "header": "x-apisports-key",
+    "env": "SPORTSDATA_API_KEY_VALUE"
+  }
+}

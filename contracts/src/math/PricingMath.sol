@@ -7,7 +7,8 @@ import {WAD} from "./RiskTypes.sol";
 /// @title PricingMath
 /// @notice Validity-weighted time integrals, TWAP windows, impact-mid depth validity, basis, mark
 ///         median and band clamp, beta0 funding rate and the movement trigger (spec §4.1, §4.4;
-///         reference/b/pricing.py). Pure: no signatures, no storage, no feeds.
+///         reference/b/pricing.py). No signatures, no storage, no feeds. Window selection reads
+///         the chain ID; the pricing arithmetic remains pure.
 /// @dev Prices are wad (basis may be negative, so samples are int256). A sample observed at t
 ///      carries forward over [t, min(next.t, t + stale)); a later sample at the same second
 ///      replaces the earlier one with zero elapsed weight. TWAPs floor (assumption M-2).
@@ -19,6 +20,11 @@ library PricingMath {
     uint64 internal constant INDEX_WINDOW = 300;
     uint64 internal constant PERP_WINDOW = 60;
     uint64 internal constant BASIS_WINDOW = 900;
+    uint256 internal constant MONAD_TESTNET_CHAIN_ID = 10143;
+    uint64 internal constant TESTNET_INDEX_WINDOW = 60;
+    uint64 internal constant TESTNET_BASIS_WINDOW = 60;
+    uint64 internal constant TESTNET_INDEX_CARRY = 120;
+    uint64 internal constant TESTNET_BOOK_CARRY = 300;
     uint64 internal constant INVALID_WINDOW = 86400;
     uint64 internal constant MOVE_LOOKBACK = 300;
     uint256 internal constant MOVE_THRESHOLD_WAD = 1e17;
@@ -29,6 +35,35 @@ library PricingMath {
     uint8 internal constant FUNDING_DISABLED = 1;
     uint8 internal constant FUNDING_STALE_PRICE = 2;
     uint8 internal constant FUNDING_ZERO_OI = 3;
+
+    /// @notice Shorter history is limited to Monad testnet. Production/default chains retain
+    ///         the original windows; carry, PERP, risk parameters and epoch timing are unchanged.
+    function indexWindow() internal view returns (uint64) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_INDEX_WINDOW : INDEX_WINDOW;
+    }
+
+    function basisWindow() internal view returns (uint64) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_BASIS_WINDOW : BASIS_WINDOW;
+    }
+
+    /// @notice Carry of an authenticated INDEX observation. Monad testnet publishes about every
+    ///         80 s to cut gas, so a sample carries 120 s there; other chains keep 30 s.
+    function indexCarry() internal view returns (uint64) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_INDEX_CARRY : STALE_SECS;
+    }
+
+    /// @notice Carry of a sealed book-derived PERP/BASIS sample. A capture is sealed only by a later
+    ///         authenticated INDEX observation, so coverage must outlast about two publish cycles
+    ///         on Monad testnet (300 s); other chains keep 30 s.
+    function bookCarry() internal view returns (uint64) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID ? TESTNET_BOOK_CARRY : STALE_SECS;
+    }
+
+    /// @notice Monad testnet fast startup: index-warmup quoting and one-time pricing activation
+    ///         as soon as every window is valid. Other chains keep epoch-only promotion.
+    function fastStartup() internal view returns (bool) {
+        return block.chainid == MONAD_TESTNET_CHAIN_ID;
+    }
 
     struct Sample {
         uint64 t; // observedAt

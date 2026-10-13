@@ -1,0 +1,8 @@
+{
+  "name": "@eros-oracle/cre-listener",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "bun test", "start": "bun main.ts" },
+  "dependencies": { "viem": "2.57.2" },
+  "devDependencies": { "@types/bun": "1.3.13", "typescript": "5.9.3" }
+}

@@ -1,10 +1,81 @@
 # Risk & Clearing — STATUS
 
-- Shared branch: `integration/risk`; last updated by YASH-ai-bit's Codex turn on 2026-10-04.
+Current deployed addresses and operator status are recorded in
+[addresses.md](../../addresses.md) and
+[DEPLOYMENT_PROGRESS.md](../integration/DEPLOYMENT_PROGRESS.md). The October 9
+replacement BTC/ETH markets supersede the fixture and earlier integration
+deployments below. This file retains source-bound engineering history; old
+deployment addresses and authorization boundaries describe their recorded turns.
+
+- Shared branch: `integration/risk`; integration follow-up updated on 2026-10-06.
 - Unified Risk and Order Book ownership and automated validation: `CLAUDE.md` and `docs/merge/UNIFIED_WORKFLOW.md`.
 - Historical reports and accepted G0–G6 SHAs are retained; technical reruns do not grant human acceptance.
 
-## Current summary
+## Historical integration summary — October 6
+
+**Integrated backend follow-up, 2026-10-06:** current entrypoints and boundaries
+are documented in [INTEGRATION_READINESS.md](../integration/INTEGRATION_READINESS.md),
+with a versioned frontend SDK/read handoff and the integrated deployment runbook.
+The current work includes generic bounded rollover, real-engine oracle service
+adapters, genuine-source local execution, owner transaction builders, canonical
+receipt/state audits and deployment preparation for two code stores plus the
+factory/vault/registry sequence. Final validation is recorded separately from the
+historical checkpoints below. Public deployment and frontend branch merging
+remain deferred; no prior human gate approval is renewed.
+
+The leveraged settlement proof exposed a reporting-only defect: the accounting
+ledger paid full claims, but the status/event omitted the reserve-funded deficit.
+The bridge now derives exact final deficit and net whole reserve contribution
+from frozen accounting aggregates. Original claims, custody and coverage rules
+remain enforced. Because this changes engine bytecode, final deployment/live
+proofs must identify the rebuilt runtime, rather than reuse an earlier address.
+
+**Reserve-funded leverage, 2026-10-05 (RF-06 checkpoint):** constructor-bound listings
+now support up to 5x under the existing template, margin and reserve rules. Reserve
+capital must precede activation; the frozen 2% account deficit cap and full winner
+payouts remain enforced. Calibration/fresh prices gate leverage; funding, recovery
+haircuts and conversion stay disabled. Deployment uses two pinned code stores.
+A separate leverage scenario and persistent bounded liquidator are documented in
+[LEVERAGE_INTEGRATION.md](../integration/LEVERAGE_INTEGRATION.md). Fresh risk/book
+832/832, leverage 12/12 and isolated deployment gas 5/5 checks pass. Earlier 1x
+receipts remain historical references. No new gate acceptance or public deployment.
+
+**Local joined stack, 2026-10-05:** `integration/risk` now contains the existing
+pricefeed checkpoint `b7b8442` by fast-forward. RF-06 integration additions join
+the actual factory, registry, oracle, book/risk engines, vault, pricefeed pipeline,
+sampler and keeper on an isolated chain 31337. A full run deploys two markets, funds
+two owners, partially fills/cancels orders, exercises release/withdrawal, and resolves
+and pays the terminal market while leaving the demo active. Canonical receipt audit:
+86 script transactions plus 5 keeper transactions; no public-chain transactions.
+Longer-running checks exposed a missing hourly operational step: the local stack now
+performs bounded epoch rollover and explicit fixture-owner re-quoting, with 10 actual
+transactions across the two markets in its deliberate hour-boundary regression.
+External price data, collateral and assertion adjudication are explicitly fixtures.
+See the new local execution section of
+[REAL_FACTORY_INTEGRATION.md](../integration/REAL_FACTORY_INTEGRATION.md).
+The detailed root `LOCAL_INTEGRATION_HANDOFF.md` is intentionally uncommitted and
+shared in a source bundle, not published by Git. No new G7/OG3b acceptance is inferred.
+
+**RF-01 through RF-05, local implementation:** after pulling the oracle work, the user
+authorized real factory/oracle/risk/book integration, deferring sponsors and frontend.
+`0255c7b` adds the constructor-preserving code-store factory, dedicated collateral vault,
+registry-bound OI cap, depth-capacity guard and real-contract integration tests.
+`0ff2b69` adds per-market keeper identity/gas checks and simulation-first market-operation
+helpers. See [REAL_FACTORY_INTEGRATION.md](../integration/REAL_FACTORY_INTEGRATION.md)
+for measurements, evidence limits and the operator checklist. This explicitly supersedes
+historical oracle-excluded statements below for this integration work.
+
+The local atomic listing path fits representative bounded packs; it is no longer blocked
+on a presumed need for proxies or clones. Each actual pack still needs a full estimate,
+and creation-code-store headroom is narrow. Registry OI cap enforcement is required to
+keep halted exposure within the listing's resolution-bond sizing assumptions.
+
+**RF-LIVE remains blocked:** control of the required public governance/lister roles and
+approved continuous real-source INDEX publication have not been established. The
+publisher code is now present and locally exercised; this is not live feed approval. No live factory
+switch, deployment, oracle administration, address update, O42 completion or new gate
+acceptance is performed. Existing deployment addresses and historical G7 acceptance
+remain unchanged. The new relay is not a fabricated or substitute pricefeed.
 
 **GOV-01 supersedes the earlier review workflow:** the user merged Risk and Order Book and
 retired mandatory A/B peer review. We make and document implementation decisions without
@@ -21,8 +92,8 @@ Historical turn-log review blockers are not current dependencies.
 
 **RB-DEPLOY complete:** source `162ac92`, Solidity unchanged at `dcb6b0e`, now deployed as engine
 `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69` on chain **10143**. Six successful transactions;
-five runtimes and vault/authority/reserve bindings verified. Root **[addresses.md](../../addresses.md)**
-is the current address/env handoff. New market is **unactivated**, with no minted collateral,
+five runtimes and vault/authority/reserve bindings verified. The [October 4 deployment report](../../artifacts/risk/monad-testnet-deployment-2026-10-04.json)
+preserves this historical fixture's address handoff. At this checkpoint the market was **unactivated**, with no minted collateral,
 trading, halt or settlement. Frontend/oracle integration and demo setup are delegated to their team.
 This fixture's immutable manual authority cannot be replaced with the real oracle in place.
 
@@ -35,9 +106,9 @@ Main was not changed by that earlier merge. The old three-conflict rehearsal is 
 conflicts and silent canonical-type/helper hazards while retaining the reviewed accounting and
 stronger risk predicates. See `docs/merge/main-merge-prep.md`.
 
-The current non-oracle repair turn starts from `1958aef`. The user explicitly extended ownership
+The historical non-oracle repair turn started from `1958aef`. The user explicitly extended ownership
 to book internals and all Risk & Clearing work, including Person B's modules. Oracle implementation
-and oracle-branch integration remain excluded. Main stayed unchanged during that repair series. The source commits through
+and oracle-branch integration were excluded in that turn. Main stayed unchanged during that repair series. The source commits through
 `be3db1e` implement RB-I02–RB-I07 and RB-I09. RB-I10's SDK pin is `56787d2`. The user confirmed
 RB-I08: retain guarded safe excess-collateral release during REDUCE_ONLY; `4a050df` records
 seven focused regressions. Latest source `dcb6b0e` also includes RB-I11 and RB-I12.
@@ -560,6 +631,606 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   future work. Branch equality and remote publication are verified after pushing; Git refs identify
   the published checkpoint without changing historical gate acceptance SHAs.
 
+### 2026-10-05 — RF-01–RF-05 local real-factory integration
+
+- User scope: real factory, oracle, risk and book only; sponsor/frontend work deferred.
+  Oracle changes are already present at baseline `db11e46`. User confirms no local
+  account controls the existing oracle stack and independent pricefeed is unfinished.
+- `0255c7b`: STOP-prefixed creation-code store and registry-only factory, dedicated
+  vault, original constructors, listing handshake and rollback tests; registry-bound
+  OI cap and conservative capacity-aware sampler. No clone/proxy initialization.
+- `0ff2b69`: runtime/chain-bound keeper classification and gas checks, Windows SDK
+  root-path repair, sampler/explicit monitor/external-signature relay helpers with
+  durable signed-transaction journals; CI integration job and service typechecks.
+- Commands: pinned MonadTen/isolate integration suite exits 0 (37/37); keeper test
+  exits 0 (87/87); operations test exits 0 (18/18); both typechecks and frozen install
+  exit 0; final focused base book/sampler suites exit 0 (55/55); ABI check exits 0.
+  Full risk baseline before the virtual-hook edit exits 0 (832/832, 130 suites).
+- Ordered affected G3/G4/G6/G7 reruns exit 0 with 78/77/55/156 checks. New technical
+  artifacts remain unaccepted; historical acceptance SHAs are unchanged. The artifact
+  refresh also records the now-present pinned oracle submodules and checkout hashes.
+- Local atomic registry listing succeeds for small and 8 KiB claim fixtures under
+  a 29M forwarded execution budget; oversized claim failure rolls back completely.
+  Code-store runtime headroom is 669 bytes. No universal listing-size or live-gas
+  guarantee is inferred. Details are in `docs/integration/REAL_FACTORY_INTEGRATION.md`
+  and `artifacts/integration/real-factory-local.json`.
+- Broader SDK Windows check exits 1 (48 pass, six existing CRLF/test-fixture-path
+  failures). Do not describe the whole repository as green. Separate oracle suite
+  run: 294 pass/four setup/vector failures; isolated environment-corrected retries
+  pass 49/49 with unchanged tests. All oracle invariant checks pass. Details are
+  recorded in the integration document; the original failure evidence is retained.
+- Open: actual authorized factory switch/listing, exact pack/network estimates,
+  source/publisher, roles/trust/treasury setup, per-market runtime/gas enrollment,
+  hosted operations and live O42/OG3b. No broadcast, credentials, `.env` edits,
+  deployed-address edits, main merge or new gate acceptance in this turn.
+- Next: hand the pinned implementation and operator checklist to the existing
+  oracle governance/lister operator; complete the independent source before a live demo.
+
+### 2026-10-05 — RF-06 local stack and reserve-funded leverage checkpoint
+
+- User requested committing the completed integration and its dependencies. This
+  checkpoint includes the local stack, Windows compatibility fixes, reserve-funded
+  leverage, two-store factory deployment, liquidation operations, tests, ABI exports
+  and evidence. The private handoff, runtime data and unrelated historical A-to-B
+  review draft remain outside this commit. No push or main merge is performed.
+- Validation already recorded for the implementation: 832 risk/book tests, 56 unique
+  integration tests across the documented runs, 51 local/market-ops tests and 28
+  focused runner checks. G3 technical checks and ABI freshness pass; historical gate
+  acceptance and known broader-suite failures are unchanged. These suites were not
+  repeated solely to commit their unchanged sources.
+- Canonical leveraged proof: 103 script, 5 keeper and 20 upkeep receipts; two
+  100-claim positions at 0.50 with 10 fixture tokens per owner, 100,000 reserve and
+  99,960 coverage slack for either outcome. Owned services are stopped. The proof
+  resumed its maturity/trade tail after a readiness timing repair; it does not prove
+  an uninterrupted run of the final orchestrator.
+- Commit preparation adds committed setup instructions and runtime/cache ignores,
+  and corrects the runner's Git-state label. All 40 integration-script discovery
+  tests pass after that metadata-only correction. The original 119 validation
+  fingerprints and their single metadata delta are retained in
+  `artifacts/integration/reserve-funded-leverage.json`.
+- Next: run the final leveraged scenario uninterrupted from this checkpoint.
+  Public activation still needs empirical calibration, reserve funding, continuous
+  real-source INDEX, authorized operator roles and network-specific gas evidence.
+  Owner-correct transaction client/frontend and selected sponsor work remain the
+  subsequent product scope; unrelated earlier 1x evidence can be reused.
+### 2026-10-06 — CI-01: push failures on feat/pricefeed
+
+- User requested investigation and repair of failing GitHub CI. Baseline
+  `b2c9100931e63aa285a2e5eb5c4d1465e235b758`; fetched origin and verified the current
+  feature branch matches its remote. Earlier CRE/service edits remain separate.
+- Latest runs `37366215962` (oracle) and `37366215860` (contracts) could not acquire
+  hosted runners for most jobs. No test step ran in those jobs. The oracle Forge
+  and real-integration jobs both passed. GitHub confirmed the runner-assignment
+  incident at https://www.githubstatus.com/incidents/3q1yb5m7ltvb. Retried only the
+  jobs that had failed to start; hosting availability is outside this patch.
+- Earlier contracts run `37246660727` failed `forge fmt --check`. Reproduced on
+  the current tree with CI-pinned Foundry 1.8.3: `BookRiskEngine.sol`, `MarginLens.sol`
+  and its test needed formatting. Applied the pinned formatter; no economic rule
+  or assertion was changed.
+- Set `FORGE_SNAPSHOT_EMIT=false` for the contracts job so its test step cannot
+  overwrite the committed gas baseline before the later comparison. An isolated
+  verification accepted the committed snapshot, rejected a one-unit mismatch,
+  and left both files byte-for-byte unchanged. No gas baseline was refreshed.
+- Local validation: contracts and oracle formatting checks exit 0; contracts
+  `FOUNDRY_PROFILE=ci forge build --sizes` exits 0; snapshot check exits 0 (12 tests);
+  deliberate snapshot mismatch exits 1 as expected. Full CI contract tests exit 0:
+  834 passed, 0 failed, 0 skipped across 131 suites, including 10,000-run fuzz
+  campaigns and 256-run invariants. Restored the test-generated newline-only
+  snapshot change; the committed baseline remains byte-for-byte unchanged.
+- This is CI maintenance on the user's active feature branch. No main merge,
+  deployment, contract permission change or gate-acceptance update is included.
+
+### 2026-10-06 — FE-AUDIT: frontend audit and repair
+
+- User requested a frontend audit, extending the historical deferred frontend
+  scope for this turn. Baseline `8c73266e39d188e1cd052edaad7189b5f3fe481e` on
+  `feat/pricefeed`; initial working tree clean and fetched origin matched HEAD.
+- Fixed depth-bar scaling, wide-spread sampling and cached depth after all orders
+  disappear. Three reproductions failed with the prior geometry/sample logic and
+  pass with the repairs. Added query-observer coverage for populated-to-empty books.
+- Preserve network failures during market resolution and action simulation;
+  provide retry UI instead of false 404/no-action states. Balance/list screens
+  distinguish missing reads from unfunded accounts. Cancel-all no longer depends
+  on successful order discovery; signing and simulation guards remain unchanged.
+- Correct animated-heading/number accessibility and terminal tab relationships,
+  keyboard focus and selection. Preserve the compact terminal and existing themes.
+- Added frontend-only CI checks: locked dependency install, high/critical audit
+  gate, unit/server tests, production build and typecheck. A scoped ws 8.x override
+  fixes the high advisory; 23 moderate package entries in inherited wallet
+  dependencies remain documented for a tested upstream upgrade.
+- Validation exit 0: clean temporary checkout install/tests/build/typecheck;
+  final working-tree `npm ci`, 31 unit tests, 10 integration tests, webpack build,
+  typecheck and high/critical dependency audit. Build retains upstream dependency
+  warnings. `git diff --check` exits 0. No contract source/economic changes.
+- Chrome: 50 route/theme/width checks pass, no overflow/runtime exceptions/failed
+  responses on normal paths; all nine terminal panels, keyboard navigation,
+  All markets return link, system themes, reduced motion and interactive demo
+  pass. Axe reports zero WCAG A/AA violations on tested public pages in both
+  themes. Blocked RPC/history requests show errors and recover through retry.
+- Rebuilt and restarted the production preview on port 3100 after stopping its
+  prior process, preserving other local services. Privy dialogs checked in dark
+  desktop and light mobile; no real login, signature, public-chain write or new
+  deployment. Live activation, funded-wallet demo and optional signer/worker/
+  calibration configuration remain external dependencies.
+- Full findings and remaining work: `frontend/AUDIT.md`; integration progress
+  updated. This is technical validation, not independent security review or new
+  gate acceptance. Commit/push scoped to the active feature branch; main untouched.
+
+
+### 2026-10-06 — CI-02: verify repeated GitHub failures
+
+- User reported CI still failing. Baseline `0112a099dd467952481c2e8b361c0de9c84b5c71`
+  on `feat/pricefeed`; fetched origin and verified a clean, synchronized tree.
+- Inspected current runs and individual check annotations, rather than assuming
+  the earlier formatting defect persisted. Latest oracle run `37370979597` at
+  `8c73266` passed Forge (format/build/full suite), real integration and the CRE
+  resolution workflow (install/test/typecheck/build/outcome-path check).
+- Its four remaining jobs (packages, indexer, validation, dryrun) never started:
+  every check records `The job was not acquired by Runner of type hosted even
+  after multiple attempts`. Failed-log download exits 0 with no test log because
+  no runner executed these jobs. Preceding oracle run `37370813833` has the same
+  runner-assignment error on its unstarted jobs; its five executed jobs passed.
+- GitHub's official status API still reports Actions degraded and incident
+  `3q1yb5m7ltvb` investigating hosted-runner assignment delays, as checked at
+  2026-10-05 21:02 UTC (2026-10-06 02:32 IST):
+  https://www.githubstatus.com/api/v2/summary.json.
+- `gh run rerun 37370979597 --failed` exits 0; attempt 2 retries only the four
+  jobs that lacked runners and preserves the three successful jobs. The retry
+  is queued at this checkpoint. No obsolete run was retried.
+- Contracts run `37370813810` passed formatting and build; its full test step is
+  still running. Frontend run `37372711259` is queued awaiting its first runner.
+  These are pending, not successful remote validations. The earlier local
+  CI-01/FE-AUDIT test results remain the local evidence; no redundant local test
+  run or application/workflow change was made for a hosting failure.
+- Commands to inspect runs/check annotations, download logs and request retry
+  exit 0. Documentation-only checkpoint; no checks weakened, gas baselines
+  refreshed, deployments performed or new gate acceptance recorded.
+- Remaining dependency: GitHub must assign runners and finish the pending jobs.
+  Historical red runs remain historical failures; retry progress is available
+  at https://github.com/akronim26/eros-markets/actions/runs/37370979597.
+
+
+### 2026-10-06 — CI-03: simplify checks and repair Node 22 installation
+
+- User authorized completing CI repairs and removing unnecessary checks, and
+  explicitly reserved pushing for themselves. Baseline `2b135b2` on
+  `feat/pricefeed`, initially clean. All changes in this turn remain uncommitted
+  and unpushed; this overrides the historical end-of-turn commit/push instruction.
+- Reproduced a real frontend failure in a clean temporary checkout using CI's
+  Node 22: `npm ci` rejects `ws@8.22.0` against the partial-range 8.21.3 override.
+  Local Node 25/npm 11 previously accepted this lockfile. Pin all ws 8.x consumers
+  to the patched 8.21.3, preserve ws 7.x consumers, and regenerate the affected
+  lock entries with Node 22.23.3/npm 10.9.9. Preserve existing platform metadata;
+  no unrelated package versions or application source are changed.
+- Removed formatting-only push gates and the separate frontend npm audit gate.
+  Dependency audit remains available locally; the vulnerability repair remains.
+  Removed the duplicate frontend typecheck because the Next.js production build
+  already checks application/generated-route TypeScript. Test files still execute
+  in CI; preserve the standalone local script for their static checking as well.
+- Folded gas comparison into the full contracts test step with snapshot emission
+  disabled. Removed only the redundant second run of BookGasTest; snapshot values
+  and full fuzz/invariant settings are unchanged.
+- Consolidated oracle real integration with its Forge job, and the two CRE builds
+  with the packages job: seven runner allocations become four. Retain separate
+  frozen installs for the CRE lockfiles, all tests/typechecks/builds, and one
+  outcome-default scan covering both workflows and packages. The scan also rejects
+  missing source paths and grep errors. No failing test is skipped or suppressed.
+- Added workflow/ref concurrency cancellation to all three workflows so a newer
+  relevant push cancels an obsolete run of the same workflow on that ref.
+- Verification so far: actionlint 1.7.12 and `git diff --check` exit 0; clean Node
+  22 install and all 41 frontend tests exit 0; final lockfile dry-run validation
+  with the committed `.npmrc` exits 0 on Node 22/npm 10 and local Node 25/npm 11.
+  Oracle packages/services: 534 tests pass; both integration-service typechecks
+  pass; CRE resolution/dryrun: 12/9 tests, typechecks and WASM builds pass.
+  Outcome guard positive/negative cases pass, including each protected path and
+  missing-directory rejection. Frontend production build, including application
+  and generated-route typechecking, exits 0 on Node 22. The combined oracle Forge
+  job sequence exits 0: build, 342 CI-profile tests across 39 suites, then 37
+  Monad integration tests across four suites; zero failures/skips in both. The
+  full contracts CI-profile run with gas checking exits 0: 834 tests across 131
+  suites, zero failures/skips, 800.73 seconds. The committed gas baseline is
+  unchanged. Full 10,000-run fuzz and 256-by-128 invariant settings are retained.
+- Existing frontend run `37372711259` ultimately failed before executing any step;
+  its check annotation reports the hosted runner was never acquired. Oracle retry
+  `37370979597` was still awaiting remaining runners at the last inspection.
+  Contracts run `37370813810` subsequently completed successfully on GitHub; it
+  validates the earlier committed workflow, not these unpushed simplifications.
+  Local changes cannot repair GitHub's runner allocation or update a remote check
+  before the user pushes them. No remote retry of the known stale lockfile was made.
+- Local logs: `/tmp/eros-ci03-*`; clean checkout path is in
+  `/tmp/eros-ci03-path`. The running frontend preview and operator services are
+  untouched. This is technical CI validation, not a deployment or gate acceptance.
+
+
+### 2026-10-06 — FE-404: branded missing-page view
+
+- User requested a custom website 404, with design discretion. Baseline `5c8f785`
+  on `feat/pricefeed`, initially clean. Changes remain local, uncommitted/unpushed.
+- Added the root Next.js not-found page and scoped CSS: pixel 404, orange chart
+  illustration, concise copy and links to markets/home. Uses existing theme
+  tokens and shared navigation; supports missing routes and invalid market URLs.
+- Production build (including TypeScript) exits 0; retains the existing upstream
+  viem/ox dynamic-import warning. Production unknown URL returns HTTP 404 with
+  a custom title and noindex metadata.
+- Chrome verification passes in development and production: light/dark at
+  320/768/1024/1440 px without horizontal overflow, both navigation links,
+  keyboard navigation, reduced motion and invalid-market fallback. Axe WCAG A/AA
+  checks show zero violations in both themes; no runtime exceptions recorded.
+- Rebuilt and restarted the production preview at localhost:3100. Other services
+  unchanged. Removed only the temporary Next dev-generated agent instruction
+  files; no dependencies or global styles changed. Evidence: `/tmp/eros-404-*`.
+
+### 2026-10-06 — FE-TERMINAL: interactive landing-page console
+
+- User requested more interaction in TERMINAL.SYS, with design discretion.
+  Baseline `5c8f785` on `feat/pricefeed`; preserved the uncommitted FE-404 work.
+  All changes remain local, uncommitted and unpushed.
+- Replaced the static typed terminal with a read-only command console: status,
+  book, risk, help and clear; clickable shortcuts, Enter submission, Tab
+  completion, arrow-key history/draft restoration, Escape and an open-market link.
+  Commands use the existing market query, with no additional RPC polling,
+  transactions, dependencies or arbitrary code execution. Output/history are bounded.
+- Results identify the snapshot block, distinguish missing data from zero, and
+  label cached data after connection failures. Risk output reports the deployment
+  ceiling without promising available leverage. Removed the continuous typing
+  timer; added brief entry/hover effects with reduced-motion support.
+- Final production build, including TypeScript, exits 0; the existing upstream
+  viem/ox dynamic-import warning remains. Production Chrome checks pass for all
+  commands, unknown input, history/draft restoration, Tab/Shift+Tab, Escape, clear,
+  bounded output and navigation. Light/dark at 320/768/1024/1440 px have no
+  horizontal overflow; console axe WCAG A/AA checks report zero violations and
+  no runtime exceptions were recorded. Reduced-motion checks pass.
+- Development RPC fault tests pass for cached-data warnings, fresh unavailable
+  state without invented values, and automatic recovery after restoring access.
+  Production preview rebuilt and running at localhost:3100. Evidence:
+  `/tmp/eros-terminal-sys-*`; no operator services or global styles changed.
+
+### 2026-10-06 — FE-PANELS: simplify testnet section
+
+- Removed MARKET.METRICS and LIFECYCLE.STATUS from the landing page at the user's
+  request, along with their unused deadline calculations and imports. The grid
+  now contains TERMINAL.SYS and MARK.DITHER only, side by side on desktop and
+  stacked on mobile. Preserved prior local changes; nothing committed or pushed.
+- Production build with TypeScript exits 0. Chrome checks confirm both removed
+  panels are absent, both remaining panels render, 320/1440 px layouts have no
+  horizontal overflow, and no runtime exceptions occur. Production preview
+  restarted at localhost:3100. Evidence: `/tmp/eros-panel-removal-*`.
+
+### 2026-10-06 — FE-STATES: feedback, confirmation and policy pages
+
+- User requested loading states, form errors, a thank-you page, privacy policy,
+  terms and a cookie banner. Baseline `a0823dc` on `feat/pricefeed`, initially
+  clean. Changes are local and uncommitted/unpushed. Leverage/deployment work
+  remains paused; this item changes frontend presentation and validation feedback.
+- Added shared skeleton/pending/retry components and a root route error boundary.
+  Loading feedback covers markets, terminal, portfolio, oracle, reserve, order
+  history, open orders, wallet permissions and protection configuration. Pending
+  configuration reads no longer prematurely claim a service is unconfigured.
+- Added blur-triggered field errors with accessible associations and invalid
+  styling for price, size, expiry, collateral, reserve, protection and evidence
+  fields. Errors clear on correction; protection submission reveals errors and
+  focuses the first invalid field. Existing contract preview/signing guards remain.
+- Unified transaction progress/error/result feedback. Successful, non-rejected
+  results link to `/thank-you?tx=...`; no automatic trading-flow redirect. The
+  page checks Monad receipts, distinguishes missing/invalid/reverted results,
+  and does not equate transaction confirmation with a filled order. Direct
+  `/thank-you` visits show a general thank-you with no transaction-success claim.
+- Added `/privacy` and `/terms`, a shared footer, and Privy modal policy links.
+  Policy copy reflects the current testnet, manual fixture, local storage,
+  third-party providers and optional automation database. No legal compliance
+  certification is claimed. Public operator identity/contact email were requested
+  but not supplied; copy currently directs requests to the project access channel.
+- Added a dismissible cookies/storage notice, 180-day acknowledgement, footer
+  reopen, keyboard focus restoration, cross-tab acknowledgement sync and blocked
+  storage fallback. No optional trackers are configured or added, so this is an
+  informational notice rather than an ineffective accept/reject tracking switch.
+- Verification: production build including TypeScript exits 0 (existing upstream
+  viem/ox warning); 31 unit and 10 integration tests pass. Browser checks pass for
+  all three pages in light/dark at 320/768/1024/1440 px, no horizontal overflow,
+  zero axe WCAG A/AA violations, cookie persistence/reopen/focus, input errors and
+  correction, actual Privy modal policy links, and no runtime exceptions.
+- Recovery checks pass: an existing real testnet receipt confirms; missing or
+  malformed hashes never confirm; a mocked reverted receipt shows failure;
+  blocked RPC shows loading then error and recovers after retry; reduced motion
+  disables loading animation; blocked local storage still permits dismissal.
+  No transactions were submitted. Evidence: `/tmp/eros-states-*`. Production
+  preview is rebuilt and running at localhost:3100.
+
+### 2026-10-06 — MERGE-RISK: refresh frontend branch from integration/risk
+
+- User explicitly requested merging the new integration/risk pushes into the
+  current branch. Fetched `origin/integration/risk` at `5fc751d` and merged its
+  eight missing commits into `feat/pricefeed`, starting at `3671ec0` with a clean
+  working tree. The merge is conflict-free; both branches' status entries survive.
+- Frontend, risk-sdk and automation source trees match the pre-merge frontend
+  branch exactly. Backend source matches the incoming integration branch; only
+  the retained frontend work and combined status log differ from that branch.
+  No deployment addresses, environment files or running services are changed.
+- Post-merge verification: `git diff --cached --check`, 31 frontend unit tests,
+  10 frontend integration tests and TypeScript all exit 0. The backend lifecycle
+  evidence is imported from integration/risk, not claimed as rerun here. Logs:
+  `/tmp/eros-merge-risk-{unit,integration,types}.log`.
+- A local merge commit completes the requested branch merge. No push or public
+  transaction is performed. Deployment/frontend integration policies remain in
+  `docs/integration/FRONTEND_TEAM_HANDOFF.md` and `DEPLOYMENT_RUNBOOK.md`.
+
+### 2026-10-06 — CI-04: build deployment artifacts before package tests
+
+- Investigated the failed oracle packages job on merged head `8f76670` (run
+  `37391302446`). The same failure appears in incoming run `37390379727`:
+  integrated-preflight tests load `RegistryBookRiskEngine.json`, but the packages
+  job never compiles it. The separate forge job cannot share its filesystem.
+- Added an integration-profile `forge build --skip test --skip script` before
+  package tests. Retained all test assertions and existing CI checks.
+- Reproduced the missing-artifact failure in a clean archive of `8f76670`, with
+  no environment files, dependencies or build outputs copied in. With pinned
+  Foundry 1.8.3 and Bun 1.3.13, the new build exits 0 and all 668 workspace tests
+  pass. Keeper and market-ops typechecks exit 0. Both independent CRE projects
+  install from frozen lockfiles, pass 21 tests combined, typecheck and compile
+  to WASM with exit 0. The outcome-path guard and actionlint also exit 0.
+- Evidence: `/tmp/eros-ci04-{repro,artifacts,packages,service-types}.log` and the
+  clean archive identified by `/tmp/eros-ci04-clean-path`. Validation was local
+  on macOS; the updated workflow has not yet run on GitHub. At the last check,
+  GitHub validation/indexer jobs passed and both long-running Forge jobs were
+  still in progress. No full-suite green result is claimed.
+- Changes remain local and uncommitted; nothing pushed or deployed. Reviewed
+  the deployment handoff: deterministic backend leverage/settlement evidence
+  exists, but frontend manifest/caps/SDK wiring, actual public signer roles and
+  funding, integrated deployment, persistent operators, and public wallet-flow
+  validation remain. Authentic-source leveraged endurance is still incomplete.
+
+
+### 2026-10-06 — fresh public deployment and frontend integration
+
+- User authorized a fresh Monad testnet deployment with the root `.env` key,
+  selected a real Polymarket event, and deferred hosting until after wiring.
+  No Git push or commit was made.
+- Deployed and verified the integrated factory/shared vault, oracle/UMA testnet
+  stack and first engine through 39 finalized deployment/activation transactions.
+  Deployment gas cost: 10.10233296 MON. Published credential-free manifests,
+  canonical receipts, external-source identity and exact synthetic calibration.
+- Frontend selects the fresh manifest, validates chain/code/bindings, reads live
+  directional caps, offers integer leverage sizing, uses SDK owner builders,
+  waits for exact canonical finalized receipts, and isolates unmatched history.
+  Test collateral faucet and accurate testnet disclosures are connected.
+- Two independently funded owners passed faucet/approve/deposit/allocate on the
+  public contracts. One bounded public epoch rollover finalized. A five-minute
+  source run recorded nine finalized observations; journal recovery finalized
+  its existing tenth transaction with no unresolved signed transaction left.
+  Contiguous pricing and real-source leveraged fills remain unproven; stale
+  pricing correctly blocked a rehearsal order and release. No cutoff was relaxed.
+- Fresh CRE CLI FeedSpec simulation succeeded with NOT_FINAL for the ongoing
+  Polymarket event. No new-market terminal resolution or CRE network deployment
+  is claimed. Fresh listener and Envio configuration is prepared, hosting absent.
+- Validation: clean Node 22 npm ci, frontend production build, 35 frontend unit
+  + 12 integration tests, 248 affected oracle/SDK/CRE/market-ops tests, 38 indexer
+  tests/codegen/typecheck, five deployment-runner tests and focused typecheck.
+  Browser checks: 320/768/1024/1440px light/dark, no overflow/runtime errors/failed
+  resources, no axe violations on the loaded dark terminal; Privy modal opens.
+  Real authenticated Privy contract signing is not yet validated.
+- Full progress, artifacts and remaining operational gates:
+  `docs/integration/DEPLOYMENT_PROGRESS.md` and `FRESH_TESTNET_SERVICES.md`.
+
+### 2026-10-09 — AUD-01 through AUD-08: October 8 change audit and repairs
+
+- The user requested a supervised agent panel audit, a confirmed bug list,
+  delegated repairs, and independent testing. Baseline: `feat/pricefeed` at
+  `1cb19bae2671a066fe948d7781535ff45154119c`; primary audited commits:
+  `1f662666f6d5610bc97f1ab5746345ed6308ae8b` and
+  `3149bba3bf2f8c56d71a9d7cd9a23ed91af7ca39` (October 8, Asia/Kolkata).
+- All eight confirmed findings are fixed: original-winner nonce recovery,
+  panel revert retry, committee cursor/concurrency, aggregate publisher budget
+  shutdown, bounded entry-basis arithmetic, durable finality notifications,
+  slow-RPC basis verification, and discovery-independent Cancel all. Three
+  concern October 8 changes/incomplete fixes; five are adjacent existing or
+  October 9 follow-up defects. No speculative finding was promoted to a bug.
+- Independent agents verified code they did not author: **202 frontend tests**,
+  **228 oracle/compatibility tests**, and **604 runtime tests** (505 full
+  pricefeed tests on pinned Linux Node 24.21.0, 91 root-script tests, eight
+  adversarial challenges), all passing. Total **1,034 independent-phase tests**;
+  repeated owner checks are excluded. Affected TypeScript checks and an isolated
+  frontend production webpack build exit 0. The separate arithmetic reference
+  checks 1,000 generated histories. All 32 repaired source/test hashes remain
+  unchanged since verification handoff; final diff whitespace check exits 0.
+- macOS correctly rejected Linux-only deployment tests. The full suite then
+  passed in the existing cached Linux image with networking disabled and fresh
+  tmpfs fixture state; no platform guard was bypassed. The frontend build used
+  a credential-free copy and left original build/runtime paths untouched.
+  Optional wallet/Tempo dependency warnings and archive/canonical-cache limits
+  are documented; live wallet/provider behavior is not claimed validated.
+- Fix ledger, precise behavior, commands, evidence and limitations:
+  [AUDIT_20261008_FOLLOWUP.md](../integration/AUDIT_20261008_FOLLOWUP.md).
+  Detailed local reports/logs: `tmp/audit-20261008/*-verification.md` and the
+  source-bound `repair-snapshot.json`. These are automated agent reviews and
+  local fixture tests, not human gate acceptance or public-chain evidence.
+- Changes remain local and uncommitted; no push, merge, deployment, public
+  transaction, live worker/indexer operation, policy amount, credential or
+  historical approval was changed. No confirmed repair or independent check
+  remains outstanding; future live execution needs its own authorized scope.
+
+### 2026-10-10 — FM-01 through FM-08: fast MARK startup (Monad testnet)
+
+- User requested a 60–90 s genuine MARK target with funded makers and healthy feeds:
+  immediate initial MARK activation, 60 s testnet INDEX/PERP/BASIS, funded warm-up
+  quotes, parallel history, notification-driven workers, gas runway checks, startup-path
+  testing, then replacement engines. Baseline `1cb19ba` plus the uncommitted AUD repairs.
+- Contracts: testnet-only (`chainid 10143`) one-time `activatePricing()`, 60 s BASIS,
+  `POST_ONLY` exactly backed warm-up quotes around the latest authenticated INDEX point, and
+  warm-up depth sampling. Epoch, funding, calibration and admission checks are unchanged;
+  other chains keep spec §4.1. Workers: keeper activation, publisher/keeper readiness
+  notices, maker warm-up quoting with a bootstrap quote-stability hold, and a supervisor
+  gas-runway launch check with alerts.
+- Measured on the real engine: service launch -> first MARK is 84 s for most launch times
+  and up to 144 s when warm-up crosses the hourly rollover. Before, the floor was about
+  240 s plus the next opening. Failure paths are covered: gaps, cancels, late delivery,
+  READY and collateral.
+- Risk: 60 s BASIS adds no cheaper manipulation path. MARK lags genuine INDEX jumps more,
+  bounded by the 0.05 band.
+- Tests: contracts 877/877 at full CI fuzz depth (baseline 856), oracle 345/345 and
+  Monad integration 82/82, scripts 111/111, market-ops 54/54, keeper bun 14/14, reference
+  OK, frontend 119/119 and 67/67, typechecks and `forge fmt --check` exit 0. ABIs
+  regenerated.
+- Found and fixed: the first version pushed 8 KiB-claim market creation over the 29.5M
+  forwarded budget (29.54M); now 29.41M. Open: an existing hourly MARK gap of about 65 s
+  after each rollover; the October 9 operator funding is below a 2-hour runway.
+- Not done: FM-08 replacement deployment. It needs user selection of new events, a MON
+  budget, and a recommended fork rehearsal of the full worker stack. Nothing committed,
+  pushed, broadcast or funded. Details:
+  [FAST_MARK_STARTUP.md](../integration/FAST_MARK_STARTUP.md).
+
+### 2026-10-10 — DOC-README-SPLIT: integration-branch technical README
+
+- User requested a short project overview on main and the detailed technical README on the
+  most up-to-date implementation branch. Main overview is committed separately at `696349c`;
+  no main code or integration history was merged into this branch.
+- Fetched and fast-forwarded `feat/pricefeed` to `21cdf22` before authoring its root README.
+  The new document covers the integrated architecture, pricing, reserve policy, lifecycle,
+  SDK units, application setup, local backend proof, validation commands and documentation.
+- Explicitly separates new testnet 60/60/60 fast-start source from the deployed October 9
+  60/60/180 engines and default-chain 300/60/900 behavior. Pricing activation does not imply
+  active calibration, leveraged admission or a completed replacement deployment.
+- Reused the existing frontend logo variants with a centered, theme-aware header. Checked
+  29 local link/image references, 13 heading anchors, SVG XML, code-fence balance and trailing
+  whitespace; all checks exit 0. Main overview/branch links and both branches' logo targets
+  also pass. Setup commands and economic claims were cross-checked against current source.
+- Documentation only; no runtime tests, installations, deployments or live service actions.
+  Existing untracked analysis and handoff remain unchanged. Commit README and this log entry
+  separately from main; no public push. Working checkout remains on `feat/pricefeed`.
+
+### 2026-10-10 — DOC-ARCH-SVG: supplied architecture diagram
+
+- Replaced the technical README's Mermaid diagram with the user-provided `eros_arch1.svg`,
+  copied unchanged to `docs/assets/eros-architecture.svg`. The image links to its full-size file.
+- Verified valid SVG XML, exact source/destination byte equality, a single diagram replacement,
+  resolving image/link paths and clean diff whitespace. Documentation/assets only; no runtime tests.
+- Existing unrelated files remain untouched. Commit locally on `feat/pricefeed`; no public push.
+
+### 2026-10-11 — FM-08: recovery, replacement deployment and cutover
+
+- User authorized operator-fund recovery, deployment of the fast-startup engines,
+  address updates everywhere, a connected frontend, three services per market, and
+  removal of old-deployment code.
+- Recovered 38.198 MON from eight October 9 operator wallets after reconciling two
+  mined publisher tails without signing; 78 project contracts held 0 MON. Retirement
+  markers block old workers.
+- Deployed base (5 tx) and two markets (7 tx each), each rehearsed on an anvil 1.8.3
+  fork first: factory `0x625e…5f96`, vault `0xb251…911E`, BTC > $82k Oct 13
+  `0x5225…9a3d`, ETH > $2.4k Oct 14 `0xe26D…4cA7`. Funded operators (142 MON) and
+  makers (2,000 TUSDC each); keeper-only rollover restored READY accounting.
+- Supervisor runs 6 workers. Launch → MARK: BTC 95 s, ETH 161 s; 5×/5× caps live.
+  Frontend rebuilt on :3100 with only these markets; indexer serves both engines.
+- Updated `addresses.md`, frontend manifest/metadata/calibrations/ABI, indexer config,
+  `oracle/deployments/monad-testnet.json`, root `.env` inventory, SDK ABI snapshot,
+  operations docs. Removed frontend archives, archive selection, Oct 9 migration
+  scripts, legacy-engine worker branches and indexer historical branches.
+- Tests: scripts 100/100, keeper bun 13/13, market-ops 54/54, SDK 70/70, indexer 42/42,
+  frontend 119/119 and 65/65, preflight OK, e2e deployment 5/5, typechecks exit 0.
+- With user permission, deleted the 20 retired `artifacts/deployments/*` directories,
+  13 dated `artifacts/integration/` files carrying retired addresses and three retired
+  runbooks; links fixed. Only the progress logs' historical sections still name retired
+  addresses. Re-ran affected tests: all pass. Keeper gas
+  burn is higher than projected; top-ups expected within about 1.5 h. No user wallet
+  trade yet. Nothing committed or pushed.
+
+### 2026-10-11 — Lower-cost relaunch: T1–T8 preparation (one November market)
+
+- Plan (user decisions of 2026-10-11): write off old ETH funds, 120 s/300 s testnet
+  carries, paced workers, wake-on-visit, Render + Vercel, one market resolving 6–8 Nov.
+- **T1 (partial):** reconciled the ETH publisher's `UNKNOWN` tail (nonce 261,
+  `0x1200…c65d`, block 69978646) to `FINALIZED` with no signatures; expired one signed but never
+  sent BTC packet (seq 265) through `PacketStore.expire`. Recovery plans for 8 operator wallets
+  (81.606 MON to root, plan set `0x50f0…a9e`) prepared and **rehearsed on an anvil 1.8.3 fork
+  (8/8)**. **Broadcast not done:** the session's permission layer refused it; needs the user.
+- **T2:** Gamma candidates, 1,000-claim spreads, paced qualification (see below). Selected
+  **4199213 "Will Democrats win white women in the midterms?"**, `endDate`/`scheduledT`
+  2026-11-07 04:59 UTC (CNN exit poll, 6 Nov). 4927096 also passed. Oracle resolution operator
+  not confirmed: `docs/requests/ORACLE-nov-market-resolution.md`.
+- **T3:** INDEX carry 120 s, book carry 300 s (chain 10143 only); INVALID-window integral and
+  funding freshness latch now use the INDEX carry (INVALID integral bug reproduced, then fixed).
+  Decision note: `docs/integration/TESTNET_CARRY_DECISION.md`. FactoryGas 8 KiB creation
+  29,448,268 (≤ 29.5M); engine runtime 123,530 B. ABI entries unchanged.
+- **T4/T5 (partial):** factory replacement prepared and rehearsed on the fork (5 steps; planned
+  factory `0x33Bf…2600`, vault `0x5E53…05e4`). Market slot `nov7-dem-white-women` staged. Market
+  prepare needs the factory on chain, so T4 fork gas measurements, market listing and services
+  wait for broadcast authorization.
+- **T6:** publisher pacing (`scripts/e2e/index-pacing.mjs`), keeper MARK status, 110 s sample gate,
+  early-INDEX request after book-change captures, book-change limit 20 s.
+- **T7:** wake/sleep with leverage guard and fail-open reads (`scripts/ops/wake-policy.mjs`),
+  `WRITER_FENCED` restart with backoff, supervisor no longer exits while markets sleep, runway
+  uses `publishIntervalSeconds`. Keeper rollover alone restored READY on 2026-10-11 (bootstrap
+  ran the same keeper); B8 still needs a live check.
+- **T8:** `/api/market-activity` (Runtime Cache, `iad1`), 30 s visible-tab heartbeat, "Market
+  waking up" progress, 120 s chart freshness, Release follows `previewRelease` with the hourly
+  update reason, Withdraw needs only the account read. Added `@vercel/functions@3.9.11`.
+- Paced source qualification (`--paced-testnet`, 30 s gap) with quiet-book carry; 4199213:
+  900,027 ms coverage, 862 valid, 0 failures, max carry 20,109 ms.
+- Tests (exit codes): contracts CI 895/895 (0); oracle CI 345/345 (0); oracle Monad integration
+  82/82 (0); oracle workspace incl. SDK 70, market-ops 54, keeper 102 (0); keeper policy bun
+  13/13 (0); scripts 131/131 (0); frontend `tsc` (0), unit 127/127 (0);
+  reference b `test_fast_testnet_basis` 15/15; reference a+b 236/237 (exit 1: `test_a002`
+  compares `/private/var` with `/var` temp paths, unrelated); reference integration 7/7 (0);
+  reference audit 7/8 (exit 1: `numpy` not installed). Not run: frontend integration tests,
+  `next build`, Playwright.
+- Open: broadcast authorization (T1 recovery, T5 factory and market); oracle resolution
+  operator; four-week publisher budget (policy cap 40 MON ≈ 1,000 publishes; raise in T5);
+  Render/T10, B1–B14, T9 not started. Fork proxy and anvil left running on :18569/:18568
+  (PIDs in `tmp/redeploy-20261011/*.pid`). Nothing committed or pushed.
+
+### 2026-10-11/12 — Lower-cost relaunch: deployment, live benchmarks and hardening
+
+- User authorized all broadcasts (T1 recovery, T5 factory, market, funding). Recovered
+  **81.606 MON** from 8 retired operator wallets (22 project contracts hold 0 MON). Factory
+  `0x33Bf4bba245253377f2875C77a6647a76ef42600`, vault `0x5E53c88eB3dA4C8640BC7AF51F0C5f8CC11205e4`,
+  market engine **`0xA3955B47E943CCC6A23E3A66CFd60068de518068`** (Polymarket 4199213, resolves
+  2026-11-07 04:59 UTC; `pricingWindows` 60/60/60/120), each rehearsed on an anvil 1.8.3 fork
+  first. Operators funded 44 MON, makers 2,000 TestUSDC each; publisher policy cap 20,000 tx /
+  800 MON. Frontend, indexer config, `addresses.md`, `oracle/deployments/monad-testnet.json`, root
+  `.env`, ops docs updated. Retired `artifacts/deployments/*-btc-oct13|eth-oct14` kept pending
+  the user's permission to delete.
+- Live benchmarks: B3 launch → MARK 152 s; B1 100% over 30 min and 43 min across the 15:00
+  rollover (max INDEX age 80 s); B2 5×/5× whenever MARK on; B12 < 120 s; B10 4.75 MON/h awake
+  (publisher 1.08, keeper 3.67); B14 INDEX off at the 120 s carry; B7 fenced publisher restarted,
+  first INDEX 14 s after resume; B4 `previewRelease` passes for flat accounts; B6 the user's
+  leveraged account kept the market awake. Not run: B5/B8 (blocked while the user's account is
+  leveraged), B9 live cutover (Render not created; refusal tests pass), B11 (no test fill), B13
+  covered by FactoryGas.
+- Incidents found live and fixed:
+  1. 13:02 INDEX lapsed 81 s: a 15 s old source expired during a slow send. Pacing now publishes
+     70 s after the last observation and takes only sources ≤ 6 s old until 100 s.
+  2. 13:28–14:18 market stopped: an unsent delivery quarantined by `PIPELINE_TIMEOUT` was not
+     recoverable. `recoverableUnsentReason` now includes it (chain-checked nonce cancel).
+  3. 14:22 keeper exited when its pre-sign simulation ran out of gas after a new INDEX changed
+     the seal path; it now re-estimates (`simulationOutOfGas`).
+  4. 17:34 keeper out of MON (runway alerts only in a log). Added capped auto top-up from root
+     (keeper 30, publisher 15, makers 5 MON; trigger 90 min; 200 MON/day; 10 MON reserve) that
+     restarts a gas-stopped market, and macOS notifications for low gas, stops, failed or
+     unaffordable refills.
+  5. 21:14 keeper exited on an RPC provider "Internal error"; reads now retry and the supervisor
+     restarts such exits with backoff.
+  6. Supervisor bug: restarting a group while its previous worker was still exiting could leave
+     an untracked worker; restarts now wait for all workers to exit and cleanup is per child.
+- T4: execution gas cannot be observed (Monad reports gasUsed = limit; tracing needs a paid RPC
+  tier); margins unchanged. T10: Docker image builds and idles without a hand-off; Render
+  service not yet created (user). Dropped by user decision: T9 off-chain price line, cheaper
+  keeper sampling, leverage-sizing buttons with an open position.
+- Tests (exit 0): contracts 895/895, oracle 345/345, Monad integration 82/82, oracle workspace,
+  market-ops 54/54, keeper policy 14/14, scripts 147/147 (5 consecutive full runs clean),
+  frontend tsc, unit 127/127, integration 65/65, `next build`. Pricefeed package 498/506 with a
+  non-symlinked TMPDIR; the 8 deployment/process-supervision failures also fail without these
+  changes on macOS (CI is Linux).
+- Open: root holds about 80 MON (about 15 awake hours); the user's account is leveraged
+  (cash −314 USDC), so the market cannot sleep until it is fully backed (fund about 330
+  TestUSDC); alerts are macOS-only (Render needs a remote channel); oracle resolution operator
+  for 7 Nov unconfirmed (`docs/requests/ORACLE-nov-market-resolution.md`); Vercel frontend not
+  deployed (wake URL is the local frontend).
+- Frontend after user testing: the 1×–5× buttons now also size an open position so the whole
+  position ends at the chosen leverage (`targetLeverageLots`; adding rounds down, reducing rounds
+  up and never flips; flat accounts unchanged), and a crossing Post only order shows a plain
+  message instead of `PostOnlyCrosses`. Limit, IOC and Post only verified by simulation from the
+  user's address. Frontend unit 134/134, integration 65/65, `next build` exit 0.
+- Removed with the user's permission: retired `artifacts/deployments/monad-testnet-20261011-btc-oct13`
+  and `-eth-oct14`, and the working plan `followup.md` (its decisions are recorded here).
+
 ### 2026-10-10 (DOC-README) — project documentation — turn complete
 
 - User requested a professional technical README with the existing logo centered at the top,
@@ -590,3 +1261,22 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
   tests or deployment were required. Existing untracked files remain untouched.
 - Commit this main overview separately, then update `feat/pricefeed` from its fetched remote
   and author its technical README against current source. No branch merge or public push.
+
+### 2026-10-13 (NM-S01..S12) — native NBA market as a normal spot prediction market — turn complete (not deployed)
+
+- User decision: the NBA native market is a normal prediction market (Kuru spot only, no perp),
+  resolved by the Eros oracle from API-Sports basketball (`v1.basketball.api-sports.io`, game
+  519655, verified by id with the user's key on 2026-10-13). INVALID pays 0.5 per token. One Eros
+  maker bot and one daily trader bot; no simulated takers. Perps to be built separately later.
+- Added `SpotResolutionAnchor` + `SpotMarketFactory` (oracle/src/native), basketball adapter in
+  `feedspec` (FT/AOT only; postponed/cancelled stay NOT_READY), canonical feed generator, listing,
+  governance (Timelock op: providers, authRef, feed-timing maxima, factory swap/restore) and go-live
+  scripts, maker / daily-trader / lifecycle / retire services (`packages/pricefeed/scripts/native-spot`),
+  listener auth config, frontend `spotOnly` venue lock, runbook `docs/runbooks/NATIVE_SPOT_MARKET.md`.
+- Tests (exit 0 unless noted): feedspec `bun test` 162/162; `NativeSpotMarket.t.sol` 9/9;
+  `NativeSpotFork.t.sol` 1/1 on live testnet state; workflows/resolution 15/15; workflows/listen 7/7;
+  frontend `tsc --noEmit`; full oracle `forge test` 335 pass / 3 fail (exit 1) — pre-existing, the
+  UMA suites need the separate 0.8.16 artifact build (`out/Finder.sol` missing).
+- Not done: no broadcast (the agent could not read keys); CRE CLI not installed locally; old market
+  workers still running; frontend manifest entry needs deployed addresses. Next: user runs
+  `scripts/native-market/spot-golive.sh`, retires the old market, starts listener and `spot-ops.sh`.

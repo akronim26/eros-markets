@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-07",
+  "baseCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+  "scope": "Service, SDK, pricefeed and Oracle CI verification. This artifact contains local audit evidence, not public deployment readiness.",
+  "sourceState": "Uncommitted changes on the base commit; owned source hashes matched the completed verification state when this report was generated.",
+  "tools": {
+    "bun": "1.3.13",
+    "forge": {
+      "version": "1.8.3",
+      "commit": "cae51ad458f6abb64852b7709eb784352429825d"
+    },
+    "nodeOracleLocal": "22.23.3",
+    "nodePricefeed": "24.21.0",
+    "solcIntegration": "0.8.30",
+    "solcUma": "0.8.16",
+    "typescript": "5.9.3",
+    "actionlint": "1.7.12",
+    "dockerClient": "29.8.0",
+    "dockerServer": "29.5.2",
+    "pricefeedLinuxBaseImage": {
+      "tag": "node:24.21.0-bookworm-slim",
+      "digest": "sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20",
+      "additionalPackage": "python3",
+      "auditImageId": "sha256:23894b5a6058e3c2c981badd6fed460b44d004214c7406686f09b14cbd000a99"
+    }
+  },
+  "findings": [
+    {
+      "id": "SERVICE-01",
+      "severity": "medium",
+      "status": "fixed",
+      "defect": "Sampler requests were acknowledged after a cadence skip even though no sample ran.",
+      "fix": "Retain pending requests until a finalized sample; apply the cheap cadence gate before readiness RPCs.",
+      "files": [
+        "scripts/e2e/market-services.ts",
+        "scripts/e2e/sampler-request-policy.mjs"
+      ],
+      "regression": "scripts/e2e/sampler-request-policy.test.ts"
+    },
+    {
+      "id": "SERVICE-02",
+      "severity": "low",
+      "status": "fixed",
+      "defect": "A reverted sample replaced the last successful sample block and delayed retries.",
+      "fix": "Advance lastSampleBlock only for successful receipts.",
+      "files": [
+        "oracle/services/market-ops/src/operations.ts"
+      ],
+      "regression": "oracle/services/market-ops/test/operations.test.ts"
+    },
+    {
+      "id": "SERVICE-03",
+      "severity": "medium",
+      "status": "fixed",
+      "defect": "The read API rejected the default frontend port 3100 Origin.",
+      "fix": "Include localhost and loopback port 3100 in default development CORS origins.",
+      "files": [
+        "oracle/services/local-integration/src/main.ts"
+      ],
+      "regression": "Configuration reviewed directly; no dedicated CORS regression was added."
+    },
+    {
+      "id": "SERVICE-04",
+      "severity": "medium",
+      "status": "fixed",
+      "defect": "History reads requested 250-block RPC batches despite a 100-block provider limit.",
+      "fix": "Limit each RPC log request to 100 inclusive blocks while preserving the 5,000-block API page.",
+      "files": [
+        "oracle/services/local-integration/src/read-model.ts"
+      ],
+      "regression": "oracle/services/local-integration/test/read-model.test.ts"
+    },
+    {
+      "id": "SERVICE-05",
+      "severity": "medium",
+      "status": "fixed",
+      "defect": "Repeated or unbounded indexer pages could prevent keeper and watchdog progress indefinitely.",
+      "fix": "Bound pagination, detect repeated pages, and fail without partial success or cursor advancement so RPC fallback can run.",
+      "files": [
+        "oracle/packages/oracle-sdk/src/indexer.ts",
+        "oracle/services/watchdog/src/chain.ts"
+      ],
+      "regression": [
+        "oracle/packages/oracle-sdk/test/indexer.test.ts",
+        "oracle/services/keeper/test/sources.test.ts",
+        "oracle/services/watchdog/test/intake.test.ts"
+      ]
+    },
+    {
+      "id": "SERVICE-06",
+      "severity": "medium",
+      "status": "fixed",
+      "defect": "SDK errors could expose credential-bearing indexer URLs or provider messages in service logs.",
+      "fix": "Return controlled public errors without credential-bearing upstream text.",
+      "files": [
+        "oracle/packages/oracle-sdk/src/indexer.ts"
+      ],
+      "regression": "oracle/packages/oracle-sdk/test/indexer.test.ts"
+    },
+    {
+      "id": "CI-01",
+      "severity": "medium",
+      "status": "fixed-locally",
+      "defect": "Clean CI did not build Timelock, which is imported only by skipped deployment scripts; fresh deployment planner tests failed with a missing artifact.",
+      "fix": "Explicitly compile lib/solady/src/accounts/Timelock.sol using the integration profile before planner tests; preserve every existing gate.",
+      "files": [
+        ".github/workflows/oracle.yml"
+      ],
+      "regression": "Isolated clean source copy reproduced the original missing-artifact failure and passed the exact workspace test command after the additional build."
+    }
+  ],
+  "verification": {
+    "standaloneOracleServices": {
+      "passed": 701,
+      "failed": 0,
+      "workspaces": {
+        "feedspec": 150,
+        "oracleSdk": 68,
+        "oracleCli": 37,
+        "snapshotter": 46,
+        "committeeConsole": 29,
+        "localIntegration": 54,
+        "panelRunner": 113,
+        "workflowListener": 5,
+        "keeper": 102,
+        "watchdog": 47,
+        "marketOps": 50
+      },
+      "command": "bun test test",
+      "note": "Executed in each workspace with pinned tools; oracle-sdk ABI comparison was rerun with pinned Forge 1.8.3 after the system Forge binary panicked."
+    },
+    "standaloneTypechecks": {
+      "passed": 5,
+      "workspaces": [
+        "oracleSdk",
+        "keeper",
+        "watchdog",
+        "marketOps",
+        "localIntegration"
+      ],
+      "command": "bun run typecheck"
+    },
+    "additionalTests": {
+      "samplerRequestPolicy": 2,
+      "indexerQuerySchema": 12
+    },
+    "oracleCiPackagesJob": {
+      "workspaceTests": {
+        "passed": 740,
+        "failed": 0,
+        "includesE2ePlanner": 39
+      },
+      "policyTests": {
+        "passed": 9,
+        "failed": 0
+      },
+      "resolutionWorkflowTests": {
+        "passed": 15,
+        "failed": 0
+      },
+      "dryRunWorkflowTests": {
+        "passed": 10,
+        "failed": 0
+      },
+      "totalTests": 774,
+      "serviceTypechecksPassed": 2,
+      "creTypechecksPassed": 2,
+      "creBuildsPassed": 2,
+      "yamlParse": "passed",
+      "noWithDefaultGuard": "passed",
+      "platform": "darwin/arm64",
+      "isolatedSourceCopy": true,
+      "environmentFilesExcluded": true,
+      "freshArtifacts": true
+    },
+    "pricefeed": {
+      "build": "passed",
+      "buildCommand": "npm run build",
+      "linuxSuite": {
+        "passed": 474,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 112496.177622,
+        "cwd": "packages/pricefeed",
+        "command": "node --test --test-isolation=none --test-reporter=tap dist/test/*.test.js",
+        "containerNetwork": "none",
+        "repositoryMount": "read-only",
+        "platform": "linux",
+        "testData": "temporary disposable files and local mocks"
+      },
+      "macosAttempts": {
+        "defaultTemporaryPath": {
+          "passed": 413,
+          "failed": 61,
+          "qualification": "Failed: macOS temporary path symlinks are rejected by private-path validation, and production supervisor requires the pinned Linux runtime."
+        },
+        "canonicalTemporaryPath": {
+          "qualification": "Stopped after confirming Linux runtime requirement; not a passing suite."
+        },
+        "resolution": "Complete suite passed on the pinned Linux Node 24.21.0 runtime. These macOS attempts are retained as limitations rather than reported as passing."
+      }
+    },
+    "actionlint": {
+      "command": "actionlint -color",
+      "scope": "All repository GitHub Actions workflows",
+      "version": "1.7.12",
+      "exitCode": 0,
+      "diagnostics": []
+    },
+    "countingNote": "Counts overlap across verification rounds: 701 standalone workspace tests are included in the 740 exact CI workspace tests, and 2 sampler policy tests are included in the 9 CI policy tests. Do not add overlapping rounds."
+  },
+  "ciFailure": {
+    "workflow": "oracle",
+    "runId": 37585740534,
+    "runUrl": "https://github.com/akronim26/eros-markets/actions/runs/37585740534",
+    "headCommit": "1d6314d3d16c2548aa6a619d415727d073d92a25",
+    "job": "packages",
+    "jobId": 112675313270,
+    "jobUrl": "https://github.com/akronim26/eros-markets/actions/runs/37585740534/job/112675313270",
+    "step": "Test (packages and services)",
+    "error": "ENOENT: out/Timelock.sol/Timelock.json",
+    "otherJobs": {
+      "forge": "passed",
+      "indexer": "passed",
+      "validation": "passed"
+    },
+    "remoteStatus": "The failing run is unchanged. No push or replacement GitHub run was initiated by this audit."
+  },
+  "ciReproduction": {
+    "setupCommands": [
+      {
+        "cwd": "oracle",
+        "environment": {
+          "FOUNDRY_PROFILE": "integration"
+        },
+        "argv": [
+          "forge",
+          "build",
+          "--skip",
+          "test",
+          "--skip",
+          "script"
+        ],
+        "exitCode": 0
+      },
+      {
+        "cwd": "oracle",
+        "environment": {
+          "FOUNDRY_PROFILE": "default"
+        },
+        "argv": [
+          "forge",
+          "build",
+          "test/uma/UmaImports.sol",
+          "--evm-version",
+          "london"
+        ],
+        "exitCode": 0
+      }
+    ],
+    "orderedCommands": [
+      {
+        "step": "ci-clean-planner-before-fix",
+        "cwd": "oracle",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "test",
+          "./e2e/deployment-tests/fresh-testnet.test.ts"
+        ],
+        "exitCode": 1,
+        "expectedFailure": "ENOENT out/Timelock.sol/Timelock.json before the workflow fix"
+      },
+      {
+        "step": "ci-clean-timelock-build",
+        "cwd": "oracle",
+        "argv": [
+          "forge",
+          "build",
+          "lib/solady/src/accounts/Timelock.sol"
+        ],
+        "exitCode": 0,
+        "environment": {
+          "FOUNDRY_PROFILE": "integration"
+        }
+      },
+      {
+        "step": "ci-clean-workspace-tests",
+        "cwd": "oracle",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "run",
+          "--filter",
+          "*",
+          "test"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "policies",
+        "cwd": "oracle",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "test",
+          "../scripts/e2e/keeper-gas-policy.test.ts",
+          "../scripts/e2e/sampler-request-policy.test.ts"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "keeper-typecheck",
+        "cwd": "oracle",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "run",
+          "--cwd",
+          "services/keeper",
+          "typecheck"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "market-ops-typecheck",
+        "cwd": "oracle",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "run",
+          "--cwd",
+          "services/market-ops",
+          "typecheck"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "resolution-test",
+        "cwd": "oracle/workflows/resolution",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "test"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "resolution-typecheck",
+        "cwd": "oracle/workflows/resolution",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "run",
+          "typecheck"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "resolution-build",
+        "cwd": "oracle/workflows/resolution",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "run",
+          "build"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "dryrun-test",
+        "cwd": "oracle/workflows/dryrun",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "test"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "dryrun-typecheck",
+        "cwd": "oracle/workflows/dryrun",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "run",
+          "typecheck"
+        ],
+        "exitCode": 0
+      },
+      {
+        "step": "dryrun-build",
+        "cwd": "oracle/workflows/dryrun",
+        "argv": [
+          "bun",
+          "--no-env-file",
+          "run",
+          "build"
+        ],
+        "exitCode": 0
+      }
+    ],
+    "note": "Existing installed dependency trees were copied into a clean temporary source copy. Artifact directories and environment files were excluded; the reproduction did not repeat dependency installation."
+  },
+  "ownedChangedSourcesSha256": [
+    {
+      "path": "scripts/e2e/market-services.ts",
+      "sha256": "05afb833623805daab0d3662fedb6580825f5fa89f6bb6e5318b3e1db3097502"
+    },
+    {
+      "path": "scripts/e2e/sampler-request-policy.mjs",
+      "sha256": "55d23778a0a31eb4f70cb8edcbfe046948009c74428f4f86024b76803e030b0d"
+    },
+    {
+      "path": "scripts/e2e/sampler-request-policy.d.mts",
+      "sha256": "6a004780927d910bb270c42fb00f2608bed6aeee4083f7d08960ea8669546c6b"
+    },
+    {
+      "path": "scripts/e2e/sampler-request-policy.test.ts",
+      "sha256": "6acd17df4d21895ace289a72ddefdbca36dd48926f3ea987a088bed28925db60"
+    },
+    {
+      "path": "oracle/packages/oracle-sdk/src/indexer.ts",
+      "sha256": "b5903937297ca6c50f03712ec00cc192f9a16355505d721b4cda86a5ecdceb62"
+    },
+    {
+      "path": "oracle/packages/oracle-sdk/test/indexer.test.ts",
+      "sha256": "96267e2b09ad3e1735a2ba1716127d30610490b57f24d85ae23cf96e03d3fa15"
+    },
+    {
+      "path": "oracle/services/keeper/test/sources.test.ts",
+      "sha256": "9e9f8d520e4baabae2907ed7015cac9607429af63f276bac6db359f43e469f30"
+    },
+    {
+      "path": "oracle/services/local-integration/src/main.ts",
+      "sha256": "2fb29d0070b266dd0ff298aaf0203bf2fdd069dbbd5453ed085ddd92b7f32e34"
+    },
+    {
+      "path": "oracle/services/local-integration/src/read-model.ts",
+      "sha256": "774def4f501383921e204b800b2cf5f296da2f848cca28e00c87babff590ab6e"
+    },
+    {
+      "path": "oracle/services/local-integration/test/read-model.test.ts",
+      "sha256": "b44953cd57d93460c57dd58ee1993ff66e25fded1d70d5f3b2832535c30dc32e"
+    },
+    {
+      "path": "oracle/services/market-ops/src/operations.ts",
+      "sha256": "b2381ef07708fd4801b3feded0ad7c6c6bd8d24bcc63731f5000fd9587f06ad1"
+    },
+    {
+      "path": "oracle/services/market-ops/test/operations.test.ts",
+      "sha256": "9d9d7c897b4eb4124df4e82c22a1acf1793bcd6cb9cfa4e62468fcd0e3a1f89f"
+    },
+    {
+      "path": "oracle/services/watchdog/src/chain.ts",
+      "sha256": "1c276ea35781109ed32d238985ad933051db065ca17ede462f720e832947eaff"
+    },
+    {
+      "path": "oracle/services/watchdog/test/intake.test.ts",
+      "sha256": "f1ff12db22227dcf02f0a976fcf498783b9332e37cc2a22de154c67bc6ad325a"
+    },
+    {
+      "path": ".github/workflows/oracle.yml",
+      "sha256": "e725d9ff2854e3f326551d709cfd2ba99ea591a618a1e985df3bb69f9a268d61"
+    }
+  ],
+  "limitations": [
+    "Public publishers, samplers and keepers remained stopped; no public transactions, service restarts, commits or pushes were performed.",
+    "This verification does not establish current public INDEX/MARK freshness, live 5x fills, hosted uptime or availability of external providers.",
+    "The Oracle CI package reproduction ran locally on macOS with pinned tools. The pricefeed suite ran on pinned Linux in Docker; no replacement GitHub run was performed.",
+    "Source hashes cover this agent-owned patch set, not every file in the repository. Frontend, contract and full E2E evidence is recorded separately.",
+    "No claim of a bug-free codebase or independent professional security certification is made."
+  ]
+}

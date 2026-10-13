@@ -1,0 +1,37 @@
+{
+  "scenario": "E1",
+  "title": "Layer 1 to Final with a 2-minute liveness",
+  "network": "monad-testnet",
+  "status": "error: Error: 0x209e5fae: timed out waiting for Layer 1 proposal (state L2Pending)",
+  "started": "2026-10-04T17:35:42.216Z",
+  "steps": [
+    {
+      "step": "listed e1 (truth YES, T 2026-10-04T17:47:00.000Z)",
+      "market": "0x209e5faeb801f26a8b4840518be4d151202ca84abe46f902d16a741cafb747a1",
+      "tx": "0x60e866c4a44f79ea60ccb57876cd094a07bed81f6fdbd5cdbef17e1209b482f3",
+      "detail": {
+        "slug": "eros-e2e-e1-e1-849828-home-gt-3-1791136020",
+        "engine": "0xa4290d574A4Bd075a1fec6257660c5f59397eE2a",
+        "spec": {
+          "scenario": "E1",
+          "tag": "e1",
+          "game": 849828,
+          "side": "home",
+          "target": 3,
+          "feed": "mlb",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 600,
+          "voidSecs": 6000
+        }
+      },
+      "block": "68176521",
+      "time": "2026-10-04T17:36:31.000Z"
+    }
+  ],
+  "checks": []
+}

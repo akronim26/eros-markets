@@ -1,0 +1,11 @@
+{
+  "question": "Will the Golden State Warriors beat the Miami Heat at Chase Center on 5 November 2026 (NBA regular season)?",
+  "rules": "Eros native demo market on Monad testnet (test collateral). Event: Miami Heat (away) at Golden State Warriors (home), NBA 2026-27 regular season, Chase Center, San Francisco, scheduled tip-off 2026-11-06T03:00:00Z (7:00 p.m. PT on 5 November 2026; ESPN game id 401909937). Resolves YES if the Golden State Warriors win the game, including any overtime, and NO if the Miami Heat win. Trading on Eros halts at the scheduled tip-off. Source: the official NBA final score (nba.com), cross-checked with ESPN game 401909937. If the game is postponed, suspended or otherwise not completed by 2026-11-08T03:00:00Z, the market resolves INVALID. Resolution uses the existing review/committee route with sandbox adjudication.",
+  "templateMarketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+  "oiCapLots": 1000000,
+  "indexSourceId": "0x88c1ef279a930f6a8c251450e9b61046e73e09e05d1588cb4da84125271acf81",
+  "indexSigner": "0x2174Ef0C7c96E908A06A4DB51AB235A35756b105",
+  "indexRulesHash": "0xc55f83213472f44070ec0ab166b692091deef41e4a4ce3d77a504a2d92d46ee3",
+  "depthNLots": 100000,
+  "maxSpreadWad": 50000000000000000
+}

@@ -1,0 +1,19 @@
+Eros Markets market 0xbb40e8e0ece7adae065af4f5a16f87abe4a912db0ada1696171ac7ef6b3be5ea (chain 10143, oracle 0xa87D6E10a7199666ec9F2e04866201E35AAf36A6).
+Question: Will the Chicago White Sox score more than 3 runs against the Cleveland Guardians in ALDS Game 3 on 7 October 2026 (MLB gamePk 849833)?
+Rules: This market resolves YES if the Chicago White Sox score more than 3 runs (4 or more) in MLB game 849833 (gamePk), the 2026 American League Division Series Game 3 between the Cleveland Guardians (away) and the Chicago White Sox (home), scheduled to start at 2026-10-07 20:00 UTC. It resolves NO if they score 3 runs or fewer. Who wins does not matter: only the White Sox's runs count.
+
+Source and finality: the official MLB Stats API schedule entry for gamePk 849833 (https://statsapi.mlb.com/api/v1/schedule?gamePk=849833). The game counts as completed once that entry's status code (dates[0].games[0].status.codedGameState) is "F", which MLB uses for a completed game ("Final" or "Completed Early"); a postponed, cancelled or suspended game has another code even where the entry's general state reads "Final". In these rules "Final" means that status code "F". The runs counted are the first numeric home score (dates[0].games[0].teams.home.score) the entry shows together with that status, including any extra innings; that score stands, and any later correction, status change or protest is ignored. A game MLB records as Final counts as played, however many innings were completed. A live, delayed, suspended or in-progress score never counts, and nothing before Final can resolve the market, even if the White Sox already have 4 or more runs.
+
+Deadline: the scheduled resolution time T is 2026-10-08 01:00 UTC. The void deadline is six days after the later of T and the moment trading halts: 2026-10-14 01:00 UTC if trading halts at or before T, later if it halts after T. Only what the official sources show before the void deadline counts. If no official source shows the game as Final with a numeric White Sox score before the void deadline, for any reason (postponement, suspension, cancellation, a removed or replaced entry, or a source failure), the market resolves INVALID.
+
+Postponement and suspension: a postponed game, or a suspended game resumed later, is the same game and counts if it reaches Final before the void deadline, as does a cancelled game that is rescheduled. If MLB completes the game under another gamePk, so that the entry for gamePk 849833 never shows Final, the result is the White Sox's runs in the official MLB box score (mlb.com) of that completed game once mlb.com shows it as final.
+
+Teams: in every case the game must be between these two teams with the Chicago White Sox as the home team; otherwise the market resolves INVALID. A change of venue alone does not void the market.
+
+Sources: the Stats API entry decides whenever it shows Final with a numeric home score, even if mlb.com shows something else. The official MLB box score on mlb.com is used only if the Stats API gives no numeric final score for this game (it is down, returns an error or empty entry, or shows Final without a numeric home score) when the market is resolved; the box score counts once mlb.com shows the game as final, with the White Sox's final runs as shown there.
+
+INVALID settlement: an INVALID market settles at the 24-hour TWAP of the market's index before T, or at 0.5 if that index is missing after T + 1 hour (DEC-08).
+Scheduled time T: 2026-10-08T01:00:00Z (1791421200)
+Asserted outcome: YES
+Evidence: Layer 1 CRE report, value 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6, source https://statsapi.mlb.com/api/v1/schedule?gamePk=849833, keccak256 0x0000000000000000000000000000000000000000000000000000000000000000
+This assertion is true if and only if the rules above, applied to what happened, give the asserted outcome.

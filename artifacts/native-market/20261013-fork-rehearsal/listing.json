@@ -1,0 +1,11 @@
+{
+ "question": "FORK REHEARSAL: will the test condition hold at T?",
+ "rules": "FORK REHEARSAL ONLY. YES if the test condition holds at T; NO otherwise.",
+ "templateMarketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+ "oiCapLots": 1000000,
+ "indexSourceId": "0xfaab6f9e745ba38acf9951aeb6f34243cb1b2ed8c5631d3e52cbc2bf399f8bba",
+ "indexSigner": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+ "indexRulesHash": "0xd6647c65dc08d819829bfeb05cc26d6ffd2989f4d5915da631b7f045fc8b3dbe",
+ "depthNLots": 100000,
+ "maxSpreadWad": 50000000000000000
+}

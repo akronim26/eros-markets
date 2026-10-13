@@ -4,7 +4,7 @@
   "src/engine/RiskAccountingBridge.sol": "RiskAccountingBridge"
  },
  "compiler": "0.8.30+commit.73712a01",
- "source_sha256": "560de62041057523879f4a1545688b49afca84c8c01dad8c44ba22fc6ee7c42e",
+ "source_sha256": "bf2294ec7ef22717d391cda09efc31b4532e465b8c658b95eacb38b2af2c0076",
  "abi": [
   {
    "type": "function",
@@ -2902,6 +2902,34 @@
   },
   {
    "type": "function",
+   "name": "pricingWindows",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "indexWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "perpWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "basisWindowSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "carryLimitSecs",
+     "type": "uint64",
+     "internalType": "uint64"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "type": "function",
    "name": "profileHashOf",
    "inputs": [
     {
@@ -4214,6 +4242,24 @@
     }
    ],
    "stateMutability": "pure"
+  },
+  {
+   "type": "function",
+   "name": "warmupIndex",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "available",
+     "type": "bool",
+     "internalType": "bool"
+    },
+    {
+     "name": "pointWad",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
   },
   {
    "type": "function",
@@ -5785,6 +5831,11 @@
   {
    "type": "error",
    "name": "PriceNotInterior",
+   "inputs": []
+  },
+  {
+   "type": "error",
+   "name": "PricingActivationUnavailable",
    "inputs": []
   },
   {

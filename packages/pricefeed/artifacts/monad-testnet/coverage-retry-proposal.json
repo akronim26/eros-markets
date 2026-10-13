@@ -1,0 +1,94 @@
+{
+  "mode": "MONAD_TESTNET_COVERAGE_RETRY_PROPOSAL",
+  "activated": false,
+  "authorized": false,
+  "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+  "failedInitialEvidenceSha256": "6b55091aa184999c9d4565be2af60b8e702137143dccf180ad55239c95905dc0",
+  "failedInitialCoveredSecs": 268,
+  "failedInitialNewPrices": 20,
+  "failedInitialCostWei": "404203764000000000",
+  "oldPolicy": {
+    "schemaVersion": "1",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "relay": {
+      "gasCap": "800000",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000",
+      "maxCostWei": "120000000000000000",
+      "headroomMs": "5000",
+      "confirmations": "1",
+      "leaseMs": "120000",
+      "timeoutMs": 10000,
+      "maxAttempts": 3,
+      "gasSafetyMarginBps": "1000"
+    },
+    "budget": {
+      "maxTransactions": 55,
+      "totalMaxCostWei": "1770103950000000000",
+      "budgetRevision": 2
+    }
+  },
+  "nextPolicy": {
+    "schemaVersion": "1",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "relay": {
+      "gasCap": "800000",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000",
+      "maxCostWei": "120000000000000000",
+      "headroomMs": "5000",
+      "confirmations": "1",
+      "leaseMs": "120000",
+      "timeoutMs": 10000,
+      "maxAttempts": 3,
+      "gasSafetyMarginBps": "1000"
+    },
+    "budget": {
+      "maxTransactions": 69,
+      "totalMaxCostWei": "2294521250000000000",
+      "budgetRevision": 3
+    }
+  },
+  "historicalReservedWei": "1164521250000000000",
+  "historicalReservationSlots": 31,
+  "maxRemainingReservations": 38,
+  "maxNewPricesPerPhase": 17,
+  "lifetimeFinalizedPriceTargets": [
+    46,
+    63
+  ],
+  "remainingReservationCapWei": "1130000000000000000",
+  "extraSlotsBeyondAppliedCountCap": 14,
+  "extraReservationWeiBeyondAppliedCap": "524417300000000000",
+  "extraSlotsBeyondOriginal44SlotApproval": 14,
+  "extraReservationWeiBeyondOriginal135MONApproval": "374417300000000000",
+  "durationCapSecondsPerPhase": 600,
+  "minimumStoppedGapSeconds": 60,
+  "publicationIntervalMs": 20000,
+  "collectionIntervalMs": 5000,
+  "expectedCostFor34PricesAtLastMeasuredAverageWei": "687146398800000000",
+  "suggestedTopUpWei": "350000000000000000",
+  "activeJournalDirectory": "var/monad-testnet/pilot",
+  "keysDirectory": "var/monad-testnet/keys",
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "productionApproved": false,
+  "stopConditions": [
+    "Stop after a failed initial or recovered window, unresolved delivery, or either durable spending/count cap.",
+    "No further paid retry without a new concrete authorization; reuse current keys and all five active journals."
+  ],
+  "limitations": [
+    "17 prices per phase at nominal 20 seconds should span 300 seconds; real source/inclusion gaps can still prevent coverage.",
+    "34 price reservations plus four recovery slots fit the envelope only at approximately measured selected gas limits; caps stop earlier if limits rise.",
+    "This proposed increase exceeds the original approval and is not applied or authorized."
+  ],
+  "planApprovalHash": "46cd1f57466a685e172f223925b991b71bf1cac48fa3b218c923967b6a5ca07a",
+  "freshBalanceWei": "828236482000000000",
+  "freshFundingGapWei": "301763518000000000",
+  "balanceCheckedAtMs": "1791144902378",
+  "nextNonce": "30",
+  "sourceSequence": "36",
+  "latestMeasuredPriceSamples": 20,
+  "highestMeasuredPriceGasLimit": "209032",
+  "reservationFor34PricesAnd4CancellationsAtHighestMeasuredGasWei": "1078663200000000000"
+}

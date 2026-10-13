@@ -1,0 +1,62 @@
+{
+  "task": "PF023",
+  "recordedAtUtc": "2026-10-03T21:08:01.249037+00:00",
+  "baseGitSha": "849576c71c3ac70da696a59c31d75c71059af284",
+  "command": [
+    "/tmp/eros-foundry-v1.8.3/forge",
+    "test",
+    "--root",
+    "test/integration",
+    "--use",
+    "/home/mihir/.local/share/svm/0.8.30/solc-0.8.30",
+    "--match-contract",
+    "PricefeedLifecycleTest",
+    "--json"
+  ],
+  "cwd": "/home/mihir/eros-markets/packages/pricefeed",
+  "exitCode": 0,
+  "tests": {
+    "test_authenticatedThinCheckpointAddsNoCoverageOrOracleOutcome()": "Success",
+    "test_legacyMissingHistoryNeverAcquiresUnlistedFallback()": "Success",
+    "test_missingHistoryIsUnavailableAndOnlyEngineAppliesListedFallbackAfterGrace()": "Success",
+    "test_signedFull24HourHistoryAfterEarlyHaltCapturesExactTwapOnce()": "Success"
+  },
+  "toolVersions": {
+    "forge": "forge Version: 1.8.3\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T10:46:16.519267388Z (1789469176)\nBuild Profile: dist",
+    "solc": "solc, the solidity compiler commandline interface\nVersion: 0.8.30+commit.73712a01.Linux.g++"
+  },
+  "fileSha256": {
+    "packages/pricefeed/test/integration/test/PricefeedLifecycle.t.sol": "eeeb13cc1052ae3ab0242089c542f59961b9d0612cddb4b6e3abf20e553e043c",
+    "contracts/src/pricing/PriceIngress.sol": "b06c7604ce8e9d1dc64b2056576bccf65d7e58b72c48cb390e36d6c693642fd3",
+    "contracts/src/pricing/ObservationStore.sol": "e4d72237606dd72f5614d4e43bf2a4f304831f69e16433232f8b8b14ec2a4769",
+    "contracts/src/settlement/InvalidPrice.sol": "dd4413a281a5e027697c1819b24775f105bf0a9d53749b3c752f5436559bc4a7",
+    "contracts/test/risk/B/B035.t.sol": "c6c59ce00f3dcead6fc59045a69d2a1dddb34597df10e2df56412b35366e24fa"
+  },
+  "source": "deterministic fixtures, not Polymarket",
+  "clock": "accelerated Foundry VM",
+  "realComponents": [
+    "PriceIngress",
+    "ObservationStore",
+    "InvalidPrice",
+    "RiskContextPort"
+  ],
+  "scriptedCounterparts": [
+    "MockResolutionAuthority",
+    "MockAccountingPort",
+    "MockBookAdapter"
+  ],
+  "fixture": {
+    "scheduledT": 1864000,
+    "earlyHaltAt": 1691200,
+    "cadenceSecs": 20,
+    "fullWindowSecs": 86400,
+    "fullPacketCount": 4321,
+    "exactTwapWad": "520000000000000000",
+    "gappedPacketCount": 4317,
+    "gappedCoverageSecs": 86330,
+    "thinCoverageSecs": 86380
+  },
+  "externalTransactions": 0,
+  "humanGatesAccepted": false,
+  "liveSoakClaimed": false
+}

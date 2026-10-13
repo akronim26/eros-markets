@@ -1,0 +1,45 @@
+.terminal { display: flex; flex-direction: column; min-width: 0; background: var(--color-ink); color: var(--color-ivory); }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 2rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-ink-2); }
+.badge { display: flex; align-items: center; gap: 0.5rem; color: var(--color-ivory-3); font-size: 0.625rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.badge > span { width: 0.375rem; height: 0.375rem; background: var(--color-signal); }
+.intro { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1rem 0.25rem; color: var(--color-ivory-3); font-size: 0.75rem; line-height: 1.6; }
+.intro button { display: grid; place-items: center; flex-shrink: 0; width: 2.75rem; height: 2.75rem; cursor: pointer; transition: color 160ms, background 160ms; }
+.intro button:hover { color: var(--color-ivory); background: var(--color-ink-2); }
+.shortcuts { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 1rem 0.75rem; }
+.shortcuts button { min-height: 2.75rem; padding: 0.5rem 0.75rem; border: 1px solid var(--color-ivory-3); color: var(--color-ivory); font-size: 0.75rem; cursor: pointer; transition: background 160ms, border-color 160ms, transform 160ms; }
+.shortcuts button > span { color: var(--color-signal); }
+.shortcuts button:hover, .shortcuts button:focus-visible { background: var(--color-ink-2); border-color: var(--color-signal); transform: translateY(-2px); }
+.shortcuts button[data-selected="true"] { border-color: var(--color-signal); background: var(--color-ink-2); }
+.output { height: 16rem; overflow-y: auto; overscroll-behavior: contain; padding: 1rem; border-block: 1px solid var(--color-ink-2); font-size: 0.75rem; line-height: 1.9; scrollbar-color: var(--color-ivory-3) var(--color-ink); }
+.output pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; color: var(--color-ivory-3); margin: 0; }
+.entry + .entry { margin-top: 1.25rem; }
+.entry { animation: appear 180ms ease-out both; }
+.command { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; margin-bottom: 0.5rem; overflow-wrap: anywhere; }
+.command > span:first-child { color: var(--color-signal); min-width: 0; }
+.command > span:last-child:not(:first-child) { color: var(--color-ivory-3); font-size: 0.625rem; }
+.hint { color: var(--color-ivory-3); margin-top: 1rem; }
+.hint span { color: var(--color-ivory); }
+.prompt { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem; min-height: 3.5rem; transition: box-shadow 160ms; }
+.prompt:focus-within { box-shadow: inset 2px 0 var(--color-signal); }
+.promptSymbol { color: var(--color-signal); }
+.prompt input { min-width: 0; flex: 1; height: 2.75rem; background: transparent; color: var(--color-ivory); font-size: 0.875rem; }
+.prompt input::placeholder { color: var(--color-ivory-3); font-size: 0.75rem; }
+.prompt button { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; flex-shrink: 0; background: var(--color-signal); color: var(--color-on-signal); cursor: pointer; transition: transform 160ms; }
+.prompt button:hover:not(:disabled) svg { transform: translateX(2px); }
+.prompt button:disabled { background: var(--color-ink-2); color: var(--color-ivory-3); cursor: default; }
+.footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0 1rem; padding: 0 1rem 0.25rem; color: var(--color-ivory-3); font-size: 0.625rem; }
+.footer a { display: inline-flex; gap: 0.5rem; min-height: 2.75rem; align-items: center; color: var(--color-ivory); text-decoration: underline; }
+.footer a:hover { color: var(--color-signal); }
+@keyframes appear { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@media (max-width: 400px) {
+  .shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.375rem; }
+  .shortcuts button { padding-inline: 0.25rem; font-size: 0.6875rem; }
+  .shortcuts button > span { display: none; }
+  .completionHint { display: none; }
+  .prompt input { font-size: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .entry { animation: none; }
+  .shortcuts button:hover, .shortcuts button:focus-visible { transform: none; }
+  .prompt button:hover:not(:disabled) svg { transform: none; }
+}

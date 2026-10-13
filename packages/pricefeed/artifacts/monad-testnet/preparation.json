@@ -1,0 +1,22 @@
+{
+  "kind": "EROS_PRICEFEED_TESTNET_DIAGNOSTIC_V1",
+  "tests": 10,
+  "passed": 10,
+  "abiCompatibleWithMonadPreflight": true,
+  "externalTransactions": 0,
+  "sourceHashes": {
+    "src/PricefeedTestnetReceiver.sol": "cd1e5f78fa4a0a90970578a1b492ffa5a28419568aa5858bbc2ee238c0a9b424",
+    "test/PricefeedTestnetReceiver.t.sol": "37cff8108eac8e39dc5d69b751a79039dc4196a89ee7407caa6db329ae1d7153",
+    "foundry.toml": "a8e94b3e31eed07f0d7542d39edab2469de9909c60077f0f68afb64e83b8a59e",
+    "evidence/receiver-tests.json": "6905ccd5cad65d3f79929fc80bf07bda1a2e44061de339464a5264b1315c54e1",
+    "lib/risk/pricing/PriceIngress.sol": "b06c7604ce8e9d1dc64b2056576bccf65d7e58b72c48cb390e36d6c693642fd3",
+    "lib/risk/pricing/ObservationStore.sol": "e4d72237606dd72f5614d4e43bf2a4f304831f69e16433232f8b8b14ec2a4769"
+  },
+  "runtimeBytes": 7646,
+  "creationBytes": 8838,
+  "abiHash": "0x4287a515a1f77cea13d9c334353f22dd0a9ebe8a3b2a98ff2f7d6c2b0363f247",
+  "deployer": "0x33a4De190Ffa59deC8260880bc96744D8Ac38177",
+  "observationSigner": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e",
+  "productionApproved": false,
+  "testedEnvironment": "Foundry 1.8.3 network=monad, accelerated local test VM; no remote deployment"
+}

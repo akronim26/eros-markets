@@ -1,0 +1,80 @@
+{
+  "source": "plan Appendix C.7; checked in Solidity and viem 2.57.2",
+  "domain": {
+    "name": "ErosResolutionOracle",
+    "version": "1",
+    "chainId": 10143,
+    "verifyingContract": "0x00000000000000000000000000000000000000AA"
+  },
+  "domainSeparator": "0xe36c2d0f1842919a82f01ee615592335f0ed31fad3f74c4423edcd85ed3de817",
+  "typeString": {
+    "PanelResult": "PanelResult(bytes32 marketId,uint8 phase,uint8 attempt,uint8[3] labels,uint16[3] calibratedBps,bytes32 evidenceHash,bytes32 evidenceURIHash,bytes32 gateHash,uint8 flags,uint32 trustSetId,uint64 deadline)",
+    "ReviewedProposal": "ReviewedProposal(bytes32 marketId,uint8 outcome,bytes32 evidenceHash,bytes32 evidenceURIHash,bytes32 noteHash,uint8 attempt,uint8 rejectedMask,bool early,uint32 trustSetId,uint64 deadline)"
+  },
+  "typehash": {
+    "PanelResult": "0x69db7560f727032b47f7c3e6e9c198309778224bf26d820414042f3952f7d905",
+    "ReviewedProposal": "0x859e8252aa8c9e5c1f41c429345599a5fbb3c1c5664602fff262b2ff0e856f57"
+  },
+  "P1": {
+    "preimages": {
+      "marketId": "market-1",
+      "evidenceHash": "snapshot",
+      "evidenceURIHash": "ipfs://bafy",
+      "gateHash": "gate"
+    },
+    "phase": 2,
+    "attempt": 0,
+    "labels": [
+      1,
+      1,
+      1
+    ],
+    "calibratedBps": [
+      9500,
+      9400,
+      9300
+    ],
+    "flags": 0,
+    "trustSetId": 1,
+    "deadline": 1800000000,
+    "digest": "0xc31506d1641a8f03330d1ba677ab016d51c96b1af48ae24d475b84413535b5bc"
+  },
+  "R1": {
+    "preimages": {
+      "marketId": "market-1",
+      "evidenceHash": "snapshot",
+      "evidenceURIHash": "ipfs://bafy",
+      "noteHash": "note"
+    },
+    "outcome": 3,
+    "attempt": 1,
+    "rejectedMask": 2,
+    "early": false,
+    "trustSetId": 1,
+    "deadline": 1800000000,
+    "digest": "0xc3e6776ea7d4164e5eae882701e26b5174ff4b13de6d6701ff360b4243a4301b"
+  },
+  "signed": {
+    "note": "Test keys 1, 2 and 3 only; never fund them. Signatures are 65 bytes r || s || v with v in {27, 28} and low s; RFC 6979 nonces make them reproducible. Checked with Foundry vm.sign, cast and viem 2.57.2 signTypedData.",
+    "P1": {
+      "signer": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+      "privateKey": "0x0000000000000000000000000000000000000000000000000000000000000001",
+      "signature": "0xb746b331c9e0245e67c1ae85141a60810ec8c60429b3e1af2745df314c2f703c116afc43b8653b95aad47eaa01535094de609a17085361061985ae08f6b1c0be1c"
+    },
+    "R1": {
+      "note": "Two committee members, signers in ascending order as submitReviewedProposal requires.",
+      "signers": [
+        "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+        "0x6813Eb9362372EEF6200f3b1dbC3f819671cBA69"
+      ],
+      "privateKeys": [
+        "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "0x0000000000000000000000000000000000000000000000000000000000000003"
+      ],
+      "signatures": [
+        "0x3e3a2d89237ffc4528fad4e46bd2153457b9a1e02b09c07d3bda4b6343ac38cd2226e2f68fa1212bf42780ad9a103a01eebe892dc497cae4e6250178c66b793a1b",
+        "0xa06aba9bbb10eaa7b5a747f5a4d5485e126cd304ae14ae2619796f66e8a4ad1355a0513367ba9b8681db4f31436253ae32cc567785d4ee7fd3f41c5a118d22f91c"
+      ]
+    }
+  }
+}

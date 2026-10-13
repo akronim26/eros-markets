@@ -1,0 +1,65 @@
+{
+  "chainId": 31337,
+  "oracle": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
+  "marketId": "0xe085067fb3e1eba632de103ba472329d833cddefdb9296cc70569d9b080d5fcf",
+  "now": "1791046343",
+  "resolution": {
+    "state": 5,
+    "attempts": 0,
+    "rejectedMask": 0,
+    "haltedAt": "1791046043",
+    "voidDeadline": "1791053243",
+    "l2StartedAt": "1791046343",
+    "retryOpensAt": "0",
+    "earlyStartedAt": "0",
+    "trustSetId": 1
+  },
+  "core": {
+    "tau": "1791046043",
+    "hasFeed": true,
+    "gateHash": "0x6e20bd8ce2fcdb448ca3e38e0bbd4ce3f6b9d1d2a8c9ea6376533456b83db6b7",
+    "l2DeadlineSecs": "600",
+    "earlyTtlSecs": "600"
+  },
+  "text": {
+    "question": "Will the home team score more than 2 goals?",
+    "rules": "YES if the final home score is above 2; NO otherwise. INVALID if the match is not played."
+  },
+  "allowList": [
+    "api.example-sports.com",
+    "stats.example-data.org"
+  ],
+  "l1Url": "https://api.example-sports.com/v1/events/evt_1",
+  "activeTrustSetId": 1,
+  "committee": {
+    "members": [
+      "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+      "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+      "0x976EA74026E726554dB657fA54763abd0C3a0aa9"
+    ],
+    "threshold": 2,
+    "revoked": [
+      false,
+      false,
+      false
+    ]
+  },
+  "lastPanelResult": {
+    "phase": 2,
+    "labels": [
+      1,
+      1,
+      1
+    ],
+    "calibratedBps": [
+      4900,
+      4900,
+      4900
+    ],
+    "evidenceHash": "0x2f954347fe999c15115f1cb77852983e3eb8760a975bbeab21f98170d6174c80",
+    "evidenceURI": "eros-snapshot:0x2f954347fe999c15115f1cb77852983e3eb8760a975bbeab21f98170d6174c80",
+    "routedTo": 5,
+    "at": "1791046343"
+  },
+  "enteredReview": "1791046343"
+}

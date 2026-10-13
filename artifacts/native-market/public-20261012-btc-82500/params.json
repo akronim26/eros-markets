@@ -1,0 +1,22 @@
+{
+  "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+  "marketId": "0x0f6b5f9fae4a00d5612f6a06f055f67d15418cf50329b925aefa52910053921a",
+  "collateral": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+  "rules": "Eros native demo market on Monad testnet (test collateral). Resolves YES if the close price of the Kraken XBT/USD 1-minute OHLC candle that opens at 2026-10-14T22:59:00Z is strictly greater than 82500.0 USD, and NO if it is less than or equal to 82500.0 USD. Source: https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=1 . If Kraken publishes no candle for that minute by 2026-10-15T23:00:00Z, the market resolves INVALID. Resolution uses the existing review/committee route with sandbox adjudication.",
+  "scheduledT": 1792018800,
+  "issuanceCap": 10000000000,
+  "yesSymbol": "eBTC82K-YES",
+  "noSymbol": "eBTC82K-NO",
+  "kuruRouter": "0x7EFbE105Ca7415dE98F96622173458ac1c054630",
+  "kuru": {
+    "pricePrecision": 1000,
+    "sizePrecision": 1000,
+    "tickSize": 1,
+    "minSize": 1,
+    "maxSize": 1000000000,
+    "takerFeeBps": 0,
+    "makerFeeBps": 0,
+    "ammSpread": 100
+  },
+  "out": "deployments/native/btc-82500.json"
+}

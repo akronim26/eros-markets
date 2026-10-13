@@ -1,0 +1,827 @@
+{
+  "schema": "eros-interface-release-review/1",
+  "recordedAt": "2026-10-05T21:35:39.170731+00:00",
+  "reviewKind": "separate read-only code review pass by implementation agent; not external independent security approval",
+  "sourceCommit": "dbab6128904dcd990ce5ef38b5a5274d29fa8a99",
+  "workingTreeDirty": true,
+  "scope": "SDK/browser exports, typed owner transaction builders, read-only API/enrollment, deployment preflight/fork boundary, local owner gas/replay, canonical settlement audit, live driver timing",
+  "productionApproval": false,
+  "publicTransactionsPerformedByReview": 0,
+  "publicRpcCallsPerformedByReview": 0,
+  "controlMutationsPerformedByReview": 0,
+  "newTestsRunForThisReview": false,
+  "result": "No additional blocking interface or public-write defect found. Actual local1024flat-owner operator batches completed in two transactions; source freshness, worst-case leveraged position gas and public timing remain separate evidence boundaries.",
+  "findings": [
+    {
+      "id": "LIVE-ARMED-FINALITY-BUDGET",
+      "severity": "proof-reliability",
+      "status": "implementation-reviewed-awaiting-clock-aligned-fresh-proof",
+      "files": [
+        "oracle/services/local-integration/src/live-actors.ts",
+        "packages/pricefeed/scripts/live-factory-integration.ts"
+      ],
+      "detail": "Actor requires matching pause acknowledgement strictly before epoch end. Publisher requires a genuine valid sample captured at or after E-15, sealed before E, and finalized before acknowledgment. Observed capture-to-seal lag is approximately 8-19 seconds plus four-block finality, so the target has insufficient reliable scheduling margin. Some fast paths are possible; success is not guaranteed. No core TTL or finality change is justified by this evidence.",
+      "requiredResolution": "Retain unchanged 30-second carry and canonical finality; coordinate driver sequencing optimization and focused regressions before claiming reproducible mature rollover. Preserve original activation deadline and diagnostic run provenance.",
+      "activeDiagnosticRun": "tmp/local-live-leverage-20261005-212226",
+      "diagnosticDisposition": {
+        "run": "tmp/local-live-leverage-20261005-212226",
+        "status": "superseded-gracefully-no-completed-proof",
+        "marker": "tmp/local-live-leverage-20261005-212226/superseded.json",
+        "markerSha256": "5c9646f416cedc4567b1c9059fe06e68206a4a42c34f73e64d600adb3d60d53f"
+      }
+    },
+    {
+      "id": "BOOTSTRAP-MULTIPAGE-ROLLOVER-LIVENESS",
+      "severity": "deployment-readiness",
+      "status": "local-flat-capacity-measured-warm-source-and-worst-case-timing-unproven",
+      "files": [
+        "contracts/src/engine/RiskAccountingBridge.sol",
+        "contracts/src/risk/EpochRollover.sol",
+        "contracts/src/pricing/RiskPricing.sol",
+        "contracts/src/engine/BookRiskEngine.sol",
+        "oracle/services/market-ops/src/operations.ts"
+      ],
+      "detail": "The engine exposes only separate beginRollover, rollPage(max 32), and finishRollover entrypoints. There is no atomic rollover/multicall entrypoint. The frozen sweepCutoff protects account accrual; opening price candidates are recomputed at finish block.timestamp, not frozen at begin. Effective SWEEP after epoch end makes new executable book depth unavailable. A bootstrap market therefore needs the last pre-boundary valid PERP/BASIS sample to remain fresh until finish. With 1,024 owners, 32 pages plus begin/finish exceed the 30-second carry under the configured 1-second block/four-block-finality serial operator. Accounting can still complete safely, but successful small-owner warm rollover does not prove large-market bootstrap liveness.",
+      "guarantees": "Missing windows leave pricingMode BOOTSTRAP and prevent leveraged admission. Once NORMAL_PRICING has been reached, the mode does not demote; unavailable mark still disables leveraged admission until windows rebuild. No stale mark is silently accepted.",
+      "requiredResolution": "The optional reviewed helper now composes bounded current-gas batches without changing economic contracts. Complete actual operator RPC/finality timing and a clock-aligned warm source proof before claiming reproducible opening liveness; retain the30-second carry and stale-window fallback. The original no-helper scale finding remains valid for legacy3step operators.",
+      "gasEvidenceCaution": "Historical gas-engine report has approximately 3.70M Prague / 2.08M Monad gas for a worst 32-owner page; it is not a current batch certificate and does not establish that all 32 pages fit 30M.",
+      "sourceReviewAt": "2026-10-05T22:09:43.383281+00:00",
+      "resolutionProgressAt": "2026-10-05T22:49:36.894459+00:00",
+      "localCapacityEvidence": {
+        "path": "artifacts/integration/rollover-rpc-2026-10-06.json",
+        "sha256": "e9b009a9d773c01e521d52a0739e9282ba2d0f63384615cbc619270c8d77fd8e",
+        "batches": 2,
+        "finishSeconds": 13,
+        "finalizedMs": 17275
+      }
+    }
+  ],
+  "checks": [
+    {
+      "area": "Browser boundary",
+      "result": "Browser entry exports only ABI, typed trading/read builders and sanitized manifest schema. It has no filesystem, environment-key or wallet-signing loader."
+    },
+    {
+      "area": "Read API identity and privacy",
+      "result": "Loopback-only listener and exact CORS origins; GET-only endpoints. Chain, runtime code, listing and registry relationships are checked with block-pinned reads. Canonical block hash is rechecked; arbitrary owner reads are bounded. Public manifest serialization strips RPC and unknown fields. HTTP transport errors return controlled messages."
+    },
+    {
+      "area": "Units and unavailable states",
+      "result": "Handoff distinguishes lots, token atoms, WAD and Q; stale/unavailable prices remain null. Claims require enabled preparation and positive claimable amount. Owner-specific simulation remains required before wallet sending."
+    },
+    {
+      "area": "Owner transaction and gas",
+      "result": "Typed owner and wallet-chain validation precedes building requests. Local actors use measured gas with explicit caps, simulation, chain binding, and exact signed-byte replay. Market-ops refuses untracked pending nonce and binds journals to deployment and sender."
+    },
+    {
+      "area": "Replay limitations",
+      "result": "Pending signed transactions can reconcile exactly; partially completed funding and fill-before-summary states do not automatically resume. Fresh-run SDK smoke has no durable signed pending journal and is evidence tooling, not a production resumable workflow."
+    },
+    {
+      "area": "Public write boundary",
+      "result": "Public preflight RPC has an explicit read-method allowlist and loads no keys. Mutating rehearsal methods require loopback verified Anvil and a snapshot restored on completion/failure. Upstream fork proxy keeps the public transport read-only. Local harness verifies child and free port, uses sanitized environment, and owns unique evidence directories."
+    },
+    {
+      "area": "Concrete factory deployment",
+      "result": "Two STOP-prefixed bytecode stores, expected creation hash, factory/vault/engine CREATE addresses, registry/factory/engine/vault bindings, reciprocal oracle/treasury/token/governance reads, reserve funding and governed activation are checked. Predicted/ephemeral addresses are not presented as deployed public manifests."
+    },
+    {
+      "area": "Wallet roles",
+      "result": "Preflight reports role membership and available balances but explicitly does not assert signer custody. Fork impersonation/native gas top-up is labeled; token funds are not fabricated."
+    },
+    {
+      "area": "Closure proof",
+      "result": "Watcher stops and drains before sampling lock and settlement start. Auditor independently derives full owner claims from frozen balances, verifies exact owner-paid receipts/events and terminal states, and checks reserve/dust/deficit and custody identities at canonical pinned blocks."
+    },
+    {
+      "area": "Live evidence",
+      "result": "Independent live auditor pins actual owner positions/cash/coverage to canonical blocks and checks post-fill capture time, not merely a later seal receipt. Active run remains incomplete; timing finding is retained separately."
+    }
+  ],
+  "limitations": [
+    "This is a code review and retained-test evidence check, not a formal audit, external approval, or full proof of absence of secrets.",
+    "Legacy explicit public E2E scenario and generic market-ops broadcast commands still exist for authorized operators; they were not executed by this review. New local/preflight commands are separately constrained.",
+    "User-provided provenance labels are metadata, not independently certified source truth. Current code/listing identity is verified; historical verifiedAt metadata is not a substitute for a canonical current snapshot.",
+    "SDK smoke verifies loopback chain 31337, fixture token alias and enrolled code/listing identity; its standalone helper does not itself check web3_clientVersion. Root local orchestration does verify and own Anvil.",
+    "No wallet-custody, public activation, empirical risk calibration, or paid provider claim follows from local fixture or impersonated fork results.",
+    "Review source hashes describe files at review time; later driver corrections need a supplemental review and hashes before release.",
+    "Raw local logs and source endpoints are retained under ignored tmp; the browser manifest and versioned review record contain no RPC secrets."
+  ],
+  "existingValidation": {
+    "path": "artifacts/integration/sdk-services-2026-10-06.json",
+    "sha256": "4cfaf8802d1f1725db182fc03beb1d90f8a28e6cb5da046680dd8c9a33f485d2",
+    "unitTests": 663,
+    "distinctForkScenarios": 14,
+    "note": "Latest validation includes bounded helper regressions and24ABI sync; this supplemental review does not add tests to the count."
+  },
+  "reviewedSources": {
+    "docs/integration/DEPLOYMENT_RUNBOOK.md": {
+      "sha256": "3cf261e7851f3fc9fdcfc2ad957d80bde7ce59f750bdce1f788c7d17bc517ced",
+      "sha256LF": "3cf261e7851f3fc9fdcfc2ad957d80bde7ce59f750bdce1f788c7d17bc517ced",
+      "bytes": 10176
+    },
+    "docs/integration/INTEGRATION_READINESS.md": {
+      "sha256": "0140577d9da4beaba89eadf5ec9804195b6467a2e99b4bc5da590413c0c75e56",
+      "sha256LF": "0140577d9da4beaba89eadf5ec9804195b6467a2e99b4bc5da590413c0c75e56",
+      "bytes": 8970
+    },
+    "oracle/e2e/README.md": {
+      "sha256": "0daf544baa34cfdd8a0d61d39c2157400bdc7ae3047439d39fcc7eb9358ca31a",
+      "sha256LF": "0daf544baa34cfdd8a0d61d39c2157400bdc7ae3047439d39fcc7eb9358ca31a",
+      "bytes": 2209
+    },
+    "oracle/e2e/package.json": {
+      "sha256": "95967bd6ff64d6356b11fd9582d672413ec288fd1ea0ef16f56e3860ef29707a",
+      "sha256LF": "3c8f57f9e6304aa7ff10d671152dc2e4f3547875b3e973a5f68853ec7849edc1",
+      "bytes": 480
+    },
+    "oracle/e2e/src/actors.ts": {
+      "sha256": "476ffc1088bf9a78707ae51d46d0655da2e76445e4e5f645e7259d629139dea3",
+      "sha256LF": "6bd8d909b3cf8a1a5b885bbc2224323b28d4f75affb426534d2605847f1ea685",
+      "bytes": 9114
+    },
+    "oracle/e2e/src/engine-adapter.ts": {
+      "sha256": "f7d57ac865035d5c3ac1de54c6f17e199b75f7be1129d6a572ed4976d10c965a",
+      "sha256LF": "f7d57ac865035d5c3ac1de54c6f17e199b75f7be1129d6a572ed4976d10c965a",
+      "bytes": 5718
+    },
+    "oracle/e2e/src/engine.ts": {
+      "sha256": "f0c2f006a83cef080804af224ddd2d1dfb113f239355f52e1af24aa489d9e749",
+      "sha256LF": "f0c2f006a83cef080804af224ddd2d1dfb113f239355f52e1af24aa489d9e749",
+      "bytes": 858
+    },
+    "oracle/e2e/src/evidence.ts": {
+      "sha256": "68091e9e6c84e04c98760e5993049d1f740bf8e575d439c14903aa51c8bcbc5f",
+      "sha256LF": "122494b11b83a85ba89dc23c8b44515160ad28ce868646791fd8382dfd5a0cda",
+      "bytes": 4017
+    },
+    "oracle/e2e/src/fork-rpc.ts": {
+      "sha256": "aad0022e33c7b7adf3a5be73e6b2f137f2aebf428c7186534ae2fd1ec9e856db",
+      "sha256LF": "aad0022e33c7b7adf3a5be73e6b2f137f2aebf428c7186534ae2fd1ec9e856db",
+      "bytes": 3069
+    },
+    "oracle/e2e/src/integrated-preflight.ts": {
+      "sha256": "f3b5452e18bc329a2aae449c1bc68363347fda42f35aa9898cd8459e29b9a64f",
+      "sha256LF": "f3b5452e18bc329a2aae449c1bc68363347fda42f35aa9898cd8459e29b9a64f",
+      "bytes": 38104
+    },
+    "oracle/e2e/src/local-coverage.ts": {
+      "sha256": "b0e49034dcf4f9e369c7ddbb928a4012d39da9fca54df7a9e674ac7bc71de2f6",
+      "sha256LF": "b0e49034dcf4f9e369c7ddbb928a4012d39da9fca54df7a9e674ac7bc71de2f6",
+      "bytes": 5672
+    },
+    "oracle/e2e/src/market.ts": {
+      "sha256": "b7b21775c6cd603578e8a26133a0b52ceaea1e2413f04e7726560c320e8bb945",
+      "sha256LF": "2a812a35c6b951f1972ade6501eb58e3a9f4823ad1196a48ff99535c89160831",
+      "bytes": 10021
+    },
+    "oracle/e2e/src/scenarios.ts": {
+      "sha256": "6eda9235d9782a74af7183e54a53d9e7e12140991542c6e629a75275786206d8",
+      "sha256LF": "0167fc6b409fc7d7285fcd3ead71f12517061f2b2cbc27943c39ca5e32a240bb",
+      "bytes": 25408
+    },
+    "oracle/packages/oracle-sdk/FRONTEND_HANDOFF.md": {
+      "sha256": "fe311f8dae7e5e3a6b2856c4132f1e6bab0b7cb2720e8bf7f38ad70aa0daaba3",
+      "sha256LF": "fe311f8dae7e5e3a6b2856c4132f1e6bab0b7cb2720e8bf7f38ad70aa0daaba3",
+      "bytes": 9191
+    },
+    "oracle/packages/oracle-sdk/README.md": {
+      "sha256": "3f427412ebe3bba5c777a41ea82ae855394bd97521701da3622b4c0fee92affa",
+      "sha256LF": "3f427412ebe3bba5c777a41ea82ae855394bd97521701da3622b4c0fee92affa",
+      "bytes": 6071
+    },
+    "oracle/packages/oracle-sdk/package.json": {
+      "sha256": "5574d689a2e532b5a6e90f882ee93206f52e19f78a3dc93fd1e0751898007952",
+      "sha256LF": "eb45635c7dd7d60d8b6de9b75eb0266131383fbeb4db59bec7a1c9d25df83a56",
+      "bytes": 583
+    },
+    "oracle/packages/oracle-sdk/scripts/local-rpc-readiness.ts": {
+      "sha256": "c9848e4f51e2f02af593c44a0a7f4b59746fb91c5464cdd5753894a7060c7d9b",
+      "sha256LF": "c9848e4f51e2f02af593c44a0a7f4b59746fb91c5464cdd5753894a7060c7d9b",
+      "bytes": 1820
+    },
+    "oracle/packages/oracle-sdk/scripts/local-trader-smoke.ts": {
+      "sha256": "21f44b9cbf26ac388fddab4c3ea1108dd1537ce33fbda9f453b4af3edd640e62",
+      "sha256LF": "21f44b9cbf26ac388fddab4c3ea1108dd1537ce33fbda9f453b4af3edd640e62",
+      "bytes": 8124
+    },
+    "oracle/packages/oracle-sdk/src/abi/index.ts": {
+      "sha256": "fce1f9d9744d606a898342a32e8ac2c9664d76bb7cc590f813d8ad10ece3fb89",
+      "sha256LF": "fce1f9d9744d606a898342a32e8ac2c9664d76bb7cc590f813d8ad10ece3fb89",
+      "bytes": 1330
+    },
+    "oracle/packages/oracle-sdk/src/abi/sources.ts": {
+      "sha256": "fc4b54f7e19253150bc5f5eee976d8a15b1185ed4b343ffe5533d5ebd9e9ace4",
+      "sha256LF": "d217e378cfac918afb22adc789c5b1c21bac5add00c6b2921cbdd4301c38fc45",
+      "bytes": 2542
+    },
+    "oracle/packages/oracle-sdk/src/browser.ts": {
+      "sha256": "ff6af66a429d1bd72ceda118b87a1b5224ae5154ec097c2c7db9b45a86d1feca",
+      "sha256LF": "ff6af66a429d1bd72ceda118b87a1b5224ae5154ec097c2c7db9b45a86d1feca",
+      "bytes": 174
+    },
+    "oracle/packages/oracle-sdk/src/index.ts": {
+      "sha256": "405d6cd6ce7af51d57f8fdd636fb41ff4b221930b43f535396c8c031db056d72",
+      "sha256LF": "8edb4c9d5dd714f9bcc57209b89738e130207e767dee3552d977c560b6d612c8",
+      "bytes": 305
+    },
+    "oracle/packages/oracle-sdk/src/trading-manifest.ts": {
+      "sha256": "0cec2bea64873293e73b0dcd4842cdd18d11970854f812c8291bf37820ed3544",
+      "sha256LF": "0cec2bea64873293e73b0dcd4842cdd18d11970854f812c8291bf37820ed3544",
+      "bytes": 3590
+    },
+    "oracle/packages/oracle-sdk/src/trading.ts": {
+      "sha256": "84b61aa106b8642d9403735d7c9660d6282e35a8ae6cdc3f61edc660e54d596e",
+      "sha256LF": "84b61aa106b8642d9403735d7c9660d6282e35a8ae6cdc3f61edc660e54d596e",
+      "bytes": 6411
+    },
+    "oracle/script/integration/prepare-integrated.ts": {
+      "sha256": "7e1e66b39f1062d6c1275e1d785a9c0bfeb587d1e1f45c76cae98d5c64d1b1f0",
+      "sha256LF": "7e1e66b39f1062d6c1275e1d785a9c0bfeb587d1e1f45c76cae98d5c64d1b1f0",
+      "bytes": 233
+    },
+    "oracle/services/keeper/src/local-integration.ts": {
+      "sha256": "330acec3e476ba099e6f6819827a6454f0e12dbe112d4df424c3de913c95dd10",
+      "sha256LF": "330acec3e476ba099e6f6819827a6454f0e12dbe112d4df424c3de913c95dd10",
+      "bytes": 9672
+    },
+    "oracle/services/keeper/test/fork/safety.ts": {
+      "sha256": "b28ee41a70bf76ac863da9f4fbac7465fe7675b1e58d999e0adbad7b6d9b6879",
+      "sha256LF": "b28ee41a70bf76ac863da9f4fbac7465fe7675b1e58d999e0adbad7b6d9b6879",
+      "bytes": 3265
+    },
+    "oracle/services/keeper/test/fork/stack.ts": {
+      "sha256": "61b3db3a38d3c21885e4829416880f51f2c5d90a59e7e18929c88da1573a6870",
+      "sha256LF": "4f6497495d665bcf10dce0bdb394a4b7535cf2da0aff826a1ab3243aaa8ff8a6",
+      "bytes": 18065
+    },
+    "oracle/services/local-integration/src/atomic-json.ts": {
+      "sha256": "204aa59d57ca9f3b59fb902067a8370d408cca429c7f23b9cbb0358ef00f9641",
+      "sha256LF": "204aa59d57ca9f3b59fb902067a8370d408cca429c7f23b9cbb0358ef00f9641",
+      "bytes": 1095
+    },
+    "oracle/services/local-integration/src/audit-live.ts": {
+      "sha256": "15ae55ac6bc672722289786bd31b5410e52ec485e3fbb5d699bf6fb5f5818bbb",
+      "sha256LF": "15ae55ac6bc672722289786bd31b5410e52ec485e3fbb5d699bf6fb5f5818bbb",
+      "bytes": 18373
+    },
+    "oracle/services/local-integration/src/enroll.ts": {
+      "sha256": "a9c30bf1d4b8cfce27de480e92244d82459b502895089b65ede14ebf51f780a7",
+      "sha256LF": "a9c30bf1d4b8cfce27de480e92244d82459b502895089b65ede14ebf51f780a7",
+      "bytes": 4055
+    },
+    "oracle/services/local-integration/src/enrollment.ts": {
+      "sha256": "8453f5ecd57b9c8f105fd14dd6427854761c747bb14a7a041bb6aeb90074b5a3",
+      "sha256LF": "8453f5ecd57b9c8f105fd14dd6427854761c747bb14a7a041bb6aeb90074b5a3",
+      "bytes": 3199
+    },
+    "oracle/services/local-integration/src/live-actors.ts": {
+      "sha256": "7eb53c8342254588bf47dac3d06d6e3dfc599a4442273672c1424dc136f37785",
+      "sha256LF": "7eb53c8342254588bf47dac3d06d6e3dfc599a4442273672c1424dc136f37785",
+      "bytes": 26814
+    },
+    "oracle/services/local-integration/src/main.ts": {
+      "sha256": "e8c4da926c13623b53f9a724185699279914ccfe0867d08aca218cf7ce59d7bb",
+      "sha256LF": "e8c4da926c13623b53f9a724185699279914ccfe0867d08aca218cf7ce59d7bb",
+      "bytes": 4993
+    },
+    "oracle/services/local-integration/src/read-model.ts": {
+      "sha256": "0e145a63133d6424611a6680ea9bda48d1334000bd23432ea6a2ff4ba6b34f9d",
+      "sha256LF": "29525e174b73ebf7f28d74af3a0ddbe5bbf503c76bfe73e8ac1abd1bdefaa19a",
+      "bytes": 11728
+    },
+    "oracle/services/local-integration/src/upkeep.ts": {
+      "sha256": "bab9a796018de0aefd59807206d3c962ea214f43811d650107bc15d0985eb88f",
+      "sha256LF": "bab9a796018de0aefd59807206d3c962ea214f43811d650107bc15d0985eb88f",
+      "bytes": 19325
+    },
+    "oracle/services/market-ops/src/broadcast.ts": {
+      "sha256": "26d9ed2330107e6eb94887c93264831cd3bae33c663464cde9863394c5e5c922",
+      "sha256LF": "26d9ed2330107e6eb94887c93264831cd3bae33c663464cde9863394c5e5c922",
+      "bytes": 890
+    },
+    "oracle/services/market-ops/src/chain.ts": {
+      "sha256": "a87758aa5d8e381c6ccf2cfeacf16b75883dfeece1a3db5b87416692506c0574",
+      "sha256LF": "a87758aa5d8e381c6ccf2cfeacf16b75883dfeece1a3db5b87416692506c0574",
+      "bytes": 7331
+    },
+    "oracle/services/market-ops/src/main.ts": {
+      "sha256": "343cdb685f27e1b426d12d3423e67ec947d83ce2f019a3d76ab3f7b75f9b10f7",
+      "sha256LF": "343cdb685f27e1b426d12d3423e67ec947d83ce2f019a3d76ab3f7b75f9b10f7",
+      "bytes": 3299
+    },
+    "oracle/services/market-ops/src/operations.ts": {
+      "sha256": "ebb9a269591a14b3afca60c90cbfed27aa8591f4045972d8c672b13791a561d2",
+      "sha256LF": "ebb9a269591a14b3afca60c90cbfed27aa8591f4045972d8c672b13791a561d2",
+      "bytes": 10193
+    },
+    "oracle/services/market-ops/src/rollover.ts": {
+      "sha256": "c65412b29ec4f1925d063b505f27e96ec6a21596c53a4f857ee417ec3d946484",
+      "sha256LF": "c65412b29ec4f1925d063b505f27e96ec6a21596c53a4f857ee417ec3d946484",
+      "bytes": 1429
+    },
+    "oracle/services/market-ops/src/schema.ts": {
+      "sha256": "e85ab691b1d6c436a7a62c80078ecbda4d95452b1c8b7e5706eee1c20435bd46",
+      "sha256LF": "e85ab691b1d6c436a7a62c80078ecbda4d95452b1c8b7e5706eee1c20435bd46",
+      "bytes": 3876
+    },
+    "oracle/services/market-ops/src/store.ts": {
+      "sha256": "5779f263b51e5bff0b73ea1ba7a8847aa5735a6667c81b6e546e294638b3e522",
+      "sha256LF": "5779f263b51e5bff0b73ea1ba7a8847aa5735a6667c81b6e546e294638b3e522",
+      "bytes": 2660
+    },
+    "packages/pricefeed/scripts/live-factory-integration.ts": {
+      "sha256": "bce32e22fd49ff8c0d6127f05dc67c4f2d2cc9c6f14f60504dc8d99e989c5ea2",
+      "sha256LF": "bce32e22fd49ff8c0d6127f05dc67c4f2d2cc9c6f14f60504dc8d99e989c5ea2",
+      "bytes": 29119
+    },
+    "scripts/integration/audit-live-run.py": {
+      "sha256": "4a4ca38397dc74985ec55f1d2fbdcb086ed825dcc3fc58719d4904de9203bf04",
+      "sha256LF": "4a4ca38397dc74985ec55f1d2fbdcb086ed825dcc3fc58719d4904de9203bf04",
+      "bytes": 6590
+    },
+    "scripts/integration/audit-local-run.py": {
+      "sha256": "1f89ff58c68b1c63e39d118e0da4f666c8a02d975d9116a046649d169851161d",
+      "sha256LF": "1f89ff58c68b1c63e39d118e0da4f666c8a02d975d9116a046649d169851161d",
+      "bytes": 23101
+    },
+    "scripts/integration/local-stack.py": {
+      "sha256": "7a095d6df8c34f55503a47724806b1be627fe8187c75e8096c7584823860e6d1",
+      "sha256LF": "7a095d6df8c34f55503a47724806b1be627fe8187c75e8096c7584823860e6d1",
+      "bytes": 36757
+    },
+    "scripts/integration/preflight-integrated.py": {
+      "sha256": "aa8cd02561238dd2a6b4482ddf0aea3913f18f9e3e0867b7ff939cbcd0e2c435",
+      "sha256LF": "aa8cd02561238dd2a6b4482ddf0aea3913f18f9e3e0867b7ff939cbcd0e2c435",
+      "bytes": 4002
+    },
+    "scripts/integration/probe-local-api.py": {
+      "sha256": "d84ab9cda8f1ee4bfc40922abfcad56ff5dadfdd30de62990320fb6b0c57a361",
+      "sha256LF": "d84ab9cda8f1ee4bfc40922abfcad56ff5dadfdd30de62990320fb6b0c57a361",
+      "bytes": 6257
+    },
+    "scripts/integration/test_leveraged_settlement_audit.py": {
+      "sha256": "73609e636d63b23adc79e0f40822147eb653c0ed7980ec0306a8d742d5120a6a",
+      "sha256LF": "73609e636d63b23adc79e0f40822147eb653c0ed7980ec0306a8d742d5120a6a",
+      "bytes": 7447
+    }
+  },
+  "generatedAbiDependencies": {
+    "oracle/packages/oracle-sdk/src/abi/BondTreasury.ts": {
+      "sha256": "a5d2e1ec9fa5c21a1b5619cca0f3be49da05252165ce9ad3e366bca688a31c1d",
+      "sha256LF": "a5d2e1ec9fa5c21a1b5619cca0f3be49da05252165ce9ad3e366bca688a31c1d",
+      "bytes": 17806
+    },
+    "oracle/packages/oracle-sdk/src/abi/CollateralVault.ts": {
+      "sha256": "8a14ec1644c86cbd9a29296ee709a2f074c44d755c5343265835fe17b3a2355d",
+      "sha256LF": "8a14ec1644c86cbd9a29296ee709a2f074c44d755c5343265835fe17b3a2355d",
+      "bytes": 11743
+    },
+    "oracle/packages/oracle-sdk/src/abi/ErosSandboxOracle.ts": {
+      "sha256": "af86b3c4582e25ae6bc375beba0214df7b149f903d4e9c64ea12af599f1b42aa",
+      "sha256LF": "af86b3c4582e25ae6bc375beba0214df7b149f903d4e9c64ea12af599f1b42aa",
+      "bytes": 8102
+    },
+    "oracle/packages/oracle-sdk/src/abi/IAssertionVenue.ts": {
+      "sha256": "c153e48cf4efbf1860f168f81630ba678cb022dc73e31a9aba2da593a8a5cb60",
+      "sha256LF": "c153e48cf4efbf1860f168f81630ba678cb022dc73e31a9aba2da593a8a5cb60",
+      "bytes": 4342
+    },
+    "oracle/packages/oracle-sdk/src/abi/IBondTreasury.ts": {
+      "sha256": "6e83651e787deb0b8aa71913f7defd768b97ff2c5c8d0098c96a664255cb0933",
+      "sha256LF": "6e83651e787deb0b8aa71913f7defd768b97ff2c5c8d0098c96a664255cb0933",
+      "bytes": 15203
+    },
+    "oracle/packages/oracle-sdk/src/abi/IEngineMonitorView.ts": {
+      "sha256": "784d51ebc899ade9824a93f847ab8fd455ded37cbed2460b4b3c11b60e61c2e7",
+      "sha256LF": "784d51ebc899ade9824a93f847ab8fd455ded37cbed2460b4b3c11b60e61c2e7",
+      "bytes": 2977
+    },
+    "oracle/packages/oracle-sdk/src/abi/IERC165.ts": {
+      "sha256": "4f04d466477b9c19baf7dca8932ced5be839cd1d42b02de60ac02815586355a0",
+      "sha256LF": "4f04d466477b9c19baf7dca8932ced5be839cd1d42b02de60ac02815586355a0",
+      "bytes": 532
+    },
+    "oracle/packages/oracle-sdk/src/abi/IKeeperRouter.ts": {
+      "sha256": "adc5f545952eedee9e02d52063f13d06991a892607b36a3d68fafd8db29446fd",
+      "sha256LF": "adc5f545952eedee9e02d52063f13d06991a892607b36a3d68fafd8db29446fd",
+      "bytes": 1467
+    },
+    "oracle/packages/oracle-sdk/src/abi/IMarketFactory.ts": {
+      "sha256": "9beb6695174a9d0b467e4576c4a046239d1b44c50fa9d656b67f7fb22513eb4c",
+      "sha256LF": "9beb6695174a9d0b467e4576c4a046239d1b44c50fa9d656b67f7fb22513eb4c",
+      "bytes": 4473
+    },
+    "oracle/packages/oracle-sdk/src/abi/IMarketRegistry.ts": {
+      "sha256": "79cac0a0fd0385aaaa53940c3a16ffd6609e348cddd393f5f6ff7e9f00c9bfef",
+      "sha256LF": "79cac0a0fd0385aaaa53940c3a16ffd6609e348cddd393f5f6ff7e9f00c9bfef",
+      "bytes": 42456
+    },
+    "oracle/packages/oracle-sdk/src/abi/index.ts": {
+      "sha256": "fce1f9d9744d606a898342a32e8ac2c9664d76bb7cc590f813d8ad10ece3fb89",
+      "sha256LF": "fce1f9d9744d606a898342a32e8ac2c9664d76bb7cc590f813d8ad10ece3fb89",
+      "bytes": 1330
+    },
+    "oracle/packages/oracle-sdk/src/abi/IOptimisticOracleV3.ts": {
+      "sha256": "36c92963471edb3feb45b06e8eb80554103d9508b645c653682d9ec1bca4b4a3",
+      "sha256LF": "36c92963471edb3feb45b06e8eb80554103d9508b645c653682d9ec1bca4b4a3",
+      "bytes": 5758
+    },
+    "oracle/packages/oracle-sdk/src/abi/IOptimisticOracleV3CallbackRecipient.ts": {
+      "sha256": "0f611d772a1cdbdf73156fc75a6d8d87b904acdf3b9e08460841eee6dbc0ba53",
+      "sha256LF": "0f611d772a1cdbdf73156fc75a6d8d87b904acdf3b9e08460841eee6dbc0ba53",
+      "bytes": 880
+    },
+    "oracle/packages/oracle-sdk/src/abi/IReceiver.ts": {
+      "sha256": "657b720cbf5fdc722e866e33d37d05f574da34978985cb47ecf730e6a36beead",
+      "sha256LF": "657b720cbf5fdc722e866e33d37d05f574da34978985cb47ecf730e6a36beead",
+      "bytes": 872
+    },
+    "oracle/packages/oracle-sdk/src/abi/IResolutionOracle.ts": {
+      "sha256": "bb1a956fc46dde086cdaf855a949b9c8716e2918d2f07c5050bb1a79de3c17a3",
+      "sha256LF": "bb1a956fc46dde086cdaf855a949b9c8716e2918d2f07c5050bb1a79de3c17a3",
+      "bytes": 46320
+    },
+    "oracle/packages/oracle-sdk/src/abi/KeeperRouter.ts": {
+      "sha256": "9ba4b931caae14a69db401687570b9aea6ff6be6c92c15b05119ab2d4cf75a67",
+      "sha256LF": "9ba4b931caae14a69db401687570b9aea6ff6be6c92c15b05119ab2d4cf75a67",
+      "bytes": 1981
+    },
+    "oracle/packages/oracle-sdk/src/abi/MarketFactory.ts": {
+      "sha256": "09a6ea49d6635b224718918f069b2e06458c74507dd95394278b0dbe6b79c2f3",
+      "sha256LF": "09a6ea49d6635b224718918f069b2e06458c74507dd95394278b0dbe6b79c2f3",
+      "bytes": 9144
+    },
+    "oracle/packages/oracle-sdk/src/abi/MarketRegistry.ts": {
+      "sha256": "48c2d907ac2decdbbe4feb61c9715efd7606526fac7b81568fa7baf8f78be110",
+      "sha256LF": "48c2d907ac2decdbbe4feb61c9715efd7606526fac7b81568fa7baf8f78be110",
+      "bytes": 43342
+    },
+    "oracle/packages/oracle-sdk/src/abi/RegistryBookRiskEngine.ts": {
+      "sha256": "8c1d38588e09fc02843cd5992bf7778b9f97396b6033762e032f9377f688cab1",
+      "sha256LF": "8c1d38588e09fc02843cd5992bf7778b9f97396b6033762e032f9377f688cab1",
+      "bytes": 144743
+    },
+    "oracle/packages/oracle-sdk/src/abi/ResolutionEngineStub.ts": {
+      "sha256": "a6665c35e40f3abce8ee27e2aaf1d7dcdf21ccb2c3349cae31256ad555629e48",
+      "sha256LF": "a6665c35e40f3abce8ee27e2aaf1d7dcdf21ccb2c3349cae31256ad555629e48",
+      "bytes": 21171
+    },
+    "oracle/packages/oracle-sdk/src/abi/ResolutionOracle.ts": {
+      "sha256": "4bf2a112c56373f8f3abd067d39ba3af2f9f014ef9f875e7dd82fa344b5c8a44",
+      "sha256LF": "4bf2a112c56373f8f3abd067d39ba3af2f9f014ef9f875e7dd82fa344b5c8a44",
+      "bytes": 50102
+    },
+    "oracle/packages/oracle-sdk/src/abi/sources.ts": {
+      "sha256": "fc4b54f7e19253150bc5f5eee976d8a15b1185ed4b343ffe5533d5ebd9e9ace4",
+      "sha256LF": "d217e378cfac918afb22adc789c5b1c21bac5add00c6b2921cbdd4301c38fc45",
+      "bytes": 2542
+    },
+    "oracle/packages/oracle-sdk/src/abi/StubMarketFactory.ts": {
+      "sha256": "ed16a1aaa5208b3d23d8a7b303ddd5ef193b3ed8c698201d54f403b11fdf7dbf",
+      "sha256LF": "ed16a1aaa5208b3d23d8a7b303ddd5ef193b3ed8c698201d54f403b11fdf7dbf",
+      "bytes": 5838
+    },
+    "oracle/packages/oracle-sdk/src/abi/TestUSDC.ts": {
+      "sha256": "c75cfa0f2d4d5c9cee80fa8d980282fe741e9e91d01450802bf7d7e967bb87aa",
+      "sha256LF": "c75cfa0f2d4d5c9cee80fa8d980282fe741e9e91d01450802bf7d7e967bb87aa",
+      "bytes": 7140
+    },
+    "oracle/packages/oracle-sdk/src/abi/UmaAdapter.ts": {
+      "sha256": "e6fca55182cc0ca053cf86162079fc4b0af55d2319988fcc9d8a6faa925958ef",
+      "sha256LF": "e6fca55182cc0ca053cf86162079fc4b0af55d2319988fcc9d8a6faa925958ef",
+      "bytes": 9149
+    }
+  },
+  "supplementalReviews": [
+    {
+      "recordedAt": "2026-10-05T21:41:39.463579+00:00",
+      "scope": "Publisher canonical provisional capture overlap",
+      "result": "No new defect found in changed logic or focused rejection tests; timing still requires actual runtime proof.",
+      "sources": {
+        "packages/pricefeed/scripts/live-factory-integration.ts": {
+          "sha256": "306c4ca170572afd051f9a4080fd9c77cecf644fa04f354321aebdc4305626c6",
+          "sha256LF": "306c4ca170572afd051f9a4080fd9c77cecf644fa04f354321aebdc4305626c6",
+          "bytes": 32419
+        },
+        "packages/pricefeed/test/live-factory.test.ts": {
+          "sha256": "65e013e78455374ba5c068dc75a994f69aa2a646f6bb16a5cf7d0127fb0537cd",
+          "sha256LF": "65e013e78455374ba5c068dc75a994f69aa2a646f6bb16a5cf7d0127fb0537cd",
+          "bytes": 14535
+        }
+      },
+      "checks": [
+        "Exact pending transaction hash, success, canonical receipt block/hash, exactly one matching-engine BookDepthCaptured event and actual event block/time are required.",
+        "Provisional capture permits only genuinely newer INDEX publication while journal remains pending; its block hash is rechecked immediately before use.",
+        "New sampler calls, finalized sample counters/latestValidSample and pause acknowledgements still require finality.",
+        "Missing/reverted/reorged/ambiguous/foreign-engine/malformed receipt and same-second/older source observations are rejected.",
+        "No actor/core, source timestamp, carry TTL, finality or original activation deadline changes."
+      ],
+      "validationReference": {
+        "path": "tmp/pricefeed-windows-overlap-focused.tap",
+        "sha256": "ccbb9f0ffb5dfd7d3d9019bc64b665d7b31f44c34167ae50a475d18c3be5bec6",
+        "executedBy": "pricefeed agent, not repeated by reviewer"
+      }
+    },
+    {
+      "reviewedAt": "2026-10-05T22:49:36.894459+00:00",
+      "scope": "Bounded helper, operator planning/replay, live/controlled receipt auditing, optional helper preflight and read-only startup clock gate",
+      "reviewerBoundary": "Implementation-agent review plus separate pricefeed-agent review of helper/market-ops; neither is external production approval.",
+      "result": "No blocking correctness or public-write defect found in these reviewed paths. Runtime batch timing and clock-aligned external-source proof remain separate prerequisites.",
+      "checks": [
+        "Helper has no state/custody/payable entrypoint and uses only existing engine methods; bounds maxPages1..32, count<=1024, fixed32-owner pages and exact epoch/work/cursor preconditions. Monotone progress and finish postconditions revert the whole transaction on inconsistency.",
+        "Current block-pinned binary gas planning keeps ceil(estimate*1.2)+10000<=30000000 and aborts unknown/custom/RPC failures. Snapshot race checks run after simulation before signing. Legacy manifests retain original journal binding and3step behavior.",
+        "Helper identity extends journal binding; one exact signed pending transaction remains durable before broadcast and awaits a canonical finalized receipt. Local actors use actual disposable operator key; no custody-changing impersonation is introduced.",
+        "Shared helper auditor checks receipt-block helper and engine code hashes, operator, target/calldata, expected snapshot, gas metadata, exact progress event, bounded count/cursor and completion. Controlled audit also binds manifest/report hashes and exact batch receipt set.",
+        "Optional unsigned preflight helper step requires explicit creation-code hash, predicts nonce+3 after two code stores and factory, and verifies deployed runtime on owned fork. Omitted option preserves prior11-step bundles. Predicted addresses remain labelled ephemeral and cannot become a public frontend manifest.",
+        "Clock gate uses only fixed read-only HTTPS vendor/time and Monad chain10143 block checks. Its whole uncertainty interval includes RTT and one-second quantization; high latency, wall/monotonic jumps and inconsistent samples fail closed. It changes neither host clock nor source/chain timestamps; startup validation does not guarantee later drift."
+      ],
+      "sourceHashes": {
+        "oracle/src/integration/RolloverBatcher.sol": {
+          "sha256": "91d47d9e7ab3ff70e98566cdcb2939ee38d8d1cd214d0cbd9d4ee7d8c1f53409",
+          "sha256LF": "91d47d9e7ab3ff70e98566cdcb2939ee38d8d1cd214d0cbd9d4ee7d8c1f53409",
+          "bytes": 2746
+        },
+        "oracle/script/integration/RolloverFixtureSeeder.sol": {
+          "sha256": "b1089384e05a1cf2e664783787b94186ec34d2f97d2c3d70195e5976ebc8375b",
+          "sha256LF": "b1089384e05a1cf2e664783787b94186ec34d2f97d2c3d70195e5976ebc8375b",
+          "bytes": 2809
+        },
+        "oracle/services/market-ops/src/rollover-batch.ts": {
+          "sha256": "470cbebb7e05db81a98d7ecc07f7d5200c8e525ca0773b112892a671b572f434",
+          "sha256LF": "470cbebb7e05db81a98d7ecc07f7d5200c8e525ca0773b112892a671b572f434",
+          "bytes": 2483
+        },
+        "oracle/services/market-ops/src/schema.ts": {
+          "sha256": "e138f861b0d7f7798c0558bbf03d1802d36714ee580188159d1dba1648ce7261",
+          "sha256LF": "e138f861b0d7f7798c0558bbf03d1802d36714ee580188159d1dba1648ce7261",
+          "bytes": 4371
+        },
+        "oracle/services/market-ops/src/store.ts": {
+          "sha256": "71e912903d677132d5ea2d4c004234d1ae52b16e178a65629d48ac0e5775abaa",
+          "sha256LF": "71e912903d677132d5ea2d4c004234d1ae52b16e178a65629d48ac0e5775abaa",
+          "bytes": 2867
+        },
+        "oracle/services/market-ops/src/chain.ts": {
+          "sha256": "25b89978535a94dcac4f2ccb69f5be76fcf348a5619f8511288f69ec99fdfd8d",
+          "sha256LF": "25b89978535a94dcac4f2ccb69f5be76fcf348a5619f8511288f69ec99fdfd8d",
+          "bytes": 8530
+        },
+        "oracle/services/market-ops/src/operations.ts": {
+          "sha256": "b4f14c622b4f76725b6a3508534af8fb81c0e7f244eb9e8c1cf028e7c3478a81",
+          "sha256LF": "b4f14c622b4f76725b6a3508534af8fb81c0e7f244eb9e8c1cf028e7c3478a81",
+          "bytes": 12333
+        },
+        "oracle/services/local-integration/src/live-actors.ts": {
+          "sha256": "811acce9d143b688f1c00189f0c55f095a9bb12369e3a3b11896fa3d278e8f49",
+          "sha256LF": "811acce9d143b688f1c00189f0c55f095a9bb12369e3a3b11896fa3d278e8f49",
+          "bytes": 27218
+        },
+        "oracle/services/local-integration/src/upkeep.ts": {
+          "sha256": "3f6b40e7f1fbc7c226f200cdc9f09a25138e92cddf5ddb88cdc05cf8d610a177",
+          "sha256LF": "3f6b40e7f1fbc7c226f200cdc9f09a25138e92cddf5ddb88cdc05cf8d610a177",
+          "bytes": 22772
+        },
+        "oracle/services/local-integration/src/audit-rollover.ts": {
+          "sha256": "b93562086406b7e14489a72e7789e4770ecfb6515d2b28e61720d1a31070fb54",
+          "sha256LF": "b93562086406b7e14489a72e7789e4770ecfb6515d2b28e61720d1a31070fb54",
+          "bytes": 7266
+        },
+        "oracle/services/local-integration/src/audit-live.ts": {
+          "sha256": "e0783c3d28ffde1c5c7c3b9f8574486c3350c46669b2c91324937cab581c5f3a",
+          "sha256LF": "e0783c3d28ffde1c5c7c3b9f8574486c3350c46669b2c91324937cab581c5f3a",
+          "bytes": 19011
+        },
+        "scripts/integration/audit-local-run.py": {
+          "sha256": "aa7157628caf30b19944d98f25656c8507662954364f702550bde92adf133727",
+          "sha256LF": "aa7157628caf30b19944d98f25656c8507662954364f702550bde92adf133727",
+          "bytes": 25736
+        },
+        "oracle/packages/oracle-sdk/FRONTEND_HANDOFF.md": {
+          "sha256": "4faa4532058da0f97ab6dc957c330e7bc0533852b86d17a7ca6773c005c51b0a",
+          "sha256LF": "4faa4532058da0f97ab6dc957c330e7bc0533852b86d17a7ca6773c005c51b0a",
+          "bytes": 9816
+        },
+        "oracle/e2e/src/integrated-preflight.ts": {
+          "sha256": "1125829f30a9207719262ee24fc3e03808627c40a58e8bc9efc2e32dcd43210f",
+          "sha256LF": "1125829f30a9207719262ee24fc3e03808627c40a58e8bc9efc2e32dcd43210f",
+          "bytes": 39401
+        },
+        "oracle/packages/oracle-sdk/src/abi/RolloverBatcher.ts": {
+          "sha256": "b5326de2c095fdac59bda267f27c5d3f7eb00a52b9521e70221155aaa1efd487",
+          "sha256LF": "b5326de2c095fdac59bda267f27c5d3f7eb00a52b9521e70221155aaa1efd487",
+          "bytes": 2258
+        },
+        "packages/pricefeed/scripts/live-clock.ts": {
+          "sha256": "ccb47d12eca8fa5e8f156c495ffbcb85c3dd424c42f05e5873ce3852b9d9110e",
+          "sha256LF": "ccb47d12eca8fa5e8f156c495ffbcb85c3dd424c42f05e5873ce3852b9d9110e",
+          "bytes": 6483
+        },
+        "packages/pricefeed/test/live-clock.test.ts": {
+          "sha256": "c9e647a67a9734baaf2da89a4a2742d85b3d97dc68e7ffb2510be396065c3bd5",
+          "sha256LF": "c9e647a67a9734baaf2da89a4a2742d85b3d97dc68e7ffb2510be396065c3bd5",
+          "bytes": 5590
+        }
+      },
+      "evidenceBoundary": "Solidity helper8/8 includes four-owner NORMAL opening and1024flat-owner accounting/claims. Gas search measured17+15pages under30M before margin. Actual Operations RPC/finality proof is in progress; no source freshness or public latency success is inferred."
+    },
+    {
+      "reviewedAt": "2026-10-05T23:08:42.097664+00:00",
+      "scope": "Opaque provider estimate behavior discovered by actual1024owner campaign",
+      "decision": "An exact nested RPC code3/data0x after an already measured smaller fit ends optimization and records searchStop; it is never labelled OOG. No prior fit/custom nonempty/transport failures abort. Exact simulation and fresh snapshot recheck still precede signing.",
+      "evidence": {
+        "path": "artifacts/integration/rollover-rpc-2026-10-06.json",
+        "sha256": "e9b009a9d773c01e521d52a0739e9282ba2d0f63384615cbc619270c8d77fd8e",
+        "canonicalCampaignPassed": true,
+        "wrapperStatus": "failed-and-stopped",
+        "wrapperChangedFiles": [
+          "scripts/integration/owned_process.py",
+          "scripts/integration/test_owned_process.py"
+        ],
+        "batches": 2,
+        "pages": [
+          16,
+          16
+        ],
+        "gasUsed": [
+          22370406,
+          22221239
+        ],
+        "finishAfterBoundarySeconds": 13,
+        "finalizedElapsedMs": 17275
+      },
+      "sourceHashes": {
+        "oracle/services/market-ops/src/rollover-batch.ts": {
+          "sha256": "926d1fac678d2781110510fcd94e8acb644672fe7544c81e96edd766e0c8e403",
+          "sha256LF": "926d1fac678d2781110510fcd94e8acb644672fe7544c81e96edd766e0c8e403",
+          "bytes": 3663
+        },
+        "oracle/services/market-ops/src/chain.ts": {
+          "sha256": "9bafdb1a6c2ef94abe4a0aecc0300948b9808912453ba255470346125c1fd019",
+          "sha256LF": "9bafdb1a6c2ef94abe4a0aecc0300948b9808912453ba255470346125c1fd019",
+          "bytes": 8754
+        },
+        "oracle/services/market-ops/src/operations.ts": {
+          "sha256": "b3dee73da3a974ac8f691e5d81cbe2c9ab96eb8c7a45dbd606a8eda4deddec36",
+          "sha256LF": "b3dee73da3a974ac8f691e5d81cbe2c9ab96eb8c7a45dbd606a8eda4deddec36",
+          "bytes": 12408
+        },
+        "oracle/services/market-ops/src/store.ts": {
+          "sha256": "d873d79a52c29aa45614c0fe39bf21a4bc7378f6903d5106bc46dbfda88ff293",
+          "sha256LF": "d873d79a52c29aa45614c0fe39bf21a4bc7378f6903d5106bc46dbfda88ff293",
+          "bytes": 2999
+        },
+        "oracle/services/local-integration/src/upkeep.ts": {
+          "sha256": "c1031c320c5a43f6bd3e27ca98861e6459a66a73620839b038efe190ca2c841e",
+          "sha256LF": "c1031c320c5a43f6bd3e27ca98861e6459a66a73620839b038efe190ca2c841e",
+          "bytes": 23205
+        },
+        "oracle/services/local-integration/src/audit-rollover.ts": {
+          "sha256": "04bad257553cdd547424d1743221c3ea79582f35dc1e7736b2229fa3b06486df",
+          "sha256LF": "04bad257553cdd547424d1743221c3ea79582f35dc1e7736b2229fa3b06486df",
+          "bytes": 7675
+        },
+        "oracle/services/market-ops/test/operations.test.ts": {
+          "sha256": "8bd934c691f4e3fd898791c1a3bff1479ae43819b34d9179fd7b0433de1fb517",
+          "sha256LF": "8bd934c691f4e3fd898791c1a3bff1479ae43819b34d9179fd7b0433de1fb517",
+          "bytes": 35913
+        }
+      },
+      "limitation": "Cold flat-account capacity is established for this local configuration. Worst-case leveraged1024position gas, warm source freshness and public-chain timing remain unproven; the unrelated wrapper source-change failure is preserved."
+    }
+  ],
+  "confirmedClosureEvidence": {
+    "path": "tmp/local-leverage-20261005-212720/receipt-audit.json",
+    "sha256": "53382edfa4b1b6988a070073f45b22776cbfb8e3cfe8573ee0263118a0f65e50",
+    "checkedBy": "Read-only inspection of independent auditor output; root executed proof.",
+    "passed": true,
+    "receiptCounts": {
+      "canonicalScriptReceipts": 112,
+      "canonicalKeeperReceipts": 5,
+      "canonicalUpkeepReceipts": 15,
+      "canonicalSdkReceipts": 11,
+      "canonicalLeveragedKeeperReceipts": 5
+    },
+    "leveragedSettlement": {
+      "passed": true,
+      "outcome": "NO",
+      "totalDeficitQ": "40000014814814814814814815",
+      "reserveContributionAtoms": "40000014",
+      "reserveResidualQ": "99960000015000000000000000000",
+      "fullOwnerClaimsAtoms": {
+        "0x70997970c51812dc3a010c7d01b50e0d17dc79c8": "95000000",
+        "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc": "105000000",
+        "0x1cbd3b2770909d4e10f157cabc84c7264073c9ec": "0",
+        "0xdf3e18d64bc6a983f673ab319ccae4f1a57c7097": "59999985"
+      },
+      "claimableBlock": 1746,
+      "completeBlock": 1759,
+      "source": "canonical frozen accounts, custody and direct-owner receipts"
+    },
+    "publicTransactions": 0
+  },
+  "rolloverLivenessReviewSources": {
+    "contracts/src/engine/RiskAccountingBridge.sol": {
+      "sha256": "d1824b37234341b76dbea3f8b06278da06ad5f7c5b13a1542e4591dd932a5196",
+      "sha256LF": "d1824b37234341b76dbea3f8b06278da06ad5f7c5b13a1542e4591dd932a5196",
+      "bytes": 26014
+    },
+    "contracts/src/risk/EpochRollover.sol": {
+      "sha256": "342c07ecab3ba5d2f39964b24d113cfd4410a0ae09fe15a958b62e28d7eb5bf6",
+      "sha256LF": "4a01e7976e00f07a89921fb3d5729780c6c1daa4414a6c9b61e1a5c6f814fbcd",
+      "bytes": 3300
+    },
+    "contracts/src/pricing/RiskPricing.sol": {
+      "sha256": "1dbba4795ac76063cc653cc7f7960d4f09aa6fd18132d77fcb12f9be51a1518b",
+      "sha256LF": "5f7f67d48ef1119e67267266c6b1e1aa3dbb2df0c5954a1d13383183124870b1",
+      "bytes": 8997
+    },
+    "contracts/src/risk/RiskContextPort.sol": {
+      "sha256": "4cbde77875fc90c9d260109882d02b98d461c9fe82547ef82c254c68f190e2bd",
+      "sha256LF": "bc1dbefee6062edc85ffd7b1cdfab5d6373b9ad95b93670620066642218a6689",
+      "bytes": 9686
+    },
+    "contracts/src/risk/MonitorPolicy.sol": {
+      "sha256": "0c21dcad6379ee76679a74238b996ff1ddd88246bf949d5034013a60f6bb3572",
+      "sha256LF": "8eb582e99368923a8fd8235caf91ba90ec9cc0748d3fbbeb394539fac557b224",
+      "bytes": 4173
+    },
+    "contracts/src/math/LifecycleMath.sol": {
+      "sha256": "c03b594ec51a47b92fffbc75db1d2f3898d0a6a55062c054c0ec9ea3412dacd2",
+      "sha256LF": "6b0ab9655f4b26458cdb3a9dbd74233b9bffe9cc2dbc62a8a0cd435a3f197bdd",
+      "bytes": 9052
+    },
+    "contracts/src/engine/BookRiskEngine.sol": {
+      "sha256": "e4d4e40577ff42df53aed363cf411874a15d13bdff17fca1ce86dbbb3c829c68",
+      "sha256LF": "e4d4e40577ff42df53aed363cf411874a15d13bdff17fca1ce86dbbb3c829c68",
+      "bytes": 10095
+    },
+    "artifacts/risk/gas-engine.json": {
+      "sha256": "aa0ad9577bde20ccf93dbc39561eed8d8f45b61a24a8fb109b7a8dd5ef4dab41",
+      "sha256LF": "780389963e8a62360a9c8565a0bd8832ab4401d9e7a428be2e1d7922d3e2206c",
+      "bytes": 9691
+    },
+    "contracts/test/gas/integration/EngineGas.t.sol": {
+      "sha256": "9e8ddaab3b5a1359c6ef07d93873f5a83cff1eebb22cc621e3a1a45e1cedc9e3",
+      "sha256LF": "0d0252e01a15de53eb8d01e0ac1d16fc55c95568d5c05d640943fd9e0ee27aa5",
+      "bytes": 7687
+    }
+  },
+  "readOnlyRuntimeObservation": {
+    "run": "tmp/local-live-leverage-20261005-215402",
+    "observerSource": "tmp/observe-live-interface.py",
+    "observerSourceSha256": "d356f915f1242388f6ee731a01cda321db93874a17c2d60ed355821dd9027e13",
+    "observations": "tmp/interface-live-215402-observations.jsonl",
+    "observationsSha256": "df59058f8640eb75f705edf75d109e7ba95d332a6f01d992b417800a12cd205e",
+    "rows": 125,
+    "canonicalActorBlocksConfirmed": 117,
+    "canonicalActorBlockMismatches": 0,
+    "activation": {
+      "blockNumber": "47",
+      "blockHash": "0xea4fe652880bd9f0ec2b417a925d4495588ab771b778f9ea5dfe43997b825e98",
+      "timestamp": "1791237301"
+    },
+    "originalDeadlineMs": 1791244501000,
+    "finalRuntimeStatus": "failed-and-stopped",
+    "pricingMode": 0,
+    "directionalCaps": [
+      "1",
+      "1"
+    ],
+    "windows": {
+      "index": {
+        "available": true,
+        "twapWad": "720000000000000000",
+        "coveredSecs": "300",
+        "integral": "216000000000000000000"
+      },
+      "perp": {
+        "available": true,
+        "twapWad": "720000000000000000",
+        "coveredSecs": "60",
+        "integral": "43200000000000000000"
+      },
+      "basis": {
+        "available": true,
+        "twapWad": "0",
+        "coveredSecs": "900",
+        "integral": "0"
+      }
+    },
+    "sampleCounts": {
+      "loops": 1166,
+      "samples": 79,
+      "validSamples": 78,
+      "invalidSamples": 0,
+      "coalesced": 885
+    },
+    "complete": false,
+    "publicTransactions": 0,
+    "publicRpcCalls": 0,
+    "controlMutations": 0,
+    "observerStopped": true,
+    "disposition": "Superseded diagnostic before normal host synchronization; no completed live lifecycle proof. Separate pricefeed-agent NTP/HTTP measurements found approximately 4.18-second host skew; this observer did not change clocks or source timestamps.",
+    "supersededMarker": "tmp/local-live-leverage-20261005-215402/superseded.json",
+    "supersededMarkerSha256": "eddc4a1eedb4720dadae10b9480c157a502cbc7048e79c48881c86e526f5afa4"
+  }
+}

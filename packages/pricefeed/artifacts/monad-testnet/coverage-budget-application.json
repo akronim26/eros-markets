@@ -1,0 +1,13 @@
+{
+  "mode": "MONAD_TESTNET_BUDGET_RENEWAL",
+  "alreadyApplied": false,
+  "revision": 2,
+  "approvalHash": "78f981cab2df863f211dbab9204d49626078969ec0a0368666afa9479032bd17",
+  "historicalReservationsWei": "570103950000000000",
+  "remainingReservationWei": "1200000000000000000",
+  "deliveryCount": 11,
+  "nextNonce": "10",
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "productionApproved": false
+}

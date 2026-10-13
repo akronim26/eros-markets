@@ -1,0 +1,13 @@
+{
+  "rules": "../../oracle/deployments/native/blk-70528000.rules.json",
+  "engineListing": {
+    "indexSourceId": "0x155aa6dbc2b909f018af174db1c1ca41802e40053b5c40dde846544de472ebd5",
+    "indexSigner": "0x5aE3c3f1622c7360B032ADb135f51F97aD3d8Dd9",
+    "indexRulesHash": "0x566c5ced8e8f9deae51217aae78972806848be350182058174b8d79c20e9274a",
+    "depthNLots": "100000",
+    "maxSpreadWad": "50000000000000000",
+    "scheduledT": "1791939600",
+    "token": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB"
+  },
+  "note": "Use these exact values in the ListMarket pack; the publisher refuses a listing that does not pin them."
+}

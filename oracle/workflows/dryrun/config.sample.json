@@ -1,0 +1,22 @@
+{
+  "schedule": "0 */5 * * * *",
+  "httpTimeout": "8s",
+  "allowList": ["api.example-sports.com"],
+  "authSecrets": [
+    { "authRef": "0xd2dfd34a52e4c022ea2fbfeceb8230b10f417532e39a8fc2c41d28da9deff21e", "secretId": "SPORTSDATA_API_KEY", "header": "x-api-key", "prefix": "" }
+  ],
+  "feed": {
+    "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+    "urlParam": "evt_1",
+    "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "finalPath": "event.status",
+    "finalValue": "FINAL",
+    "valuePath": "event.home",
+    "valueType": 1,
+    "decimals": 0,
+    "op": 2,
+    "target": "2",
+    "bufferSecs": 900,
+    "l1TimeoutSecs": 21600
+  }
+}

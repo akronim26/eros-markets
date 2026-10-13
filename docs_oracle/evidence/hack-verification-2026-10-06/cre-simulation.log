@@ -1,0 +1,29 @@
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 377d317fee74df8e6fd5ac4f6b1277b43fcb9e1fe46bf1676afd72a1f818d48a
+  Config hash: 504455368c04189dfcf290b38f90914122067ecea9a228d946942335c7576eaf
+2026-10-06T01:43:52Z [SIMULATION] Simulator Initialized
+
+2026-10-06T01:43:52Z [SIMULATION] Running trigger trigger=evm:ChainSelector:2183018362218727504@1.0.0
+
+✓ Workflow Simulation Result:
+"proposed:0x858d339df94e447f28cac9130cb11988a9219bf5e0bcae4ff2fd336d9428c7d9:YES:0xb155d03e117f3dd14953b91503f804c63ca7e1d6e6d22c515186db5fe8c46fc0"
+
+2026-10-06T01:43:58Z [SIMULATION] Execution finished signal received
+2026-10-06T01:43:58Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯
+Initializing...
+Loading settings...
+Checking RPC connectivity...
+Compiling workflow...
+Fetching transaction receipt for 0xea54eb1bc4789da7cdf4a3790178d59a83290ed4989c8c520cdb4d9485287651...
+
+⚠️  Update available! You’re running 1.36.0, but 1.37.0 is the latest.
+Run `cre update` or visit https://github.com/smartcontractkit/cre-cli/releases to upgrade.
+

@@ -1,0 +1,13 @@
+{
+  "method": "Independent Python SQLite/checksum/raw-body/source-time replay; no TypeScript imports",
+  "exitCode": 0,
+  "capturesChecked": 45,
+  "timestampsChecked": 44,
+  "twoConnectionsWithDeliberateReconnect": true,
+  "originalTimestampsVerified": true,
+  "sourceArchiveSha256": "7272c649fc655cb32e80682e76215753269d25fbf2167a7ec5c3a94a0e87679c",
+  "limitations": [
+    "Stream event counters come from the native-client probe; full raw WebSocket frames were not retained.",
+    "No price calibration, paid submissions or TWAP certification."
+  ]
+}

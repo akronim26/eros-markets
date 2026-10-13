@@ -1,0 +1,325 @@
+{
+  "mode": "MONAD_TESTNET_COST_CAPACITY_SCENARIOS",
+  "quoteSha256": "82abd171566a4359e3c2a8c6860c3ec6ebb5e9b6618fa7d621fb76001e793a9d",
+  "quoteSequence": "4",
+  "sizing": {
+    "estimatedGas": "179266",
+    "gasLimit": "197193",
+    "marginBps": "1000"
+  },
+  "historicalPaidGasPriceWei": "102000000000",
+  "maxFeePerGasWei": "150000000000",
+  "limitReductionBps": "7535",
+  "daily": [
+    {
+      "atPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 5,
+        "durationSeconds": 86400,
+        "submissions": "17280",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "347564494080000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 1,
+        "intervalSeconds": 5,
+        "durationSeconds": 86400,
+        "submissions": "17280",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "511124256000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 5,
+        "durationSeconds": 86400,
+        "submissions": "17280",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "1410048000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    },
+    {
+      "atPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 10,
+        "durationSeconds": 86400,
+        "submissions": "8640",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "173782247040000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 1,
+        "intervalSeconds": 10,
+        "durationSeconds": 86400,
+        "submissions": "8640",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "255562128000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 10,
+        "durationSeconds": 86400,
+        "submissions": "8640",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "705024000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    },
+    {
+      "atPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 15,
+        "durationSeconds": 86400,
+        "submissions": "5760",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "115854831360000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 1,
+        "intervalSeconds": 15,
+        "durationSeconds": 86400,
+        "submissions": "5760",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "170374752000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 15,
+        "durationSeconds": 86400,
+        "submissions": "5760",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "470016000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    },
+    {
+      "atPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 20,
+        "durationSeconds": 86400,
+        "submissions": "4320",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "86891123520000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 1,
+        "intervalSeconds": 20,
+        "durationSeconds": 86400,
+        "submissions": "4320",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "127781064000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 1,
+        "intervalSeconds": 20,
+        "durationSeconds": 86400,
+        "submissions": "4320",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "352512000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    },
+    {
+      "atPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 5,
+        "durationSeconds": 86400,
+        "submissions": "51840",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "1042693482240000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 3,
+        "intervalSeconds": 5,
+        "durationSeconds": 86400,
+        "submissions": "51840",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "1533372768000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 5,
+        "durationSeconds": 86400,
+        "submissions": "51840",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "4230144000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    },
+    {
+      "atPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 10,
+        "durationSeconds": 86400,
+        "submissions": "25920",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "521346741120000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 3,
+        "intervalSeconds": 10,
+        "durationSeconds": 86400,
+        "submissions": "25920",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "766686384000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 10,
+        "durationSeconds": 86400,
+        "submissions": "25920",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "2115072000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    },
+    {
+      "atPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 15,
+        "durationSeconds": 86400,
+        "submissions": "17280",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "347564494080000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 3,
+        "intervalSeconds": 15,
+        "durationSeconds": 86400,
+        "submissions": "17280",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "511124256000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 15,
+        "durationSeconds": 86400,
+        "submissions": "17280",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "1410048000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    },
+    {
+      "atPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 20,
+        "durationSeconds": 86400,
+        "submissions": "12960",
+        "costPerSubmissionWei": "20113686000000000",
+        "totalCostWei": "260673370560000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "atMaxFee": {
+        "markets": 3,
+        "intervalSeconds": 20,
+        "durationSeconds": 86400,
+        "submissions": "12960",
+        "costPerSubmissionWei": "29578950000000000",
+        "totalCostWei": "383343192000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      },
+      "oldLimitAtPilotPrice": {
+        "markets": 3,
+        "intervalSeconds": 20,
+        "durationSeconds": 86400,
+        "submissions": "12960",
+        "costPerSubmissionWei": "81600000000000000",
+        "totalCostWei": "1057536000000000000000",
+        "retriesIncluded": false,
+        "cadenceApproved": false
+      }
+    }
+  ],
+  "proposedCampaign": {
+    "durationSeconds": 360,
+    "pollIntervalMs": 5000,
+    "nominalSubmissions": "72",
+    "estimatedCostAtPilotPriceWei": "1448185392000000000",
+    "estimatedReservationAtQuoteLimitWei": "2129684400000000000",
+    "additionalTransactions": 84,
+    "additionalReservationWei": "2772000000000000000",
+    "existingReservedWei": "360000000000000000",
+    "observedBalanceWei": "355200000000000000",
+    "fundingGapWei": "2416800000000000000",
+    "suggestedTopUpWei": "2500000000000000000",
+    "proposedPolicy": {
+      "schemaVersion": "1",
+      "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+      "relay": {
+        "gasCap": "800000",
+        "maxFeePerGas": "150000000000",
+        "maxPriorityFeePerGas": "2000000000",
+        "maxCostWei": "120000000000000000",
+        "headroomMs": "5000",
+        "confirmations": "1",
+        "leaseMs": "120000",
+        "timeoutMs": 10000,
+        "maxAttempts": 3,
+        "gasSafetyMarginBps": "1000"
+      },
+      "budget": {
+        "maxTransactions": 87,
+        "totalMaxCostWei": "3132000000000000000"
+      }
+    },
+    "activated": false,
+    "prerequisites": [
+      "Implement and verify an explicit idle-journal policy/budget transition preserving all signed history.",
+      "Fund the existing sender and authorize the finite additional spend envelope.",
+      "Recheck source/listing identity, estimates, balance, nonce and headroom immediately before running."
+    ],
+    "successCriteria": [
+      "Finalized, canonical authenticated packets for the entire evaluated 300-second window.",
+      "Independent source-time/Fraction replay agrees with the receiver TWAP at a named finalized block.",
+      "Report actual source gaps, invalid checkpoints, receipt latency, retries and charged gas; retain failed windows."
+    ]
+  },
+  "productionApproved": false,
+  "cadenceApproved": false,
+  "limitations": [
+    "One simulated valid politics packet; actual optimized charged cost has not been measured.",
+    "One/three-market daily cases assume this same gas per packet; other categories/storage paths need measurements.",
+    "Five-second polling is a diagnostic candidate based on earlier local coverage, not a promised submission interval.",
+    "Nominal costs exclude outages and additional paid transactions. Unknown-send retries reuse the same signed nonce.",
+    "The additional envelope bounds aggregate reservations even if estimates rise; coverage can fail before the transaction count is reached.",
+    "No policy transition, funding or external transaction is performed by this report."
+  ]
+}

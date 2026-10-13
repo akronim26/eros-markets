@@ -1,0 +1,641 @@
+bun test v1.3.13 (bf2e2cec)
+
+packages/feedspec/test/evaluator.test.ts:
+(pass) §11.2 evaluator cases > finished event -> YES and NO [0.94ms]
+(pass) §11.2 evaluator cases > live event -> NOT_READY (finality missing or not equal byte for byte) [0.17ms]
+(pass) §11.2 evaluator cases > wrong value path -> ERROR VALUE_MISSING; malformed path -> ERROR BAD_PATH [0.27ms]
+(pass) §11.2 evaluator cases > DECIMAL 3.10 equals 3.1 at decimals 2 [0.03ms]
+(pass) §11.2 evaluator cases > DECIMAL 3.105 at decimals 2 -> ERROR (never rounds)
+(pass) §11.2 evaluator cases > exponent -> ERROR [0.34ms]
+(pass) §11.2 evaluator cases > INT rejects 3.0 and "03" (and +3, 03 as a number lexeme cannot occur) [0.14ms]
+(pass) §11.2 evaluator cases > HTTP 429 and 5xx, oversize body and invalid JSON -> ERROR [0.22ms]
+(pass) §11.2 evaluator cases > STRING allows only EQ and NEQ [0.25ms]
+(pass) §11.2 evaluator cases > big integers keep precision (no float on any value) [0.15ms]
+(pass) §11.2 evaluator cases > duplicate keys are rejected as ambiguous [0.03ms]
+(pass) URL and host rules > buildUrl substitutes {id} once [0.22ms]
+(pass) URL and host rules > {id} must come after the first "/" that follows the host (registry rule) [0.14ms]
+(pass) URL and host rules > the template is checked before the urlParam, as the registry orders BadFeed codes [0.18ms]
+(pass) URL and host rules > hosts: https only, lowercase labels, no port, no userinfo, at least two labels [0.12ms]
+(pass) URL and host rules > allowListed: the URL host must equal allowList[0] [0.06ms]
+(pass) parser and paths > numbers keep their exact lexeme [0.05ms]
+(pass) parser and paths > nesting depth is at most 64 [0.06ms]
+(pass) parser and paths > strings: escapes decoded, raw control characters refused [0.14ms]
+(pass) parser and paths > paths: segments, array indexes, limits [0.28ms]
+(pass) parser and paths > compare on integers
+
+packages/feedspec/test/fetch.test.ts:
+(pass) one GET with accept, no cache, the timeout given, and no auth header when none is given [2.24ms]
+(pass) an auth header is sent with its value [0.22ms]
+(pass) NOT_READY and ERROR carry the zero value hash [0.05ms]
+(pass) a body over 250 KiB is BODY_TOO_LARGE, before it is decoded [0.08ms]
+(pass) a transport failure is FETCH_FAILED [0.08ms]
+
+packages/feedspec/test/vectors.test.ts:
+(pass) vectors/feedspec.json: listing validation parity > the file covers every BadFeed code 0-12 [0.05ms]
+(pass) vectors/feedspec.json: listing validation parity > valid B.3 -> 0 [0.16ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: no {id} in template -> 0 [0.02ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: {id} in the query after the path slash -> 0 [0.02ms]
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL GTE 3.1 at 2 decimals -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL negative fraction -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL 18 decimals -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: DECIMAL 0 decimals, integer target -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: STRING EQ -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: STRING NEQ -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: INT -0 -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: indexed paths -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: path name chars _ $ - -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 6-digit index -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 256-byte path -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 128-char urlParam -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: 63-char host label -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: buffer and timeout at the bounds -> 0
+(pass) vectors/feedspec.json: listing validation parity > valid: known authRef -> 0
+(pass) vectors/feedspec.json: listing validation parity > http scheme -> 1
+(pass) vectors/feedspec.json: listing validation parity > uppercase scheme -> 1
+(pass) vectors/feedspec.json: listing validation parity > uppercase host -> 2
+(pass) vectors/feedspec.json: listing validation parity > port -> 2
+(pass) vectors/feedspec.json: listing validation parity > userinfo -> 2
+(pass) vectors/feedspec.json: listing validation parity > single-label host -> 2
+(pass) vectors/feedspec.json: listing validation parity > leading hyphen label -> 2
+(pass) vectors/feedspec.json: listing validation parity > trailing hyphen label -> 2
+(pass) vectors/feedspec.json: listing validation parity > empty label -> 2
+(pass) vectors/feedspec.json: listing validation parity > 64-char host label -> 2
+(pass) vectors/feedspec.json: listing validation parity > {id} inside the host (host error first) -> 2
+(pass) vectors/feedspec.json: listing validation parity > {id} twice -> 3
+(pass) vectors/feedspec.json: listing validation parity > {id} with no slash after the host -> 3
+(pass) vectors/feedspec.json: listing validation parity > empty urlParam -> 4
+(pass) vectors/feedspec.json: listing validation parity > urlParam with slash -> 4
+(pass) vectors/feedspec.json: listing validation parity > urlParam with space -> 4
+(pass) vectors/feedspec.json: listing validation parity > 129-char urlParam -> 4
+(pass) vectors/feedspec.json: listing validation parity > host not allowList[0] -> 5
+(pass) vectors/feedspec.json: listing validation parity > empty finalPath -> 6
+(pass) vectors/feedspec.json: listing validation parity > empty segment -> 6
+(pass) vectors/feedspec.json: listing validation parity > trailing dot -> 6 [0.29ms]
+(pass) vectors/feedspec.json: listing validation parity > leading-zero index -> 6 [0.01ms]
+(pass) vectors/feedspec.json: listing validation parity > 7-digit index -> 6
+(pass) vectors/feedspec.json: listing validation parity > index without name -> 6
+(pass) vectors/feedspec.json: listing validation parity > text after index -> 6
+(pass) vectors/feedspec.json: listing validation parity > unclosed index -> 6
+(pass) vectors/feedspec.json: listing validation parity > space in path -> 6
+(pass) vectors/feedspec.json: listing validation parity > 257-byte path -> 6
+(pass) vectors/feedspec.json: listing validation parity > empty finalValue -> 7
+(pass) vectors/feedspec.json: listing validation parity > STRING with GT -> 8
+(pass) vectors/feedspec.json: listing validation parity > unknown valueType -> 8
+(pass) vectors/feedspec.json: listing validation parity > unknown op -> 8
+(pass) vectors/feedspec.json: listing validation parity > INT with decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > STRING with decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL with 19 decimals -> 9
+(pass) vectors/feedspec.json: listing validation parity > INT 3.0 -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT leading zero -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT exponent -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT plus sign -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT lone minus -> 10
+(pass) vectors/feedspec.json: listing validation parity > INT empty -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL too many fraction digits -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL trailing dot -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL no integer part -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL fraction at 0 decimals -> 10
+(pass) vectors/feedspec.json: listing validation parity > DECIMAL exponent -> 10
+(pass) vectors/feedspec.json: listing validation parity > STRING empty -> 10
+(pass) vectors/feedspec.json: listing validation parity > buffer equals timeout -> 11
+(pass) vectors/feedspec.json: listing validation parity > buffer below min -> 11
+(pass) vectors/feedspec.json: listing validation parity > buffer above max -> 11
+(pass) vectors/feedspec.json: listing validation parity > timeout below min -> 11
+(pass) vectors/feedspec.json: listing validation parity > timeout above max -> 11
+(pass) vectors/feedspec.json: listing validation parity > unknown authRef -> 12
+(pass) vectors/feedspec.json: listing validation parity > order: L1 host and path both wrong -> L1 host first -> 5
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > B.3 is 0x5066…80cd [1.32ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > B.3 (no authRef) [0.32ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > with authRef [0.22ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > empty urlParam, no {id} [0.37ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > long strings [0.54ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > decimal [0.29ms]
+(pass) vectors/spechash.json: specHash parity (viem encodeAbiParameters == Solidity abi.encode) > every field changes the hash [1.59ms]
+
+packages/oracle-cli/test/ambiguity.test.ts:
+(pass) ambiguity > no undecided case: PASS, ambiguity.log written, pack.json ambiguityLogHash = keccak256 of the log [15.79ms]
+(pass) ambiguity > an undecided case needs triage: kept in the log, hash reset to zero, a triage template written [3.59ms]
+(pass) ambiguity > a model error or an answer that is not the requested JSON fails the pass [4.73ms]
+(pass) ambiguity > an empty or garbled answer is retried and recorded; a later valid answer counts [2.43ms]
+(pass) ambiguity > models must be the ones ai.modelIdHashes names, in order [1.78ms]
+(pass) ambiguity > a pack built from other rules is refused [1.47ms]
+(pass) triage (ADJ-37) > a complete triage passes: the log records it, and the hash commits to answers and triage [4.18ms]
+(pass) triage (ADJ-37) > an incomplete or wrong triage is rejected with every problem listed, and nothing changes [9.21ms]
+(pass) triage (ADJ-37) > only a NEEDS_TRIAGE pass for the current rules can be triaged [4.42ms]
+(pass) prompt and answer > the prompt substitutes the text literally ($ patterns included) [0.22ms]
+(pass) prompt and answer > a fenced JSON answer is accepted
+(pass) model clients > request shapes per provider; the API model is the id between ":" and "@" [0.35ms]
+(pass) model clients > response text per provider [0.47ms]
+(pass) model clients > retries 429 and 5xx with back-off, then gives up; a missing key is an error [1.04ms]
+
+packages/oracle-cli/test/dryrun.test.ts:
+(pass) dryrun > writes dryrun.log with the burst and the three runs, all PASS [4.39ms]
+(pass) dryrun > a 429 in the burst, a wrong finished result or a failed simulation fails, and the log says why [7.04ms]
+(pass) dryrun > a "live" event that is already final fails the NOT_READY run [2.82ms]
+(pass) dryrun > the burst sends the authRef header, from the workflow config and the environment [4.43ms]
+(pass) dryrun > refuses without a live event, a DON size or a pack [4.05ms]
+(pass) simulationResult > reads the result of a real `cre workflow simulate dryrun` run (CRE CLI v1.36.0) [0.83ms]
+(pass) simulationResult > a non-zero exit or a missing result throws
+
+packages/oracle-cli/test/list.test.ts:
+(pass) a sample market > list writes pack.json, reference.json and claim.txt, and the pack passes the createMarket dry-run [544.74ms]
+(pass) a sample market > reference.json is the captured response byte for byte; dryRunHash is its keccak256 [0.59ms]
+(pass) a sample market > pack.json has the key structure of ListMarket's example pack, and carries the input values [1.05ms]
+(pass) a sample market > claim.txt is the template with every token substituted for a Layer 1 YES, within maxClaimBytes [0.16ms]
+(pass) a sample market > an existing pack directory is not replaced without --force [1.40ms]
+(pass) fails loudly and writes nothing > a reference that is not a finished event [0.73ms]
+(pass) fails loudly and writes nothing > a reference without the value path [0.95ms]
+(pass) fails loudly and writes nothing > a FeedSpec that fails rule 3 (checked before anything is fetched) [3.09ms]
+(pass) fails loudly and writes nothing > a claim whose worst case exceeds maxClaimBytes [1.62ms]
+(pass) fails loudly and writes nothing > createMarket rejects the pack in the dry-run: host not on the provider list (rule 4) [543.24ms]
+(pass) fails loudly and writes nothing > createMarket rejects the pack in the dry-run: T too close to the listing (rule 2) [525.46ms]
+(pass) fails loudly and writes nothing > createMarket rejects the pack in the dry-run: bondBps under the floor (rule 6) [576.63ms]
+(pass) fails loudly and writes nothing > an input outside the schema [4.10ms]
+(pass) reference capture > GETs the reference event URL with the authRef secret header from the workflow config [3.23ms]
+(pass) reference capture > a missing secret or a non-200 response fails [3.43ms]
+
+packages/oracle-sdk/test/abi.test.ts:
+(pass) snapshot > SHA256SUMS lists exactly the JSON files, and every hash matches [4.59ms]
+(pass) snapshot > every SDK source has a snapshot file, and every snapshot file a source [0.07ms]
+(pass) snapshot > the snapshot is what forge inspect gives for the current sources [4385.17ms]
+(pass) SDK copy > each module is the generated form of its snapshot file and carries its hash [6.98ms]
+(pass) SDK copy > the oracle ABI carries the calls the services make [0.52ms]
+(pass) SDK copy > a changed snapshot is detected [0.11ms]
+
+packages/oracle-sdk/test/bond.test.ts:
+(pass) bond > every vector in bond.json [0.43ms]
+(pass) bond > the proportional term rounds up; either floor wins when larger [2.69ms]
+(pass) bond > out-of-range inputs are refused, not wrapped [0.68ms]
+(pass) liveness and watchdog > fresh watchdog: L1 and L2_AUTO use their own; stale: reviewed
+(pass) liveness and watchdog > freshness: never-sent, future, revoked and the age boundary [0.26ms]
+(pass) void bound > production and testnet vectors [0.24ms]
+(pass) void bound > without a feed T_L1 drops out [0.03ms]
+
+packages/oracle-sdk/test/claim.test.ts:
+(pass) claim vectors > the file covers valid renders, both errors and a Layer 1 evidence case [0.18ms]
+(pass) claim vectors > example-l1-yes [0.87ms]
+(pass) claim vectors > example-uri-no [0.08ms]
+(pass) claim vectors > example-invalid
+(pass) claim vectors > unicode-and-escapes
+(pass) claim vectors > reordered-adjacent-no-tau-unix
+(pass) claim vectors > bare-no-tau-unix
+(pass) claim vectors > literal-braces [0.47ms]
+(pass) claim vectors > token-at-end-tau-unix
+(pass) claim vectors > tau-epoch
+(pass) claim vectors > tau-leap-day [0.27ms]
+(pass) claim vectors > tau-2000-leap [0.04ms]
+(pass) claim vectors > tau-year-9999 [0.05ms]
+(pass) claim vectors > uint64-tau-uint256-chain
+(pass) claim vectors > leading-zeros
+(pass) claim vectors > empty-strings [0.19ms]
+(pass) claim vectors > hex-looking-text
+(pass) claim vectors > max-evidence-uri
+(pass) claim vectors > long-l1-url [0.19ms]
+(pass) claim vectors > missing-token [0.04ms]
+(pass) claim vectors > duplicate-token
+(pass) claim vectors > tau-unix-twice
+(pass) claim vectors > unknown-token
+(pass) claim vectors > triple-brace
+(pass) claim vectors > trailing-open-braces
+(pass) claim vectors > truncated-token
+(pass) claim vectors > no-outcome
+(pass) claim vectors > invalid-wins-over-no-outcome
+(pass) dates > utc agrees with the JavaScript calendar across leap years, centuries and the year 9999 [0.31ms]
+
+packages/oracle-sdk/test/deployments.test.ts:
+(pass) loadDeployments > parses the testnet file DeployOracle writes [3.95ms]
+(pass) loadDeployments > addresses come back checksummed whatever their case in the file [0.97ms]
+(pass) loadDeployments > a missing core contract, a bad address, another network or chain is refused [4.29ms]
+(pass) loadDeployments > an unknown contract name is an error, not undefined
+(pass) loadGas > reads the measured limits; an unlisted call has no guessed limit [1.54ms]
+
+packages/oracle-sdk/test/eip712.test.ts:
+(pass) types and domain > type strings and typehashes are the Solidity ones
+(pass) types and domain > domain separator matches, and moves with the chain and the contract [1.20ms]
+(pass) digests > P1 and R1 digests match the vectors [1.12ms]
+(pass) digests > every field is bound: changing any one changes the digest [4.59ms]
+(pass) signatures > the attestor signature over P1 is the vector, byte for byte, and recovers to the signer [24.31ms]
+(pass) signatures > the two committee signatures over R1 are the vectors, in ascending signer order [7.04ms]
+(pass) signatures > a signature SigLib refuses is refused here: wrong length, bad v, high s [0.06ms]
+
+services/committee-console/test/case.test.ts:
+(pass) buildCase from the recorded Review state > question, rules, outcomes, committee and deadlines [3.65ms]
+(pass) buildCase from the recorded Review state > the panel: signed labels and ĉ, the run record’s rationales, the candidate [1.36ms]
+(pass) buildCase from the recorded Review state > the evidence: the panel’s snapshot, checked against its hash, items rendered as text [1.11ms]
+(pass) buildCase from the recorded Review state > a snapshot missing from the store is shown as unavailable; a tampered one is refused [1.43ms]
+(pass) buildCase from the recorded Review state > rejected outcomes are not offered; a retry window is a deadline [1.11ms]
+(pass) buildCase from the recorded Review state > EarlyReview: the active trust set, open only before T and within the early TTL [1.83ms]
+(pass) buildCase from the recorded Review state > a market that is not waiting for the committee is not reviewable [2.32ms]
+(pass) buildCase from the recorded Review state > a reviewer’s own snapshot replaces the panel’s [0.95ms]
+(pass) notes > noteHash = keccak256 of the JCS bytes (keys sorted, no whitespace), and the store keeps those bytes [2.34ms]
+(pass) notes > refused: no text, too long, an outcome that is not YES/NO/INVALID [0.92ms]
+
+services/committee-console/test/console.test.ts:
+(pass) a reviewer completes a case in the console > read, add a source, propose with a note, second signature, submit [35.38ms]
+(pass) a reviewer completes a case in the console > without the snapshot in the store the reviewer must take one before proposing [7.44ms]
+(pass) a reviewer completes a case in the console > reading needs no key; proposing does [2.78ms]
+(pass) service level > T_r after entering review; the L2 deadline and retryOpensAt minus 2 h [2.42ms]
+(pass) service level > the alerts command lists due alerts of markets waiting for the committee only [2.85ms]
+(pass) service level > the rendered case shows due alerts [2.41ms]
+
+services/committee-console/test/sign.test.ts:
+(pass) the bundle > the proposal mirrors the case: attempt, mask, early, trust set; deadline now + 6 h [2.93ms]
+(pass) the bundle > the eth_signTypedData_v4 payload hashes to the digest the contract verifies [2.62ms]
+(pass) the bundle > JSON round trip; a changed evidence URI is refused [2.15ms]
+(pass) the bundle > refused: a case the committee cannot propose on, a rejected outcome, an evidence URI the contract refuses [1.54ms]
+(pass) the bundle > early: the deadline stops before T and the early TTL [1.53ms]
+(pass) collecting signatures > two members: valid, sorted ascending by signer, threshold met [15.70ms]
+(pass) collecting signatures > one signature is not enough [7.66ms]
+(pass) collecting signatures > refused: a non-member, a revoked member, a high-s twin, v 0/1, a signature over another proposal [28.47ms]
+(pass) collecting signatures > a member signing again replaces their signature [11.26ms]
+(pass) collecting signatures > a contract member (Safe) counts through ERC-1271, but such a bundle is not sent: its gas is not measured [25.96ms]
+(pass) submission > eth_call, then the threshold of signatures, ascending, with gas.json’s limit [16.25ms]
+(pass) submission > nothing is sent below the threshold, when the eth_call reverts, or when the bundle is stale [14.82ms]
+(pass) submission > staleness names each payload check the contract would fail [1.48ms]
+
+services/keeper/test/engineIdentity.test.ts:
+(pass) engine identity configuration > binds the identity file to one chain and registry [1.24ms]
+(pass) engine identity configuration > rejects ambiguous or malformed approval profiles [0.71ms]
+(pass) engine identity configuration > validates actual runtime code on the configured RPC chain without caching approvals [0.43ms]
+(pass) per-market engine routing > batches only validated stubs, handles a real market separately, and isolates an unknown engine [7.89ms]
+(pass) per-market engine routing > revalidates cached markets on the next tick [1.06ms]
+(pass) per-market engine routing > drops an identity that changes between planning and checking while other markets still send [0.41ms]
+(pass) per-market engine routing > rechecks immediately before sending and removes changed members from a stub batch [2.21ms]
+(pass) per-market engine routing > never runs real settlement preparation on a stub and preserves missing-limit refusal on a real engine [1.10ms]
+
+services/keeper/test/followup.test.ts:
+(pass) engine follow-up after Final > the next step is sent: snapshot chunk, then payout chunk, then finish (each later step reverts until due) [2.82ms]
+(pass) engine follow-up after Final > a chunk is not sent twice while the engine shows the same progress [1.03ms]
+(pass) engine follow-up after Final > progress made between planning and sending makes the job stale [0.58ms]
+(pass) engine follow-up after Final > INVALID without a price: only the capture, which is a no-op until a price can be captured [1.54ms]
+(pass) engine follow-up after Final > nothing before Final, once claims are enabled (the testnet stub at once), or before the halt [0.89ms]
+(pass) engine follow-up after Final > RECOVERY_REQUIRED alerts Risk and sends nothing [0.24ms]
+(pass) engine follow-up after Final > an engine call without a configured limit is refused [0.61ms]
+(pass) engine follow-up after Final > the engine version moves with every status field the jobs depend on [0.94ms]
+(pass) engine follow-up after Final > the engine ABI copy is what Risk's SettlementController compiles to (forge inspect EngineHarness) [297.57ms]
+(pass) treasury disputes and skim > closeDispute for each open dispute the call would close, then skim when it credits [1.59ms]
+(pass) treasury disputes and skim > no-op: a dispute still running (the call returns false), nothing to skim, a dispute already closed [0.53ms]
+(pass) treasury disputes and skim > a dispute closed between planning and sending is stale; a closed dispute is not read again [0.76ms]
+(pass) treasury disputes and skim > a skim is sent once per treasury state; a new deposit or credit is a new key [0.64ms]
+(pass) hourly commitments check > alerts when the ledger is below the commitments or the next bond, and sends nothing [1.20ms]
+(pass) hourly commitments check > exactly covered is covered; a market whose assertion is already live needs no next bond [0.89ms]
+(pass) hourly commitments check > no alert when covered; checked at most hourly by chain time [1.08ms]
+(pass) fallbacks in the core > a job that would revert or change nothing gives way to the next; any other outcome stops the list [0.74ms]
+
+services/keeper/test/gas.test.ts:
+(pass) BookRiskEngine gas provenance > accepts only a sufficient measured limit bound to this chain and runtime [0.27ms]
+(pass) BookRiskEngine gas provenance > refuses wrong engine, chain, runtime, missing source, and invalid gas measurements [0.38ms]
+(pass) BookRiskEngine gas provenance > requires the same provenance on settlement preparation calls [0.26ms]
+(pass) BookRiskEngine gas provenance > the keeper refuses existing seam-harness limits without broadcasting and permits a corrected profile on retry [1.65ms]
+
+services/keeper/test/keeper.test.ts:
+(pass) duplicates > a job is sent once: later ticks at the same state version skip it until the state moves [1.60ms]
+(pass) duplicates > the same job executed concurrently is sent once [0.59ms]
+(pass) duplicates > the same market listed twice by the source is planned once [0.50ms]
+(pass) duplicates > once the state moves, the next job gets a new key and old keys are forgotten [0.94ms]
+(pass) stale state > a job planned on a version that changed before sending is dropped [0.39ms]
+(pass) stale state > a job for a version that is no longer current is dropped by execute [0.53ms]
+(pass) two instances > the delayed instance re-reads after the first one landed and sends nothing [1.37ms]
+(pass) two instances > when both send before either lands, the second transaction is a no-op on chain [0.66ms]
+(pass) gates before sending > a call the eth_call says would change nothing is not sent, and is re-checked next tick [0.60ms]
+(pass) gates before sending > a reverting call is not sent [0.38ms]
+(pass) gates before sending > a call without a measured gas limit is never sent [0.41ms]
+(pass) gates before sending > a custom no-op test reads the simulated result [0.40ms]
+(pass) retries > a failed broadcast is retried next tick [0.60ms]
+(pass) retries > a transaction that reverted on chain is forgotten and the job sent again [0.58ms]
+(pass) retries > a transaction with no receipt past resendAfterMs is forgotten; before that it is not [0.69ms]
+(pass) isolation > one market per tick gets at most one job, in planner order [0.63ms]
+(pass) isolation > an unreadable market, a throwing planner or a planner returning another market's job does not stop the others [0.80ms]
+(pass) isolation > a failing source fails the tick; run() logs it and keeps going [0.89ms]
+(pass) options > an option passed as undefined keeps its default [0.30ms]
+(pass) job keys > the key is case-insensitive in the ids and distinct per action
+
+services/keeper/test/resolution.test.ts:
+(pass) every planned job names a measured gas limit > testnet keys exist in gas.json; mainnet keys without a measurement are refused by the keeper, not guessed [2.35ms]
+(pass) void > from voidDeadline on, any non-Final market; the stuck key when an assertion is live [0.71ms]
+(pass) void > no-op: before the deadline, without one (pre-halt), or once Final [0.42ms]
+(pass) halt > pre-halt states at and after T [0.55ms]
+(pass) halt > no-op: before T, or once halted [0.03ms]
+(pass) expire early > EarlyCheck or EarlyReview once earlyStartedAt + earlyTtlSecs has passed (before T) [0.31ms]
+(pass) expire early > no-op: TTL running, or None
+(pass) Layer 1: escalate and request > escalate at T + l1TimeoutSecs, ahead of another request [0.13ms]
+(pass) Layer 1: escalate and request > request from T + bufferSecs, then every 5 minutes (or the onchain floor if longer) [0.76ms]
+(pass) Layer 1: escalate and request > no-op: before T + bufferSecs (the contract reverts TooEarly) or without a feed (NoFeed)
+(pass) open > L2Pending or Review past l2StartedAt + l2DeadlineSecs, or past retryOpensAt when set
+(pass) open > no-op: before the deadline, before retryOpensAt even past the deadline, or before T (early halt)
+(pass) assert > Proposed without a live assertion when the ASSERTION ledger holds the bond
+(pass) assert > no-op with an alert: the ledger is short, or every attempt is used [1.42ms]
+(pass) sync dispute and finalize > sync when the venue shows the live assertion disputed and unsettled [0.27ms]
+(pass) sync dispute and finalize > finalize: past expiresAt, settled on the venue, or Disputed (the DVM may have answered); batched on testnet [0.38ms]
+(pass) sync dispute and finalize > no-op: liveness running and undisputed; a simulated NOT_READY; DISPUTED again from Disputed [0.66ms]
+(pass) sync dispute and finalize > states with nothing to do: Open, Final, a Proposed market without a venue read when none is live [0.15ms]
+(pass) finalize batching through the keeper > due markets go out as finalizeMany in runs of at most 4, each run with its measured limit [2.64ms]
+(pass) finalize batching through the keeper > a run of one is sent as finalizeMarket; members that fail their checks are left out of the batch [1.07ms]
+(pass) finalize batching through the keeper > nothing to apply yet (NOT_READY) sends nothing [1.22ms]
+(pass) finalize batching through the keeper > the batch limit is the line through the two measured limits, and only measured sizes are allowed
+(pass) finalize batching through the keeper > the listing is read once per market, not every tick [2.03ms]
+(pass) exclusive group conflict > a Proposed YES in a group with a Final YES is sent as the conflict, not refused as a no-op [0.44ms]
+(pass) exclusive group conflict > without a Final YES in the group, or outside a group, it is the ordinary assertion [0.47ms]
+(pass) exclusive group conflict > the keeper sends it although the simulated assertProposal returns false [0.52ms]
+
+services/keeper/test/sdkPaths.test.ts:
+(pass) SDK paths remain filesystem paths when the checkout contains spaces and a Windows drive [21.07ms]
+
+services/keeper/test/sources.test.ts:
+(pass) stateVersion > is keccak256 of the Resolution tuple, encoded independently here [0.74ms]
+(pass) stateVersion > changes with every field and not otherwise [2.43ms]
+(pass) IndexerSource > pages through every Market id until an empty page [0.68ms]
+(pass) IndexerSource > a server capping rows below the page size does not end the list early [0.15ms]
+(pass) IndexerSource > an HTTP error, GraphQL errors or a malformed answer throw [0.22ms]
+(pass) IndexerSource > treasury disputes: the Dispute rows funded by the float [0.15ms]
+(pass) RegistryLogSource > scans from the deploy block in 100-block ranges, then only the new blocks [0.63ms]
+(pass) RegistryLogSource > a failed range is read again from the same block
+(pass) the indexer first, RPC logs as the fallback > a fresh indexer is used and no log is read; its progress moves the log cursor [1.43ms]
+(pass) the indexer first, RPC logs as the fallback > an indexer more than the allowed lag behind the head is not used [0.28ms]
+(pass) the indexer first, RPC logs as the fallback > an indexer that answers _meta but fails the list query falls back too [0.30ms]
+
+services/market-ops/test/operations.test.ts:
+(pass) sampler and durable transactions > false simulation still broadcasts the initial state-changing capture [1.24ms]
+(pass) sampler and durable transactions > default is simulation only without signing
+(pass) sampler and durable transactions > restarts rebroadcast identical signed bytes without preparing a replacement [0.68ms]
+(pass) sampler and durable transactions > no broadcast if durable save fails [0.29ms]
+(pass) sampler and durable transactions > an unfinalized receipt blocks new work and finalized receipt controls block cadence [0.59ms]
+(pass) sampler and durable transactions > revert stops the tick and never chains another operation [0.03ms]
+(pass) sampler and durable transactions > halts both explicitly and from the listing schedule [0.44ms]
+(pass) sampler and durable transactions > missing gas and failed simulation cannot send [0.45ms]
+(pass) sampler and durable transactions > concurrent ticks cannot create two pending transactions [0.33ms]
+(pass) explicit monitor incidents > restricts before requesting, waits for finality and deduplicates a completed incident [0.38ms]
+(pass) explicit monitor incidents > wrong monitor, existing oracle request and expired market refuse new work [0.65ms]
+(pass) externally signed INDEX envelopes > digest equals independently packed ABI words, without an EIP-712 envelope [2.06ms]
+(pass) externally signed INDEX envelopes > accepts raw digest signature from pinned source and never signs a price [2.45ms]
+(pass) externally signed INDEX envelopes > rejects wrong chain, engine, market, source and rules before sending [1.34ms]
+(pass) externally signed INDEX envelopes > rejects personal_sign, wrong signer, future timestamps and backward time [5.50ms]
+(pass) externally signed INDEX envelopes > obsolete sequence is skipped and contract digest mismatch refuses broadcast [0.76ms]
+
+services/market-ops/test/store.test.ts:
+(pass) journal survives reopening and excludes concurrent processes and different identities [3.26ms]
+(pass) corrupt or tampered pending transaction cannot be rebroadcast [1.88ms]
+
+services/panel-runner/test/calibration.test.ts:
+(pass) rational > the shortest decimal form, exactly [0.02ms]
+(pass) calibratedBps > flooring is exact: 0.071 is 710, not 709 (in doubles 0.071 × 10000 = 709.9999999999999) [40.34ms]
+(pass) calibratedBps > clipping to [0.01, 0.99] [0.24ms]
+(pass) calibratedBps > linear between breakpoints, the end values outside
+(pass) calibratedBps > confidence outside [0, 1] is refused [0.39ms]
+(pass) calibratedBps > the placeholder gives 4,900 for every confidence: below the 5,000 bps highConfBps floor [0.13ms]
+(pass) maps and calibratorHash > a map must have increasing confidences and a non-decreasing value, all in [0, 1] [0.45ms]
+(pass) maps and calibratorHash > keccak256 of the JCS of the three maps, in order [0.31ms]
+(pass) calibrate > ABSTAIN is 0; each model through its own map, in order
+(pass) candidate (display only) > independent models: ℓ = Σ s_i·logit(ĉ_i)
+(pass) candidate (display only) > correlated models count for less: n_eff = n² / Σρ
+(pass) candidate (display only) > INVALID, NOT_YET and ABSTAIN add nothing [0.81ms]
+
+services/panel-runner/test/injection.test.ts:
+(pass) the fixture set > 6 clean and 16 injected items, each with an expectation [0.09ms]
+(pass) the fixture set > detector: clean/l1-feed.json [1.70ms]
+(pass) the fixture set > detector: clean/match-report.html [3.26ms]
+(pass) the fixture set > detector: clean/market-page.html [0.43ms]
+(pass) the fixture set > detector: clean/api-options.json [0.27ms]
+(pass) the fixture set > detector: clean/bom-notes.txt [0.23ms]
+(pass) the fixture set > detector: clean/article.html [0.29ms]
+(pass) the fixture set > detector: injected/plain-ignore.txt [0.27ms]
+(pass) the fixture set > detector: injected/role-tags.json [0.19ms]
+(pass) the fixture set > detector: injected/hidden-div.html [0.33ms]
+(pass) the fixture set > detector: injected/hidden-long.html [0.28ms]
+(pass) the fixture set > detector: injected/offscreen.html [0.35ms]
+(pass) the fixture set > detector: injected/text-indent.html [0.27ms]
+(pass) the fixture set > detector: injected/class-hidden.html [0.52ms]
+(pass) the fixture set > detector: injected/font-zero.html [0.50ms]
+(pass) the fixture set > detector: injected/zero-width.txt [0.47ms]
+(pass) the fixture set > detector: injected/tag-smuggling.txt [0.31ms]
+(pass) the fixture set > detector: injected/bidi.txt [0.32ms]
+(pass) the fixture set > detector: injected/evidence-breakout.html [0.29ms]
+(pass) the fixture set > detector: injected/label-json.json [0.23ms]
+(pass) the fixture set > detector: injected/comment.html [0.25ms]
+(pass) the fixture set > detector: injected/inst-tags.txt [0.21ms]
+(pass) the fixture set > detector: injected/polite.txt [0.17ms]
+(pass) the fixture set > scan: every injected item flagged, no clean item; classifier hits are the real Prompt Guard 2 scores [4.75ms]
+(pass) the fixture set > a snapshot of only the clean items: flags 0, no findings [1.00ms]
+(pass) detector rules > a BOM is fine first and flagged later; ZWJ and ZWNJ are fine; tag characters, bidi isolates and word joiners are not
+(pass) detector rules > hidden text: short is page furniture, long or instruction-like is flagged; the hidden attribute and <style> classes count [1.94ms]
+(pass) detector rules > hiddenTexts: nested elements reported once with everything inside; void elements skipped [0.08ms]
+(pass) detector rules > label coercion needs a panel label written as the panel writes it [0.07ms]
+(pass) detector rules > text that addresses a model directly, each rule on its own [0.11ms]
+(pass) detector rules > role markers, including the prompt's own evidence tag; "system:" only at a line start [0.11ms]
+(pass) classifier > chunks: at most 800 code points, 100 overlap, the end covered, short text whole, empty none [0.85ms]
+(pass) classifier > the highest chunk score; stops at the first chunk over the threshold [0.41ms]
+(pass) classifier > 429 and 5xx retried with back-off; 4xx, a missing key or a non-score answer: unavailable [0.72ms]
+(pass) classifier > the threshold: 0.5 and above is a finding, below is not [0.53ms]
+(pass) classifier > a classifier that cannot answer flags the item (scanned or sent to the committee, never neither) [0.41ms]
+
+services/panel-runner/test/models.test.ts:
+(pass) answer schema > a valid answer, plain or in one ```json fence; duplicate citations once [0.27ms]
+(pass) answer schema > invalid: not JSON [0.13ms]
+(pass) answer schema > invalid: text around the JSON
+(pass) answer schema > invalid: an array
+(pass) answer schema > invalid: a missing key
+(pass) answer schema > invalid: an extra key [0.03ms]
+(pass) answer schema > invalid: ABSTAIN as a label
+(pass) answer schema > invalid: a lowercase label
+(pass) answer schema > invalid: confidence above 1
+(pass) answer schema > invalid: confidence below 0 [0.03ms]
+(pass) answer schema > invalid: confidence as a string [0.03ms]
+(pass) answer schema > invalid: a fractional citation
+(pass) answer schema > invalid: a negative citation [0.03ms]
+(pass) answer schema > invalid: citations as strings
+(pass) answer schema > invalid: a rationale over 1,000 characters
+(pass) citations > valid: in range and the item has a response; reasons for none, and for context only [0.13ms]
+(pass) one model > anthropic:claude-x@2026-01-01: a valid answer in one attempt [1.58ms]
+(pass) one model > openai:gpt-x@2026-01-01: a valid answer in one attempt [0.48ms]
+(pass) one model > groq:openai/gpt-oss-120b@2025-08-05: a valid answer in one attempt [0.38ms]
+(pass) one model > google:gemini-x@001: a valid answer in one attempt [0.53ms]
+(pass) one model > requests: temperature 0, seed 0 where the API takes one, the schema where the provider enforces it [0.85ms]
+(pass) one model > 429: waits the provider's Retry-After, then succeeds [0.87ms]
+(pass) one model > 5xx on every attempt: 3 retries with back-off 5 s, 15 s, 45 s, then ABSTAIN [0.94ms]
+(pass) one model > invalid output counts as an API failure: retried, and ABSTAIN when it never becomes valid [0.74ms]
+(pass) one model > an answer cut off at the token limit, or empty, is retried [1.13ms]
+(pass) one model > a network error or a timeout is retried [50.78ms]
+(pass) one model > 401 (or any 4xx but 429): ABSTAIN at once, no retry [0.47ms]
+(pass) one model > no key, or no client for the provider: ABSTAIN without a call [0.45ms]
+(pass) one model > a valid answer with no valid citation, or citing only context, is ABSTAIN (the answer kept for the log) [0.64ms]
+(pass) the panel > three models from three providers [0.34ms]
+(pass) the panel > independent calls: concurrent, the same prompt only, and one failure does not touch the others [22.74ms]
+(pass) the panel > modelIdHash is keccak256 of "provider:model-id@version" [0.16ms]
+(pass) recorded provider responses > every recording has an expected outcome [0.02ms]
+(pass) recorded provider responses > google__gemini-3.8-flash.json: YES [0.80ms]
+(pass) recorded provider responses > google__gemini-3.8-flash.503.json: ABSTAIN [0.43ms]
+(pass) recorded provider responses > groq__openai_gpt-oss-120b.json: YES [0.28ms]
+(pass) recorded provider responses > nvidia__moonshotai_kimi-k3.json: YES [0.34ms]
+
+services/panel-runner/test/prompts.test.ts:
+(pass) pinned templates > one per category; categoryId = keccak256(name), promptHash = keccak256(file bytes), budgets from the header [2.11ms]
+(pass) pinned templates > the system prompt says instructions inside evidence are data (defence 2); every template [0.46ms]
+(pass) pinned templates > a template without the header, a placeholder or the SYSTEM/USER layout is refused [0.33ms]
+(pass) pinned templates > promptFor: the market must pin this template exactly [0.18ms]
+(pass) evidence blocks (defence 1) > one element per item, labelled untrusted, holding one JSON string of the prompt text [3.13ms]
+(pass) evidence blocks (defence 1) > a page that writes </evidence> or <evidence ...> cannot open or close an element [0.50ms]
+(pass) evidence blocks (defence 1) > escapeEvidence: quotes, backslashes, newlines, <, >, & and U+2028 escaped; everything else as is
+(pass) evidence blocks (defence 1) > placeholders are filled in one pass: evidence or market text cannot pull in another value [0.15ms]
+(pass) evidence blocks (defence 1) > times as UTC ISO; attributes from checked fields; content types reduced to token characters [0.10ms]
+(pass) evidence blocks (defence 1) > budgets: an item is cut at item_chars, the snapshot at evidence_chars; binary and failed items are null [3.03ms]
+
+services/panel-runner/test/runner.test.ts:
+(pass) runOnce > POST_T: the payload the contract checks, signed by the attestor, sent with the measured limit [8.46ms]
+(pass) runOnce > EARLY: the active trust set, phase 1; mixed labels return to None, a flagged snapshot goes to EarlyReview [8.15ms]
+(pass) runOnce > POST_T flagged: sent to Review with the flag set [3.88ms]
+(pass) runOnce > two or more NOT_YET after T: not sent (the market would stay) [1.62ms]
+(pass) runOnce > a result that passes the auto gate (validated category) is sent with its own measured limit; without one, not sent [4.96ms]
+(pass) runOnce > a market pinned to another model, prompt or calibrator: refused before any snapshot or model call [1.20ms]
+(pass) runOnce > an eth_call revert: nothing sent [3.86ms]
+(pass) runOnce > a market in any other state: no run [0.73ms]
+(pass) preRoute > early: three identical known labels each at or above highConfBps → EarlyReview [0.46ms]
+(pass) preRoute > post-T: auto-propose only for a binary unanimous confident unflagged result in a validated category [0.37ms]
+(pass) PanelRunner > triggered by StateChanged; a sent result is not sent again while the market stays [4.28ms]
+(pass) PanelRunner > NOT_YET: re-runs after 15 min, 30 min, 1 h, 2 h, … with a fresh snapshot each time, until the L2 deadline [6.37ms]
+(pass) PanelRunner > polling: a market seen once is re-read every tick, and a run that failed is retried on the schedule [7.22ms]
+(pass) PanelRunner > a market pinned to another configuration is not retried [1.07ms]
+(pass) PanelRunner > EarlyCheck past its TTL or at T, and L2Pending past its deadline, are not run [0.63ms]
+
+services/panel-runner/test/signer.test.ts:
+(pass) local signer > from ATTESTOR_PRIVATE_KEY; a missing or malformed key is refused [0.50ms]
+(pass) local signer > low s and v ∈ {27, 28} recovering the attestor; both recovery ids occur (64 digests) [200.51ms]
+(pass) vectors/panel-sig.json > the committed vectors are what the signer produces now [8.69ms]
+
+services/snapshotter/test/fetcher.test.ts:
+(pass) source order > Layer 1 first, then allow-listed pages in allow-list host order, then context; duplicates once [0.19ms]
+(pass) source order > without a feed the allow-listed pages come first
+(pass) source order > a URL that is not https with a plain lowercase host is omitted as BAD_URL [0.10ms]
+(pass) source order > the snapshot fetches in that order [2.59ms]
+(pass) item format > {url, host, allowListed, fetchedAt, httpStatus, contentType, sha256, bytesBase64, truncated}, bytes stored raw [0.91ms]
+(pass) item format > a fetch that gets no response is an item with httpStatus 0 and its reason [301.76ms]
+(pass) caps > 512 KB per item: a longer body keeps its first 512 KB, marked truncated; exactly 512 KB is whole [13.41ms]
+(pass) caps > an endless body stops at the cap and the download is cancelled [216.47ms]
+(pass) caps > 4 MB per snapshot: eight full items fill it; the rest are omitted, not fetched [20.32ms]
+(pass) caps > the item that crosses the snapshot budget is cut to what is left [1.14ms]
+(pass) caps > omitted entries keep request order whatever the reason [4.17ms]
+(pass) plain GETs > GET with only accept and user-agent: no cookie, no credentials, even after a Set-Cookie [0.75ms]
+(pass) plain GETs > a redirect is stored as it came and not followed [0.21ms]
+
+services/snapshotter/test/jcs.test.ts:
+(pass) RFC 8785 examples > §3.2.3: the sample, canonicalized [0.05ms]
+(pass) RFC 8785 examples > §3.2.4: its UTF-8 bytes [0.14ms]
+(pass) RFC 8785 examples > §3.2.3: property sorting by UTF-16 code units [0.22ms]
+(pass) RFC 8785 examples > Appendix B: number serialization samples [0.22ms]
+(pass) reference test data > six input/output pairs
+(pass) reference test data > arrays.json: the canonical bytes equal the expected output [0.39ms]
+(pass) reference test data > french.json: the canonical bytes equal the expected output [0.37ms]
+(pass) reference test data > structures.json: the canonical bytes equal the expected output [0.39ms]
+(pass) reference test data > unicode.json: the canonical bytes equal the expected output [0.34ms]
+(pass) reference test data > values.json: the canonical bytes equal the expected output [0.27ms]
+(pass) reference test data > weird.json: the canonical bytes equal the expected output [0.28ms]
+(pass) reference test data > ES6 number serialization: 10,000 lines of the reference file [8.09ms]
+(pass) strings > controls: \b \t \n \f \r, the rest as lowercase \u00hh; quote and backslash escaped; DEL, U+2028 and / as is
+(pass) strings > a lone surrogate, in a value or a key, is an error (RFC 8785 §3.2.2.2) [0.42ms]
+(pass) values JSON cannot carry are errors, never dropped > undefined
+(pass) values JSON cannot carry are errors, never dropped > an undefined property [0.06ms]
+(pass) values JSON cannot carry are errors, never dropped > undefined in an array
+(pass) values JSON cannot carry are errors, never dropped > a bigint
+(pass) values JSON cannot carry are errors, never dropped > a function
+(pass) values JSON cannot carry are errors, never dropped > a symbol
+(pass) values JSON cannot carry are errors, never dropped > a Date [0.03ms]
+(pass) values JSON cannot carry are errors, never dropped > a Uint8Array
+(pass) values JSON cannot carry are errors, never dropped > a Map
+(pass) values JSON cannot carry are errors, never dropped > -Infinity
+(pass) values JSON cannot carry are errors, never dropped > a cycle is an error; the same object twice is not a cycle [0.05ms]
+(pass) values JSON cannot carry are errors, never dropped > an object without a prototype is a plain object
+(pass) evidenceHash > keccak256 of the canonical UTF-8 bytes [0.29ms]
+(pass) evidenceHash > the same snapshot always gives the same hash > across serialization, re-parsing, key order and copies; and it moves with any change [4.46ms]
+
+services/snapshotter/test/text.test.ts:
+(pass) promptText > HTML: visible text only, entities decoded, blocks on their own lines; the item keeps the raw page [1.32ms]
+(pass) promptText > JSON and plain text pass through; the charset is honoured [0.90ms]
+(pass) promptText > no text for binary types, failed fetches and empty bodies [0.42ms]
+(pass) htmlText > comments, scripts, styles, noscript and template are dropped; unknown entities are kept
+(pass) htmlText > inline tags join words with a space, block tags break lines [0.13ms]
+
+services/watchdog/test/dispute.test.ts:
+(pass) acting on a contradiction > a live assertion is disputed with the float, with gas.json’s limit, and a human is paged [0.63ms]
+(pass) acting on a contradiction > not asserted yet: wait for the keeper to assert it
+(pass) acting on a contradiction > page only: too late, no float, limit reached, not this market’s watchdog, already disputed, superseded, a revert [0.73ms]
+(pass) acting on a contradiction > one second before the margin is still in time [0.01ms]
+(pass) heartbeat and float > a heartbeat when none was sent, then every 10 minutes, with gas.json’s limit
+(pass) heartbeat and float > the float against the live bonds: disputed, settled and expired assertions do not count [0.71ms]
+(pass) the loop > an L1 proposal is checked at once and disputed as soon as it is asserted [1.19ms]
+(pass) the loop > agreement ends quietly; an unsure check pages; a failed check is retried [0.62ms]
+
+services/watchdog/test/intake.test.ts:
+(pass) watchdog intake from the indexer > rows become the same Proposal shape the log path gives
+(pass) watchdog intake from the indexer > reads up to the progress block only, then continues from there; no log is read [1.05ms]
+(pass) watchdog intake from the indexer > indexer down → the logs from the cursor, in 100-block calls; back up → the indexer from where the logs stopped [0.33ms]
+(pass) watchdog intake from the indexer > an indexer too far behind is not used; a failed log range keeps what was read and resumes there [0.23ms]
+(pass) watchdog intake from the indexer > a long catch-up is read 10,000 blocks per query
+(pass) watchdog intake from the indexer > without an indexer it is the log scan alone
+
+services/watchdog/test/l1.test.ts:
+(pass) the verdict rule > [{"source":"L1","outcome":"YES","detail":""}] with YES proposed → AGREE
+(pass) the verdict rule > [{"source":"L1","outcome":"NO","detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"L1","outcome":null,"detail":""}] with YES proposed → UNSURE
+(pass) the verdict rule > [] with YES proposed → UNSURE
+(pass) the verdict rule > [{"source":"L1","outcome":"NO","detail":""},{"source":"FALLBACK","outcome":null,"detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"L1","outcome":"YES","detail":""},{"source":"FALLBACK","outcome":"NO","detail":""}] with YES proposed → UNSURE
+(pass) the verdict rule > [{"source":"MODEL","outcome":"INVALID","detail":""},{"source":"L1","outcome":"NO","detail":""}] with YES proposed → CONTRADICT
+(pass) the verdict rule > [{"source":"MODEL","outcome":null,"detail":""},{"source":"L1","outcome":"YES","detail":""}] with YES proposed → AGREE
+(pass) intake > every new proposal once, in log order, from every path; asserted markets tracked [0.67ms]
+(pass) Layer 1 re-run > the FeedSpec URL from the watchdog’s own fetch, evaluated by the shared evaluator
+(pass) Layer 1 re-run > a recorded L1 YES that the feed now contradicts (home 1) is flagged
+(pass) Layer 1 re-run > agreement: the recorded outcome and value hold
+(pass) Layer 1 re-run > no answer from the feed is not a contradiction: not final, HTTP error, network failure, missing credentials [0.81ms]
+(pass) Layer 1 re-run > a body over the 250 KB cap is an error [0.15ms]
+(pass) Layer 1 re-run > the listed fallback source: both against → contradiction; split → a human [0.35ms]
+
+services/watchdog/test/model.test.ts:
+(pass) recorded answers > the recordings are real 200s with the answers the snapshots call for [1.15ms]
+(pass) recorded answers > agreement: a YES proposal on the 3-1 snapshot [1.32ms]
+(pass) recorded answers > contradiction: a NO proposal on the 3-1 snapshot, a YES proposal on the 1-1 snapshot [1.70ms]
+(pass) recorded answers > with a feed: the Layer 1 feed joins the model; feed and model split → a human [1.18ms]
+(pass) the prompt > its own wording and format, not the panel’s: sources from 1, untrusted text escaped, the rules as authority [0.02ms]
+(pass) the prompt > a source cannot close its tag or open a new one
+(pass) answers > parsing: thinking and code fences removed; anything off the schema refused [0.54ms]
+(pass) answers > an outcome counts only if confident, determined and resting on an allow-listed source that exists [0.19ms]
+(pass) answers > failures: 3 retries on 5xx and invalid answers, none on 401, nothing without a key [0.41ms]
+(pass) the snapshot > eros-snapshot from the directory and https, each checked against the evidenceHash [0.64ms]
+(pass) the snapshot > no snapshot, or one for another market: no model outcome (a human looks) [0.78ms]
+
+workflows/dryrun/main.test.ts:
+(pass) a finished event over the target prints YES with the value hash, and writes nothing [6.36ms]
+(pass) a finished event at or under the target prints NO, and writes nothing [0.94ms]
+(pass) a live event prints NOT_READY, and writes nothing [0.64ms]
+(pass) a wrong path prints ERROR, and writes nothing [0.68ms]
+(pass) HTTP 429, 5xx and invalid JSON print ERROR, and write nothing [1.19ms]
+(pass) a host not first on the allow-list or an unknown authRef prints ERROR and fetches nothing [0.01ms]
+(pass) a known authRef sends its secret in the configured header [0.92ms]
+(pass) the dry-run has no EVM client and calls no write (source check) [1.34ms]
+(pass) dry-run and resolution build their node-mode fetch from the same shared function [0.57ms]
+
+workflows/listen/poller.test.ts:
+(pass) a long outage catches up in inclusive ranges of at most 100 blocks without gaps [0.36ms]
+(pass) cursor and queued event survive a JSON restart and replay is deduplicated [0.17ms]
+(pass) two requests in one transaction remain distinct and use receipt-local indexes
+(pass) refuse to reuse checkpoints across chains, oracle addresses, targets or broadcast modes
+(pass) corrupt checkpoints fail closed
+
+workflows/resolution/main.test.ts:
+(pass) final YES writes a v1 report bound to chain, oracle, market, observedAt [8.83ms]
+(pass) live event writes nothing [1.74ms]
+(pass) HTTP 429 writes nothing [1.23ms]
+(pass) final NO writes outcome 2 with the value hash of the lexeme [2.00ms]
+(pass) state != L1Pending writes nothing and fetches nothing [3.66ms]
+(pass) specHash mismatch writes nothing and fetches nothing [0.99ms]
+(pass) unknown authRef writes nothing and fetches nothing [0.34ms]
+(pass) a known authRef sends its secret in the configured header (prefix included) [2.93ms]
+(pass) a host that is not first on the allow-list writes nothing and fetches nothing [1.56ms]
+(pass) HTTP 5xx and invalid JSON write nothing [3.43ms]
+
+workflows/resolution/parity.test.ts:
+(pass) RESOLUTION_REQUESTED is the ABI snapshot event topic, 0xa3af…3a13 (C.7) [0.21ms]
+(pass) STATE_L1_PENDING is RState.L1Pending, 3 [0.33ms]
+
+ 555 pass
+ 0 fail
+ 12234 expect() calls
+Ran 555 tests across 40 files. [8.98s]

@@ -1,0 +1,353 @@
+@import "tailwindcss";
+@import "./privy.css";
+
+/*
+ * Eros Markets — one industrial dark theme.
+ * Brand: Black #000000, White #FFFFFF, Orange #FF5A36, Green #5FD394. Black dot-grid ground, hard 1px grey frames,
+ * Geist Mono throughout: display, labels and data share one family. Boxes 12px, controls 8px corners.
+ */
+@theme {
+  /* Dark only. Four colours: black, orange, white, green. Greys are tints, never a fifth hue. */
+  --color-ground: #000000; /* Black: page ground */
+  --color-panel: #121212; /* raised panel inside a frame */
+  --color-hover: #1f1f1f;
+  --color-press: #2b2b2b;
+  --color-ink: #000000; /* inverted panels */
+  --color-ink-2: #1a1a1a; /* hover on inverted panels */
+  --color-fg: #ffffff; /* 21:1 */
+  --color-fg-2: #d4d4d4; /* 14.2:1 */
+  --color-fg-3: #a3a3a3; /* 8.3:1 */
+  --color-fg-4: #8f8f8f; /* 6.5:1 — axis ticks, placeholders */
+  --color-ivory: #ffffff; /* text on inverted panels */
+  --color-ivory-3: #a3a3a3; /* secondary text on inverted panels, 8.3:1 */
+  --color-line: #2e2e2e; /* inner rules */
+  --color-line-strong: #5c5c5c; /* frames */
+  --color-dot: #262626; /* dot grid */
+  --color-signal: #ff5a36; /* Orange: mark price, primary action, live risk — fills and large type */
+  --color-signal-text: #ff7a5c; /* small orange text on black, 8.2:1 */
+  --color-on-signal: #000000; /* 6.8:1 on orange */
+  --color-bid: #5fd394; /* Green: long side and gains */
+  --color-ask: #ff7a5c; /* Orange: short side and losses */
+  --color-action: #ffffff;
+  --color-action-hover: #e0e0e0;
+  --color-on-action: #000000;
+  --color-on-bid: #000000;
+  --color-on-ask: #000000;
+  --color-yes: #5fd394; /* Green: YES outcome token */
+  --color-no: #ff5c6c; /* Red: NO outcome token only (user-requested exception to the four-colour rule), 6.4:1 on black */
+  --color-on-yes: #000000;
+  --color-on-no: #000000;
+
+  --font-sans: var(--font-geist-mono), ui-monospace, monospace;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-geist-mono), ui-monospace, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-4xl: 32px;
+  --radius-box: 12px; /* frames, panels, dialogs */
+  --radius-control: 8px; /* buttons, inputs, selects */
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-image { display: inline-grid; flex-shrink: 0; }
+.brand-image img { width: 100%; height: 100%; }
+
+@layer base {
+  /* Boxes are rounded; controls a little less, so a control never looks rounder than its box. */
+  .frame,
+  [class~="border"] {
+    border-radius: var(--radius-box);
+  }
+  /* Clip edge-to-edge children to the corners. The top bar opts out: its wallet notice overhangs. */
+  .frame:not(.frame-open) {
+    overflow: clip;
+  }
+  /* Collapsed table borders cannot be rounded. */
+  table.frame {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  :is(button, select, textarea, input:not([type="checkbox"], [type="radio"], [type="range"])) {
+    border-radius: var(--radius-control);
+  }
+  input:is([type="checkbox"], [type="radio"]) {
+    border-radius: var(--radius-sm);
+  }
+
+  /* Every interactive element eases between states; nothing snaps. */
+  button,
+  a,
+  summary,
+  select,
+  [role="button"],
+  [role="tab"] {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out-expo);
+  }
+  button:not(:disabled):active {
+    transform: translateY(1px);
+  }
+
+  html {
+    color-scheme: dark;
+    background: var(--color-ground);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* The ground is a dot grid, as on an engineering sheet. */
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-ground);
+    background-image: radial-gradient(var(--color-dot) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    background-position: 11px 11px;
+  }
+
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-on-signal);
+  }
+
+  input,
+  textarea,
+  select {
+    caret-color: var(--color-signal);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+  }
+
+  a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  button:not(:disabled), summary { cursor: pointer; }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-fg-4) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-fg-4);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+/* Raised action controls keep the same square frames and palette as the terminal. */
+.ui-button, .ui-toggle {
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--color-line-strong) 50%, transparent),
+    0 3px 5px color-mix(in srgb, var(--color-ink) 10%, transparent);
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease,
+    color 120ms ease, filter 120ms ease;
+}
+.ui-button[data-variant="ghost"] {
+  box-shadow: inset 0 0 0 1px var(--color-line), 0 1px 0 var(--color-line);
+}
+@media (hover: hover) {
+  .ui-button:not(:disabled):hover, .ui-toggle:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--color-line-strong) 60%, transparent),
+      0 5px 8px color-mix(in srgb, var(--color-ink) 12%, transparent);
+  }
+}
+.ui-toggle[aria-pressed="true"], .ui-toggle[aria-checked="true"] {
+  box-shadow: inset 0 0 0 1px currentColor, 0 1px 0 var(--color-line-strong);
+}
+.ui-button:not(:disabled):active, .ui-toggle:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--color-ink) 20%, transparent);
+}
+.ui-button:disabled, .ui-button:disabled .ui-button-label, .ui-toggle:disabled {
+  background-color: var(--color-press);
+  color: var(--color-fg-4);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  filter: none;
+}
+.ui-button:disabled, .ui-toggle:disabled { opacity: 0.65; }
+
+@layer components {
+  .ui-button {
+    border-radius: var(--radius-control);
+    overflow: hidden;
+  }
+
+  /* Sliding fill: a tint of the text colour sweeps in from the left and leaves to the right. */
+  .ui-sweep,
+  .ui-button:not(:has(.ui-button-label)) {
+    position: relative;
+    isolation: isolate;
+  }
+  .ui-sweep::before,
+  .ui-button:not(:has(.ui-button-label))::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 380ms var(--ease-out-expo);
+  }
+  :is(.ui-button, .group):not(:disabled):is(:hover, :focus-visible) .ui-sweep::before,
+  .ui-button:not(:disabled):not(:has(.ui-button-label)):is(:hover, :focus-visible)::before {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* The arrow in the Signal square slides out to the right and returns from the left. */
+  .ui-arrow {
+    overflow: hidden;
+  }
+  :is(.ui-button, .group):not(:disabled):is(:hover, :focus-visible) .ui-arrow svg,
+  tr:hover .ui-arrow svg {
+    animation: arrow-slide 480ms var(--ease-out-expo);
+  }
+
+  /* Inline arrows nudge toward where they lead. */
+  .ui-nudge {
+    transition: transform 200ms var(--ease-out-expo);
+  }
+  :is(a, button, .group):is(:hover, :focus-visible) .ui-nudge {
+    transform: translateX(3px);
+  }
+  :is(a, button, .group):is(:hover, :focus-visible) .ui-nudge-up {
+    transform: translate(2px, -2px);
+  }
+}
+
+@keyframes arrow-slide {
+  0% { transform: translateX(0); }
+  45% { transform: translateX(170%); }
+  45.01% { transform: translateX(-170%); }
+  100% { transform: translateX(0); }
+}
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  .hair-b {
+    box-shadow: inset 0 -1px 0 var(--color-line);
+  }
+  /* A real border, not an inset shadow: child backgrounds must never paint over the frame. */
+  .frame {
+    border: 1px solid var(--color-line-strong);
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+}
+
+/* A changed digit flips into place (150 ms); columns never move. */
+@keyframes digit-flip {
+  from {
+    transform: translateY(-40%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.digit-new {
+  display: inline-block;
+  animation: digit-flip 150ms var(--ease-out-expo);
+}
+
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  animation: marquee 40s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; }
+  .ui-button:not(:disabled):hover, .ui-button:not(:disabled):active,
+  .ui-toggle:not(:disabled):hover, .ui-toggle:not(:disabled):active { transform: none; }
+  .digit-new,
+  .caret::after,
+  .marquee,
+  .ui-arrow svg {
+    animation: none !important;
+  }
+  .ui-sweep::before,
+  .ui-button::before {
+    display: none;
+  }
+  button:not(:disabled):active,
+  .ui-nudge {
+    transform: none !important;
+  }
+}
+
+/* Field validation is visible beyond the action button, in either theme. */
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
+  border-color: var(--color-ask);
+  box-shadow: inset 0 0 0 1px var(--color-ask);
+}

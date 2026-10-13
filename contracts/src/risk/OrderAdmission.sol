@@ -139,11 +139,30 @@ abstract contract OrderAdmission is MonitorPolicy, OrderRisk {
         if (d.capLots != 0) d.feeCapQ = _feeCapQ(d.capLots, t.limitTick);
     }
 
+    /// @notice Index warm-up rest (Monad testnet BOOTSTRAP before the first complete INDEX
+    ///         window): the ordinary exactly backed path, banded around the latest authenticated
+    ///         INDEX point. The caller admits it only for an order that cannot match (POST_ONLY);
+    ///         every fill still requires a valid INDEX window. Otherwise the ordinary decision.
+    function _warmupRestDecision(RiskContext memory c, TakerInput memory t)
+        internal
+        view
+        returns (TakerDecision memory d)
+    {
+        (bool warmup,) = _warmupIndexPoint(c);
+        if (!warmup || t.reduceOnly || c.admission != LifecycleMath.Admission.NONE) {
+            return _takerDecision(c, t);
+        }
+        c.admission = LifecycleMath.Admission.BACKED_ONLY;
+        d = _takerDecision(c, t);
+        c.admission = LifecycleMath.Admission.NONE;
+    }
+
     function _inBand(RiskContext memory c, uint16 tick) internal view returns (bool) {
-        if (!c.indexOk) return false;
+        (bool ok, uint256 centre) = _bandReference(c);
+        if (!ok) return false;
         uint256 p = uint256(tick) * 1e15;
         uint256 band = _bootstrapBandWad;
-        return p + band >= c.indexWad && p <= c.indexWad + band;
+        return p + band >= centre && p <= centre + band;
     }
 
     /// @dev Bounded halving: every returned cap passes the all-prefix predicate with the whole

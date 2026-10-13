@@ -1,0 +1,95 @@
+{
+  "source": "plan Appendix C.7 (vector 0 is the FeedSpec of Appendix B.3) and task O10.2; specHash = keccak256(abi.encode(spec)), every value computed with viem 2.57.2",
+  "vectors": [
+    {
+      "name": "B.3 (no authRef)",
+      "spec": {
+        "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+        "urlParam": "evt_1",
+        "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "finalPath": "event.status",
+        "finalValue": "FINAL",
+        "valuePath": "event.home",
+        "valueType": 1,
+        "decimals": 0,
+        "op": 2,
+        "target": "2",
+        "bufferSecs": 900,
+        "l1TimeoutSecs": 21600
+      },
+      "specHash": "0x50661463875a7d2a9c9ca378a3d4d1ee141fef1d82091ecd7ab36829ea7f80cd"
+    },
+    {
+      "name": "with authRef",
+      "spec": {
+        "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+        "urlParam": "evt_1",
+        "authRef": "0xd2dfd34a52e4c022ea2fbfeceb8230b10f417532e39a8fc2c41d28da9deff21e",
+        "finalPath": "event.status",
+        "finalValue": "FINAL",
+        "valuePath": "event.home",
+        "valueType": 1,
+        "decimals": 0,
+        "op": 2,
+        "target": "2",
+        "bufferSecs": 900,
+        "l1TimeoutSecs": 21600
+      },
+      "specHash": "0xb7b6ba75b7c43189c48be8023eed82a646e665076b2833ae4b233ee93ce0305d"
+    },
+    {
+      "name": "empty urlParam, no {id}",
+      "spec": {
+        "urlTemplate": "https://api.example-sports.com/v1/events/evt_1",
+        "urlParam": "",
+        "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "finalPath": "event.status",
+        "finalValue": "FINAL",
+        "valuePath": "event.home",
+        "valueType": 1,
+        "decimals": 0,
+        "op": 2,
+        "target": "2",
+        "bufferSecs": 900,
+        "l1TimeoutSecs": 21600
+      },
+      "specHash": "0x83a45273f0fec5b8436affffef6d8c38211393af098ac706b4cd300f0acffd1e"
+    },
+    {
+      "name": "long strings",
+      "spec": {
+        "urlTemplate": "https://api.example-sports.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/{id}",
+        "urlParam": "evt_1",
+        "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "finalPath": "event.status",
+        "finalValue": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "valuePath": "event.home",
+        "valueType": 0,
+        "decimals": 0,
+        "op": 0,
+        "target": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "bufferSecs": 900,
+        "l1TimeoutSecs": 21600
+      },
+      "specHash": "0x50322dfffbe6b8255e50c712ef781615741d834a8e2f301d35fbb9caeee6fefb"
+    },
+    {
+      "name": "decimal",
+      "spec": {
+        "urlTemplate": "https://api.example-sports.com/v1/events/{id}",
+        "urlParam": "evt_1",
+        "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "finalPath": "event.status",
+        "finalValue": "FINAL",
+        "valuePath": "event.home",
+        "valueType": 2,
+        "decimals": 2,
+        "op": 3,
+        "target": "-3.1",
+        "bufferSecs": 900,
+        "l1TimeoutSecs": 21600
+      },
+      "specHash": "0x039131d624d039a310b5a0623041b3ce8dcac173d497edd3123e39282a15f1aa"
+    }
+  ]
+}

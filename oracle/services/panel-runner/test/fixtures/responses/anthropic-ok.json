@@ -1,0 +1,22 @@
+{
+  "httpStatus": 200,
+  "headers": {},
+  "body": {
+    "id": "msg_01",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-x",
+    "content": [
+      {
+        "type": "text",
+        "text": "```json\n{\"label\": \"YES\", \"confidence\": 0.93, \"cited\": [0, 1], \"rationale\": \"Item 0 (the league API) shows status FINAL with home 3; the rules say YES if the final home score is above 2.\"}\n```"
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 812,
+      "output_tokens": 64
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "mode": "MONAD_TESTNET_FUNDED_COVERAGE_PROPOSAL",
+  "supersedesPlanHash": "1156fe89042918b4d1c5d194fc9ca625b6b3ac56e133d086f9df665bc0efd904",
+  "reason": "Actual transfer was 1 MON; narrow remaining reservation cap to the funded 1.20 MON, within existing 1.35 MON / 44-slot approval.",
+  "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+  "nextPolicy": {
+    "schemaVersion": "1",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "relay": {
+      "gasCap": "800000",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000",
+      "maxCostWei": "120000000000000000",
+      "headroomMs": "5000",
+      "confirmations": "1",
+      "leaseMs": "120000",
+      "timeoutMs": 10000,
+      "maxAttempts": 3,
+      "gasSafetyMarginBps": "1000"
+    },
+    "budget": {
+      "maxTransactions": 55,
+      "totalMaxCostWei": "1770103950000000000",
+      "budgetRevision": 2
+    }
+  },
+  "activated": false,
+  "maxAdditionalReservations": 44,
+  "remainingReservationCapWei": "1200000000000000000",
+  "fundedBalanceWei": "1232440246000000000",
+  "maxPricesPerPhase": 20,
+  "phaseFinalizedPriceTargets": [
+    29,
+    49
+  ],
+  "durationCapSecondsPerPhase": 600,
+  "minimumPauseSeconds": 60,
+  "expectedCostFor40PricesAtHistoricalAverageWei": "804118360000000000",
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "productionApproved": false,
+  "humanGatesAccepted": false,
+  "limitations": [
+    "A smaller cap can stop before 40 finalized prices if gas rises or a cancellation is required; failed windows and stops stay in evidence.",
+    "Same keys and journals; no reset, new source timestamp or larger approval."
+  ]
+}

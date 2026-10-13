@@ -22,6 +22,8 @@ EXPORTS = (
         "Composes the real Book with RiskAccountingBridge; authenticated independent INDEX "
         "and bounded book-derived PERP sampling with later-block confirmation and a sealed INDEX prefix. "
         "Fully backed bootstrap remains available before normal pricing windows are ready. "
+        "On Monad testnet, funded post-only warm-up quotes may rest before the INDEX window "
+        "completes, and activatePricing() promotes once every window is valid. "
         "Funding, recovery and conversion disabled; no test feed or failure injection.",
         (),
     ),
@@ -40,6 +42,22 @@ EXPORTS = (
         "CollateralVault.sol/CollateralVault.json",
         "vault-abi.json",
         "CollateralVault ABI, including its production constructor (A017).",
+        (),
+    ),
+    (
+        "NativeOutcomeVault.sol/NativeOutcomeVault.json",
+        "native-outcome-vault-abi.json",
+        "NativeOutcomeVault ABI (NM-C09): one native binary event's fully backed complete-set custody. "
+        "split/merge, permissionless one-time bindMarket() to the registry-selected engine, "
+        "syncResolution() copying the engine's final payout value, and redeem. "
+        "Separate from CollateralVault, perp reserves, venue margin and oracle bonds.",
+        (),
+    ),
+    (
+        "OutcomeToken.sol/OutcomeToken.json",
+        "outcome-token-abi.json",
+        "OutcomeToken ABI (NM-C09): six-decimal YES/NO ERC-20 created by NativeOutcomeVault; "
+        "only the vault mints or burns.",
         (),
     ),
 )
@@ -79,7 +97,7 @@ def main():
     forge_path = Path(arguments.forge)
     forge = str(forge_path.resolve()) if forge_path.is_file() else arguments.forge
     subprocess.run([forge, "build", "src/engine/BookRiskEngine.sol", "src/engine/RiskAccountingBridge.sol",
-                    "src/vaults/CollateralVault.sol", "--skip-lint"], cwd=CONTRACTS, check=True)
+                    "src/vaults/CollateralVault.sol", "src/native/NativeOutcomeVault.sol", "--skip-lint"], cwd=CONTRACTS, check=True)
     stale = False
     for artifact_path, filename, note, additional_errors in EXPORTS:
         content, source_count = export_payload(artifact_path, note, additional_errors)

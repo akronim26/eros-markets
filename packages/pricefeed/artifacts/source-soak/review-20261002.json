@@ -1,0 +1,423 @@
+{
+  "sourceArchive": "var/source-review-network.sqlite",
+  "archiveIntegrity": true,
+  "captureCount": 9,
+  "mode": "disabled-market read-only diagnostics",
+  "categories": {
+    "politics": {
+      "samples": [
+        {
+          "atMs": "1790956836248",
+          "configDigest": "54014ee6b5e506275039de89f9c00346bfba635c873df7334e552acd62282e11",
+          "status": "COLLECTING",
+          "reason": null,
+          "sourceTime": {
+            "sourceMs": "1790956826942",
+            "observedAt": "1790956826",
+            "sourceAgeMs": "9304",
+            "fresh": true,
+            "headroomMs": "19754",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": true
+          },
+          "summary": {
+            "valid": true,
+            "reason": null,
+            "impactBidWad": "552000000000000000",
+            "impactAskWad": "553000000000000000",
+            "priceWad": "552500000000000000",
+            "bidDepthLots": "4560538950",
+            "askDepthLots": "12891503430"
+          },
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/45915",
+              "receivedAtMs": "1790956835039",
+              "attempts": 1,
+              "bodySha256": "9d24f532bb548d2d41f8b943ef35a794ba9af9b0781558776057b088c01063d5"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/601826",
+              "receivedAtMs": "1790956835318",
+              "attempts": 1,
+              "bodySha256": "58496fcfd1e6c9989c0fb44f9d54012685b6717be97cbc3aabbe1880669c22ee"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=109876868437950584369987384406356259939519193117253465815665152916226511121427",
+              "receivedAtMs": "1790956836246",
+              "attempts": 1,
+              "bodySha256": "257a16adbfd0b5b022056a8c1a79459d66deef2c43624804b3d65529b85ff3c5"
+            }
+          },
+          "archivePayloadSha256": "d7ba7d261b867374ebdcf6806ecc1baa5e7e1ca42e43b4934c0e168432924697"
+        },
+        {
+          "atMs": "1790956845153",
+          "configDigest": "54014ee6b5e506275039de89f9c00346bfba635c873df7334e552acd62282e11",
+          "status": "COLLECTING",
+          "reason": null,
+          "sourceTime": {
+            "sourceMs": "1790956843220",
+            "observedAt": "1790956843",
+            "sourceAgeMs": "1931",
+            "fresh": true,
+            "headroomMs": "27849",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": true
+          },
+          "summary": {
+            "valid": true,
+            "reason": null,
+            "impactBidWad": "552000000000000000",
+            "impactAskWad": "553000000000000000",
+            "priceWad": "552500000000000000",
+            "bidDepthLots": "4560538950",
+            "askDepthLots": "12891503430"
+          },
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/45915",
+              "receivedAtMs": "1790956835039",
+              "attempts": 1,
+              "bodySha256": "9d24f532bb548d2d41f8b943ef35a794ba9af9b0781558776057b088c01063d5"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/601826",
+              "receivedAtMs": "1790956835318",
+              "attempts": 1,
+              "bodySha256": "58496fcfd1e6c9989c0fb44f9d54012685b6717be97cbc3aabbe1880669c22ee"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=109876868437950584369987384406356259939519193117253465815665152916226511121427",
+              "receivedAtMs": "1790956845151",
+              "attempts": 1,
+              "bodySha256": "7a4f751f1fb8b3c21b4ac7fd2198fb8bbfce8524078f217009ec251d5e235944"
+            }
+          },
+          "archivePayloadSha256": "d7fa1bbb9afe9abfcaef1bc193d5308c0b345d9d4083b9bbea163d5b1f64504a"
+        },
+        {
+          "atMs": "1790956855275",
+          "configDigest": "54014ee6b5e506275039de89f9c00346bfba635c873df7334e552acd62282e11",
+          "status": "COLLECTING",
+          "reason": null,
+          "sourceTime": {
+            "sourceMs": "1790956843220",
+            "observedAt": "1790956843",
+            "sourceAgeMs": "12051",
+            "fresh": true,
+            "headroomMs": "17729",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": false
+          },
+          "summary": {
+            "valid": true,
+            "reason": null,
+            "impactBidWad": "552000000000000000",
+            "impactAskWad": "553000000000000000",
+            "priceWad": "552500000000000000",
+            "bidDepthLots": "4560538950",
+            "askDepthLots": "12891503430"
+          },
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/45915",
+              "receivedAtMs": "1790956835039",
+              "attempts": 1,
+              "bodySha256": "9d24f532bb548d2d41f8b943ef35a794ba9af9b0781558776057b088c01063d5"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/601826",
+              "receivedAtMs": "1790956835318",
+              "attempts": 1,
+              "bodySha256": "58496fcfd1e6c9989c0fb44f9d54012685b6717be97cbc3aabbe1880669c22ee"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=109876868437950584369987384406356259939519193117253465815665152916226511121427",
+              "receivedAtMs": "1790956855271",
+              "attempts": 1,
+              "bodySha256": "7a4f751f1fb8b3c21b4ac7fd2198fb8bbfce8524078f217009ec251d5e235944"
+            }
+          },
+          "archivePayloadSha256": "c2c0ef357744fbcb6cb506b2ca0c3f9d0c503ef3c82a6c2f4d3a73e63d15305b"
+        }
+      ],
+      "statusCounts": {
+        "COLLECTING": 3
+      }
+    },
+    "sports": {
+      "samples": [
+        {
+          "atMs": "1790956836345",
+          "configDigest": "3c24182bbb58976e8c1a41f04bdbee173b34654c788c719c07df4152ca1fd120",
+          "status": "DEGRADED",
+          "reason": "EMPTY_BOOK_SIDE",
+          "sourceTime": {
+            "sourceMs": "1790956829015",
+            "observedAt": "1790956829",
+            "sourceAgeMs": "7330",
+            "fresh": true,
+            "headroomMs": "22655",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": true
+          },
+          "summary": null,
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/1109342",
+              "receivedAtMs": "1790956835036",
+              "attempts": 1,
+              "bodySha256": "a593f0510b6f5f53f1ffdaec30b3c61f711e172f1ed9a4b731b01e8abed4ac68"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/5157734",
+              "receivedAtMs": "1790956835149",
+              "attempts": 1,
+              "bodySha256": "67a17ae1652c00a3db7b845b2eb2b03bdea41d06327e6ba6daefa1a5c91d351c"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=62599171215799060914733466480643361931303749340817042598476918875325918609653",
+              "receivedAtMs": "1790956836345",
+              "attempts": 1,
+              "bodySha256": "5264345550696045b30c485fe6636c5db309c9ff7692a26910c09aa8a8015f67"
+            }
+          },
+          "archivePayloadSha256": "ecb26a03bd7ba5bf4c2a7bffacebbbb7c59129296554f69edc4a55e9bbc9df66"
+        },
+        {
+          "atMs": "1790956844949",
+          "configDigest": "3c24182bbb58976e8c1a41f04bdbee173b34654c788c719c07df4152ca1fd120",
+          "status": "DEGRADED",
+          "reason": "EMPTY_BOOK_SIDE",
+          "sourceTime": {
+            "sourceMs": "1790956829015",
+            "observedAt": "1790956829",
+            "sourceAgeMs": "15934",
+            "fresh": true,
+            "headroomMs": "14051",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": false
+          },
+          "summary": null,
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/1109342",
+              "receivedAtMs": "1790956835036",
+              "attempts": 1,
+              "bodySha256": "a593f0510b6f5f53f1ffdaec30b3c61f711e172f1ed9a4b731b01e8abed4ac68"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/5157734",
+              "receivedAtMs": "1790956835149",
+              "attempts": 1,
+              "bodySha256": "67a17ae1652c00a3db7b845b2eb2b03bdea41d06327e6ba6daefa1a5c91d351c"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=62599171215799060914733466480643361931303749340817042598476918875325918609653",
+              "receivedAtMs": "1790956844949",
+              "attempts": 1,
+              "bodySha256": "5264345550696045b30c485fe6636c5db309c9ff7692a26910c09aa8a8015f67"
+            }
+          },
+          "archivePayloadSha256": "9952b3533a8a3b3086fcb7b85e9ce51160d830ee65890f572f1f1807035d7c33"
+        },
+        {
+          "atMs": "1790956855185",
+          "configDigest": "3c24182bbb58976e8c1a41f04bdbee173b34654c788c719c07df4152ca1fd120",
+          "status": "DEGRADED",
+          "reason": "EMPTY_BOOK_SIDE",
+          "sourceTime": {
+            "sourceMs": "1790956850132",
+            "observedAt": "1790956850",
+            "sourceAgeMs": "5052",
+            "fresh": true,
+            "headroomMs": "24816",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": true
+          },
+          "summary": null,
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/1109342",
+              "receivedAtMs": "1790956835036",
+              "attempts": 1,
+              "bodySha256": "a593f0510b6f5f53f1ffdaec30b3c61f711e172f1ed9a4b731b01e8abed4ac68"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/5157734",
+              "receivedAtMs": "1790956835149",
+              "attempts": 1,
+              "bodySha256": "67a17ae1652c00a3db7b845b2eb2b03bdea41d06327e6ba6daefa1a5c91d351c"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=62599171215799060914733466480643361931303749340817042598476918875325918609653",
+              "receivedAtMs": "1790956855184",
+              "attempts": 1,
+              "bodySha256": "81ba7ab046f40f42644132e604adaaaaa49384792253dfa7b50fcfeaec4c9d16"
+            }
+          },
+          "archivePayloadSha256": "42aa24f8d14de7591edfb45fbecfcf99c1351a3c44e000f45288267c32b5029a"
+        }
+      ],
+      "statusCounts": {
+        "DEGRADED": 3
+      }
+    },
+    "crypto": {
+      "samples": [
+        {
+          "atMs": "1790956836651",
+          "configDigest": "d5f60c13e8c35576623fc90e2585fc490aaf917f3dc15d7b047b5b1d59b217c3",
+          "status": "COLLECTING",
+          "reason": null,
+          "sourceTime": {
+            "sourceMs": "1790956833881",
+            "observedAt": "1790956833",
+            "sourceAgeMs": "2770",
+            "fresh": true,
+            "headroomMs": "26349",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": true
+          },
+          "summary": {
+            "valid": true,
+            "reason": null,
+            "impactBidWad": "760708100000000000",
+            "impactAskWad": "781470000000000000",
+            "priceWad": "771089050000000000",
+            "bidDepthLots": "395509800",
+            "askDepthLots": "158043040"
+          },
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/1112205",
+              "receivedAtMs": "1790956835528",
+              "attempts": 1,
+              "bodySha256": "cd22f711c58af01c0aa2b865be567f6aca61e709d04211cfa0d30d61e95281e8"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/5170735",
+              "receivedAtMs": "1790956836036",
+              "attempts": 1,
+              "bodySha256": "441f556b57b2ff043367355c7ec82434a31de5961e8ab6649bd41402c37c3c04"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=60853708478456543766262549859214991255573301006704578370875039498477095018713",
+              "receivedAtMs": "1790956836651",
+              "attempts": 1,
+              "bodySha256": "fb18425404a2bdd6911267943e0f9f3f492026a8fb2cd4e94aefb4f8771613a8"
+            }
+          },
+          "archivePayloadSha256": "a6e0a072f0e3724a2689a0882d5f1764068b414c5a9f7cddb62d68dee5177596"
+        },
+        {
+          "atMs": "1790956845047",
+          "configDigest": "d5f60c13e8c35576623fc90e2585fc490aaf917f3dc15d7b047b5b1d59b217c3",
+          "status": "COLLECTING",
+          "reason": null,
+          "sourceTime": {
+            "sourceMs": "1790956833881",
+            "observedAt": "1790956833",
+            "sourceAgeMs": "11165",
+            "fresh": true,
+            "headroomMs": "17954",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": false
+          },
+          "summary": {
+            "valid": true,
+            "reason": null,
+            "impactBidWad": "760708100000000000",
+            "impactAskWad": "781470000000000000",
+            "priceWad": "771089050000000000",
+            "bidDepthLots": "395509800",
+            "askDepthLots": "158043040"
+          },
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/1112205",
+              "receivedAtMs": "1790956835528",
+              "attempts": 1,
+              "bodySha256": "cd22f711c58af01c0aa2b865be567f6aca61e709d04211cfa0d30d61e95281e8"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/5170735",
+              "receivedAtMs": "1790956836036",
+              "attempts": 1,
+              "bodySha256": "441f556b57b2ff043367355c7ec82434a31de5961e8ab6649bd41402c37c3c04"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=60853708478456543766262549859214991255573301006704578370875039498477095018713",
+              "receivedAtMs": "1790956845046",
+              "attempts": 1,
+              "bodySha256": "fb18425404a2bdd6911267943e0f9f3f492026a8fb2cd4e94aefb4f8771613a8"
+            }
+          },
+          "archivePayloadSha256": "d6d214e5e96a449c6c88fb496ab96bb84a1f1e5bf4f67abd06eaa9a7568facfd"
+        },
+        {
+          "atMs": "1790956855086",
+          "configDigest": "d5f60c13e8c35576623fc90e2585fc490aaf917f3dc15d7b047b5b1d59b217c3",
+          "status": "COLLECTING",
+          "reason": null,
+          "sourceTime": {
+            "sourceMs": "1790956854841",
+            "observedAt": "1790956854",
+            "sourceAgeMs": "244",
+            "fresh": true,
+            "headroomMs": "28915",
+            "hasHeadroom": true,
+            "monotone": true,
+            "advanced": true
+          },
+          "summary": {
+            "valid": true,
+            "reason": null,
+            "impactBidWad": "760708100000000000",
+            "impactAskWad": "781470000000000000",
+            "priceWad": "771089050000000000",
+            "bidDepthLots": "383439800",
+            "askDepthLots": "145973040"
+          },
+          "rawEvidence": {
+            "event": {
+              "url": "https://gamma-api.polymarket.com/events/1112205",
+              "receivedAtMs": "1790956835528",
+              "attempts": 1,
+              "bodySha256": "cd22f711c58af01c0aa2b865be567f6aca61e709d04211cfa0d30d61e95281e8"
+            },
+            "metadata": {
+              "url": "https://gamma-api.polymarket.com/markets/5170735",
+              "receivedAtMs": "1790956836036",
+              "attempts": 1,
+              "bodySha256": "441f556b57b2ff043367355c7ec82434a31de5961e8ab6649bd41402c37c3c04"
+            },
+            "book": {
+              "url": "https://clob.polymarket.com/book?token_id=60853708478456543766262549859214991255573301006704578370875039498477095018713",
+              "receivedAtMs": "1790956855085",
+              "attempts": 1,
+              "bodySha256": "26bc18ac1e441a189b572924bf22c81945a35aac5d14f9a0bd1604d3165d1bd6"
+            }
+          },
+          "archivePayloadSha256": "2da36dc0b91c9dbcd68ecd4905b788e6ea3a97dd081ae874fa1d9c20be654889"
+        }
+      ],
+      "statusCounts": {
+        "COLLECTING": 3
+      }
+    }
+  },
+  "productionApproved": false,
+  "signaturesProduced": 0,
+  "transactionsSent": 0,
+  "limitation": "Short capture only; no continuous index coverage or production availability claim"
+}

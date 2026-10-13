@@ -1,0 +1,13 @@
+{
+  "rules": "../../oracle/deployments/native/btc-82500.rules.json",
+  "engineListing": {
+    "indexSourceId": "0x0ac25ed0cbddd65b8cc88c82d2427117b42a4500d127f0354b259a7a115140d6",
+    "indexSigner": "0x5aE3c3f1622c7360B032ADb135f51F97aD3d8Dd9",
+    "indexRulesHash": "0xe8f7bb1c386499fb04dab45f4c43daeee8639405adbeb056fc452bcded86ef75",
+    "depthNLots": "100000",
+    "maxSpreadWad": "50000000000000000",
+    "scheduledT": "1792018800",
+    "token": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB"
+  },
+  "note": "Use these exact values in the ListMarket pack; the publisher refuses a listing that does not pin them."
+}

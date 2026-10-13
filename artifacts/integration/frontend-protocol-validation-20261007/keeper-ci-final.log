@@ -1,0 +1,15 @@
+bun test v1.3.13 (bf2e2cec)
+
+../scripts/e2e/keeper-gas-policy.test.ts:
+(pass) operator gas ceiling keeps three-million default and rejects unbounded configuration [3.47ms]
+(pass) refused sample leaves actual Operations journal unsigned and subsequent rollover can proceed [16.08ms]
+(pass) eight-million operator ceiling admits measured benchmark margin without charging the ceiling [1.03ms]
+(pass) pending signed sample reconciles even after operator lowers the allowed gas [0.84ms]
+(pass) unrelated failures and gas errors while a signed journal exists are never suppressed [0.57ms]
+(pass) actual Operations reduces rollover pages to the runtime ceiling without changing journal identity [4.13ms]
+(pass) a rollover with no fitting page waits unsigned without stopping subsequent sampling [2.97ms]
+
+ 7 pass
+ 0 fail
+ 49 expect() calls
+Ran 7 tests across 1 file. [477.00ms]

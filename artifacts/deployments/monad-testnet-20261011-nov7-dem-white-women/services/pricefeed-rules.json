@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1",
+  "venue": "polymarket",
+  "eventId": "961306",
+  "externalMarketId": "4199213",
+  "conditionId": "0x7981fa84d31399de903d38c9b587d2f04991838213f6b25d0fe2ba6285cb8fde",
+  "outcomeTokenId": "69549346928853472628122030453187144427432924435990276090772625659073977942526",
+  "outcomeLabel": "Yes",
+  "marketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+  "sourceId": "0x3b3b377213e4fa6cfcbde3737041c28d6f0c947767cac45dc0b3f764fd01d40e",
+  "erosRulesHash": "0x8c72c7bc577518d078a6fdf2b483f1f4d485d70cb342443c82c3c20e9913c6df",
+  "externalRulesDigest": "0x2ace541aa42f975ae7159a3687e5ebb6b4301fd6f9ce178d6e34356afada924d",
+  "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+  "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+  "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+  "failurePolicyHash": "0x0fa1db1edbc336046ff5259520ba63997b7a0493671fbb3b9047d6dbe755ac0d",
+  "scheduledT": "1794027540",
+  "depthNLots": "1000000",
+  "maxSpreadWad": "50000000000000000",
+  "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+}

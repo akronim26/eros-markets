@@ -1,0 +1,22 @@
+{
+  "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+  "marketId": "0xe4cdb8ad98dc522e861988c3349499e6b8e851ff8b0900e3127e4374c4651f4d",
+  "collateral": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+  "rules": "Eros native demo market on Monad testnet (test collateral). Event: Miami Heat (away) at Golden State Warriors (home), NBA 2026-27 regular season, Chase Center, San Francisco, scheduled tip-off 2026-11-06T03:00:00Z (7:00 p.m. PT on 5 November 2026; ESPN game id 401909937). Resolves YES if the Golden State Warriors win the game, including any overtime, and NO if the Miami Heat win. Trading on Eros halts at the scheduled tip-off. Source: the official NBA final score (nba.com), cross-checked with ESPN game 401909937. If the game is postponed, suspended or otherwise not completed by 2026-11-08T03:00:00Z, the market resolves INVALID. Resolution uses the existing review/committee route with sandbox adjudication.",
+  "scheduledT": 1793934000,
+  "issuanceCap": 10000000000,
+  "yesSymbol": "eGSW-YES",
+  "noSymbol": "eGSW-NO",
+  "kuruRouter": "0x7EFbE105Ca7415dE98F96622173458ac1c054630",
+  "kuru": {
+    "pricePrecision": 1000,
+    "sizePrecision": 1000,
+    "tickSize": 1,
+    "minSize": 1,
+    "maxSize": 1000000000,
+    "takerFeeBps": 0,
+    "makerFeeBps": 0,
+    "ammSpread": 100
+  },
+  "out": "deployments/native/nba-mia-gsw-20261105.json"
+}

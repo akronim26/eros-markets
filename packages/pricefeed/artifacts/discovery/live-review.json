@@ -1,0 +1,37 @@
+{
+  "verified": true,
+  "source": "actual read-only Gamma responses",
+  "cases": [
+    {
+      "category": "sports",
+      "tagId": "1",
+      "pages": 2,
+      "candidates": 123,
+      "blocked": 123,
+      "scanComplete": false,
+      "reportSha256": "e8702d1886c02a69a7025e3f79cc63c1890c677f7d00af4703b3d043a437f633"
+    },
+    {
+      "category": "politics",
+      "tagId": "2",
+      "pages": 2,
+      "candidates": 14,
+      "blocked": 14,
+      "scanComplete": false,
+      "reportSha256": "c5caeb609f8280152e07d319eec5676aabddd7d4bc66b2606ea8627980c11e63"
+    },
+    {
+      "category": "crypto",
+      "tagId": "21",
+      "pages": 2,
+      "candidates": 23,
+      "blocked": 23,
+      "scanComplete": false,
+      "reportSha256": "ac9506ded21ee19b7037c9ccff6aeaa673845f5748a10c91eb197ba0e8fdf9db"
+    }
+  ],
+  "signaturesProduced": 0,
+  "transactionsSent": 0,
+  "configurationsActivated": 0,
+  "productionApproved": false
+}

@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.next-e2e/
+playwright-report/
+test-results/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.env*
+!.env.example
+.impeccable/review/

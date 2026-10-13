@@ -1,0 +1,115 @@
+{
+  "mode": "MONAD_TESTNET_STOPPED_OPTIMIZED_TEST",
+  "recordedAtUtc": "2026-10-04T16:17:34.767847+00:00",
+  "chainId": 10143,
+  "approvedPlanHash": "5b528fe69c721fc1f860dd631277ab247450c5d3ce42b77824726a9213fb00df",
+  "archive": "var/monad-testnet/stopped-small-run-evidence",
+  "archiveSha256": {
+    "source.sqlite": "0003db31d057a42c980b1654d43844c4f0a78c0992a5d402c03bb13c265296c0",
+    "packets.sqlite": "a8c2468444e4e2e4754d796d0c27809cdc80d940ab193d3479684e613e78a2ca",
+    "signer.sqlite": "ea843a3ab44e2980ec0caf1c4664b0d92a246c24f5e56455246565eaaa01fd32",
+    "transactions.sqlite": "4ce19f6ef0e37a49a999dc981ba0ef05620fcb7db9f19a6782de7e5ef8a8e0c8",
+    "relay.sqlite": "11e033e4efc0875093a59d2281af8017542db743164ebed23fae3900f9a6a26d"
+  },
+  "budgetApplied": {
+    "mode": "MONAD_TESTNET_BUDGET_RENEWAL",
+    "alreadyApplied": false,
+    "revision": 1,
+    "approvalHash": "5b528fe69c721fc1f860dd631277ab247450c5d3ce42b77824726a9213fb00df",
+    "historicalReservationsWei": "360000000000000000",
+    "remainingReservationWei": "350000000000000000",
+    "deliveryCount": 3,
+    "nextNonce": "3",
+    "transactionsSent": 0,
+    "signaturesProduced": 0,
+    "productionApproved": false
+  },
+  "runExitCode": 1,
+  "failureCode": "RELAY_HEADROOM_EXPIRED",
+  "additionalTransactionsSent": 0,
+  "additionalGasCostWei": "0",
+  "optimizedPaidReceipts": 0,
+  "chainCheck": {
+    "checkedAtUtc": "2026-10-04T16:13:24.016Z",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "quarantinedHash": "0x9d15860802ff8d75877fd614e96a2e01a1cbf183cc0242d7c324555076bea497",
+    "balanceWei": "355200000000000000",
+    "pendingNonce": 3,
+    "finalizedNonce": 3,
+    "receiptStatus": "TransactionReceiptNotFoundError",
+    "sourceState": {
+      "signer": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e",
+      "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+      "lastSequence": "3",
+      "lastObservedAt": "1791117224",
+      "configured": true
+    },
+    "transactionsSent": 0
+  },
+  "unreservedExpiredSequence": "5",
+  "reservedDelivery": {
+    "namespace": "10143:0xd2d82fed32fb9a911300e7d928607755bd101773:0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+    "sequence": "6",
+    "digest": "0xf298bfb8d9676ac511f9b4bcda37042f79aef01c1f82bdb46c95180098bdb5e9",
+    "nonce": "3",
+    "request": {
+      "to": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+      "data": "0x72f117dfaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6ac6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad859395790210000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000006ac27a74000000000000000000000000000000000000000000000000000000006ac27a7a0000000000000000000000000000000000000000000000000898e7f7be5ac000000000000000000000000000000000000000000000000000089721386bf78000000000000000000000000000000000000000000000000000089aaeb710be000000000000000000000000000000000000000000000000000000000000483686b40000000000000000000000000000000000000000000000000000000045907faae5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000000412f20e1c00fb9761b4e1cfaf63cf179575ba74e4975bf7296bd9e6ef7e56f8d9a2fb7004134546b6e9ec2698a17d326337bc72236c0958dce3e488c5499ff5d6f1b00000000000000000000000000000000000000000000000000000000000000",
+      "nonce": "3",
+      "gas": "197166",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000"
+    },
+    "gasSizing": {
+      "estimatedGas": "179241",
+      "gasLimit": "197166",
+      "marginBps": "1000"
+    },
+    "raw": "0x02f9027482279f0384773594008522ecb25c008303022e94d2d82fed32fb9a911300e7d928607755bd10177380b9020472f117dfaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6ac6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad859395790210000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000006ac27a74000000000000000000000000000000000000000000000000000000006ac27a7a0000000000000000000000000000000000000000000000000898e7f7be5ac000000000000000000000000000000000000000000000000000089721386bf78000000000000000000000000000000000000000000000000000089aaeb710be000000000000000000000000000000000000000000000000000000000000483686b40000000000000000000000000000000000000000000000000000000045907faae5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000000412f20e1c00fb9761b4e1cfaf63cf179575ba74e4975bf7296bd9e6ef7e56f8d9a2fb7004134546b6e9ec2698a17d326337bc72236c0958dce3e488c5499ff5d6f1b00000000000000000000000000000000000000000000000000000000000000c001a00c74d8c17efb08def77bd89892a9cccb462b38a861a6dc6610131f5e7aaf4c5ca03adc30313f8ff2078323473decda5c6684f48b657d02e2a23fff6aaebd5773b4",
+    "txHash": "0x9d15860802ff8d75877fd614e96a2e01a1cbf183cc0242d7c324555076bea497",
+    "state": "QUARANTINED",
+    "attempts": 0,
+    "accepted": null,
+    "reason": "RELAY_HEADROOM_EXPIRED"
+  },
+  "reservedObservation": {
+    "domain": {
+      "chainId": "10143",
+      "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+      "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+      "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+      "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+      "signer": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e"
+    },
+    "observation": {
+      "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+      "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+      "sequence": "6",
+      "observedAt": "1791130228",
+      "publishedAt": "1791130234",
+      "priceWad": "619500000000000000",
+      "impactBidWad": "619000000000000000",
+      "impactAskWad": "620000000000000000",
+      "bidDepthLots": "1211532980",
+      "askDepthLots": "1167097770",
+      "sourceRulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2"
+    },
+    "sourceMs": "1791130228025",
+    "evidenceHash": "0xe9f57538318c822fdc83ef1ba0c2a1463b8dde75a207a20706de70aaca27024a"
+  },
+  "newReservationWei": "29574900000000000",
+  "remainingAdditionalReservationWei": "320425100000000000",
+  "independentChecks": {
+    "archiveHashes": true,
+    "oldSignedHistoryUnchanged": true,
+    "rawBookFractionPriceDepth": true,
+    "attemptsZeroAndNoAcceptedReceipt": true
+  },
+  "nextSteps": [
+    "Reduce publication RPC latency without weakening pins or the 30-second source limit.",
+    "Implement and test explicit cancellation/recovery of signed, never-broadcast nonce 3, preserving both raw transactions and bounded cumulative spend.",
+    "Then resume the approved cap and measure paid optimized gas before the sustained coverage campaign."
+  ],
+  "productionApproved": false,
+  "humanGatesAccepted": false
+}
