@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { createPublicClient, createWalletClient, defineChain, getAddress, http, type Hex } from 'viem';
+import { createPublicClient, createWalletClient, defineChain, fallback, getAddress, http, type Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { decimalWad, json } from '../src/math.js';
 import { readKuruSnapshot, type KuruReadClient } from '../src/native/kuru.js';
@@ -28,6 +28,8 @@ const ENGINE_ABI = [
  * Stops (non-zero) on quarantine; withholds on stale/same-second data.
  *   NATIVE_OBSERVER_KEY=0x.. node dist/scripts/native-publish.js <rpc|env> <rules.json> <engine> <rounds> <intervalMs> [finalized|latest]
  *   (`env`: read the RPC URL from NATIVE_RPC so a credential-bearing URL never appears in argv)
+ * Optional NATIVE_RPC_FALLBACKS: comma-separated HTTPS read endpoints tried in order when the primary
+ * fails. Gas estimation and submission always use the primary (the writer endpoint).
  */
 async function main() {
   const [rpcArg, rulesPath, engineArg, roundsArg, intervalArg, tag = 'finalized', ...extra] = process.argv.slice(2);
@@ -41,7 +43,11 @@ async function main() {
   if (chainId !== 10143n && chainId !== 31337n) throw new Error('DEVELOPMENT_CHAIN_ONLY');
   const chain = defineChain({ id: Number(chainId), name: 'eros-native', nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
     rpcUrls: { default: { http: [rpc] } } });
-  const pub = createPublicClient({ chain, transport: http(rpc, { retryCount: 1, timeout: 15_000 }) });
+  const reads = readFallbacks(rpc, process.env.NATIVE_RPC_FALLBACKS);
+  const primary = http(rpc, { retryCount: 1, timeout: 15_000 });
+  const pub = createPublicClient({ chain, transport: reads.length
+    ? fallback([primary, ...reads.map(url => http(url, { retryCount: 1, timeout: 15_000 }))]) : primary });
+  const writer = createPublicClient({ chain, transport: primary });
   const account = privateKeyToAccount(key);
   const wallet = createWalletClient({ chain, account, transport: http(rpc, { timeout: 15_000 }) });
   const engine = getAddress(engineArg);
@@ -86,7 +92,7 @@ async function main() {
     if (onchain !== digest) throw new Error('DIGEST_MISMATCH');
     const signature = await account.sign({ hash: digest });
     // +30% gas margin: keeper/maker transactions change engine state between estimate and inclusion.
-    const gas = await pub.estimateContractGas({ address: engine, abi: ENGINE_ABI, functionName: 'submitObservation', args: [toTuple(o), signature], account });
+    const gas = await writer.estimateContractGas({ address: engine, abi: ENGINE_ABI, functionName: 'submitObservation', args: [toTuple(o), signature], account });
     const hash = await wallet.writeContract({ address: engine, abi: ENGINE_ABI, functionName: 'submitObservation', args: [toTuple(o), signature], gas: gas * 13n / 10n });
     const receipt = await pub.waitForTransactionReceipt({ hash });
     if (receipt.status !== 'success') throw new Error(`SUBMIT_REVERTED:${hash}`);
@@ -99,6 +105,14 @@ async function main() {
 }
 
 const MAX_READ_FAILURES = 5;
+function readFallbacks(primary: string, list = ''): string[] {
+  const urls = [...new Set(list.split(',').map(v => v.trim()).filter(v => v && v !== primary))];
+  for (const value of urls) {
+    let url: URL; try { url = new URL(value); } catch { throw new Error('BAD_FALLBACK_RPC_URL'); }
+    if (url.protocol !== 'https:' || url.username || url.password || url.hash) throw new Error('FALLBACK_RPC_HTTPS_REQUIRED');
+  }
+  return urls;
+}
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 function toTuple(o: ReturnType<typeof prepareNativeObservation>['observation']) {
   return { ...o, marketId: o.marketId as Hex, sourceId: o.sourceId as Hex, sourceRulesHash: o.sourceRulesHash as Hex };

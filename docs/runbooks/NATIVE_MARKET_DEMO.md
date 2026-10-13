@@ -122,7 +122,8 @@ KEY=$TRADER_KEY     bash scripts/native-market/perp.sh close 600 20000 sell
 Run the publisher and keeper loop through the operator runtime, not by hand.
 
 **Private config:** create `tmp/native-public/ops.env`. It must be mode 600 (the runner enforces this) and is gitignored. It contains:
-- `MONAD_RPC_URL`;
+- `MONAD_RPC_URL` (the Spectrum endpoint: all transactions, gas estimates and the rollover simulation use it);
+- optionally `MONAD_READ_FALLBACK_URLS`: comma-separated HTTPS endpoints (the Alchemy pair from `rpc-pool.env`) that the publisher, keeper and runner try in order for reads when `MONAD_RPC_URL` fails;
 - `NATIVE_OBSERVER_PRIVATE_KEY`, `NATIVE_KEEPER_PRIVATE_KEY`, `NATIVE_PERP_MAKER_PRIVATE_KEY`;
 - `NATIVE_DEPLOYMENT`, `NATIVE_RULES`, `NATIVE_ENGINE`;
 - optionally `PUBLISH_MS` (60000) and `KEEPER_EVERY` (90).
