@@ -30,7 +30,7 @@ function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now
       <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? lotsToClaims(d.oiLots) : "—"}</td>
       <td className="tnum pr-6 text-right text-sm text-fg-2">{d ? `${d.leverageCaps.long}× / ${d.leverageCaps.short}×` : "—"}</td>
       <td className="tnum pr-6 text-right text-sm text-fg">{toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"}</td>
-      <td className="pr-4 text-right"><span className="inline-flex h-7 w-7 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={14} strokeWidth={2} /></span></td>
+      <td className="pr-4 text-right"><span className="ui-arrow inline-flex h-7 w-7 items-center justify-center rounded-md bg-signal text-on-signal" aria-hidden><ArrowRight size={14} strokeWidth={2} /></span></td>
     </tr>
   );
 }
@@ -64,11 +64,11 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
           </div>
         ))}
       </dl>
-      <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} trading terminal`} className="group m-3 flex min-h-11 items-stretch after:absolute after:inset-0">
-        <span className="flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
+      <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} trading terminal`} className="group m-3 flex min-h-11 items-stretch overflow-hidden rounded-control after:absolute after:inset-0">
+        <span className="ui-arrow flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
           <ArrowRight size={15} strokeWidth={2} />
         </span>
-        <span className="label flex flex-1 items-center bg-action px-4 text-on-action group-hover:bg-action-hover">Open market</span>
+        <span className="ui-sweep label flex flex-1 items-center bg-action px-4 text-on-action group-hover:bg-action-hover">Open market</span>
       </Link>
     </li>
   );
@@ -96,7 +96,7 @@ export function MarketsIndex() {
     <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="max-w-2xl">
-          <h1 className="pixel text-5xl leading-none text-fg uppercase">Markets</h1>
+          <h1 className="display text-5xl leading-none text-fg uppercase">Markets</h1>
           <p className="mt-3 text-sm leading-relaxed text-fg-2">
             Each market is a YES/NO question that resolves at a scheduled time. Trade the probability as a perpetual on a fully
             on-chain order book. One claim pays 1 if the outcome is YES.

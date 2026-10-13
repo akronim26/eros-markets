@@ -6,10 +6,11 @@ import { parseEnv } from 'node:util';
 import { DatabaseSync } from 'node:sqlite';
 import { runMonadTestnetService, parseTestnetRunPolicy } from '../../packages/pricefeed/dist/src/monad-service.js';
 import { recoverMonadNonce } from '../../packages/pricefeed/dist/src/monad-nonce-recovery.js';
-import { recoverableUnsentReason } from '../../packages/pricefeed/dist/src/nonce-recovery-journal.js';
+import { recoverableUnsentReason, unsignedExpiredReservation } from '../../packages/pricefeed/dist/src/nonce-recovery-journal.js';
 import { SampleCoordinator, indexFreshCutoff } from './sampler-coordination.mjs';
 import { IndexPacing } from './index-pacing.mjs';
 import { PacketStore } from '../../packages/pricefeed/dist/src/packet-store.js';
+import { pruneCaptures } from '../../packages/pricefeed/dist/src/journal.js';
 import { publisherInitializationAfterFailure, transientPublisherFailure, recoverPublisherNonce, publisherBudgetExhausted } from './publisher-restart-policy.mjs';
 import { serviceRuntime, transientServiceRead } from './service-runtime-policy.mjs';
 import { assertServiceNotRetired } from './service-retirement.mjs';
@@ -74,6 +75,21 @@ const sample = result => {
   coordinator?.notify({ ...finalized, depthValid: result.depthValid === true });
 };
 log({ started: true, pid: process.pid, engine: config.destination.engineAddress, source: config.mapping.externalMarketId, mode: runtime.mode, durationSeconds: +seconds });
+// The source archive gains one full order book per poll (about 3.5 GB a day) and is verified in
+// full at every service start. Only its newest rows are read at runtime; signed observations are
+// kept in packets.sqlite and on-chain. Keep a short window: at start-up and every 10 minutes.
+const retentionMinutes = Number(process.env.EROS_SOURCE_RETENTION_MINUTES ?? 30);
+if (!Number.isInteger(retentionMinutes) || retentionMinutes < 5 || retentionMinutes > 1440) throw new Error('INVALID_SOURCE_RETENTION');
+const sourceArchive = join(journalDirectory, 'source.sqlite');
+const prune = () => {
+  if (!existsSync(sourceArchive)) return;
+  try {
+    const result = pruneCaptures(sourceArchive, { keepMs: BigInt(retentionMinutes) * 60_000n, nowMs: BigInt(Date.now()) });
+    if (result.deleted) log({ sourceRetention: retentionMinutes, ...result });
+  } catch { log({ sourceRetention: 'PRUNE_FAILED' }); } // retried next interval; never blocks publication
+};
+prune();
+const pruneTimer = setInterval(prune, 10 * 60_000); pruneTimer.unref();
 try {
 while (!stop.signal.aborted && Date.now() < end) {
   try {
@@ -140,14 +156,14 @@ while (!stop.signal.aborted && Date.now() < end) {
       continue;
     }
     if (pending.length === 1 && recoveries < 3 && pending[0].attempts <= policy.relay.maxAttempts && pending[0].accepted === null
-      && pending[0].raw && recoverableUnsentReason(pending[0].reason)) {
+      && (pending[0].raw && recoverableUnsentReason(pending[0].reason) || unsignedExpiredReservation(pending[0]))) {
       // The recovery implementation revalidates expiry, signatures, immutable
       // identity, every canonical receipt, sender nonce and cumulative budget.
       const p = pending[0]; recoveries++;
       await new Promise(r => setTimeout(r, 31_000));
       await recoverPublisherNonce({ signal: stop.signal, deadline: end,
         recover: () => recoverMonadNonce({ rpcUrl, config, abi, journalDirectory, keysDirectory, policy: policyInput,
-          nonce: BigInt(p.nonce), originalHash: p.txHash, maxCostWei: 21_000n * policy.relay.maxFeePerGas, waitMs: 120_000,
+          nonce: BigInt(p.nonce), originalHash: p.raw ? p.txHash : null, maxCostWei: 21_000n * policy.relay.maxFeePerGas, waitMs: 120_000,
           allowAttempted: p.attempts > 0 }),
         onResult: recovered => log({ recovery: recovered.status, nonce: recovered.nonce, hash: recovered.hash }),
       });
@@ -159,6 +175,7 @@ while (!stop.signal.aborted && Date.now() < end) {
 }
 
 } finally {
+  clearInterval(pruneTimer);
   await coordinator?.close();
   packetReader?.close();
 }

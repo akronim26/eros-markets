@@ -24,15 +24,13 @@ import { useLoginAction, useOwner } from "./wallet";
 import { useSwitchChain } from "wagmi";
 import { chain } from "@/config/chain";
 import { marketByEngine } from "@/config/deployment";
-import { Button, RegionHead, Row, cx, selectionKeys } from "./ui";
+import { Button, Row, cx, selectionKeys } from "./ui";
 
 import type { BookPriceIntent } from "./order-book";
 
 type Parsed = { ok: true; tick: number; lots: bigint } | { ok: false; error: string };
-const TRADE_CHOICES: TradeIntent[] = [
-  { outcome: "YES", direction: "long" }, { outcome: "YES", direction: "short" },
-  { outcome: "NO", direction: "long" }, { outcome: "NO", direction: "short" },
-];
+// Long NO is Short YES and Short NO is Long YES, so the ticket offers the two YES directions only.
+const TRADE_CHOICES: TradeIntent[] = [{ outcome: "YES", direction: "long" }, { outcome: "YES", direction: "short" }];
 const intentLabel = (intent: TradeIntent) => `${intent.direction === "long" ? "Long" : "Short"} ${intent.outcome}`;
 
 function useDebounced<T>(v: T, ms = 250) {
@@ -181,45 +179,52 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
   const field = "h-9 w-full bg-ground px-3 text-sm tnum text-fg shadow-[inset_0_0_0_1px_var(--color-line-strong)] placeholder:text-fg-4 focus:shadow-[inset_0_0_0_2px_var(--color-signal)] focus:outline-none";
 
   return (
-    <section aria-label="Order ticket" className="flex h-full flex-col">
-      <RegionHead title="Order" />
+    <section aria-label="Order ticket" className="@container flex h-full flex-col">
       <div className="flex flex-col gap-3 p-3">
-        {archived && <p className="text-xs text-fg-3">This market accepts position reductions only in this interface.</p>}
         <div className="grid grid-cols-2 gap-2" role="group" aria-label="Trade direction and outcome">
-          {TRADE_CHOICES.map((choice) => (
-            <button
-              key={intentLabel(choice)}
-              type="button"
-              aria-pressed={tradeIntent.outcome === choice.outcome && tradeIntent.direction === choice.direction}
-              onClick={() => chooseIntent(choice)}
-              className={cx(
-                "ui-toggle h-8 border border-line-strong text-xs font-semibold focus-visible:outline-2 focus-visible:outline-signal",
-                tradeIntent.outcome === choice.outcome && tradeIntent.direction === choice.direction
-                  ? choice.direction === "long"
-                    ? "bg-bid text-on-bid"
-                    : "bg-ask text-on-ask"
-                  : "bg-panel text-fg-3 hover:text-fg",
-              )}
-            >
-              {intentLabel(choice)}
-            </button>
-          ))}
+          {TRADE_CHOICES.map((choice) => {
+            const selected = tradeIntent.outcome === choice.outcome && tradeIntent.direction === choice.direction;
+            const long = choice.direction === "long";
+            return (
+              <button
+                key={intentLabel(choice)}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => chooseIntent(choice)}
+                className={cx(
+                  "ui-toggle h-11 border text-sm font-semibold tracking-wide focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal",
+                  selected
+                    ? long ? "border-bid bg-bid text-on-bid" : "border-ask bg-ask text-on-ask"
+                    : long ? "border-bid/60 bg-panel text-bid hover:bg-bid/10" : "border-ask/60 bg-panel text-ask hover:bg-ask/10",
+                )}
+              >
+                {intentLabel(choice)}
+              </button>
+            );
+          })}
         </div>
-        <div className="flex gap-2" role="radiogroup" aria-label="Order type" onKeyDown={selectionKeys}>
+        {archived && <p className="text-xs text-fg-3">This market accepts position reductions only in this interface.</p>}
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Order type" onKeyDown={selectionKeys}>
           {ORDER_KIND.map((k, i) => (
             <button
               key={k}
+              type="button"
               role="radio"
               aria-checked={kind === i}
               tabIndex={kind === i ? 0 : -1}
               onClick={() => setKind(i)}
-              className={cx("ui-toggle label h-7 flex-1 border border-line-strong", kind === i ? "bg-press text-fg" : "bg-panel text-fg-3 hover:text-fg")}
+              className={cx(
+                "ui-toggle h-9 border text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal",
+                kind === i ? "border-fg bg-fg text-ground" : "border-line-strong bg-panel text-fg-2 hover:bg-press hover:text-fg",
+              )}
             >
               {k}
             </button>
           ))}
         </div>
 
+        <div className="grid gap-x-6 gap-y-3 @2xl:grid-cols-2">
+        <div className="flex flex-col gap-3">
         <label htmlFor={validation.props("price").id} className="flex flex-col gap-1.5">
           <span className="label flex justify-between text-fg-3">
             <span>{tradeIntent.outcome} price</span>
@@ -245,6 +250,8 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
         </label>
         {maximum.message && <p role="status" className="text-xs leading-relaxed text-fg-3">{maximum.message}</p>}
         {maximum.error && <p role="alert" className="text-xs leading-relaxed text-ask">{maximum.error}</p>}
+        </div>
+        <div className="flex flex-col gap-3">
 
         <div className="grid gap-1.5">
           <p className="label flex justify-between text-fg-3"><span>Target leverage</span><span>{cap === undefined ? "Reading limit…" : `Current limit ${cap}×`}</span></p>
@@ -258,7 +265,7 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
           <details className="text-xs text-fg-3">
             <summary className="cursor-pointer py-1 hover:text-fg">Trading details</summary>
             <div className="grid gap-2 pb-1 pt-2 leading-relaxed">
-              <p>Long YES = Short NO. Short YES = Long NO. All choices net into one position; an opposite trade can close it.</p>
+              <p>Long YES is the same as Short NO, and Short YES is the same as Long NO. Both directions net into one position; an opposite trade can close it.</p>
               {market?.active && !market.halted && cap !== undefined && cap < market.listing.deploymentCapX && <p className="border-l-2 border-signal/60 pl-2 text-fg-2">{market.risk.pricingMode === 0 ? "Bootstrap: 1× until the price windows are ready and normal pricing activates." : !market.risk.indexAvailable || !market.risk.markAvailable ? "Higher leverage is temporarily unavailable while the price windows recover." : "The current risk or reserve limit is below the deployment cap."}</p>}
               <p>{reservedOrders ? "Cancel open orders before sizing by leverage." : reduceOnly ? "Turn off Reduce only to size by leverage." : !canSizeLeverage ? (flat ? "Fund this market to size by leverage." : "Sizing an open position by leverage needs a live mark.") : fieldErrors.price ? "Enter a valid order price or use the best price, then choose your leverage." : flat ? "Sizes against the live mark and accounts for the spread. The order preview checks margin and fees." : "Sizes this order so your whole position ends at the chosen leverage against your mark equity, accounting for the spread. On the opposite side it reduces toward that leverage and never flips your position. The order preview checks margin and fees."} Limits adjust with price readiness and risk.</p>
             </div>
@@ -284,6 +291,8 @@ export function Ticket({ engine, market, trader, intent, bookPrice, readUnavaila
           <label className="mt-3 flex flex-col gap-1.5">Expires at block (optional)<input className={field} inputMode="numeric" placeholder="Good until cancelled" value={expiry} {...validation.props("expiry")} onChange={(e) => setExpiry(e.target.value)} /><FieldError id={validation.errorId("expiry")}>{validation.message("expiry")}</FieldError></label>
           {preview.data && <dl className="mt-2"><Row k="Required initial margin" v={preview.data.fullBackingRequired ? "Fully backed" : qToMoney(preview.data.requiredImQ).usdc} /><Row k="Equity after reservations" v={preview.data.id.markAvailable ? qToMoney(preview.data.eMinQ).usdc : "No mark"} /><Row k="Deficit if NO / YES" v={`${qToMoney(preview.data.d0AfterQ).usdc} / ${qToMoney(preview.data.d1AfterQ).usdc}`} /><Row k="Reserve coverage" v={preview.data.marketCoverageAfter ? "Covered" : "Unavailable"} /></dl>}
         </details>
+        </div>
+        </div>
 
         <OrderSummary engine={engine} owner={owner.address} market={market} trader={trader} tradeIntent={tradeIntent}
           order={parsed.ok ? { tick: parsed.tick, lots: parsed.lots, isBuy: side === "buy", reduceOnly } : undefined}

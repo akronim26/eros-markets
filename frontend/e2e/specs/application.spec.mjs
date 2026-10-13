@@ -10,26 +10,26 @@ async function dismissNotice(page) {
   await dismiss.click();
 }
 
-async function theme(page, name) {
-  await page.getByRole('button', { name: /^Theme:/ }).click();
-  await page.getByRole('menuitemradio', { name, exact: true }).click();
-  if (name !== 'System') await expect(page.locator('html')).toHaveAttribute('data-theme', name.toLowerCase());
+// The site has one dark theme and no switcher, whatever the system preference.
+async function expectDark(page) {
+  await expect(page.getByRole('button', { name: /^Theme:/ })).toHaveCount(0);
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor)).toBe('rgb(0, 0, 0)');
 }
 
-test('public routes, themes and responsive terminal remain usable', async ({ page }, testInfo) => {
+test('public routes, dark theme and responsive terminal remain usable', async ({ page }, testInfo) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await syncClock(page);
   await page.goto('/markets');
   await dismissNotice(page);
-  for (const name of ['Light', 'Dark']) {
-    await theme(page, name);
+  for (const name of ['Dark']) {
+    await expectDark(page);
     for (const width of [320, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const route of ['/markets', `/m/${demo.engine}`]) {
         await page.goto(route);
         await expect(page.locator('main')).toBeVisible();
-        await expect(page.locator('html')).toHaveAttribute('data-theme', name.toLowerCase());
+        await expectDark(page);
         if (route.startsWith('/m/')) {
           await expect(page.getByRole('heading', { name: 'Local E2E demo event', exact: true })).toBeVisible();
           await expect(page.getByRole('link', { name: 'Back to all markets' })).toBeVisible();
@@ -58,11 +58,8 @@ test('public routes, themes and responsive terminal remain usable', async ({ pag
   await expect(page.getByRole('heading', { name: 'Off the charts.' })).toBeVisible();
   await page.getByRole('link', { name: 'Explore markets', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Markets', exact: true })).toBeVisible();
-  await theme(page, 'System');
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.emulateMedia({ colorScheme: 'light' });
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expectDark(page);
   expect(errors).toEqual([]);
 });
 
@@ -106,7 +103,7 @@ test('RPC outage retains a labeled snapshot, blocks writes and recovers', async 
   await dismissNotice(page);
   await expect(page.getByRole('heading', { name: 'Local E2E demo event' })).toBeVisible();
   await page.locator('header').getByRole('button', { name: 'Log in', exact: true }).click();
-  const funds = page.getByRole('complementary', { name: 'Trade', exact: true }).getByRole('region', { name: 'Account', exact: true });
+  const funds = page.getByRole('main', { name: 'Trading terminal' }).getByRole('region', { name: 'Account', exact: true });
   const collateral = funds.locator('details').filter({ hasText: 'Manage collateral' });
   await expect(collateral).toBeVisible();
   if (await collateral.getAttribute('open') === null) await collateral.locator('summary').click();
@@ -135,13 +132,11 @@ test('storage restrictions and reduced motion preserve public navigation', async
       configurable: true, get() { throw new DOMException('Storage blocked for audit', 'SecurityError'); },
     });
   });
-  await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
+  await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'light' });
   await page.goto('/');
   await expect(page.locator('main')).toBeVisible();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expectDark(page);
   await dismissNotice(page);
-  await theme(page, 'Light');
-  await expect(page.locator('html')).not.toHaveAttribute('data-theme-transition');
   await page.locator('header').getByRole('link', { name: 'Markets', exact: true }).click();
   await expect(page.getByRole('searchbox', { name: 'Search markets' })).toBeVisible();
   expect(errors).toEqual([]);

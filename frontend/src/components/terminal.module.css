@@ -22,6 +22,8 @@
   align-items: stretch;
   min-width: 0;
   border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-box) var(--radius-box) 0 0;
+  overflow: clip;
   background: var(--color-panel);
 }
 .marketBar > :last-child { flex: 1; min-width: 0; border-left: 1px solid var(--color-line); }
@@ -29,19 +31,24 @@
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "chart" "trade" "book" "activity";
+  grid-template-areas: "chart" "trade" "account" "book" "trades" "activity";
   gap: 1px;
   border: 1px solid var(--color-line-strong);
   border-top: 0;
+  border-radius: 0 0 var(--radius-box) var(--radius-box);
+  overflow: clip;
   background: var(--color-line);
 }
 .workspace > * { min-width: 0; background: var(--color-ground); }
-.trade { grid-area: trade; display: flex; flex-direction: column; }
-.trade > :first-child { height: auto; }
-.book { grid-area: book; display: flex; }
-.book > * { flex: 1; }
 .chart { grid-area: chart; display: flex; min-height: 24rem; }
 .chart > * { flex: 1; }
+.trade { grid-area: trade; display: flex; flex-direction: column; }
+.trade > :first-child { height: auto; }
+.book { grid-area: book; display: flex; min-height: 0; }
+.book > * { flex: 1; }
+.trades { grid-area: trades; display: flex; min-height: 0; max-height: 28rem; }
+.trades > * { flex: 1; }
+.account { grid-area: account; }
 .activity { grid-area: activity; }
 .activityBar { display: flex; min-width: 0; border-bottom: 1px solid var(--color-line); }
 .activityContent { min-height: 9rem; max-height: 28rem; overflow: auto; }
@@ -59,28 +66,34 @@
 
 @media (min-width: 768px) {
   .workspace {
-    grid-template-columns: 300px minmax(0, 1fr);
-    grid-template-areas: "chart chart" "trade book" "activity activity";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "chart chart" "trade trade" "book trades" "book account" "activity activity";
   }
   .chart { min-height: 27rem; }
   .deadlineList { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
+/* Exchange layout: book down the left, chart over the order form, trades and balances on the right. */
 @media (min-width: 1024px) {
   .workspace {
-    grid-template-columns: 284px 204px minmax(0, 1fr);
-    grid-template-areas: "trade book chart" "trade activity activity";
-    grid-template-rows: minmax(27rem, 1fr) auto;
-    min-height: calc(100dvh - 12rem);
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-areas: "book chart" "book trade" "trades account" "activity activity";
+    grid-template-rows: minmax(26rem, 1fr) auto auto auto;
   }
-  .chart { min-height: 0; }
+  .book { max-height: none; }
+  .chart { min-height: 26rem; }
   .activityContent { min-height: 10rem; }
 }
 
 @media (min-width: 1280px) {
-  .workspace { grid-template-columns: 304px 224px minmax(0, 1fr); }
+  .workspace {
+    grid-template-columns: 300px minmax(0, 1fr) 300px;
+    grid-template-areas: "book chart trades" "book trade account" "activity activity activity";
+    grid-template-rows: minmax(28rem, 1fr) auto auto;
+  }
+  .trades { max-height: none; }
 }
 
 @media (min-width: 1600px) {
-  .workspace { grid-template-columns: 320px 256px minmax(0, 1fr); }
+  .workspace { grid-template-columns: 340px minmax(0, 1fr) 340px; }
 }

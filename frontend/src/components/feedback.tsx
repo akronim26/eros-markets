@@ -37,14 +37,14 @@ export function LoadingPanel({ label = "Loading market data" }: { label?: string
   return <div className="space-y-5 border border-line p-5" aria-busy="true">
     <PendingState>{label}…</PendingState>
     <div aria-hidden className="space-y-3 motion-safe:animate-pulse">
-      <div className="h-5 w-2/3 bg-press" /><div className="h-3 w-1/2 bg-press" />
-      <div className="grid grid-cols-3 gap-3 pt-3">{[0, 1, 2].map((n) => <div key={n} className="h-16 bg-press" />)}</div>
+      <div className="h-5 w-2/3 rounded-md bg-press" /><div className="h-3 w-1/2 rounded-md bg-press" />
+      <div className="grid grid-cols-3 gap-3 pt-3">{[0, 1, 2].map((n) => <div key={n} className="h-16 rounded-lg bg-press" />)}</div>
     </div>
   </div>;
 }
 
 export function PageLoading({ title = "Loading your view" }: { title?: string }) {
-  return <main className="mx-auto min-h-[60vh] w-full max-w-[1280px] px-4 py-12 md:px-8"><h1 className="pixel mb-8 text-3xl uppercase">{title}</h1><LoadingPanel label="Connecting to Eros Markets" /></main>;
+  return <main className="mx-auto min-h-[60vh] w-full max-w-[1280px] px-4 py-12 md:px-8"><h1 className="display mb-8 text-3xl uppercase">{title}</h1><LoadingPanel label="Connecting to Eros Markets" /></main>;
 }
 
 export function ReadError({ message, retry }: { message: string; retry: () => void }) {

@@ -53,7 +53,7 @@ export function PortfolioPage() {
   const head = useHead();
   return (
     <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
-      <h1 className="pixel text-5xl leading-none text-fg uppercase">Portfolio</h1>
+      <h1 className="display text-5xl leading-none text-fg uppercase">Portfolio</h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-fg-2">
         Your account in each market, read from the contracts. Markets are isolated: balances are never netted across them.
       </p>

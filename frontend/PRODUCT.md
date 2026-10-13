@@ -60,16 +60,17 @@ mark warming up, sweep running) and must say so.
 ## Brand Commitments
 
 - Name: Eros Markets. Logo assets in `~/Downloads/Eros_Markets/` (svg, png, favicon). The mark is a
-  stack of ivory bars (a depth ladder) with one Signal bar at centre: "the mark price".
-- Colours (binding, from the brand README): Ink `#0A0A0B`, Ivory `#F2F1EC`, Signal `#FF5A36`.
+  stack of white bars (a depth ladder) with one Signal bar at centre: "the mark price".
+- Colours (binding, user direction 2026-10-13): black `#000000`, white `#FFFFFF`, orange `#FF5A36`, green `#5FD394`; no other hues.
+- **Dark theme only (user direction 2026-10-13):** black ground, white text; no light theme and no theme switcher.
 - Wordmark: outlined Inter Tight Medium, −0.04em tracking.
-- **No rounded corners anywhere: all borders and shapes are sharp** (user requirement 2026-10-05).
+- **Rounded corners (user direction 2026-10-13, replacing the sharp-corner rule of 2026-10-05):** boxes 12px, controls 8px. Buttons animate on hover: a sliding fill on the label and a sliding arrow on primary actions; all buttons ease and press.
 - **Theme pinned by the user (2026-10-05):** the v0 "Brutalist AI SaaS Landing Page" template
   (https://v0.app/templates/brutalist-ai-saas-landing-page-6QYngsI1qTp, demo
-  https://v0-design-brutalist-ai-saa-s.vercel.app/) is the site's theme for every surface: light Ivory
-  dot-grid ground, hard 1px Ink frames, pixel display type, mono uppercase labels, `// SECTION` rules,
+  https://v0-design-brutalist-ai-saa-s.vercel.app/) is the site's theme for every surface: black
+  dot-grid ground, hard 1px grey frames, single-family Geist Mono type, mono uppercase labels, `// SECTION` rules,
   bento panels, black terminal panels, arrow-square buttons, scramble text, marquees. Its rounded pills
-  are translated to sharp frames. Its invented demo metrics are not copied: Eros shows only live chain
+  are translated to rounded rectangles. Its invented demo metrics are not copied: Eros shows only live chain
   values or real protocol constants.
 
 ## Evidence on Hand

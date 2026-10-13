@@ -39,12 +39,16 @@ export function MarketHeader({ manifest, m, source = [], now = Math.floor(Date.n
   const chip = m ? chipFor(m) : null;
   const caps = m?.leverageCaps;
   return (
-    <div className="hair-b flex min-h-14 flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2">
-      <div className="flex min-w-0 flex-[1_1_18rem] flex-col items-start gap-1">
+    <div className="flex min-h-16 flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3">
+      <div className="flex min-w-0 flex-[1_1_16rem] flex-col items-start gap-1.5">
         <h1 className="w-full break-words text-sm leading-snug font-semibold text-fg">{manifest.title}</h1>
         {chip && <span className="max-w-full" title={chip.label}><Chip tone={chip.tone} className="h-auto min-h-6 max-w-full whitespace-normal py-1">{chip.label === "Paused: accounting sweep" ? "Trading paused" : chip.label}</Chip></span>}
       </div>
-      <div className="flex min-w-0 flex-[2_1_28rem] flex-wrap items-center gap-x-6 gap-y-2">
+      {/* The headline price, set at scale like an exchange pair header; the stat below carries its label. */}
+      <p className="shrink-0 text-2xl font-semibold leading-none tnum text-signal" aria-hidden>
+        {m?.risk.markAvailable ? wadTo3(m.risk.markWad) : "—"}
+      </p>
+      <div className="flex min-w-0 flex-[2_1_28rem] flex-wrap items-center gap-x-7 gap-y-2">
         <Stat label="YES mark" tone={m?.risk.markAvailable ? "signal" : undefined}>
           {!m && !readError ? <span role="status">Loading…</span> : m?.risk.markAvailable ? <Num value={wadTo3(m.risk.markWad)} /> : <Unavailable signal short={m?.risk.pricingMode === 0 ? "warming" : "unavailable"} reason="The contract requires complete index, book and basis windows and normal pricing to provide a mark." />}
         </Stat>
@@ -84,7 +88,7 @@ export function DeadlineStrip({ m, now }: { m?: MarketSnapshot; now?: bigint }) 
         {next ? (
           <>
             <p className="label text-fg-3">Next: {next.label}</p>
-            <p className="pixel text-4xl leading-tight text-fg">
+            <p className="display text-4xl leading-tight text-fg">
               <Num value={fmtDuration(T - next.off - now)} />
             </p>
             <p className="text-2xs text-fg-3">{next.what}</p>

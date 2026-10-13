@@ -93,3 +93,23 @@ test('legacy relay history requires explicit migration before attaching a transa
     await assert.rejects(legacy.start(),/MIGRATION_REQUIRED/);
   }finally{legacy?.release();legacy?.close();s.close();}
 });
+test('a provider read failing before signing keeps the delivery resumable; the resumed send is identical',async()=>{
+  const s=await setup();try{
+    const prepare=s.transport.prepare;let fail=true;
+    s.transport.prepare=async request=>{if(fail){fail=false;throw new Error('MONAD_RPC_CHAIN_FAILED');}return prepare(request);};
+    await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/MONAD_RPC_CHAIN_FAILED/);
+    const paused=s.relay.get(s.domain,1n)!;
+    assert.equal(paused.state,'PREPARING');assert.equal(paused.raw,null);assert.equal(paused.reason,'MONAD_RPC_CHAIN_FAILED');
+    assert.equal(s.sends(),0);
+    await s.reopenRelay();assert.equal(s.relay.canResumePreparing(s.domain,1n),true);
+    const sent=await s.relay.deliver(config,'owner',s.fence,1n);
+    assert.equal(s.sends(),1);assert.equal(sent.nonce,paused.nonce);assert.equal(await s.transactions.sign(sent.request!),sent.raw);
+  }finally{s.close();}
+});
+test('any other preparation failure still quarantines the delivery',async()=>{
+  const s=await setup();try{
+    s.transport.prepare=async()=>{throw new Error('SIGNED_TRANSACTION_MISMATCH');};
+    await assert.rejects(s.relay.deliver(config,'owner',s.fence,1n),/SIGNED_TRANSACTION_MISMATCH/);
+    assert.equal(s.relay.get(s.domain,1n)!.state,'QUARANTINED');assert.equal(s.sends(),0);
+  }finally{s.close();}
+});

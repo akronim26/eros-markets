@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useHead, useLadder, useMarket, useTradingSnapshot } from "@/lib/reads";
@@ -11,6 +11,7 @@ import type { MarketManifest } from "@/config/deployment";
 import { wadToUnit } from "@/lib/units";
 import { PriceAxis } from "./price-axis";
 import { OrderBook, type BookPriceIntent } from "./order-book";
+import { MarketTrades } from "./market-trades";
 import { closeIntent, type CloseIntent } from "@/lib/trade-intent";
 import { Ticket } from "./ticket";
 import { AccountPanel, DeadlineStrip, MarketHeader, MarketInfo, PositionPanel } from "./market-parts";
@@ -55,6 +56,13 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const [tab, setTab] = useState<Tab>("Position");
   useEffect(() => setIntent(undefined), [owner.address]);
   const primaryIndex = TABS.findIndex(value => value === tab);
+  // The book's centre price: the latest public fill, else the mark. Moves compare against the fill before it.
+  const last = useMemo(() => {
+    const [latest, before] = [...live.trades].sort((a, b) => Number(b.block - a.block) || b.t - a.t);
+    if (latest) return { tick: latest.tick, move: before ? Math.sign(latest.tick - before.tick) : 0, label: "Last trade price" };
+    if (md?.risk.markAvailable) return { tick: Number(md.risk.markWad / 10n ** 15n), move: 0, label: "Mark price" };
+    return undefined;
+  }, [live.trades, md]);
   const emptyReason = !md ? "Loading market prices…"
     : manifest.archived ? "Historical prices only."
     : !md.active ? "Prices appear when trading opens."
@@ -99,15 +107,20 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
 
       <aside ref={ticketRef} tabIndex={-1} className={styles.trade} aria-label="Trade">
         <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={actionMarket} trader={trader} intent={intent} bookPrice={bookPrice} readUnavailable={readUnavailable} />
-        <div className="mt-auto border-t border-line">
-          <AccountPanel engine={manifest.engine} m={actionMarket} t={trader} readUnavailable={custodyUnavailable} />
-        </div>
       </aside>
+
+      <div className={styles.trades}>
+        <MarketTrades trades={live.trades} status={live.error ? "Trades unavailable" : !md ? "Loading trades…" : "No trades yet"} />
+      </div>
+
+      <div className={styles.account}>
+        <AccountPanel engine={manifest.engine} m={actionMarket} t={trader} readUnavailable={custodyUnavailable} />
+      </div>
 
       <div className={styles.book}
         data-book-state={ladder.isError || publicUnavailable ? "error" : md && ladder.data ? "ready" : "loading"}
         aria-busy={!publicUnavailable && !ladder.isError && (!md || !ladder.data)}>
-        <OrderBook levels={ladder.isError ? [] : ladder.data ?? []} bestBid={md?.bestBid ?? 0} bestAsk={md?.bestAsk ?? 0}
+        <OrderBook levels={ladder.isError ? [] : ladder.data ?? []} bestBid={md?.bestBid ?? 0} bestAsk={md?.bestAsk ?? 0} last={last}
           emptyReason={ladder.isError || publicUnavailable ? "Book unavailable" : !md || (!ladder.data && !!(md.bestBid || md.bestAsk)) ? "Loading book…" : "No resting orders"}
           onPrice={tick => setBookPrice({ tick, nonce: Date.now() })} />
       </div>

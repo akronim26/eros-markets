@@ -18,6 +18,7 @@
   height: 28px;
   margin-top: -12px;
   border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
   background: var(--color-signal);
 }
 
@@ -30,6 +31,7 @@
   width: 18px;
   height: 28px;
   border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
   background: var(--color-signal);
 }
 

@@ -117,7 +117,7 @@ export function EventPerpDemo() {
             <div>
               <p className="label text-ivory-3">{outcome ? `${outcome} outcome / ` : ""}Position P&amp;L</p>
               <div className="mt-1 flex flex-wrap items-baseline gap-x-3">
-                <span className={cx("pixel tnum text-[clamp(2.75rem,5vw,5rem)] leading-none", pnl < 0 ? "text-signal" : "text-ivory")} data-demo-pnl>{signed(pnl)}</span>
+                <span className={cx("display tnum text-[clamp(2.75rem,5vw,5rem)] leading-none", pnl < 0 ? "text-signal" : "text-ivory")} data-demo-pnl>{signed(pnl)}</span>
                 <span className="text-xs text-ivory-3">test units</span>
               </div>
             </div>

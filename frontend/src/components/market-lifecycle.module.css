@@ -75,6 +75,7 @@
   height: 30px;
   width: 100%;
   border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
   background: var(--color-ground);
   color: var(--color-fg);
   font-size: clamp(9px, 1.5vw, 11px);
@@ -124,6 +125,7 @@
   height: 100%;
   place-items: center;
   border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-box);
   background: var(--color-panel);
   transform: perspective(400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
   transition: transform 500ms var(--ease-out-expo), border-color 300ms ease, box-shadow 300ms ease;
@@ -160,6 +162,7 @@
   position: absolute;
   inset: -7px;
   border: 1px solid var(--color-signal);
+  border-radius: calc(var(--radius-box) + 7px);
   opacity: 0;
   animation: radiate 5.6s linear infinite;
   pointer-events: none;

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { priceSegments } from '../src/lib/price-chart.ts';
+import { priceBridges, priceSegments } from '../src/lib/price-chart.ts';
 const point=(t,v=0.5,valid=true)=>({t,v,valid,block:BigInt(t)});
 test('chart retains invalid source intervals and stale gaps instead of drawing continuous prices',()=>{
  // 141 - 20 = 121 s exceeds the 120 s testnet INDEX carry.
@@ -15,4 +15,23 @@ test('chart accepts genuine zero and one while breaking at malformed or reversed
 test('paced 80 s observations draw one continuous line',()=>{
  const segments=priceSegments([point(0),point(80),point(160),point(280)]);
  assert.deepEqual(segments.map(s=>s.map(p=>p.t)),[[0,80,160,280]]);
+});
+test('short invalid stretches are bridged between their valid neighbours, never drawn as price',()=>{
+ // 11 -> 20 crosses one invalid reading; 20 -> 30 -> 40 crosses two. Both spans are within the 120 s carry.
+ const points=[point(1),point(11),point(12,0,false),point(20),point(25,0,false),point(28,0,false),point(40)];
+ assert.deepEqual(priceBridges(points).map(([a,b])=>[a.t,b.t]),[[11,20],[20,40]]);
+ // The solid line still breaks at every invalid reading.
+ assert.deepEqual(priceSegments(points).map(s=>s.map(p=>p.t)),[[1,11],[20],[40]]);
+});
+test('bridges skip plain time gaps, long outages, malformed readings and reversed history',()=>{
+ // 1 -> 141: 140 s with no invalid reading is a stale gap, not a bridge.
+ assert.deepEqual(priceBridges([point(1),point(141)]),[]);
+ // 10 -> 131: an invalid reading inside a 121 s span stays a gap.
+ assert.deepEqual(priceBridges([point(10),point(50,0,false),point(131)]),[]);
+ // A malformed reading after the invalid one forgets the left end.
+ assert.deepEqual(priceBridges([point(1),point(2,0,false),point(3,NaN),point(4)]),[]);
+ // The right end must be later than the left end.
+ assert.deepEqual(priceBridges([point(10),point(11,0,false),point(9)]),[]);
+ // Exactly the 120 s carry still bridges.
+ assert.deepEqual(priceBridges([point(0),point(60,0,false),point(120)]).map(([a,b])=>[a.t,b.t]),[[0,120]]);
 });
