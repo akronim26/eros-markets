@@ -8,7 +8,8 @@
 # Private config: $NATIVE_OPS_ENV (default tmp/native-public/ops.env, mode 600, never committed) with
 #   MONAD_RPC_URL, NATIVE_OBSERVER_PRIVATE_KEY, NATIVE_KEEPER_PRIVATE_KEY, NATIVE_PERP_MAKER_PRIVATE_KEY,
 #   NATIVE_DEPLOYMENT (DeployNativeMarket JSON), NATIVE_RULES (rules JSON), NATIVE_ENGINE.
-# Optional: PUBLISH_MS (60000), KEEPER_EVERY (90), MAX_RESTARTS (5), MIN_GAS_MON (0.5), LOW_GAS_MON (3).
+# Optional: PUBLISH_MS (60000), KEEPER_EVERY (90), MAX_RESTARTS (5), MIN_GAS_MON (0.5), LOW_GAS_MON (3),
+#   MONAD_READ_FALLBACK_URLS (comma-separated HTTPS reads tried in order when MONAD_RPC_URL fails; writes stay on it).
 # Keys are only read from that file (never argv). Each service holds an exclusive lock (flock, or a lock
 # directory where flock is missing), so a second copy of the same service cannot start: the INDEX signer
 # and keeper never have two concurrent writers. Runs on Linux and macOS (bash 3.2, BSD stat, no setsid).
@@ -24,7 +25,8 @@ set -a; . "$ENVF"; set +a
 : "${NATIVE_DEPLOYMENT:?}" "${NATIVE_RULES:?}" "${NATIVE_ENGINE:?}"
 PUBLISH_MS=${PUBLISH_MS:-60000}; KEEPER_EVERY=${KEEPER_EVERY:-90}; MAX_RESTARTS=${MAX_RESTARTS:-5}
 MIN_GAS_MON=${MIN_GAS_MON:-0.5}; LOW_GAS_MON=${LOW_GAS_MON:-3}
-R=$MONAD_RPC_URL; ENG=$NATIVE_ENGINE
+R=$MONAD_RPC_URL; ENG=$NATIVE_ENGINE; RF=${MONAD_READ_FALLBACK_URLS:-}
+rd() { local u out; for u in "$R" ${RF:+${RF//,/ }}; do out=$(cast "$@" --rpc-url "$u" 2>/dev/null) && { printf '%s\n' "$out"; return 0; }; done; return 1; }
 ts() { date -u +%FT%TZ; }
 addr() { cast wallet address "$1"; }
 
@@ -47,7 +49,7 @@ check() {
 # consecutive failures, then stops and records why. Holds an flock for the service's lifetime (exclusive writer).
 # An empty signer wallet is not a crash: the supervisor waits (polling every 60 s) until the wallet holds
 # MIN_GAS_MON, without spending restarts, and logs a FUND alert. A run that stayed up 10 minutes resets the count.
-gas_mon() { cast balance "$1" --rpc-url "$R" --ether 2>/dev/null || echo -1; }
+gas_mon() { rd balance "$1" --ether || echo -1; }
 below() { python3 -c "import sys; sys.exit(0 if float('$1') < float('$2') else 1)"; }
 wait_for_gas() {
   local name=$1 who=$2 since=0 bal
@@ -82,8 +84,8 @@ supervise() {
   # Secrets reach children only through the environment (never argv, which `ps` shows).
   local who
   case $name in
-    publisher) export NATIVE_OBSERVER_KEY="$NATIVE_OBSERVER_PRIVATE_KEY" NATIVE_RPC="$R"; who=$(addr "$NATIVE_OBSERVER_PRIVATE_KEY") ;;
-    keeper) export R ENG KEEPER_KEY="$NATIVE_KEEPER_PRIVATE_KEY" PERP_MAKER_KEY="$NATIVE_PERP_MAKER_PRIVATE_KEY" EVERY="$KEEPER_EVERY"; who=$(addr "$NATIVE_KEEPER_PRIVATE_KEY") ;;
+    publisher) export NATIVE_OBSERVER_KEY="$NATIVE_OBSERVER_PRIVATE_KEY" NATIVE_RPC="$R" NATIVE_RPC_FALLBACKS="$RF"; who=$(addr "$NATIVE_OBSERVER_PRIVATE_KEY") ;;
+    keeper) export R RF ENG KEEPER_KEY="$NATIVE_KEEPER_PRIVATE_KEY" PERP_MAKER_KEY="$NATIVE_PERP_MAKER_PRIVATE_KEY" EVERY="$KEEPER_EVERY"; who=$(addr "$NATIVE_KEEPER_PRIVATE_KEY") ;;
   esac
   take_lock "$name" || { echo "$(ts) $name already running (lock held); not starting a second writer"; exit 3; }
   echo $$ > "$RUN/$name.supervisor.pid"
@@ -134,8 +136,8 @@ status() {
     echo "== $svc: $up; starts: $(grep -c 'supervisor: starting' "$RUN/$svc.log" 2>/dev/null || echo 0)"
     tail -n 2 "$RUN/$svc.log" 2>/dev/null | sed -E 's/0x[0-9a-fA-F]{64}/<redacted>/g' | cut -c1-160
   done
-  local now; now=$(cast block latest -f timestamp --rpc-url "$R")
-  echo "== INDEX $(cast call "$ENG" 'indexTwap300(uint64)((bool,int256,uint256,int256))' "$now" --rpc-url "$R" | cut -c1-30)"
+  local now; now=$(rd block latest -f timestamp)
+  echo "== INDEX $(rd call "$ENG" 'indexTwap300(uint64)((bool,int256,uint256,int256))' "$now" | cut -c1-30)"
 }
 
 case "${1:-}" in
