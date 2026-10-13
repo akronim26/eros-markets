@@ -158,8 +158,6 @@ bash scripts/check-task.sh A010
 
 ### Frontend
 
-The full app lives on [`feat/pricefeed`](https://github.com/akronim26/eros-markets/tree/feat/pricefeed):
-
 ```bash
 git clone --branch feat/pricefeed --recurse-submodules https://github.com/akronim26/eros-markets.git
 cd eros-markets
