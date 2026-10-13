@@ -9,14 +9,16 @@
 #   MONAD_RPC_URL, NATIVE_OBSERVER_PRIVATE_KEY, NATIVE_KEEPER_PRIVATE_KEY, NATIVE_PERP_MAKER_PRIVATE_KEY,
 #   NATIVE_DEPLOYMENT (DeployNativeMarket JSON), NATIVE_RULES (rules JSON), NATIVE_ENGINE.
 # Optional: PUBLISH_MS (60000), KEEPER_EVERY (90), MAX_RESTARTS (5), MIN_GAS_MON (0.5), LOW_GAS_MON (3).
-# Keys are only read from that file (never argv). Each service holds an flock, so a second copy of the
-# same service cannot start: the INDEX signer and keeper never have two concurrent writers.
+# Keys are only read from that file (never argv). Each service holds an exclusive lock (flock, or a lock
+# directory where flock is missing), so a second copy of the same service cannot start: the INDEX signer
+# and keeper never have two concurrent writers. Runs on Linux and macOS (bash 3.2, BSD stat, no setsid).
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd); cd "$ROOT"
 RUN=tmp/native-public; mkdir -p "$RUN"; chmod 700 "$RUN"
 ENVF=${NATIVE_OPS_ENV:-$RUN/ops.env}
 [ -f "$ENVF" ] || { echo "missing private config $ENVF (see header)"; exit 2; }
-[ "$(stat -c %a "$ENVF")" = 600 ] || { echo "$ENVF must be mode 600"; exit 2; }
+mode() { stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1"; }
+[ "$(mode "$ENVF")" = 600 ] || { echo "$ENVF must be mode 600"; exit 2; }
 set -a; . "$ENVF"; set +a
 : "${MONAD_RPC_URL:?}" "${NATIVE_OBSERVER_PRIVATE_KEY:?}" "${NATIVE_KEEPER_PRIVATE_KEY:?}" "${NATIVE_PERP_MAKER_PRIVATE_KEY:?}"
 : "${NATIVE_DEPLOYMENT:?}" "${NATIVE_RULES:?}" "${NATIVE_ENGINE:?}"
@@ -61,6 +63,20 @@ wait_for_gas() {
     sleep 60
   done
 }
+# Exclusive lock held until this process exits. Without flock (macOS), mkdir is the atomic test-and-set;
+# a lock left by a dead holder (pid no longer alive) is reclaimed once.
+take_lock() {
+  if command -v flock >/dev/null; then exec 9>"$RUN/$1.lock"; flock -n 9; return; fi
+  local d="$RUN/$1.lockdir" holder
+  if ! mkdir "$d" 2>/dev/null; then
+    holder=$(cat "$d/pid" 2>/dev/null)
+    [ -n "$holder" ] && kill -0 "$holder" 2>/dev/null && return 1
+    rm -rf "$d"; mkdir "$d" 2>/dev/null || return 1
+  fi
+  echo $$ > "$d/pid"; trap 'rm -rf "'"$d"'"' EXIT
+}
+# Detach from the caller's session where setsid exists; nohup alone otherwise.
+detach() { if command -v setsid >/dev/null; then setsid nohup "$@"; else nohup "$@"; fi; }
 supervise() {
   local name=$1; shift
   # Secrets reach children only through the environment (never argv, which `ps` shows).
@@ -69,8 +85,7 @@ supervise() {
     publisher) export NATIVE_OBSERVER_KEY="$NATIVE_OBSERVER_PRIVATE_KEY" NATIVE_RPC="$R"; who=$(addr "$NATIVE_OBSERVER_PRIVATE_KEY") ;;
     keeper) export R ENG KEEPER_KEY="$NATIVE_KEEPER_PRIVATE_KEY" PERP_MAKER_KEY="$NATIVE_PERP_MAKER_PRIVATE_KEY" EVERY="$KEEPER_EVERY"; who=$(addr "$NATIVE_KEEPER_PRIVATE_KEY") ;;
   esac
-  exec 9>"$RUN/$name.lock"
-  flock -n 9 || { echo "$(ts) $name already running (lock held); not starting a second writer"; exit 3; }
+  take_lock "$name" || { echo "$(ts) $name already running (lock held); not starting a second writer"; exit 3; }
   echo $$ > "$RUN/$name.supervisor.pid"
   local n=0
   while :; do
@@ -97,8 +112,8 @@ start() {
     [ -f "$RUN/$svc.supervisor.pid" ] && kill -0 "$(cat "$RUN/$svc.supervisor.pid")" 2>/dev/null && { echo "$svc already running"; continue; }
     rm -f "$RUN/$svc.stop"
     case $svc in
-      publisher) setsid nohup bash "$0" _run publisher node packages/pricefeed/dist/scripts/native-publish.js env "$NATIVE_RULES" "$ENG" 1000000 "$PUBLISH_MS" finalized > /dev/null 2>&1 < /dev/null & ;;
-      keeper) setsid nohup bash "$0" _run keeper bash scripts/native-market/keeper-daemon.sh > /dev/null 2>&1 < /dev/null & ;;
+      publisher) detach bash "$0" _run publisher node packages/pricefeed/dist/scripts/native-publish.js env "$NATIVE_RULES" "$ENG" 1000000 "$PUBLISH_MS" finalized > /dev/null 2>&1 < /dev/null & ;;
+      keeper) detach bash "$0" _run keeper bash scripts/native-market/keeper-daemon.sh > /dev/null 2>&1 < /dev/null & ;;
     esac
     echo "$svc: started"
   done
