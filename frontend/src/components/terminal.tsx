@@ -25,6 +25,8 @@ import { ReservePanel } from "./reserve-panel";
 import { OperationsPanel } from "./operations-panel";
 import { OracleMarket } from "./resolution";
 import { ResolutionBanner, ResolutionStory } from "./resolution-story";
+import { SpotPanel } from "./spot-panel";
+import { nativeBinding } from "@/config/native";
 import { AccountHistory } from "./account-history";
 
 const TABS = ["Position", "Open orders", "History", "Protection"] as const;
@@ -55,6 +57,8 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const [intent, setIntent] = useState<CloseIntent>();
   const [bookPrice, setBookPrice] = useState<BookPriceIntent>();
   const [tab, setTab] = useState<Tab>("Position");
+  const native = !!nativeBinding(manifest.engine);
+  const [venue, setVenue] = useState<"perp" | "spot">("perp");
   const activityRef = useRef<HTMLElement>(null);
   // A halted market's main story is its resolution: open that tab once, unless the viewer already chose one.
   const chosen = useRef(false);
@@ -113,7 +117,15 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
       </div>
 
       <aside ref={ticketRef} tabIndex={-1} className={styles.trade} aria-label="Trade">
-        <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={actionMarket} trader={trader} intent={intent} bookPrice={bookPrice} readUnavailable={readUnavailable} />
+        {native && <div role="tablist" aria-label="Venue" className="grid grid-cols-2 border-b border-line" onKeyDown={selectionKeys}>
+          {(["perp", "spot"] as const).map((v) => <button key={v} type="button" role="tab" aria-selected={venue === v} tabIndex={venue === v ? 0 : -1} onClick={() => setVenue(v)}
+            className={cx("relative min-h-11 text-xs font-semibold", venue === v ? "text-fg" : "text-fg-3 hover:text-fg")}>
+            {v === "perp" ? "Perp · Eros" : "Spot · Kuru"}{venue === v && <span className="absolute inset-x-3 bottom-0 h-0.5 bg-signal" aria-hidden />}
+          </button>)}
+        </div>}
+        {native && venue === "spot"
+          ? <SpotPanel key={owner.address ?? "disconnected"} engine={manifest.engine} block={head.data?.number} halted={!!md?.halted} />
+          : <Ticket key={owner.address ?? "disconnected"} engine={manifest.engine} market={actionMarket} trader={trader} intent={intent} bookPrice={bookPrice} readUnavailable={readUnavailable} />}
       </aside>
 
       <div className={styles.trades}>
