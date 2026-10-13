@@ -6,18 +6,18 @@
     "category": "Politics",
     "archived": false
   },
-  "native-btc-82500-e7c13dae": {
-    "title": "Will BTC/USD close above $82,500 on Kraken at 23:00 UTC on 14 Oct 2026?",
-    "short": "BTC > $82,500 on 14 Oct",
-    "source": "Eros native (Kuru)",
-    "category": "Crypto",
-    "archived": false
-  },
   "native-block-70528000-90e522cb": {
     "title": "Will Monad testnet reach block 70,528,000 before 01:00 UTC on 14 Oct 2026?",
     "short": "Monad block 70,528,000 (resolved YES)",
     "source": "Eros native (Kuru)",
     "category": "Crypto",
     "archived": true
+  },
+  "native-nba-mia-gsw-263dbdc3": {
+    "title": "Will the Golden State Warriors beat the Miami Heat on 5 Nov 2026?",
+    "short": "Warriors vs Heat \u00b7 5 Nov",
+    "source": "Eros native (Kuru)",
+    "category": "Sports",
+    "archived": false
   }
 }

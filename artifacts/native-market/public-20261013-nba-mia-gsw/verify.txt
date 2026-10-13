@@ -1,0 +1,31 @@
+HTTP request failed.
+
+URL: env
+Request body: {"method":"eth_chainId"}
+
+Details: Failed to parse URL from env
+Version: viem@2.57.2
+PASS  chain id
+PASS  vault code hash
+PASS  vault registry
+PASS  vault marketId
+PASS  vault collateral
+PASS  vault rulesHash
+PASS  vault scheduledT
+PASS  vault issuanceCap
+PASS  vault YES token
+PASS  YES token vault/market/side/decimals
+PASS  YES book base/quote/decimals  (price precision 1000, size precision 1000, fees 0/0 bps)
+PASS  vault NO token
+PASS  NO token vault/market/side/decimals
+PASS  NO book base/quote/decimals  (price precision 1000, size precision 1000, fees 0/0 bps)
+PASS  vault bound to registry engine  (0x263dBdC3B86732b81F616850F51d41cc3362aEcE)
+PASS  engine listing (marketId, token, registry, T, rules)
+PASS  engine 1x, funding off
+PASS  native rules bind this deployment
+PASS  engine pins native source (id, signer, rules hash, depth rule)  (indexSigner 0x2174Ef0C7c96E908A06A4DB51AB235A35756b105)
+{
+  "engine": "0x263dBdC3B86732b81F616850F51d41cc3362aEcE",
+  "checks": 19,
+  "failed": 0
+}
