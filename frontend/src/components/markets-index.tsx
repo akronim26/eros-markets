@@ -5,6 +5,8 @@ import { useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Search, X } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
+import { useSpot } from "@/lib/spot";
+import { isSpotOnly, nativeBinding } from "@/config/native";
 import { isNativeMarket, type MarketManifest } from "@/config/deployment";
 import { useMarketList } from "@/lib/market-list";
 import { fmtDuration, lotsToClaims, wadTo3 } from "@/lib/units";
@@ -16,7 +18,7 @@ function NativeChip() {
   return <Chip tone="signal" className="h-5 px-1.5 text-2xs">Native · Kuru</Chip>;
 }
 
-function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
+function PerpMarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
   const m = useMarket(mk.engine, block);
   const d = m.data;
   const chip = d ? chipFor(d) : null;
@@ -44,7 +46,7 @@ function MarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now
 }
 
 /** Below md each market is a stacked framed block: no clipped table on a phone. */
-function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
+function PerpMarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
   const m = useMarket(mk.engine, block);
   const d = m.data;
   const chip = d ? chipFor(d) : null;
@@ -81,6 +83,75 @@ function MarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; no
     </li>
   );
 }
+
+/* ------------------------------------------------------------------ spot-only (Kuru) markets */
+
+/** YES best bid / ask / mid from the Kuru YES book, and the vault state, for a spot-only market. */
+function useSpotSummary(mk: MarketManifest, block?: bigint) {
+  const s = useSpot(mk.engine, undefined, block);
+  const d = s.data, bid = d?.books.yes.bids[0]?.tick, ask = d?.books.yes.asks[0]?.tick;
+  const chip = !d ? null : d.resolved ? { tone: "neutral" as const, label: "Resolved" }
+    : d.issuanceOpen ? { tone: "signal" as const, label: "Live" } : { tone: "warn" as const, label: "Halted" };
+  const mid = bid !== undefined && ask !== undefined ? Math.round((bid + ask) / 2) : bid ?? ask;
+  return { s, chip, bid, ask, mid, scheduledT: BigInt(nativeBinding(mk.engine)!.scheduledT) };
+}
+const tick3 = (t?: number) => t === undefined ? undefined : (t / 1000).toFixed(3);
+
+function SpotMarketRow({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
+  const { s, chip, bid, ask, mid, scheduledT } = useSpotSummary(mk, block);
+  const toT = now !== undefined ? scheduledT - now : undefined;
+  return (
+    <tr className="hair-b group relative cursor-pointer hover:bg-hover focus-within:bg-hover">
+      <td className="py-4 pr-6 pl-4">
+        <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} market`} className="flex flex-col gap-1 after:absolute after:inset-0">
+          <span className="flex flex-wrap items-center gap-2"><span className="text-sm font-semibold text-fg">{mk.title}</span><NativeChip /></span>
+          <span className="text-2xs text-fg-3">{mk.short} · Prediction market · YES/NO on Kuru · Eros oracle</span>
+        </Link>
+      </td>
+      <td className="pr-6">{chip ? <Chip tone={chip.tone}>{chip.label}</Chip> : <span className="text-fg-4">{s.isError ? "Unavailable" : "reading…"}</span>}</td>
+      <td className="tnum pr-6 text-right text-sm">{mid !== undefined ? <span className="text-signal-text"><Num value={tick3(mid)!} /></span> : <span className="text-fg-3">no quotes</span>}</td>
+      <td className="tnum pr-6 text-right text-sm">{bid !== undefined || ask !== undefined ? `${tick3(bid) ?? "—"} / ${tick3(ask) ?? "—"}` : <span className="text-fg-3">—</span>}</td>
+      <td className="tnum pr-6 text-right text-sm text-fg-2">—</td>
+      <td className="tnum pr-6 text-right text-sm text-fg-2">Spot</td>
+      <td className="tnum pr-6 text-right text-sm text-fg">{toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"}</td>
+      <td className="pr-4 text-right"><span className="ui-arrow inline-flex h-7 w-7 items-center justify-center rounded-md bg-signal text-on-signal" aria-hidden><ArrowRight size={14} strokeWidth={2} /></span></td>
+    </tr>
+  );
+}
+
+function SpotMarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
+  const { s, chip, bid, ask, mid, scheduledT } = useSpotSummary(mk, block);
+  const toT = now !== undefined ? scheduledT - now : undefined;
+  const rows: [string, React.ReactNode][] = [
+    ["YES price", mid !== undefined ? <Num value={tick3(mid)!} /> : "no quotes"],
+    ["YES bid / ask", `${tick3(bid) ?? "—"} / ${tick3(ask) ?? "—"}`],
+    ["Venue", "Kuru spot"],
+    ["To tip-off", toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"],
+  ];
+  return (
+    <li className="frame relative bg-ground hover:bg-hover focus-within:bg-hover">
+      <div className="label flex items-center justify-between px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">
+        <span className="flex items-center gap-2">{mk.short}<NativeChip /></span>
+        {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
+      </div>
+      <p className="px-3 pt-3 text-sm font-semibold leading-snug text-fg">{mk.title}</p>
+      {s.isError && <p role="alert" className="relative z-10 px-3 pt-2 text-xs text-ask">Market read failed. <button className="underline" onClick={() => s.refetch()}>Retry</button></p>}
+      <dl className="px-3 py-2">
+        {rows.map(([k, v]) => (
+          <div key={k} className="hair-b flex justify-between py-1.5 text-xs"><dt className="text-fg-3">{k}</dt><dd className="tnum text-fg">{v}</dd></div>
+        ))}
+      </dl>
+      <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} market`} className="group m-3 flex min-h-11 items-stretch overflow-hidden rounded-control after:absolute after:inset-0">
+        <span className="ui-arrow flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={15} strokeWidth={2} /></span>
+        <span className="ui-sweep label flex flex-1 items-center bg-action px-4 text-on-action group-hover:bg-action-hover">Open market</span>
+      </Link>
+    </li>
+  );
+}
+
+type RowProps = { mk: MarketManifest; block?: bigint; now?: bigint };
+const MarketRow = (p: RowProps) => isSpotOnly(p.mk.engine) ? <SpotMarketRow {...p} /> : <PerpMarketRow {...p} />;
+const MarketCard = (p: RowProps) => isSpotOnly(p.mk.engine) ? <SpotMarketCard {...p} /> : <PerpMarketCard {...p} />;
 
 export function MarketsIndex() {
   const head = useHead();

@@ -152,6 +152,15 @@
       "template": 0,
       "maxLiqLotsPerBlock": "0",
       "fundingEnabled": false
+    },
+    {
+      "name": "native-nba-gsw-mia-spot-9161f16b",
+      "engine": "0x9161F16BD0753352214A98F3e6e86b8275D023C3",
+      "marketId": "0x8504d173055ab1bce57f6a4f4ac80340157e3cbe7fedf0ac06bfa515e818964c",
+      "sourceId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "listingHash": "0x0fa6f4a202c534b1560d28e81d39261daf334b7b0f17a3f394ef4b1e248e41ab",
+      "codehash": "0xa814fb1e66f413d9b7d3b9c93b935f811fe95c2227b7e5e7dfb1acaf9b7d28be",
+      "deployBlock": 70669714
     }
   ],
   "accounts": {}

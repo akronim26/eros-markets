@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useHead, useMarket, useTrader } from "@/lib/reads";
 import { type MarketManifest } from "@/config/deployment";
+import { isSpotOnly } from "@/config/native";
 import { useMarketList } from "@/lib/market-list";
 import { atomsToUsdc, qToMoney } from "@/lib/units";
 import { positionLabel } from "@/lib/position-label";
@@ -78,7 +79,7 @@ export function PortfolioPage() {
               </tr>
             </thead>
             <tbody>
-              {markets.map((mk) => (
+              {markets.filter((mk) => !isSpotOnly(mk.engine)).map((mk) => (
                 <Line key={mk.engine} mk={mk} owner={owner.address!} block={head.data?.number} />
               ))}
             </tbody>

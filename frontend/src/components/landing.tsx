@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useHead, useMarket } from "@/lib/reads";
 import { markets } from "@/config/deployment";
+import { isSpotOnly } from "@/config/native";
 import { PRICING, STAGE } from "@/lib/enums";
 import { fmtDuration, lotsToClaims } from "@/lib/units";
 import { SectionRule } from "./ui";
@@ -12,7 +13,7 @@ import { EventPerpDemo } from "./event-perp-demo";
 import { MarketLifecycle } from "./market-lifecycle";
 import { OracleLayers } from "./oracle-layers";
 
-const ACTIVE_MARKET = markets.find((market) => !market.archived);
+const ACTIVE_MARKET = markets.find((market) => !market.archived && !isSpotOnly(market.engine));
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ------------------------------------------------------------------ interactions */

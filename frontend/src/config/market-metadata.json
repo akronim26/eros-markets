@@ -15,7 +15,14 @@
   },
   "native-nba-mia-gsw-263dbdc3": {
     "title": "Will the Golden State Warriors beat the Miami Heat on 5 Nov 2026?",
-    "short": "Warriors vs Heat \u00b7 5 Nov",
+    "short": "Warriors vs Heat · 5 Nov",
+    "source": "Eros native (Kuru)",
+    "category": "Sports",
+    "archived": true
+  },
+  "native-nba-gsw-mia-spot-9161f16b": {
+    "title": "Will the Golden State Warriors beat the Miami Heat on 5 Nov 2026?",
+    "short": "Warriors vs Heat · 5 Nov",
     "source": "Eros native (Kuru)",
     "category": "Sports",
     "archived": false

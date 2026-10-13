@@ -319,10 +319,15 @@ export function SpotWorkspace({ manifest, halted, spot, trades, live }: { manife
   const s = spot.data;
   const refetch = spot.refetch as unknown as () => void;
   const yesMid = s?.books.yes.bids[0] && s.books.yes.asks[0] ? (s.books.yes.bids[0].tick + s.books.yes.asks[0].tick) / 2000 : undefined;
+  // A spot-only market has no published INDEX: chart the YES price of its Kuru fills (a NO fill at p is YES at 1 − p).
+  const fills = useMemo(() => b.spotOnly ? (trades.data?.trades ?? []).map((t) => ({ t: t.timestamp, v: (t.outcome === "yes" ? t.tick : 1000 - t.tick) / 1000, block: BigInt(t.block), valid: true }))
+    .sort((x, y) => x.t - y.t) : [], [b.spotOnly, trades.data]);
+  const index = b.spotOnly ? fills : live.index;
   return <div className={styles.workspace}>
     <div className={styles.chart}>
-      <PriceAxis index={live.index} perp={[]} indexUnit={yesMid} emptyTitle="Waiting for price" emptyReason="The YES price is published from the Kuru book every minute."
-        historyStatus={live.historyStatus} readError={!!live.error} source={`${b.yesSymbol} on Kuru`} />
+      <PriceAxis index={index} perp={[]} indexUnit={yesMid} emptyTitle="Waiting for price"
+        emptyReason={b.spotOnly ? "The chart shows YES prices of Kuru fills; it starts with the first trade." : "The YES price is published from the Kuru book every minute."}
+        historyStatus={b.spotOnly ? "Kuru fills" : live.historyStatus} readError={b.spotOnly ? trades.isError : !!live.error} source={`${b.yesSymbol} on Kuru`} />
     </div>
     <aside className={styles.trade} aria-label="Spot order">
       <SpotTicket engine={manifest.engine} s={s} outcome={outcome} onOutcome={setOutcome} preset={preset} halted={halted} refetch={refetch} />
