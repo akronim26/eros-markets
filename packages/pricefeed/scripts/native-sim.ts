@@ -9,7 +9,7 @@ import { privateKeyToAccount } from 'viem/accounts';
  *     fair = P(BTC > K at T) from the Kraken BTC/USD price (lognormal, annual vol SIM_VOL), or a bounded
  *     random walk (SIM_FAIR=walk). It never reads Eros INDEX/MARK (no circular pricing).
  *   Quotes are skewed by its own net YES position, so taker flow really moves the price.
- *   It re-quotes a book only when the target moves by >= 1 tick, to bound gas (cancel + bid + ask per book).
+ *   It re-quotes a book only when the target moves by >= 1 tick, to bound gas (bid + ask, then cancel the old pair).
  * - N takers place random market buys/sells of YES/NO (2..20 claims) every 20..90 s, each with a style:
  *   noise, momentum (follows the last move) or contrarian.
  *
@@ -27,6 +27,8 @@ const BOOK = parseAbi([
   'function placeAndExecuteMarketSell(uint96 size, uint256 minAmountOut, bool isMargin, bool isFillOrKill) returns (uint256)',
   'function bestBidAsk() view returns (uint256, uint256)',
   'event OrderCreated(uint40 orderId, address owner, uint96 size, uint32 price, bool isBuy)',
+  'function s_orderIdCounter() view returns (uint40)',
+  'function s_orders(uint40) view returns (address ownerAddress, uint96 size, uint40 prev, uint40 next, uint40 flippedId, uint32 price, uint32 flippedPrice, bool isBuy)',
 ]);
 const ERC20 = parseAbi(['function approve(address,uint256) returns (bool)', 'function balanceOf(address) view returns (uint256)',
   'function mint(address,uint256)']);
@@ -42,7 +44,8 @@ const YB = getAddress(D.yesBook), NB = getAddress(D.noBook), V = getAddress(D.ou
 const T = Number(D.scheduledT), K = Number(env('STRIKE', '82500'));
 const HALF = Number(env('HALF_SPREAD_TICKS', '10')), LOTS = BigInt(env('QUOTE_LOTS', '150000'));
 const SKEW = Number(env('SKEW_TICKS_PER_100', '6')), VOL = Number(env('SIM_VOL', '0.5'));
-const END = Date.now() + Number(env('DURATION_MIN', '60')) * 60_000;
+const DURATION_MS = Number(env('DURATION_MIN', '60')) * 60_000;
+let END = Date.now() + DURATION_MS + 10 * 60_000; // reset by the maker after startup cleanup
 const log = (who: string, msg: string) => console.log(`${new Date().toISOString().slice(11, 19)}Z ${who.padEnd(8)} ${msg}`);
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -94,17 +97,44 @@ async function maker() {
   }
   async function requote(side: 'yes' | 'no', bid: number, ask: number) {
     const book = side === 'yes' ? YB : NB;
-    if (ids[side]!.length) { await m.send(book, BOOK, 'batchCancelOrders', [ids[side]]).catch(e => log('maker', `cancel ${side} skipped: ${String(e).slice(0, 80)}`)); ids[side] = []; }
-    // Post-only bid and ask (addPairedLiquidity is Kuru's provisioning path and reverts ProvisionError here).
-    for (const [fn, price] of [['addBuyOrder', bid], ['addSellOrder', ask]] as const) {
+    const old = ids[side]!;
+    const fresh: bigint[] = [];
+    const post = async (fn: 'addBuyOrder' | 'addSellOrder', price: number) => {
       const r = await m.send(book, BOOK, fn, [price, LOTS, true]);
-      for (const l of r.logs) { try { const e = decodeEventLog({ abi: BOOK, ...l } as any) as any; if (e.eventName === 'OrderCreated' && getAddress(e.args.owner) === me) ids[side]!.push(BigInt(e.args.orderId)); } catch { /* other event */ } }
+      for (const l of r.logs) { try { const e = decodeEventLog({ abi: BOOK, ...l } as any) as any; if (e.eventName === 'OrderCreated' && getAddress(e.args.owner) === me) fresh.push(BigInt(e.args.orderId)); } catch { /* other event */ } }
+    };
+    // Make-before-break: post the new bid and ask BEFORE cancelling the old ones, so the book is never
+    // empty or one-sided between transactions (an observer read there yields an invalid-depth point,
+    // which breaks the chart and resets INDEX coverage). Only if a new post-only quote would cross an
+    // old one (large jump) fall back to cancel-first for that book.
+    try {
+      await post('addBuyOrder', bid); await post('addSellOrder', ask);
+      if (old.length) await m.send(book, BOOK, 'batchCancelOrders', [old]).catch(e => log('maker', `cancel ${side} skipped: ${String(e).slice(0, 80)}`));
+    } catch (e) {
+      log('maker', `${side}: make-before-break crossed (${String(e).slice(0, 60)}); cancel-first fallback`);
+      const all = [...old, ...fresh]; fresh.length = 0;
+      if (all.length) await m.send(book, BOOK, 'batchCancelOrders', [all]).catch(() => {});
+      await post('addBuyOrder', bid); await post('addSellOrder', ask);
     }
+    ids[side] = fresh;
     quoted[side] = [bid, ask];
   }
-  // Cancel the static demo quotes (order ids 1 and 2 on each fresh book) if they still rest, then
-  // measure the starting inventory, so freed ask inventory is not mistaken for taker flow.
-  for (const book of [YB, NB]) await m.send(book, BOOK, 'batchCancelOrders', [[1n, 2n]]).catch(() => {});
+  // Startup cleanup: cancel every order this maker still has open on either book. Leftover quotes
+  // (e.g. the last quotes a previous run left resting) would make new post-only quotes cross.
+  // Kuru's s_orders(id) gives owner + remaining size; walk the most recent SCAN_ORDERS ids.
+  for (const [side, book] of [['yes', YB], ['no', NB]] as const) {
+    const counter = BigInt(await pub.readContract({ address: book, abi: BOOK, functionName: 's_orderIdCounter' }) as any);
+    const lo = counter > BigInt(env('SCAN_ORDERS', '400')) ? counter - BigInt(env('SCAN_ORDERS', '400')) : 1n;
+    const open: bigint[] = [];
+    for (let id = counter; id >= lo; id -= 1n) {
+      const o = await pub.readContract({ address: book, abi: BOOK, functionName: 's_orders', args: [Number(id)] }) as any;
+      if (getAddress(o[0]) === me && BigInt(o[1]) > 0n) open.push(id);
+    }
+    if (open.length) await m.send(book, BOOK, 'batchCancelOrders', [open]);
+    log('maker', `startup: cancelled ${open.length} open ${side.toUpperCase()} order(s) of ours (scanned ids ${lo}..${counter})`);
+  }
+  END = Date.now() + DURATION_MS; // the run length starts after cleanup
+  // Then measure the starting inventory, so freed ask inventory is not mistaken for taker flow.
   const startYes = await bal(YES);
   await ensureInventory();
   while (Date.now() < END) {
@@ -127,19 +157,24 @@ async function maker() {
   if (env('CANCEL_ON_EXIT', '0') === '1') {
     for (const side of ['yes', 'no'] as const) if (ids[side]!.length) await m.send(side === 'yes' ? YB : NB, BOOK, 'batchCancelOrders', [ids[side]]).catch(() => {});
     log('maker', 'stopped; own quotes cancelled');
-  } else log('maker', `stopped; last quotes left resting (YES ${quoted.yes}, NO ${quoted.no})`);
+  } else {
+    log('maker', `stopped; last quotes left resting (YES ${quoted.yes}, NO ${quoted.no}); the next run cancels them at startup`);
+  }
 }
 
 // ---------------------------------------------------------------- takers
 async function taker(key: Hex, n: number) {
   const t = wallet(key), me = t.account.address, name = `taker${n}`;
   const style = ['noise', 'momentum', 'contrarian'][n % 3]!;
-  // Fund: mint collateral, split 100 sets, deposit YES/NO and collateral to Kuru margin.
-  await t.send(C, ERC20, 'mint', [me, 400_000_000n]); await t.send(C, ERC20, 'approve', [V, 100_000_000n]);
-  await t.send(V, VAULT, 'split', [100_000_000n, me]);
-  for (const [tok, amt] of [[YES, 100_000_000n], [NO, 100_000_000n], [C, 250_000_000n]] as const) {
-    await t.send(tok, ERC20, 'approve', [MARGIN, amt]); await t.send(MARGIN, MA, 'deposit', [me, tok, amt]);
-  }
+  // Fund: mint collateral, split 100 sets, deposit YES/NO and collateral to Kuru margin. A taker that
+  // cannot set up (e.g. no gas) logs and exits on its own; it never stops the maker or other takers.
+  try {
+    await t.send(C, ERC20, 'mint', [me, 400_000_000n]); await t.send(C, ERC20, 'approve', [V, 100_000_000n]);
+    await t.send(V, VAULT, 'split', [100_000_000n, me]);
+    for (const [tok, amt] of [[YES, 100_000_000n], [NO, 100_000_000n], [C, 250_000_000n]] as const) {
+      await t.send(tok, ERC20, 'approve', [MARGIN, amt]); await t.send(MARGIN, MA, 'deposit', [me, tok, amt]);
+    }
+  } catch (e) { log(name, `setup failed, taker not running: ${String(e).slice(0, 120)}`); return; }
   log(name, `ready (${style})`);
   let last = 0;
   while (Date.now() < END) {
