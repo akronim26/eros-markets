@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createPublicClient, defineChain, getAddress, http, keccak256, parseAbi, type Address } from 'viem';
 import { parseNativeDeployment } from '../src/native/manifest.js';
 import { nativeRulesHash, parseNativeRules } from '../src/native/rules.js';
+import { nativeLeverageOk } from '../src/native/leverage.js';
 import { json } from '../src/math.js';
 
 /**
@@ -20,7 +21,8 @@ const TOKEN = parseAbi(['function vault() view returns (address)', 'function mar
   'function decimals() view returns (uint8)']);
 const BOOK = parseAbi(['function getMarketParams() view returns (uint32, uint96, address, uint256, address, uint256, uint32, uint96, uint96, uint256, uint256)']);
 const REGISTRY = parseAbi(['function getMarketCore(bytes32) view returns ((address engine, address questionPtr, address rulesPtr, uint64 listedAt, uint64 windowStart, uint64 windowEnd, uint64 tau, bytes32 groupId, bool groupExclusive, bool hasFeed, uint32 l2DeadlineSecs, uint32 voidSecs, uint32 retryWindowSecs, uint32 earlyTtlSecs, address monitor, uint256 oiCapLots, bytes32 rulesHash, bytes32 specHash, bytes32 gateHash))']);
-const ENGINE = parseAbi(['function listing() view returns ((bytes32 marketId, address token, address registry, address resolutionAuthority, address monitor, address governance, uint64 scheduledT, uint64 listedAt, bytes32 sourceHash, bytes32 rulesHash, (bool fallbackListed, uint64 captureGraceSecs, uint256 fallbackPriceWad, uint64 voidSecs) invalidRule, uint8 template, uint256 deploymentCapX, uint32 maxTraders, bytes32 indexSourceId, address indexSigner, bytes32 indexRulesHash, uint256 depthNLots, uint256 maxSpreadWad, uint256 bootstrapBandWad, uint64 minOrderLots, uint64 maxOrderLots, uint64 maxLiqLotsPerBlock, bool fundingEnabled))']);
+const ENGINE = parseAbi(['function listing() view returns ((bytes32 marketId, address token, address registry, address resolutionAuthority, address monitor, address governance, uint64 scheduledT, uint64 listedAt, bytes32 sourceHash, bytes32 rulesHash, (bool fallbackListed, uint64 captureGraceSecs, uint256 fallbackPriceWad, uint64 voidSecs) invalidRule, uint8 template, uint256 deploymentCapX, uint32 maxTraders, bytes32 indexSourceId, address indexSigner, bytes32 indexRulesHash, uint256 depthNLots, uint256 maxSpreadWad, uint256 bootstrapBandWad, uint64 minOrderLots, uint64 maxOrderLots, uint64 maxLiqLotsPerBlock, bool fundingEnabled))',
+  'function activeProfile() view returns ((uint64 version, bytes32 profileHash, uint64 effectiveAt))']);
 
 async function main() {
   const [rpc, deploymentPath, rulesPath, engineArg, ...extra] = process.argv.slice(2);
@@ -67,7 +69,10 @@ async function main() {
   // An index-only perp has its own rules text; its listing must still match the event's collateral, registry and T.
   check('engine listing (marketId, token, registry, T, rules)', same(l.marketId, marketId) && same(l.token, d.collateral)
     && same(l.registry, d.registry) && BigInt(l.scheduledT) === d.scheduledT && (indexOnly || same(l.rulesHash, d.erosRulesHash)));
-  check('engine 1x, funding off', BigInt(l.deploymentCapX) === 1n && l.fundingEnabled === false);
+  const profile = await read<{ profileHash: string }>(engine, ENGINE, 'activeProfile');
+  check('engine leverage (funding off; above 1x only with liquidation and a staged profile)',
+    nativeLeverageOk({ deploymentCapX: BigInt(l.deploymentCapX), maxLiqLotsPerBlock: BigInt(l.maxLiqLotsPerBlock), fundingEnabled: l.fundingEnabled },
+      profile.profileHash), `${l.deploymentCapX}x, maxLiqLotsPerBlock ${l.maxLiqLotsPerBlock}, profile ${profile.profileHash}`);
   if (rules) {
     check('native rules bind this deployment', same(rules.kuruOrderBook, d.yesBook) && same(rules.yesToken, d.yesToken)
       && same(rules.noToken, d.noToken) && same(rules.outcomeVault, d.outcomeVault) && same(rules.collateral, d.collateral)
