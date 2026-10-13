@@ -1,0 +1,24 @@
+PASS  chain id
+PASS  vault code hash
+PASS  vault registry
+PASS  vault marketId
+PASS  vault collateral
+PASS  vault rulesHash
+PASS  vault scheduledT
+PASS  vault issuanceCap
+PASS  vault YES token
+PASS  YES token vault/market/side/decimals
+PASS  YES book base/quote/decimals  (price precision 1000, size precision 1000, fees 0/0 bps)
+PASS  vault NO token
+PASS  NO token vault/market/side/decimals
+PASS  NO book base/quote/decimals  (price precision 1000, size precision 1000, fees 0/0 bps)
+PASS  vault bound to registry engine  (0x90E522cBfBB038A91c23dB825102980c4417A84c)
+PASS  engine listing (marketId, token, registry, T, rules)
+PASS  engine 1x, funding off
+PASS  native rules bind this deployment
+PASS  engine pins native source (id, signer, rules hash, depth rule)  (indexSigner 0x5aE3c3f1622c7360B032ADb135f51F97aD3d8Dd9)
+{
+  "engine": "0x90E522cBfBB038A91c23dB825102980c4417A84c",
+  "checks": 19,
+  "failed": 0
+}
