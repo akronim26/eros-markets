@@ -1,0 +1,74 @@
+{
+  "verified": true,
+  "archiveHashesVerified": true,
+  "authenticSourceFractionReview": true,
+  "oldSignedHistoryUnchanged": true,
+  "optimizedGasCostWei": "120617754000000000",
+  "recoveryGasCostWei": "2142000000000000",
+  "newGasCostWei": "122759754000000000",
+  "newReservationsWei": "210103950000000000",
+  "packets": [
+    {
+      "sequence": "1",
+      "nonce": 0,
+      "gasCostWei": "81600000000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "2",
+      "nonce": 1,
+      "gasCostWei": "81600000000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "3",
+      "nonce": 2,
+      "gasCostWei": "81600000000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "7",
+      "nonce": 4,
+      "gasCostWei": "20112360000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "8",
+      "nonce": 5,
+      "gasCostWei": "20101344000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "9",
+      "nonce": 6,
+      "gasCostWei": "20101344000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "10",
+      "nonce": 7,
+      "gasCostWei": "20101344000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "11",
+      "nonce": 8,
+      "gasCostWei": "20100018000000000",
+      "depthValid": true
+    },
+    {
+      "sequence": "12",
+      "nonce": 9,
+      "gasCostWei": "20101344000000000",
+      "depthValid": true
+    }
+  ],
+  "twap": {
+    "available": false,
+    "coveredSecs": "134",
+    "integral": "83147000000000000000",
+    "twapWad": "0"
+  },
+  "productionApproved": false,
+  "limitation": "Bounded gas test; sustained coverage remains separate."
+}

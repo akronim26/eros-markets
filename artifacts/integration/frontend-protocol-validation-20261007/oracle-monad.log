@@ -1,0 +1,24 @@
+[PASS] testBatchInvalidBoundsEmptyTargetAndNativeValueAreRejected() (gas: 592390)
+[PASS] testBatchLaterPageOrFinishRevertRollsBackEveryEarlierStep() (gas: 825147)
+[PASS] testBatchStaleEpochWorkOrCursorCannotTouchEngine() (gas: 48765211)
+[PASS] testBatchStaleWindowCompletesAccountingButRetainsSafeBootstrap() (gas: 368870006)
+[PASS] testCalibratedProfileRejectsZeroCloseoutSpeed() (gas: 27763171)
+[PASS] testCalibrationRejectsMalformedAndUnboundedEnvelopes() (gas: 28057749)
+[PASS] testCapEqualToDepthStopsSamplingAfterFirstFill() (gas: 43272269)
+[PASS] testDepthRemainsAvailableAfterBootstrapFill() (gas: 44803716)
+[PASS] testExpiredCalibrationFallsBackAndStaleMarkCannotLiquidate() (gas: 894915052)
+[PASS] testFactoryAcceptsExplicitPacedLeverageWithSafeDefaults() (gas: 27842590)
+[PASS] testInitialReserveLimitsAdmissionEvenWithFiveXCalibration() (gas: 496532513)
+[PASS] testLeveragedActivationRequiresReserveBeforeSeedIsFrozen() (gas: 29150657)
+[PASS] testNoJumpPaysWinnerFullyAndReserveAbsorbsDeficit() (gas: 500906816)
+[PASS] testNoLiquidityNeverConfiscatesPositiveEquity() (gas: 641509731)
+[PASS] testPositiveEquityReductionUsesRealBookAndBlockPacing() (gas: 645540909)
+Logs:
+  factory real-book liquidation 100000 lots gas: 2737488
+
+[PASS] testRealSamplerBootstrapAndDirectFiveX() (gas: 496985839)
+[PASS] testUncalibratedProfileStaysFullyBackedAndStagingWaitsForEpoch() (gas: 894675422)
+[PASS] testYesJumpPaysLongFullyWithoutLiquidation() (gas: 500824937)
+Suite result: ok. 22 passed; 0 failed; 0 skipped; finished in 15.14s (35.42s CPU time)
+
+Ran 8 test suites in 15.19s (31.09s CPU time): 82 tests passed, 0 failed, 0 skipped (82 total tests)

@@ -1,0 +1,82 @@
+{
+  "checkedAtUtc": "2026-10-04T18:02:22.926Z",
+  "checkpoint": {
+    "mode": "MONAD_TESTNET_READ_ONLY",
+    "status": "ENGINE_PINS_VERIFIED",
+    "chainId": "10143",
+    "blockTag": "finalized",
+    "block": {
+      "number": "68181652",
+      "hash": "0xc3cebe465ce5b43e3b51454b42377f6004a657676ac31f3cf3fee9c179e91611",
+      "timestamp": "1791136940"
+    },
+    "checkedAtMs": "1791136942926",
+    "engine": {
+      "address": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+      "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+      "abiHash": "0x4287a515a1f77cea13d9c334353f22dd0a9ebe8a3b2a98ff2f7d6c2b0363f247",
+      "listing": {
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "token": "0x0000000000000000000000000000000000000000",
+        "registry": "0x0000000000000000000000000000000000000000",
+        "resolutionAuthority": "0x0000000000000000000000000000000000000000",
+        "monitor": "0x0000000000000000000000000000000000000000",
+        "governance": "0x0000000000000000000000000000000000000000",
+        "scheduledT": "1791717905",
+        "listedAt": "1791113105",
+        "sourceHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "rulesHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "invalidRule": {
+          "fallbackListed": true,
+          "captureGraceSecs": "3600",
+          "fallbackPriceWad": "500000000000000000",
+          "voidSecs": "2592000"
+        },
+        "template": 0,
+        "deploymentCapX": "0",
+        "maxTraders": 0,
+        "indexSourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "indexSigner": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e",
+        "indexRulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "depthNLots": "1000000",
+        "maxSpreadWad": "50000000000000000",
+        "bootstrapBandWad": "0",
+        "minOrderLots": "0",
+        "maxOrderLots": "0",
+        "maxLiqLotsPerBlock": "0",
+        "fundingEnabled": false
+      },
+      "sourceState": {
+        "signer": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "lastSequence": "12",
+        "lastObservedAt": "1791133022",
+        "configured": true
+      },
+      "lifecycle": {
+        "chainId": "10143",
+        "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "scheduledT": "1791717905",
+        "halted": false,
+        "blockNumber": "68181652",
+        "blockHash": "0xc3cebe465ce5b43e3b51454b42377f6004a657676ac31f3cf3fee9c179e91611",
+        "blockTimestamp": "1791136940",
+        "canonical": true
+      }
+    },
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  },
+  "balanceWei": "1232440246000000000",
+  "pendingNonce": "10",
+  "requiredWei": "1350000000000000000",
+  "fundingGapWei": "117559754000000000",
+  "funded": false,
+  "transactionsSent": 0,
+  "signaturesProduced": 0
+}

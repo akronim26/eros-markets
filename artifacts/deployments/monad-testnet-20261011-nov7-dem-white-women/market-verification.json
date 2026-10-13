@@ -1,0 +1,187 @@
+{
+  "passed": true,
+  "publicTransactions": 7,
+  "manifest": {
+    "manifestVersion": 1,
+    "scope": "testnet-read-only",
+    "chainId": 10143,
+    "sourceCommit": "21cdf225807efd9af4a3aa821e837ee80dc5d1aa",
+    "riskScenario": "leveraged-fixture",
+    "sourceMode": "polymarket",
+    "calibrationEvidence": "0x49b849de623c0deb960e945926543443c92daa03c7aba3c8172d8a791c3b2ef9",
+    "provenance": {
+      "collateral": "testnet",
+      "index": "external",
+      "calibration": "synthetic",
+      "resolution": "oracle"
+    },
+    "verifiedAt": {
+      "blockNumber": "70107507",
+      "blockHash": "0x85b5abefd1ae54827f002247211bc945462145619e173f7f55740673601dcdfa"
+    },
+    "contracts": {
+      "TestUSDC": {
+        "address": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+        "codehash": "0x33e77bc6ce947556391af4c69c994ef8b7e69b4e03bfa4280cdec814cbb9d495",
+        "deployBlock": 68951846
+      },
+      "Finder": {
+        "address": "0xE60b1e2171614FC604311415A7788E56cB25E3bb",
+        "codehash": "0x4d1727e21859bbaec3575d1fd8b8a17be93811efd4421dfab4ea07b1780cbe6a",
+        "deployBlock": 68951861
+      },
+      "Store": {
+        "address": "0x09e5bc737FeBe0f6C2D8b0D90eEc2ad0307804F1",
+        "codehash": "0x008e9ce8a6f1cf7cf816c12f0f49062839e2fb0d55a97c7cfbc45997a118e442",
+        "deployBlock": 68951873
+      },
+      "AddressWhitelist": {
+        "address": "0x78bEEF97053B06A608043ac90d2924d48D2F6606",
+        "codehash": "0x87e5f2459fea5a1ff3c5fb38da735f5f3f893a0e22aac3f6bb1b39b1d16f7676",
+        "deployBlock": 68951895
+      },
+      "IdentifierWhitelist": {
+        "address": "0x75B0CbA83149917cE287d47361Bd51795313762e",
+        "codehash": "0x64ac6705092caae19ebee0677e858c1e42e63abbcbcf29246b7f2f3c65872b19",
+        "deployBlock": 68951918
+      },
+      "ErosSandboxOracle": {
+        "address": "0xc9AAe0A8f5D6e1Cb780661B0e20265234e768403",
+        "codehash": "0x9eb025920e9d217949a64f211d65ff232f0102e4f05c08c59850f50b9d7b0150",
+        "deployBlock": 68951943
+      },
+      "OptimisticOracleV3": {
+        "address": "0xd9B5090d4EBa69513DFE5eD6E8dE84b3D843Ba5E",
+        "codehash": "0x11ea81f26aa09124c162e2ebc4f53791eddeda7233c308a1897df1f224b9ea1f",
+        "deployBlock": 68952003
+      },
+      "Timelock": {
+        "address": "0x9fe0cF0DD3d190347548c2dC71cdbb4aAAC211F5",
+        "codehash": "0x8c45c8a13630cce47e81da7a2cf99931f60d4dd321f3ef36e50c024b06eea63a",
+        "deployBlock": 68952028
+      },
+      "BondTreasury": {
+        "address": "0xaA55f414a446B65Fe1004A781f5DeF4B3f9d5B04",
+        "codehash": "0xf72c0e499d46ca7b2b2dcaa5ccb93b1cfc8a3c8199d8d418ce6361e68f2b07fd",
+        "deployBlock": 68952051
+      },
+      "ResolutionOracle": {
+        "address": "0xb86a48B07eE07037F1B52273B9B50f20615B61e4",
+        "codehash": "0xdcc2abf654b8bb35328ea2df02403db378007f9a76bdd707cd6d2615cb757dca",
+        "deployBlock": 68952065
+      },
+      "UmaAdapter": {
+        "address": "0x2750c61Ae27A40875b10D8232f68f31a8e2a3385",
+        "codehash": "0x391e32a1d2acaf213bd1e71101b5f05a627df5ada7e3a722cef13b877d6ca572",
+        "deployBlock": 68952077
+      },
+      "MarketRegistry": {
+        "address": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+        "codehash": "0x0b61520cc9d461d6b4b60e45a4a98beca08ab2c648f18b6082c1f4e087b12fb9",
+        "deployBlock": 68952089
+      },
+      "KeeperRouter": {
+        "address": "0xf9afbf482F428f26E7a093Cd9B790827c9bE5667",
+        "codehash": "0x3f2f6daaf7e2c183e46e6d8d00b307884c5770e8095818a46d6d9562d51b35cf",
+        "deployBlock": 68952100
+      },
+      "EngineCodeStore": {
+        "address": "0x009d425581A3cD59f78BB5198C52b2452bD93491",
+        "codehash": "0x4681e9713bf4ecd67b3d1d9a7b7edc33b5d94b50697399698e57c56786e958fb",
+        "deployBlock": 70103380
+      },
+      "EngineCodeStoreTail": {
+        "address": "0x4231E897b07F6b6728569663Dfa73C88cc8FB0C7",
+        "codehash": "0xe6c0857c602745ada0446d6447ed9f6132b927940a2359c7d4d3c796fd4295b3",
+        "deployBlock": 70103443
+      },
+      "MarketFactory": {
+        "address": "0x33Bf4bba245253377f2875C77a6647a76ef42600",
+        "codehash": "0xb88d4b55a99384a8f144f76b0285d8d6c39ed2eb9b0136233e3f815f2208d5cb",
+        "deployBlock": 70103506
+      },
+      "RolloverBatcher": {
+        "address": "0x59B40464F76BBA6009116d427ADD7f85cC295436",
+        "codehash": "0x9d4c9e5216ee5b5883f983e011ffc6f6c25d0b4a8c362115eef6b478e9e0abfd",
+        "deployBlock": 68952150
+      },
+      "CollateralVault": {
+        "address": "0x5E53c88eB3dA4C8640BC7AF51F0C5f8CC11205e4",
+        "codehash": "0x05e127cc7ae15592310de7432eab0418a04955441030e9377a57a6d08b3be1ea",
+        "deployBlock": 70103506
+      },
+      "CollateralToken": {
+        "address": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+        "codehash": "0x33e77bc6ce947556391af4c69c994ef8b7e69b4e03bfa4280cdec814cbb9d495",
+        "deployBlock": 68951846
+      }
+    },
+    "markets": [
+      {
+        "name": "polymarket-demo",
+        "engine": "0xA3955B47E943CCC6A23E3A66CFd60068de518068",
+        "marketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+        "sourceId": "0x3b3b377213e4fa6cfcbde3737041c28d6f0c947767cac45dc0b3f764fd01d40e",
+        "listingHash": "0x12cb7b923b24318c0ef9c726d0fac99bb243a318fe8ae67406224a088dee0e1c",
+        "codehash": "0xaf49f0f61736b27898d6c8660ca9241c9ebc57d1b79e06e6235042a64b54b9b7",
+        "deployBlock": 70106404,
+        "deploymentCapX": 5,
+        "template": 0,
+        "maxLiqLotsPerBlock": "100000",
+        "fundingEnabled": false
+      }
+    ],
+    "accounts": {}
+  },
+  "listing": {
+    "marketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+    "token": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+    "registry": "0x780E73dDc65113F8C9C506daa25A0404Ed9f3E33",
+    "resolutionAuthority": "0xb86a48B07eE07037F1B52273B9B50f20615B61e4",
+    "monitor": "0x249C5358f353754d3829e21237edA22E6340475a",
+    "governance": "0x9fe0cF0DD3d190347548c2dC71cdbb4aAAC211F5",
+    "scheduledT": "1794027540",
+    "listedAt": "1791720198",
+    "sourceHash": "0x81381ce91bcb7a82bd50bdf134f2d53744ae2edfe28d62521e3809a2143d9bd7",
+    "rulesHash": "0x8c72c7bc577518d078a6fdf2b483f1f4d485d70cb342443c82c3c20e9913c6df",
+    "invalidRule": {
+      "fallbackListed": true,
+      "captureGraceSecs": "3600",
+      "fallbackPriceWad": "500000000000000000",
+      "voidSecs": "2592000"
+    },
+    "template": 0,
+    "deploymentCapX": "5",
+    "maxTraders": 1024,
+    "indexSourceId": "0x3b3b377213e4fa6cfcbde3737041c28d6f0c947767cac45dc0b3f764fd01d40e",
+    "indexSigner": "0xa2e210785aA190f054fCb04CAA7bA3F5d5E04674",
+    "indexRulesHash": "0x0c33da3b19ea0431310c4b079a03d281b002a6dc375e46b31b3570822d22f783",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "bootstrapBandWad": "50000000000000000",
+    "minOrderLots": "1",
+    "maxOrderLots": "4294967295",
+    "maxLiqLotsPerBlock": "100000",
+    "fundingEnabled": false
+  },
+  "caps": [
+    "1",
+    "1"
+  ],
+  "pricingWindows": {
+    "indexSeconds": 60,
+    "perpSeconds": 60,
+    "basisSeconds": 60,
+    "carryLimitSeconds": 120
+  },
+  "capacity": {
+    "oiCapLots": "10000000",
+    "depthNLots": "1000000",
+    "samplingHeadroomLots": "9000000"
+  },
+  "profileHash": "0xc724453e2a349e70464ff24a03e149ca502fb7341735b82453a407291dd223aa",
+  "title": "Will Democrats win white women in the midterms?",
+  "oracleDelivery": "CRE simulation; production network workflow not deployed",
+  "uma": "owner-controlled testnet sandbox",
+  "publication": "configured external source; continuous operators require service activation"
+}

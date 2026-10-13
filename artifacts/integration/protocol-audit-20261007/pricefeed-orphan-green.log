@@ -1,0 +1,30 @@
+DEPLOYMENT_CASE {"scenario":"sigkill-supervisor-orphan-lock","duplicateExitCode":78,"orphanHeldLock":true,"writerResumed":true,"transactionsSent":0}
+✔ an orphaned worker retains the OS lock after its supervisor is killed, then a new supervisor reconciles state (2721.850423ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3090.234817
+DEPLOYMENT_CASE {"scenario":"sigkill-supervisor-orphan-lock","duplicateExitCode":78,"orphanHeldLock":true,"writerResumed":true,"transactionsSent":0}
+✔ an orphaned worker retains the OS lock after its supervisor is killed, then a new supervisor reconciles state (2836.417702ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3193.867758
+DEPLOYMENT_CASE {"scenario":"sigkill-supervisor-orphan-lock","duplicateExitCode":78,"orphanHeldLock":true,"writerResumed":true,"transactionsSent":0}
+✔ an orphaned worker retains the OS lock after its supervisor is killed, then a new supervisor reconciles state (2843.851596ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3166.453575

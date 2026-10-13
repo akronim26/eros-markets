@@ -1,0 +1,98 @@
+{
+  "mode": "MONAD_TESTNET_EXTERNAL_SOURCE",
+  "schemaVersion": 1,
+  "chainId": 10143,
+  "marketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+  "sourceId": "0x3b3b377213e4fa6cfcbde3737041c28d6f0c947767cac45dc0b3f764fd01d40e",
+  "sourceRulesHash": "0x0c33da3b19ea0431310c4b079a03d281b002a6dc375e46b31b3570822d22f783",
+  "scheduledT": "1794027540",
+  "depthNLots": "1000000",
+  "maxSpreadWad": "50000000000000000",
+  "question": "Will Democrats win white women in the midterms?",
+  "description": "The 2026 midterm elections are scheduled to be held on November 3, 2026.\n\nThis market will resolve according to the party that wins the greatest share of white women in the midterm elections according to exit polling provided by CNN.\n\nThis market will resolve according to the national exit polling for the United States House, as viewed on the applicable cnn.com webpage at 12:00PM ET on November 6, 2026.\n\nIn the event of a tie for first place, this market will resolve based on the party, among those tied, whose name comes first alphabetically.\n\nIn the event that CNN provides applicable exit polling but it is not available at the time specified above, this market will await an update for one full calendar day before moving to the media organizations listed below.\n\nIn the event that CNN does not provide applicable exit polling, this market will resolve according to the exit polling provided by CBS or, should CBS also not provide applicable polling, ABC. \n\nIf none of the listed organizations provide applicable exit polling by November 7, 2026 at 11:59PM ET, this market will resolve to \"Other\".",
+  "resolutionSource": "",
+  "config": {
+    "schemaVersion": "1",
+    "configVersion": "monad-integrated-demo-1",
+    "key": "live-4199213",
+    "category": "politics",
+    "enabled": false,
+    "destination": null,
+    "mapping": {
+      "eventId": "961306",
+      "externalMarketId": "4199213",
+      "conditionId": "0x7981fa84d31399de903d38c9b587d2f04991838213f6b25d0fe2ba6285cb8fde",
+      "outcomeTokenId": "69549346928853472628122030453187144427432924435990276090772625659073977942526",
+      "outcomeLabel": "Yes"
+    },
+    "pricing": {
+      "depthNLots": "1000000",
+      "maxSpreadWad": "50000000000000000",
+      "impactMethod": "vwap"
+    },
+    "policies": {
+      "timestampPolicyId": "authentic-vendor-ms-floor-diagnostic",
+      "quantityPolicyId": "claims-floor-total-diagnostic",
+      "quotePolicyId": "before-fee-vwap-unapproved",
+      "mappingApprovalId": null,
+      "pricingApprovalId": null,
+      "timeApprovalId": null,
+      "rulesApprovalId": null,
+      "unitsApprovalId": null,
+      "invalidApprovalId": null,
+      "operatingApprovalId": null
+    },
+    "requiredFeedUntil": "1794027540",
+    "poll": {
+      "intervalMs": 1000,
+      "timeoutMs": 4000,
+      "maxRetries": 1,
+      "retryDelayMs": 200,
+      "metadataMaxAgeMs": 90000,
+      "minimumHeadroomMs": 5000,
+      "bodyLimitBytes": 2000000
+    }
+  },
+  "rules": {
+    "schemaVersion": "1",
+    "venue": "polymarket",
+    "eventId": "961306",
+    "externalMarketId": "4199213",
+    "conditionId": "0x7981fa84d31399de903d38c9b587d2f04991838213f6b25d0fe2ba6285cb8fde",
+    "outcomeTokenId": "69549346928853472628122030453187144427432924435990276090772625659073977942526",
+    "outcomeLabel": "Yes",
+    "marketId": "0x86c606de50da38158856aabc7fbb9337d30a3f9cd50f34a855272a32332d1522",
+    "sourceId": "0x3b3b377213e4fa6cfcbde3737041c28d6f0c947767cac45dc0b3f764fd01d40e",
+    "erosRulesHash": "0x8c72c7bc577518d078a6fdf2b483f1f4d485d70cb342443c82c3c20e9913c6df",
+    "externalRulesDigest": "0x2ace541aa42f975ae7159a3687e5ebb6b4301fd6f9ce178d6e34356afada924d",
+    "quotePolicyHash": "0x31b3436d093de0cee51670f6e399bdf4f9a714fda4af289e096c0486dce210ff",
+    "quantityPolicyHash": "0xd269b06c2074d535eef7cce6d8f543601433501434d31ffcfeaa55e7d951d976",
+    "timestampPolicyHash": "0xe6f7de932aef86ee36bb44fc32809c6305475ad7f460b37037cf602217e553d5",
+    "failurePolicyHash": "0x0fa1db1edbc336046ff5259520ba63997b7a0493671fbb3b9047d6dbe755ac0d",
+    "scheduledT": "1794027540",
+    "depthNLots": "1000000",
+    "maxSpreadWad": "50000000000000000",
+    "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1"
+  },
+  "preparedAtMs": "1791717776916",
+  "productionApproved": false,
+  "calibration": "SYNTHETIC_TEST_RISK_PARAMETERS_NOT_EMPIRICAL",
+  "namedOutcomeReview": {
+    "marketId": "4199213",
+    "label": "Democrats",
+    "negativeRisk": true,
+    "eventAugmented": true,
+    "scope": "Exact named binary YES-token order book and eventual finalized binary payout only; no outcome conversions, Other or placeholders.",
+    "reference": "https://docs.polymarket.com/concepts/negative-risk"
+  },
+  "deploymentRevision": "lower-cost-20261011",
+  "operatorQualificationSha256": "22b40a593b7006a8a9f54943eabcf94d68c332a793711724dae3f036769e7bad",
+  "indexSigner": "0xa2e210785aA190f054fCb04CAA7bA3F5d5E04674",
+  "erosRulesHash": "0x8c72c7bc577518d078a6fdf2b483f1f4d485d70cb342443c82c3c20e9913c6df",
+  "resolution": {
+    "provider": "Polymarket Gamma",
+    "yesIndex": 0,
+    "statusRequired": "resolved",
+    "fractionalPayout": "review/invalid; no L1 binary report"
+  }
+}

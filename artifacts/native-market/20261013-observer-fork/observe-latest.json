@@ -1,0 +1,26 @@
+{
+  "rulesHash": "0x79fd99745be11ac39b47a5f9509ab9ae1b098b8927b4e5874e320a8e5856d28c",
+  "status": "COLLECTING",
+  "reason": null,
+  "evidenceHash": "0xa7cefa680ccd96c4b1edaa89ffd8d15035d9cf21ee54a5a0ba4cd1b69629b8fc",
+  "block": {
+    "number": "70496539",
+    "hash": "0x8572d3f2d157aa7301de08d510a7df610459e09f1ac0a354204403538172ed42",
+    "timestamp": "1791838042"
+  },
+  "levels": {
+    "bids": 1,
+    "asks": 1
+  },
+  "ammVault": {
+    "bid": "0",
+    "ask": "0"
+  },
+  "impact": {
+    "bid": "0.4",
+    "ask": "0.6",
+    "mid": "0.5",
+    "bidDepthLots": "100000",
+    "askDepthLots": "100000"
+  }
+}

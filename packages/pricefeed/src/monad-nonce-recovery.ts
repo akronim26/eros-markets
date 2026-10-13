@@ -1,0 +1,284 @@
+import { join } from 'node:path';
+import { setTimeout as pause } from 'node:timers/promises';
+import { keccak256, parseTransaction, recoverAddress, recoverTransactionAddress, type Hex, type TransactionSerialized } from 'viem';
+import type { PrivateKeyAccount } from 'viem/accounts';
+import { openBudgetJournals, type BudgetOptions } from './monad-budget.js';
+import { nonceRecoveries, unsignedExpiredReservation, originalWon, recoveryTerminal, cancellationCount, validateOriginalRecovery, recoverableUnsentReason, saveRecovery, validateCancellationReceipt, verifyCancellationSigner, type NonceRecovery } from './nonce-recovery-journal.js';
+import { parseTestnetRunPolicy } from './monad-service.js';
+import { policyHash, relayProfileBody, verifyBudgetAudit } from './relay-policy.js';
+import { preflightMonadTestnet } from './monad-preflight.js';
+import { monadSubmissionRpc, type MonadSubmissionRpc } from './monad-rpc.js';
+import { loadTestnetKey } from './monad-keys.js';
+import { PacketStore, packetNamespace } from './packet-store.js';
+import { Journal } from './journal.js';
+import { json } from './math.js';
+import { validateReceipt } from './receipts.js';
+import { submitCalldata } from './wire.js';
+
+/** `originalHash` is null only for a reservation whose price request was never signed. */
+type RecoveryOptions=BudgetOptions&{keysDirectory:string;policy:unknown;nonce:bigint;originalHash:Hex|null;maxCostWei:bigint;waitMs:number;allowAttempted?:boolean};
+/** Bound provider calls even when an injected transport ignores its own timeout.
+ * A late send remains uncertain; this wrapper never declares it unsuccessful.
+ */
+function boundedRpc(provider:MonadSubmissionRpc,timeoutMs:number):MonadSubmissionRpc {
+  const call=async<T>(operation:()=>Promise<T>):Promise<T>=>{
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{return await Promise.race([Promise.resolve().then(operation),new Promise<never>((_resolve,reject)=>{
+      timer=setTimeout(()=>reject(new Error('NONCE_RECOVERY_RPC_TIMEOUT')),timeoutMs);
+    })]);}catch(error){
+      if(error instanceof Error&&error.message==='NONCE_RECOVERY_RPC_TIMEOUT')throw error;
+      throw new Error('NONCE_RECOVERY_RPC_FAILED');
+    }finally{if(timer)clearTimeout(timer);}
+  };
+  return {chainId:()=>call(()=>provider.chainId()),block:s=>call(()=>provider.block(s)),
+    ...(provider.codeHash?{codeHash:(a:Hex,b:bigint)=>call(()=>provider.codeHash!(a,b))}:{}),
+    code:(a,b)=>call(()=>provider.code(a,b)),read:(a,b,n,s,k)=>call(()=>provider.read(a,b,n,s,k)),
+    nonce:a=>call(()=>provider.nonce(a)),balance:a=>call(()=>provider.balance(a)),
+    simulate:(s,t,d,g)=>call(()=>provider.simulate(s,t,d,g)),send:r=>call(()=>provider.send(r)),receipt:h=>call(()=>provider.receipt(h))};
+}
+/** Cancels a known signed, or provably never-signed, reservation after its carry window expires. Expiry
+ * does not prevent delayed onchain acceptance: an original can still win this
+ * nonce. Prove either finalized winner, retaining uncertainty until then.
+ * Zero-value, empty-data, 21,000-gas self transaction; no arbitrary signing path.
+ * Original price signature/request/raw bytes and every reservation are retained.
+ */
+export async function recoverMonadNonce(options:RecoveryOptions,rpc:MonadSubmissionRpc=monadSubmissionRpc(options.rpcUrl),
+  now:()=>bigint=()=>BigInt(Date.now()),testAccount?:PrivateKeyAccount){
+  if(options.originalHash!==null&&!/^0x[\da-fA-F]{64}$/.test(options.originalHash)||options.nonce<0n||options.nonce>BigInt(Number.MAX_SAFE_INTEGER)
+    ||options.maxCostWei<=0n||!Number.isSafeInteger(options.waitMs)||options.waitMs<1||options.waitMs>120000)
+    throw new Error('BAD_NONCE_RECOVERY_LIMIT');
+  const p=parseTestnetRunPolicy(options.policy),cfg=options.config,d=cfg.destination!;
+  rpc=boundedRpc(rpc,p.relay.timeoutMs);
+  const profile=relayProfileBody({chainId:10143n,...p.budget},p.relay);
+  const request={gas:'21000',maxFeePerGas:p.relay.maxFeePerGas.toString(),maxPriorityFeePerGas:p.relay.maxPriorityFeePerGas.toString()};
+  const reservationWei=21000n*p.relay.maxFeePerGas;
+  if(reservationWei>options.maxCostWei)throw new Error('NONCE_RECOVERY_COST_CAP');
+  const domain={chainId:10143n,engine:d.engineAddress,marketId:d.marketId,sourceId:d.sourceId,rulesHash:d.sourceRulesHash,signer:d.signerAddress};
+  const ns=packetNamespace(domain),db=openBudgetJournals(options,true);
+  let auditedHistory:{digest:string;block:{number:bigint;hash:Hex;timestamp:bigint}}|undefined;
+  let locked=false;
+  const begin=()=>{db.exec('BEGIN IMMEDIATE');locked=true;};
+  const commit=()=>{db.exec('COMMIT');locked=false;};
+  const rollback=()=>{if(locked){db.exec('ROLLBACK');locked=false;}};
+  function local(){
+    const control=db.prepare('SELECT * FROM relay_control WHERE id=1').get();
+    if(control?.profile!==profile||control.reason)throw new Error('RELAY_PROFILE_CHANGED_OR_QUARANTINED');
+    verifyBudgetAudit(db,profile,p.budget.budgetRevision??0);
+    for(const table of ['relay_nonce','source.writers','packets.packet_workers'])
+      if(db.prepare(`SELECT until_ms FROM ${table}`).all().some(r=>BigInt(String(r.until_ms))>now()))throw new Error('NONCE_RECOVERY_IDLE_REQUIRED');
+    const meta=db.prepare('SELECT * FROM transactions.transaction_signer').all(),pin=db.prepare('SELECT * FROM relay_signer').all();
+    const accounts=db.prepare('SELECT * FROM relay_nonce').all();
+    if(meta.length!==1||meta[0]!.sender!==p.sender.toLowerCase()||meta[0]!.chain_id!=='10143'||pin.length!==1
+      ||pin[0]!.sender!==p.sender.toLowerCase()||pin[0]!.journal_id!==meta[0]!.id||accounts.length!==1
+      ||accounts[0]!.sender!==p.sender.toLowerCase()||BigInt(String(accounts[0]!.next_nonce))!==options.nonce+1n)
+      throw new Error('NONCE_RECOVERY_IDENTITY_MISMATCH');
+    const rows=db.prepare('SELECT * FROM deliveries').all();
+    const target=rows.find(r=>r.nonce===options.nonce.toString());
+    if(!target||policyHash(String(target.body))!==target.sha256)throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+    const record=JSON.parse(String(target.body)),recoveries=nonceRecoveries(db),existing=recoveries.find(r=>r.key===target.key);
+    const attempted=options.allowAttempted===true&&Number.isSafeInteger(record.attempts)&&record.attempts>0
+      &&record.attempts<=p.relay.maxAttempts&&(existing?.attemptedOriginal||record.reason==='RESERVED_NONCE_HEADROOM_EXPIRED');
+    const unsigned=options.originalHash===null&&unsignedExpiredReservation(existing?JSON.parse(existing.originalBody):record);
+    if(record.txHash!==options.originalHash||record.namespace!==ns||!record.raw&&!unsigned||record.accepted!==null&&!existing||record.attempts!==0&&!attempted
+      ||!existing&&(record.state!=='QUARANTINED'||!recoverableUnsentReason(record.reason))
+      ||existing&&(existing.profile!==profile||existing.signerJournalId!==meta[0]!.id||existing.sender.toLowerCase()!==p.sender.toLowerCase()
+        ||json(existing.request)!==json(request)||existing.reservationWei!==(existing.cancellationReserved===false?'0':reservationWei.toString())))throw new Error('NONCE_RECOVERY_SCOPE');
+    const reserved=rows.reduce((s,row)=>{if(policyHash(String(row.body))!==row.sha256)throw new Error('DELIVERY_JOURNAL_INTEGRITY');
+      const r=JSON.parse(String(row.body));return s+BigInt(r.request.gas)*BigInt(r.request.maxFeePerGas);},0n)
+      +recoveries.reduce((s,r)=>s+BigInt(r.reservationWei),0n);
+    if(rows.length+cancellationCount(recoveries)>p.budget.maxTransactions||reserved>p.budget.totalMaxCostWei)
+      throw new Error('TESTNET_RELAY_BUDGET_EXHAUSTED');
+    return {target,record,rows,existing,meta:meta[0]!,reserved,recoveryCount:cancellationCount(recoveries)};
+  }
+  async function chainAndHistory(state:ReturnType<typeof local>){
+    const store=new PacketStore(join(options.journalDirectory,'packets.sqlite'),true),source=new Journal(join(options.journalDirectory,'source.sqlite'),true);
+    try{
+      if(!store.verify()||!source.verify())throw new Error('TESTNET_JOURNAL_INTEGRITY');
+      const packet=store.get(domain,BigInt(state.record.sequence));
+      if(!packet?.signature||packet.digest!==state.record.digest||packet.state!=='SIGNED'
+        ||submitCalldata(packet.packet.observation,packet.signature).toLowerCase()!==state.record.request.data
+        ||now()/1000n<=packet.packet.observation.observedAt+30n)throw new Error('NONCE_RECOVERY_NOT_EXPIRED_OR_MISMATCH');
+      if((await recoverAddress({hash:packet.digest,signature:packet.signature})).toLowerCase()!==d.signerAddress.toLowerCase())
+        throw new Error('NONCE_RECOVERY_IDENTITY_MISMATCH');
+      const signed=db.prepare('SELECT * FROM transactions.transaction_reservations WHERE nonce=?').get(options.nonce.toString());
+      if(state.record.raw===null){
+        // Never signed: the signer journal must not hold even a reservation for this nonce, since
+        // its signing step may have completed after the relay stopped recording.
+        if(signed||options.originalHash!==null)throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');
+      }else{
+        const original=parseTransaction(state.record.raw);
+        if(!signed||signed.raw!==state.record.raw||signed.tx_hash!==options.originalHash||signed.request!==json(state.record.request)
+          ||signed.sha256!==policyHash(`${signed.request}:${signed.raw}:${signed.tx_hash}`)||keccak256(state.record.raw)!==options.originalHash
+          ||original.chainId!==10143||original.type!=='eip1559'||original.nonce!==Number(options.nonce)||original.to?.toLowerCase()!==d.engineAddress.toLowerCase()
+          ||original.data!==state.record.request.data||(original.value??0n)!==0n||original.gas!==BigInt(state.record.request.gas)
+          ||original.maxFeePerGas!==BigInt(state.record.request.maxFeePerGas)||original.maxPriorityFeePerGas!==BigInt(state.record.request.maxPriorityFeePerGas)
+          ||(await recoverTransactionAddress({serializedTransaction:state.record.raw as TransactionSerialized})).toLowerCase()!==p.sender.toLowerCase())
+          throw new Error('TRANSACTION_SIGNER_RELAY_MISMATCH');
+      }
+      if(state.existing)await verifyCancellationSigner(state.existing);
+      const checkpoint=await preflightMonadTestnet(rpc,{config:cfg,abi:options.abi},now);
+      if(checkpoint.block.timestamp<=packet.packet.observation.observedAt+30n)throw new Error('NONCE_RECOVERY_NOT_CANONICALLY_EXPIRED');
+      if(state.existing?.attemptedOriginal){
+        const expiry=state.existing.expiryCheckpoint!;
+        const block=await rpc.block({blockNumber:BigInt(expiry.number)});
+        if(block.hash!==expiry.hash||block.timestamp!==BigInt(expiry.timestamp)
+          ||expiry.observedAt!==packet.packet.observation.observedAt.toString())throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      }
+      // Unsigned bytes cannot have been broadcast, so only the signed form has an original receipt.
+      const oldReceipt=options.originalHash?await rpc.receipt(options.originalHash):null;
+      let originalAccepted=null;
+      if(oldReceipt){
+        const block=await rpc.block({blockNumber:oldReceipt.blockNumber});
+        if(oldReceipt.transactionHash!==options.originalHash||oldReceipt.blockNumber!==block.number||oldReceipt.blockHash!==block.hash)
+          throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+        if(oldReceipt.blockNumber>checkpoint.block.number)throw new Error('NONCE_RECOVERY_ORIGINAL_NOT_FINAL');
+        if(oldReceipt.status==='success')originalAccepted=validateReceipt(packet.packet,options.originalHash,oldReceipt,block,
+          {depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)});
+        else if(oldReceipt.status!=='reverted'||oldReceipt.logs.length)throw new Error('NONCE_RECOVERY_RECEIPT_MISMATCH');
+        if(state.existing&&originalWon(state.existing))await validateOriginalRecovery(state.existing,oldReceipt,block,packet);
+        if(state.existing?.hash&&await rpc.receipt(state.existing.hash))throw new Error('NONCE_RECOVERY_CONFLICTING_RECEIPTS');
+      }else if(state.existing&&originalWon(state.existing))throw new Error('NONCE_RECOVERY_RECEIPT_MISSING');
+      const finalized=state.rows.filter(r=>r.key!==state.target.key).map(r=>JSON.parse(String(r.body))).filter(r=>r.state==='FINALIZED').sort((a,b)=>Number(BigInt(a.nonce)-BigInt(b.nonce)));
+      if(state.rows.some(r=>r.key!==state.target.key&&!['FINALIZED','CANCELLED','REVERTED'].includes(JSON.parse(String(r.body)).state)))
+        throw new Error('NONCE_RECOVERY_UNRESOLVED_HISTORY');
+      for(const recovery of nonceRecoveries(db).filter(r=>r.key!==state.target.key)){
+        if(!recoveryTerminal(recovery))throw new Error('NONCE_RECOVERY_UNRESOLVED_HISTORY');
+        await verifyCancellationSigner(recovery);
+        const receipt=await rpc.receipt(originalWon(recovery)?JSON.parse(recovery.originalBody).txHash:recovery.hash!);
+        if(!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+        const block=await rpc.block({blockNumber:receipt.blockNumber});
+        if(block.hash!==receipt.blockHash||json(receipt)!==json(recovery.receipt))throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+        if(originalWon(recovery))await validateOriginalRecovery(recovery,receipt,block,store.get(domain,BigInt(JSON.parse(recovery.originalBody).sequence)));
+        else validateCancellationReceipt(recovery,receipt);
+      }
+      if(state.rows.some(r=>r.key!==state.target.key&&JSON.parse(String(r.body)).state==='REVERTED'
+        &&!nonceRecoveries(db).some(recovery=>recovery.key===r.key&&recovery.state==='ORIGINAL_REVERTED')))throw new Error('NONCE_RECOVERY_UNRESOLVED_HISTORY');
+      const last=finalized.at(-1),lastPacket=originalAccepted?packet:last?store.get(domain,BigInt(last.sequence)):null;
+      if(checkpoint.engine!.sourceState.lastSequence!==(lastPacket?.packet.observation.sequence??0n)
+        ||checkpoint.engine!.sourceState.lastObservedAt!==(lastPacket?.packet.observation.observedAt??0n))throw new Error('BUDGET_CHAIN_HISTORY_CHANGED');
+      const historyDigest=policyHash(json(finalized));
+      if(auditedHistory?.digest===historyDigest){
+        // Reuse only this invocation's fully audited finalized history. A hash
+        // change at its finalized anchor invalidates the whole cached ancestry.
+        const anchor=await rpc.block({blockNumber:auditedHistory.block.number});
+        if(anchor.number!==auditedHistory.block.number||anchor.hash!==auditedHistory.block.hash
+          ||anchor.timestamp!==auditedHistory.block.timestamp||checkpoint.block.number<anchor.number)
+          throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      }else{
+        // Audit every receipt without serializing hundreds of network trips or
+        // flooding the provider. Drain active reads before releasing journals
+        // and preserve the first validation failure; no partial audit is cached.
+        let cursor=0,failed=false,failure:unknown;
+        const verify=async(r:typeof finalized[number])=>{
+          const packet=store.get(domain,BigInt(r.sequence));
+          const receipt=await rpc.receipt(r.txHash);
+          if(!packet||!receipt||receipt.blockNumber>checkpoint.block.number)throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+          const block=await rpc.block({blockNumber:BigInt(r.accepted.blockNumber)});
+          if(json(validateReceipt(packet.packet,r.txHash,receipt,block,{depthNLots:BigInt(cfg.pricing.depthNLots),maxSpreadWad:BigInt(cfg.pricing.maxSpreadWad)}))!==json(r.accepted))
+            throw new Error('NONCE_RECOVERY_HISTORY_MISMATCH');
+        };
+        const next=async()=>{
+          while(!failed&&cursor<finalized.length){
+            const record=finalized[cursor++]!;
+            try{await verify(record);}catch(error){if(!failed){failed=true;failure=error;}}
+          }
+        };
+        await Promise.all(Array.from({length:Math.min(8,finalized.length)},next));
+        if(failed)throw failure;
+        if((await rpc.block({blockNumber:checkpoint.block.number})).hash!==checkpoint.block.hash)
+          throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+        auditedHistory={digest:historyDigest,block:checkpoint.block};
+      }
+      const [nonce,balance,code]=await Promise.all([rpc.nonce(p.sender as Hex),rpc.balance(p.sender as Hex),rpc.code(p.sender as Hex,checkpoint.block.number)]);
+      if(code&&code!=='0x')throw new Error('NONCE_RECOVERY_EOA_REQUIRED');
+      if(oldReceipt?nonce!==options.nonce+1n:nonce!==options.nonce&&!(state.existing&&['UNKNOWN','FINALIZED'].includes(state.existing.state)&&nonce===options.nonce+1n))
+        throw new Error('NONCE_RECOVERY_CHAIN_NONCE_CHANGED');
+      if(!oldReceipt&&!state.existing&&balance<reservationWei)throw new Error('MONAD_SENDER_NEEDS_TEST_MON');
+      if((await rpc.block({blockNumber:checkpoint.block.number})).hash!==checkpoint.block.hash)throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+      return {checkpoint,oldReceipt,originalAccepted};
+    }finally{source.close();store.close();}
+  }
+  try{
+    begin();let state=local();const checked=await chainAndHistory(state),{checkpoint}=checked;
+    // Source timestamp is read from the already signature-verified packet.
+    const packetStore=new PacketStore(join(options.journalDirectory,'packets.sqlite'),true);
+    let observedAt:string;
+    try{observedAt=packetStore.get(domain,BigInt(state.record.sequence))!.packet.observation.observedAt.toString();}
+    finally{packetStore.close();}
+    let r:NonceRecovery=state.existing??{key:String(state.target.key),sender:p.sender as Hex,nonce:options.nonce.toString(),
+      originalBody:String(state.target.body),originalSha256:String(state.target.sha256),request,raw:null,hash:null,state:'PREPARING',attempts:0,
+      receipt:null,reservationWei:reservationWei.toString(),profile,signerJournalId:String(state.meta.id),
+      ...(state.record.attempts>0?{attemptedOriginal:true as const,expiryCheckpoint:{number:checkpoint.block.number.toString(),
+        hash:checkpoint.block.hash,timestamp:checkpoint.block.timestamp.toString(),observedAt}}:{})};
+    const completeOriginal=(proof:Awaited<ReturnType<typeof chainAndHistory>>)=>{
+      if(!proof.oldReceipt)return null;
+      const terminal:NonceRecovery={...(state.existing??r),state:proof.originalAccepted?'ORIGINAL_FINALIZED':'ORIGINAL_REVERTED',
+        ...(!state.existing?{cancellationReserved:false as const,reservationWei:'0'}:{}),
+        receipt:proof.oldReceipt,originalAccepted:proof.originalAccepted,originalDomain:{...domain,chainId:'10143'},
+        depthRule:{depthNLots:cfg.pricing.depthNLots,maxSpreadWad:cfg.pricing.maxSpreadWad}};
+      const body=json({...state.record,state:proof.originalAccepted?'FINALIZED':'REVERTED',accepted:proof.originalAccepted,
+        reason:proof.originalAccepted?null:'NONCE_RECOVERY_ORIGINAL_REVERTED'});
+      db.exec('CREATE TABLE IF NOT EXISTS nonce_recoveries(key TEXT PRIMARY KEY,body TEXT NOT NULL,sha256 TEXT NOT NULL) STRICT');
+      db.prepare('UPDATE deliveries SET body=?,sha256=? WHERE key=?').run(body,policyHash(body),terminal.key);
+      saveRecovery(db,terminal);nonceRecoveries(db);commit();
+      return {mode:'MONAD_TESTNET_NONCE_RECOVERY',status:terminal.state,nonce:terminal.nonce,hash:options.originalHash,
+        receipt:proof.oldReceipt,cancellationReservationWei:terminal.reservationWei,totalReservationsWei:state.reserved,
+        priceTransactionsSent:0,originalPriceRequestAndRawRetained:true,productionApproved:false};
+    };
+    const original=completeOriginal(checked);if(original)return original;
+    if(!state.existing){
+      if(state.rows.length+state.recoveryCount+1>p.budget.maxTransactions||state.reserved+reservationWei>p.budget.totalMaxCostWei)
+        throw new Error('TESTNET_RELAY_BUDGET_EXHAUSTED');
+      const estimate=await rpc.simulate(p.sender as Hex,p.sender as Hex,'0x',21000n);
+      if(typeof estimate!=='bigint'||estimate>21000n||estimate<21000n)throw new Error('NONCE_RECOVERY_SIMULATION_FAILED');
+      db.exec('CREATE TABLE IF NOT EXISTS nonce_recoveries(key TEXT PRIMARY KEY,body TEXT NOT NULL,sha256 TEXT NOT NULL) STRICT');saveRecovery(db,r);
+    }
+    commit();await verifyCancellationSigner(r);
+    if(!r.raw){
+      const account=testAccount??loadTestnetKey(join(options.keysDirectory,'transaction-signer.json'),join(options.keysDirectory,'transaction-password'),p.sender);
+      if(account.address.toLowerCase()!==p.sender.toLowerCase())throw new Error('KEY_IDENTITY_MISMATCH');
+      const raw=await account.signTransaction({chainId:10143,type:'eip1559',to:p.sender as Hex,value:0n,data:'0x',nonce:Number(options.nonce),
+        gas:21000n,maxFeePerGas:BigInt(request.maxFeePerGas),maxPriorityFeePerGas:BigInt(request.maxPriorityFeePerGas)});
+      begin();state=local();const current=state.existing!;
+      if(current.raw&&current.raw!==raw)throw new Error('NONCE_RECOVERY_SIGNING_CONFLICT');
+      r={...current,raw,hash:keccak256(raw),state:'READY'};saveRecovery(db,r);nonceRecoveries(db);commit();
+    }
+    const deadline=performance.now()+options.waitMs;
+    let sent=false;
+    while(true){
+      begin();state=local();const proof=await chainAndHistory(state);
+      const original=completeOriginal(proof);if(original)return original;
+      commit();
+      const receipt=await rpc.receipt(r.hash!);
+      if(receipt){
+        validateCancellationReceipt(r,receipt);
+        const [block,head]=await Promise.all([rpc.block({blockNumber:receipt.blockNumber}),rpc.block({blockTag:'finalized'})]);
+        if(block.hash!==receipt.blockHash)throw new Error('NONCE_RECOVERY_CANONICAL_MISMATCH');
+        if(receipt.blockNumber<=head.number){
+          begin();state=local();const proof=await chainAndHistory(state);
+          const original=completeOriginal(proof);if(original)return original;
+          if(receipt.blockNumber>proof.checkpoint.block.number)throw new Error('NONCE_RECOVERY_FINALITY_CHANGED');
+          r={...state.existing!,state:'FINALIZED',receipt};
+          const cancelled={...state.record,state:'CANCELLED',reason:'NONCE_CANCELLED'},body=json(cancelled);
+          db.prepare('UPDATE deliveries SET body=?,sha256=? WHERE key=?').run(body,policyHash(body),r.key);
+          saveRecovery(db,r);nonceRecoveries(db);commit();
+          return {mode:'MONAD_TESTNET_NONCE_RECOVERY',status:'FINALIZED',nonce:r.nonce,hash:r.hash,receipt,
+            cancellationReservationWei:r.reservationWei,totalReservationsWei:state.reserved,priceTransactionsSent:0,
+            originalPriceRequestAndRawRetained:true,productionApproved:false};
+        }
+      }else if(!sent&&r.state!=='FINALIZED'){
+        begin();state=local();const proof=await chainAndHistory(state);
+        const original=completeOriginal(proof);if(original)return original;r=state.existing!;
+        if(r.attempts>=p.relay.maxAttempts)throw new Error('NONCE_RECOVERY_ATTEMPTS_EXHAUSTED');
+        r={...r,state:'UNKNOWN',attempts:r.attempts+1};saveRecovery(db,r);commit();
+        // Persist uncertainty before network I/O. A retry can only reuse these bytes.
+        try{if(await rpc.send(r.raw!)!==r.hash)throw new Error('NONCE_RECOVERY_HASH_MISMATCH');}
+        catch{sent=true;}
+        sent=true;
+      }
+      if(performance.now()>=deadline)return {mode:'MONAD_TESTNET_NONCE_RECOVERY',status:'UNKNOWN',nonce:r.nonce,hash:r.hash,
+        cancellationReservationWei:r.reservationWei,priceTransactionsSent:0,productionApproved:false};
+      await pause(250);
+    }
+  }finally{rollback();db.close();}
+}

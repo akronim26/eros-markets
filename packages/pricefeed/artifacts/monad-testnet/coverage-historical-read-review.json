@@ -1,0 +1,20 @@
+{
+  "verified": true,
+  "namedBlockReadMatchesHistoricalEvidence": true,
+  "evaluationBlock": {
+    "number": "68169207",
+    "hash": "0x46a569ff76922f3f3fa6d01a66f2a4573be477eeef57868dc591c05bddd6051e",
+    "timestamp": "1791133182"
+  },
+  "twap": {
+    "available": false,
+    "twapWad": "0",
+    "coveredSecs": "134",
+    "integral": "83147000000000000000"
+  },
+  "captureSha256": "cff475ac65b456fc210e4dacb5e4a1ebb333895fbe4c45c2cb257b6828b38456",
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "productionApproved": false,
+  "limitation": "Historical reader check only; new sustained campaign awaits funding."
+}

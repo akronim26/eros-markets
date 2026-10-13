@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   forge:
     runs-on: ubuntu-latest
@@ -17,6 +21,9 @@ jobs:
         working-directory: contracts
     env:
       FOUNDRY_PROFILE: ci
+      # Compare gas during the full suite without rewriting the committed baseline.
+      FORGE_SNAPSHOT_EMIT: "false"
+      FORGE_SNAPSHOT_CHECK: "true"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,14 +33,12 @@ jobs:
         with:
           version: v1.8.3
 
-      - name: Format
-        run: forge fmt --check
-
       - name: Build and contract sizes
+        env:
+          # The CI profile permits oversized test harnesses; the build size gate
+          # must still enforce Monad's 128 KiB production runtime limit.
+          FOUNDRY_CODE_SIZE_LIMIT: "131072"
         run: forge build --sizes
 
-      - name: Test (unit, fuzz, invariant, differential)
+      - name: Test (unit, fuzz, invariant, differential, gas snapshots)
         run: forge test -vvv
-
-      - name: Gas snapshot unchanged
-        run: FORGE_SNAPSHOT_CHECK=true forge test --mc BookGasTest

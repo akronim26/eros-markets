@@ -167,10 +167,10 @@ try:
             need_json("artifacts/risk/gas-adapters.json"); need_json("artifacts/risk/gas-engine.json")
         elif task == "B042":
             out = "tmp/risk-sdk-b"
-            codes.append(step(["tsc", "--noEmit", "--strict", "--target", "es2020", "--module", "commonjs",
-                               "--moduleResolution", "node", "packages/risk-sdk/src/index.ts"]))
-            codes.append(step(["tsc", "--noCheck", "--esModuleInterop", "--target", "es2020", "--module", "commonjs", "--outDir", out,
-                               "packages/risk-sdk/src/index.ts", "packages/risk-sdk/test/read-model.test.ts"]))
+            codes.append(step(sdk_compiler("--noEmit", "--strict", "--target", "es2020", "--module", "commonjs",
+                               "--moduleResolution", "node", "packages/risk-sdk/src/index.ts")))
+            codes.append(step(sdk_compiler("--noCheck", "--esModuleInterop", "--target", "es2020", "--module", "commonjs", "--outDir", out,
+                               "packages/risk-sdk/src/index.ts", "packages/risk-sdk/test/read-model.test.ts")))
             codes.append(step(["node", "--test", "--test-reporter=tap", out + "/test/read-model.test.js"]))
             need_json("docs/app-state-fixtures.json")
         elif task == "B043":

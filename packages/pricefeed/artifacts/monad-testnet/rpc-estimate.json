@@ -1,0 +1,20 @@
+{
+  "chainId": 10143,
+  "at": "2026-10-04T11:35:37.709Z",
+  "deployer": "0x33a4De190Ffa59deC8260880bc96744D8Ac38177",
+  "gasEstimate": "2093134",
+  "gasLimit": "2511761",
+  "balanceWei": "5000000000000000000",
+  "pendingNonce": 0,
+  "maxFeePerGas": "122000000000",
+  "maxPriorityFeePerGas": "2000000000",
+  "maxCostWei": "306434842000000000",
+  "spendCeilingWei": "500000000000000000",
+  "deploymentDataHash": "0xb0a7c575befcf5308e694d4d37d587a8d4b5672b832d4e7661d28142e54f10b0",
+  "finalizedBlock": {
+    "number": "68104826",
+    "hash": "0xb42c88deaf1a18a7f52c8bc97c66c3e876c02dfdc3fc19d015aa2aa6c5bb629c",
+    "timestamp": "1791113736"
+  },
+  "transactionsSent": 0
+}

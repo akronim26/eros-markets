@@ -1,0 +1,57 @@
+{
+  "mode": "STAGED_MAIN_MERGE_AWAITING_MANUAL_COMMIT",
+  "pricefeedParent": "a3c17b38bd19dfb52c46996d986a60faac46a6cb",
+  "mainParent": "5f8e8a47da8017a3c53342d638f026d48514fd21",
+  "mainCommitsImported": 33,
+  "mergeConflicts": 0,
+  "branch": "pricefeed",
+  "commitCreated": false,
+  "pushed": false,
+  "cleanupRestored": {
+    "pendingFileHashesMatched": 850,
+    "stagedEvidenceExclusionsPreserved": 840
+  },
+  "backupStashes": {
+    "originalCleanup": "e14bf419be6f9d4d301a1987da83ed555823e58a",
+    "recovery": "59ca5b1db2c356a7c4f92090dcd4e9e124134096"
+  },
+  "mergedTreeBeforeCleanup": "e565d65e98a7383b097ce5bcc99858398dd1be7e",
+  "checks": {
+    "typescriptBuild": {
+      "exitCode": 0
+    },
+    "wireCompatibility": {
+      "exitCode": 0
+    },
+    "nodeCompatibility": {
+      "exitCode": 0,
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "rawLog": "var/main-integration/compatibility-unrestricted.tap",
+      "sha256": "6b109d2d1b06ff79d41b87c01ba21b42196a094aa883016c7088bc1fd45e68a6"
+    },
+    "restrictedCompatibilityRun": {
+      "exitCode": 1,
+      "tests": 44,
+      "passed": 30,
+      "failed": 14,
+      "reason": "All child-process CLI cases returned empty output; escalated fixture rerun passed."
+    },
+    "riskSourcesSdkAndEngineAbiMatchMain": true
+  },
+  "limitations": [
+    "Full 416-test suite passed before this merge; only the affected 44 compatibility tests were rerun after it.",
+    "Solidity ingress/lifecycle tests were not rerun: required Forge 1.8.3 is absent; installed Forge is 1.5.1.",
+    "Frozen original scope baseline is historical and already mismatched before this merge; it is not an acceptance check for this authorized imported tree.",
+    "No live RPC, publication, keys or cloud deployment used."
+  ],
+  "historicalScopeBaseline": {
+    "mismatchedFilesBeforeMerge": 799,
+    "mismatchedFilesAfterMerge": 234,
+    "newMismatchFiles": 17
+  }
+}

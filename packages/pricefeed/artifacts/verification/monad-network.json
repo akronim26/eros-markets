@@ -1,0 +1,26 @@
+{
+  "command": "PRICEFEED_MONAD_RPC_URL=https://testnet-rpc.monad.xyz node_modules/node/bin/node dist/src/cli.js preflight-monad --rpc-env PRICEFEED_MONAD_RPC_URL",
+  "exitCode": 0,
+  "provider": "public Monad testnet RPC",
+  "execution": "Scoped network escalation after sandbox request failed with MONAD_RPC_CHAIN_FAILED",
+  "recordedAtUtc": "2026-10-04T07:17:01.700000+00:00",
+  "result": {
+    "mode": "MONAD_TESTNET_READ_ONLY",
+    "status": "NETWORK_VERIFIED_ENGINE_NOT_CONFIGURED",
+    "chainId": "10143",
+    "blockTag": "finalized",
+    "block": {
+      "number": "68053460",
+      "hash": "0xabcbfb68bbdf0f51fed5f94016547c3e716c4070a465db43a3f01615705aa2d8",
+      "timestamp": "1791098220"
+    },
+    "checkedAtMs": "1791098221700",
+    "engine": null,
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  },
+  "engineVerified": false,
+  "humanGateAccepted": false,
+  "productionAuthorized": false
+}

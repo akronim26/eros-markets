@@ -21,7 +21,7 @@ struct RiskContext {
     bool halted;
     PricingMode pricingMode;
     bool indexOk;
-    uint256 indexWad; // 300 s independent index TWAP
+    uint256 indexWad; // configured independent index TWAP; see pricingWindows()
     bool markOk;
     uint256 markWad; // normal mark; unavailable is markOk == false, never 0
     LifecycleMath.Admission admission; // NONE / BACKED_ONLY / LEVERAGED
@@ -39,6 +39,7 @@ struct RiskContext {
 ///      orders inside the index order band may trade. A halt overrides every pricing mode.
 abstract contract RiskPricing is ObservationStore {
     error OutsideBootstrapBand();
+    error PricingActivationUnavailable();
 
     event PricingModeChanged(PricingMode mode, uint64 at, uint64 riskVersion);
     event RiskProfileActivated(uint64 riskVersion, bytes32 profileHash, uint64 effectiveAt);
@@ -121,8 +122,8 @@ abstract contract RiskPricing is ObservationStore {
     }
 
     function _markInputs(uint64 nowTs) internal view returns (PricingMath.MarkInputs memory m) {
-        PricingMath.Twap memory idx = _windowTwap(INDEX, nowTs, PricingMath.INDEX_WINDOW);
-        PricingMath.Twap memory bas = _windowTwap(BASIS, nowTs, PricingMath.BASIS_WINDOW);
+        PricingMath.Twap memory idx = _windowTwap(INDEX, nowTs, PricingMath.indexWindow());
+        PricingMath.Twap memory bas = _windowTwap(BASIS, nowTs, PricingMath.basisWindow());
         PricingMath.Twap memory prp = _windowTwap(PERP, nowTs, PricingMath.PERP_WINDOW);
         (bool liveOk, int256 live) = _valueAt(PERP, nowTs);
         m.indexOk = idx.available && idx.twapWad > 0;
@@ -133,6 +134,28 @@ abstract contract RiskPricing is ObservationStore {
         m.perpTwapWad = m.perpTwapOk ? uint256(prp.twapWad) : 0;
         m.perpLiveOk = liveOk && live > 0;
         m.perpLiveWad = m.perpLiveOk ? uint256(live) : 0;
+    }
+
+    /// @notice Monad testnet BOOTSTRAP before the first complete INDEX window: the latest fresh
+    ///         (within the INDEX carry), depth-valid authenticated INDEX point. It centres resting warm-up quotes and depth
+    ///         eligibility only; it never prices a fill, a margin or a release.
+    function _warmupIndexPoint(RiskContext memory c) internal view returns (bool ok, uint256 pointWad) {
+        if (c.indexOk || c.halted || c.pricingMode != PricingMode.BOOTSTRAP || !PricingMath.fastStartup()) {
+            return (false, 0);
+        }
+        (bool live, int256 point) = _valueAt(INDEX, c.economicTime);
+        if (live && point > 0) return (true, uint256(point));
+    }
+
+    /// @notice Band centre for exactly backed orders: the INDEX TWAP, else the warm-up point.
+    function _bandReference(RiskContext memory c) internal view returns (bool ok, uint256 centreWad) {
+        if (c.indexOk) return (true, c.indexWad);
+        return _warmupIndexPoint(c);
+    }
+
+    /// @notice Warm-up reference view for quoting services (prices wad).
+    function warmupIndex() external view returns (bool available, uint256 pointWad) {
+        return _warmupIndexPoint(_pricingContext());
     }
 
     // ------------------------------------------------------------------ bootstrap and epochs
@@ -166,23 +189,39 @@ abstract contract RiskPricing is ObservationStore {
     /// @notice Called once when Person A commits a completed accounting epoch. Applies any staged
     ///         profile and performs BOOTSTRAP -> NORMAL_PRICING only if every window is valid now.
     function _onEpochOpening() internal returns (PricingMode) {
-        uint64 nowTs = uint64(block.timestamp);
         if (_hasStagedProfile) {
             _profileHash = _stagedProfileHash;
             _hasStagedProfile = false;
             _riskVersion += 1;
-            emit RiskProfileActivated(_riskVersion, _profileHash, nowTs);
+            emit RiskProfileActivated(_riskVersion, _profileHash, uint64(block.timestamp));
         }
+        _promotePricing(true);
+        return _pricingMode;
+    }
+
+    /// @notice Monad testnet one-time BOOTSTRAP -> NORMAL_PRICING as soon as every candidate
+    ///         window is valid now, instead of waiting for the next completed epoch opening. The
+    ///         epoch clock, funding authorization, staged calibration and risk version are
+    ///         untouched: an epoch that opened in BOOTSTRAP keeps zero funding, and a staged
+    ///         profile still activates only at a completed opening. The caller checks accounting.
+    function _activatePricing() internal {
+        (bool halted, bool changed) = _promotePricing(PricingMath.fastStartup());
+        if (halted || !changed) revert PricingActivationUnavailable();
+    }
+
+    /// @dev BOOTSTRAP -> NORMAL_PRICING at a permitted promotion point when every window is valid.
+    function _promotePricing(bool promotionPoint) private returns (bool halted, bool changed) {
+        uint64 nowTs = uint64(block.timestamp);
         PricingMath.MarkInputs memory m = _markInputs(nowTs);
-        bool halted = LifecycleMath.deriveStage(nowTs, _scheduledT, _earlyHaltAt(), false, false).halted;
+        halted = LifecycleMath.deriveStage(nowTs, _scheduledT, _earlyHaltAt(), false, false).halted;
         (PricingMode next,) = LifecycleMath.pricingTransition(
-            _pricingMode, true, m.indexOk, m.basisOk, m.perpTwapOk, m.perpLiveOk, halted
+            _pricingMode, promotionPoint, m.indexOk, m.basisOk, m.perpTwapOk, m.perpLiveOk, halted
         );
-        if (next != _pricingMode) {
+        changed = next != _pricingMode;
+        if (changed) {
             _pricingMode = next;
             emit PricingModeChanged(next, nowTs, _riskVersion);
         }
-        return _pricingMode;
     }
 
     function pricingMode() external view returns (PricingMode) {

@@ -1,0 +1,18 @@
+# Render Blueprint: one always-on market supervisor. The user creates the account and service;
+# see docs/integration/RENDER_WORKER.md for the hand-off. Never use the free tier: it sleeps and
+# loses its filesystem, which breaks nonce and journal safety.
+services:
+  - type: worker
+    name: eros-market-supervisor
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    numInstances: 1
+    autoDeploy: false
+    disk:
+      name: eros-private
+      mountPath: /app/tmp
+      sizeGB: 1
+    envVars:
+      - key: EROS_SUPERVISOR_CONFIG
+        value: tmp/redeploy-20261011/supervisor.json

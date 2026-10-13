@@ -1,0 +1,65 @@
+  duration_ms: 0.235192
+  type: 'test'
+  ...
+# Subtest: disconnect during REST fetch archives the original bytes but blocks their eligibility until a new resync
+ok 465 - disconnect during REST fetch archives the original bytes but blocks their eligibility until a new resync
+  ---
+  duration_ms: 0.269493
+  type: 'test'
+  ...
+# Subtest: rejected future timestamps cannot poison source ordering across restart
+ok 466 - rejected future timestamps cannot poison source ordering across restart
+  ---
+  duration_ms: 0.348307
+  type: 'test'
+  ...
+1..466
+# tests 466
+# suites 0
+# pass 466
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86082.915922
+✔ short bootstrap carry completes BASIS nine seconds after epoch end and then releases rollover (1.362052ms)
+✔ cannot wait minutes for BASIS: exhausted accepted carry releases bootstrap rollover (0.218353ms)
+✔ bounded grace expires even if another publisher extends accepted history (0.427204ms)
+✔ signed pending journal bypasses all readiness RPCs (0.306253ms)
+✔ known future epoch skips deferral RPCs without changing the ordinary operations poll (0.112198ms)
+✔ NORMAL, underway sweeps, activation, monitor, floor and halt work never defer (0.552531ms)
+✔ grace and inclusion reserve cannot reach the first time restriction or settlement (0.690029ms)
+✔ unavailable or zero INDEX and unavailable PERP release rollover (0.089275ms)
+✔ invalid checkpoint exactly at query time cannot masquerade as live PERP carry (0.070979ms)
+✔ read failure propagates and never invents candidate readiness (0.237817ms)
+✔ sample acknowledgement uses the capture event rather than receipt time (0.671149ms)
+✔ a no-op sample preserves a verified earlier capture and ignores legacy receipt-time acknowledgements (0.324675ms)
+✔ unfinalized, reorganized or mismatched capture events cannot acknowledge a capture (1.112274ms)
+✔ only the matching engine and sequence can advance the source timestamp (1.411442ms)
+✔ stopped or crashed sampler allows independent INDEX publication without inventing a sample (0.090442ms)
+✔ temporary delay still accepts the final acknowledgement; mismatched heartbeat fails closed (0.280329ms)
+✔ stalled keeper never blocks notify, never overwrites an outstanding request, and coalesces latest finality (1.103646ms)
+✔ wrong identity cannot release a request; a late exact acknowledgement can (0.546405ms)
+✔ only a finalized source strictly after the actual capture requests its seal (0.450128ms)
+✔ restart resumes the exact unacknowledged request; shutdown cannot launch its coalesced successor (0.249195ms)
+✔ malformed capture metadata disables sampling without throwing from future INDEX notifications (0.782139ms)
+✔ 5s source updates, 7s publication and 5s sampling can seal successive captures (0.281954ms)
+✔ Senate delayed-source trace yields to INDEX before old observation expires (0.134037ms)
+✔ unknown or permanently hung capture also releases soft preference at its delivery deadline (0.066852ms)
+✔ archived Republic arrivals seal successive captures with measured 4–6s inclusion latency (0.668231ms)
+✔ legacy receipt timestamps never become capture evidence, and invalid INDEX does not defer recovery (0.056725ms)
+✔ actual collector future reason can hide thin depth; qualification rejects that capture (0.921053ms)
+✔ future tolerance requires exact status, monotonicity and valid depth without advancing accepted time (0.17109ms)
+✔ pinned candidate digest rejects a different first baseline and subsequent valid or future polls (0.633721ms)
+✔ completion checks final wall-clock carry rather than stopping at the last healthy poll (1.049714ms)
+✔ receipt timestamps exclude cold startup from the required fifteen-minute coverage (0.320675ms)
+✔ future polls do not count toward 800 valid observations and retain original headroom (1.428696ms)
+✔ receipt gaps, consumer delay and backwards clocks fail closed without changing source time (0.125869ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.550362

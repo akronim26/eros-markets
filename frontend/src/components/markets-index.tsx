@@ -1,0 +1,199 @@
+"use client";
+
+import Link from "next/link";
+import { useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, Search, X } from "lucide-react";
+import { useHead, useMarket } from "@/lib/reads";
+import { useSpot } from "@/lib/spot";
+import { isSpotOnly, nativeBinding } from "@/config/native";
+import { isNativeMarket, type MarketManifest } from "@/config/deployment";
+import { useMarketList } from "@/lib/market-list";
+import { fmtDuration, lotsToClaims, wadTo3 } from "@/lib/units";
+import { chipFor } from "./market-parts";
+import { Chip, Num, SectionRule } from "./ui";
+
+/** Marks an Eros native market (own YES/NO tokens on Kuru) apart from external-price markets. */
+function NativeChip() {
+  return <Chip tone="signal" className="h-5 px-1.5 text-2xs">Native · Kuru</Chip>;
+}
+
+function PerpMarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
+  const m = useMarket(mk.engine, block);
+  const d = m.data;
+  const chip = d ? chipFor(d) : null;
+  const toT = d && now !== undefined ? d.listing.scheduledT - now : undefined;
+  const rows: [string, React.ReactNode][] = [
+    ["Mark", d?.risk.markAvailable ? <Num value={wadTo3(d.risk.markWad)} /> : "unavailable"],
+    ["Index", d?.risk.indexAvailable ? <Num value={wadTo3(d.risk.indexWad)} /> : "unavailable"],
+    ["Open interest", d ? lotsToClaims(d.oiLots) : "—"],
+    ["Long / short limit", d ? `${d.leverageCaps.long}× / ${d.leverageCaps.short}×` : "—"],
+    ["To halt", toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"],
+  ];
+  return (
+    <li className="frame relative bg-ground hover:bg-hover focus-within:bg-hover">
+      <div className="label flex items-center justify-between px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">
+        <span className="flex items-center gap-2">{mk.short}{isNativeMarket(mk) && <NativeChip />}</span>
+        {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
+      </div>
+      <p className="px-3 pt-3 text-sm font-semibold leading-snug text-fg">{mk.title}</p>
+      {m.isError && <p role="alert" className="relative z-10 px-3 pt-2 text-xs text-ask">Market read failed. <button className="underline" onClick={() => m.refetch()}>Retry</button></p>}
+      <dl className="px-3 py-2">
+        {rows.map(([k, v]) => (
+          <div key={k} className="hair-b flex justify-between py-1.5 text-xs">
+            <dt className="text-fg-3">{k}</dt>
+            <dd className="tnum text-fg">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} trading terminal`} className="group m-3 flex min-h-11 items-stretch overflow-hidden rounded-control after:absolute after:inset-0">
+        <span className="ui-arrow flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden>
+          <ArrowRight size={15} strokeWidth={2} />
+        </span>
+        <span className="ui-sweep label flex flex-1 items-center bg-action px-4 text-on-action group-hover:bg-action-hover">Open market</span>
+      </Link>
+    </li>
+  );
+}
+
+/* ------------------------------------------------------------------ spot-only (Kuru) markets */
+
+/** YES best bid / ask / mid from the Kuru YES book, and the vault state, for a spot-only market. */
+function useSpotSummary(mk: MarketManifest, block?: bigint) {
+  const s = useSpot(mk.engine, undefined, block);
+  const d = s.data, bid = d?.books.yes.bids[0]?.tick, ask = d?.books.yes.asks[0]?.tick;
+  const chip = !d ? null : d.resolved ? { tone: "neutral" as const, label: "Resolved" }
+    : d.issuanceOpen ? { tone: "signal" as const, label: "Live" } : { tone: "warn" as const, label: "Halted" };
+  const mid = bid !== undefined && ask !== undefined ? Math.round((bid + ask) / 2) : bid ?? ask;
+  return { s, chip, bid, ask, mid, scheduledT: BigInt(nativeBinding(mk.engine)!.scheduledT) };
+}
+const tick3 = (t?: number) => t === undefined ? undefined : (t / 1000).toFixed(3);
+
+function SpotMarketCard({ mk, block, now }: { mk: MarketManifest; block?: bigint; now?: bigint }) {
+  const { s, chip, bid, ask, mid, scheduledT } = useSpotSummary(mk, block);
+  const toT = now !== undefined ? scheduledT - now : undefined;
+  const rows: [string, React.ReactNode][] = [
+    ["YES price", mid !== undefined ? <Num value={tick3(mid)!} /> : "no quotes"],
+    ["YES bid / ask", `${tick3(bid) ?? "—"} / ${tick3(ask) ?? "—"}`],
+    ["Venue", "Kuru spot"],
+    ["To tip-off", toT !== undefined ? (toT > 0n ? <Num value={fmtDuration(toT)} /> : "passed") : "—"],
+  ];
+  return (
+    <li className="frame relative bg-ground hover:bg-hover focus-within:bg-hover">
+      <div className="label flex items-center justify-between px-3 py-2 text-fg-3 shadow-[inset_0_-1px_0_var(--color-line-strong)]">
+        <span className="flex items-center gap-2">{mk.short}<NativeChip /></span>
+        {chip && <Chip tone={chip.tone}>{chip.label}</Chip>}
+      </div>
+      <p className="px-3 pt-3 text-sm font-semibold leading-snug text-fg">{mk.title}</p>
+      {s.isError && <p role="alert" className="relative z-10 px-3 pt-2 text-xs text-ask">Market read failed. <button className="underline" onClick={() => s.refetch()}>Retry</button></p>}
+      <dl className="px-3 py-2">
+        {rows.map(([k, v]) => (
+          <div key={k} className="hair-b flex justify-between py-1.5 text-xs"><dt className="text-fg-3">{k}</dt><dd className="tnum text-fg">{v}</dd></div>
+        ))}
+      </dl>
+      <Link href={`/m/${mk.engine}`} aria-label={`Open ${mk.title} market`} className="group m-3 flex min-h-11 items-stretch overflow-hidden rounded-control after:absolute after:inset-0">
+        <span className="ui-arrow flex w-11 items-center justify-center bg-signal text-on-signal" aria-hidden><ArrowRight size={15} strokeWidth={2} /></span>
+        <span className="ui-sweep label flex flex-1 items-center bg-action px-4 text-on-action group-hover:bg-action-hover">Open market</span>
+      </Link>
+    </li>
+  );
+}
+
+type RowProps = { mk: MarketManifest; block?: bigint; now?: bigint };
+const MarketCard = (p: RowProps) => isSpotOnly(p.mk.engine) ? <SpotMarketCard {...p} /> : <PerpMarketCard {...p} />;
+
+/** One side of the listed split: a titled column of market cards. */
+function MarketColumn({ id, title, blurb, markets, empty, block, now }: {
+  id: string; title: string; blurb: string; markets: MarketManifest[]; empty: string; block?: bigint; now?: bigint;
+}) {
+  return (
+    <section aria-labelledby={id} className="flex min-w-0 flex-col">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id={id} className="label text-fg">{title}</h2>
+        <span className="tnum text-xs text-fg-3">{markets.length} {markets.length === 1 ? "market" : "markets"}</span>
+      </div>
+      <p className="mt-1.5 text-xs leading-relaxed text-fg-3">{blurb}</p>
+      {markets.length === 0
+        ? <p className="frame mt-4 bg-panel px-4 py-6 text-sm text-fg-2">{empty}</p>
+        : <ul className="mt-4 flex flex-col gap-3">{markets.map((mk) => <MarketCard key={mk.engine} mk={mk} block={block} now={now} />)}</ul>}
+    </section>
+  );
+}
+
+export function MarketsIndex() {
+  const head = useHead();
+  const discovery = useMarketList();
+  const markets = discovery.markets.filter((market) => !market.archived);
+  const search = useSearchParams().get("q") ?? "";
+  const setSearch = (value: string) => {
+    const url = new URL(window.location.href);
+    if (value) url.searchParams.set("q", value); else url.searchParams.delete("q");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+  const searchInput = useRef<HTMLInputElement>(null);
+  const normalize = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+  const terms = normalize(search).trim().split(/\s+/).filter(Boolean);
+  const filtered = markets.filter((market) => {
+    const text = normalize([market.title, market.short, market.category, market.source].filter(Boolean).join(" "));
+    return terms.every((term) => text.includes(term));
+  });
+  const clearSearch = () => { setSearch(""); searchInput.current?.focus(); };
+  return (
+    <main className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-16 md:px-8">
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="max-w-2xl">
+          <h1 className="display text-5xl leading-none text-fg uppercase">Markets</h1>
+          <p className="mt-3 text-sm leading-relaxed text-fg-2">
+            Each market is a YES/NO question that resolves at a scheduled time. Trade native YES/NO tokens on Kuru, or trade the
+            probability as a perpetual on a fully on-chain order book. One claim pays 1 if the outcome is YES.
+          </p>
+        </div>
+        {head.data && <p className="tnum text-xs text-fg-3">Read at block {head.data.number.toString()}</p>}
+      </div>
+
+      <div className="mt-10">
+        <SectionRule name="LISTED" index={1} />
+      </div>
+      <div role="search" aria-label="Find a market" className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="frame flex min-h-12 w-full items-center gap-3 bg-panel px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-signal sm:max-w-lg">
+          <Search size={18} className="shrink-0 text-fg-3" aria-hidden />
+          <label htmlFor="market-search" className="sr-only">Search markets</label>
+          <input ref={searchInput} id="market-search" type="search" value={search}
+            onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") clearSearch(); }}
+            placeholder="Search events, teams, topics…" autoComplete="off" spellCheck={false}
+            aria-controls="market-results" className="min-w-0 flex-1 bg-transparent py-3 text-sm text-fg outline-none placeholder:text-fg-3 [&::-webkit-search-cancel-button]:appearance-none" />
+          {search && <button type="button" onClick={clearSearch} aria-label="Clear search" className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center text-fg-3 hover:bg-hover hover:text-fg"><X size={17} aria-hidden /></button>}
+        </div>
+        <p role="status" aria-live="polite" aria-atomic="true" className="tnum text-xs text-fg-3">
+          {terms.length ? `${filtered.length} of ${markets.length} markets` : `${markets.length} ${markets.length === 1 ? "market" : "markets"}`}
+        </p>
+      </div>
+      {head.isError && <p role="alert" className="mt-4 text-xs text-ask">Live market data is unavailable. <button className="underline" onClick={() => head.refetch()}>Retry connection</button></p>}
+      <div id="market-results">
+      {markets.length === 0 ? <div className="frame mt-4 bg-panel p-6">
+        <h2 className="text-lg font-semibold text-fg">A new market is on the way</h2>
+        <p className="mt-2 max-w-xl text-sm text-fg-2">The previous demo has been archived while we prepare its replacement. Existing balances and orders remain accessible in your portfolio.</p>
+        <Link href="/portfolio" className="label mt-4 inline-flex min-h-11 items-center gap-2 bg-signal px-4 text-on-signal">View portfolio <ArrowRight size={14} aria-hidden /></Link>
+      </div> : filtered.length === 0 ? <div className="frame mt-4 bg-panel px-6 py-10">
+        <h2 className="text-lg font-semibold text-fg">No matching markets</h2>
+        <p className="mt-2 text-sm text-fg-2">Try another event, team, or topic.</p>
+        <button type="button" onClick={clearSearch} className="label mt-5 inline-flex min-h-11 items-center gap-2 bg-signal px-4 text-on-signal">Show all markets <ArrowRight size={14} aria-hidden /></button>
+      </div> : (
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] lg:gap-10">
+        <MarketColumn id="native-markets" title="Native markets" markets={filtered.filter((mk) => isSpotOnly(mk.engine))}
+          blurb="Prediction markets: buy and sell YES/NO tokens on Kuru spot books. Fully backed, no leverage."
+          empty={terms.length ? "No native markets match." : "No native markets listed."} block={head.data?.number} now={head.data?.timestamp} />
+        <div role="separator" aria-orientation="vertical" className="h-px bg-line-strong lg:h-auto lg:w-px" />
+        <MarketColumn id="perp-markets" title="Event perps" markets={filtered.filter((mk) => !isSpotOnly(mk.engine))}
+          blurb="Perpetual futures on event probabilities, traded on Eros on-chain order books with margin."
+          empty={terms.length ? "No event perps match." : "No event perps listed."} block={head.data?.number} now={head.data?.timestamp} />
+      </div>
+      )}
+      </div>
+      <p className="mt-6 max-w-2xl text-xs leading-relaxed text-fg-3">
+        {discovery.isError ? "Registry discovery is unavailable. Showing the last verified markets." : discovery.isPending ? "Checking the verified markets against the registry…" : "Showing markets in the verified deployment. New listings become tradable after their deployment manifest is verified and updated."}
+        {discovery.isError && <> <button className="underline" onClick={() => discovery.refetch()}>Retry discovery</button></>}
+      </p>
+    </main>
+  );
+}

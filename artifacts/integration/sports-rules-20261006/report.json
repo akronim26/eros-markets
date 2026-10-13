@@ -1,0 +1,183 @@
+{
+  "scope": "Historical authenticated API results and real CRE CLI dry-runs. No current-market sports settlement.",
+  "liveResults": [
+    {
+      "sport": "american-football",
+      "eventId": 21575,
+      "season": "2026",
+      "evaluation": {
+        "status": "YES",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"american-football\",21575,\"1\",\"2026\",1791159600,[19,7],\"official\",[\"winner\",19]],{\"scores\":[32,26],\"winner\":19}]"
+      },
+      "sourceSha256": "09239d0aafa1b24c293435d61a52497aebce81d5eccff058b6949e7c94bcfccd"
+    },
+    {
+      "sport": "baseball",
+      "eventId": 189834,
+      "season": "2026",
+      "evaluation": {
+        "status": "NO",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"baseball\",189834,\"1\",\"2026\",1791158400,[18,3],\"official\",[\"winner\",18]],{\"scores\":[2,3],\"winner\":3}]"
+      },
+      "sourceSha256": "59200e49e4111f9dd1d3e8a7615c55bd736df110af5627c923d8f96a3960ec40"
+    },
+    {
+      "sport": "formula-1",
+      "eventId": 1857,
+      "season": "2024",
+      "evaluation": {
+        "status": "YES",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"formula-1\",1857,\"2\",\"2024\",1709391600,[25,10,24,34,51,49,20,97,4,31,83,2,14,82,50,6,28,36,5,92],\"official\",[\"winner\",25]],{\"ranks\":[[25,1],[10,2],[24,3],[34,4],[51,5],[49,6],[20,7],[97,8],[4,9],[31,10],[83,11],[2,12],[14,13],[82,14],[50,15],[6,16],[28,17],[36,18],[5,19],[92,20]],\"winner\":25}]"
+      },
+      "sourceSha256": "fb33b5d99c1ebf5318cf8ce14738a1a5137a52d35cdafcd04cc4fccf9be0a284"
+    },
+    {
+      "sport": "handball",
+      "eventId": 201852,
+      "season": "2026",
+      "evaluation": {
+        "status": "YES",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"handball\",201852,\"47\",\"2026\",1791208800,[393,403],\"official\",[\"winner\",393]],{\"scores\":[31,27],\"winner\":393}]"
+      },
+      "sourceSha256": "9a02323f23c79d979afed79662e46bca9ce0c16dfed1d8c5fd87544603268b36"
+    },
+    {
+      "sport": "hockey",
+      "eventId": 434655,
+      "season": "2026",
+      "evaluation": {
+        "status": "NO",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"hockey\",434655,\"58\",\"2026\",1791158400,[613,603],\"official\",[\"winner\",613]],{\"scores\":[1,3],\"winner\":603}]"
+      },
+      "sourceSha256": "1701e038899fd6b487df8fd23538f251266b430266c0a28bae338181b2b5ed89"
+    },
+    {
+      "sport": "mma",
+      "eventId": 1097,
+      "season": "2024",
+      "evaluation": {
+        "status": "NO",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"mma\",1097,\"Bantamweight\",\"2024\",1705150800,[2554,2580],\"official\",[\"winner\",2554]],{\"winner\":2580}]"
+      },
+      "sourceSha256": "b2ead36a185346e224bff4c98cb36aa372a011062dfa036177102db6ef1c2d95"
+    },
+    {
+      "sport": "nba",
+      "eventId": 16878,
+      "season": "2026",
+      "evaluation": {
+        "status": "NO",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"nba\",16878,\"standard\",\"2026\",1791241200,[1,19],\"official\",[\"winner\",1]],{\"scores\":[123,132],\"winner\":19}]"
+      },
+      "sourceSha256": "58b6dd2bb679e729e0a70b49a0ee8c1df6b06ad904e6c72412d77d7f3caa4b0d"
+    },
+    {
+      "sport": "volleyball",
+      "eventId": 208493,
+      "season": "2026",
+      "evaluation": {
+        "status": "YES",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"volleyball\",208493,\"118\",\"2026\",1791216000,[913,939],\"official\",[\"winner\",913]],{\"scores\":[3,0],\"winner\":913}]"
+      },
+      "sourceSha256": "90008b52f6bbe9d2b7844f1d4400fef555f8912206d189096d86207edb299bf1"
+    }
+  ],
+  "cre": {
+    "f1": {
+      "scope": "real API and CRE CLI dry-run; no chain transactions",
+      "checkedAt": "2026-10-06T18:12:13.297Z",
+      "binding": {
+        "version": 1,
+        "sport": "formula-1",
+        "eventId": 1857,
+        "competition": "2",
+        "season": "2024",
+        "kickoff": 1709391600,
+        "participants": [
+          25,
+          10,
+          24,
+          34,
+          51,
+          49,
+          20,
+          97,
+          4,
+          31,
+          83,
+          2,
+          14,
+          82,
+          50,
+          6,
+          28,
+          36,
+          5,
+          92
+        ],
+        "scope": "official",
+        "predicate": {
+          "kind": "winner",
+          "participant": 25
+        }
+      },
+      "passed": true,
+      "httpStatus": 200,
+      "localEvaluation": {
+        "status": "YES",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"formula-1\",1857,\"2\",\"2024\",1709391600,[25,10,24,34,51,49,20,97,4,31,83,2,14,82,50,6,28,36,5,92],\"official\",[\"winner\",25]],{\"ranks\":[[25,1],[10,2],[24,3],[34,4],[51,5],[49,6],[20,7],[97,8],[4,9],[31,10],[83,11],[2,12],[14,13],[82,14],[50,15],[6,16],[28,17],[36,18],[5,19],[92,20]],\"winner\":25}]"
+      },
+      "creExitCode": 0,
+      "expectedResult": "YES|0x6b4bbd97cac706f570b04d1d00cbf269af46d0408ea1690014936d73d0a17166|OK"
+    },
+    "nba": {
+      "scope": "real API and CRE CLI dry-run; no chain transactions",
+      "checkedAt": "2026-10-06T18:13:16.920Z",
+      "binding": {
+        "version": 1,
+        "sport": "nba",
+        "eventId": 16878,
+        "competition": "standard",
+        "season": "2026",
+        "kickoff": 1791241200,
+        "participants": [
+          1,
+          19
+        ],
+        "scope": "official",
+        "predicate": {
+          "kind": "winner",
+          "participant": 1
+        }
+      },
+      "passed": true,
+      "httpStatus": 200,
+      "localEvaluation": {
+        "status": "NO",
+        "code": "OK",
+        "valueLexeme": "[[\"sports-v1\",\"nba\",16878,\"standard\",\"2026\",1791241200,[1,19],\"official\",[\"winner\",1]],{\"scores\":[123,132],\"winner\":19}]"
+      },
+      "creExitCode": 0,
+      "expectedResult": "NO|0x62f1783962a2eadc8bfb77e48f673946958cc583aa549922fdd4b0acfb0bdcc1|OK"
+    }
+  },
+  "rugby": "No fixtures returned in accessible window; live-result validation unavailable.",
+  "tests": {
+    "feedspec": 150,
+    "workflowAndWatchdogUnit": 64
+  },
+  "limitations": [
+    "Free-plan F1 and season-query MMA data limited to 2022-2024",
+    "Provider final results remain subject to the oracle challenge/finality pipeline",
+    "Current event pricing and 5x admission require separate on-chain evidence"
+  ]
+}

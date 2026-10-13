@@ -1,0 +1,24 @@
+bun test v1.3.13 (bf2e2cec)
+
+main.test.ts:
+(pass) final YES writes a v1 report bound to chain, oracle, market, observedAt [20.88ms]
+(pass) live event writes nothing [1.74ms]
+(pass) HTTP 429 writes nothing [1.69ms]
+(pass) final NO writes outcome 2 with the value hash of the lexeme [2.27ms]
+(pass) state != L1Pending writes nothing and fetches nothing [4.61ms]
+(pass) specHash mismatch writes nothing and fetches nothing [1.08ms]
+(pass) unknown authRef writes nothing and fetches nothing [0.18ms]
+(pass) a known authRef sends its secret in the configured header (prefix included) [2.85ms]
+(pass) a host that is not first on the allow-list writes nothing and fetches nothing [1.09ms]
+(pass) HTTP 5xx and invalid JSON write nothing [2.35ms]
+(pass) football CRE fetches the authenticated fixture and binds YES/NO to the exact on-chain specification [6.67ms]
+(pass) football live, postponed, mismatched and contradictory results never send an oracle report [5.71ms]
+
+parity.test.ts:
+(pass) RESOLUTION_REQUESTED is the ABI snapshot event topic, 0xa3af…3a13 (C.7) [0.14ms]
+(pass) STATE_L1_PENDING is RState.L1Pending, 3
+
+ 14 pass
+ 0 fail
+ 101 expect() calls
+Ran 14 tests across 2 files. [286.00ms]

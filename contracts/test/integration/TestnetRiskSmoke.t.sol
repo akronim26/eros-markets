@@ -183,7 +183,7 @@ contract TestnetRiskSmokeTest is Test {
     function testDelayedMinedWindowRevertsAtomicallyAndFreshRetrySucceeds() public {
         _fundAndActivate();
         (IPriceSource.Observation[] memory observations, bytes[] memory signatures) = _window(CONTROLLER_KEY);
-        vm.warp(block.timestamp + 31);
+        vm.warp(block.timestamp + 121); // past the 120 s testnet INDEX carry
         vm.prank(controller);
         vm.expectRevert(TestnetRiskSmoke.UnusableIndex.selector);
         smoke.executeTrade(observations, signatures);

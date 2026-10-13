@@ -1,0 +1,9 @@
+{
+  "verified": true,
+  "newProcess": true,
+  "finalizedPacketsBefore": 9,
+  "finalizedPacketsAfter": 9,
+  "allPacketsSignaturesRequestsRawBytesAndReceiptsUnchanged": true,
+  "additionalTransactionsSent": 0,
+  "archive": "var/monad-testnet/optimized-run-evidence"
+}

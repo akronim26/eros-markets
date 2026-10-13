@@ -1,0 +1,186 @@
+{
+  "item": "PF017",
+  "mode": "development-offline-replay",
+  "verifiedAt": "2026-10-04T05:23:53.405207+00:00",
+  "baseCommit": "e37d19b675bf4b6582271f5d8a8e950e012fd4b8",
+  "testedWorkingTree": true,
+  "humanGateAcceptance": false,
+  "commands": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "counts": {
+        "tests": 232,
+        "pass": 232,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "log": "var/pf017-tests.tap",
+      "logSha256": "27ef63f89744adcee51245fa791eaa44b77acb69f3e428ea46c96fddf39be26e"
+    },
+    {
+      "command": "npm run check:wire",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:reference",
+      "exitCode": 0,
+      "vectors": 144,
+      "seed": 20261002
+    },
+    {
+      "command": "node dist/src/cli.js build-observation --config var/offline-replay-check/config.json --rules var/offline-replay-check/rules.json --db var/pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039/source.sqlite --capture-id 2 --sequence 1 --published-at-ms 1791059028222",
+      "exitCode": 0
+    }
+  ],
+  "sourceReport": {
+    "path": "artifacts/pipeline/pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039.json",
+    "sha256": "25797feb07fb27eb047a5a21c184207fe87e76a5052041df810967198c1516f1",
+    "source": "polymarket",
+    "archive": "var/pipeline-1791059026500-8d4428c3-17e5-43ee-ad4d-3079a66f6039"
+  },
+  "replay": {
+    "mode": "DEVELOPMENT_OFFLINE_REPLAY",
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0,
+    "sequenceAllocated": false,
+    "listingVerified": false,
+    "lifecycleVerified": false,
+    "readyForSigning": false,
+    "proposedSequence": "1",
+    "replayPublishedAtMs": "1791059028222",
+    "pins": {
+      "chainId": "31337",
+      "engineAddress": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "engineCodeHash": "0x01cdd184ab1e00de3aedb33dc70ff0ac77bfe9e665f79e6637b3bddad822dc68",
+      "abiHash": "0x5e555afca0a7da4c3161fdb9073b652d4b8e0b483be8ddaf668ea962b11629f0",
+      "marketId": "0x75736e9be3610b5f0b6ec00fd83aac89d97cda1debe23b0f171617fac915ec4f",
+      "sourceId": "0x3e2e0607dc6bf41b4a9ef8f00267e48357b200b32c436685d94b9d3362ba014f",
+      "sourceRulesHash": "0x148e4f7b3a8e3fba275a15019605e8abfdb7072b501623db220996a532a2f263",
+      "signerAddress": "0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A",
+      "listedAt": "1791059027",
+      "scheduledT": "1791231827",
+      "invalidRule": {
+        "captureGraceSecs": "3600",
+        "voidSecs": "2592000",
+        "fallbackListed": true,
+        "fallbackPriceWad": "500000000000000000"
+      }
+    },
+    "evidence": {
+      "captureId": "2",
+      "namespace": "31337:0x5fbdb2315678afecb367f032d93f642f64180aa3:0x75736e9be3610b5f0b6ec00fd83aac89d97cda1debe23b0f171617fac915ec4f:0x3e2e0607dc6bf41b4a9ef8f00267e48357b200b32c436685d94b9d3362ba014f",
+      "atMs": "1791059028221",
+      "payloadSha256": "5883411851bf82a4429501d173d75780005336b49e7ccb6c3b018ea8579ed7db",
+      "collectionConfigDigest": "e1950ad2b6938d3ff01d63699206c0e793f5e51aa36ff9887f5ad8139e1ffab2"
+    },
+    "available": true,
+    "reason": null,
+    "inspection": {
+      "status": "COLLECTING",
+      "reason": null,
+      "time": {
+        "sourceMs": "1791059027683",
+        "observedAt": "1791059027",
+        "sourceAgeMs": "539",
+        "fresh": true,
+        "headroomMs": "28778",
+        "hasHeadroom": true,
+        "monotone": true,
+        "advanced": true
+      },
+      "summary": {
+        "valid": true,
+        "reason": null,
+        "impactBidWad": "600396040000000000",
+        "impactAskWad": "603000000000000000",
+        "priceWad": "601698020000000000",
+        "bidDepthLots": "1358679830",
+        "askDepthLots": "12730096940"
+      },
+      "engineObservation": null
+    },
+    "packet": {
+      "domain": {
+        "chainId": "31337",
+        "engine": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+        "marketId": "0x75736e9be3610b5f0b6ec00fd83aac89d97cda1debe23b0f171617fac915ec4f",
+        "sourceId": "0x3e2e0607dc6bf41b4a9ef8f00267e48357b200b32c436685d94b9d3362ba014f",
+        "rulesHash": "0x148e4f7b3a8e3fba275a15019605e8abfdb7072b501623db220996a532a2f263",
+        "signer": "0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A"
+      },
+      "observation": {
+        "marketId": "0x75736e9be3610b5f0b6ec00fd83aac89d97cda1debe23b0f171617fac915ec4f",
+        "sourceId": "0x3e2e0607dc6bf41b4a9ef8f00267e48357b200b32c436685d94b9d3362ba014f",
+        "sequence": "1",
+        "observedAt": "1791059027",
+        "publishedAt": "1791059028",
+        "priceWad": "601698020000000000",
+        "impactBidWad": "600396040000000000",
+        "impactAskWad": "603000000000000000",
+        "bidDepthLots": "1358679830",
+        "askDepthLots": "12730096940",
+        "sourceRulesHash": "0x148e4f7b3a8e3fba275a15019605e8abfdb7072b501623db220996a532a2f263"
+      },
+      "sourceMs": "1791059027683",
+      "evidenceHash": "0x3723b4509ee84bce150f6d95a489c463c2504e30d9c007d7c615d610cbb9923a"
+    },
+    "digest": "0x2c430f80906f6f1f735ae712ebeb9bcfe8bc02cd6df23cfbe47e7b2873d5f4b7"
+  },
+  "matchesRetainedObservation": true,
+  "matchesRetainedDigest": true,
+  "matchesRetainedEvidenceHash": true,
+  "packageSourceSha256": {
+    "src/book.ts": "5f69dd17e73d6e750fb94a40c911fba275a0c0cd688a6e7c6bda0041cdd3fef6",
+    "src/cli.ts": "3ae7a33d0ccc477ae013121c0925faa35633f9bc1fa05bd23c817a3004d1dd6a",
+    "src/collector.ts": "907dd6f8a38aca8cdbd0b1e1135c74cbe752496e3fe0c7ea6373548a400d9e62",
+    "src/config.ts": "1d53559fd0cec942ccf0aff247b533be4c01526b1af872f90cb585f12635dc6b",
+    "src/health.ts": "4404cac9a22d07089e3d252efbcc4f12357349adfe4909e3d3f9508acd6eeeab",
+    "src/journal.ts": "e6f8104456476730cea8fd87b6283dff4c6af8e9f1125c147c2e4323d9fdd458",
+    "src/lifecycle.ts": "d3abf90cc434ae87d5dbeb9fa55c13bd74fa9f3bd6d0b73a6943478b200f771c",
+    "src/local-relay.ts": "842a25eefb19a352b678f03f39d02f3731e3b3824693735c2612586c5d8a47c7",
+    "src/local-rpc.ts": "7a81de0ba8684cde75c10d3c94fa9afb874aa0da039cebdf4c7e6bc53ccf7c20",
+    "src/local-test-signer.ts": "9c1f5a020db26ddce26ad3c72a710d1cd17037829e6efb00e8999568f7090775",
+    "src/math.ts": "c93f6046c64c1686ee5bf1b6f4338ce241c5bf11f4acc622bc43f572c0a491a2",
+    "src/offline-observation.ts": "71ae062805f618f391e40c4f718c79f55ae3013eff025af34d8aaf804b434cb0",
+    "src/packet-store.ts": "cddd40bb2f6d32193f3bcb7ccfa37df214b4182db3c38b5d380d52e1a757e050",
+    "src/pipeline.ts": "d899406fe7403e426b1a936374c55f02faaa5b2b3c3298c685e0b101bba59d43",
+    "src/polymarket.ts": "28903ea1610d8d5b28610abdf80fd873a069470e756cd435c69622ebbe61b13d",
+    "src/publication.ts": "7ce8b6a2b3de607fb9686b7b2a981c18ef129ba44debc89c37c276fb441cd2dd",
+    "src/receipts.ts": "431a5b145fbc1ad6bd9e0ef4f69de59979e75d3309adba71ba1f9b695f149dcc",
+    "src/rules.ts": "a667e4a50af5c7ad8588faf459b7f6dde2734879dfb90ef381aa820e5dc90ce0",
+    "src/service.ts": "a69ab064739478be0777986fd5708fcd0f4a47da00f21eb3e0aff105065e24db",
+    "src/time.ts": "8f61edbe2551609043ee200cbac3c3387362224bd6cdcd5d617b8425cd5bd4c8",
+    "src/wire.ts": "579823904d140ef678265200b2123e4f2aa9407a948c016750089dd425c80acb",
+    "src/worker.ts": "23841db0751e5d992f1f605d69c601141c536d6848a8898c4b30828808762cd0",
+    "test/cli.test.ts": "abf9e68cf5d441a708ebe25324ceab3e54f5e83bd0563c5b9099bb691048c1e4",
+    "test/collector.test.ts": "58bf7b78ef8e8211f595e7fb9d354b9b4c959fbbafcc07030a61daeb2bd5786a",
+    "test/config-time.test.ts": "ac982a515073c71f2652043e9aef941116d0dafaf97acae58835b8a3f722aea9",
+    "test/demo.test.ts": "162fcf3cb9d509d31a1d7bdd901f389b45887d6ad0c34b8c9ad344644c2c10c9",
+    "test/lifecycle.test.ts": "8572c9aa0625ce63dcde0cda5101cb6a08cd6bddb75e7c3c4fd2e1cbfa6d10dc",
+    "test/local-relay.test.ts": "7360cd145b9470aa30a7a5367b6df6a6b353e48cf985a66f71d5a8030f8faf3c",
+    "test/math.test.ts": "1994b5d1a929cb601c52ac555b4826e4e0bcd2e93bbc63ddda9fa0ecf8a1a34d",
+    "test/pipeline.test.ts": "98f5abe7ff1459b286b6933030c7855e8279da33e2fa0715b591c7efb9bd761d",
+    "test/publication-fixture.ts": "ee0496307cd01e789d68d90fb1264f013cd6b590e58e94a53d94a7679fc05cfc",
+    "test/publication.test.ts": "c318ef18ff57975b138cad30635b9d75fc195f085932d580a2b47054df68ec24",
+    "test/receipts.test.ts": "35d63b364aefc937026804de4965fdd5cabb90f3dd606bd1fbf445381a7924e1",
+    "test/service.test.ts": "7bc9b9cc6385721fad92ee28bd06c96fbed4d83cfe4f69cd59f7635fd49845e7",
+    "test/wire-journal.test.ts": "6df42f2bf8842fe327fdb2d786aecb62f6ab968b750644453f68ba29b1ad850a",
+    "test/worker.test.ts": "b4950b8932a9a18ac39ae4a5229e1e85cbc3c374d12846cba94a57d1f3344bc5",
+    "scripts/check-wire.ts": "32ff7037bc9c582c5603e27dfa89a681bcc3fa4d0321150812dadd2c8e94cfad",
+    "scripts/demo-live.ts": "76a1db4c3df35ab90b99abd757233cc7a9cdccde69c66b63d759beb15f5dfd2d",
+    "scripts/demo-packet.ts": "2dcbd5cf92f79dfb71b4f10e8aefec9ffa59ce8422173d0159b284cac43a9fd7",
+    "scripts/fixture-wire.ts": "7d86c40ea55c4e9361404dfb13e9d9bacecbbc58eb7066ea332ebc9f4307aee0",
+    "scripts/pipeline-local.ts": "426ed7d1109bcaa52ed298ede99f1955967257756ddfc2f819dc50c6a0e2c73f"
+  },
+  "notes": [
+    "No new source requests or chain activity; retained real-source evidence replay only.",
+    "Proposed sequence is unreserved; listing/lifecycle and current-chain sourceState are unverified.",
+    "SQLite read coordination sidecars may be created; collector records and DB bytes remain unchanged in subprocess tests.",
+    "Full 232-test suite includes 144 reference vectors; these counts are not additive.",
+    "Owned Solidity tests were not rerun for this CLI-only change; earlier lifecycle evidence remains historical."
+  ]
+}

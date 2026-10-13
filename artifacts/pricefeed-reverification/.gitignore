@@ -1,0 +1,6 @@
+# Historical public provider responses; keep manifests, probe and scope baseline.
+raw/
+observations.jsonl
+timed-run/raw/
+timed-run/observations.jsonl
+timed-run/all-records.json

@@ -1,0 +1,10 @@
+{
+  "pageServed": true,
+  "walletScriptServed": true,
+  "preparedTestnetTransaction": true,
+  "secretRoutesDenied": true,
+  "wrongHostDenied": true,
+  "wrongTokenDenied": true,
+  "transactionsSentByServer": 0,
+  "browserWalletInteractionVerified": false
+}

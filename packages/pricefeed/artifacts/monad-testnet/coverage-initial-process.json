@@ -1,0 +1,24 @@
+{
+  "phase": "initial",
+  "processExitCode": 0,
+  "finalizedPricesBefore": 9,
+  "finalizedPricesAfter": 29,
+  "newFinalizedPrices": 20,
+  "evidenceValid": true,
+  "archive": "var/monad-testnet/coverage-initial-evidence",
+  "archiveSha256": {
+    "source.sqlite": "45ab98fbc477bb5a32bac1ed8993f3288ce251ede19e6e6dc4e68ad35abe74de",
+    "packets.sqlite": "49eed627b197ef96e07a648a0f2df3b390ab39c05eb88342839446206928c36b",
+    "signer.sqlite": "a805b3a0917f550d29e3bb4a6a0c1309f004fb395fd94f62898a4d4a401dcc27",
+    "transactions.sqlite": "fd75d277dd66c736dcf9c0cb6ce9b6c98a3c192920efea414210432b8c900ca3",
+    "relay.sqlite": "ccfcd78a475d30b7ec444d299932586bd4a64247a2fd60977759c0116777dc8b"
+  },
+  "pipelineStates": {
+    "EXPIRED": 4,
+    "FINALIZED": 20,
+    "SOURCE_UNAVAILABLE": 6,
+    "UNKNOWN": 2
+  },
+  "productionApproved": false,
+  "humanGatesAccepted": false
+}

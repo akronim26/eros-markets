@@ -1,0 +1,107 @@
+{
+  "schema": "eros-validation-dataset-report/1",
+  "params": {
+    "since": "2025-10-01",
+    "until": "2026-10-01",
+    "pmEventsPerPull": 600,
+    "ksPages": 40,
+    "pulledAt": "2026-10-03T10:09:44Z"
+  },
+  "rows": 63951,
+  "parents": 5462,
+  "perCategory": {
+    "sports": {
+      "parents": 1394,
+      "rows": 7700,
+      "parentsBySource": {
+        "kalshi": 796,
+        "polymarket": 598
+      },
+      "outcomes": {
+        "INVALID": 8,
+        "NO": 6028,
+        "YES": 1664
+      }
+    },
+    "macro": {
+      "parents": 860,
+      "rows": 8003,
+      "parentsBySource": {
+        "kalshi": 230,
+        "polymarket": 630
+      },
+      "outcomes": {
+        "NO": 4695,
+        "YES": 3308
+      }
+    },
+    "elections": {
+      "parents": 608,
+      "rows": 10247,
+      "parentsBySource": {
+        "kalshi": 8,
+        "polymarket": 600
+      },
+      "outcomes": {
+        "NO": 9633,
+        "YES": 614
+      }
+    },
+    "politics": {
+      "parents": 478,
+      "rows": 1874,
+      "parentsBySource": {
+        "kalshi": 9,
+        "polymarket": 469
+      },
+      "outcomes": {
+        "INVALID": 8,
+        "NO": 1527,
+        "YES": 339
+      }
+    },
+    "crypto": {
+      "parents": 922,
+      "rows": 30604,
+      "parentsBySource": {
+        "kalshi": 639,
+        "polymarket": 283
+      },
+      "outcomes": {
+        "INVALID": 2,
+        "NO": 22700,
+        "YES": 7902
+      }
+    },
+    "companies": {
+      "parents": 707,
+      "rows": 1857,
+      "parentsBySource": {
+        "kalshi": 0,
+        "polymarket": 707
+      },
+      "outcomes": {
+        "NO": 1300,
+        "YES": 557
+      }
+    },
+    "other": {
+      "parents": 493,
+      "rows": 3666,
+      "parentsBySource": {
+        "kalshi": 493,
+        "polymarket": 0
+      },
+      "outcomes": {
+        "NO": 2005,
+        "YES": 1661
+      }
+    }
+  },
+  "excluded": {
+    "kalshi:result_scalar": 57,
+    "polymarket:not_closed": 680
+  },
+  "rowsSha256": "ee3feffc12360bf4a2fce0bf35191b8617f169a30b8aec8c0093df5f124ba288",
+  "manifestSha256": "7fb7710610e3e52cee71c97df95ef267494ad03af76187d9d8ddcad5a7d5c9f5"
+}

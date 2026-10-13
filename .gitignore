@@ -1,3 +1,20 @@
 .env
 .env.*
 !.env.example
+
+# Local integration runs and Python caches.
+/tmp/
+__pycache__/
+*.py[cod]
+.playwright-mcp
+
+# Local signing/protection persistence
+frontend/var/
+services/automation/var/
+
+# macOS metadata
+.DS_Store
+secrets.md
+
+# Runtime journal archives (multi-hundred-MB; never commit)
+*.tgz

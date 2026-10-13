@@ -100,6 +100,19 @@ Monad testnet (chain ID 10143), deployed 11 October 2026. Each market gets one e
 - **UmaAdapter**: [`0x2750c61Ae27A40875b10D8232f68f31a8e2a3385`](https://testnet.monadscan.com/address/0x2750c61Ae27A40875b10D8232f68f31a8e2a3385)
 - **TestUSDC**: [`0x82C7236A14B635AFB6dC825115570aFE4C23c1DB`](https://testnet.monadscan.com/address/0x82C7236A14B635AFB6dC825115570aFE4C23c1DB)
 
+### Native market: Warriors vs Heat (5 Nov 2026)
+
+An Eros-native prediction market: YES/NO tokens trade on Kuru spot books, and a perp on the same event uses the Kuru YES price as its index. Both resolve through the Eros oracle from API-Sports game 519655.
+
+- **Perp engine, up to 5× (order book + risk)**: [`0x0ff5EAE643CB7E303f1726A92C03686674D445C0`](https://testnet.monadscan.com/address/0x0ff5EAE643CB7E303f1726A92C03686674D445C0)
+- **SpotMarketFactory**: [`0xC2b9C39F38a7B7783816AfaB4E7Ff7EEf1C1AEdE`](https://testnet.monadscan.com/address/0xC2b9C39F38a7B7783816AfaB4E7Ff7EEf1C1AEdE)
+- **SpotResolutionAnchor**: [`0x9161F16BD0753352214A98F3e6e86b8275D023C3`](https://testnet.monadscan.com/address/0x9161F16BD0753352214A98F3e6e86b8275D023C3)
+- **NativeOutcomeVault**: [`0xB025e5AD6f36235654F1Ea3177933b0F2b787804`](https://testnet.monadscan.com/address/0xB025e5AD6f36235654F1Ea3177933b0F2b787804)
+- **YES token (eGSW-YES2)**: [`0x57924E7ee6177a650E4381786Ea5aa9D56Dd1a41`](https://testnet.monadscan.com/address/0x57924E7ee6177a650E4381786Ea5aa9D56Dd1a41)
+- **NO token (eGSW-NO2)**: [`0x72EC8B27D2be9e34609f99a701Ddc45D566a4d9e`](https://testnet.monadscan.com/address/0x72EC8B27D2be9e34609f99a701Ddc45D566a4d9e)
+- **Kuru YES book**: [`0xcEF53BfC40931AB46580aA29E650180b36BC24b6`](https://testnet.monadscan.com/address/0xcEF53BfC40931AB46580aA29E650180b36BC24b6)
+- **Kuru NO book**: [`0x5bAc5b91C392066BE96A964b5215371327c191E0`](https://testnet.monadscan.com/address/0x5bAc5b91C392066BE96A964b5215371327c191E0)
+
 These run on test USDC with made-up risk calibration, and resolution goes through a testnet oracle sandbox. Nothing here is production collateral.
 
 ## Architecture & User Flow

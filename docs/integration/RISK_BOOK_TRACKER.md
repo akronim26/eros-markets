@@ -1,5 +1,11 @@
 # Risk + Book integration tracker
 
+This tracker preserves the October 4 risk/book foundation checkpoint. For the
+October 9 factory-backed BTC/ETH deployment, use [addresses.md](../../addresses.md),
+[deployment progress](DEPLOYMENT_PROGRESS.md) and
+[the current operating runbook](TESTNET_OPERATIONS.md). References below to the
+foundation's manual authority and inactive engine do not describe those markets.
+
 **GOV-01 workflow update (2026-10-03):** Risk and Order Book are one team. Mandatory
 A/B peer review is retired; older review-pending changelog entries are historical, not current
 approval dependencies. RB-I11's strict INDEX-prefix seal is implemented in `dcb6b0e`; 21 sampler
@@ -13,12 +19,12 @@ Updated **2026-10-04** · branch `integration/risk` · spec **1.1** / economics 
 This is the shared planning index, not a replacement for the spec, source-bound reviews or evidence.
 Update it when behavior, counterpart status, validation or deployed addresses change.
 
-## 1. Current decision and boundaries
+## 1. October 4 decision and boundaries (historical)
 
-- **Current deployment:** source `162ac92` / Solidity `dcb6b0e` foundation deployed on Monad
+- **Historical foundation deployment:** source `162ac92` / Solidity `dcb6b0e` foundation deployed on Monad
   testnet **10143** under the user's new authorization. Six successful transactions, all five
   runtime comparisons and bindings verified. New market **unactivated**, no mint/trade/settlement.
-  Root **[addresses.md](../../addresses.md)** is the current address/env handoff. Frontend/oracle
+  The [foundation deployment report](../../artifacts/risk/monad-testnet-deployment-2026-10-04.json) preserves that address handoff. Frontend/oracle
   integration and demo setup are delegated to their integration team; the immutable manual test
   authority cannot be swapped for the real oracle on this instance.
 - **Historical evaluation completed:** controlled Monad testnet evaluation, chain **10143**. Foundation,
@@ -180,7 +186,7 @@ characterization tests do not close a finding; technical checks are not an indep
 
 ## 6. Testnet deployment ledger
 
-**Current deployment (2026-10-04):** root [addresses.md](../../addresses.md) records source
+**Historical foundation deployment (2026-10-04):** the [deployment report](../../artifacts/risk/monad-testnet-deployment-2026-10-04.json) records source
 `162ac92`, engine `0x58c63bfd94c13acb6f1da665406cc16cf80d1b69`, all five deployed contract
 addresses, six successful receipts and verification. Cost **3.271483332 test MON**; controller
 remaining **2.504629348592266817 test MON** at block **67,915,348**. Market is **unactivated**.

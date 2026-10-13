@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1",
+  "venue": "kuru",
+  "chainId": "10143",
+  "marketId": "0x0f6b5f9fae4a00d5612f6a06f055f67d15418cf50329b925aefa52910053921a",
+  "sourceId": "0x0ac25ed0cbddd65b8cc88c82d2427117b42a4500d127f0354b259a7a115140d6",
+  "kuruOrderBook": "0x91e1473745FD5A80DE421C366581911aA35A30F9",
+  "yesToken": "0xf0499e5DaB56071587B35E0e54B31507DB1D0dE9",
+  "noToken": "0x5c45ac6Ccf5A6B83493806405658639De22bfFcF",
+  "collateral": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+  "outcomeVault": "0x17f459C7D7164f619f851bCf174A58AD4DdAE06a",
+  "outcomeLabel": "YES",
+  "erosRulesHash": "0x0cdfaddfd552d04901e60cdd4d8e54ec680b12d800ee215fee271d2ed4a1ed38",
+  "scheduledT": "1792018800",
+  "depthNLots": "100000",
+  "maxSpreadWad": "50000000000000000",
+  "pricingPolicy": "before-fee-vwap-bid-floor-ask-ceil-mid-floor-depth-total-floor-v1",
+  "depthPolicy": "kuru-resting-orders-only-amm-vault-excluded-v1",
+  "timestampPolicy": "kuru-pinned-block-timestamp-seconds-hash-rechecked-advance-only-v1",
+  "failurePolicy": "fresh-thin-crossed-wide-book-invalid-depth-transport-failure-withheld-v1"
+}

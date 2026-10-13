@@ -1,0 +1,35 @@
+✔ shared market and listing identities accept exact reports (5.261709ms)
+✔ reject mixed chain (0.993834ms)
+✔ reject mixed factory (1.316458ms)
+✔ reject mixed vault (1.869625ms)
+✔ reject mixed codehash (1.525166ms)
+✔ reject mixed engine (0.920834ms)
+✔ reject mixed listing (1.382959ms)
+✔ base report bound to selected plan addresses and creation receipts (1.305708ms)
+✔ journal preserves partial uncertainty and rejects stale binding/replaced receipt (2.161541ms)
+✔ canonical verification rejects replacement and transaction block mismatch (1.871ms)
+✔ staged switch resumes partial writes and is idempotent (42.938625ms)
+✔ switch refuses unrelated concurrent edits before any target mutation (19.278375ms)
+✔ publisher initializes only absent complete journal set (1.872166ms)
+✔ process ownership uses argument boundaries (0.386208ms)
+✔ service lock refuses a second contender and stale owner without deleting lease (10.962625ms)
+✔ explicit qualified selection retains opaque slots and exact candidate binding (1.352708ms)
+✔ source gate rejects missing (0.275791ms)
+✔ source gate rejects unapproved (0.139291ms)
+✔ source gate rejects short (0.284ms)
+✔ source gate rejects hash (0.279791ms)
+✔ source gate rejects identity (0.308083ms)
+✔ source gate rejects duplicate (0.388958ms)
+✔ funding calldata bound to owner engine amount and nonce (3.409166ms)
+✔ adopted service health rejects early disappearance and PID identity changes (0.229667ms)
+✔ runtime checks compiled engine creation hash and market vault binding (2.654666ms)
+✔ adopted failure drains surviving owned services and retains lease for uncertain identity (0.312459ms)
+✔ early successful daemon exit is unhealthy while successful setup and requested stop are normal (0.130333ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 463.803042

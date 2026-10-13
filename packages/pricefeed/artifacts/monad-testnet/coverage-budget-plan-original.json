@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "1",
+  "mode": "MONAD_TESTNET_BUDGET_PLAN",
+  "id": "91a4a8f3-6dab-40f0-aadb-321669a73fe6",
+  "reason": "Bounded full 300-second coverage, deliberate publication pause and fresh full-window recovery",
+  "oldPolicy": {
+    "schemaVersion": "1",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "relay": {
+      "gasCap": "800000",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000",
+      "maxCostWei": "120000000000000000",
+      "headroomMs": "5000",
+      "confirmations": "1",
+      "leaseMs": "120000",
+      "timeoutMs": 10000,
+      "maxAttempts": 3,
+      "gasSafetyMarginBps": "1000"
+    },
+    "budget": {
+      "maxTransactions": 11,
+      "totalMaxCostWei": "710000000000000000",
+      "budgetRevision": 1
+    }
+  },
+  "nextPolicy": {
+    "schemaVersion": "1",
+    "sender": "0x1D7a477FDEaeb7c93E58cd1870e3B35eE4a7d071",
+    "relay": {
+      "gasCap": "800000",
+      "maxFeePerGas": "150000000000",
+      "maxPriorityFeePerGas": "2000000000",
+      "maxCostWei": "120000000000000000",
+      "headroomMs": "5000",
+      "confirmations": "1",
+      "leaseMs": "120000",
+      "timeoutMs": 10000,
+      "maxAttempts": 3,
+      "gasSafetyMarginBps": "1000"
+    },
+    "budget": {
+      "maxTransactions": 55,
+      "totalMaxCostWei": "1920103950000000000",
+      "budgetRevision": 2
+    }
+  },
+  "createdAtMs": "1791135479065",
+  "checkpoint": {
+    "mode": "MONAD_TESTNET_READ_ONLY",
+    "status": "ENGINE_PINS_VERIFIED",
+    "chainId": "10143",
+    "blockTag": "finalized",
+    "block": {
+      "number": "68176788",
+      "hash": "0xad79a1c499bcf6dbc378a17597599310c273a2e37a6ebcda2e4b2fcc55fb13c5",
+      "timestamp": "1791135472"
+    },
+    "checkedAtMs": "1791135475516",
+    "engine": {
+      "address": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+      "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+      "abiHash": "0x4287a515a1f77cea13d9c334353f22dd0a9ebe8a3b2a98ff2f7d6c2b0363f247",
+      "listing": {
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "token": "0x0000000000000000000000000000000000000000",
+        "registry": "0x0000000000000000000000000000000000000000",
+        "resolutionAuthority": "0x0000000000000000000000000000000000000000",
+        "monitor": "0x0000000000000000000000000000000000000000",
+        "governance": "0x0000000000000000000000000000000000000000",
+        "scheduledT": "1791717905",
+        "listedAt": "1791113105",
+        "sourceHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "rulesHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "invalidRule": {
+          "fallbackListed": true,
+          "captureGraceSecs": "3600",
+          "fallbackPriceWad": "500000000000000000",
+          "voidSecs": "2592000"
+        },
+        "template": 0,
+        "deploymentCapX": "0",
+        "maxTraders": 0,
+        "indexSourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "indexSigner": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e",
+        "indexRulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "depthNLots": "1000000",
+        "maxSpreadWad": "50000000000000000",
+        "bootstrapBandWad": "0",
+        "minOrderLots": "0",
+        "maxOrderLots": "0",
+        "maxLiqLotsPerBlock": "0",
+        "fundingEnabled": false
+      },
+      "sourceState": {
+        "signer": "0xF26e7995D8421A8cd16Af704C360c7928F76bb8e",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "lastSequence": "12",
+        "lastObservedAt": "1791133022",
+        "configured": true
+      },
+      "lifecycle": {
+        "chainId": "10143",
+        "engine": "0xd2d82fed32fb9a911300e7d928607755bd101773",
+        "marketId": "0xaf8c57d4dc7551c36250f6e9e0f368b426145052b820557f2dcb58235024eb6a",
+        "sourceId": "0xc6f2591a3b2e05beba9cd100d5de292ebb3cca20583c981db18ad85939579021",
+        "engineCodeHash": "0x50b7428b7bae22d33a1e456e92a94204557b50017aaa69e83c627009038852a0",
+        "rulesHash": "0xe5e453534d4ea6ae8995731d8d0d0b82c49700ed1e6ab04643dcefb0ff0354e2",
+        "scheduledT": "1791717905",
+        "halted": false,
+        "blockNumber": "68176788",
+        "blockHash": "0xad79a1c499bcf6dbc378a17597599310c273a2e37a6ebcda2e4b2fcc55fb13c5",
+        "blockTimestamp": "1791135472",
+        "canonical": true
+      }
+    },
+    "operationalOutput": false,
+    "signaturesProduced": 0,
+    "transactionsSent": 0
+  },
+  "reservedWei": "570103950000000000",
+  "deliveryCount": 11,
+  "nextNonce": "10",
+  "balanceWei": "232440246000000000",
+  "configHash": "2867d1b4413205090e7fda4bf1c5829e3e9bd2f392792c0d5fb8097ab5b59d53",
+  "journalHash": "3c3561100bb402e56e1956017c6fab5b084c4fbc73a6e89d35808eab5500c372",
+  "remainingReservationWei": "1350000000000000000",
+  "fundingGapWei": "1117559754000000000",
+  "additionalTransactionSlots": 44,
+  "additionalReservationWei": "1210103950000000000",
+  "productionApproved": false,
+  "transactionsSent": 0,
+  "signaturesProduced": 0,
+  "approvalHash": "1156fe89042918b4d1c5d194fc9ca625b6b3ac56e133d086f9df665bc0efd904"
+}

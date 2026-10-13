@@ -1,0 +1,20 @@
+{
+  "feedSpec": {
+    "urlTemplate": "https://statsapi.mlb.com/api/v1/schedule?gamePk={id}",
+    "urlParam": "849835",
+    "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "finalPath": "dates[0].games[0].status.codedGameState",
+    "finalValue": "F",
+    "valuePath": "dates[0].games[0].teams.home.score",
+    "valueType": 1,
+    "decimals": 0,
+    "op": 2,
+    "target": "0",
+    "bufferSecs": 60,
+    "l1TimeoutSecs": 120
+  },
+  "allowList": [
+    "statsapi.mlb.com"
+  ],
+  "specHash": "0x054c872ff45e8a7db2110415c7d4ff5badceee1dfab3dc44e6ce3f77a38166e0"
+}

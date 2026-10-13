@@ -1,0 +1,23 @@
+{
+  "schedule": "0 */5 * * * *",
+  "httpTimeout": "8s",
+  "allowList": [
+    "gamma-api.polymarket.com",
+    "clob.polymarket.com"
+  ],
+  "authSecrets": [],
+  "feed": {
+    "urlTemplate": "https://gamma-api.polymarket.com/markets/{id}",
+    "urlParam": "3128888",
+    "authRef": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "finalPath": "umaResolutionStatus",
+    "finalValue": "resolved",
+    "valuePath": "outcomePrices[0]",
+    "valueType": 1,
+    "decimals": 0,
+    "op": 0,
+    "target": "1",
+    "bufferSecs": 60,
+    "l1TimeoutSecs": 300
+  }
+}

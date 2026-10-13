@@ -1,0 +1,18 @@
+bun test v1.3.13 (bf2e2cec)
+
+main.test.ts:
+(pass) a finished event over the target prints YES with the value hash, and writes nothing [14.64ms]
+(pass) a finished event at or under the target prints NO, and writes nothing [1.58ms]
+(pass) a live event prints NOT_READY, and writes nothing [0.94ms]
+(pass) a wrong path prints ERROR, and writes nothing [0.95ms]
+(pass) HTTP 429, 5xx and invalid JSON print ERROR, and write nothing [1.86ms]
+(pass) a host not first on the allow-list or an unknown authRef prints ERROR and fetches nothing [0.52ms]
+(pass) a known authRef sends its secret in the configured header [1.43ms]
+(pass) football dry-run uses the same validation and authenticated provider without any chain writes [2.93ms]
+(pass) the dry-run has no EVM client and calls no write (source check) [2.32ms]
+(pass) dry-run and resolution build their node-mode fetch from the same shared function [0.64ms]
+
+ 10 pass
+ 0 fail
+ 41 expect() calls
+Ran 10 tests across 1 file. [325.00ms]

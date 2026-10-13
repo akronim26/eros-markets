@@ -1,0 +1,86 @@
+{
+  "scenario": "E3",
+  "title": "DVM false → Review → other outcome → Final",
+  "network": "monad-testnet",
+  "status": "pass",
+  "started": "2026-10-04T17:06:52.452Z",
+  "steps": [
+    {
+      "step": "listed e3 (truth NO, T 2026-10-04T17:18:00.000Z)",
+      "market": "0xdd289d0906f431865d6ff64583489ea779721375434e9c85a22b843a2949790f",
+      "tx": "0x984f6f8f734122556baae7d2e61c1d7e62db2fbc1024eca2e8f9063e9583d1dd",
+      "detail": {
+        "slug": "eros-e2e-e3-e3-849829-home-gt-3-1791134280",
+        "engine": "0xD9eAe54A412af2cCB53F6CE358EbC53401Db4394",
+        "spec": {
+          "scenario": "E3",
+          "tag": "e3",
+          "game": 849829,
+          "side": "home",
+          "target": 3,
+          "feed": "blocked",
+          "tauIn": 660,
+          "liveness": {
+            "l1": 120,
+            "auto": 120,
+            "reviewed": 300
+          },
+          "l2DeadlineSecs": 2400,
+          "voidSecs": 7800
+        }
+      },
+      "block": "68170777",
+      "time": "2026-10-04T17:07:36.000Z"
+    },
+    {
+      "step": "committee proposes YES",
+      "market": "0xdd289d0906f431865d6ff64583489ea779721375434e9c85a22b843a2949790f",
+      "tx": "0xc36e410434da678dbe4d33703f345e8b6aba5fa56597038f8b60769706ba480f",
+      "block": "68179039",
+      "time": "2026-10-04T17:49:11.000Z"
+    },
+    {
+      "step": "third party disputes YES on OOv3",
+      "market": "0xdd289d0906f431865d6ff64583489ea779721375434e9c85a22b843a2949790f",
+      "tx": "0x3283dff5b182266314851a800a85db0f37c228b3a8581bcf6981b75f00d9fe3a",
+      "block": "68182211",
+      "time": "2026-10-04T18:05:09.000Z"
+    },
+    {
+      "step": "sandbox DVM answers false to YES",
+      "market": "0xdd289d0906f431865d6ff64583489ea779721375434e9c85a22b843a2949790f",
+      "tx": "0x28fb05134369f86c9f37b1b29e5af7c216b52e823251472ef9e21d2e354f9b13",
+      "block": "68182352",
+      "time": "2026-10-04T18:05:52.000Z"
+    },
+    {
+      "step": "committee proposes NO",
+      "market": "0xdd289d0906f431865d6ff64583489ea779721375434e9c85a22b843a2949790f",
+      "tx": "0x47a23bca25e469c05dccad60683fce7754a6668e0a4cffa8c190ce425316659e",
+      "block": "68183581",
+      "time": "2026-10-04T18:12:03.000Z"
+    }
+  ],
+  "checks": [
+    {
+      "check": "rejectedMask set for YES",
+      "ok": true,
+      "detail": "rejectedMask 2"
+    },
+    {
+      "check": "the rejected outcome is not proposed again",
+      "ok": true,
+      "detail": "Error: console propose failed:"
+    },
+    {
+      "check": "e3 oracle Final NO",
+      "ok": true,
+      "detail": "state Final, outcome 2, finalReason 1"
+    },
+    {
+      "check": "e3 engine settled NO, claims open",
+      "ok": true,
+      "detail": "engine finalOutcome 1, price 0, claimsEnabled true"
+    }
+  ]
+}

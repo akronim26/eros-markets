@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "scope": "local controlled fixtures; reserve-funded leverage",
+  "recordedAt": "2026-10-05T17:09:22.650665+00:00",
+  "baseCommit": "b7b8442c01bd7c023957c4a1a98a1893c5de7b14",
+  "uncommitted": true,
+  "sourceSha256CanonicalLF": {
+    "artifacts/risk/book-risk-engine-abi.json": "9dc09dae6a4fc1457f3c71ca22a8b6bf6f493d1f1e03df42405d295ba58b8a70",
+    "artifacts/risk/engine-abi.json": "ecb1bacaca13c5db207d804b8b2ee6da7770d49c84318603ab54d6e5f2f157b6",
+    "artifacts/risk/vault-abi.json": "227eddb0baaddcc9cbf4132b28f59e11b70eda8b5e70ac649a255732048e3657",
+    "contracts/foundry.toml": "905a2ce377d1cb49e11a6fdd838ad32a8a0c5011a478aaaf1514498708a2cb20",
+    "contracts/src/Book.sol": "e91f7e46ad398319ac5c8feff3f7121da6cd4b9038404aa6aeae1a330fffc53d",
+    "contracts/src/engine/BookRiskEngine.sol": "cb77ca51fb6d29b3b7a55c7964fb3e95814c00cd7a2981ad1a1bb2b4d43333fe",
+    "contracts/src/engine/RiskAccountingBridge.sol": "ed70dc79a5b333f0071b2e3a0f8a0693bf2d6cc1a16896b327f6eb847a99b5c5",
+    "contracts/src/factory/EngineCodeParts.sol": "35e6fb6ee57c75880e384c6b4c4d0348d0e7f6bd5e936f9d15faf6498959fbf5",
+    "contracts/src/factory/MarketFactory.sol": "0cb45cb987629dd2a627dba8eb00dffcb1d1fce0c7f6f002eb8c04faa6bf5b5d",
+    "contracts/src/interfaces/IAccountingPort.sol": "9589f1d508d0f05460e2c5966421146f7a67e2c5d94a2bb7b054ca027a9862f1",
+    "contracts/src/interfaces/IBookRiskHooks.sol": "a802bbc0a75872c7ebcb8e078d8563bab004beacfbbe610aced424ab884b565c",
+    "contracts/src/interfaces/IMarketConfig.sol": "29acaddbbf0a1bd25398ac2ba9bda3bd66e8a2465d02570fc13a288e0fdc4cdb",
+    "contracts/src/interfaces/IPriceSource.sol": "4e590ac32ecd0c7152c6e6a5f30e677b06844ad40807ed6ae708a3eeb4c6e3b1",
+    "contracts/src/interfaces/IResolutionIngress.sol": "bf7d638ac4b9a85bbd6e7ea75d18e5c93c2c030cc9663376e7be4fc089bebc35",
+    "contracts/src/math/CoverageMath.sol": "7b03ff590fc91509f38440fae1896a199d1fb1e3432ae44c219ec0d57c5e0995",
+    "contracts/src/math/FeeMath.sol": "7e9680cd4fe4b1ea4f8a76ead9d502148962791982f2d3ea432c2ee0bab05da4",
+    "contracts/src/math/FundingMath.sol": "4401bf5a142119bb215ec375f2d18746a35aa4578fc36140b1763a5c589dbfec",
+    "contracts/src/math/HazardMath.sol": "2c63a201a881429ac525c5891ea8009043dedafdc3c69d5ceb427992349f110c",
+    "contracts/src/math/HorizonMath.sol": "c0d0f02b9162c8d1fa718a3addec3a48dfc11fde5861212a2aefd348644f106e",
+    "contracts/src/math/LedgerMath.sol": "d1e97120fe251a901d0541186c19ea3372b2e34519d21d3a8c590fc10cbe3ae8",
+    "contracts/src/math/LifecycleMath.sol": "6b0ab9655f4b26458cdb3a9dbd74233b9bffe9cc2dbc62a8a0cd435a3f197bdd",
+    "contracts/src/math/LiquidationMath.sol": "730630b6f3a516e89f4185cabc3bc2d4978d01a1753e23cc145ca84ae1abe534",
+    "contracts/src/math/MarginMath.sol": "eb41e0b066aa9603e1d4cc32f7e67eb4c7dc8fad19198474f2b23606d002e6d4",
+    "contracts/src/math/MathTypes.sol": "f34d68b5e0331ea13f521c80c520ce1c58e9db91a74b26c2d1eb853b69ef0575",
+    "contracts/src/math/OrderAdmissionMath.sol": "aff9d86c8d04553e1da8577f3ddb938404473da8865f8cca5dd0f19f325dc119",
+    "contracts/src/math/PremiumMath.sol": "54a7cb4485dbe64bcc2cfd577b541add5821d288397f7a73ee4ae29c242e57d7",
+    "contracts/src/math/PricingMath.sol": "bb29e549e5f342bc52edec849bc6ff6ab87e5e825dba4b871461f8d24bdd5f17",
+    "contracts/src/math/QMath.sol": "ee5f5883dedcd476ab165cb2930fd7f88e6625e6a627e404b3a922f1c8a55b62",
+    "contracts/src/math/RiskTypes.sol": "1b1bc6b5f2a932bb64e19564039c9631c83749f4fc46faf02e4913caecb945c0",
+    "contracts/src/math/SettlementMath.sol": "f3d0ec1b3bbe7d42515617cfa6647688cacf8ff4c38f438f0a9348083b3437fa",
+    "contracts/src/pricing/BookDepthSampler.sol": "d33073327905d5fe59ce701b3d558b4d3922f144e19b58acc05e2caab0bc7d6d",
+    "contracts/src/pricing/ObservationStore.sol": "e4d72237606dd72f5614d4e43bf2a4f304831f69e16433232f8b8b14ec2a4769",
+    "contracts/src/pricing/PriceIngress.sol": "b06c7604ce8e9d1dc64b2056576bccf65d7e58b72c48cb390e36d6c693642fd3",
+    "contracts/src/pricing/RiskPricing.sol": "5f7f67d48ef1119e67267266c6b1e1aa3dbb2df0c5954a1d13383183124870b1",
+    "contracts/src/pricing/SourceGuards.sol": "3143a399c873775c430b71bd4b5aad130989d1938cc979070836c0289bab6ae2",
+    "contracts/src/risk/Accounting.sol": "e62a4c11701196e8ad2c311f5b85b5f061199a41e8619d28d2e7c53ea428304f",
+    "contracts/src/risk/AccountingEvents.sol": "b3acb33c6c69dbbe9557b62a9402678d06f89275b094723f66fe414b204606bd",
+    "contracts/src/risk/AccountingPort.sol": "0e0cdfa11df577f7ce3772bab0d42d6fab11c24063a0965495dfd3174f4018e9",
+    "contracts/src/risk/AccountRegistry.sol": "a82d3445a91a99d262711207946d862594d0b4570a480191e49e4ec3b8d01b21",
+    "contracts/src/risk/AccountSync.sol": "67c9617089eb30b70172f9a315af204d90fc8befabe09867252523c477ce59cb",
+    "contracts/src/risk/BookRiskAdapter.sol": "41b6ca13621ca0c169fc6d3839edb6239dbdc3e8237e11e4e6350a3ed1070520",
+    "contracts/src/risk/ClearingCore.sol": "604d692ceac02d92d6ade9a75b110203a973f56542657ec19cc490d2fdc82845",
+    "contracts/src/risk/EpochRollover.sol": "4a01e7976e00f07a89921fb3d5729780c6c1daa4414a6c9b61e1a5c6f814fbcd",
+    "contracts/src/risk/FeeAccounting.sol": "cbcf09e015faaeb12a14d281516d4c81e16cdad281a4ab1ad9b32de5c905ab70",
+    "contracts/src/risk/FloorAccounting.sol": "baba8b8a49914faeca9e96277af6c1916d2ff5dce117ba4e5dc4463968e531e5",
+    "contracts/src/risk/FloorLifecycle.sol": "f84e1acac1a22a7120d3a0ea85522d6695d980e2212fe2b4efa18de285bb2e9c",
+    "contracts/src/risk/FreezeAccounting.sol": "8167b726693675c02ff0ae694df8d8b43a5767a17c7e39b05c5a716315cd6a78",
+    "contracts/src/risk/FundingAccounting.sol": "92ee2c6a924e8eb9e8eb1655c7b8d0df1dc77ddd42c2cd80d1e819d5ec47460e",
+    "contracts/src/risk/LiquidationBookAdapter.sol": "1f4dae807ab664c34a3fd66292c0135f057c0d82752260c19429968e011b8278",
+    "contracts/src/risk/LiquidationEligibility.sol": "26be2adef5753587667c9e46016944b382323435985f721fef1f2ef232fc8829",
+    "contracts/src/risk/LiquidationFees.sol": "71e3bc0fe197a9d0f0a4911e327feb55e101250ea8675f9b56cc7428a3b094aa",
+    "contracts/src/risk/MonitorPolicy.sol": "8eb582e99368923a8fd8235caf91ba90ec9cc0748d3fbbeb394539fac557b224",
+    "contracts/src/risk/OrderAdmission.sol": "15f77bc4fced6b593abcb18ff7a8affa5bcd26211350dbeb2e20dfe32811fc92",
+    "contracts/src/risk/OrderLifecycle.sol": "c598bcd0c17c77d71202068c0aa55a7b5b9e4c5d1ebb491176267d9085c7436d",
+    "contracts/src/risk/OrderRisk.sol": "1153301c0d7552fbaf0a4bb9fd7a23641b56f9b7d23c7bcc2ff4e465894ebd90",
+    "contracts/src/risk/PremiumAccounting.sol": "c18d2ff63ee8572ad9bfece22131b02db32e4e806037fe4928b5f6a0c9a5dd93",
+    "contracts/src/risk/ReserveAccounting.sol": "a7b358e4e111dfdf1a95875f9a2a489c2ba69ca2e9af84dbc52b81741352197b",
+    "contracts/src/risk/RiskContextPort.sol": "bc1dbefee6062edc85ffd7b1cdfab5d6373b9ad95b93670620066642218a6689",
+    "contracts/src/risk/RiskLifecycle.sol": "67567b96f077b2d137a868b47a7f2abf8296d826654c04720b8f3549f05a7d8e",
+    "contracts/src/risk/RiskLiquidation.sol": "5ed5887391755f0b7755c27d4fd61dbd9bcef73c31007183c8d294ab2c1eef91",
+    "contracts/src/risk/RiskStorage.sol": "e27fbb9030ae1406d429a5fc3bc218cc2de63a73abfb9e56bb7fa2f5b6e573e4",
+    "contracts/src/risk/RiskView.sol": "5a2dc9722613de004e402b17e0338ba86090b6ce1ea74f57550f20351d4badc7",
+    "contracts/src/risk/TakeoverAccounting.sol": "f27aae64d4fe9e731926b50d2576c9a03af543c63492f374db33d6d7501e4ef9",
+    "contracts/src/risk/TradePreview.sol": "7bd3f09e4eafb9e45f17f067a9812b45c2b809e23645534e346f3a938b2c4b8d",
+    "contracts/src/settlement/ClaimEscrow.sol": "78db4fe7592f5471c831a0c21304e12d8158b2d937b3be81b36b2d366dff56ce",
+    "contracts/src/settlement/ConversionGate.sol": "1917746d11446136a3632bc1b507e6ccc621c274fc8074ced5da8fea7e1f0161",
+    "contracts/src/settlement/InvalidPrice.sol": "dd4413a281a5e027697c1819b24775f105bf0a9d53749b3c752f5436559bc4a7",
+    "contracts/src/settlement/PayoutLedger.sol": "01e2e3a92a7477a4986c50244e41f92ca41004f41a84eb958d588d14bb5ac532",
+    "contracts/src/settlement/RecoveryAccounting.sol": "f50012a55c2a70ea997f0926b5f8c5ac5bcd7183bd1e66cc05f40273805ff233",
+    "contracts/src/settlement/ReserveClaims.sol": "d2ea3f11147c8c71643dfdfffde2d19c77209e4b382296d0e7b018bc68b494cc",
+    "contracts/src/settlement/ResolutionIngress.sol": "f0519eb57f0efad236dcd777345020a1c7fbe21ceca28116a955e808b2ac70b1",
+    "contracts/src/settlement/SettlementController.sol": "f4da93518d31e34615868aa709b673de9be00faedda30bb91924b2246156e5ac",
+    "contracts/src/settlement/SnapshotLedger.sol": "e44042656dd6a3fa38eb090da8f81fcbc914cd33a44c55b902475871b2158398",
+    "contracts/src/vaults/BackstopPool.sol": "e9e704d9451c6f50031acc7e740c99406d84d7b770c9361236e3ba37a3e62748",
+    "contracts/src/vaults/CollateralVault.sol": "2f42ba33478dbe534d74d046ff4b1dac1a8dbc8618a3584b898b3eda4a6ab830",
+    "contracts/src/vaults/ReserveVault.sol": "49830ee6755e669c16e252b4c4f6822eb34528b8f3ccba52ab539278af9878fe",
+    "oracle/foundry.toml": "5dd60739417b6c7f14369f20318b103962affa0f86fccd50210baae897d61451",
+    "oracle/lib/solady/src/utils/ECDSA.sol": "135d02009f4763ab2d4fc4f613a88e2082f770d453f09393e3b8ef3922661c40",
+    "oracle/lib/solady/src/utils/FixedPointMathLib.sol": "d322e2a0b1f43dbd80a3cf26a40d1ca1cc19cf03737f1e8513485e266b47e9c3",
+    "oracle/lib/solady/src/utils/LibBit.sol": "5ca35a798fd000ab0ca3244ad3db3b714450ddebde9fc55255d849424ffda8c4",
+    "oracle/script/integration/DeployRealFactory.s.sol": "7466134f7ed9b2b6127c7311bbfee66d5ca58de8d8dc9487e885787f32e4910c",
+    "oracle/script/integration/LocalIntegration.s.sol": "d7675ebf11654de20050407b281c6d0190c9de11e32f93b7735bf45f441f20d7",
+    "oracle/services/local-integration/package.json": "014e8d31ec32aecc8dba355d9ad0be86747772e432e1bc3e868b7d3dc93ffcc8",
+    "oracle/services/local-integration/src/enroll.ts": "116b97515f3469872b87445426d5660219a62b549175950e8670eee7fda24387",
+    "oracle/services/local-integration/src/enrollment.ts": "51d7361faae0abed5d8cc78d3bb7867db8ac53a4113e3db70bc6e86384be5328",
+    "oracle/services/local-integration/src/liquidator.ts": "d6520f81aca4f629a1d2d224d6f0cca35a19e7e94bbfc6b2fa49d60c5f9bc2dd",
+    "oracle/services/local-integration/src/main.ts": "d1a2c62a717afe68776417d7e8416f00197461d633f3f5f3d4e1fc280a2d623d",
+    "oracle/services/local-integration/src/read-model.ts": "9bfcd10d360c82502019895b95ae41c553c1f2fbc1462a6d6a6365854563aecf",
+    "oracle/services/local-integration/src/sampler.ts": "1ebe7e637517cdabf769b8a2ead72ed500210b0f9cfb742390d6e29b576bbda1",
+    "oracle/services/local-integration/src/upkeep.ts": "ddcef9f1092a1c57fa53cfbb8f437fdbfbacc15814beac22c6c5059d56c744bd",
+    "oracle/services/local-integration/test/enrollment.test.ts": "193c123d2913ec16cc489b6798592c88e71edb32ac4355caebd76d220efca4d1",
+    "oracle/services/local-integration/test/read-model.test.ts": "81f3695179fa4f299f08e8cd0ae7b30f74dfcd62721e7e60f53825076ca868f8",
+    "oracle/services/local-integration/test/sampler.test.ts": "d0d947f41e30485cf627cfdd457428edcc43cd5f4f284511a689d475ee5e1120",
+    "oracle/services/local-integration/test/sampling-lock.test.ts": "ed2b793c28bfc74e19b2ce369311284c4b10c69c312a06b5cb08c788de5255ad",
+    "oracle/services/local-integration/test/upkeep.test.ts": "1c6de561790ce8fa8c67ec07ec8045a0c5bad749bf006aaa1e55160217892243",
+    "oracle/services/local-integration/tsconfig.json": "fea9cfcb057785994121b5c0768b9912cbcae898ce8c2c6c3ff57dd78ae99ee5",
+    "oracle/services/market-ops/src/broadcast.ts": "26d9ed2330107e6eb94887c93264831cd3bae33c663464cde9863394c5e5c922",
+    "oracle/services/market-ops/src/chain.ts": "001c7e1cf36a4a5ad2a4b31e400ecf8c1af1279a13db110f70e8e043b12c7550",
+    "oracle/services/market-ops/src/main.ts": "41cb8a642b8a4f2a881f23ee0484db69aab997291cba116ea41d3e86a121187b",
+    "oracle/services/market-ops/src/operations.ts": "7ba5f6289da68b174f582103e65dd8db5b52719d9efb3a457947b59c238d394d",
+    "oracle/services/market-ops/src/schema.ts": "5ec1f3ea77c9dfbe7ae5bb9fc20080f41967261fa592e5bdb59776227166d515",
+    "oracle/services/market-ops/src/store.ts": "1c40cb33c13ec5e9cf214f623166376521a348023f402504d3d122281c91238e",
+    "oracle/services/market-ops/test/broadcast.test.ts": "b44b77a928cc3e7233dac3c59f8e1d1fab8fcc66ca787a4c147936240a08f0b7",
+    "oracle/services/market-ops/test/operations.test.ts": "0dc5e5224727c60ba6f080ea6cb57f46459a7a6fdd9c3ab5895b069841ed9550",
+    "oracle/services/market-ops/test/store.test.ts": "348df3ae3610d4c26752a33f51e198274366513cc36bb8c9b0afa494e446ce4c",
+    "oracle/src/integration/RegistryBookRiskEngine.sol": "7fd85249a1c4501ebdf82afae8fc4cfc9895a18e1393b9ebed6a34b0ea90f2f9",
+    "oracle/src/interfaces/IMarketRegistry.sol": "39a12e34c22bc645d40e7f5bf4265fc7fbe3d14c28625444deb8d9e464abfc5c",
+    "oracle/src/types/OracleTypes.sol": "16af1efcb7c355efc51b139747f02eb768d65dc6d3dff211ac69d998c520a48d",
+    "oracle/test/integration/FactoryGas.t.sol": "1f70797f72ca83aa887d896aece22e0cd661e5406062488eed9e756f3c215d56",
+    "oracle/test/integration/LeveragedFactory.t.sol": "f368fba3de42d9b2fe68996e80c46c97613b604547127bc55403ee3279451edc",
+    "oracle/test/integration/LocalIntegrationSafety.t.sol": "7412acd4f6c1a9eea121f0d7b0adcefbb8059ad79537e5da048e1368e68e1455",
+    "oracle/test/integration/RealBookOracle.t.sol": "11b1e61aca43eca9b02e202d77ec05f59b8c42c8f8de445381f09dd0cdd2a97a",
+    "oracle/test/integration/RealMarketFactory.t.sol": "6d04f7168de00621be639b059e0293c3bf3c8ec25e98e6e6b0fece924d1cf8cd",
+    "oracle/test/integration/RealMarketFixture.sol": "69d3394b8fbe7ee105450c116fbf698aae53a819ff5fafdea71e7292866575a2",
+    "packages/pricefeed/scripts/local-factory-integration.ts": "6b4e4f535e451e31383b21c377a2457f33c74ce15b864fca103311a624e475ce",
+    "packages/pricefeed/scripts/local-sampling-lock.ts": "43a852d77eb71a825a30ce35dfa5d78de32654b2471e4112ef71f0f6b95a9949",
+    "scripts/integration/audit-local-run.py": "f6caf6e6f9448f5ce769673c827eba92efb111e6f1936f2715a626dc0d496859",
+    "scripts/integration/export-local-handoff.py": "18703fd5becf26100d7b957440caa9374a4772632137aa0936caa01c2a5fc2b4",
+    "scripts/integration/local-stack.py": "019fd08436d314659b977aabb263e9c3de74f7b8edadf0182f376d4eff512fc1"
+  },
+  "toolchain": {
+    "foundry": "1.8.3",
+    "solc": "0.8.30",
+    "optimizerRuns": 200,
+    "bun": "1.3.13",
+    "pricefeedNode": "24.21.0"
+  },
+  "sourceDigest": "3f80027279b35caa0c1372d850a1725a74a605969802fba379e96f0f9d545295",
+  "policy": {
+    "badDebt": "funded market reserves",
+    "winnerHaircuts": false,
+    "funding": false,
+    "conversion": false,
+    "maximumListingCap": 5,
+    "accountDeficitSeedFraction": "0.02",
+    "donationsExpandDeficitCap": false
+  },
+  "checks": [
+    {
+      "name": "Prague risk/book",
+      "log": "tmp/leverage-risk-tests.log",
+      "passed": true,
+      "tests": 832,
+      "logSha256": "38ad8eedec6bb84123315707c9973003d9bec8346912c7da7555ab9270d3bc92"
+    },
+    {
+      "name": "Factory leverage",
+      "log": "tmp/leverage-isolated-tests.log",
+      "passed": true,
+      "tests": 12,
+      "logSha256": "1e19ebd4fd98b6b4f4a818334dae7849ccf7600238efe84b27bb1d5cf693ad1a"
+    },
+    {
+      "name": "Isolated factory gas",
+      "log": "tmp/leverage-final-gas.log",
+      "passed": true,
+      "tests": 5,
+      "logSha256": "fa6cfd0d2532fa505d86bc93d007da3a4b78450b485ed72cb0fd041be227ceb6"
+    },
+    {
+      "name": "Local script chain guards",
+      "log": "tmp/leverage-script-safety.log",
+      "passed": true,
+      "tests": 4,
+      "logSha256": "62a33be0f4de9366c8c6266097a3afa983007da4a1e73e28446a9e35b2ab73d7"
+    },
+    {
+      "name": "Local and market-ops services",
+      "log": "tmp/leverage-services-final.log",
+      "passed": true,
+      "tests": 51,
+      "logSha256": "c707167c69b4a940d4dccb082b2ea3378c502571af4c1902845f78bf2011ca5a"
+    },
+    {
+      "name": "Local Python safety",
+      "log": "tmp/leverage-python-tests.log",
+      "passed": true,
+      "tests": 28,
+      "logSha256": "30398bd1adb195343ad66d6c86a0c3eb5e941982236b649ea971b6627bdf6ba5"
+    },
+    {
+      "name": "ABI consistency",
+      "log": "tmp/leverage-abi-check.log",
+      "passed": true,
+      "tests": null,
+      "logSha256": "957aabb7d820d2cb125a0d92bd3aaa510c8b0e25a63c92025f82678d90e4feae"
+    },
+    {
+      "name": "Windows Node/Bun lock contention",
+      "log": "tmp/leverage-lock-stress.log",
+      "passed": true,
+      "tests": null,
+      "logSha256": "f9cc718fc02708130748e99f530a69b0a5f3326a66d4a2a04a2c526f444ba637"
+    }
+  ],
+  "otherIntegrationRegressionEvidence": {
+    "log": "tmp/leverage-integration-tests.log",
+    "passedSuites": {
+      "RealMarketFactoryTest": 14,
+      "RealBookOracleTest": 19,
+      "FactoryEngineJobsGasTest": 2
+    },
+    "totalUniqueCurrentIntegrationTests": 56,
+    "note": "Earlier 8KiB gas readings in this log are superseded by leverage-final-gas.log; raw totals overlap."
+  },
+  "G3": {
+    "technicalChecks": 78,
+    "passed": true,
+    "accepted": false
+  },
+  "gas": {
+    "network": "MonadTen",
+    "transactionCap": 30000000,
+    "testForwardedBudget": 29500000,
+    "smallPlusIntrinsic": 27591345,
+    "leveragedPlusIntrinsic": 27591414,
+    "eightKiBPlusIntrinsic": 29299681,
+    "engineRuntimeBytes": 121963,
+    "engineInitcodeBytes": 132910,
+    "storeRuntimeBytes": [
+      100001,
+      31983
+    ],
+    "realBookLiquidationMeasuredCall": 2729503,
+    "publicGasCalibration": false
+  },
+  "localRun": {
+    "directory": "tmp/local-leverage-20261005-161758",
+    "status": "passed-after-continuation-and-stopped",
+    "continuation": {
+      "originalStatus": "failed-debug-running",
+      "originalRuntime": "runtime-before-continuation.json",
+      "reason": "Read readiness after sampler publication; coordinate the two-order trade. Reuse validated deployment, funding and settlement.",
+      "harness": "tmp/continue-leverage.py",
+      "steps": "continuation-steps.json"
+    },
+    "scriptReceipts": 103,
+    "keeperReceipts": 5,
+    "upkeepReceipts": 20,
+    "maxScriptGasLimit": 29000000,
+    "readiness": {
+      "risk": {
+        "asOfTime": "1791227758",
+        "stage": 0,
+        "pricingMode": 1,
+        "accountingState": 0,
+        "indexAvailable": true,
+        "indexWad": "500000000000000000",
+        "markAvailable": true,
+        "markWad": "500000000000000000",
+        "riskVersion": "2",
+        "profileHash": "0x261966a6a2b705b972426dd44b94051493a2e97ca60cff0693f2ab048f744bff",
+        "secsToT": "2494927",
+        "monitorRestricted": false,
+        "fundingFreshThrough": "1791227784",
+        "floorStatus": 0,
+        "floorCursor": "0",
+        "floorCount": "0",
+        "liquidationCapLots": "100000",
+        "liquidationRemainingLots": "100000",
+        "pendingWork": 0
+      },
+      "caps": [
+        "5",
+        "5"
+      ],
+      "epochId": "4",
+      "epochStart": "1791226811",
+      "blockNumber": "3262",
+      "blockHash": "0x44703029aeb48b341f608063ccb41f53c2e2e7cf07dbf8268ceec7bf1f9e78c4",
+      "timestamp": "1791227758",
+      "controlledTime": true
+    },
+    "accounts": {
+      "leveragedLong": {
+        "trader": 3,
+        "asOfTime": "1791227821",
+        "stage": 0,
+        "cashQ": "-40000000000000000000000000",
+        "positionLots": "100000",
+        "e0Q": "-40000000000000000000000000",
+        "e1Q": "60000000000000000000000000",
+        "markAvailable": false,
+        "markEquityQ": null,
+        "mmQ": "0",
+        "imQ": "0",
+        "status": 0,
+        "graceActive": false,
+        "graceEndsAt": "0",
+        "liquidationMode": 0,
+        "takeoverPredicate": 0,
+        "orders": {
+          "bidLots": "0",
+          "bidValueQ": "0",
+          "askLots": "0",
+          "askValueQ": "0",
+          "feeCapQ": "0",
+          "maxBidTick": 0,
+          "minAskTick": 1000
+        },
+        "markWad": null
+      },
+      "leveragedShort": {
+        "trader": 4,
+        "asOfTime": "1791227821",
+        "stage": 0,
+        "cashQ": "60000000000000000000000000",
+        "positionLots": "-100000",
+        "e0Q": "60000000000000000000000000",
+        "e1Q": "-40000000000000000000000000",
+        "markAvailable": false,
+        "markEquityQ": null,
+        "mmQ": "0",
+        "imQ": "0",
+        "status": 0,
+        "graceActive": false,
+        "graceEndsAt": "0",
+        "liquidationMode": 0,
+        "takeoverPredicate": 0,
+        "orders": {
+          "bidLots": "0",
+          "bidValueQ": "0",
+          "askLots": "0",
+          "askValueQ": "0",
+          "feeCapQ": "0",
+          "maxBidTick": 0,
+          "minAskTick": 500
+        },
+        "markWad": null
+      }
+    },
+    "reserveCoverage": {
+      "reserve": [
+        "0",
+        "100000000000000000000000000000"
+      ],
+      "seedQ": "100000000000000000000000000000",
+      "slacks": [
+        "99960000000000000000000000000",
+        "99960000000000000000000000000"
+      ],
+      "deficit0Q": "40000000000000000000000000",
+      "deficit1Q": "40000000000000000000000000",
+      "recoveryEnabled": false
+    },
+    "reportsSha256": {
+      "receipt-audit.json": "8eee61f463b7b42ec780eabf9f85d6846626c78e89c15680e6bcde1fdc2e2161",
+      "snapshot-final.json": "0bef4f9e71672b28bf8af2cc700b5fa01f1f1ff20739e3319b0e30c0a48311c2",
+      "leverage-readiness.json": "ca91c3a45cc1c702b78ce797812d8acefcd99cf927054a46fa0b7eb3a518efdd",
+      "liquidator-report.json": "3410430d7f147c8a63a541134bca5cdbad9df5a5b1198ff6bd7f1bd7bd405bfa"
+    }
+  },
+  "historicalReferences": {
+    "fullyBackedLocalRun": "tmp/local-integration-verified-20261005; not separately rerun",
+    "windowsPricefeed": "75/420 failures in the earlier full run; no guard weakening; not rerun",
+    "fullMonadRiskSuite": "historical legacy 10000-gas assertion fails at 11071; not rerun"
+  },
+  "limitations": [
+    "Synthetic price source, calibration, collateral and assertion venue",
+    "Local proof resumed the maturity/trade tail after a runner timing fix; original failure evidence is retained, not an uninterrupted final-runner proof",
+    "Public operator roles, real calibration/reserve capital and public gas profiles not established",
+    "No new gate acceptance, commit, push or public deployment",
+    "Local liquidator exercises bounded no-work scanning; productive liquidation is exercised by real-engine Solidity tests"
+  ],
+  "commitPreparation": {
+    "recordedAt": "2026-10-05T18:12:44.343444+00:00",
+    "note": "Original validation metadata, fingerprints and local proof remain unchanged. Commit preparation adds reproducible setup documentation, shared runtime/cache ignores and the Git-state metadata correction below; no economic or orchestration behavior changed.",
+    "sourceChanges": [
+      {
+        "path": "scripts/integration/local-stack.py",
+        "validationSha256CanonicalLF": "019fd08436d314659b977aabb263e9c3de74f7b8edadf0182f376d4eff512fc1",
+        "commitSha256CanonicalLF": "e0d19691a2c60b1aabc8edf24917d19c499a798a4cae576616ca307c2272ae0c",
+        "change": "Record actual clean/dirty git status instead of a hardcoded uncommitted-integration label."
+      }
+    ],
+    "checks": [
+      {
+        "command": "python -m unittest discover -s scripts/integration -p 'test_*.py' -v",
+        "exitCode": 0,
+        "tests": 40,
+        "log": "tmp/commit-runner-tests.log",
+        "logSha256": "89135c07022a39ab0e6eb50886c308651a92130c648f3b51e43242c6bc156b80"
+      }
+    ],
+    "fullFinalRunnerRerun": false
+  }
+}

@@ -26,6 +26,14 @@ contract PricingHarness is RiskPricing {
         return _onEpochOpening();
     }
 
+    function activate() external {
+        _activatePricing();
+    }
+
+    function invalidIndex(uint64 t, uint256 p) external {
+        _onIndexObservation(t, p, false);
+    }
+
     function stage(bytes32 h) external {
         _stageRiskProfile(h);
     }

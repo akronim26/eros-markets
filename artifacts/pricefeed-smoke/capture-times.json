@@ -1,0 +1,32 @@
+[
+  {
+    "file": "raw/book-crypto-1.json",
+    "localFileWriteAtMs": 1790953253366,
+    "localFileWriteAtUtc": "2026-10-02T15:00:53.366180+00:00"
+  },
+  {
+    "file": "raw/book-politics-1.json",
+    "localFileWriteAtMs": 1790953250480,
+    "localFileWriteAtUtc": "2026-10-02T15:00:50.480610+00:00"
+  },
+  {
+    "file": "raw/book-sports-1.json",
+    "localFileWriteAtMs": 1790953248413,
+    "localFileWriteAtUtc": "2026-10-02T15:00:48.413447+00:00"
+  },
+  {
+    "file": "raw/book-crypto-2.json",
+    "localFileWriteAtMs": 1790953309867,
+    "localFileWriteAtUtc": "2026-10-02T15:01:49.867166+00:00"
+  },
+  {
+    "file": "raw/book-politics-2.json",
+    "localFileWriteAtMs": 1790953309044,
+    "localFileWriteAtUtc": "2026-10-02T15:01:49.044757+00:00"
+  },
+  {
+    "file": "raw/book-sports-2.json",
+    "localFileWriteAtMs": 1790953309556,
+    "localFileWriteAtUtc": "2026-10-02T15:01:49.556902+00:00"
+  }
+]

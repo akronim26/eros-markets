@@ -1,0 +1,24 @@
+  report reverts with 0xe72dd604 66
+  state entered 0 27
+  state entered 1 69
+  state entered 2 27
+  state entered 3 24
+  state entered 4 97
+  state entered 5 71
+  state entered 6 53
+  state entered 7 128
+  state entered 8 12
+  state entered 9 0
+  state entered 10 23
+  final reason 1 12
+  final reason 2 1
+  final reason 3 10
+  rejections 27
+  Layer 1 proposals 15
+  production locks 20
+  ghost flags raised 0
+  reverted inner calls % 7
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 293.62s (322.70s CPU time)
+
+Ran 39 test suites in 302.70s (399.15s CPU time): 342 tests passed, 0 failed, 0 skipped (342 total tests)

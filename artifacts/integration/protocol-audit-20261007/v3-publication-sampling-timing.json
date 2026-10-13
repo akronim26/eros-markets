@@ -1,0 +1,163 @@
+{
+  "scope": "Read-only v3 journal/log analysis; no receipt RPC replay. Appended logs span restarts and scheduler versions. acceptedAt and publishedAt are integer-second timestamps. FINALIZED callbacks exclude MINED-only callback paths.",
+  "markets": {
+    "democratic-senate": {
+      "phases": {
+        "all": {
+          "publishedAtToCanonicalInclusionSeconds": {
+            "count": 240,
+            "min": 4,
+            "median": 5.0,
+            "p90": 6,
+            "max": 8
+          },
+          "inclusionToFinalizedCallbackSeconds": {
+            "count": 164,
+            "min": 1.418,
+            "median": 2.79,
+            "p90": 3.247,
+            "max": 5.795
+          },
+          "finalizedCallbackToSampleAckSeconds": {
+            "count": 88,
+            "min": 4.033,
+            "median": 5.273,
+            "p90": 5.684,
+            "max": 7.482
+          }
+        },
+        "since2245UTC": {
+          "publishedAtToCanonicalInclusionSeconds": {
+            "count": 85,
+            "min": 4,
+            "median": 5,
+            "p90": 6,
+            "max": 7
+          },
+          "inclusionToFinalizedCallbackSeconds": {
+            "count": 58,
+            "min": 1.847,
+            "median": 2.854,
+            "p90": 3.296,
+            "max": 3.702
+          },
+          "finalizedCallbackToSampleAckSeconds": {
+            "count": 39,
+            "min": 5.127,
+            "median": 5.39,
+            "p90": 5.746,
+            "max": 7.482
+          }
+        }
+      },
+      "finalizedOperations": {
+        "sample": 128,
+        "rollover": 1
+      },
+      "bookDepthWaitEntries": 95,
+      "keeperUnfundedWaitEntries": 13,
+      "processStopCounters": [
+        {
+          "at": "2026-10-06T22:30:04.594Z",
+          "samples": 33,
+          "rollovers": 0
+        },
+        {
+          "at": "2026-10-06T22:41:42.566Z",
+          "samples": 41,
+          "rollovers": 0
+        },
+        {
+          "at": "2026-10-06T23:06:24.806Z",
+          "samples": 54,
+          "rollovers": 1
+        }
+      ]
+    },
+    "republican-control": {
+      "phases": {
+        "all": {
+          "publishedAtToCanonicalInclusionSeconds": {
+            "count": 208,
+            "min": 4,
+            "median": 5.0,
+            "p90": 5,
+            "max": 7
+          },
+          "inclusionToFinalizedCallbackSeconds": {
+            "count": 139,
+            "min": 1.014,
+            "median": 2.769,
+            "p90": 3.137,
+            "max": 9.676
+          },
+          "finalizedCallbackToSampleAckSeconds": {
+            "count": 78,
+            "min": 4.576,
+            "median": 5.292,
+            "p90": 6.008,
+            "max": 8.898
+          }
+        },
+        "since2245UTC": {
+          "publishedAtToCanonicalInclusionSeconds": {
+            "count": 94,
+            "min": 4,
+            "median": 5.0,
+            "p90": 5,
+            "max": 7
+          },
+          "inclusionToFinalizedCallbackSeconds": {
+            "count": 69,
+            "min": 2.129,
+            "median": 2.838,
+            "p90": 3.237,
+            "max": 4.289
+          },
+          "finalizedCallbackToSampleAckSeconds": {
+            "count": 30,
+            "min": 4.576,
+            "median": 5.39,
+            "p90": 6.08,
+            "max": 8.898
+          }
+        }
+      },
+      "finalizedOperations": {
+        "sample": 116
+      },
+      "bookDepthWaitEntries": 33,
+      "keeperUnfundedWaitEntries": 81,
+      "processStopCounters": [
+        {
+          "at": "2026-10-06T22:30:06.705Z",
+          "samples": 23,
+          "rollovers": 0
+        },
+        {
+          "at": "2026-10-06T22:41:46.746Z",
+          "samples": 43,
+          "rollovers": 0
+        },
+        {
+          "at": "2026-10-06T23:06:45.651Z",
+          "samples": 50,
+          "rollovers": 0
+        }
+      ]
+    }
+  },
+  "qualificationBoundary": {
+    "source": "tmp/live-markets-v4-20261007/source-qualification-awake/634893/qualification.sqlite",
+    "sourceAdvances": 210,
+    "tightestNominalArrivalToPreviousExpiryMs": [
+      5002,
+      5979
+    ],
+    "correspondingNewSourceAgeMs": [
+      47,
+      33
+    ],
+    "interpretation": "Optimistic source-carry delivery slack, assuming preceding source was accepted. Inclusive integer-second chain timestamps decide actual expiry. This does not establish impossibility or accepted continuity. Capture age is a separate capture\u2192newer source\u2192INDEX finality\u2192sample inclusion inequality."
+  }
+}

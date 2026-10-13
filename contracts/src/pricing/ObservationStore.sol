@@ -11,7 +11,7 @@ import {PriceIngress} from "./PriceIngress.sol";
 ///         listed INVALID window [T - 24h, T] that is never pruned.
 /// @dev Growth bound: each live series is a ring of RING checkpoints; a later sample at the same
 ///      second replaces the earlier one, so RING entries always span >= RING - 1 seconds, more
-///      than the longest live window (900 s) plus the 30 s carry. Queries are binary searches
+///      than the longest live window plus its carry (900 + 30 s; Monad testnet 60 + 300 s). Queries are binary searches
 ///      (<= 11 probes). No loop over history runs inside matching.
 abstract contract ObservationStore is PriceIngress {
     error NonMonotoneSample();
@@ -20,7 +20,6 @@ abstract contract ObservationStore is PriceIngress {
     uint8 internal constant PERP = 1;
     uint8 internal constant BASIS = 2;
     uint256 internal constant RING = 1024;
-    uint64 internal constant STALE = 30;
 
     struct Ring {
         uint16 head; // index of the newest entry
@@ -103,7 +102,7 @@ abstract contract ObservationStore is PriceIngress {
             last.valid = valid;
             return last;
         }
-        cp = PricingMath.extend(last, t, price, valid, STALE);
+        cp = PricingMath.extend(last, t, price, valid, _carry(s));
         uint16 next = uint16((uint256(r.head) + 1) % RING);
         _cps[s][next] = cp;
         r.head = next;
@@ -111,6 +110,11 @@ abstract contract ObservationStore is PriceIngress {
     }
 
     // ------------------------------------------------------------------ queries
+
+    /// @dev INDEX uses `PricingMath.indexCarry()`; book-derived PERP/BASIS samples use `bookCarry()`.
+    function _carry(uint8 s) internal view returns (uint64) {
+        return s == INDEX ? PricingMath.indexCarry() : PricingMath.bookCarry();
+    }
 
     /// @dev Latest checkpoint with cp.t <= t. ok == false if t precedes retained history.
     function _floorCp(uint8 s, uint64 t) internal view returns (bool ok, PricingMath.Cum memory cp) {
@@ -137,7 +141,7 @@ abstract contract ObservationStore is PriceIngress {
         PricingMath.Cum memory cp;
         (ok, cp) = _floorCp(s, t);
         if (!ok) return (false, 0, 0);
-        (integral, covered) = PricingMath.cumAt(cp, t, STALE);
+        (integral, covered) = PricingMath.cumAt(cp, t, _carry(s));
     }
 
     /// @notice Time-weighted average over [end - window, end]; unavailable unless fully covered.
@@ -153,31 +157,49 @@ abstract contract ObservationStore is PriceIngress {
         return PricingMath.twapFromCum(i0, c0, i1, c1, window);
     }
 
-    /// @notice Latest sample at or before t if valid and fresh (t - observedAt <= 30 s).
+    /// @notice Latest sample at or before t if valid and fresh (t - observedAt <= its carry).
     function _valueAt(uint8 s, uint64 t) internal view returns (bool ok, int256 v) {
         (bool found, PricingMath.Cum memory cp) = _floorCp(s, t);
-        if (!found || !cp.valid || cp.t > t || t - cp.t > STALE) return (false, 0);
+        if (!found || !cp.valid || cp.t > t || t - cp.t > _carry(s)) return (false, 0);
         return (true, cp.priceWad);
     }
 
+    /// @notice Configured windows and INDEX carry in seconds. Monad testnet uses (60, 60, 60, 120);
+    ///         all other chains use (300, 60, 900, 30).
+    function pricingWindows()
+        external
+        view
+        returns (uint64 indexWindowSecs, uint64 perpWindowSecs, uint64 basisWindowSecs, uint64 carryLimitSecs)
+    {
+        return (
+            PricingMath.indexWindow(),
+            PricingMath.PERP_WINDOW,
+            PricingMath.basisWindow(),
+            PricingMath.indexCarry()
+        );
+    }
+
+    /// @notice Legacy ABI name: reads the configured INDEX window, which is 60 s on Monad testnet.
     function indexTwap300(uint64 end) public view returns (PricingMath.Twap memory) {
-        return _windowTwap(INDEX, end, PricingMath.INDEX_WINDOW);
+        return _windowTwap(INDEX, end, PricingMath.indexWindow());
     }
 
     function perpTwap60(uint64 end) public view returns (PricingMath.Twap memory) {
         return _windowTwap(PERP, end, PricingMath.PERP_WINDOW);
     }
 
+    /// @notice Legacy ABI name: reads the configured BASIS window, which is 60 s on Monad testnet.
     function basisTwap900(uint64 end) public view returns (PricingMath.Twap memory) {
-        return _windowTwap(BASIS, end, PricingMath.BASIS_WINDOW);
+        return _windowTwap(BASIS, end, PricingMath.basisWindow());
     }
 
     /// @notice Listed INVALID window integral from the unpruned record. Available only when the
-    ///         whole 86,400 s has contiguous valid coverage (no carry across a 30 s gap).
+    ///         whole 86,400 s has contiguous valid coverage (no carry across a gap longer than the
+    ///         INDEX carry, the same carry the checkpoints were accumulated with).
     function _invalidWindowTwap() internal view returns (PricingMath.Twap memory tw) {
         if (!_hasInvStart || !_hasInvEnd) return tw;
-        (int256 i0, uint256 c0) = PricingMath.cumAt(_invStartCp, _invalidStart, STALE);
-        (int256 i1, uint256 c1) = PricingMath.cumAt(_invEndCp, _invalidEnd, STALE);
+        (int256 i0, uint256 c0) = PricingMath.cumAt(_invStartCp, _invalidStart, _carry(INDEX));
+        (int256 i1, uint256 c1) = PricingMath.cumAt(_invEndCp, _invalidEnd, _carry(INDEX));
         return PricingMath.twapFromCum(i0, c0, i1, c1, uint64(PricingMath.INVALID_WINDOW));
     }
 

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "sport": "basketball",
+  "eventId": 519655,
+  "competition": "12",
+  "season": "2026-2027",
+  "kickoff": 1793934000,
+  "participants": [141, 147],
+  "scope": "official",
+  "predicate": { "kind": "winner", "participant": 141 }
+}

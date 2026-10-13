@@ -1,0 +1,19 @@
+{
+  "name": "@eros-oracle/oracle-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Listing tooling (plan 12.9, ADJ-13): `oracle-cli list` writes a listing pack to oracle/listings/<marketId>/.",
+  "type": "module",
+  "bin": {
+    "oracle-cli": "src/cli.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@eros-oracle/feedspec": "workspace:*",
+    "@eros-oracle/oracle-sdk": "workspace:*",
+    "viem": "2.57.2",
+    "zod": "4.6.5"
+  }
+}

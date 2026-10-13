@@ -1,0 +1,16 @@
+# Private state, secrets and build output never enter the image.
+tmp
+# Env files at any depth (e.g. oracle/workflows/.env, oracle/deployments/testnet-keys.env hold private keys).
+**/.env
+**/.env.*
+**/*.env
+**/*.key
+oracle/workflows/secrets*.yaml
+**/node_modules
+**/.next
+.git
+oracle/out
+oracle/cache
+contracts/out
+contracts/cache
+artifacts/deployments/*/services/keys

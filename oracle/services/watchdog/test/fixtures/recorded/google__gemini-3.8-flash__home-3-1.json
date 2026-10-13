@@ -1,0 +1,41 @@
+{
+  "model": "google:gemini-3.8-flash@2026-10-03",
+  "scenario": "home-3-1",
+  "recordedAt": "2026-10-03T22:44:44.001Z",
+  "httpStatus": 200,
+  "headers": {
+    "content-type": "application/json; charset=UTF-8"
+  },
+  "body": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\"outcome\": \"YES\", \"confidence\": 1.0, \"sources\": [1, 2], \"reason\": \"Both listed sources confirm the match has ended with a final score of 3-1 in favor of the home team. Since 3 goals is more than 2, the market resolves to YES.\"}",
+              "thoughtSignature": "EssDCsgDAWkUfRM235DnCZx7k6z8sRIfc3GJPDsuldwLL5tRY3k2cSiCtQ78m+dlUHtNf7NSqCb7tSL3MeoGaoFfprwkHXuMuXflI+NtYu657R/5Z5sCFYqwvJPwGIBxdMyL9EDSRuSD9bQhhGX7ILRjwjO8Y91JsZYtk0Gv7N/ftxvqvv9xL+caJQxAmC+ch+byJ9cKNjg3Cf3RaJe7CDoXX2JFqQrihagviydHOYQLiSEfx9N0Sirgv0swKE/fCRAchmwE/G6K39/QSR02OD+zdYAeBCz/dVSYdyctw7+cqHE06780HGtRb3LO82uFs8NJbZ6nhG9Od8wNfzH+S6fKXCVuPmClJ41q6Q3peOA9O5wCzjN+hQo+V+xHWfVKD+SU5kWVzS4WUPv37VuKmRvOqZMCqR3th/2X8zyFfu5S6h2kNlL3v0ExNwhGuOjk+m3h1RDIyG2U/xlN5l9foQn/rNQL1NTfD9iQ+xyPAfb2z/bsiX4IM1i79Mml0kJ9q2q2vGfCzmXcMPEUKIdKkN8ahN/0By/Md+ZYA8fPCYLbmZ3tcQfl0R1fqzlM/N0M3kAOCHXqPSt4HYT3fR+RsG34fTCI5Ki59sxuZFuj"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 400,
+      "candidatesTokenCount": 68,
+      "totalTokenCount": 585,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 400
+        }
+      ],
+      "thoughtsTokenCount": 117,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.8-flash",
+    "responseId": "QIXBarTEHKzSqfkPpuz2kAQ"
+  }
+}
