@@ -1,0 +1,30 @@
+{
+  "0xE7C13DAE7c5CEA0925886a917F3ce213C7C2D606": {
+    "slug": "btc-82500",
+    "marketId": "0x0f6b5f9fae4a00d5612f6a06f055f67d15418cf50329b925aefa52910053921a",
+    "vault": "0x17f459C7D7164f619f851bCf174A58AD4DdAE06a",
+    "vaultCodehash": "0x5f2f9d0e4b56272e6c3aef6df3b90318421fa8d4f61df1c92b20be49d892905c",
+    "yesToken": "0xf0499e5DaB56071587B35E0e54B31507DB1D0dE9",
+    "noToken": "0x5c45ac6Ccf5A6B83493806405658639De22bfFcF",
+    "yesSymbol": "eBTC82K-YES",
+    "noSymbol": "eBTC82K-NO",
+    "yesBook": "0x91e1473745FD5A80DE421C366581911aA35A30F9",
+    "noBook": "0x6A40945a26906F5BE2b40BbD095BCBDdac647AAb",
+    "collateral": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+    "scheduledT": 1792018800
+  },
+  "0x90E522cBfBB038A91c23dB825102980c4417A84c": {
+    "slug": "blk-70528000",
+    "marketId": "0x22cb2264312f272ba210a723ab35fc40321138150472de502e8135b80df7c9ff",
+    "vault": "0x1a5beFf18ABe197277D3dca6fBfF1C8e670cB2A0",
+    "vaultCodehash": "0xdb92c0b3ca2e0ee382121f24931ca8bddcca4450347c1bee5818a58f0a9beefc",
+    "yesToken": "0xcB42EEe4138fDddB8afDD18A46DB2732Dcff78FD",
+    "noToken": "0x8E99dA8749569fb57899F59d9ED805d629eB91F5",
+    "yesSymbol": "eBLK-YES",
+    "noSymbol": "eBLK-NO",
+    "yesBook": "0x31bFeF909F7F9359FF4dD82271E310a3477B79CC",
+    "noBook": "0x72659CaA2b91f375a76424A0eA6679ED586f6Da0",
+    "collateral": "0x82C7236A14B635AFB6dC825115570aFE4C23c1DB",
+    "scheduledT": 1791939600
+  }
+}
