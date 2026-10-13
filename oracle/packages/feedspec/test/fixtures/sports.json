@@ -5069,5 +5069,95 @@
     },
     "expected": "YES",
     "provenance": "API-Football authenticated capture 2026-10-06; historical France–Belgium fixture"
+  },
+  {
+    "binding": {
+      "version": 1,
+      "sport": "basketball",
+      "eventId": 519511,
+      "competition": "12",
+      "season": "2026-2027",
+      "kickoff": 1791853200,
+      "participants": [
+        160,
+        158
+      ],
+      "scope": "official",
+      "predicate": {
+        "kind": "winner",
+        "participant": 160
+      }
+    },
+    "companion": null,
+    "expected": "YES",
+    "provenance": "API-Sports authenticated capture 2026-10-13 (v1.basketball games?id=519511, Jazz 119-109 Spurs, FT); historical fixture, not an active-market settlement",
+    "response": {
+      "get": "games",
+      "parameters": {
+        "id": "519511"
+      },
+      "errors": [],
+      "results": 1,
+      "response": [
+        {
+          "id": 519511,
+          "date": "2026-10-13T01:00:00+00:00",
+          "time": "01:00",
+          "timestamp": 1791853200,
+          "timezone": "UTC",
+          "stage": null,
+          "week": null,
+          "venue": "Delta Center",
+          "status": {
+            "long": "Game Finished",
+            "short": "FT",
+            "timer": null
+          },
+          "league": {
+            "id": 12,
+            "name": "NBA",
+            "type": "League",
+            "season": "2026-2027",
+            "logo": "https://media.api-sports.io/basketball/leagues/12.png"
+          },
+          "country": {
+            "id": 5,
+            "name": "USA",
+            "code": "US",
+            "flag": "https://media.api-sports.io/flags/us.svg"
+          },
+          "teams": {
+            "home": {
+              "id": 160,
+              "name": "Utah Jazz",
+              "logo": "https://media.api-sports.io/basketball/teams/160.png"
+            },
+            "away": {
+              "id": 158,
+              "name": "San Antonio Spurs",
+              "logo": "https://media.api-sports.io/basketball/teams/158.png"
+            }
+          },
+          "scores": {
+            "home": {
+              "quarter_1": 33,
+              "quarter_2": 35,
+              "quarter_3": 31,
+              "quarter_4": 20,
+              "over_time": null,
+              "total": 119
+            },
+            "away": {
+              "quarter_1": 26,
+              "quarter_2": 35,
+              "quarter_3": 17,
+              "quarter_4": 31,
+              "over_time": null,
+              "total": 109
+            }
+          }
+        }
+      ]
+    }
   }
 ]

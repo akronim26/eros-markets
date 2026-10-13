@@ -40,9 +40,10 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
   const head = useHead();
   const block = head.data?.number;
   const owner = useOwner();
-  const native = !!nativeBinding(manifest.engine);
-  const [venue, setVenue] = useState<"perp" | "spot">("perp");
-  const spotView = native && venue === "spot";
+  const binding = nativeBinding(manifest.engine);
+  const native = !!binding, spotOnly = !!binding?.spotOnly;
+  const [venue, setVenue] = useState<"perp" | "spot">(spotOnly ? "spot" : "perp");
+  const spotView = native && (spotOnly || venue === "spot");
   // Each view polls only what it shows: the shared read proxy admits a few requests at a time.
   const spot = useSpot(manifest.engine, spotView ? owner.address : undefined, native ? block : undefined);
   const kuruTrades = useKuruTrades(manifest.engine, native);
@@ -103,7 +104,7 @@ export function Terminal({ manifest }: { manifest: MarketManifest }) {
         : <MarketHeader manifest={manifest} m={md} source={live.index} readError={!!live.error || publicUnavailable} />}
     </div>
     <ResolutionBanner manifest={manifest} m={md} onOpen={openResolution} />
-    {native && <VenueBar s={spot.data} engine={manifest.engine} venue={venue} onChange={setVenue} />}
+    {native && !spotOnly && <VenueBar s={spot.data} engine={manifest.engine} venue={venue} onChange={setVenue} />}
     {!spotView && manifest.archived && !md?.halted && <p role="status" className="border-x border-b border-line px-3 py-2 text-xs text-fg-2">Archived market. New positions are disabled; existing positions and funds remain accessible.</p>}
     {!spotView && (readUnavailable || ladder.isError) && <p role="alert" className="flex flex-wrap items-center gap-2 border-x border-b border-line px-3 py-2 text-xs text-signal-text">Connection interrupted. Refresh before trading.<button className="underline" onClick={() => { void head.refetch(); void market.refetch(); void snapshot.refetch(); void ladder.refetch(); }}>Retry</button></p>}
 

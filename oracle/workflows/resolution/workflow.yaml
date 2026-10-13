@@ -28,4 +28,4 @@ fresh-testnet:
   workflow-artifacts:
     workflow-path: "./main.ts"
     config-path: "./config.fresh-testnet.json"
-    secrets-path: "../secrets.local-sim.yaml"
+    secrets-path: "../secrets.yaml" # SPORTSDATA_API_KEY for API-Sports feeds (native spot markets)

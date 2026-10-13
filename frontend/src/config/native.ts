@@ -5,6 +5,8 @@ import bindings from "./native-markets.json";
 export type NativeBinding = {
   slug: string; marketId: Hex; vault: Address; vaultCodehash: Hex; yesToken: Address; noToken: Address;
   yesSymbol: string; noSymbol: string; yesBook: Address; noBook: Address; collateral: Address; scheduledT: number;
+  /** A normal prediction market: Kuru spot only, its registry "engine" is a SpotResolutionAnchor (no perp). */
+  spotOnly?: boolean;
 };
 const byEngine = new Map(Object.entries(bindings as Record<string, NativeBinding>).map(([engine, b]) => [engine.toLowerCase(), { ...b, engine: engine as Address }]));
 export const nativeBinding = (engine: string) => byEngine.get(engine.toLowerCase());

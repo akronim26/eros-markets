@@ -30,11 +30,17 @@ const timestamp = (node: JNode | undefined) => {
   if (!positive(n)) return fail('SPORTS_DATE_INVALID')
   return n
 }
+// api-sports basketball labels split-year seasons "2026-2027"; every other provider uses "2026".
+const seasonOk = (b: SportsBinding) => {
+  if (/^\d{4}$/.test(b.season)) return true
+  const m = b.sport === 'basketball' ? /^(\d{4})-(\d{4})$/.exec(b.season) : null
+  return m !== null && Number(m[2]) === Number(m[1]) + 1
+}
 const pending = (code = 'SPORTS_NOT_FINAL'): Evaluation => ({ status: 'NOT_READY', code, valueLexeme: '' })
 
 export function sportsTarget(b: SportsBinding): string {
   if (b.version !== 1 || !API_SPORTS_PROVIDERS.some(p => p.id === b.sport) || !positive(b.eventId) || !positive(b.kickoff)
-    || !/^[A-Za-z0-9][A-Za-z0-9 &'()._-]{0,63}$/.test(b.competition) || !/^\d{4}$/.test(b.season)
+    || !/^[A-Za-z0-9][A-Za-z0-9 &'()._-]{0,63}$/.test(b.competition) || !seasonOk(b)
     || !Array.isArray(b.participants) || b.participants.length < 2 || b.participants.length > 40
     || !b.participants.every(positive) || new Set(b.participants).size !== b.participants.length
     || !['regulation', 'official'].includes(b.scope)) return fail('SPORTS_BINDING_INVALID')
@@ -45,7 +51,7 @@ export function sportsTarget(b: SportsBinding): string {
   const p = b.predicate
   let predicate: unknown[]
   if (p?.kind === 'winner' && b.participants.includes(p.participant)) predicate = ['winner', p.participant]
-  else if (p?.kind === 'draw' && !['formula-1', 'mma', 'nba', 'volleyball', 'baseball'].includes(b.sport)) predicate = ['draw']
+  else if (p?.kind === 'draw' && !['formula-1', 'mma', 'nba', 'basketball', 'volleyball', 'baseball'].includes(b.sport)) predicate = ['draw']
   else if (p?.kind === 'total-over' && Number.isSafeInteger(p.halfPoints) && p.halfPoints >= 0 && p.halfPoints <= 40000
     && !['formula-1', 'mma'].includes(b.sport)) predicate = ['total-over', p.halfPoints]
   else if (p?.kind === 'top-n' && b.sport === 'formula-1' && b.participants.includes(p.participant)
@@ -113,7 +119,9 @@ function normalizeTeamGame(b: SportsBinding, root: JNode): Facts | Evaluation {
     b.sport === 'nba' ? timestamp(f(f(g, 'date'), 'start')) : num(b.sport === 'american-football' ? f(f(game, 'date'), 'timestamp') : f(game, 'timestamp')),
     [num(f(home, 'id')), num(f(away, 'id'))])
   const status = scalar(f(f(game, 'status'), 'short'))
-  const accepted = b.sport === 'nba' ? ['3'] : b.sport === 'hockey' ? ['FT', 'AOT', 'AP'] : ['FT']
+  // Basketball: FT (regulation) and AOT (after overtime) are the only final statuses; POST, CANC,
+  // SUSP, ABD and AWD stay NOT_READY so the market escalates instead of defaulting to an outcome.
+  const accepted = b.sport === 'nba' ? ['3'] : b.sport === 'hockey' ? ['FT', 'AOT', 'AP'] : b.sport === 'basketball' ? ['FT', 'AOT'] : ['FT']
   if (!accepted.includes(status)) return pending()
   const scores = f(g, b.sport === 'football' ? 'score' : 'scores')
   if (b.sport === 'football') {
@@ -132,6 +140,20 @@ function normalizeTeamGame(b: SportsBinding, root: JNode): Facts | Evaluation {
       let sum = 0
       for (const p of line.v) { const n = str(p); if (!/^(0|[1-9][0-9]{0,3})$/.test(n)) return fail('SPORTS_SCORE_INVALID'); sum += Number(n) }
       if (sum !== total) return fail('SPORTS_SCORE_CONFLICT')
+      return total
+    })
+    if (pair[0] === pair[1]) return fail('SPORTS_IMPOSSIBLE_DRAW')
+    return scored(b, pair[0], pair[1])
+  }
+  if (b.sport === 'basketball') {
+    // The provider clock must agree with itself: `date` and `timestamp` both pin the tip-off.
+    if (timestamp(f(g, 'date')) !== b.kickoff) return fail('SPORTS_DATE_CONFLICT')
+    const pair = ['home', 'away'].map(side => {
+      const s = f(scores, side), total = score(f(s, 'total')), ot = f(s, 'over_time')
+      // FT is regulation only (no overtime score); AOT must carry the overtime points.
+      if ((status === 'FT') !== (ot?.k === 'null')) return fail('SPORTS_PERIODS_INVALID')
+      for (const q of ['quarter_1', 'quarter_2', 'quarter_3', 'quarter_4']) if (f(s, q)?.k === 'null') return fail('SPORTS_PERIODS_INVALID')
+      addPeriods(['quarter_1', 'quarter_2', 'quarter_3', 'quarter_4', 'over_time'].map(q => f(s, q)), total)
       return total
     })
     if (pair[0] === pair[1]) return fail('SPORTS_IMPOSSIBLE_DRAW')

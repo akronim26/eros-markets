@@ -1,0 +1,20 @@
+{
+  "provider": "v1.basketball.api-sports.io",
+  "authRefLabel": "EROS_API_BASKETBALL_V1",
+  "url": "https://v1.basketball.api-sports.io/games?id=519655",
+  "specHash": "0xc33ab2500f82fb45cf04ebf7dcbb6d9c48d5592ab5622a4c778762625aad9920",
+  "feed": {
+    "urlTemplate": "https://v1.basketball.api-sports.io/games?id={id}",
+    "urlParam": "519655",
+    "authRef": "0x4ce8349b839798cd24ec79199b6378b21a7d0d651c3ad2a89d42f8133407e25a",
+    "finalPath": "erosSports.status",
+    "finalValue": "FINAL_V1",
+    "valuePath": "erosSports.predicate",
+    "valueType": 0,
+    "decimals": 0,
+    "op": 0,
+    "target": "[\"sports-v1\",\"basketball\",519655,\"12\",\"2026-2027\",1793934000,[141,147],\"official\",[\"winner\",141]]",
+    "bufferSecs": 7200,
+    "l1TimeoutSecs": 21600
+  }
+}

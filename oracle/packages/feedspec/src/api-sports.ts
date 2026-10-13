@@ -16,6 +16,7 @@ export const API_SPORTS_PROVIDERS = [
   { id: 'hockey', name: 'Hockey', host: 'v1.hockey.api-sports.io', authRefLabel: 'EROS_API_HOCKEY_V1', resolutionAdapter: SPORTS_RULE_SCHEMA },
   { id: 'mma', name: 'MMA', host: 'v1.mma.api-sports.io', authRefLabel: 'EROS_API_MMA_V1', resolutionAdapter: SPORTS_RULE_SCHEMA },
   { id: 'nba', name: 'NBA', host: 'v2.nba.api-sports.io', authRefLabel: 'EROS_API_NBA_V2', resolutionAdapter: SPORTS_RULE_SCHEMA },
+  { id: 'basketball', name: 'Basketball', host: 'v1.basketball.api-sports.io', authRefLabel: 'EROS_API_BASKETBALL_V1', resolutionAdapter: SPORTS_RULE_SCHEMA },
   { id: 'american-football', name: 'American football', host: 'v1.american-football.api-sports.io', authRefLabel: 'EROS_API_AMERICAN_FOOTBALL_V1', resolutionAdapter: SPORTS_RULE_SCHEMA },
   { id: 'rugby', name: 'Rugby', host: 'v1.rugby.api-sports.io', authRefLabel: 'EROS_API_RUGBY_V1', resolutionAdapter: SPORTS_RULE_SCHEMA },
   { id: 'volleyball', name: 'Volleyball', host: 'v1.volleyball.api-sports.io', authRefLabel: 'EROS_API_VOLLEYBALL_V1', resolutionAdapter: SPORTS_RULE_SCHEMA },
