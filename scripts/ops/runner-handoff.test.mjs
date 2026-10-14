@@ -171,3 +171,24 @@ test('entrypoint installs a native market env file from <market>.env', async () 
     assert.throws(() => installSecrets({ repository: repo, config, secrets }), /SECRET_FILE_MISSING:spot.env/);
   } finally { fs.rmSync(repo, { recursive: true, force: true }); }
 });
+
+test('entrypoint installs the top-up root key from root.env only when autoTopUp is configured', async () => {
+  const { installSecrets } = await import('./render-entrypoint.mjs');
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'eros-entry-root-')), secrets = path.join(repo, 'secrets');
+  try {
+    fs.writeFileSync(path.join(repo, '.gitignore'), '/tmp/\n');
+    fs.mkdirSync(secrets);
+    fs.writeFileSync(path.join(secrets, 'rpc-pool.env'), 'MONAD_TESTNET_RPC=x\n');
+    const config = { rpcEnvFile: 'tmp/rpc/rpc-pool.env', markets: [] };
+    installSecrets({ repository: repo, config, secrets });
+    assert.ok(!fs.existsSync(path.join(repo, 'tmp/run/root.env')));
+    config.autoTopUp = { rootEnvFile: 'tmp/run/root.env' };
+    assert.throws(() => installSecrets({ repository: repo, config, secrets }), /SECRET_FILE_MISSING:root.env/);
+    fs.writeFileSync(path.join(secrets, 'root.env'), 'PRIVATE_KEY=0x1\n');
+    installSecrets({ repository: repo, config, secrets });
+    const stat = fs.lstatSync(path.join(repo, 'tmp/run/root.env'));
+    assert.ok(stat.isFile() && !stat.isSymbolicLink() && (stat.mode & 0o077) === 0);
+    config.autoTopUp = { rootEnvFile: 'tmp/../root.env' };
+    assert.throws(() => installSecrets({ repository: repo, config, secrets }), /IGNORED_PRIVATE_PATH_REQUIRED/);
+  } finally { fs.rmSync(repo, { recursive: true, force: true }); }
+});

@@ -25,15 +25,25 @@ one runner at a time:
    Starter or above, 1 instance, disk `eros-private` mounted at `/app/tmp` (1 GB), env
    `EROS_SUPERVISOR_CONFIG=tmp/redeploy-20261011/supervisor.json`. No ports.
 2. **Add secret files** (Render → Environment → Secret Files). They are copied onto the disk
-   as `0600` files at each start and are never in the image or bundle:
+   as `0600` files at each start and are never in the image or bundle. The entrypoint refuses
+   to start (`SECRET_FILE_MISSING:<name>`) until every file the config needs is present:
    - `rpc-pool.env`: contents of `tmp/redeploy-20261009/rpc-pool.env`;
-   - `nov7-dem-white-women.roles.env`: contents of
-     `tmp/redeploy-20261011/nov7-dem-white-women/roles.env`;
-   - `nov7-dem-white-women.keys.tgz.b64`: output of
-     `tar -czf - -C tmp/redeploy-20261011/nov7-dem-white-women/services/keys . | base64`.
+   - for each Polymarket perp market (no `kind`), here `nov7-dem-white-women`:
+     - `nov7-dem-white-women.roles.env`: contents of
+       `tmp/redeploy-20261011/nov7-dem-white-women/roles.env`;
+     - `nov7-dem-white-women.keys.tgz.b64`: output of
+       `tar -czf - -C tmp/redeploy-20261011/nov7-dem-white-women/services/keys . | base64`;
+   - for each native market (`kind` native-*), `<market>.env` with the contents of its
+     `envFile` (default `<privateDirectory>/ops.env`):
+     - `native-nba-gsw-mia-spot.env`: `tmp/native-spot/nba-gsw-mia-20261105-spot/ops.env`;
+     - `native-nba-gsw-mia-perp5x.env`: `tmp/native-spot-perp5x/ops.env`;
+   - with `autoTopUp`, `root.env`: contents of `autoTopUp.rootEnvFile`
+     (`tmp/redeploy-20261011/root.env`, only `PRIVATE_KEY`).
 3. **Point wake-on-visit at Vercel.** Before packing, set `wake.url` in
    `tmp/redeploy-20261011/supervisor.json` to `https://<vercel-domain>/api/market-activity`.
-   The local URL does not exist on Render.
+   The local URL does not exist on Render. Leave `nodeCommand` and `bunCommand` unset: the
+   defaults (the pinned Node under `packages/pricefeed` and `bun` on `PATH`) exist on both
+   hosts, while an absolute Mac path does not exist in the container.
 4. **Stop the local supervisor** with SIGTERM (`kill $(cat tmp/redeploy-20261011/supervisor.pid)`)
    and wait for `status.json` to read `stopped`. Never force-kill it.
 5. **Pack:**

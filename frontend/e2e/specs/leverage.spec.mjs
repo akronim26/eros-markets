@@ -18,7 +18,7 @@ test('fivefold leveraged order uses the actual terminal and fills on the local e
   }, 3000);
   const panel = p => p.getByRole('complementary', { name: 'Trade', exact: true });
   const ticket = p => panel(p).getByRole('region', { name: 'Order ticket', exact: true });
-  const orderButton = p => ticket(p).getByRole('button', { name: /^(Long|Short) YES/ }).and(ticket(p).locator('button:not([aria-pressed])'));
+  const orderButton = p => ticket(p).getByRole('button', { name: /^((Long|Short) YES|Close position$)/ }).and(ticket(p).locator('button:not([aria-pressed])'));
   async function fund(p, wallet, amount) {
     const [balance, free, account] = await Promise.all([
       client.readContract({ address: token, abi: tokenAbi, functionName: 'balanceOf', args: [wallet.address] }),
@@ -112,8 +112,16 @@ test('fivefold leveraged order uses the actual terminal and fills on the local e
     await testInfo.attach('local-leveraged-fill', { body: JSON.stringify({ hash: receipt.transactionHash, block: receipt.blockNumber, size: requestedLots, leverageWad }, (_, value) => typeof value === 'bigint' ? value.toString() : value), contentType: 'application/json' });
     await page.getByRole('tab', { name: 'Position', exact: true }).click();
     await page.getByRole('button', { name: 'Close position', exact: true }).click();
-    const closeReceipt = await submit(page, buyer);
+    // A full close also releases the market collateral and withdraws it to the wallet.
+    const closeCount = buyer.receipts.length;
+    await expect(orderButton(page)).toBeEnabled();
+    await orderButton(page).click();
+    await expect(ticket(page).getByRole('status').filter({ hasText: /Funds returned to your wallet/ })).toBeVisible();
+    expect(buyer.receipts.length).toBe(closeCount + 3);
+    const closeReceipt = await client.getTransactionReceipt({ hash: buyer.receipts[closeCount].hash });
     expect(closeReceipt.status).toBe('success');
+    expect(await client.readContract({ address: vault, abi: vaultAbi, functionName: 'freeAtoms', args: [buyer.address] })).toBe(0n);
+    expect(await client.readContract({ address: token, abi: tokenAbi, functionName: 'balanceOf', args: [buyer.address] })).toBeGreaterThan(990_000_000n);
     expect(events(closeReceipt).filter(event => event.eventName === 'Fill').reduce((sum, fill) => sum + fill.args.size, 0n)).toBe(requestedLots);
     expect((await read('account', [actor(20).address])).value.lots).toBe(0n);
     expect((await read('account', [actor(21).address])).value.lots).toBe(0n);

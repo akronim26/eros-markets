@@ -6,6 +6,7 @@
  *   <market>.roles.env             -> <privateDirectory>/roles.env
  *   <market>.keys.tgz.b64          -> <privateDirectory>/services/keys/ (base64 tar.gz)
  *   <market>.env  (native markets) -> <privateDirectory>/ops.env (keys, RPC and settings)
+ *   root.env      (with autoTopUp) -> config.autoTopUp.rootEnvFile
  * Until `runner-handoff.mjs accept` has run on this disk, it waits instead of starting.
  */
 import fs from 'node:fs';
@@ -25,6 +26,7 @@ function place(source, target) {
 
 export function installSecrets({ repository = root, config, secrets = '/etc/secrets' }) {
   place(path.join(secrets, 'rpc-pool.env'), containerPrivatePath(config.rpcEnvFile, repository));
+  if (config.autoTopUp) place(path.join(secrets, 'root.env'), containerPrivatePath(config.autoTopUp.rootEnvFile, repository));
   for (const market of config.markets) {
     const dir = containerPrivatePath(market.privateDirectory, repository);
     if ((market.kind ?? 'polymarket-perp') !== 'polymarket-perp') {

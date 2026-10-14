@@ -25,7 +25,7 @@ test('a long closed after the index rises releases its profit to the wallet thro
   }, 3000);
   const ticket = p => p.getByRole('complementary', { name: 'Trade', exact: true }).getByRole('region', { name: 'Order ticket', exact: true });
   const funds = p => p.getByRole('main', { name: 'Trading terminal' }).getByRole('region', { name: 'Account', exact: true });
-  const orderButton = p => ticket(p).getByRole('button', { name: /^(Long|Short) YES/ }).and(ticket(p).locator('button:not([aria-pressed])'));
+  const orderButton = p => ticket(p).getByRole('button', { name: /^((Long|Short) YES|Close position$)/ }).and(ticket(p).locator('button:not([aria-pressed])'));
   const balance = owner => client.readContract({ address: token, abi: tokenAbi, functionName: 'balanceOf', args: [owner] });
   const free = owner => client.readContract({ address: vault, abi: vaultAbi, functionName: 'freeAtoms', args: [owner] });
   const account = owner => read('account', [owner]);
@@ -43,6 +43,9 @@ test('a long closed after the index rises releases its profit to the wallet thro
       await client.request({ method: 'evm_mine', params: [] });
       await expect.poll(() => published(), { timeout: 10_000, intervals: [100] }).toBeGreaterThanOrEqual(next);
     }
+    // Clock steps may cross an hourly epoch end; trade only once upkeep has finished any rollover.
+    await expect.poll(async () => { const v = await read('marketRiskView'); return v.accountingState === 0 && v.pendingWork === 0; },
+      { timeout: 120_000, intervals: [1000] }).toBe(true);
   }
   function published() {
     try { return BigInt(JSON.parse(fs.readFileSync(publisherReport, 'utf8')).lastPublishedAt ?? 0) / 1000n; } catch { return 0n; }
@@ -94,15 +97,6 @@ test('a long closed after the index rises releases its profit to the wallet thro
     await expect(orders.getByRole('status').filter({ hasText: /cancel all orders confirmed/i })).toBeVisible();
     await expect(orders.getByRole('button', { name: /^Cancel order / })).toHaveCount(0);
   }
-  async function moveFunds(p, mode) {
-    await manageCollateral(p);
-    await funds(p).getByRole('button', { name: mode, exact: true }).click();
-    await funds(p).getByRole('button', { name: 'Max', exact: true }).click();
-    const amount = await funds(p).getByLabel(/Amount/).inputValue();
-    await funds(p).getByRole('button', { name: `${mode} collateral`, exact: true }).click();
-    await expect(funds(p).getByRole('status').filter({ hasText: new RegExp(`${mode} confirmed`, 'i') })).toBeVisible();
-    return parseUnits(amount, 6);
-  }
   // Trader's fills only, in USDC atoms: one lot pays 1000 atoms, so a lot at tick t costs t atoms.
   function fills(receipt, traderId) {
     return receipt.logs.filter(log => log.address.toLowerCase() === demo.engine.toLowerCase()).flatMap(log => {
@@ -137,20 +131,21 @@ test('a long closed after the index rises releases its profit to the wallet thro
     await expect(ticket(page).getByRole('checkbox', { name: /Reduce only/ })).toBeChecked();
     await expect(ticket(page).getByRole('radio', { name: 'IOC', exact: true })).toBeChecked();
     await expect(ticket(page).getByLabel(/^YES price\b/)).toHaveValue('0.600');
-    const close = await submit(page, trader);
+    // A full close also releases the market collateral and withdraws it to the wallet: no manual step.
+    const before = trader.receipts.length;
+    await expect(orderButton(page)).toBeEnabled();
+    await orderButton(page).click();
+    await expect(ticket(page).getByRole('status').filter({ hasText: /Position closed\. Funds returned to your wallet\./ })).toBeVisible();
+    expect(trader.receipts.length, 'order, release and withdraw').toBe(before + 3);
+    const [close, release, withdraw] = await Promise.all(trader.receipts.slice(before).map(r => client.getTransactionReceipt({ hash: r.hash })));
+    for (const receipt of [close, release, withdraw]) expect(receipt.status).toBe('success');
     const sold = fills(close, traderId);
     expect(sold.every(fill => fill.args.tick === 600)).toBe(true);
     expect(sold.reduce((sum, fill) => sum + fill.args.size, 0n)).toBe(parseUnits(SIZE, 3));
     const flat = await account(trader.address);
     expect(flat.value.lots, 'position closed').toBe(0n);
-
-    const releasable = (await read('previewAccount', [traderId])).usableReleaseAtoms;
-    expect(releasable, 'a flat account can release all of its cash').toBe(BigInt(flat.value.cashQ) / 10n ** 18n);
-    expect(await moveFunds(page, 'Release')).toBe(releasable);
-    expect(await free(trader.address)).toBe(releasable);
-    expect(await moveFunds(page, 'Withdraw')).toBe(releasable);
-    expect(await free(trader.address)).toBe(0n);
-    expect((await account(trader.address)).value.cashQ).toBeLessThan(10n ** 18n);
+    expect(flat.value.cashQ, 'market cash released').toBeLessThan(10n ** 18n);
+    expect(await free(trader.address), 'vault balance withdrawn').toBe(0n);
 
     const walletGain = await balance(trader.address) - walletAfterFunding - 100_000_000n;
     const tradeGain = notional(sold) - notional(bought) - takerFees(bought) - takerFees(sold);
@@ -159,7 +154,8 @@ test('a long closed after the index rises releases its profit to the wallet thro
     await testInfo.attach('profit', { contentType: 'application/json', body: JSON.stringify({
       open: open.transactionHash, close: close.transactionHash, boughtAtoms: notional(bought), soldAtoms: notional(sold),
       takerFeeAtoms: takerFees(bought) + takerFees(sold), tradeGainAtoms: tradeGain, walletGainAtoms: walletGain,
-      fundingAndPremiumAtoms: walletGain - tradeGain, released: releasable, finalWallet: await balance(trader.address),
+      fundingAndPremiumAtoms: walletGain - tradeGain, release: release.transactionHash, withdraw: withdraw.transactionHash,
+      finalWallet: await balance(trader.address),
     }, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2) });
 
     // Restore the index and the touch the lifecycle test trades against.

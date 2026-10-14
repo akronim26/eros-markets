@@ -22,7 +22,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
   const aside = page.getByRole('complementary', { name: 'Trade', exact: true });
   const funds = page.getByRole('main', { name: 'Trading terminal' }).getByRole('region', { name: 'Account', exact: true });
   const ticket = aside.getByRole('region', { name: 'Order ticket', exact: true });
-  const submitOrder = () => ticket.getByRole('button', { name: /^(Long|Short) YES/ }).and(ticket.locator('button:not([aria-pressed])'));
+  const submitOrder = () => ticket.getByRole('button', { name: /^((Long|Short) YES|Close position$)/ }).and(ticket.locator('button:not([aria-pressed])'));
   async function manageCollateral(region = funds) {
     const disclosure = region.locator('details').filter({ hasText: 'Manage collateral' });
     await expect(disclosure).toBeVisible();
@@ -109,15 +109,25 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     });
     expect(events.some(e => /Fill/.test(e.eventName))).toBe(true); expect(wallet.receipts.length).toBe(before + 1);
   });
-  await test.step('close position with the reduce-only IOC prepared by the UI', async () => {
+  await test.step('close position with the reduce-only IOC prepared by the UI; collateral returns to the wallet', async () => {
     await page.getByRole('tab', { name: 'Position', exact: true }).click();
     await page.getByRole('button', { name: 'Close position', exact: true }).click();
     await expect(ticket.getByRole('checkbox', { name: /Reduce only/ })).toBeChecked();
     await expect(ticket.getByRole('radio', { name: 'IOC', exact: true })).toBeChecked();
-    await confirmOrder();
-    await expect(ticket.getByRole('status').filter({ hasText: /Filled/i })).toBeVisible();
+    const count = wallet.receipts.length;
+    await expect(submitOrder()).toBeEnabled(); await submitOrder().click();
+    await expect(ticket.getByRole('status').filter({ hasText: /Funds returned to your wallet/ })).toBeVisible();
+    expect(wallet.receipts.length, 'order, release and withdraw').toBe(count + 3);
     expect((await account()).value.lots).toBe(0n);
+    expect((await account()).value.cashQ).toBeLessThan(10n ** 18n);
+    expect(await free()).toBe(0n);
+    expect(await balance()).toBeGreaterThan(990_000_000n);
     await ticket.getByRole('checkbox', { name: /Reduce only/ }).uncheck();
+    // The remaining steps trade and release from the market again.
+    await manageCollateral();
+    await funds.getByLabel(/Amount/).fill('100');
+    await funds.getByRole('button', { name: 'Fund collateral', exact: true }).click();
+    await expect(funds.getByRole('status').filter({ hasText: /fund market confirmed/i })).toBeVisible();
   });
   await test.step('independent browser owner funds and provides a fresh matching order', async () => {
     await syncClock(otherPage); await otherPage.goto(`/m/${demo.engine}`);
@@ -145,6 +155,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     await page.getByRole('tab', { name: 'History', exact: true }).click();
     await expect(page.getByText('Historical data is not connected yet.', { exact: false })).toBeVisible();
     await manageCollateral();
+    const walletBeforeRelease = await balance();
     await funds.getByRole('button', { name: 'Release', exact: true }).click();
     await funds.getByLabel(/Amount/).fill('10');
     await funds.getByRole('button', { name: 'Release collateral', exact: true }).click();
@@ -153,7 +164,7 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
     await funds.getByLabel(/Amount/).fill('10');
     await funds.getByRole('button', { name: 'Withdraw collateral', exact: true }).click();
     await expect(funds.getByRole('status').filter({ hasText: /withdraw confirmed/i })).toBeVisible();
-    expect(await free()).toBe(0n); expect(await balance()).toBe(910_000_000n);
+    expect(await free()).toBe(0n); expect(await balance()).toBe(walletBeforeRelease + 10_000_000n);
   });
   await test.step('oracle finality and bounded preparation unlock exact owner claim', async () => {
     await expect(funds.getByRole('button', { name: /^Claim / })).toHaveCount(0);

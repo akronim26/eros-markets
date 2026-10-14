@@ -1280,3 +1280,26 @@ failure or new A-I01 regression was found; lifecycle-policy changes require sepa
 - Not done: no broadcast (the agent could not read keys); CRE CLI not installed locally; old market
   workers still running; frontend manifest entry needs deployed addresses. Next: user runs
   `scripts/native-market/spot-golive.sh`, retires the old market, starts listener and `spot-ops.sh`.
+
+### 2026-10-14 (DEPLOY-PREP) — Render/Vercel deployment from main — fixes ready, not deployed
+
+- User chose to deploy from `main` (`cf3bd03`; same code as `feat/pricefeed`, README/docs only).
+- Entrypoint: with `autoTopUp`, `render-entrypoint.mjs` now installs the `root.env` secret file to
+  `autoTopUp.rootEnvFile`. Before this, the supervisor would have stopped on Render with
+  `PRIVATE_FILE_MISSING`, because the hand-off bundle correctly excludes that key. Test added.
+- `RENDER_WORKER.md`: lists the secret files for every market kind (both NBA native markets and
+  `root.env`) and says to leave `nodeCommand`/`bunCommand` unset.
+- Private config (ignored): removed the Mac-only `nodeCommand`/`bunCommand` from
+  `tmp/redeploy-20261011/supervisor.json` (backup `supervisor.json.bak-20261014`). `wake.url` is
+  still the local frontend until a Vercel domain exists.
+- Nov 7 publisher `blocked` (2026-10-13 21:41Z, `RELAY_HEADROOM_EXPIRED`): the journal holds a
+  single unsent QUARANTINED delivery, nonce 1302, attempts 0. On-chain nonce for publisher
+  `0x022A…6C86` is 1302 (latest and pending), balance 20.01 MON. The current supervisor
+  restarts on this code, and the publisher recovers that nonce before signing anything new.
+  Not run live in this turn.
+- Read-only balances: root `0xFf49…F190` holds 260.92 MON (up from about 80).
+- Tests (exit 0): `node --test` for each `scripts/ops/*.test.mjs` file: auto-topup 6/6,
+  gas-runway 7/7, market-kinds 5/5, market-supervisor 16/16, runner-handoff 9/9, wake-policy 8/8.
+- Open (user): create the Vercel and Render services, set `wake.url`, fund the leveraged account
+  (about 330 TestUSDC) so the market can sleep, and add a remote alert channel (alerts are
+  macOS-only).
