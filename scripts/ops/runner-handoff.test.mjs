@@ -192,3 +192,21 @@ test('entrypoint installs the top-up root key from root.env only when autoTopUp 
     assert.throws(() => installSecrets({ repository: repo, config, secrets }), /IGNORED_PRIVATE_PATH_REQUIRED/);
   } finally { fs.rmSync(repo, { recursive: true, force: true }); }
 });
+
+test('accept makes extracted journals private even when extraction left them group/world readable', () => {
+  const h = host();
+  try {
+    const result = pack({ root: h.root, configPath: 'tmp/run/supervisor.json', bundlePath: bundleOf(h), processes: h.none });
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), 'eros-handoff-perm-'));
+    try {
+      execFileSync('tar', ['-xzf', bundleOf(h), '-C', target]);
+      const journals = path.join(target, h.market, 'services/pricefeed-journals');
+      fs.chmodSync(journals, 0o755);
+      fs.chmodSync(path.join(journals, 'relay.sqlite'), 0o644);
+      accept({ root: target, manifestRel: result.manifestRel });
+      assert.equal(fs.statSync(journals).mode & 0o777, 0o700);
+      assert.equal(fs.statSync(path.join(target, h.market)).mode & 0o777, 0o700);
+      assert.equal(fs.statSync(path.join(journals, 'relay.sqlite')).mode & 0o777, 0o600);
+    } finally { fs.rmSync(target, { recursive: true, force: true }); }
+  } finally { fs.rmSync(h.root, { recursive: true, force: true }); }
+});

@@ -1,9 +1,15 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { parse, stringify } from 'yaml'
 
 const root = new URL('../', import.meta.url)
-const manifest = JSON.parse(readFileSync(new URL('../../frontend/src/config/public-manifest.json', root), 'utf8'))
+// Envio's hosted build sees only this directory, so the indexer keeps its own copies of the
+// frontend manifest and oracle ABIs. Inside the repository they must match their sources.
+export const COPIES = [
+  ['../../frontend/src/config/public-manifest.json', 'manifest/public-manifest.json'],
+  ...['ResolutionOracle', 'MarketRegistry', 'BondTreasury', 'UmaAdapter', 'ErosSandboxOracle'].map(name => [`../abi/${name}.json`, `abis/${name}.json`]),
+]
+const manifest = JSON.parse(readFileSync(new URL('manifest/public-manifest.json', root), 'utf8'))
 if (manifest.chainId !== 10143 || manifest.scope !== 'testnet-read-only' || !manifest.verifiedAt || manifest.provenance?.resolution !== 'oracle') {
   throw new Error('Verified current testnet manifest required')
 }
@@ -35,6 +41,12 @@ export function currentConfig(template) {
 }
 
 export function checkCurrentConfig(write = false) {
+  for (const [from, to] of COPIES) {
+    const source = new URL(from, root), copy = new URL(to, root)
+    if (!existsSync(source)) continue // standalone indexer directory (hosted build)
+    if (write) writeFileSync(copy, readFileSync(source))
+    else if (!readFileSync(source).equals(readFileSync(copy))) throw new Error(`${to} differs from ${from}; run node scripts/current-config.mjs --write`)
+  }
   for (const name of ['config.yaml', 'config.fresh-testnet.yaml']) {
     const path = new URL(name, root)
     const existing = parse(readFileSync(path, 'utf8'))

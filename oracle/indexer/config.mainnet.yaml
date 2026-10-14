@@ -13,7 +13,7 @@ field_selection:
     - from
 contracts:
   - name: ResolutionOracle
-    abi_file_path: ../abi/ResolutionOracle.json
+    abi_file_path: abis/ResolutionOracle.json
     events:
       - event: ResolutionInitialized
       - event: HaltRecorded
@@ -33,13 +33,13 @@ contracts:
       - event: TrustSetRevoked
       - event: WatchdogHeartbeat
   - name: MarketRegistry
-    abi_file_path: ../abi/MarketRegistry.json
+    abi_file_path: abis/MarketRegistry.json
     events:
       - event: MarketListed
       - event: CategorySet
       - event: FactorySet
   - name: BondTreasury
-    abi_file_path: ../abi/BondTreasury.json
+    abi_file_path: abis/BondTreasury.json
     events:
       - event: Deposited
       - event: Withdrawn
@@ -56,7 +56,7 @@ contracts:
       - event: OwedClaimed
       - event: Skimmed
   - name: UmaAdapter
-    abi_file_path: ../abi/UmaAdapter.json
+    abi_file_path: abis/UmaAdapter.json
     events:
       - event: VenueAsserted
       - event: VenueDisputed
@@ -70,7 +70,7 @@ contracts:
     events:
       - event: "ReportProcessed(address indexed receiver, bytes32 indexed workflowExecutionId, bytes2 indexed reportId, bool result)"
   - name: ErosSandboxOracle
-    abi_file_path: ../abi/ErosSandboxOracle.json
+    abi_file_path: abis/ErosSandboxOracle.json
     events:
       - event: PriceRequested
       - event: PricePushed

@@ -78,7 +78,8 @@ export function pack({ root, configPath, bundlePath, processes, now = () => new 
     files: Object.fromEntries(files.map(rel => [rel, sha(path.resolve(root, rel))])) };
   const manifestRel = path.posix.join(path.posix.dirname(configPath), 'handoff-manifest.json');
   fs.writeFileSync(path.resolve(root, manifestRel), JSON.stringify(manifest, null, 2) + '\n', { mode: 0o600 });
-  execFileSync('tar', ['-czf', bundlePath, '-C', root, manifestRel, ...files]);
+  // COPYFILE_DISABLE stops macOS tar adding AppleDouble `._*` files, which accept rejects as unknown journals.
+  execFileSync('tar', ['-czf', bundlePath, '-C', root, manifestRel, ...files], { env: { ...process.env, COPYFILE_DISABLE: '1' } });
   // Fence this host before anything else can start: the old supervisor refuses from here on.
   fs.mkdirSync(state, { recursive: true, mode: 0o700 });
   fs.writeFileSync(path.join(state, HANDED_OFF), JSON.stringify({ at: manifest.packedAt, bundle: path.basename(bundlePath),
@@ -94,6 +95,15 @@ export function accept({ root, manifestRel, now = () => new Date().toISOString()
     const file = under(root, rel);
     if (!fs.existsSync(file)) throw Error('HANDOFF_FILE_MISSING');
     if (sha(file) !== hash) throw Error('HANDOFF_FILE_CHANGED');
+  }
+  // Workers refuse journal directories other users can read. Extraction keeps the old host's owner
+  // and creates parent directories with the default umask, so make every bundled path private here.
+  const tmpRoot = path.resolve(root, 'tmp');
+  const own = target => { if (process.getuid) fs.chownSync(target, process.getuid(), process.getgid()); };
+  for (const rel of Object.keys(manifest.files)) {
+    const file = under(root, rel);
+    own(file); fs.chmodSync(file, 0o600);
+    for (let dir = path.dirname(file); dir.startsWith(tmpRoot + path.sep); dir = path.dirname(dir)) { own(dir); fs.chmodSync(dir, 0o700); }
   }
   const config = JSON.parse(fs.readFileSync(under(root, manifest.configPath), 'utf8'));
   // A journal written on this host after an earlier hand-off must never be overwritten silently.

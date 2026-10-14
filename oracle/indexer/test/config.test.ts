@@ -9,6 +9,11 @@ import { AFTER_REPLAY_BLOCK, fixtureAddress, simulateItems, TESTNET } from './re
 const ROOT = new URL('../../', import.meta.url).pathname
 const D = JSON.parse(readFileSync(`${ROOT}../frontend/src/config/public-manifest.json`, 'utf8'))
 const config = parse(readFileSync(new URL('../config.yaml', import.meta.url), 'utf8'))
+
+it('the hosted-build copy of the manifest matches the frontend source', () => {
+  expect(readFileSync(new URL('../manifest/public-manifest.json', import.meta.url), 'utf8'))
+    .toBe(readFileSync(`${ROOT}../frontend/src/config/public-manifest.json`, 'utf8'))
+})
 const chain = config.chains.find((c: { id: number }) => c.id === 10143)
 const source = (name: string) => chain.contracts.find((c: { name: string }) => c.name === name)
 const lower = (a: string | string[]) => (Array.isArray(a) ? a : [a]).map((x) => x.toLowerCase())
@@ -64,7 +69,10 @@ describe('testnet config', () => {
         const original = JSON.parse(readFileSync(`${ROOT}../artifacts/risk/${artifact}.json`, 'utf8')).abi
         const actual = JSON.parse(readFileSync(new URL(`../${c.abi_file_path}`, import.meta.url), 'utf8'))
         for (const event of actual) expect(event).toEqual(original.find((v: { type: string; name: string }) => v.type === 'event' && v.name === event.name))
-      } else expect(c.abi_file_path).toBe(`../abi/${c.name}.json`)
+      } else {
+        expect(c.abi_file_path).toBe(`abis/${c.name}.json`)
+        expect(readFileSync(new URL(`../${c.abi_file_path}`, import.meta.url), 'utf8')).toBe(readFileSync(`${ROOT}abi/${c.name}.json`, 'utf8'))
+      }
     }
   })
 })

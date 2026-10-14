@@ -25,7 +25,12 @@
           "field": "to",
           "operator": "in",
           "value": [
-            "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69"
+            "0xa3955b47e943ccc6a23e3a66cfd60068de518068",
+            "0x90e522cbfbb038a91c23db825102980c4417a84c",
+            "0x263dbdc3b86732b81f616850f51d41cc3362aece",
+            "0x9161f16bd0753352214a98f3e6e86b8275d023c3",
+            "0xcac9ac9f5720b0b07d3b78925c33906429e16325",
+            "0x0ff5eae643cb7e303f1726a92c03686674d445c0"
           ]
         },
         {
@@ -180,7 +185,12 @@
           "field": "to",
           "operator": "in",
           "value": [
-            "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69"
+            "0xa3955b47e943ccc6a23e3a66cfd60068de518068",
+            "0x90e522cbfbb038a91c23db825102980c4417a84c",
+            "0x263dbdc3b86732b81f616850f51d41cc3362aece",
+            "0x9161f16bd0753352214a98f3e6e86b8275d023c3",
+            "0xcac9ac9f5720b0b07d3b78925c33906429e16325",
+            "0x0ff5eae643cb7e303f1726a92c03686674d445c0"
           ]
         },
         {
@@ -228,7 +238,12 @@
           "field": "to",
           "operator": "in",
           "value": [
-            "0x58c63bfd94c13acb6f1da665406cc16cf80d1b69"
+            "0xa3955b47e943ccc6a23e3a66cfd60068de518068",
+            "0x90e522cbfbb038a91c23db825102980c4417a84c",
+            "0x263dbdc3b86732b81f616850f51d41cc3362aece",
+            "0x9161f16bd0753352214a98f3e6e86b8275d023c3",
+            "0xcac9ac9f5720b0b07d3b78925c33906429e16325",
+            "0x0ff5eae643cb7e303f1726a92c03686674d445c0"
           ]
         },
         {

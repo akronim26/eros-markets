@@ -1,4 +1,4 @@
-import current from "../../../frontend/src/config/public-manifest.json";
+import current from "../manifest/public-manifest.json";
 import { readFileSync } from 'node:fs'
 import { verifiedOracleAddresses } from './verified-addresses'
 // This deployment's addresses, which handlers filter on because an Envio `where` sees only its own contract's address.

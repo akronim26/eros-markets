@@ -18,6 +18,8 @@ export function expectedPolicy(mode: SignerMode): PolicyCreateParams {
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value && typeof value === "object") return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}:${canonical(v)}`).join(",")}}`;
+  // Privy returns addresses checksummed; compare them without case.
+  if (typeof value === "string" && /^0x[0-9a-fA-F]{40}$/.test(value)) return JSON.stringify(value.toLowerCase());
   return JSON.stringify(value);
 }
 export function policyMatches(actual: { version: string; chain_type: string; rules: { action: string; method: string; conditions: unknown }[] }, mode: SignerMode) {
