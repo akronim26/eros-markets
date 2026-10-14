@@ -19,6 +19,8 @@ test('owner lifecycle through the real terminal and canonical on-chain state', a
   const free = () => client.readContract({ address: vault, abi: vaultAbi, functionName: 'freeAtoms', args: [owner] });
   await page.goto(`/m/${demo.engine}`);
   await expect(page.getByText(/LOCAL E2E FIXTURE/)).toBeVisible();
+  // The storage notice overlays the lower position panel until acknowledged.
+  await page.getByRole('button', { name: 'Got it', exact: true }).click();
   const aside = page.getByRole('complementary', { name: 'Trade', exact: true });
   const funds = page.getByRole('main', { name: 'Trading terminal' }).getByRole('region', { name: 'Account', exact: true });
   const ticket = aside.getByRole('region', { name: 'Order ticket', exact: true });

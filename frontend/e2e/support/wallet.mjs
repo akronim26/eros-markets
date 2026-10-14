@@ -7,8 +7,8 @@ import { client, actor, demo, token, vault, guard, syncClock, runtime } from './
 
 /** EIP-1193 transport for loopback Anvil. Keys never enter the page or its traces. */
 export async function installWallet(page, index = 16) {
-  assert.ok([16, 17, 20, 21].includes(index));
-  const pair = index < 20 ? [16, 17] : [20, 21];
+  assert.ok([16, 17, 20, 21, 22, 23].includes(index));
+  const pair = index < 20 ? [16, 17] : index < 22 ? [20, 21] : [22, 23];
   let selected = actor(index).address, rejectNext = false, switchNext = false;
   const receipts = [];
   await guard();

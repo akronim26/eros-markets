@@ -18,8 +18,8 @@ test('a long closed after the index rises releases its profit to the wallet thro
   const otherContext = await browser.newContext({ baseURL: process.env.EROS_E2E_BASE_URL, viewport: { width: 1440, height: 1000 } });
   const otherPage = await otherContext.newPage();
   otherPage.on('pageerror', error => errors.push(error.message));
-  const trader = await installWallet(page, 18);
-  const counterparty = await installWallet(otherPage, 19);
+  const trader = await installWallet(page, 22);
+  const counterparty = await installWallet(otherPage, 23);
   const timer = setInterval(() => {
     void Promise.all([syncClock(page), syncClock(otherPage)]).catch(e => errors.push(e.message));
   }, 3000);
